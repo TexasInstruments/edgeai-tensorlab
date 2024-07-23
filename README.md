@@ -38,7 +38,35 @@ $ pip3 install --no-input git+https://github.com/TexasInstruments/edgeai-tensorl
 
 The user can as well build the model optimization toolkit from source.
 
+
+Some issues can come : 
+
+1. no module named google 
+
+    pip install --upgrade google-api-python-client
+
+2. Module 'accuracy' doesn't exist on the Hugging Face Hub either. -
+
+    Refer to [this comment.](https://github.com/huggingface/evaluate/issues/456#issuecomment-1712629695)
+
+
 <h2> Model Zoo </h2>
+
+| Model | Model Name or Path   | Float Accuracy | 8-bit Quantized Accuracy|
+| :-----:  | :---:    | :---: | :---: |
+ ||**Image Classification** ||
+| Deit Tiny | facebook/deit-tiny-patch16-224 | 72.2 | | 
+| Deit Small | facebook/deit-small-patch16-224 | 79.9 | | 
+| Swin Tiny | microsoft/swin-tiny-patch4-window7-224 | 81.2 | | 
+| Swin Small | microsoft/swin-small-patch4-window7-224 | 83.2 | | 
+| ConvNeXt Tiny | facebook/convnext-tiny-224 | 82.1 |
+| ConvNeXt Small | facebook/convnext-small-224 | 83.1 |
+ ||**Object Detection** ||
+ |DeTR ResNet50|facebook/detr-resnet-50| 42.0|
+ || **Instance Segmentation** || 
+ |SegFormer B0|nvidia/segformer-b0-finetuned-ade-512-512||
+ |SegFormer B1|nvidia/segformer-b1-finetuned-ade-512-512||
+|SegFormer B2|nvidia/segformer-b2-finetuned-ade-512-512||
 
 <h2> Training and Testing </h2>
 
@@ -52,29 +80,31 @@ The dataset need to be in a folder based format, where the train and validation 
 
 ![](image.png)
 
-This folder based builder is a no-code solution for quickly creating an image dataset with several thousand images. However, it cannot be scaled for more complex or large scale image datasets. We need to define our own writing script which is explained in detail in Advanced Usage section.
+This folder based builder is a no-code solution for quickly creating an image dataset with several thousand images. However, it cannot be scaled for more complex or large scale image datasets. We need to define our own dataset loading script for such use case.
 
+<h4> Dataset Loading Script </h4>
+
+This allows the user to load their own dataset at a much lower time. We need to place the script inside the dataset directory, and name the script same as the directory name. An example has been provided for loading the imagenet dataset over [here](src/transformers/data/datasets), where the scripts imagenet2012.py and classes.py are used for this purpose. After preparing the dataset, the imagenet structure should look like:
+
+![](directory.png)
+
+More details for complex datasets are available over [here.](https://huggingface.co/docs/datasets/en/dataset_script)
 
 <h4> Training </h4>
 
-We provide a script file to enable training. It can be invoked by:
-
-```
-$ sh ./run_image_classification.sh
-```
-
-The individual commands and the arguments are explained in the further section.
+The models can be trained using the below script, the arguments are explained below as well.
 
 ```
 $ cd examples/pytorch/image-classification
 
-$ python run_image_classification.py --train_dir ${dataset_folder}/train --validation_dir ${dataset_folder}/val --output_dir ${output_dir} --overwrite_output_dir --do-train --do-eval --per_device_train_batch_size 128 --per_device_eval_batch_size 128 --model_name_or_path facebook/deit-tiny-patch16-224 --ignore_mismatched_sizes True
+$ python run_image_classification.py --dataset_name ${dataset_folder} --output_dir ${output_dir} --overwrite_output_dir --do-train --do-eval --per_device_train_batch_size 128 --per_device_eval_batch_size 128 --model_name_or_path facebook/deit-tiny-patch16-224 --ignore_mismatched_sizes True
 ```
 
 | Argument | Value (or examples)   | Notes    |
 | :-----:  | :---:    | :---: |
-| train_dir  | ${dataset_folder}/train      |  The folder consisting of training images need to be specified.   |
-| validation_dir  | ${dataset_folder}/val      |  The folder consisting of validation images need to be specified.  |
+| dataset_name | ${dataset_folder} | The dataset directory having the loading script. The dataset name from huggingface hub can also be specified instead. train_dir and val_dir can be skipped if dataset_name is specified.  |
+| train_dir  | ${dataset_folder}/train      |  The folder consisting of training images need to be specified for the no code solution of datasets. Not needed of dataset_name is provided. |
+| validation_dir  | ${dataset_folder}/val      |  The folder consisting of validation images need to be specified for the no code solution of datasets. Not needed of dataset_name is provided. |
 | output_dir  | ${output_dir}      |  The trained network as well as the onnx model will be saved here  |
 | overwrite_output_dir | - | No Value is required, otherwise will be required to specify new output dir |
 | remove_unused_columns | False | |
@@ -86,13 +116,17 @@ $ python run_image_classification.py --train_dir ${dataset_folder}/train --valid
 | ignore_mismatched_sizes | True | Will enable to load a pretrained model whose head dimensions are different|
 
 
-<h4> Object Detection </h4>
+<h3> Object Detection </h3>
 
+<h4> Dataset Preparation </h4>
 
+<h4> Training </h4>
 
-<h4> Instance Segmentation </h4>
+<h3> Instance Segmentation </h3>
 
+<h4> Dataset Preparation </h4>
 
+<h4> Training </h4>
 
 <h2> Quantization and ONNX Export </h2>
 
@@ -106,27 +140,15 @@ Quantization currently does not support distributed training currently.
 ```
 $ cd examples/pytorch/image-classification
 
-$ CUDA_VISIBLE_DEVICES=0 python run_image_classification.py --train_dir ${dataset_folder}/train --validation_dir ${dataset_folder}/val --output_dir ${output_dir} --overwrite_output_dir --do-train --do-eval --per_device_train_batch_size 128 --per_device_eval_batch_size 128 --model_name_or_path facebook/deit-tiny-patch16-224 --ignore_mismatched_sizes True --label_names labels --quantization 2 --quantize_type PTQ --quantize_calib_images 100 
+$ CUDA_VISIBLE_DEVICES=0 python run_image_classification.py --dataset_name ${dataset_folder} --output_dir ${output_dir} --overwrite_output_dir --do-train --do-eval --per_device_train_batch_size 128 --per_device_eval_batch_size 128 --model_name_or_path facebook/deit-tiny-patch16-224 --ignore_mismatched_sizes True --label_names labels --quantization 2 --quantize_type PTQ --quantize_calib_images 100 
 ```
 
-Necessary Arguments : 
+Necessary Arguments on top of training script : 
 
 | Argument | Value (or examples)   | Notes    |
 | :-----:  | :---:    | :---: |
-| train_dir  | ${imagenet_folder}/train      |    |
-| validation_dir  | ${imagenet_folder}/val      |    |
-| output_dir  | ${output_dir}      |  The trained network as well as the onnx model will be saved here  |
-| overwrite_output_dir | - | No Value is required, otherwise will be required to specify new output dir |
-| remove_unused_columns | False | |
-| do_train | - | No Value is required |
-| do_eval | - | No Value is required |
-| per_device_train_batch_size | 128| To specify the batch size during training (per device)|
-| per_device_eval_batch_size | 128 | To specify the batch size during evaluation (per device), need to be same as train batch size currently |
-| model_name_or_path | microsoft/swin-tiny-patch4-window7-224 | Models can be found on huggingface.co | 
-| dataloader_drop_last | True | Whether to drop the last incomplete batch (need to be true for faster pt2e based export now) |
-| label_names | labels | Needed to be specified to enable evaluation  |
-| ignore_mismatched_sizes | True | Will enable to load a pretrained model whose head dimensions are different.  |
-| quantization | 2 | Whether to introduce quantization, an value of 2 would introduce quantization, and 0 signifies no quantization |
+| label_names | labels | Needed to be specified to enable evaluation |
+| quantization | 3 | Whether to introduce quantization, an value of 3 would introduce quantization, and 0 signifies no quantization |
 | quantize_type | QAT | How do we want to quantize the network. (Options. QAT/ PTQ /PTC )   |
 | quantize_calib_images | 50 | The number of calibration images during Post-Training Quantization/Calibration  |
 
