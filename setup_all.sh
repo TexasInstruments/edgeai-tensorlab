@@ -117,7 +117,7 @@ pip uninstall --yes onnxruntime
 
 echo "installing: edgeai-benchmark"
 cd ../edgeai-benchmark
-./setup_pc.sh r9.2
+./setup_pc.sh r10.0
 
 echo "installing edgeai-modelmaker"
 cd ../edgeai-modelmaker

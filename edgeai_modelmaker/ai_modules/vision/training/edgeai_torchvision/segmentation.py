@@ -139,6 +139,8 @@ _model_descriptions = {
                                                      accuracy_factor=77.040, accuracy_unit='MeanIoU%'),
                 constants.TARGET_DEVICE_AM62A: dict(performance_fps=237, performance_infer_time_ms=3*1000/237,
                                                      accuracy_factor=77.040, accuracy_unit='MeanIoU%'),
+                constants.TARGET_DEVICE_AM67A: dict(performance_fps=237, performance_infer_time_ms=f'{3 * 1000 / 237} (with 1/2 device capability)',
+                                                    accuracy_factor=77.040, accuracy_unit='MeanIoU%'),
                 constants.TARGET_DEVICE_AM68A: dict(performance_fps=237, performance_infer_time_ms=1000/237,
                                                      accuracy_factor=77.040, accuracy_unit='MeanIoU%'),
                 constants.TARGET_DEVICE_AM69A: dict(performance_fps=237, performance_infer_time_ms='4.22 (with 1/4th device capability)',

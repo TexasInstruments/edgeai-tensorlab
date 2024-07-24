@@ -51,10 +51,12 @@ TARGET_DEVICE_AM62A = 'AM62A'
 TARGET_DEVICE_AM68A = 'AM68A'
 TARGET_DEVICE_AM69A = 'AM69A'
 TARGET_DEVICE_AM62 = 'AM62'
+TARGET_DEVICE_AM67A = 'AM67A'
 
 TARGET_DEVICES = [
     TARGET_DEVICE_AM62,
     TARGET_DEVICE_AM62A,
+    TARGET_DEVICE_AM67A,
     TARGET_DEVICE_TDA4VM,
     TARGET_DEVICE_AM68A,
     TARGET_DEVICE_AM69A,
@@ -89,8 +91,8 @@ TRAINING_BATCH_SIZE_DEFAULT = {
 }
 
 
-TARGET_SDK_VERSION = '9.2.0'
-TARGET_SDK_RELEASE = '09_02_00'
+TARGET_SDK_VERSION = '10.0.0'
+TARGET_SDK_RELEASE = '10_00_00'
 
 
 EDGEAI_TARGET_DEVICE_ADDITIONAL_INFORMATION = \
@@ -142,6 +144,30 @@ Specification:
 
 Important links:
 {TARGET_DEVICE_SETUP_INSTRUCTIONS_AM62A}
+
+Additional information:
+{EDGEAI_TARGET_DEVICE_ADDITIONAL_INFORMATION}'''
+
+
+##### AM67A ######
+TARGET_DEVICE_SETUP_INSTRUCTIONS_AM67A = \
+f'''* Product information: https://www.ti.com/product/AM67A
+* Development board: https://www.ti.com/tool/J722SXH01EVM
+* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM67A
+* SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM67A
+* SDK release: {TARGET_SDK_RELEASE}'''
+
+
+TARGET_DEVICE_DETAILS_AM67A = \
+f'''Efficient 4 TOPS AI capability at edge
+Specification:
+* 4 TOPS Deep Learning accelerator
+* Quad Arm® Cortex®-A53
+* Integrated ISP
+* More details : https://www.ti.com/product/AM67A
+
+Important links:
+{TARGET_DEVICE_SETUP_INSTRUCTIONS_AM67A}
 
 Additional information:
 {EDGEAI_TARGET_DEVICE_ADDITIONAL_INFORMATION}'''
@@ -234,6 +260,14 @@ TARGET_DEVICE_DESCRIPTIONS = {
         'device_type': TARGET_DEVICE_TYPE_MPU,
         'device_selection_factor': 1,
         'device_details': TARGET_DEVICE_DETAILS_AM62A,
+        'sdk_version': TARGET_SDK_VERSION,
+        'sdk_release': TARGET_SDK_RELEASE,
+    },
+    TARGET_DEVICE_AM67A: {
+        'device_name': TARGET_DEVICE_AM67A,
+        'device_type': TARGET_DEVICE_TYPE_MPU,
+        'device_selection_factor': 1,
+        'device_details': TARGET_DEVICE_DETAILS_AM67A,
         'sdk_version': TARGET_SDK_VERSION,
         'sdk_release': TARGET_SDK_RELEASE,
     },
@@ -434,6 +468,96 @@ PRESET_DESCRIPTIONS = {
             ),
             'best_speed_preset': dict(
                 compilation=dict(calibration_frames=3, calibration_iterations=3, detection_threshold=0.6, detection_top_k=200, tensor_bits=8)
+            ),
+        },
+    },
+    TARGET_DEVICE_AM67A: {
+        TASK_TYPE_CLASSIFICATION: {
+            'best_accuracy_preset': dict(
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=None,
+                                 detection_top_k=None, tensor_bits=16)
+            ),
+            'high_accuracy_preset': dict(
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None,
+                                 detection_top_k=None, tensor_bits=8)
+            ),
+            'default_preset': dict(
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=None,
+                                 detection_top_k=None, tensor_bits=8)
+            ),
+            'high_speed_preset': dict(
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=None,
+                                 detection_top_k=None, tensor_bits=8)
+            ),
+            'best_speed_preset': dict(
+                compilation=dict(calibration_frames=3, calibration_iterations=3, detection_threshold=None,
+                                 detection_top_k=None, tensor_bits=8)
+            ),
+        },
+        TASK_TYPE_DETECTION: {
+            'best_accuracy_preset': dict(
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=0.05,
+                                 detection_top_k=500, tensor_bits=16)
+            ),
+            'high_accuracy_preset': dict(
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.6,
+                                 detection_top_k=200, tensor_bits=8)
+            ),
+            'default_preset': dict(
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=0.6,
+                                 detection_top_k=200, tensor_bits=8)
+            ),
+            'high_speed_preset': dict(
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=0.6,
+                                 detection_top_k=200, tensor_bits=8)
+            ),
+            'best_speed_preset': dict(
+                compilation=dict(calibration_frames=3, calibration_iterations=3, detection_threshold=0.6,
+                                 detection_top_k=200, tensor_bits=8)
+            ),
+        },
+        TASK_TYPE_SEGMENTATION: {
+            'best_accuracy_preset': dict(
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None,
+                                 detection_top_k=None, tensor_bits=16)
+            ),
+            'high_accuracy_preset': dict(
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None,
+                                 detection_top_k=None, tensor_bits=8)
+            ),
+            'default_preset': dict(
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=None,
+                                 detection_top_k=None, tensor_bits=8)
+            ),
+            'high_speed_preset': dict(
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=None,
+                                 detection_top_k=None, tensor_bits=8)
+            ),
+            'best_speed_preset': dict(
+                compilation=dict(calibration_frames=3, calibration_iterations=3, detection_threshold=None,
+                                 detection_top_k=None, tensor_bits=8)
+            ),
+        },
+        TASK_TYPE_KEYPOINT_DETECTION: {
+            'best_accuracy_preset': dict(
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=0.05,
+                                 detection_top_k=500, tensor_bits=16)
+            ),
+            'high_accuracy_preset': dict(
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.6,
+                                 detection_top_k=200, tensor_bits=8)
+            ),
+            'default_preset': dict(
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=0.6,
+                                 detection_top_k=200, tensor_bits=8)
+            ),
+            'high_speed_preset': dict(
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=0.6,
+                                 detection_top_k=200, tensor_bits=8)
+            ),
+            'best_speed_preset': dict(
+                compilation=dict(calibration_frames=3, calibration_iterations=3, detection_threshold=0.6,
+                                 detection_top_k=200, tensor_bits=8)
             ),
         },
     },
