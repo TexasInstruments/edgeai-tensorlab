@@ -96,7 +96,10 @@ echo "Installing tidl_tools verion: ${TIDL_TOOLS_RELEASE_NAME} ..."
 # an array to keep download links
 declare -a TIDL_TOOLS_DOWNLOAD_LINKS
 
-if [[ $TIDL_TOOLS_RELEASE_NAME == "latest" || $TIDL_TOOLS_RELEASE_NAME == "r9.2" ]]; then
+if [[ $TIDL_TOOLS_RELEASE_NAME == "latest" || $TIDL_TOOLS_RELEASE_NAME == "r10.0" ]]; then
+  echo "r10.0 tidl-tools is not yet available. this setup script will be updated once it's available. please use r9.2 for now"
+  exit 1
+elif [[ $TIDL_TOOLS_RELEASE_NAME == "stable" || $TIDL_TOOLS_RELEASE_NAME == "r9.2" ]]; then
   # python version check = 3.10
   version_match=`python3 -c 'import sys;r=0 if sys.version_info >= (3,10) and sys.version_info < (3,11) else 1;print(r)'`
   if [ $version_match -ne 0 ]; then
@@ -126,7 +129,7 @@ if [[ $TIDL_TOOLS_RELEASE_NAME == "latest" || $TIDL_TOOLS_RELEASE_NAME == "r9.2"
     echo "$TARGET_SOC $TIDL_TOOLS_DOWNLOAD_LINK"
   done
 
-elif [[ $TIDL_TOOLS_RELEASE_NAME == "stable" || $TIDL_TOOLS_RELEASE_NAME == "r9.1" ]]; then
+elif [[ $TIDL_TOOLS_RELEASE_NAME == "r9.1" ]]; then
   # python version check = 3.10
   version_match=`python3 -c 'import sys;r=0 if sys.version_info >= (3,10) and sys.version_info < (3,11) else 1;print(r)'`
   if [ $version_match -ne 0 ]; then
