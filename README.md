@@ -40,9 +40,10 @@ These are devices with Analytics Accelerators (DSP and Matrix Multiplier Accelet
 - AM68A / TDA4AL, TDA4VE, TDA4VL
 - AM69A / TDA4VH, TDA4AH, TDA4VP, TDA4AP
 - TDA4VM (AM68PA)
+- AM67A / TDA4AEN
 
 These are non-accelerated devices (model inference runs on ARM cores) supported.
-- AM62
+- AM62 / AM62X, AM62P
 
 The details of these SoCs are [here](https://github.com/TexasInstruments/edgeai/blob/master/readme_sdk.md) 
 
