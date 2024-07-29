@@ -98,7 +98,9 @@ _aqlm_available = _is_package_available("aqlm")
 _av_available = importlib.util.find_spec("av") is not None
 _bitsandbytes_available = _is_package_available("bitsandbytes")
 _eetq_available = _is_package_available("eetq")
+_fbgemm_gpu_available = _is_package_available("fbgemm_gpu")
 _galore_torch_available = _is_package_available("galore_torch")
+_lomo_available = _is_package_available("lomo_optim")
 # `importlib.metadata.version` doesn't work with `bs4` but `beautifulsoup4`. For `importlib.util.find_spec`, reversed.
 _bs4_available = importlib.util.find_spec("bs4") is not None
 _coloredlogs_available = _is_package_available("coloredlogs")
@@ -152,6 +154,7 @@ _safetensors_available = _is_package_available("safetensors")
 _scipy_available = _is_package_available("scipy")
 _sentencepiece_available = _is_package_available("sentencepiece")
 _is_seqio_available = _is_package_available("seqio")
+_is_gguf_available = _is_package_available("gguf")
 _sklearn_available = importlib.util.find_spec("sklearn") is not None
 if _sklearn_available:
     try:
@@ -294,6 +297,18 @@ def is_torch_available():
     return _torch_available
 
 
+def is_torch_deterministic():
+    """
+    Check whether pytorch uses deterministic algorithms by looking if torch.set_deterministic_debug_mode() is set to 1 or 2"
+    """
+    import torch
+
+    if torch.get_deterministic_debug_mode() == 0:
+        return False
+    else:
+        return True
+
+
 def is_hqq_available():
     return _hqq_available
 
@@ -315,6 +330,9 @@ def is_torch_sdpa_available():
     # NOTE: We require torch>=2.1 (and not torch>=2.0) to use SDPA in Transformers for two reasons:
     # - Allow the global use of the `scale` argument introduced in https://github.com/pytorch/pytorch/pull/95259
     # - Memory-efficient attention supports arbitrary attention_mask: https://github.com/pytorch/pytorch/pull/104310
+    # NOTE: MLU is OK with non-contiguous inputs.
+    if is_torch_mlu_available():
+        return version.parse(_torch_version) >= version.parse("2.1.0")
     # NOTE: We require torch>=2.1.1 to avoid a numerical issue in SDPA with non-contiguous inputs: https://github.com/pytorch/pytorch/issues/112577
     return version.parse(_torch_version) >= version.parse("2.1.1")
 
@@ -325,6 +343,10 @@ def is_torchvision_available():
 
 def is_galore_torch_available():
     return _galore_torch_available
+
+
+def is_lomo_available():
+    return _lomo_available
 
 
 def is_pyctcdecode_available():
@@ -370,6 +392,12 @@ def is_causal_conv1d_available():
         if not torch.cuda.is_available():
             return False
         return _is_package_available("causal_conv1d")
+    return False
+
+
+def is_mambapy_available():
+    if is_torch_available():
+        return _is_package_available("mambapy")
     return False
 
 
@@ -624,12 +652,8 @@ def is_torch_mlu_available(check_device=False):
 def is_torchdynamo_available():
     if not is_torch_available():
         return False
-    try:
-        import torch._dynamo as dynamo  # noqa: F401
 
-        return True
-    except Exception:
-        return False
+    return version.parse(_torch_version) >= version.parse("2.0.0")
 
 
 def is_torch_compile_available():
@@ -646,12 +670,20 @@ def is_torch_compile_available():
 def is_torchdynamo_compiling():
     if not is_torch_available():
         return False
-    try:
-        import torch._dynamo as dynamo  # noqa: F401
 
-        return dynamo.is_compiling()
-    except Exception:
-        return False
+    # Importing torch._dynamo causes issues with PyTorch profiler (https://github.com/pytorch/pytorch/issues/130622)
+    # hence rather relying on `torch.compiler.is_compiling()` when possible (torch>=2.3)
+    try:
+        import torch
+
+        return torch.compiler.is_compiling()
+    except AttributeError:
+        try:
+            import torch._dynamo as dynamo  # noqa: F401
+
+            return dynamo.is_compiling()
+        except Exception:
+            return False
 
 
 def is_torch_tensorrt_fx_available():
@@ -729,11 +761,19 @@ def is_ipex_available():
 
 @lru_cache
 def is_torch_xpu_available(check_device=False):
-    "Checks if `intel_extension_for_pytorch` is installed and potentially if a XPU is in the environment"
-    if not is_ipex_available():
+    """
+    Checks if XPU acceleration is available either via `intel_extension_for_pytorch` or
+    via stock PyTorch (>=2.4) and potentially if a XPU is in the environment
+    """
+    if not is_torch_available():
         return False
 
-    import intel_extension_for_pytorch  # noqa: F401
+    torch_version = version.parse(_torch_version)
+    if is_ipex_available():
+        import intel_extension_for_pytorch  # noqa: F401
+    elif torch_version.major < 2 or (torch_version.major == 2 and torch_version.minor < 4):
+        return False
+
     import torch
 
     if check_device:
@@ -767,7 +807,7 @@ def is_flash_attn_2_available():
     # Let's add an extra check to see if cuda is available
     import torch
 
-    if not torch.cuda.is_available():
+    if not (torch.cuda.is_available() or is_torch_mlu_available()):
         return False
 
     if torch.version.cuda:
@@ -775,6 +815,8 @@ def is_flash_attn_2_available():
     elif torch.version.hip:
         # TODO: Bump the requirement to 2.1.0 once released in https://github.com/ROCmSoftwarePlatform/flash-attention
         return version.parse(importlib.metadata.version("flash_attn")) >= version.parse("2.0.4")
+    elif is_torch_mlu_available():
+        return version.parse(importlib.metadata.version("flash_attn")) >= version.parse("2.3.3")
     else:
         return False
 
@@ -784,6 +826,14 @@ def is_flash_attn_greater_or_equal_2_10():
         return False
 
     return version.parse(importlib.metadata.version("flash_attn")) >= version.parse("2.1.0")
+
+
+@lru_cache()
+def is_flash_attn_greater_or_equal(library_version: str):
+    if not _is_package_available("flash_attn"):
+        return False
+
+    return version.parse(importlib.metadata.version("flash_attn")) >= version.parse(library_version)
 
 
 def is_torchdistx_available():
@@ -808,6 +858,10 @@ def is_sentencepiece_available():
 
 def is_seqio_available():
     return _is_seqio_available
+
+
+def is_gguf_available():
+    return _is_gguf_available
 
 
 def is_protobuf_available():
@@ -842,6 +896,10 @@ def is_auto_gptq_available():
 
 def is_eetq_available():
     return _eetq_available
+
+
+def is_fbgemm_gpu_available():
+    return _fbgemm_gpu_available
 
 
 def is_levenshtein_available():

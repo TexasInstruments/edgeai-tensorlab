@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" PyTorch DeBERTa-v2 model."""
+"""PyTorch DeBERTa-v2 model."""
 
 from collections.abc import Sequence
 from typing import Optional, Tuple, Union
@@ -133,7 +133,7 @@ class XSoftmax(torch.autograd.Function):
 
 
 # Copied from transformers.models.deberta.modeling_deberta.DropoutContext
-class DropoutContext(object):
+class DropoutContext:
     def __init__(self):
         self.dropout = 0
         self.mask = None

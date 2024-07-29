@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 "AWQ (Activation aware Weight Quantization) integration file"
+
 from ..activations import ACT2FN
 from ..modeling_utils import PreTrainedModel
 from ..utils import is_auto_awq_available, is_torch_available, logging
@@ -198,7 +199,7 @@ def get_modules_to_fuse(model, quantization_config):
             The quantization configuration to use.
     """
     if not isinstance(model, PreTrainedModel):
-        raise ValueError(f"The model should be an instance of `PreTrainedModel`, got {model.__class__.__name__}")
+        raise TypeError(f"The model should be an instance of `PreTrainedModel`, got {model.__class__.__name__}")
 
     # Always default to `quantization_config.modules_to_fuse`
     if quantization_config.modules_to_fuse is not None:

@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" DBRX model configuration """
+"""DBRX model configuration"""
 
 from typing import Any, Optional
 
@@ -249,6 +249,7 @@ class DbrxConfig(PretrainedConfig):
         self.use_cache = use_cache
         self.initializer_range = initializer_range
         self.output_router_logits = output_router_logits
+        self.num_key_value_heads = self.attn_config.kv_n_heads
 
         tie_word_embeddings = kwargs.pop("tie_word_embeddings", False)
         if tie_word_embeddings:

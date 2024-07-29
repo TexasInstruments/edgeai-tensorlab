@@ -12,7 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" Auto Config class."""
+"""Auto Config class."""
+
 import importlib
 import os
 import re
@@ -54,6 +55,7 @@ CONFIG_MAPPING_NAMES = OrderedDict(
         ("bros", "BrosConfig"),
         ("camembert", "CamembertConfig"),
         ("canine", "CanineConfig"),
+        ("chameleon", "ChameleonConfig"),
         ("chinese_clip", "ChineseCLIPConfig"),
         ("chinese_clip_vision_model", "ChineseCLIPVisionConfig"),
         ("clap", "ClapConfig"),
@@ -107,6 +109,7 @@ CONFIG_MAPPING_NAMES = OrderedDict(
         ("funnel", "FunnelConfig"),
         ("fuyu", "FuyuConfig"),
         ("gemma", "GemmaConfig"),
+        ("gemma2", "Gemma2Config"),
         ("git", "GitConfig"),
         ("glpn", "GLPNConfig"),
         ("gpt-sw3", "GPT2Config"),
@@ -120,6 +123,7 @@ CONFIG_MAPPING_NAMES = OrderedDict(
         ("graphormer", "GraphormerConfig"),
         ("grounding-dino", "GroundingDinoConfig"),
         ("groupvit", "GroupViTConfig"),
+        ("hiera", "HieraConfig"),
         ("hubert", "HubertConfig"),
         ("ibert", "IBertConfig"),
         ("idefics", "IdeficsConfig"),
@@ -127,6 +131,7 @@ CONFIG_MAPPING_NAMES = OrderedDict(
         ("imagegpt", "ImageGPTConfig"),
         ("informer", "InformerConfig"),
         ("instructblip", "InstructBlipConfig"),
+        ("instructblipvideo", "InstructBlipVideoConfig"),
         ("jamba", "JambaConfig"),
         ("jetmoe", "JetMoeConfig"),
         ("jukebox", "JukeboxConfig"),
@@ -139,6 +144,7 @@ CONFIG_MAPPING_NAMES = OrderedDict(
         ("lilt", "LiltConfig"),
         ("llama", "LlamaConfig"),
         ("llava", "LlavaConfig"),
+        ("llava-next-video", "LlavaNextVideoConfig"),
         ("llava_next", "LlavaNextConfig"),
         ("longformer", "LongformerConfig"),
         ("longt5", "LongT5Config"),
@@ -213,6 +219,8 @@ CONFIG_MAPPING_NAMES = OrderedDict(
         ("roberta-prelayernorm", "RobertaPreLayerNormConfig"),
         ("roc_bert", "RoCBertConfig"),
         ("roformer", "RoFormerConfig"),
+        ("rt_detr", "RTDetrConfig"),
+        ("rt_detr_resnet", "RTDetrResNetConfig"),
         ("rwkv", "RwkvConfig"),
         ("sam", "SamConfig"),
         ("seamless_m4t", "SeamlessM4TConfig"),
@@ -255,6 +263,7 @@ CONFIG_MAPPING_NAMES = OrderedDict(
         ("univnet", "UnivNetConfig"),
         ("upernet", "UperNetConfig"),
         ("van", "VanConfig"),
+        ("video_llava", "VideoLlavaConfig"),
         ("videomae", "VideoMAEConfig"),
         ("vilt", "ViltConfig"),
         ("vipllava", "VipLlavaConfig"),
@@ -284,6 +293,7 @@ CONFIG_MAPPING_NAMES = OrderedDict(
         ("xmod", "XmodConfig"),
         ("yolos", "YolosConfig"),
         ("yoso", "YosoConfig"),
+        ("zoedepth", "ZoeDepthConfig"),
     ]
 )
 
@@ -320,6 +330,7 @@ MODEL_NAMES_MAPPING = OrderedDict(
         ("byt5", "ByT5"),
         ("camembert", "CamemBERT"),
         ("canine", "CANINE"),
+        ("chameleon", "Chameleon"),
         ("chinese_clip", "Chinese-CLIP"),
         ("chinese_clip_vision_model", "ChineseCLIPVisionModel"),
         ("clap", "CLAP"),
@@ -349,6 +360,7 @@ MODEL_NAMES_MAPPING = OrderedDict(
         ("deit", "DeiT"),
         ("deplot", "DePlot"),
         ("depth_anything", "Depth Anything"),
+        ("depth_anything_v2", "Depth Anything V2"),
         ("deta", "DETA"),
         ("detr", "DETR"),
         ("dialogpt", "DialoGPT"),
@@ -379,6 +391,7 @@ MODEL_NAMES_MAPPING = OrderedDict(
         ("funnel", "Funnel Transformer"),
         ("fuyu", "Fuyu"),
         ("gemma", "Gemma"),
+        ("gemma2", "Gemma2"),
         ("git", "GIT"),
         ("glpn", "GLPN"),
         ("gpt-sw3", "GPT-Sw3"),
@@ -393,6 +406,7 @@ MODEL_NAMES_MAPPING = OrderedDict(
         ("grounding-dino", "Grounding DINO"),
         ("groupvit", "GroupViT"),
         ("herbert", "HerBERT"),
+        ("hiera", "Hiera"),
         ("hubert", "Hubert"),
         ("ibert", "I-BERT"),
         ("idefics", "IDEFICS"),
@@ -400,6 +414,7 @@ MODEL_NAMES_MAPPING = OrderedDict(
         ("imagegpt", "ImageGPT"),
         ("informer", "Informer"),
         ("instructblip", "InstructBLIP"),
+        ("instructblipvideo", "InstructBlipVideo"),
         ("jamba", "Jamba"),
         ("jetmoe", "JetMoe"),
         ("jukebox", "Jukebox"),
@@ -415,6 +430,7 @@ MODEL_NAMES_MAPPING = OrderedDict(
         ("llama2", "Llama2"),
         ("llama3", "Llama3"),
         ("llava", "LLaVa"),
+        ("llava-next-video", "LLaVa-NeXT-Video"),
         ("llava_next", "LLaVA-NeXT"),
         ("longformer", "Longformer"),
         ("longt5", "LongT5"),
@@ -497,6 +513,8 @@ MODEL_NAMES_MAPPING = OrderedDict(
         ("roberta-prelayernorm", "RoBERTa-PreLayerNorm"),
         ("roc_bert", "RoCBert"),
         ("roformer", "RoFormer"),
+        ("rt_detr", "RT-DETR"),
+        ("rt_detr_resnet", "RT-DETR-ResNet"),
         ("rwkv", "RWKV"),
         ("sam", "SAM"),
         ("seamless_m4t", "SeamlessM4T"),
@@ -542,6 +560,7 @@ MODEL_NAMES_MAPPING = OrderedDict(
         ("univnet", "UnivNet"),
         ("upernet", "UPerNet"),
         ("van", "VAN"),
+        ("video_llava", "VideoLlava"),
         ("videomae", "VideoMAE"),
         ("vilt", "ViLT"),
         ("vipllava", "VipLlava"),
@@ -575,6 +594,7 @@ MODEL_NAMES_MAPPING = OrderedDict(
         ("xmod", "X-MOD"),
         ("yolos", "YOLOS"),
         ("yoso", "YOSO"),
+        ("zoedepth", "ZoeDepth"),
     ]
 )
 
@@ -582,14 +602,29 @@ MODEL_NAMES_MAPPING = OrderedDict(
 # `transfo-xl` (as in `CONFIG_MAPPING_NAMES`), we should use `transfo_xl`.
 DEPRECATED_MODELS = [
     "bort",
+    "deta",
+    "efficientformer",
+    "ernie_m",
+    "gptsan_japanese",
+    "graphormer",
+    "jukebox",
     "mctct",
+    "mega",
     "mmbt",
+    "nat",
+    "nezha",
     "open_llama",
+    "qdqbert",
+    "realm",
     "retribert",
+    "speech_to_text_2",
     "tapex",
     "trajectory_transformer",
     "transfo_xl",
+    "tvlt",
     "van",
+    "vit_hybrid",
+    "xlm_prophetnet",
 ]
 
 SPECIAL_MODEL_TYPE_TO_MODULE_NAME = OrderedDict(
@@ -605,6 +640,7 @@ SPECIAL_MODEL_TYPE_TO_MODULE_NAME = OrderedDict(
         ("clip_vision_model", "clip"),
         ("siglip_vision_model", "siglip"),
         ("chinese_clip_vision_model", "chinese_clip"),
+        ("rt_detr_resnet", "rt_detr"),
     ]
 )
 
@@ -613,7 +649,11 @@ def model_type_to_module_name(key):
     """Converts a config key to the corresponding module."""
     # Special treatment
     if key in SPECIAL_MODEL_TYPE_TO_MODULE_NAME:
-        return SPECIAL_MODEL_TYPE_TO_MODULE_NAME[key]
+        key = SPECIAL_MODEL_TYPE_TO_MODULE_NAME[key]
+
+        if key in DEPRECATED_MODELS:
+            key = f"deprecated.{key}"
+        return key
 
     key = key.replace("-", "_")
     if key in DEPRECATED_MODELS:

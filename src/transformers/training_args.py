@@ -40,6 +40,7 @@ from .utils import (
     ExplicitEnum,
     cached_property,
     is_accelerate_available,
+    is_ipex_available,
     is_safetensors_available,
     is_sagemaker_dp_enabled,
     is_sagemaker_mp_enabled,
@@ -47,6 +48,7 @@ from .utils import (
     is_torch_bf16_cpu_available,
     is_torch_bf16_gpu_available,
     is_torch_mlu_available,
+    is_torch_mps_available,
     is_torch_neuroncore_available,
     is_torch_npu_available,
     is_torch_tf32_available,
@@ -67,7 +69,7 @@ if is_torch_available():
     import torch
     import torch.distributed as dist
 
-    from .pytorch_utils import is_torch_greater_or_equal_than_2_0, is_torch_greater_or_equal_than_2_3
+    from .pytorch_utils import is_torch_greater_or_equal_than_2_0
 
 if is_accelerate_available():
     from accelerate.state import AcceleratorState, PartialState
@@ -171,6 +173,8 @@ class OptimizerNames(ExplicitEnum):
     GALORE_ADAMW_LAYERWISE = "galore_adamw_layerwise"
     GALORE_ADAMW_8BIT_LAYERWISE = "galore_adamw_8bit_layerwise"
     GALORE_ADAFACTOR_LAYERWISE = "galore_adafactor_layerwise"
+    LOMO = "lomo"
+    ADALOMO = "adalomo"
 
 
 # Sometimes users will pass in a `str` repr of a dict in the CLI
@@ -264,6 +268,15 @@ class TrainingArguments:
         eval_delay (`float`, *optional*):
             Number of epochs or steps to wait for before the first evaluation can be performed, depending on the
             eval_strategy.
+        torch_empty_cache_steps (`int`, *optional*):
+            Number of steps to wait before calling `torch.<device>.empty_cache()`. If left unset or set to None, cache will not be emptied.
+
+            <Tip>
+
+            This can help avoid CUDA out-of-memory errors by lowering peak VRAM usage at a cost of about [10% slower performance](https://github.com/huggingface/transformers/issues/31372).
+
+            </Tip>
+
         learning_rate (`float`, *optional*, defaults to 5e-5):
             The initial learning rate for [`AdamW`] optimizer.
         weight_decay (`float`, *optional*, defaults to 0):
@@ -333,6 +346,9 @@ class TrainingArguments:
                 - `"no"`: No save is done during training.
                 - `"epoch"`: Save is done at the end of each epoch.
                 - `"steps"`: Save is done every `save_steps`.
+
+                If `"epoch"` or `"steps"` is chosen, saving will also be performed at the
+                very end of training, always.
         save_steps (`int` or `float`, *optional*, defaults to 500):
             Number of updates steps before two checkpoint saves if `save_strategy="steps"`. Should be an integer or a
             float in range `[0,1)`. If smaller than 1, will be interpreted as ratio of total training steps.
@@ -421,8 +437,9 @@ class TrainingArguments:
             use the corresponding output (usually index 2) as the past state and feed it to the model at the next
             training step under the keyword argument `mems`.
         run_name (`str`, *optional*, defaults to `output_dir`):
-            A descriptor for the run. Typically used for [wandb](https://www.wandb.com/) and
-            [mlflow](https://www.mlflow.org/) logging. If not specified, will be the same as `output_dir`.
+            A descriptor for the run. Typically used for [wandb](https://www.wandb.com/),
+            [mlflow](https://www.mlflow.org/) and [comet](https://www.comet.com/site) logging. If not specified, will
+            be the same as `output_dir`.
         disable_tqdm (`bool`, *optional*):
             Whether or not to disable the tqdm progress bars and table of metrics produced by
             [`~notebook.NotebookTrainingTracker`] in Jupyter Notebooks. Will default to `True` if the logging level is
@@ -459,8 +476,8 @@ class TrainingArguments:
             Use in conjunction with `load_best_model_at_end` and `metric_for_best_model` to specify if better models
             should have a greater metric or not. Will default to:
 
-            - `True` if `metric_for_best_model` is set to a value that isn't `"loss"` or `"eval_loss"`.
-            - `False` if `metric_for_best_model` is not set, or set to `"loss"` or `"eval_loss"`.
+            - `True` if `metric_for_best_model` is set to a value that doesn't end in `"loss"`.
+            - `False` if `metric_for_best_model` is not set, or set to a value that ends in `"loss"`.
         ignore_data_skip (`bool`, *optional*, defaults to `False`):
             When resuming training, whether or not to skip the epochs and batches to get the data loading at the same
             stage as in the previous training. If set to `True`, the training will begin faster (as that skipping step
@@ -572,6 +589,10 @@ class TrainingArguments:
                     training results are fully reproducable using a different sampling technique. While seed-to-seed results
                     may differ, on average the differences are neglible when using multiple different seeds to compare. Should
                     also be ran with [`~utils.set_seed`] for the best results.
+                - use_configured_state (`bool`, *optional*, defaults to `False`):
+                    Whether or not to use a pre-configured `AcceleratorState` or `PartialState` defined before calling `TrainingArguments`.
+                    If `True`, an `Accelerator` or `PartialState` must be initialized. Note that by doing so, this could lead to issues
+                    with hyperparameter tuning.
 
         label_smoothing_factor (`float`, *optional*, defaults to 0.0):
             The label smoothing factor to use. Zero means no label smoothing, otherwise the underlying onehot-encoded
@@ -762,6 +783,12 @@ class TrainingArguments:
             rather than saving all eval logits in memory. When set to `True`, you must pass a compute_metrics function
             that takes a boolean argument `compute_result`, which when passed `True`, will trigger the final global
             summary statistics from the batch-level summary statistics you've accumulated over the evaluation set.
+
+        eval_on_start (`bool`, *optional*, defaults to `False`):
+            Whether to perform a evaluation step (sanity check) before the training to ensure the validation steps works correctly.
+
+        eval_use_gather_object (`bool`, *optional*, defaults to `False`):
+            Whether to run recursively gather object in a nested list/tuple/dictionary of objects from all devices. This should only be enabled if users are not just returning tensors, and this is actively discouraged by PyTorch.
     """
 
     framework = "pt"
@@ -832,6 +859,15 @@ class TrainingArguments:
                 "Number of epochs or steps to wait for before the first evaluation can be performed, depending on the"
                 " eval_strategy."
             )
+        },
+    )
+
+    torch_empty_cache_steps: Optional[int] = field(
+        default=None,
+        metadata={
+            "help": "Number of steps to wait before calling `torch.<device>.empty_cache()`."
+            "This can help avoid CUDA out-of-memory errors by lowering peak VRAM usage at a cost of about [10% slower performance](https://github.com/huggingface/transformers/issues/31372)."
+            "If left unset or set to None, cache will not be emptied."
         },
     )
 
@@ -1115,7 +1151,8 @@ class TrainingArguments:
     )
 
     run_name: Optional[str] = field(
-        default=None, metadata={"help": "An optional descriptor for the run. Notably used for wandb logging."}
+        default=None,
+        metadata={"help": "An optional descriptor for the run. Notably used for wandb, mlflow and comet logging."},
     )
     disable_tqdm: Optional[bool] = field(
         default=None, metadata={"help": "Whether or not to disable the tqdm progress bars."}
@@ -1445,6 +1482,20 @@ class TrainingArguments:
         metadata={"help": "Break eval metrics calculation into batches to save memory."},
     )
 
+    eval_on_start: bool = field(
+        default=False,
+        metadata={
+            "help": "Whether to run through the entire `evaluation` step at the very beginning of training as a sanity check."
+        },
+    )
+
+    eval_use_gather_object: Optional[bool] = field(
+        default=False,
+        metadata={
+            "help": "Whether to run recursively gather object in a nested list/tuple/dictionary of objects from all devices."
+        },
+    )
+
     def __post_init__(self):
         # Parse in args that could be `dict` sent in from the CLI as a string
         for field in _VALID_DICT_FIELDS:
@@ -1501,6 +1552,12 @@ class TrainingArguments:
         self.lr_scheduler_type = SchedulerType(self.lr_scheduler_type)
         if self.do_eval is False and self.eval_strategy != IntervalStrategy.NO:
             self.do_eval = True
+
+        if self.torch_empty_cache_steps is not None:
+            if not (isinstance(self.torch_empty_cache_steps, int) or self.torch_empty_cache_steps > 0):
+                raise ValueError(
+                    f"`torch_empty_cache_steps` must be an integer bigger than 0, got {self.torch_empty_cache_steps}."
+                )
 
         # eval_steps has to be defined and non-zero, fallbacks to logging_steps if the latter is non-zero
         if self.eval_strategy == IntervalStrategy.STEPS and (self.eval_steps is None or self.eval_steps == 0):
@@ -1573,7 +1630,7 @@ class TrainingArguments:
         ) and self.metric_for_best_model is None:
             self.metric_for_best_model = "loss"
         if self.greater_is_better is None and self.metric_for_best_model is not None:
-            self.greater_is_better = self.metric_for_best_model not in ["loss", "eval_loss"]
+            self.greater_is_better = not (self.metric_for_best_model.endswith("loss"))
         if self.run_name is None:
             self.run_name = self.output_dir
         if self.framework == "pt" and is_torch_available():
@@ -1635,38 +1692,42 @@ class TrainingArguments:
             if version.parse(version.parse(torch.__version__).base_version) == version.parse("2.0.0") and self.fp16:
                 raise ValueError("--optim adamw_torch_fused with --fp16 requires PyTorch>2.0")
 
-        if (
-            self.framework == "pt"
-            and is_torch_available()
-            and (self.device.type == "cpu" and not is_torch_greater_or_equal_than_2_3)
-            and (self.device.type != "cuda")
-            and (self.device.type != "mlu")
-            and (self.device.type != "npu")
-            and (self.device.type != "xpu")
-            and (get_xla_device_type(self.device) not in ["GPU", "CUDA"])
-            and (self.fp16 or self.fp16_full_eval)
-        ):
-            raise ValueError(
-                "FP16 Mixed precision training with AMP or APEX (`--fp16`) and FP16 half precision evaluation"
-                " (`--fp16_full_eval`) can only be used on CUDA or MLU devices or NPU devices or certain XPU devices (with IPEX)."
-            )
+        # We need to setup the accelerator config here *before* the first call to `self.device`
+        if is_accelerate_available():
+            if not isinstance(self.accelerator_config, (AcceleratorConfig)):
+                if self.accelerator_config is None:
+                    self.accelerator_config = AcceleratorConfig()
+                elif isinstance(self.accelerator_config, dict):
+                    self.accelerator_config = AcceleratorConfig(**self.accelerator_config)
+                # Check that a user didn't pass in the class instantiator
+                # such as `accelerator_config = AcceleratorConfig`
+                elif isinstance(self.accelerator_config, type):
+                    raise NotImplementedError(
+                        "Tried passing in a callable to `accelerator_config`, but this is not supported. "
+                        "Please pass in a fully constructed `AcceleratorConfig` object instead."
+                    )
+                else:
+                    self.accelerator_config = AcceleratorConfig.from_json_file(self.accelerator_config)
 
-        if (
-            self.framework == "pt"
-            and is_torch_available()
-            and (self.device.type != "cuda")
-            and (self.device.type != "mlu")
-            and (self.device.type != "npu")
-            and (self.device.type != "xpu")
-            and (get_xla_device_type(self.device) not in ["GPU", "CUDA"])
-            and (get_xla_device_type(self.device) != "TPU")
-            and (self.device.type != "cpu")
-            and (self.bf16 or self.bf16_full_eval)
-        ):
-            raise ValueError(
-                "BF16 Mixed precision training with AMP (`--bf16`) and BF16 half precision evaluation"
-                " (`--bf16_full_eval`) can only be used on CUDA, XPU (with IPEX), NPU, MLU or CPU/TPU/NeuronCore devices."
-            )
+            if self.dispatch_batches is not None:
+                warnings.warn(
+                    "Using `--dispatch_batches` is deprecated and will be removed in version 4.41 of 🤗 Transformers. Use"
+                    " `--accelerator_config {'dispatch_batches':VALUE} instead",
+                    FutureWarning,
+                )
+                self.accelerator_config.dispatch_batches = self.dispatch_batches
+
+            if self.split_batches is not None:
+                warnings.warn(
+                    "Using `--split_batches` is deprecated and will be removed in version 4.41 of 🤗 Transformers. Use"
+                    " `--accelerator_config {'split_batches':VALUE} instead",
+                    FutureWarning,
+                )
+                self.accelerator_config.split_batches = self.split_batches
+
+        # Initialize device before we proceed
+        if self.framework == "pt" and is_torch_available():
+            self.device
 
         if self.torchdynamo is not None:
             warnings.warn(
@@ -1755,8 +1816,11 @@ class TrainingArguments:
                 " during training"
             )
 
+        if not isinstance(self.warmup_steps, int) or self.warmup_steps < 0 or 0 < self.warmup_steps <= 1:
+            raise ValueError("warmup_steps must be either 0 or > 1")
+
         if isinstance(self.fsdp, bool):
-            self.fsdp = "full_shard" if self.fsdp else ""
+            self.fsdp = [FSDPOption.FULL_SHARD] if self.fsdp else ""
         if isinstance(self.fsdp, str):
             self.fsdp = [FSDPOption(s) for s in self.fsdp.split()]
         if self.fsdp == [FSDPOption.OFFLOAD]:
@@ -1766,6 +1830,15 @@ class TrainingArguments:
             )
         elif FSDPOption.FULL_SHARD in self.fsdp and FSDPOption.SHARD_GRAD_OP in self.fsdp:
             raise ValueError("`--fsdp full_shard` is not compatible with `--fsdp shard_grad_op`.")
+
+        if self.gradient_checkpointing and (
+            FSDPOption.FULL_SHARD in self.fsdp or FSDPOption.HYBRID_SHARD in self.fsdp
+        ):
+            logger.warning(
+                "When using FSDP full shard, instead of using `gradient_checkpointing` in TrainingArguments, please"
+                " use `activation_checkpointing` in `fsdp_config`. The former introduces a redundant AllGather"
+                " operation in backward pass. Reference: https://github.com/huggingface/transformers/issues/30404"
+            )
 
         if self.fsdp_config is None:
             self.fsdp_config = {}
@@ -1873,37 +1946,6 @@ class TrainingArguments:
 
             os.environ[f"{prefix}USE_ORIG_PARAMS"] = str(self.fsdp_config.get("use_orig_params", "true")).lower()
 
-        if is_accelerate_available():
-            if not isinstance(self.accelerator_config, (AcceleratorConfig)):
-                if self.accelerator_config is None:
-                    self.accelerator_config = AcceleratorConfig()
-                elif isinstance(self.accelerator_config, dict):
-                    self.accelerator_config = AcceleratorConfig(**self.accelerator_config)
-                # Check that a user didn't pass in the class instantiator
-                # such as `accelerator_config = AcceleratorConfig`
-                elif isinstance(self.accelerator_config, type):
-                    raise NotImplementedError(
-                        "Tried passing in a callable to `accelerator_config`, but this is not supported. "
-                        "Please pass in a fully constructed `AcceleratorConfig` object instead."
-                    )
-                else:
-                    self.accelerator_config = AcceleratorConfig.from_json_file(self.accelerator_config)
-            if self.dispatch_batches is not None:
-                warnings.warn(
-                    "Using `--dispatch_batches` is deprecated and will be removed in version 4.41 of 🤗 Transformers. Use"
-                    " `--accelerator_config {'dispatch_batches':VALUE} instead",
-                    FutureWarning,
-                )
-                self.accelerator_config.dispatch_batches = self.dispatch_batches
-
-            if self.split_batches is not None:
-                warnings.warn(
-                    "Using `--split_batches` is deprecated and will be removed in version 4.41 of 🤗 Transformers. Use"
-                    " `--accelerator_config {'split_batches':VALUE} instead",
-                    FutureWarning,
-                )
-                self.accelerator_config.split_batches = self.split_batches
-
         if self.tpu_metrics_debug:
             warnings.warn(
                 "using `--tpu_metrics_debug` is deprecated and will be removed in version 5 of 🤗 Transformers. Use"
@@ -1996,6 +2038,12 @@ class TrainingArguments:
                 FutureWarning,
             )
 
+        if self.eval_use_gather_object and not is_accelerate_available("0.30.0"):
+            raise ValueError(
+                "--eval_use_gather_object requires Accelerate to be version of `accelerate` > 0.30.0."
+                "This is not supported and we recommend you to update your version."
+            )
+
     def __str__(self):
         self_as_dict = asdict(self)
 
@@ -2056,32 +2104,62 @@ class TrainingArguments:
                     f"Using the `Trainer` with `PyTorch` requires `accelerate>={ACCELERATE_MIN_VERSION}`: "
                     "Please run `pip install transformers[torch]` or `pip install accelerate -U`"
                 )
+        # We delay the init of `PartialState` to the end for clarity
+        accelerator_state_kwargs = {"enabled": True, "use_configured_state": False}
+        if isinstance(self.accelerator_config, AcceleratorConfig):
+            accelerator_state_kwargs["use_configured_state"] = self.accelerator_config.pop(
+                "use_configured_state", False
+            )
+        if accelerator_state_kwargs["use_configured_state"]:
+            if PartialState._shared_state == {}:
+                raise ValueError(
+                    "Passing `'use_configured_state':True` to the AcceleratorConfig requires a pre-configured "
+                    "`AcceleratorState` or `PartialState` to be defined before calling `TrainingArguments`. "
+                )
+            # We rely on `PartialState` to yell if there's issues here (which it will)
+            self.distributed_state = PartialState(cpu=self.use_cpu)
+            if self.deepspeed and self.distributed_state.distributed_type != DistributedType.DEEPSPEED:
+                raise RuntimeError(
+                    "Tried to use an already configured `Accelerator` or `PartialState` that was not initialized for DeepSpeed, "
+                    "but also passed in a `deepspeed` configuration to the `TrainingArguments`. Please set "
+                    "`use_configured_state:False` instead or setup your `Accelerator` or `PartialState` properly."
+                )
+        else:
             AcceleratorState._reset_state(reset_partial_state=True)
-        self.distributed_state = None
+            self.distributed_state = None
         if not self.use_ipex and "ACCELERATE_USE_IPEX" not in os.environ:
             os.environ["ACCELERATE_USE_IPEX"] = "false"
+
+        self._n_gpu = 1
         if self.use_cpu or strtobool(os.environ.get("ACCELERATE_USE_CPU", "False")):
-            self.distributed_state = PartialState(cpu=True, backend=self.ddp_backend)
+            accelerator_state_kwargs["cpu"] = True
+            accelerator_state_kwargs["backend"] = self.ddp_backend
             self._n_gpu = 0
         elif is_sagemaker_mp_enabled():
+            accelerator_state_kwargs["enabled"] = False
             local_rank = smp.local_rank()
             device = torch.device("cuda", local_rank)
-            self._n_gpu = 1
             torch.cuda.set_device(device)
         elif is_sagemaker_dp_enabled():
-            self.distributed_state = PartialState(_use_sagemaker_dp=True)
-            self._n_gpu = 1
+            accelerator_state_kwargs["_use_sagemaker_dp"] = True
         elif self.deepspeed:
-            # Need to do similar for Accelerator init
-            os.environ["ACCELERATE_USE_DEEPSPEED"] = "true"
-            self.distributed_state = PartialState(timeout=timedelta(seconds=self.ddp_timeout))
-            del os.environ["ACCELERATE_USE_DEEPSPEED"]
-            self._n_gpu = 1
+            accelerator_state_kwargs["use_deepspeed"] = True
+            accelerator_state_kwargs["timeout"] = timedelta(seconds=self.ddp_timeout)
         else:
-            self.distributed_state = PartialState(
-                backend=self.ddp_backend, timeout=timedelta(seconds=self.ddp_timeout)
-            )
-            self._n_gpu = 1
+            accelerator_state_kwargs["backend"] = self.ddp_backend
+            accelerator_state_kwargs["timeout"] = timedelta(seconds=self.ddp_timeout)
+
+        # Now we pop everything
+        if accelerator_state_kwargs.pop("enabled", False) and not accelerator_state_kwargs.pop(
+            "use_configured_state", False
+        ):
+            # We need to patch this env var when enabling to detect deepspeed
+            use_deepspeed = accelerator_state_kwargs.pop("use_deepspeed", False)
+            if use_deepspeed:
+                os.environ["ACCELERATE_USE_DEEPSPEED"] = "true"
+            self.distributed_state = PartialState(**accelerator_state_kwargs)
+            if use_deepspeed:
+                del os.environ["ACCELERATE_USE_DEEPSPEED"]
         if not is_sagemaker_mp_enabled():
             device = self.distributed_state.device
             self.local_rank = self.distributed_state.local_process_index
@@ -2108,23 +2186,21 @@ class TrainingArguments:
                         "Either you do not have an MPS-enabled device on this machine or MacOS version is not 12.3+ "
                         "or current PyTorch install was not built with MPS enabled."
                     )
-            if device.type == "mps":
-                self._n_gpu = 1
-            elif self.use_cpu:
+            if self.use_cpu:
                 device = torch.device("cpu")
-                self._n_gpu = 0
+            elif is_torch_mps_available():
+                device = torch.device("mps")
             elif is_torch_xpu_available():
+                if not is_ipex_available() and not is_accelerate_available("0.32.0.dev"):
+                    raise ImportError("Using the XPU PyTorch backend requires `accelerate>=0.32.0.dev`")
                 device = torch.device("xpu:0")
                 torch.xpu.set_device(device)
-                self._n_gpu = 1
             elif is_torch_mlu_available():
                 device = torch.device("mlu:0")
                 torch.mlu.set_device(device)
-                self._n_gpu = 1
             elif is_torch_npu_available():
                 device = torch.device("npu:0")
                 torch.npu.set_device(device)
-                self._n_gpu = 1
             else:
                 # if n_gpu is > 1 we'll use nn.DataParallel.
                 # If you only want to use a specific subset of GPUs use `CUDA_VISIBLE_DEVICES=0`
@@ -2132,7 +2208,9 @@ class TrainingArguments:
                 # trigger an error that a device index is missing. Index 0 takes into account the
                 # GPUs available in the environment, so `CUDA_VISIBLE_DEVICES=1,2` with `cuda:0`
                 # will use the first GPU in that env, i.e. GPU#1
-                device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+                device = torch.device(
+                    "cuda:0" if torch.cuda.is_available() else os.environ.get("ACCELERATE_TORCH_DEVICE", "cpu")
+                )
                 # Sometimes the line in the postinit has not been run before we end up here, so just checking we're not at
                 # the default value.
                 self._n_gpu = torch.cuda.device_count()
@@ -2351,6 +2429,18 @@ class TrainingArguments:
         )
         return warmup_steps
 
+    def _dict_torch_dtype_to_str(self, d: Dict[str, Any]) -> None:
+        """
+        Checks whether the passed dictionary and its nested dicts have a *torch_dtype* key and if it's not None,
+        converts torch.dtype to a string of just the type. For example, `torch.float32` get converted into *"float32"*
+        string, which can then be stored in the json format.
+        """
+        if d.get("torch_dtype", None) is not None and not isinstance(d["torch_dtype"], str):
+            d["torch_dtype"] = str(d["torch_dtype"]).split(".")[1]
+        for value in d.values():
+            if isinstance(value, dict):
+                self._dict_torch_dtype_to_str(value)
+
     def to_dict(self):
         """
         Serializes this instance while replace `Enum` by their values (for JSON serialization support). It obfuscates
@@ -2369,6 +2459,8 @@ class TrainingArguments:
             # Handle the accelerator_config if passed
             if is_accelerate_available() and isinstance(v, AcceleratorConfig):
                 d[k] = v.to_dict()
+        self._dict_torch_dtype_to_str(d)
+
         return d
 
     def to_json_string(self):
@@ -2706,7 +2798,7 @@ class TrainingArguments:
 
         Calling this method will set `self.push_to_hub` to `True`, which means the `output_dir` will begin a git
         directory synced with the repo (determined by `model_id`) and the content will be pushed each time a save is
-        triggered (depending on`self.save_strategy`). Calling [`~Trainer.save_model`] will also trigger a push.
+        triggered (depending on your `self.save_strategy`). Calling [`~Trainer.save_model`] will also trigger a push.
 
         </Tip>
 

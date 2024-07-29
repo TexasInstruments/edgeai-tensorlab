@@ -14,7 +14,6 @@
 # limitations under the License.
 """Tokenization classes for OpenAI GPT."""
 
-
 import json
 import os
 from functools import lru_cache
@@ -330,10 +329,3 @@ class GPT2Tokenizer(PreTrainedTokenizer):
         if is_split_into_words or add_prefix_space:
             text = " " + text
         return (text, kwargs)
-
-    @property
-    def default_chat_template(self):
-        """
-        A simple chat template that ignores role information and just concatenates messages with EOS tokens.
-        """
-        return "{% for message in messages %}" "{{ message.content }}{{ eos_token }}" "{% endfor %}"

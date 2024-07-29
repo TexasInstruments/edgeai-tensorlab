@@ -12,9 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" PyTorch OWLv2 model."""
+"""PyTorch OWLv2 model."""
 
-import warnings
 from dataclasses import dataclass
 from functools import lru_cache
 from typing import Any, Dict, Optional, Tuple, Union
@@ -460,7 +459,7 @@ class Owlv2MLP(nn.Module):
         return hidden_states
 
 
-# Copied from transformers.models.clip.modeling_clip.CLIPEncoderLayer with CLIP->Owlv2
+# Copied from transformers.models.altclip.modeling_altclip.AltCLIPEncoderLayer with AltCLIP->Owlv2
 class Owlv2EncoderLayer(nn.Module):
     def __init__(self, config: Owlv2Config):
         super().__init__()
@@ -1016,13 +1015,13 @@ class Owlv2Model(Owlv2PreTrainedModel):
         super().__init__(config)
 
         if not isinstance(config.text_config, Owlv2TextConfig):
-            raise ValueError(
+            raise TypeError(
                 "config.text_config is expected to be of type Owlv2TextConfig but is of type"
                 f" {type(config.text_config)}."
             )
 
         if not isinstance(config.vision_config, Owlv2VisionConfig):
-            raise ValueError(
+            raise TypeError(
                 "config.vision_config is expected to be of type Owlv2VisionConfig but is of type"
                 f" {type(config.vision_config)}."
             )
@@ -1197,16 +1196,7 @@ class Owlv2Model(Owlv2PreTrainedModel):
         if return_loss:
             loss = owlv2_loss(logits_per_text)
 
-        if return_base_image_embeds:
-            warnings.warn(
-                "`return_base_image_embeds` is deprecated and will be removed in v4.27 of Transformers, one can"
-                " obtain the base (unprojected) image embeddings from outputs.vision_model_output.",
-                FutureWarning,
-            )
-            last_hidden_state = vision_outputs[0]
-            image_embeds = self.vision_model.post_layernorm(last_hidden_state)
-        else:
-            text_embeds = text_embeds_norm
+        text_embeds = text_embeds_norm
 
         if not return_dict:
             output = (logits_per_image, logits_per_text, text_embeds, image_embeds, text_outputs, vision_outputs)
@@ -1286,8 +1276,7 @@ class Owlv2ClassPredictionHead(nn.Module):
             if query_mask.ndim > 1:
                 query_mask = torch.unsqueeze(query_mask, dim=-2)
 
-            pred_logits = pred_logits.to(torch.float64)
-            pred_logits = torch.where(query_mask == 0, -1e6, pred_logits)
+            pred_logits = torch.where(query_mask == 0, torch.finfo(pred_logits.dtype).min, pred_logits)
             pred_logits = pred_logits.to(torch.float32)
 
         return (pred_logits, image_class_embeds)

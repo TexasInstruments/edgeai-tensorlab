@@ -12,8 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" PyTorch SeamlessM4Tv2 model."""
-
+"""PyTorch SeamlessM4Tv2 model."""
 
 import copy
 import math
@@ -789,6 +788,8 @@ class SeamlessM4Tv2ConformerEncoder(nn.Module):
                         layer.__call__,
                         hidden_states,
                         attention_mask,
+                        output_attentions,
+                        conv_attention_mask,
                     )
                 else:
                     layer_outputs = layer(

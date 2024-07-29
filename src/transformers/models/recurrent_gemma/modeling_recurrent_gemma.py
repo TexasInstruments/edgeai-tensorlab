@@ -13,7 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" PyTorch RecurrentGemma model."""
+"""PyTorch RecurrentGemma model."""
 
 import math
 from typing import Dict, Optional, Tuple, Union
@@ -59,6 +59,9 @@ class RecurrentGemmaRMSNorm(nn.Module):
         output = output * (1.0 + self.weight.float())
         return output.type_as(x)
 
+    def extra_repr(self):
+        return f"{tuple(self.weight.shape)}, eps={self.eps}"
+
 
 ALL_LAYERNORM_LAYERS.append(RecurrentGemmaRMSNorm)
 
@@ -68,16 +71,14 @@ class RecurrentGemmaRotaryEmbedding(nn.Module):
         super().__init__()
         self.dim = dim
         self.base = base
-        self.register_buffer("inv_freq", None, persistent=False)
+        inv_freq = 1.0 / (self.base ** (torch.arange(0, self.dim, 2, dtype=torch.int64).float() / self.dim))
+        self.register_buffer("inv_freq", tensor=inv_freq, persistent=False)
 
     @torch.no_grad()
     # Copied from transformers.models.gemma.modeling_gemma.GemmaRotaryEmbedding.forward with Gemma->RecurrentGemma
     def forward(self, x, position_ids, seq_len=None):
         # x: [bs, num_attention_heads, seq_len, head_size]
-        if self.inv_freq is None:
-            self.inv_freq = 1.0 / (
-                self.base ** (torch.arange(0, self.dim, 2, dtype=torch.int64, device=x.device).float() / self.dim)
-            )
+        self.inv_freq.to(x.device)
         inv_freq_expanded = self.inv_freq[None, :, None].float().expand(position_ids.shape[0], -1, 1)
         position_ids_expanded = position_ids[:, None, :].float()
         # Force float32 since bfloat16 loses precision on long contexts
@@ -256,8 +257,8 @@ class RecurrentGemmaSdpaAttention(nn.Module):
             k_out = k_out[:, :, indices]
             v_out = v_out[:, :, indices]
 
-            k_out[:, :, cache_position] = key_states
-            v_out[:, :, cache_position] = value_states
+            k_out[:, :, cache_position] = key_states.to(k_out.dtype)
+            v_out[:, :, cache_position] = value_states.to(v_out.dtype)
 
         self.key_states, self.value_states = k_out, v_out
         return k_out, v_out
@@ -542,6 +543,7 @@ class RecurrentGemmaPreTrainedModel(PreTrainedModel):
     _supports_flash_attn_2 = False
     _supports_sdpa = False  # we can't compare with eager for now
     _supports_cache_class = True
+    _supports_quantized_cache = True
 
     def _init_weights(self, module):
         std = math.sqrt(self.config.w_init_variance_scale / self.config.conv1d_width)
@@ -685,7 +687,6 @@ class RecurrentGemmaModel(RecurrentGemmaPreTrainedModel):
         use_cache: Optional[bool] = None,
         output_hidden_states: Optional[bool] = None,
         return_dict: Optional[bool] = None,
-        **kwargs,
     ) -> Union[Tuple, BaseModelOutputWithNoAttention]:
         output_hidden_states = (
             output_hidden_states if output_hidden_states is not None else self.config.output_hidden_states
@@ -824,7 +825,6 @@ class RecurrentGemmaForCausalLM(RecurrentGemmaPreTrainedModel):
         output_hidden_states: Optional[bool] = None,
         return_dict: Optional[bool] = None,
         use_cache: Optional[bool] = None,
-        **kwargs,  # for now we need this for generation
     ) -> Union[Tuple, CausalLMOutput]:
         r"""
         Args:

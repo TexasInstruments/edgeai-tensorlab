@@ -12,8 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" Classes to support Speech-Encoder-Text-Decoder architectures"""
-
+"""Classes to support Speech-Encoder-Text-Decoder architectures"""
 
 from typing import Optional, Tuple, Union
 
@@ -182,6 +181,7 @@ class SpeechEncoderDecoderModel(PreTrainedModel):
     base_model_prefix = "speech_encoder_decoder"
     main_input_name = "inputs"
     supports_gradient_checkpointing = True
+    _supports_param_buffer_assignment = False
 
     def __init__(
         self,
