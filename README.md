@@ -30,10 +30,17 @@ $ pip uninstall huggingface-hub
 $ pip install huggingface-hub
 ```
 
+For using the object detection networks, specific requirements are needed to be installed which can be done by :
+
+```
+$ cd examples/pytorch/object-detection
+$ pip install -r requirements.txt
+```
+
 However, this repositiory utilizes the EdgeAI-ModelOptimization to introduce surgery and quantization in the networks, which can be build by : 
 
 ```
-$ pip3 install --no-input git+https://github.com/TexasInstruments/edgeai-tensorlab/edgeai-modeloptimization.git#subdirectory=torchmodelopt
+$ pip install --no-input git+https://github.com/TexasInstruments/edgeai-tensorlab/edgeai-modeloptimization.git#subdirectory=torchmodelopt
 ```
 
 The user can as well build the model optimization toolkit from source.
