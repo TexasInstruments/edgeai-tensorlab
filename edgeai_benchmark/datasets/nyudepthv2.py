@@ -27,7 +27,6 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
-import h5py
 import scipy.io
 import sys
 import glob
@@ -36,12 +35,19 @@ import numpy as np
 import cv2
 import PIL
 from colorama import Fore
+
 from .. import utils
 from .dataset_base import *
 
 class NYUDepthV2(DatasetBase):
     def __init__(self, num_classes=151, ignore_label=None, download=False, num_frames=None, name='nyudepthv2', **kwargs):
         super().__init__(num_classes=num_classes, num_frames=num_frames, name=name, **kwargs)
+
+        # moving this import hre, to make it conditional
+        try:
+            import h5py
+        except:
+            print(f'h5py package was not found. functionality in this file {os.path.basename(__file__)} may not work')
 
         self.force_download = True if download == 'always' else False
         assert 'path' in self.kwargs and 'split' in self.kwargs, 'path and split must be provided'

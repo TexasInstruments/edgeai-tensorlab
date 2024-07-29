@@ -2,10 +2,6 @@ from .dataset_base import DatasetBase
 from .imagenet import ImageNetCls
 import numpy as np
 import os
-import onnx
-from onnx.helper import tensor_dtype_to_np_dtype
-from onnx.onnx_ml_pb2 import TensorProto
-from onnx import numpy_helper
 
 
 class ONNXBackendDataset(DatasetBase):
@@ -20,6 +16,12 @@ class ONNXBackendDataset(DatasetBase):
             subfolder test_data_set_0 should include inputs and outputs
         '''
         super().__init__(**kwargs)
+
+        # moving this import hre, to make it conditional
+        import onnx
+        from onnx.onnx_ml_pb2 import TensorProto
+        from onnx import numpy_helper
+
         self.path = path
 
         test_data_set_0 = os.path.join(path, "test_data_set_0")
