@@ -49,8 +49,6 @@ def run_accuracy(settings, work_dir, pipeline_configs=None, modify_pipelines_fun
     if pipeline_configs is None:
         # get a dict of model configs
         pipeline_configs = get_configs(settings, work_dir)
-        # initialize datasets
-        initialize_ok = datasets.initialize_datasets(settings)
     #
 
     # create the pipeline_runner which will manage the sessions.

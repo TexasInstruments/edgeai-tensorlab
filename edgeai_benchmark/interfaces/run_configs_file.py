@@ -137,8 +137,6 @@ def run_configs_file(settings, work_dir, pipeline_configs=None, modify_pipelines
             pipeline_config = pipeline_param_to_config(settings, config_file_full_path)
             pipeline_configs[model_id] = pipeline_config
         #
-
-        initialize_ok = datasets.initialize_datasets(settings)
     #
 
     results_list = run_accuracy(settings, work_dir, pipeline_configs, modify_pipelines_func)

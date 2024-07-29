@@ -27,11 +27,18 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
+
+from .. import datasets
 from .get_configs_from_module import *
 from .get_configs_from_file import *
 
 
 def get_configs(settings, work_dir):
+    # initialize the dataset place holders.
+    if settings.dataset_cache is None:
+        settings.dataset_cache = datasets.initialize_datasets(settings)
+    #
+    # now get the config dictionaries
     is_config_file = (os.path.splitext(settings.configs_path)[-1] == '.yaml')
     if is_config_file:
         print(f'Using model config(s) from file: {settings.configs_path}')
@@ -44,6 +51,11 @@ def get_configs(settings, work_dir):
 
 
 def select_configs(settings, work_dir, session_name=None, remove_models=False):
+    # initialize the dataset place holders.
+    if settings.dataset_cache is None:
+        settings.dataset_cache = datasets.initialize_datasets(settings)
+    #
+    # now get the config dictionaries
     is_config_file = (os.path.splitext(settings.configs_path)[-1] == '.yaml')
     if is_config_file:
         print(f'Selecting model config(s) from file: {settings.configs_path}')

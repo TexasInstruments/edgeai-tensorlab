@@ -110,7 +110,7 @@ class PipelineRunner():
             pipeline_config_dataset_list.append(pipeline_config['calibration_dataset'])
             pipeline_config_dataset_list.append(pipeline_config['input_dataset'])
         #
-        # sending dataset_list to download_datasets will cause only those to be downloaded
+        # sending dataset_list to download_datasets will cause only those to be downloaded and/or loaded
         download_ok = datasets.download_datasets(self.settings, dataset_list=pipeline_config_dataset_list)
         # populate the dataset objects into the pipeline_configs
         for pipeline_key, pipeline_config in pipelines_selected.items():

@@ -144,17 +144,17 @@ def get_dataset_names(settings, task_type=None):
     return dataset_categories
 
 
-def _initialize_datasets(settings):
+def initialize_datasets(settings):
     dataset_categories = get_dataset_categories(settings)
-    dataset_cache = {
+    settings.dataset_cache = {
         ds_category: {'calibration_dataset':ds_category, 'input_dataset':ds_category} \
         for ds_category in dataset_categories
     }
-    return dataset_cache
+    return settings.dataset_cache
 
 
 def get_datasets(settings, download=False, dataset_list=None):
-    dataset_cache = _initialize_datasets(settings)
+    dataset_cache = settings.dataset_cache
     dset_info_dict = get_dataset_info_dict(settings)
     dataset_list = dataset_list or get_dataset_categories(settings)
 
@@ -503,18 +503,12 @@ def get_datasets(settings, download=False, dataset_list=None):
     return dataset_cache
 
 
-def initialize_datasets(settings):
-    dataset_cache = _initialize_datasets(settings)
-    settings.dataset_cache = dataset_cache
-    return True
-
-
 def download_datasets(settings, download=True, dataset_list=None):
     # just creating the dataset classes with download=True will check of the dataset folders are present
     # if the dataset folders are missing, it will be downloaded and extracted
     # set download='always' to force re-download the datasets
     settings.dataset_cache = get_datasets(settings, download=download, dataset_list=dataset_list)
-    return True
+    return settings.dataset_cache
 
 
 def _in_dataset_loading(settings, dataset_names):
