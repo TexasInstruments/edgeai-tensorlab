@@ -16,7 +16,7 @@ import torch
 import copy
 
 export_onnx = False 
-model_to_export = 'BEVFormer' # 'PETR', 'DETR3D', 'BEVFormer'
+model_to_export = 'PETR' # 'PETR', 'DETR3D', 'BEVFormer'
 
 def export_PETR(model, inputs=None, data_samples=None, mode=None, **kwargs):
 
@@ -28,18 +28,33 @@ def export_PETR(model, inputs=None, data_samples=None, mode=None, **kwargs):
         # Should clone. Otherwise, when we run both export_model and self.predict,
         # we have error PETRHead forward() - Don't know why
         img = inputs['imgs'].clone()
-        batch_img_metas = [ds.metainfo for ds in data_samples]
 
+        batch_img_metas = [ds.metainfo for ds in data_samples]
         batch_img_metas = onnxModel.add_lidar2img(img, batch_img_metas)
         onnxModel.prepare_data(img, batch_img_metas)
-         
+        masks, coords3d = onnxModel.create_coords3d(img)
+
+        # save masks and lidar_coor_1d
+        masks_np    = masks.to('cpu').numpy()
+        coords3d_np = coords3d.to('cpu').numpy()
+        masks_np.tofile('petrv1_masks.dat')
+        coords3d_np.tofile('petrv1_coords3d.dat')
+
         modelInput = []
         modelInput.append(img)
-        
+        modelInput.append(coords3d)
+
+        # Passed the squeezed img
+        if img.dim() == 5 and img.size(0) == 1:
+            img.squeeze_()
+        elif img.dim() == 5 and img.size(0) > 1:
+            B, N, C, H, W = img.size()
+            img = img.view(B * N, C, H, W)
+
         torch.onnx.export(onnxModel,
                           tuple(modelInput),
-                         'petrv2.onnx',
-                          opset_version=11,
+                         'petrv1.onnx',
+                          opset_version=16,
                           verbose=False)
 
         print("!! ONNX model has been exported for PETR! !!\n\n")
