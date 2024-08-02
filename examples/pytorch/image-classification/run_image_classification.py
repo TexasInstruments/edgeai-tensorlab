@@ -53,6 +53,7 @@ from transformers.utils.versions import require_version
 
 from edgeai_torchmodelopt import xmodelopt
 
+torch.backends.cuda.enable_mem_efficient_sdp(False) # disabling the efficient attention block to support model onnx export
 
 """ Fine-tuning a 🤗 Transformers model for image classification"""
 
@@ -237,7 +238,7 @@ def main():
         # let's parse it to get our arguments.
         model_args, data_args, training_args, model_optimization_args = parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
     else:
-        model_args, data_args, training_args = parser.parse_args_into_dataclasses()
+        model_args, data_args, training_args, model_optimization_args = parser.parse_args_into_dataclasses()
 
 
     # Sending telemetry. Tracking the example usage helps us better allocate resources to maintain them. The
@@ -499,7 +500,8 @@ def main():
         else:
             model.eval()
             example_input = next(iter(dataset["validation"]))
-            example_input['labels'] = torch.tensor(example_input.pop('label')).unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1)
+            labels = example_input.pop('label')
+            # example_input['labels'] = torch.tensor(example_input.pop('label')).unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1)
             example_input['pixel_values'] = example_input['pixel_values'].unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1, 1, 1)
             if isinstance(example_input, dict):
                 example_inputs = ()
