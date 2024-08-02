@@ -104,7 +104,7 @@ The models can be trained using the below script, the arguments are explained be
 ```
 $ cd examples/pytorch/image-classification
 
-$ python run_image_classification.py --dataset_name ${dataset_folder} --output_dir ${output_dir} --overwrite_output_dir --do-train --do-eval --per_device_train_batch_size 128 --per_device_eval_batch_size 128 --model_name_or_path facebook/deit-tiny-patch16-224 --ignore_mismatched_sizes True
+$ python run_image_classification.py --dataset_name ${dataset_folder} --output_dir ${output_dir} --overwrite_output_dir --do_train --do_eval --per_device_train_batch_size 128 --per_device_eval_batch_size 128 --model_name_or_path facebook/deit-tiny-patch16-224 --ignore_mismatched_sizes True --trust_remote_code True
 ```
 
 | Argument | Value (or examples)   | Notes    |
@@ -121,6 +121,7 @@ $ python run_image_classification.py --dataset_name ${dataset_folder} --output_d
 | per_device_eval_batch_size | 128 | To specify the batch size during evaluation (per device)|
 | model_name_or_path | microsoft/swin-tiny-patch4-window7-224 | Supported models are in Model Zoo, other models can be explored from huggingface.co | 
 | ignore_mismatched_sizes | True | Will enable to load a pretrained model whose head dimensions are different|
+| trust_remote_code| True | Will enable using the datasets which are not present in the hub
 
 
 <h3> Object Detection </h3>
@@ -147,7 +148,7 @@ Quantization currently does not support distributed training currently.
 ```
 $ cd examples/pytorch/image-classification
 
-$ CUDA_VISIBLE_DEVICES=0 python run_image_classification.py --dataset_name ${dataset_folder} --output_dir ${output_dir} --overwrite_output_dir --do-train --do-eval --per_device_train_batch_size 128 --per_device_eval_batch_size 128 --model_name_or_path facebook/deit-tiny-patch16-224 --ignore_mismatched_sizes True --label_names labels --quantization 2 --quantize_type PTQ --quantize_calib_images 100 
+$ CUDA_VISIBLE_DEVICES=0 python run_image_classification.py --dataset_name ${dataset_folder} --output_dir ${output_dir} --overwrite_output_dir --do_train --do_eval --per_device_train_batch_size 128 --per_device_eval_batch_size 128 --model_name_or_path facebook/deit-tiny-patch16-224 --ignore_mismatched_sizes True --label_names labels --quantization 2 --quantize_type PTQ --quantize_calib_images 100 
 ```
 
 Necessary Arguments on top of training script : 
@@ -159,6 +160,19 @@ Necessary Arguments on top of training script :
 | quantize_type | QAT | How do we want to quantize the network. (Options. QAT/ PTQ /PTC )   |
 | quantize_calib_images | 50 | The number of calibration images during Post-Training Quantization/Calibration  |
 
+
+Debugging - Common Issues : 
+
+1. ```
+    /pt2e/prepare.py, line 218, in _get_edge_or_node_to_group_id
+        for user in arg.users:
+    AttributeError: 'float' object has no attribute 'users'
+    ```
+    This usually occurs when you have some constant addition to a tensor (example, eps addition in layernorm), to avoid this issue, you can change the network definition to have tensor to tensor addition. For example, the eps can be wrapped as torch.tensor(eps). 
+
+2. Onnx Export Fails due to some missing onnx functions :
+
+    You can define your own onnx symbolic function for the non-supported layer similar to the ones defined in register_onnx_symbolics() function in edgeai-modeloptimization/torchmodelopt/edgeai_torchmodelopt/xmodelopt/quantization/v3/quant_pt2e_utils.py file. 
 
 <h3> Planned Tasks </h3>
 
