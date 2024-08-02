@@ -57,7 +57,7 @@ from torch.fx import Node
 from torch.fx.passes.utils.source_matcher_utils import get_source_partitions
 
 from . import qconfig_types
-from .observer_types import AdaptiveOutlierRemovalActivationObserver
+# from .observer_types import AdaptiveOutlierRemovalActivationObserver
 
 
 def _mark_nodes_as_annotated(nodes: List[Node]):
@@ -481,15 +481,12 @@ class TIDLRTQuantizer(Quantizer):
             if isinstance(input_act0, Node):
                 input_qspec_map[input_act0] = input_act_qspec
 
-            shared_with_input0_qspec = SharedQuantizationSpec((input_act0, cat_node))
             for input_act in inputs[1:]:
-                input_qspec_map[input_act] = shared_with_input0_qspec
-
-            output_act_qspec = shared_with_input0_qspec
+                input_qspec_map[input_act] = input_act_qspec
 
             cat_node.meta["quantization_annotation"] = QuantizationAnnotation(
                 input_qspec_map=input_qspec_map,
-                output_qspec=output_act_qspec,
+                output_qspec=get_output_act_qspec(quantization_config),
                 _annotated=True,
             )
                     

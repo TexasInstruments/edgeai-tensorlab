@@ -277,6 +277,16 @@ def register_onnx_symbolics():
         op_scale = g.op("Cast", op_scale, to_i=torch.onnx.TensorProtoDataType.FLOAT)
         
         return symbolic_helper.quantize_helper(g, x, op_scale, op_zero_point, axis)
+    
+    def aten_copy(g, x):
+        return x
+    
+    
+    register_custom_op_symbolic(
+        symbolic_name='aten::lift_fresh_copy',
+        symbolic_fn=aten_copy,
+        opset_version=17
+    )
 
     register_custom_op_symbolic(
         symbolic_name='aten::_softmax', 
@@ -398,7 +408,8 @@ def add_bias_calibration_hook(model, calibration_factor=0):
             
             output_node = None
             for out_node in p.output_nodes:
-                if out_node.target in [torch.ops.aten.convolution.default, torch.ops.aten.addmm.default, torch.ops.aten.view.default]:
+                if out_node.target in [torch.ops.aten.convolution.default, torch.ops.aten.addmm.default, 
+                                       torch.ops.aten.view.default, torch.ops.aten.add.Tensor]:
                     output_node = out_node
                     break
                 #
@@ -432,21 +443,26 @@ def _fc_outlier_supression_hook(m, x):
     return tuple([x])
 
 
-def is_mlp_fc2_layer(node, find_level, found_gelu=False):
+def is_mlp_fc2_layer(node, find_level, found_gelu=False, gelu_node=None):
     if find_level < 0:
-        return False
+        return False, gelu_node
     if node.target is torch.ops.aten.addmm.default:
         if found_gelu: 
-            return True
+            return True, gelu_node
         else: 
             # found linear before the gelu layer
-            return False
+            return False, gelu_node
         #
     #
     elif node.target is torch.ops.aten.gelu.default:
+        gelu_node = node
         found_gelu = True
+        
+    if hasattr(node, "args") and len(node.args)>0:
+        return is_mlp_fc2_layer(node.args[0], find_level-1, found_gelu, gelu_node)
+    else:
+        return False, gelu_node
     #
-    return is_mlp_fc2_layer(node.args[0], find_level-1, found_gelu)
 
 
 def add_fc_outlier_supression_hook(model):
@@ -469,7 +485,8 @@ def add_fc_outlier_supression_hook(model):
         
             assert prev_node is not None, print("prev_node is node in trying to iterate over nodes") 
             
-            if is_mlp_fc2_layer(prev_node, 6):
+            found_mlp_fc2_layer, gelu_node = is_mlp_fc2_layer(prev_node, 6)
+            if found_mlp_fc2_layer:
                 output_node = None
                 for node in p.output_nodes:
                     if not(isinstance(node.target,str) and 'param_constant' in node.target):
@@ -480,7 +497,9 @@ def add_fc_outlier_supression_hook(model):
                         act_node = output_node
                     else:
                         act_node = output_node.next
-                this_hook = getattr(model, act_node.target).register_forward_pre_hook(_fc_outlier_supression_hook)
-                all_hooks.append(this_hook)
+                this_hook1 = getattr(model, act_node.target).register_forward_pre_hook(_fc_outlier_supression_hook)
+                # this_hook2 = getattr(model, gelu_node.next.target).register_forward_pre_hook(_fc_outlier_supression_hook)
+                all_hooks.append(this_hook1)
+                # all_hooks.append(this_hook2)
                 
     return all_hooks

@@ -30,9 +30,6 @@
 #
 #################################################################################
 
-from . import fx
-from . import pt2e
-
 
 from .observer_types import *
 from .fake_quantize_types import *

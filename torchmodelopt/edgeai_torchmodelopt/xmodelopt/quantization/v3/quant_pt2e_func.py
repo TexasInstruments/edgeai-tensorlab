@@ -80,7 +80,7 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
     
     if isinstance(example_inputs, dict):
         # m = capture_pre_autograd_graph(model, example_inputs)
-        m, guards = torchdynamo.export(model, **example_inputs, aten_graph=True, assume_static_by_default=True)
+        m, guards = torchdynamo.export(model, **example_inputs, aten_graph=True, assume_static_by_default=True, )
         # m, guards = torchdynamo.export(model, aten_graph=True, assume_static_by_default=True)(**example_inputs)
         print("Dynamo Export Completed ! \n\n")
     else:
@@ -164,7 +164,13 @@ def freeze(self, freeze_bn=True, freeze_observers=True):
     for name, mod in self.named_modules():
         if hasattr(mod, "freeze_observer"):
             mod.freeze_observer = freeze_observers
-      
+    
+    # this does not work, neither causes any harm, just here for future
+    if freeze_observers:
+        self.apply(torch.ao.quantization.disable_observer)
+    else:
+        self.apply(torch.ao.quantization.enable_observer)
+    
     # freezing the batchnorm update 
     for n in self.graph.nodes:
         # Args: input, weight, bias, running_mean, running_var, training, momentum, eps

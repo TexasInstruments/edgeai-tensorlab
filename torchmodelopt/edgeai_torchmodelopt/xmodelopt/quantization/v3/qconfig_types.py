@@ -40,7 +40,7 @@ from .observer_types import (
     AdaptiveWeightObserver,
     AdaptivePerChannelWeightObserver,
     AdaptiveActivationObserver,
-    AdaptiveOutlierRemovalActivationObserver
+    # AdaptiveOutlierRemovalActivationObserver
 )
 from .fake_quantize_types import AdaptiveWeightFakeQuantize, AdaptiveActivationFakeQuantize
 from torch.ao.quantization.quantizer.quantizer import (
@@ -168,8 +168,8 @@ def get_act_quantization_config(activation_qconfig):
                                              power2_scale=activation_qconfig.get('power2_scale', False),
                                              range_max=activation_qconfig.get('range_max', None),
                                              fixed_range=activation_qconfig.get('fixed_range', False),
-                                             class_name=activation_qconfig.get('observer_name', observer_name),
-                                             range_shrink_percentile=activation_qconfig.get('range_shrink_percentile', 0.01))
+                                             class_name=activation_qconfig.get('observer_name', observer_name),)
+                                            #  range_shrink_percentile=activation_qconfig.get('range_shrink_percentile', 0.01))
     
     # activation_observer = activation_qconfig.get('observer_or_fake_quant_ctr',\
     #         AdaptiveActivationObserver).with_args(
