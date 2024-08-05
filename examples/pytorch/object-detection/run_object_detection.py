@@ -340,13 +340,14 @@ class ModelOptimizationArguments:
     quantization: int = field(
         default=0,
         metadata={
-            "help" : "Whether we need to introduce quantization in our network. (Options. 0(No Surgery), 1(native), 2(fx/pt2e))"
+            "help" : "Whether we need to introduce quantization in our network. (Options. 0(No Surgery), 1(native), 2(fx), 3(pt2e)). \
+                As of now, only 0/3 is supported for this repository"
         }
     )
     quantize_type: str = field(
         default='QAT',
         metadata={
-            "help" : "How do we want to quantize our network (Options. QAT, PTC/PTQ). This is only applicable when quantization is set to 2"
+            "help" : "How do we want to quantize our network (Options. QAT, PTC/PTQ). This is only applicable when quantization is set to 3"
         }
     )
     quantize_calib_images: int = field(
@@ -533,12 +534,14 @@ def main():
     eval_compute_metrics_fn = partial(
         compute_metrics, image_processor=image_processor, id2label=id2label, threshold=0.0
     )
+
+    assert (model_optimization_args.quantization==0 or model_optimization_args.quantization==3), \
+        print("Only pt2e (args.quantization=3) based quantization is currently supported for hf-transformers ")
+
     
-    if model_optimization_args.quantization == 2 and model_optimization_args.quantize_type != "QAT":
-        data_args.max_train_samples = model_optimization_args.quantize_calib_images * training_args.per_device_train_batch_size
-        training_args.num_train_epochs = 2 # bias calibration in the second epoch
-    
-    if model_optimization_args.quantization == 2:
+    if model_optimization_args.quantization == 3:
+        assert training_args.per_device_train_batch_size == training_args.per_device_eval_batch_size, \
+            print("only fixed batch size across train and eval is currently supported, (args.per_device_train_batch_size and args.per_device_eval_batch_size should be same)")  
         example_input = next(iter(dataset["validation"]))
         # example_input['labels'] = torch.tensor(example_input.pop('labels')).unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1)
         example_input['pixel_values'] = example_input['pixel_values'].unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1, 1, 1)
@@ -546,11 +549,18 @@ def main():
         example_input['labels'] = example_input.pop('labels')
         # labels = example_input.pop('labels')
         convert_to_cuda = False if training_args.use_cpu else True
+        
         if model_optimization_args.quantize_type == "QAT":
+            num_observer_update_epochs = int(len(dataset["train"]) * ((training_args.num_train_epochs//2)+1) / (training_args.n_gpu*training_args.per_device_train_batch_size))
+            num_batch_norm_update_epochs = int(len(dataset["train"]) * ((training_args.num_train_epochs//2)-1) / (training_args.n_gpu*training_args.per_device_train_batch_size))
             model = xmodelopt.quantization.v3.QATPT2EModule(model, total_epochs=training_args.num_train_epochs, is_qat=True, 
                 qconfig_type="DEFAULT", example_inputs=example_input, convert_to_cuda=convert_to_cuda, 
-                bias_calibration_factor=model_optimization_args.bias_calibration_factor)
+                bias_calibration_factor=model_optimization_args.bias_calibration_factor,
+                num_observer_update_epochs = num_observer_update_epochs,
+                num_batch_norm_update_epochs = num_batch_norm_update_epochs)
         else:
+            data_args.max_train_samples = model_optimization_args.quantize_calib_images * training_args.per_device_eval_batch_size * training_args.n_gpu
+            training_args.num_train_epochs = 2 # bias calibration in the second epoch
             model = xmodelopt.quantization.v3.QATPT2EModule(model, total_epochs=training_args.num_train_epochs, is_qat=False, 
                 qconfig_type="DEFAULT", example_inputs=example_input, convert_to_cuda=convert_to_cuda, 
                 bias_calibration_factor=model_optimization_args.bias_calibration_factor, 
@@ -583,10 +593,10 @@ def main():
         file_name = model_args.model_name_or_path.split("/")[-1]
         file_name = training_args.output_dir + '/' + file_name + '_quantized.onnx' if model_optimization_args.quantization else \
             training_args.output_dir + '/' + file_name + '.onnx'
-        if hasattr(model, 'export'):
-            model.export(example_input, filename=file_name, simplify=True, device=export_device)
+        if hasattr(trainer.model, 'export'):
+            trainer.model.export(example_input, filename=file_name, simplify=True, device=export_device)
         else:
-            model.eval()
+            trainer.model.eval()
             example_input = next(iter(dataset["validation"]))
             example_input['labels'] = torch.tensor(example_input.pop('label')).unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1)
             example_input['pixel_values'] = example_input['pixel_values'].unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1, 1, 1)
@@ -596,7 +606,7 @@ def main():
                     example_inputs += tuple([val.to(device=export_device)])
             else:
                 example_inputs = example_input.to(device=export_device)
-            torch.onnx.export(model, example_inputs, file_name, opset_version=17, training=torch._C._onnx.TrainingMode.PRESERVE)
+            torch.onnx.export(trainer.model, example_inputs, file_name, opset_version=17, training=torch._C._onnx.TrainingMode.PRESERVE)
             import onnx
             from onnxsim import simplify
             onnx_model = onnx.load(file_name)

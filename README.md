@@ -148,7 +148,7 @@ Quantization currently does not support distributed training currently.
 ```
 $ cd examples/pytorch/image-classification
 
-$ CUDA_VISIBLE_DEVICES=0 python run_image_classification.py --dataset_name ${dataset_folder} --output_dir ${output_dir} --overwrite_output_dir --do_train --do_eval --per_device_train_batch_size 128 --per_device_eval_batch_size 128 --model_name_or_path facebook/deit-tiny-patch16-224 --ignore_mismatched_sizes True --label_names labels --quantization 2 --quantize_type PTQ --quantize_calib_images 100 
+$ CUDA_VISIBLE_DEVICES=0 python run_image_classification.py --dataset_name ${dataset_folder} --output_dir ${output_dir} --overwrite_output_dir --do_train --do_eval --per_device_train_batch_size 128 --per_device_eval_batch_size 128 --model_name_or_path facebook/deit-tiny-patch16-224 --ignore_mismatched_sizes True --label_names labels --quantization 3 --quantize_type PTQ --quantize_calib_images 100 
 ```
 
 Necessary Arguments on top of training script : 
