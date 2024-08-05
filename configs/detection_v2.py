@@ -301,182 +301,16 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': None}, model_shortlist=100)
         ),     
         ################################# MMDetection Models Test  ###########################
-        #yolox_qdq_small_new_test
-        # 'od-8221':utils.dict_update(common_cfg,
-        #     preprocess=preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
-        #     session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir,input_optimization=False),
-        #         runtime_options=settings.runtime_options_onnx_np2(
-        #            det_options=True, ext_options={'object_detection:meta_arch_type': 6,
-        #             # 'object_detection:meta_layers_names_list': f'/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/onnx_exports/yolox/yolox_s_8xb8-300e_coco.prototxt',
-        #             # "deny_list:layer_type":"ReduceMax,Sub,Sigmoid,Less,Where,Reshape,Expand,Slice,Unsqueeze,Div,TopK,Flatten,Exp,Squeeze,Gather,Shape,NonMaxSuppression",
-        #             # "deny_list:layer_name":"268,273,291,312,270,283,284,313,334,210,222,234,195,196,197,198,200,202,205,211,212,214,220,223,224,226,232,236,243,250,262,263,264,266,276,292,293,296,301,306,308,316,326,328,333,335,338,235,238,240,242,245,247,249,252,254,300,310,319,193,209,221,233,256,258,260,261,289,317,320,324,327,329,194"
-        #             # 'advanced_options:output_feature_16bit_names_list': '177,178.179,190,191.192,164,165,166'
-        #             }),
-        #         # model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_model.onnx'),
-        #         model_path=f'/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/old/yolo_tiny_test/new/yolox_s_8xb8-300e_coco_quantized_simplified.onnx'),
-        #     postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
-        #     metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-        #     model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 30.5}, model_shortlist=None)
-        # ),
-        #yolox_tiny_new_test
-        'od-8211':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(416, 416, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
-            session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_np2(
-                   det_options=True, ext_options={'object_detection:meta_arch_type': 6,
-                    'object_detection:meta_layers_names_list': f'/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/onnx_exports/yolox/yolox_tiny_8xb8-300e_coco.prototxt',
-                    # "deny_list:layer_type":"ReduceMax,Sub,Sigmoid,Less,Where,Reshape,Expand,Slice,Unsqueeze,Div,TopK,Flatten,Exp,Squeeze,Gather,Shape,NonMaxSuppression",
-                    # "deny_list:layer_name":"268,273,291,312,270,283,284,313,334,210,222,234,,195,196,197,198,200,202,205,211,212,214,220,223,224,226,232,236,243,250,262,263,264,266,276,292,293,296,301,306,308,316,326,328,333,335,338,300,310,319,209,221,233,256,258,260,261,289,317,320,324,327,329"
-                    # "allow_list:layer_name":"0,1,2,3,210",
-                    'advanced_options:output_feature_16bit_names_list': '177,178.179,190,191.192,164,165,166'
-                    }),
-                # model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_model.onnx'),
-                model_path=f'/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/onnx_exports/yolox/yolox_tiny_8xb8-300e_coco.onnx'),
-            postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
-            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 30.5}, model_shortlist=None)
-        ),
-        #yolox_small_new_test
-        'od-8212':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
-            session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir,input_optimization=False),
-                runtime_options=settings.runtime_options_onnx_np2(
-                   det_options=True, ext_options={'object_detection:meta_arch_type': 6,
-                    # 'object_detection:meta_layers_names_list': f'/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/onnx_exports/yolox/yolox_s_8xb8-300e_coco.prototxt',
-                    'object_detection:meta_layers_names_list': f'/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/onnx_exports/yolox/test/yolox_s_lite.prototxt',
-                    # "deny_list:layer_type":"ReduceMax,Sub,Sigmoid,Less,Where,Reshape,Expand,Slice,Unsqueeze,Div,TopK,Flatten,Exp,Squeeze,Gather,Shape,NonMaxSuppression",
-                    # "deny_list:layer_name":"268,273,291,312,270,283,284,313,334,210,222,234,195,196,197,198,200,202,205,211,212,214,220,223,224,226,232,236,243,250,262,263,264,266,276,292,293,296,301,306,308,316,326,328,333,335,338,235,238,240,242,245,247,249,252,254,300,310,319,193,209,221,233,256,258,260,261,289,317,320,324,327,329,194"
-                    'advanced_options:output_feature_16bit_names_list': '177,178.179,190,191.192,164,165,166'
-                    }),
-                model_path=f'/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/onnx_exports/yolox/test/yolox_s_lite.onnx'),
-                # model_path=f'/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/onnx_exports/yolox/yolox_s_8xb8-300e_coco.onnx'),
-            postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
-            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 30.5}, model_shortlist=None)
-        ),
-        #yolox_small_new_test_quantization
-        'od-8219':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
-            session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir,input_optimization=False),
-                runtime_options=settings.runtime_options_onnx_np2(
-                   det_options=True, ext_options={'object_detection:meta_arch_type': 6,
-                    'object_detection:meta_layers_names_list': f'/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/old/yolo_tiny_test/yolox/yolox_s_lite_640x640_20220221_checkpoint_quant.prototxt',
-                    # "deny_list:layer_type":"ReduceMax,Sub,Sigmoid,Less,Where,Reshape,Expand,Slice,Unsqueeze,Div,TopK,Flatten,Exp,Squeeze,Gather,Shape,NonMaxSuppression",
-                    # "deny_list:layer_type":"Slice,Maxpool"
-                    # "deny_list:layer_name":"\slice"
-                    # "deny_list:layer_name":"268,273,291,312,270,283,284,313,334,210,222,234,195,196,197,198,200,202,205,211,212,214,220,223,224,226,232,236,243,250,262,263,264,266,276,292,293,296,301,306,308,316,326,328,333,335,338,235,238,240,242,245,247,249,252,254,300,310,319,193,209,221,233,256,258,260,261,289,317,320,324,327,329,194"
-                    # 'advanced_options:output_feature_16bit_names_list': '177,178.179,190,191.192,164,165,166'
-                    }),
-                # model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_model.onnx'),
-                model_path=f'/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/old/yolo_tiny_test/yolox/yolox_s_8xb8-300e_coco_quantized_simplified_modified.onnx'),
-            postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
-            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 30.5}, model_shortlist=None)
-        ),
-        # yolox_pico_lite
-        'od-8215':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(320, 320, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
-            session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_np2(
-                   det_options=True, ext_options={'object_detection:meta_arch_type': 6,
-                    'object_detection:meta_layers_names_list': f'/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/onnx_exports/yolox/yolox_pico_lite.prototxt',
-                    # "deny_list:layer_type":"ReduceMax,Sub,Sigmoid,Less,Where,Reshape,Expand,Slice,Unsqueeze,Div,TopK,Flatten,Exp,Squeeze,Gather,Shape,NonMaxSuppression",
-                    # "deny_list:layer_name":"268,273,291,312,270,283,284,313,334,210,222,234,195,196,197,198,200,202,205,211,212,214,220,223,224,226,232,236,243,250,262,263,264,266,276,292,293,296,301,306,308,316,326,328,333,335,338,235,238,240,242,245,247,249,252,254,300,310,319,193,209,221,233,256,258,260,261,289,317,320,324,327,329,194"
-                    'advanced_options:output_feature_16bit_names_list': '177,178.179,190,191.192,164,165,166'
-                    }),
-                # model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_model.onnx'),
-                model_path=f'/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/onnx_exports/yolox/yolox_pico_lite.onnx'),
-            postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
-            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 30.5}, model_shortlist=None)
-        ),
-        # yolox_m_lite
-        'od-8216':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
-            session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_np2(
-                   det_options=True, ext_options={'object_detection:meta_arch_type': 6,
-                    'object_detection:meta_layers_names_list': f'/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/onnx_exports/yolox/yolox_m_8xb8-300e_coco.prototxt',
-                    # "deny_list:layer_type":"ReduceMax,Sub,Sigmoid,Less,Where,Reshape,Expand,Slice,Unsqueeze,Div,TopK,Flatten,Exp,Squeeze,Gather,Shape,NonMaxSuppression",
-                    # "deny_list:layer_name":"268,273,291,312,270,283,284,313,334,210,222,234,195,196,197,198,200,202,205,211,212,214,220,223,224,226,232,236,243,250,262,263,264,266,276,292,293,296,301,306,308,316,326,328,333,335,338,235,238,240,242,245,247,249,252,254,300,310,319,193,209,221,233,256,258,260,261,289,317,320,324,327,329,194"
-                    'advanced_options:output_feature_16bit_names_list': '232,233.234,245,246,247,219,220,221'
-                    }),
-                # model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_model.onnx'),
-                model_path=f'/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/onnx_exports/yolox/yolox_m_8xb8-300e_coco.onnx'),
-            postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
-            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 30.5}, model_shortlist=None)
-        ),
-        #yolox_femto_lite
-        'od-8217':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(320, 320, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
-            session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_np2(
-                   det_options=True, ext_options={'object_detection:meta_arch_type': 6,
-                    'object_detection:meta_layers_names_list': f'/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/onnx_exports/yolox/yolox_femto_lite.prototxt',
-                    # "deny_list:layer_type":"ReduceMax,Sub,Sigmoid,Less,Where,Reshape,Expand,Slice,Unsqueeze,Div,TopK,Flatten,Exp,Squeeze,Gather,Shape,NonMaxSuppression",
-                    # "deny_list:layer_name":"268,273,291,312,270,283,284,313,334,210,222,234,195,196,197,198,200,202,205,211,212,214,220,223,224,226,232,236,243,250,262,263,264,266,276,292,293,296,301,306,308,316,326,328,333,335,338,235,238,240,242,245,247,249,252,254,300,310,319,193,209,221,233,256,258,260,261,289,317,320,324,327,329,194"
-                    # 'advanced_options:output_feature_16bit_names_list': '177,178.179,190,191.192,164,165,166'
-                    }),
-                # model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_model.onnx'),
-                model_path=f'/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/onnx_exports/yolox/yolox_femto_lite.onnx'),
-            postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
-            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 30.5}, model_shortlist=None)
-        ),
-        #centernet_resnet18_140e_coco
-        'od-8213':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(512, 512, reverse_channels=False, resize_with_pad=True, backend='cv2', pad_color=[114, 114, 114]),
-            # input_mean=(123.675, 116.28, 103.53), input_scale=(0.0171247538316637,0.0175070028011204,0.0174291938997821)
-            session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir, input_mean=(123.675, 116.28, 103.53), input_scale=(0.0171247538316637,0.0175070028011204,0.0174291938997821)),
-                runtime_options=settings.runtime_options_onnx_np2(
-                   det_options=True, ext_options={'object_detection:meta_arch_type': 6,
-                    # 'object_detection:meta_layers_names_list': f'/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/yolo_tiny_test/yolox/yolox_s_lite_640x640_20220221_checkpoint.prototxt',
-                    # "deny_list:layer_type":"ReduceMax,Sub,Sigmoid,Less,Where,Reshape,Expand,Slice,Unsqueeze,Div,TopK,Flatten,Exp,Squeeze,Gather,Shape,NonMaxSuppression",
-                    # "deny_list:layer_name":"268,273,291,312,270,283,284,313,334,210,222,234,195,196,197,198,200,202,205,211,212,214,220,223,224,226,232,236,243,250,262,263,264,266,276,292,293,296,301,306,308,316,326,328,333,335,338,235,238,240,242,245,247,249,252,254,300,310,319,193,209,221,233,256,258,260,261,289,317,320,324,327,329,194"
-                    # 'advanced_options:output_feature_16bit_names_list': '1033, 711, 712, 713, 727, 728, 728, 743, 744, 745'
-                    }),
-                # model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_model.onnx'),
-                model_path=f'/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/onnx_exports/centernet/centernet-update_r50-caffe_fpn_ms-1x_coco.onnx'),
-            postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
-            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 30.5}, model_shortlist=None)
-        ),
-        #FCOS
-        'od-8214':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx((800, 1216),(800, 1216), reverse_channels=True, resize_with_pad=True, backend='cv2', pad_color=[114, 114, 114]),
-            # input_mean=(123.675, 116.28, 103.53), input_scale=(0.0171247538316637,0.0175070028011204,0.0174291938997821)
-            session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir, input_mean=(102.9801, 115.9465, 122.7717), input_scale=(1.0,1.0,1.0)),
-                runtime_options=settings.runtime_options_onnx_np2(
-                   det_options=True, ext_options={'object_detection:meta_arch_type': 6,
-                    # 'object_detection:meta_layers_names_list': f'/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/yolo_tiny_test/yolox/yolox_s_lite_640x640_20220221_checkpoint.prototxt',
-                    # "deny_list:layer_type":"ReduceMax,Sub,Sigmoid,Less,Where,Reshape,Expand,Slice,Unsqueeze,Div,TopK,Flatten,Exp,Squeeze,Gather,Shape,NonMaxSuppression",
-                    # "deny_list:layer_name":"268,273,291,312,270,283,284,313,334,210,222,234,195,196,197,198,200,202,205,211,212,214,220,223,224,226,232,236,243,250,262,263,264,266,276,292,293,296,301,306,308,316,326,328,333,335,338,235,238,240,242,245,247,249,252,254,300,310,319,193,209,221,233,256,258,260,261,289,317,320,324,327,329,194"
-                    # 'advanced_options:output_feature_16bit_names_list': '1033, 711, 712, 713, 727, 728, 728, 743, 744, 745'
-                    }),
-                # model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_model.onnx'),
-                model_path=f'/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/yolo_tiny_test/yolox/fcos_r50_caffe_fpn_gn-head_1x_coco.onnx'),
-            postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
-            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 30.5}, model_shortlist=None)
-        ),
         #efficientDET
         'od-8218':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(512, 512, reverse_channels=False, resize_with_pad=True, backend='cv2', pad_color=[114, 114, 114]),
-            # input_mean=(123.675, 116.28, 103.53), input_scale=(0.0171247538316637,0.0175070028011204,0.0174291938997821)
-            session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir, input_optimization=False, input_mean=(123.675, 116.28, 103.53), input_scale=(1/58.395, 1/57.12, 1/57.375)
-                                                                        ),
+            session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir, input_optimization=False, input_mean=(123.675, 116.28, 103.53), input_scale=(0.0171247538316637, 0.0175070028011204, 0.0174291938997821)),
                 runtime_options=settings.runtime_options_onnx_np2(
                    det_options=True, ext_options={
                     'object_detection:meta_arch_type': 3,
-                    'object_detection:meta_layers_names_list': f'/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/onnx_exports/Efficientdet/efficientdet_b0/efficientdet_effb0_bifpn_8xb16-crop512-300e_coco_nms.prototxt',
-                    'advanced_options:c7x_firmware_version':"09_02_09_00",
-                    # "deny_list:layer_type":"ReduceMax,Sub,Sigmoid,Less,Where,Reshape,Expand,Slice,Unsqueeze,Div,TopK,Flatten,Exp,Squeeze,Gather,Shape,NonMaxSuppression",
-                    # "deny_list:layer_name":"268,273,291,312,270,283,284,313,334,210,222,234,195,196,197,198,200,202,205,211,212,214,220,223,224,226,232,236,243,250,262,263,264,266,276,292,293,296,301,306,308,316,326,328,333,335,338,235,238,240,242,245,247,249,252,254,300,310,319,193,209,221,233,256,258,260,261,289,317,320,324,327,329,194"
-                    # 'advanced_options:output_feature_16bit_names_list': '1033, 711, 712, 713, 727, 728, 728, 743, 744, 745'
+                    'object_detection:meta_layers_names_list': f'../edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/efficientdet_effb0_bifpn_8xb16-crop512-300e_lite_20240612_model.prototxt',
                     }),
-                # model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_model.onnx'),
-                model_path=f'/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/onnx_exports/Efficientdet/efficientdet_b0/efficientdet_effb0_bifpn_8xb16-crop512-300e_coco_nms_optimized.onnx'),
+                model_path=f'../edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/efficientdet_effb0_bifpn_8xb16-crop512-300e_lite_20240612_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 30.5}, model_shortlist=None)
@@ -484,117 +318,16 @@ def get_configs(settings, work_dir):
         #DETR mmdetection
         'od-8911':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((800,1199),(800,1199), resize_with_pad=True, backend='cv2'),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, #input_mean=(123.675, 116.28, 103.53), input_scale=(0.003921568627, 0.003921568627, 0.003921568627)
-                                                                      ),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
                 runtime_options=settings.runtime_options_onnx_np2(
                     det_options=True, ext_options={
                      'object_detection:meta_arch_type': 6, 
-                    #   'object_detection:meta_layers_names_list':f'',
-                      'advanced_options:c7x_firmware_version':"09_02_09_00",
-                    #  'advanced_options:output_feature_16bit_names_list':'MatMul_1468,MatMul_1465,MatMul_1460',
-                    #  "deny_list:layer_name":"/Split",
-                    #  "deny_list:layer_type":"Flatten",
                      'onnxruntime:graph_optimization_level': 0 
                      }),
-                model_path=f'/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/onnx_exports/detr/detr_r50_8xb2-150e_coco.onnx'),
+                model_path=f'../edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/detr_r50_8xb2-150e_20240722_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 30.5}, model_shortlist=None)
-        ),
-        #SSD_mobilenetv2
-        'od-8912':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(512,512, resize_with_pad=True, backend='cv2'),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, #input_mean=(123.675, 116.28, 103.53), input_scale=(0.003921568627, 0.003921568627, 0.003921568627)
-                                                                      ),
-                runtime_options=settings.runtime_options_onnx_np2(
-                    det_options=True, ext_options={
-                    'object_detection:meta_arch_type': 3, 
-                    'object_detection:meta_layers_names_list':f'/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/onnx_exports/ssd/old/ssd_mobilenet_fpn_lite_new.prototxt',
-                    'advanced_options:c7x_firmware_version':"09_02_09_00",
-                    #  'advanced_options:output_feature_16bit_names_list':'MatMul_1468,MatMul_1465,MatMul_1460',
-                    #  "deny_list:layer_name":"MatMul_1468,MatMul_1465,Add_1469,Add_1466,Relu_1467,Sigmoid_1470,Relu_1464,Add_1463",
-                    #  'onnxruntime:graph_optimization_level': 0 
-                     }),
-                model_path=f'/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/onnx_exports/ssd/old/ssd_mobilenet_fpn_lite_new.onnx'),
-            postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
-            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 30.5}, model_shortlist=None)
-        ),
-        # yolov3regnext
-        'od-8913':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir,input_optimization=False),
-                runtime_options=settings.runtime_options_onnx_np2(
-                    det_options=True, ext_options={
-                    'object_detection:meta_arch_type': 4,
-                     'object_detection:meta_layers_names_list':f'/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/onnx_exports/yolov3/yolov3_regnet_bgr_lite.prototxt',
-                    #  'advanced_options:output_feature_16bit_names_list':'823, 830, 837'
-                     }),
-                model_path=f'/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/onnx_exports/yolov3/yolov3_regnet_bgr_lite.onnx'),
-            postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()),
-            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':30.7}, model_shortlist=None)
-        ),
-        #### retinanet
-        'od-8032':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir,input_optimization=False),
-                runtime_options=settings.runtime_options_onnx_np2(
-                    det_options=True, ext_options={'object_detection:meta_arch_type': 3,
-                    #  'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/ssd_mobilenetv2_fpn_lite_512x512_20201110_model.prototxt'
-                    'object_detection:meta_layers_names_list':f'/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/onnx_exports/retinanet/retinanet_regnet_fpn_bgr_lite.prototxt'
-                     }),
-                # model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/ssd_mobilenetv2_fpn_lite_512x512_20201110_model.onnx'),
-                model_path=f'/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/onnx_exports/retinanet/retinanet_regnet_fpn_bgr_lite.onnx'),
-            postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()),
-            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':27.2}, model_shortlist=None)
-        ),
-        #ssd
-        'od-8222':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx((320,320), (320,320), backend='cv2'),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False #input_mean=(123.675, 116.28, 103.53), input_scale=(0.0171247538316637,0.0175070028011204,0.0174291938997821)
-                                                                      ),
-                runtime_options=settings.runtime_options_onnx_np2(
-                    det_options=True, ext_options={'object_detection:meta_arch_type': 3,
-                     'object_detection:meta_layers_names_list':f'/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/onnx_exports/ssd/new/ssd_mobilenetp5_lite_320x320.prototxt',
-                    #  'object_detection:meta_layers_names_list':f'/data/files/a0508577/work/edgeai-algo/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/ssd_mobilenetp5_lite_320x320_20230404_model.prototxt',
-                    #  "deny_list:layer_type":"Sub,Tile,Div,Where,Constant,ConstantOfShape,Squeeze,Range,Flatten,Unsqueeze,Exp,Gather,Shape,Slice,Clip,NonZero,Expand,Transpose,Reshape,Equal,ReduceMax,Greater,NonMaxSuppression,ScatterND,Concat,Softmax",
-                    #  "deny_list:layer_name":"Cast_255,Cast_256,Cast_266,Cast_267,Cast_359,Cast_360,Cast_370,Cast_371,Cast_463,Cast_464,Cast_474,Cast_475,Cast_567,Cast_568,Cast_578,Cast_579,Cast_671,Cast_672,Cast_682,Cast_683,Cast_775,Cast_776,Cast_786,Cast_787,Cast_894,Cast_913,Cast_915,Cast_917,Cast_920,Cast_937,Cast_944,Cast_1004,Cast_1011,Cast_1051,Cast_1053,Cast_1058,Cast_1074,Add_272,Add_312,Add_314,Add_323,Add_326,Add_376,Add_416,Add_418,Add_427,Add_430,Add_480,Add_520,Add_522,Add_531,Add_534,Add_584,Add_624,Add_626,Add_635,Add_638,Add_688,Add_728,Add_730,Add_739,Add_742,Add_792,Add_832,Add_834,Add_843,Add_846,Add_922,Add_925,Add_957,Add_999,Add_1024,Mul_271,Mul_308,Mul_310,Mul_311,Mul_313,Mul_316,Mul_319,Mul_322,Mul_325,Mul_375,Mul_412,Mul_414,Mul_415,Mul_417,Mul_420,Mul_423,Mul_426,Mul_429,Mul_479,Mul_516,Mul_518,Mul_519,Mul_521,Mul_524,Mul_527,Mul_530,Mul_533,Mul_583,Mul_620,Mul_622,Mul_623,Mul_625,Mul_628,Mul_631,Mul_634,Mul_637,Mul_687,Mul_724,Mul_726,Mul_727,Mul_729,Mul_732,Mul_735,Mul_738,Mul_741,Mul_791,Mul_828,Mul_830,Mul_831,Mul_833,Mul_836,Mul_839,Mul_842,Mul_845,Mul_885,Mul_923,Mul_962,Mul_970,Mul_1029,Mul_1037"
-                     }),
-                model_path=f'/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/onnx_exports/ssd/new/ssd_mobilenetp5_lite_320x320.onnx'),
-                # model_path=f'/data/files/a0508577/work/edgeai-algo/edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/ssd_mobilenetp5_lite_320x320_20230404_model.onnx'),
-            postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()),
-            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':25.1}, model_shortlist=None)
-        ),
-        #ssd_mnv2
-        'od-8021':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_np2(
-                    det_options=True, ext_options={'object_detection:meta_arch_type': 3,
-                     'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/ssd_mobilenetv2_lite_512x512_20201214_model.prototxt'}),
-                model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/ssd_mobilenetv2_lite_512x512_20201214_model.onnx'),
-            postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()),
-            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':25.1}, model_shortlist=10)
-        ),
-        #ssd_mobilenetv2_fpn
-        'od-8031':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir,input_optimization=False),
-                runtime_options=settings.runtime_options_onnx_np2(
-                    det_options=True, ext_options={'object_detection:meta_arch_type': 3,
-                    #  'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/ssd_mobilenetv2_fpn_lite_512x512_20201110_model.prototxt'
-                    'object_detection:meta_layers_names_list':f'/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/onnx_exports/ssd/old/ssd_mobilenet_fpn_lite_new.prototxt'
-                     }),
-                # model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/ssd_mobilenetv2_fpn_lite_512x512_20201110_model.onnx'),
-                model_path=f'/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/onnx_exports/ssd/old/ssd_mobilenet_fpn_lite_new.onnx'),
-            postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, formatter=postprocess.DetectionBoxSL2BoxLS()),
-            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':27.2}, model_shortlist=None)
         ),
     }
     return pipeline_configs
-
