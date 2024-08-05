@@ -270,7 +270,7 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, with_onnxsim=True, input_optimization=False, tidl_onnx_model_optimizer=True),
                 runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'../edgeai-modelzoo/models/vision/classification/imagenet1k/torchvision/convnext_small.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':None}, model_shortlist=None)
+            model_info=dict(metric_reference={'accuracy_top1%':None}, model_shortlist=110)
         ),
         # torchvision: classification efficientnet_b0 expected_metric:  top-1 accuracy
         'cl-6810':utils.dict_update(common_cfg,
@@ -282,7 +282,7 @@ def get_configs(settings, work_dir):
                      },
                     ),
                 model_path=f'../edgeai-modelzoo/models/vision/classification/imagenet1k/torchvision/efficientnet_b0.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':None}, model_shortlist=None)
+            model_info=dict(metric_reference={'accuracy_top1%':None}, model_shortlist=110)
         ),
         # torchvision: classification efficientnet_b1 expected_metric:  top-1 accuracy
         'cl-6820':utils.dict_update(common_cfg,
@@ -294,7 +294,7 @@ def get_configs(settings, work_dir):
                      },
                     ),
                 model_path=f'../edgeai-modelzoo/models/vision/classification/imagenet1k/torchvision/efficientnet_b1.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':None}, model_shortlist=None)
+            model_info=dict(metric_reference={'accuracy_top1%':None}, model_shortlist=110)
         ),
         # torchvision: classification mobilenet_v3_small expected_metric:  top-1 accuracy
         'cl-6830':utils.dict_update(common_cfg,
@@ -307,7 +307,7 @@ def get_configs(settings, work_dir):
                      },
                     ),
                 model_path=f'../edgeai-modelzoo/models/vision/classification/imagenet1k/torchvision/mobilenet_v3_small_simp.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':None}, model_shortlist=None)
+            model_info=dict(metric_reference={'accuracy_top1%':None}, model_shortlist=110)
         ),
         # torchvision: classification mobilenet_v3_large expected_metric:  top-1 accuracy
         'cl-6840':utils.dict_update(common_cfg,
@@ -319,7 +319,7 @@ def get_configs(settings, work_dir):
                      },
                     ),
                 model_path=f'../edgeai-modelzoo/models/vision/classification/imagenet1k/torchvision/mobilenet_v3_large.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':None}, model_shortlist=None)
+            model_info=dict(metric_reference={'accuracy_top1%':None}, model_shortlist=110)
         ),  
         # hf-transformers: classification convnext-tiny-224 expected_metric:  top-1 accuracy
         'cl-6840':utils.dict_update(common_cfg,
@@ -331,7 +331,7 @@ def get_configs(settings, work_dir):
                      },
                     ),
                 model_path=f'../edgeai-modelzoo/models/vision/classification/imagenet1k/hf-transformers/convnext-tiny-224_transformers_simp.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':None}, model_shortlist=None)
+            model_info=dict(metric_reference={'accuracy_top1%':None}, model_shortlist=110)
         ),                                                                                               
     }
     return pipeline_configs
