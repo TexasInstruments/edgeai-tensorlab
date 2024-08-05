@@ -8,7 +8,6 @@ pyyaml
 pytest
 json_tricks
 munkres
-h5py
 scipy
 wurlitzer
 plyfile

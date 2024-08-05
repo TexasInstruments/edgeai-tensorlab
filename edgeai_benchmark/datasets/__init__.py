@@ -347,8 +347,14 @@ def get_datasets(settings, download=False, dataset_list=None):
             num_frames=min(settings.num_frames, 654),
             name=DATASET_CATEGORY_NYUDEPTHV2)
 
-        dataset_cache[DATASET_CATEGORY_NYUDEPTHV2]['calibration_dataset'] = NYUDepthV2(**nyudepthv2_calib_cfg, download=download)
-        dataset_cache[DATASET_CATEGORY_NYUDEPTHV2]['input_dataset'] = NYUDepthV2(**nyudepthv2_val_cfg, download=False)
+        try:
+            dataset_cache[DATASET_CATEGORY_NYUDEPTHV2]['calibration_dataset'] = NYUDepthV2(**nyudepthv2_calib_cfg, download=download)
+            dataset_cache[DATASET_CATEGORY_NYUDEPTHV2]['input_dataset'] = NYUDepthV2(**nyudepthv2_val_cfg, download=False)
+        except:
+            dataset_cache[DATASET_CATEGORY_NYUDEPTHV2]['calibration_dataset'] = DATASET_CATEGORY_NYUDEPTHV2
+            dataset_cache[DATASET_CATEGORY_NYUDEPTHV2]['input_dataset'] = DATASET_CATEGORY_NYUDEPTHV2
+            print('NYUDepthV2 dataset could not be loaded')
+        #
     #
 
     if check_dataset_load(settings, DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD) and (DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD in dataset_list):

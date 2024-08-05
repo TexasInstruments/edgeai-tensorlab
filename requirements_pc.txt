@@ -11,5 +11,6 @@ flatbuffers==1.12.0
 requests
 pytest
 graphviz
+h5py
 #protobuf==3.20.2
 #onnx==1.13.0

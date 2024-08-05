@@ -55,7 +55,7 @@ def get_configs(settings, work_dir):
         # edgeai: segmentation - fpnlite_aspp_regnetx400mf_ade20k32_384x384_20210314-205347 expected_metric: 51.03% mean-iou
         'de-7300':utils.dict_update(nyudepthv2_cfg,
             preprocess=preproc_transforms.get_transform_jai((246,246), (224,224), backend='cv2', interpolation=cv2.INTER_NEAREST),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=(0, 0, 0), input_scale=(1/255, 1/255, 1/255)),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=(0, 0, 0), input_scale=(1/255, 1/255, 1/255), input_optimization=False),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
                     {'advanced_options:output_feature_16bit_names_list':'233, 424'}),
                 model_path=f'{settings.models_path}/vision/depth_estimation/nyudepthv2/fast-depth/fast-depth.onnx'),
@@ -65,7 +65,7 @@ def get_configs(settings, work_dir):
         ),
         'de-7310':utils.dict_update(nyudepthv2_cfg,
             preprocess=preproc_transforms.get_transform_jai((256,256), (256,256), backend='cv2', interpolation=cv2.INTER_CUBIC),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=(123.675, 116.28, 103.53), input_scale=(0.017125, 0.017507, 0.017429)),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=(123.675, 116.28, 103.53), input_scale=(0.017125, 0.017507, 0.017429), input_optimization=False),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
                     {'advanced_options:output_feature_16bit_names_list':'511, 983'}),
                 model_path=f'{settings.models_path}/vision/depth_estimation/nyudepthv2/MiDaS/midas-small.onnx'),

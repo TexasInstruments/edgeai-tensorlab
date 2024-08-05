@@ -112,18 +112,32 @@ class PipelineRunner():
         #
         # sending dataset_list to download_datasets will cause only those to be downloaded and/or loaded
         download_ok = datasets.download_datasets(self.settings, dataset_list=pipeline_config_dataset_list)
+
         # populate the dataset objects into the pipeline_configs
+        pipelines_final = {}
         for pipeline_key, pipeline_config in pipelines_selected.items():
-            if isinstance(pipeline_config['calibration_dataset'], str):
-                dataset_category_name = pipeline_config['calibration_dataset']
-                pipeline_config['calibration_dataset'] = copy.deepcopy(self.settings.dataset_cache[dataset_category_name]['calibration_dataset'])
-            #
-            if isinstance(pipeline_config['input_dataset'], str):
-                dataset_category_name = pipeline_config['input_dataset']
-                pipeline_config['input_dataset'] = copy.deepcopy(self.settings.dataset_cache[dataset_category_name]['input_dataset'])
+            if isinstance(pipeline_config['calibration_dataset'], datasets.DatasetBase) and isinstance(pipeline_config['input_dataset'], datasets.DatasetBase):
+                # if it is an instance of datasets.DatasetBase, we can use it - no need to copy from dataset_cache
+                pipelines_final.update({pipeline_key: pipeline_config})
+            elif isinstance(pipeline_config['calibration_dataset'], str) and isinstance(pipeline_config['input_dataset'], str):
+                # if the dataset in pipeline_config is str, we will copy it from dataset_cache
+                calibration_dataset_category = pipeline_config['calibration_dataset']
+                input_dataset_category = pipeline_config['input_dataset']
+                if calibration_dataset_category in self.settings.dataset_cache and input_dataset_category in self.settings.dataset_cache and \
+                    isinstance(self.settings.dataset_cache[calibration_dataset_category]['calibration_dataset'], datasets.DatasetBase) and \
+                    isinstance(self.settings.dataset_cache[input_dataset_category]['input_dataset'], datasets.DatasetBase):
+                    pipeline_config['calibration_dataset'] = copy.deepcopy(self.settings.dataset_cache[calibration_dataset_category]['calibration_dataset'])
+                    pipeline_config['input_dataset'] = copy.deepcopy(self.settings.dataset_cache[input_dataset_category]['input_dataset'])
+                    pipelines_final.update({pipeline_key: pipeline_config})
+                else:
+                    print(f'ignoring the pipeline_config: {pipeline_key}, since the dataset was not loaded: {calibration_dataset_category}, {input_dataset_category}')
+                #
+            else:
+                # if the dataset in pipeline_config is None, we will not bother to copy from dataset_cache, assuming it is not needed.
+                pipelines_final.update({pipeline_key: pipeline_config})
             #
         #
-        return pipelines_selected
+        return pipelines_final
 
     def run(self):
         if self.settings.parallel_processes in (None, 0):
