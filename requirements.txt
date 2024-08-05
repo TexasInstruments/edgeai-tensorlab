@@ -13,4 +13,3 @@ wurlitzer
 plyfile
 scikit-learn
 debugpy
-onnx
