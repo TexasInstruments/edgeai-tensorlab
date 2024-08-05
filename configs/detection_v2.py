@@ -66,7 +66,6 @@ def get_configs(settings, work_dir):
         #################################################################
         #       ONNX MODELS
         #################onnx models#####################################
-        #DETR_ResNet50 form mmdetection
         #yolov4_scaled
         'od-8800':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(640,640,resize_with_pad=True, backend='cv2'),
@@ -302,7 +301,7 @@ def get_configs(settings, work_dir):
         ),     
         ################################# MMDetection Models Test  ###########################
         #efficientDET
-        'od-8218':utils.dict_update(common_cfg,
+        'od-8960':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(512, 512, reverse_channels=False, resize_with_pad=True, backend='cv2', pad_color=[114, 114, 114]),
             session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir, input_optimization=False, input_mean=(123.675, 116.28, 103.53), input_scale=(0.0171247538316637, 0.0175070028011204, 0.0174291938997821)),
                 runtime_options=settings.runtime_options_onnx_np2(
@@ -316,7 +315,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 30.5}, model_shortlist=None)
         ),
         #DETR mmdetection
-        'od-8911':utils.dict_update(common_cfg,
+        'od-8970':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((800,1199),(800,1199), resize_with_pad=True, backend='cv2'),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
                 runtime_options=settings.runtime_options_onnx_np2(
