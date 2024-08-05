@@ -263,6 +263,75 @@ def get_configs(settings, work_dir):
                 runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/hf-transformers/swin_base_patch4_window7_224_transformers_simp.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':84.81}, model_shortlist=80)
-        ),                                                                                                  
+        ),   
+        # torchvision: classification convnext_small expected_metric:  top-1 accuracy
+        'cl-6800':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, with_onnxsim=True, input_optimization=False, tidl_onnx_model_optimizer=True),
+                runtime_options=settings.runtime_options_onnx_np2(),
+                model_path=f'../edgeai-modelzoo/models/vision/classification/imagenet1k/torchvision/convnext_small.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':None}, model_shortlist=None)
+        ),
+        # torchvision: classification efficientnet_b0 expected_metric:  top-1 accuracy
+        'cl-6810':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, with_onnxsim=True, input_optimization=False, tidl_onnx_model_optimizer=True),
+                runtime_options=settings.runtime_options_onnx_np2(
+                    ext_options={
+                     'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL 
+                     },
+                    ),
+                model_path=f'../edgeai-modelzoo/models/vision/classification/imagenet1k/torchvision/efficientnet_b0.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':None}, model_shortlist=None)
+        ),
+        # torchvision: classification efficientnet_b1 expected_metric:  top-1 accuracy
+        'cl-6820':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, with_onnxsim=True, input_optimization=False, tidl_onnx_model_optimizer=True),
+                runtime_options=settings.runtime_options_onnx_np2(
+                    ext_options={
+                     'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL 
+                     },
+                    ),
+                model_path=f'../edgeai-modelzoo/models/vision/classification/imagenet1k/torchvision/efficientnet_b1.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':None}, model_shortlist=None)
+        ),
+        # torchvision: classification mobilenet_v3_small expected_metric:  top-1 accuracy
+        'cl-6830':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, with_onnxsim=False, input_optimization=False, tidl_onnx_model_optimizer=True),
+                runtime_options=settings.runtime_options_onnx_np2(
+                    ext_options={
+                        'deny_list:layer_type': 'HardSwish',
+                        'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL 
+                     },
+                    ),
+                model_path=f'../edgeai-modelzoo/models/vision/classification/imagenet1k/torchvision/mobilenet_v3_small_simp.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':None}, model_shortlist=None)
+        ),
+        # torchvision: classification mobilenet_v3_large expected_metric:  top-1 accuracy
+        'cl-6840':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, with_onnxsim=True, input_optimization=False, tidl_onnx_model_optimizer=True),
+                runtime_options=settings.runtime_options_onnx_np2(
+                    ext_options={
+                     'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL 
+                     },
+                    ),
+                model_path=f'../edgeai-modelzoo/models/vision/classification/imagenet1k/torchvision/mobilenet_v3_large.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':None}, model_shortlist=None)
+        ),  
+        # hf-transformers: classification convnext-tiny-224 expected_metric:  top-1 accuracy
+        'cl-6840':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, with_onnxsim=False, input_optimization=False, tidl_onnx_model_optimizer=True),
+                runtime_options=settings.runtime_options_onnx_np2(
+                    ext_options={
+                     'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL 
+                     },
+                    ),
+                model_path=f'../edgeai-modelzoo/models/vision/classification/imagenet1k/hf-transformers/convnext-tiny-224_transformers_simp.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':None}, model_shortlist=None)
+        ),                                                                                               
     }
     return pipeline_configs
