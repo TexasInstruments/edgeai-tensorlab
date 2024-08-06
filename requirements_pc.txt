@@ -1,10 +1,10 @@
 -r requirements.txt
 opencv-python-headless
 onnxsim
-# see the tidl-tools requirements in https://github.com/TexasInstruments/edgeai-tidl-tools/blob/master/scripts/osrt_model_tools/onnx_tools/tidl-onnx-model-optimizer/requirements.txt
 git+https://github.com/NVIDIA/TensorRT@release/8.5#subdirectory=tools/onnx-graphsurgeon
 git+https://github.com/TexasInstruments/edgeai-tidl-tools.git#subdirectory=scripts
-git+https://github.com/TexasInstruments/edgeai-tidl-tools.git#subdirectory=scripts/osrt_model_tools/onnx_tools/tidl-onnx-model-optimizer
+# see the tidl-tools requirements in https://github.com/TexasInstruments/edgeai-tidl-tools/blob/master/scripts/osrt_model_tools/onnx_tools/tidl-onnx-model-optimizer/requirements.txt
+#git+https://github.com/TexasInstruments/edgeai-tidl-tools.git#subdirectory=scripts/osrt_model_tools/onnx_tools/tidl-onnx-model-optimizer
 numpy==1.23.0
 tflite
 flatbuffers==1.12.0

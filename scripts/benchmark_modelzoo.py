@@ -54,7 +54,7 @@ def get_arg_parser():
     parser.add_argument('--run_inference', type=utils.str_to_bool)
     parser.add_argument('--modelartifacts_path', type=str)
     parser.add_argument('--modelpackage_path', type=str)
-    parser.add_argument('--dataset_loading', type=str, nargs='*')
+    parser.add_argument('--dataset_loading', type=utils.str_to_bool, default=True)
     parser.add_argument('--parallel_devices', type=utils.int_or_none)
     parser.add_argument('--parallel_processes', type=int)
     parser.add_argument('--fast_calibration_factor', type=utils.float_or_none)

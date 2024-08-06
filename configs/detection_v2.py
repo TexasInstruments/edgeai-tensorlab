@@ -130,26 +130,26 @@ def get_configs(settings, work_dir):
                 runtime_options=settings.runtime_options_onnx_np2(
                     det_options=True, ext_options={
                      'object_detection:meta_arch_type': 6, 
-                     'onnxruntime:graph_optimization_level': 0 
+                     'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL
                      }),
-                model_path=f'../edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/detr_r50_8xb2-150e_20240722_model.onnx'),
+                model_path=f'../edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/detr_r50_20240722_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 30.5}, model_shortlist=None)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 39.9}, model_shortlist=None)
         ),
         #efficientDET-B0-Lite
         'od-8970':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(512, 512, reverse_channels=False, resize_with_pad=True, backend='cv2', pad_color=[114, 114, 114]),
+            preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), reverse_channels=False, resize_with_pad=True, backend='cv2', pad_color=[114, 114, 114]),
             session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir, input_optimization=False, input_mean=(123.675, 116.28, 103.53), input_scale=(0.0171247538316637, 0.0175070028011204, 0.0174291938997821)),
                 runtime_options=settings.runtime_options_onnx_np2(
                    det_options=True, ext_options={
                     'object_detection:meta_arch_type': 3,
-                    'object_detection:meta_layers_names_list': f'../edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/efficientdet_effb0_bifpn_8xb16-crop512-300e_lite_20240612_model.prototxt',
+                    'object_detection:meta_layers_names_list': f'../edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/efficientdet_effb0_bifpn_lite_512x512_20240612_model.prototxt',
                     }),
-                model_path=f'../edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/efficientdet_effb0_bifpn_8xb16-crop512-300e_lite_20240612_model.onnx'),
+                model_path=f'../edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/efficientdet_effb0_bifpn_lite_512x512_20240612_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 30.5}, model_shortlist=None)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 32.3}, model_shortlist=None)
         ),
     }
     return pipeline_configs
