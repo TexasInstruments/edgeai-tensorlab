@@ -137,7 +137,7 @@ class ONNXRTSession(BaseRTSession):
         if onnxruntime_graph_optimization_level is not None:
             # for transformer models, it is necessary to set graph_optimization_level in session options for onnxruntime
             # to onnxruntime.GraphOptimizationLevel.ORT_DISABLE_ALL so that TIDL can properly handle the model.
-            sess_options.graph_optimization_level = onnxruntime.GraphOptimizationLevel.ORT_DISABLE_ALL
+            sess_options.graph_optimization_level = onnxruntime_graph_optimization_level
         
         # suppress warnings
         sess_options.log_severity_level = 3
