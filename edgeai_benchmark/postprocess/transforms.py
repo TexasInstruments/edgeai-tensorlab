@@ -503,9 +503,9 @@ class LogitsToLabelScore():
         #
         softmax_score = softmax(tensor_list[self.scores_index])
         if self.background_class_id == -1:  
-            softmax_score = softmax_score[:,:,:self.background_class_id]
+            softmax_score = softmax_score[...,:self.background_class_id]
         elif self.background_class_id is not None:
-            softmax_score = softmax_score[:,:,self.background_class_id+1:]
+            softmax_score = softmax_score[...,self.background_class_id+1:]
         #
         tensor_list_softmax.append(np.argmax(softmax_score,axis=-1).reshape(-1,1))
         tensor_list_softmax.append(np.max(softmax_score,axis=-1).reshape(-1,1))
