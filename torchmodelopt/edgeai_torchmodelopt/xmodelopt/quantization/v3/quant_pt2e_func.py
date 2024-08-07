@@ -189,13 +189,26 @@ def forward(self, *input, **kwargs):
 
 
 def convert(self, device='cpu'):
-    self.__quant_params__.bias_hooks = remove_hooks(self.__quant_params__.bias_hooks)           
     freeze(self)
+        
+    self.__quant_params__.bias_hooks = remove_hooks(self.__quant_params__.bias_hooks)   
+
+    orig_quant_params = copy.deepcopy(self.__quant_params__)
+    model = copy.deepcopy(self).eval()
+    setattr(model, "__quant_params__", orig_quant_params)
+    
+    torch.ao.quantization.move_exported_model_to_eval(model)
+
     # convert requires cpu model 
     #TODO check of this is required
     # self.to(torch.device(device))
     # now do the actual conversion
     self = convert_pt2e(self)
+
+    # model, example_input = create_batch1_model(model, example_input)
+    
+    model = quant_pt2e_utils.remove_loss_branch(model)   
+
     return self
 
 
@@ -262,17 +275,7 @@ def export(self, example_input, filename='model.onnx', opset_version=17, model_q
            simplify=False, skipped_optimizers=None, device='cpu'):
     
     quant_pt2e_utils.register_onnx_symbolics()
-    orig_quant_params = copy.deepcopy(self.__quant_params__)
-    model = copy.deepcopy(self).eval()
-    setattr(model, "__quant_params__", orig_quant_params)
-    model = convert(model).to(device=device)
-    setattr(model, "__quant_params__", orig_quant_params)
-    
-    torch.ao.quantization.move_exported_model_to_eval(model)
-        
-    # model, example_input = create_batch1_model(model, example_input)
-    
-    model = quant_pt2e_utils.remove_loss_branch(model)    
+ 
     model = model.to(device=device)
     
     if model_quant_format == ModelQuantFormat.INT_MODEL:
