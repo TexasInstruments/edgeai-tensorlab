@@ -210,6 +210,8 @@ def convert(self, device='cpu'):
 
 def train(self, mode: bool = True):
     # hf transformers call train before every iteration, which messes with epochs tracked, will be needing a better logic for that #TODO
+    # as of now, pass the expected number of epochs in num_batch_norm_update_epochs and num_observer_update_epochs variables, same is expected 
+    # if the training code calls model.train() before every iteration 
     # put the model in expected mode
     if hasattr(self, "__train_backup__"):
         self.__train_backup__(mode=mode)

@@ -31,7 +31,7 @@
 
 import torch
 import statistics
-from torch.onnx import symbolic_helper, register_custom_op_symbolic
+from torch.onnx import symbolic_helper, register_custom_op_symbolic, _type_utils
 from torch.onnx._internal import jit_utils
 from torch import nn
 from torch import fx
@@ -243,9 +243,9 @@ class QuantLayerNorm(torch.nn.Module):
     
     
 def register_onnx_symbolics():
-
-    def aten_softmax(g: jit_utils.GraphContext, x, *args):
-        output = g.op("Softmax", x)
+    
+    def aten_softmax(g: jit_utils.GraphContext, input, dim, *args):
+        output = g.op("Softmax", input) #FIXME need to pass dim as well, TIDL needs axis 
         return output
 
     def aten_unsafe_view(g, x, dim, *args):
@@ -449,9 +449,9 @@ def is_mlp_fc2_layer(node, find_level, found_gelu=False, gelu_node=None):
     if node.target is torch.ops.aten.addmm.default:
         if found_gelu: 
             return True, gelu_node
-        else: 
-            # found linear before the gelu layer
-            return False, gelu_node
+        # else: 
+        #     # found linear before the gelu layer
+        #     return False, gelu_node
         #
     #
     elif node.target is torch.ops.aten.gelu.default:
