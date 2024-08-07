@@ -66,10 +66,10 @@ Some issues can come :
 | Deit Small | facebook/deit-small-patch16-224 | 79.9 | | 
 | Swin Tiny | microsoft/swin-tiny-patch4-window7-224 | 81.2 | | 
 | Swin Small | microsoft/swin-small-patch4-window7-224 | 83.2 | | 
-| ConvNeXt Tiny | facebook/convnext-tiny-224 | 82.1 |
-| ConvNeXt Small | facebook/convnext-small-224 | 83.1 |
+| ConvNeXt Tiny | facebook/convnext-tiny-224 | 82.1 | |
+| ConvNeXt Small | facebook/convnext-small-224 | 83.1 | |
  ||**Object Detection** ||
- |DeTR ResNet50|facebook/detr-resnet-50| 42.0|
+ |DeTR ResNet50|facebook/detr-resnet-50| 42.0| |
  || **Instance Segmentation** || 
  |SegFormer B0|nvidia/segformer-b0-finetuned-ade-512-512||
  |SegFormer B1|nvidia/segformer-b1-finetuned-ade-512-512||
@@ -104,31 +104,58 @@ The models can be trained using the below script, the arguments are explained be
 ```
 $ cd examples/pytorch/image-classification
 
-$ python run_image_classification.py --dataset_name ${dataset_folder} --output_dir ${output_dir} --overwrite_output_dir --do_train --do_eval --per_device_train_batch_size 128 --per_device_eval_batch_size 128 --model_name_or_path facebook/deit-tiny-patch16-224 --ignore_mismatched_sizes True --trust_remote_code True
+$ python run_image_classification.py --dataset_name ${dataset_folder} --output_dir ${output_dir} --overwrite_output_dir --do_train --do_eval --per_device_train_batch_size 128 --per_device_eval_batch_size 128 --model_name_or_path ${model_name} --ignore_mismatched_sizes True --trust_remote_code True
 ```
 
 | Argument | Value (or examples)   | Notes    |
 | :-----:  | :---:    | :---: |
+| model_name_or_path | microsoft/swin-tiny-patch4-window7-224 | Supported models are in Model Zoo, other models can be explored from huggingface.co | 
 | dataset_name | ${dataset_folder} | The dataset directory having the loading script. The dataset name from huggingface hub can also be specified instead. train_dir and val_dir can be skipped if dataset_name is specified.  |
 | train_dir  | ${dataset_folder}/train      |  The folder consisting of training images need to be specified for the no code solution of datasets. Not needed of dataset_name is provided. |
 | validation_dir  | ${dataset_folder}/val      |  The folder consisting of validation images need to be specified for the no code solution of datasets. Not needed of dataset_name is provided. |
 | output_dir  | ${output_dir}      |  The trained network as well as the onnx model will be saved here  |
 | overwrite_output_dir | - | No Value is required, otherwise will be required to specify new output dir |
 | remove_unused_columns | False | |
-| do_train | - | No Value is required, for only testing purpose, this flag need not be provided |
+| do_train | - | No Value is required. This flag need not be provided if only validation is needed.|
 | do_eval | - | No Value is required |
 | per_device_train_batch_size | 128| To specify the batch size during training (per device)|
 | per_device_eval_batch_size | 128 | To specify the batch size during evaluation (per device)|
-| model_name_or_path | microsoft/swin-tiny-patch4-window7-224 | Supported models are in Model Zoo, other models can be explored from huggingface.co | 
 | ignore_mismatched_sizes | True | Will enable to load a pretrained model whose head dimensions are different|
 | trust_remote_code| True | Will enable using the datasets which are not present in the hub
 
 
 <h3> Object Detection </h3>
 
-<h4> Dataset Preparation </h4>
+<h4> Dataset Preparation by Dataset Loading Script </h4>
+
+This allows the user to load their own dataset. We need to place the script inside the dataset directory, and name the script same as the directory name. An example has been provided for loading the coco dataset over [here](src/transformers/data/datasets), where the script coco.py is used for this purpose. After preparing the dataset, the coco structure should look like:
+
+![](coco_directory.png)
+
+More details for complex datasets are available over [here.](https://huggingface.co/docs/datasets/en/dataset_script)
 
 <h4> Training </h4>
+
+The models can be trained using the below script, the arguments are explained below as well.
+
+```
+$ cd examples/pytorch/object-detection
+
+$ python run_object_detection.py --model_name_or_path ${model_name} --output_dir ${output_dir} --dataset_name ${dataset_folder} --do-train --do_eval --overwrite_output_dir --remove_unused_columns False --eval_do_concat_batches False --per_device_train_batch_size 64 --per_device_eval_batch_size 64
+
+| Argument | Value (or examples)   | Notes    |
+| :-----:  | :---:    | :---: |
+| model_name_or_path | facebook/detr-resnet-50 | Supported models are in Model Zoo, other models can be explored from huggingface.co | 
+| dataset_name | ${dataset_folder} | The dataset directory having the loading script. The dataset name from huggingface hub can also be specified instead. |
+| output_dir  | ${output_dir}      |  The trained network as well as the onnx model will be saved here  |
+| overwrite_output_dir | - | No Value is required, otherwise will be required to specify new output dir |
+| remove_unused_columns | False | |
+| do_train | - | No Value is required. This flag need not be provided if only validation is needed. |
+| do_eval | - | No Value is required |
+| per_device_train_batch_size | 64 | To specify the batch size during training (per device)|
+| per_device_eval_batch_size | 64 | To specify the batch size during evaluation (per device)|
+| ignore_mismatched_sizes | True | Will enable to load a pretrained model whose head dimensions are different|
+| trust_remote_code| True | Will enable using the datasets which are not present in the hub |
 
 <h3> Instance Segmentation </h3>
 
@@ -138,9 +165,9 @@ $ python run_image_classification.py --dataset_name ${dataset_folder} --output_d
 
 <h2> Quantization and ONNX Export </h2>
 
-We support quantization of the networks mentioned in the model zoo. Here, we describe the scripts and the arguments necessary to invoke quantization. 
+We support quantization of the image classification networks mentioned in the model zoo. Here, we describe the scripts and the arguments necessary to invoke quantization. 
 
-Quantization currently does not support distributed training currently. 
+Quantization does not support distributed training currently, however we plan to add it in future releases. 
 
 
 <h3> Image Classification </h3>
@@ -176,7 +203,8 @@ Debugging - Common Issues :
 
 <h3> Planned Tasks </h3>
 
-- [ ]  Supporting distributed training during quantization 
+- [ ]  Supporting distributed training during quantization
+- [ ]  Supporting quantization for object detection and segmentation models 
 - [ ]  Supporting model surgery for the networks 
 
 Here is the original documentation of the whole transformers repository. 

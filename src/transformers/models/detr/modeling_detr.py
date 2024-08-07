@@ -267,6 +267,7 @@ class DetrFrozenBatchNorm2d(nn.Module):
         self.register_buffer("bias", torch.zeros(n))
         self.register_buffer("running_mean", torch.zeros(n))
         self.register_buffer("running_var", torch.ones(n))
+        self.register_buffer("epsilon", torch.tensor(1e-5))
 
     def _load_from_state_dict(
         self, state_dict, prefix, local_metadata, strict, missing_keys, unexpected_keys, error_msgs
@@ -286,7 +287,7 @@ class DetrFrozenBatchNorm2d(nn.Module):
         bias = self.bias.reshape(1, -1, 1, 1)
         running_var = self.running_var.reshape(1, -1, 1, 1)
         running_mean = self.running_mean.reshape(1, -1, 1, 1)
-        epsilon = 1e-5
+        epsilon = self.epsilon
         scale = weight * (running_var + epsilon).rsqrt()
         bias = bias - running_mean * scale
         return x * scale + bias
@@ -424,7 +425,8 @@ class DetrSinePositionEmbedding(nn.Module):
             raise ValueError("normalize should be True if scale is passed")
         if scale is None:
             scale = 2 * math.pi
-        self.scale = scale
+        self.scale = torch.tensor(scale)
+        self.epsilon = torch.tensor(1e-6)
 
     def forward(self, pixel_values, pixel_mask):
         if pixel_mask is None:
@@ -432,8 +434,8 @@ class DetrSinePositionEmbedding(nn.Module):
         y_embed = pixel_mask.cumsum(1, dtype=torch.float32)
         x_embed = pixel_mask.cumsum(2, dtype=torch.float32)
         if self.normalize:
-            y_embed = y_embed / (y_embed[:, -1:, :] + 1e-6) * self.scale
-            x_embed = x_embed / (x_embed[:, :, -1:] + 1e-6) * self.scale
+            y_embed = y_embed / (y_embed[:, -1:, :] + self.epsilon) * self.scale
+            x_embed = x_embed / (x_embed[:, :, -1:] + self.epsilon) * self.scale
 
         dim_t = torch.arange(self.embedding_dim, dtype=torch.int64, device=pixel_values.device).float()
         dim_t = self.temperature ** (2 * torch.div(dim_t, 2, rounding_mode="floor") / self.embedding_dim)
@@ -1459,6 +1461,24 @@ class DetrForObjectDetection(DetrPreTrainedModel):
         loss, loss_dict, auxiliary_outputs = None, None, None
         if labels is not None:
             outputs_class, outputs_coord = None, None
+            # First: create the matcher
+            matcher = DetrHungarianMatcher(
+                class_cost=self.config.class_cost, bbox_cost=self.config.bbox_cost, giou_cost=self.config.giou_cost
+            )
+            # Second: create the criterion
+            losses = ["labels", "boxes", "cardinality"]
+            criterion = DetrLoss(
+                matcher=matcher,
+                num_classes=self.config.num_labels,
+                eos_coef=self.config.eos_coefficient,
+                losses=losses,
+                # class_cost=self.config.class_cost, bbox_cost=self.config.bbox_cost, giou_cost=self.config.giou_cost
+            )
+            criterion.to(self.device)
+            # Third: compute the losses, based on outputs and labels
+            outputs_loss = {}
+            outputs_loss["logits"] = logits
+            outputs_loss["pred_boxes"] = pred_boxes
             if self.config.auxiliary_loss:
                 intermediate = outputs.intermediate_hidden_states if return_dict else outputs[4]
                 outputs_class = self.class_labels_classifier(intermediate)
@@ -1662,6 +1682,25 @@ class DetrForSegmentation(DetrPreTrainedModel):
         loss, loss_dict, auxiliary_outputs = None, None, None
         if labels is not None:
             outputs_class, outputs_coord = None, None
+            # First: create the matcher
+            # matcher = DetrHungarianMatcher(
+            #     class_cost=self.config.class_cost, bbox_cost=self.config.bbox_cost, giou_cost=self.config.giou_cost
+            # )
+            # Second: create the criterion
+            losses = ["labels", "boxes", "cardinality", "masks"]
+            criterion = DetrLoss(
+                # matcher=matcher,
+                num_classes=self.config.num_labels,
+                eos_coef=self.config.eos_coefficient,
+                losses=losses,
+                class_cost=self.config.class_cost, bbox_cost=self.config.bbox_cost, giou_cost=self.config.giou_cost
+            )
+            criterion.to(self.device)
+            # Third: compute the losses, based on outputs and labels
+            outputs_loss = {}
+            outputs_loss["logits"] = logits
+            outputs_loss["pred_boxes"] = pred_boxes
+            outputs_loss["pred_masks"] = pred_masks
             if self.config.auxiliary_loss:
                 intermediate = decoder_outputs.intermediate_hidden_states if return_dict else decoder_outputs[-1]
                 outputs_class = self.detr.class_labels_classifier(intermediate)
