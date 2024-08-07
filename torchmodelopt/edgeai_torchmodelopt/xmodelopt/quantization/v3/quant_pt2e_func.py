@@ -87,7 +87,7 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
         m, guards = torchdynamo.export(model, example_inputs, aten_graph=True, assume_static_by_default=True)
     
     qconfig_type = qconfig_type or qconfig_types.QConfigType.DEFAULT
-    qconfig_mode = qconfig_types.get_qconfig(qconfig_type)
+    qconfig_mode = qconfig_types.get_qconfig(qconfig_type, is_qat=is_qat)
     
     # qconfig_mode = get_symmetric_quantization_config(is_qat=False)
     
@@ -196,15 +196,13 @@ def forward(self, *input, **kwargs):
     return self(*input, **kwargs)
 
 
-def convert(self, device='cpu'):
-    self.__quant_params__.bias_hooks = remove_hooks(self.__quant_params__.bias_hooks)                      
-    self.__quant_params__.outlier_hooks = remove_hooks(self.__quant_params__.outlier_hooks)
+def convert(self, device='cpu', make_copy=False):
     freeze(self)
         
     self.__quant_params__.bias_hooks = remove_hooks(self.__quant_params__.bias_hooks)   
 
     orig_quant_params = copy.deepcopy(self.__quant_params__)
-    model = copy.deepcopy(self).eval()
+    model = copy.deepcopy(self).eval() if make_copy else self.eval()
     setattr(model, "__quant_params__", orig_quant_params)
     
     torch.ao.quantization.move_exported_model_to_eval(model)
