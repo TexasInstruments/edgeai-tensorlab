@@ -567,6 +567,9 @@ def main():
         trainer.save_metrics("train", train_result.metrics)
         trainer.save_state()
         
+    if model_optimization_args.quantization:
+        trainer.model.convert()
+
     # Model ONNX Export
     if model_optimization_args.do_onnx_export:
         export_device = 'cpu' if training_args.use_cpu else 'cuda:0'
