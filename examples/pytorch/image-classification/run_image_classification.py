@@ -168,6 +168,30 @@ class ModelArguments:
             )
         },
     )
+    size: Optional[str] = field(
+        default=None,
+        metadata={"help": "Image resize - it it is an int, resize the shortest edge to this size."},
+    )
+    crop_size: Optional[str] = field(
+        default=None,
+        metadata={"help": "Image crop size - center crop to this size."},
+    )
+    rescale_factor: Optional[float] = field(
+        default=1/255,
+        metadata={"help": "rescale_factor to multiply the input image."},
+    )
+    image_mean: Optional[str] = field(
+        default=None,
+        metadata={"help": "Mean value to be subtracted from input image."},
+    )
+    image_std: Optional[str] = field(
+        default=None,
+        metadata={"help": "Std to be used to divide the input image."},
+    )
+    image_scale: Optional[str] = field(
+        default=None,
+        metadata={"help": "Scale value to multiply the input image."},
+    )
     trust_remote_code: bool = field(
         default=False,
         metadata={
@@ -241,6 +265,25 @@ def main():
     else:
         model_args, data_args, training_args, model_optimization_args = parser.parse_args_into_dataclasses()
 
+    if model_args.size is not None:
+        model_args.size = [int(word) for word in model_args.size.split(" ")]
+        if len(model_args.size) == 1:
+            model_args.size = {"shortest_edge": model_args.size[0]}
+
+    if model_args.crop_size is not None:
+        model_args.crop_size = [int(word) for word in model_args.crop_size.split(" ")]
+        if len(model_args.crop_size) == 1:
+            model_args.crop_size = (model_args.crop_size[0], model_args.crop_size[0])
+
+    if model_args.image_std and model_args.image_scale:
+        assert False, "only one of image_std or image_scale should be specified"
+    elif model_args.image_scale is not None:
+        model_args.image_std = [1/float(word) for word in model_args.image_scale.split(" ")]
+    elif model_args.image_std is not None:
+        model_args.image_std = [float(word) for word in model_args.image_std.split(" ")]
+
+    if model_args.image_mean is not None:
+        model_args.image_mean = [float(word) for word in model_args.image_mean.split(" ")]
 
     # Sending telemetry. Tracking the example usage helps us better allocate resources to maintain them. The
     # information sent is the one passed as arguments along with your Python/PyTorch versions.
@@ -380,6 +423,11 @@ def main():
         revision=model_args.model_revision,
         token=model_args.token,
         trust_remote_code=model_args.trust_remote_code,
+        rescale_factor=model_args.rescale_factor,
+        size=model_args.size, 
+        crop_size=model_args.crop_size,
+        image_mean=model_args.image_mean,
+        image_std=model_args.image_std
     )
 
     # Define torchvision transforms to be applied to each image.
@@ -387,10 +435,26 @@ def main():
         _train_transforms = image_processor.train_transforms
         _val_transforms = image_processor.val_transforms
     else:
-        if "shortest_edge" in image_processor.size:
-            size = image_processor.size["shortest_edge"]
+        if model_args.size is not None:
+            size = model_args.size["shortest_edge"] if "shortest_edge" in model_args.size else model_args.size
+        elif "shortest_edge" in image_processor.size:
+                size = image_processor.size["shortest_edge"]
         else:
             size = (image_processor.size["height"], image_processor.size["width"])
+
+        if model_args.crop_size is not None:
+            crop_size = model_args.crop_size
+        elif not hasattr(image_processor, 'crop_size'):
+            crop_size = size
+        elif isinstance(image_processor.crop_size, (int,tuple)):
+            crop_size = image_processor.crop_size
+        elif "shortest_edge" in image_processor.crop_size:
+            crop_size = image_processor.crop_size["shortest_edge"]
+        else:
+            crop_size = (image_processor.crop_size["height"], image_processor.crop_size["width"])
+
+        image_std = model_args.image_std or (image_processor.image_std if hasattr(image_processor, "image_std") else None)  
+        image_mean = model_args.image_mean or (image_processor.image_mean if hasattr(image_processor, "image_mean") else None)
 
         # Create normalization transform
         if hasattr(image_processor, "image_mean") and hasattr(image_processor, "image_std"):
@@ -399,8 +463,9 @@ def main():
             normalize = Lambda(lambda x: x)
         _train_transforms = Compose(
             [
-                RandomResizedCrop(size),
+                RandomResizedCrop(crop_size),
                 RandomHorizontalFlip(),
+                Lambda(lambda x: np.array(x)*model_args.rescale_factor), # to avoid division by 255 in to_tensor, handle it here
                 ToTensor(),
                 normalize,
             ]
@@ -408,7 +473,8 @@ def main():
         _val_transforms = Compose(
             [
                 Resize(size),
-                CenterCrop(size),
+                CenterCrop(crop_size),
+                Lambda(lambda x: np.array(x)*model_args.rescale_factor), # to avoid division by 255 in to_tensor, handle it here     
                 ToTensor(),
                 normalize,
             ]
@@ -429,6 +495,9 @@ def main():
         ]
         del example_batch[data_args.image_column_name]
         return example_batch
+
+    if model_optimization_args.quantization and model_optimization_args.quantize_type == "PTQ":
+        data_args.max_train_samples = model_optimization_args.quantize_calib_images * training_args.per_device_eval_batch_size * training_args.n_gpu
 
     if training_args.do_train:
         if "train" not in dataset:
@@ -470,7 +539,6 @@ def main():
                 num_observer_update_epochs = num_observer_update_epochs,
                 num_batch_norm_update_epochs = num_batch_norm_update_epochs)
         else:
-            data_args.max_train_samples = model_optimization_args.quantize_calib_images * training_args.per_device_eval_batch_size * training_args.n_gpu
             training_args.num_train_epochs = 2 # bias calibration in the second epoch
             model = xmodelopt.quantization.v3.QATPT2EModule(model, total_epochs=training_args.num_train_epochs, is_qat=False, 
                 qconfig_type="DEFAULT", example_inputs=example_input, convert_to_cuda=convert_to_cuda, 
