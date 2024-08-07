@@ -281,6 +281,7 @@ class DetrFrozenBatchNorm2d(nn.Module):
         self.register_buffer("bias", torch.zeros(n))
         self.register_buffer("running_mean", torch.zeros(n))
         self.register_buffer("running_var", torch.ones(n))
+        self.register_buffer("epsilon", torch.tensor(1e-5))
 
     def _load_from_state_dict(
         self, state_dict, prefix, local_metadata, strict, missing_keys, unexpected_keys, error_msgs
@@ -300,7 +301,7 @@ class DetrFrozenBatchNorm2d(nn.Module):
         bias = self.bias.reshape(1, -1, 1, 1)
         running_var = self.running_var.reshape(1, -1, 1, 1)
         running_mean = self.running_mean.reshape(1, -1, 1, 1)
-        epsilon = 1e-5
+        epsilon = self.epsilon
         scale = weight * (running_var + epsilon).rsqrt()
         bias = bias - running_mean * scale
         return x * scale + bias
@@ -438,7 +439,8 @@ class DetrSinePositionEmbedding(nn.Module):
             raise ValueError("normalize should be True if scale is passed")
         if scale is None:
             scale = 2 * math.pi
-        self.scale = scale
+        self.scale = torch.tensor(scale)
+        self.epsilon = torch.tensor(1e-6)
 
     def forward(self, pixel_values, pixel_mask):
         if pixel_mask is None:
@@ -446,8 +448,8 @@ class DetrSinePositionEmbedding(nn.Module):
         y_embed = pixel_mask.cumsum(1, dtype=torch.float32)
         x_embed = pixel_mask.cumsum(2, dtype=torch.float32)
         if self.normalize:
-            y_embed = y_embed / (y_embed[:, -1:, :] + 1e-6) * self.scale
-            x_embed = x_embed / (x_embed[:, :, -1:] + 1e-6) * self.scale
+            y_embed = y_embed / (y_embed[:, -1:, :] + self.epsilon) * self.scale
+            x_embed = x_embed / (x_embed[:, :, -1:] + self.epsilon) * self.scale
 
         dim_t = torch.arange(self.embedding_dim, dtype=torch.int64, device=pixel_values.device).float()
         dim_t = self.temperature ** (2 * torch.div(dim_t, 2, rounding_mode="floor") / self.embedding_dim)
@@ -1469,6 +1471,7 @@ class DetrForObjectDetection(DetrPreTrainedModel):
                 num_classes=self.config.num_labels,
                 eos_coef=self.config.eos_coefficient,
                 losses=losses,
+                # class_cost=self.config.class_cost, bbox_cost=self.config.bbox_cost, giou_cost=self.config.giou_cost
             )
             criterion.to(self.device)
             # Third: compute the losses, based on outputs and labels
@@ -1689,16 +1692,17 @@ class DetrForSegmentation(DetrPreTrainedModel):
         loss, loss_dict, auxiliary_outputs = None, None, None
         if labels is not None:
             # First: create the matcher
-            matcher = DetrHungarianMatcher(
-                class_cost=self.config.class_cost, bbox_cost=self.config.bbox_cost, giou_cost=self.config.giou_cost
-            )
+            # matcher = DetrHungarianMatcher(
+            #     class_cost=self.config.class_cost, bbox_cost=self.config.bbox_cost, giou_cost=self.config.giou_cost
+            # )
             # Second: create the criterion
             losses = ["labels", "boxes", "cardinality", "masks"]
             criterion = DetrLoss(
-                matcher=matcher,
+                # matcher=matcher,
                 num_classes=self.config.num_labels,
                 eos_coef=self.config.eos_coefficient,
                 losses=losses,
+                class_cost=self.config.class_cost, bbox_cost=self.config.bbox_cost, giou_cost=self.config.giou_cost
             )
             criterion.to(self.device)
             # Third: compute the losses, based on outputs and labels
@@ -1940,13 +1944,19 @@ class DetrLoss(nn.Module):
     """
 
     def __init__(self, matcher, num_classes, eos_coef, losses):
+    # def __init__(self, num_classes, eos_coef, losses, class_cost, bbox_cost, giou_cost):
         super().__init__()
         self.matcher = matcher
+        # self.matcher = DetrHungarianMatcher(class_cost=class_cost, bbox_cost=bbox_cost, giou_cost=giou_cost)
         self.num_classes = num_classes
         self.eos_coef = eos_coef
         self.losses = losses
         empty_weight = torch.ones(self.num_classes + 1)
         empty_weight[-1] = self.eos_coef
+        # self.empty_weight = empty_weight
+        # self.class_cost = class_cost
+        # self.bbox_cost = bbox_cost
+        # self.giou_cost = giou_cost
         self.register_buffer("empty_weight", empty_weight)
 
     # removed logging parameter, which was part of the original implementation
@@ -2163,7 +2173,8 @@ class DetrHungarianMatcher(nn.Module):
         if class_cost == 0 and bbox_cost == 0 and giou_cost == 0:
             raise ValueError("All costs of the Matcher can't be 0")
 
-    @torch.no_grad()
+    # @torch.no_grad()
+    # @torch.compiler.disable
     def forward(self, outputs, targets):
         """
         Args:

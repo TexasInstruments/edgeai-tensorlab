@@ -495,7 +495,12 @@ def main():
     if model_optimization_args.quantization and model_optimization_args.quantize_type == "PTQ":
         data_args.max_train_samples = model_optimization_args.quantize_calib_images * training_args.per_device_eval_batch_size * training_args.n_gpu
 
+    assert (model_optimization_args.quantization==0 or model_optimization_args.quantization==3), \
+        print("Only pt2e (args.quantization=3) based quantization is currently supported for hf-transformers ")
+        
     if training_args.do_train:
+        if model_optimization_args.quantization == 3 and model_optimization_args.quantize_type != "QAT":
+            data_args.max_train_samples = model_optimization_args.quantize_calib_images * training_args.per_device_eval_batch_size * training_args.n_gpu
         if "train" not in dataset:
             raise ValueError("--do_train requires a train dataset")
         if data_args.max_train_samples is not None:
@@ -515,9 +520,6 @@ def main():
         # Set the validation transforms
         dataset["validation"].set_transform(val_transforms)
 
-    assert (model_optimization_args.quantization==0 or model_optimization_args.quantization==3), \
-        print("Only pt2e (args.quantization=3) based quantization is currently supported for hf-transformers ")
-
     if model_optimization_args.quantization == 3:
         assert training_args.per_device_train_batch_size == training_args.per_device_eval_batch_size, \
             print("only fixed batch size across train and eval is currently supported, (args.per_device_train_batch_size and args.per_device_eval_batch_size should be same)")  
@@ -534,7 +536,9 @@ def main():
                 bias_calibration_factor=model_optimization_args.bias_calibration_factor,
                 num_observer_update_epochs = num_observer_update_epochs,
                 num_batch_norm_update_epochs = num_batch_norm_update_epochs)
-        else:
+        #
+        
+        else: 
             training_args.num_train_epochs = 2 # bias calibration in the second epoch
             model = xmodelopt.quantization.v3.QATPT2EModule(model, total_epochs=training_args.num_train_epochs, is_qat=False, 
                 qconfig_type="DEFAULT", example_inputs=example_input, convert_to_cuda=convert_to_cuda, 
@@ -542,6 +546,8 @@ def main():
                 num_observer_update_epochs=model_optimization_args.quantize_calib_images)
             # need to turn the parameter update off during PTQ/PTC
             training_args.dont_update_parameters = True
+        #
+    #
 
     # Initialize our trainer
     trainer = Trainer(
