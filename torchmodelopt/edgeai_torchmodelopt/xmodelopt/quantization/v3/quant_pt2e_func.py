@@ -55,7 +55,7 @@ class ModelQuantFormat:
 
 def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None, qconfig_type=None,
          qconfig_mode=qconfig_types.QConfigMode.DEFAULT,num_batch_norm_update_epochs=None, 
-         num_observer_update_epochs=None, add_methods=True, **kwargs):
+         num_observer_update_epochs=None, add_methods=True, fast_mode=False, **kwargs):
     
     if hasattr(model, '__quant_params__'):
         print('IGNORED: quant init called on a model that was already quantized')
@@ -87,7 +87,7 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
         m, guards = torchdynamo.export(model, example_inputs, aten_graph=True, assume_static_by_default=True)
     
     qconfig_type = qconfig_type or qconfig_types.QConfigType.DEFAULT
-    qconfig_mode = qconfig_types.get_qconfig(qconfig_type, is_qat=is_qat)
+    qconfig_mode = qconfig_types.get_qconfig(qconfig_type, is_qat=is_qat, fast_mode=fast_mode)
     
     # qconfig_mode = get_symmetric_quantization_config(is_qat=False)
     
