@@ -533,7 +533,7 @@ def main():
         if model_optimization_args.quantize_type == "QAT":
             num_observer_update_epochs = int(len(dataset["train"]) * ((training_args.num_train_epochs//2)+1) / (training_args.n_gpu*training_args.per_device_train_batch_size))
             num_batch_norm_update_epochs = int(len(dataset["train"]) * ((training_args.num_train_epochs//2)-1) / (training_args.n_gpu*training_args.per_device_train_batch_size))
-            model = xmodelopt.quantization.v3.QATPT2EModule(model, total_epochs=training_args.num_train_epochs, is_qat=True, 
+            model = xmodelopt.quantization.v3.QATPT2EModule(model, total_epochs=training_args.num_train_epochs, is_qat=True, fast_mode=False,
                 qconfig_type="DEFAULT", example_inputs=example_input, convert_to_cuda=convert_to_cuda, 
                 bias_calibration_factor=model_optimization_args.bias_calibration_factor,
                 num_observer_update_epochs = num_observer_update_epochs,
@@ -542,7 +542,7 @@ def main():
         
         else: 
             training_args.num_train_epochs = 2 # bias calibration in the second epoch
-            model = xmodelopt.quantization.v3.QATPT2EModule(model, total_epochs=training_args.num_train_epochs, is_qat=False, 
+            model = xmodelopt.quantization.v3.QATPT2EModule(model, total_epochs=training_args.num_train_epochs, is_qat=True, fast_mode=False,
                 qconfig_type="DEFAULT", example_inputs=example_input, convert_to_cuda=convert_to_cuda, 
                 bias_calibration_factor=model_optimization_args.bias_calibration_factor, 
                 num_observer_update_epochs=model_optimization_args.quantize_calib_images)
@@ -575,6 +575,9 @@ def main():
         trainer.save_metrics("train", train_result.metrics)
         trainer.save_state()
         
+    if model_optimization_args.quantization:
+       trainer.model.convert()
+
     # Model ONNX Export
     if model_optimization_args.do_onnx_export:
         export_device = 'cpu' if training_args.use_cpu else 'cuda:0'
@@ -603,9 +606,6 @@ def main():
             onnx.save(onnx_model, file_name)
             
         print("Model Export is now complete! \n")
-       
-    if model_optimization_args.quantization:
-        trainer.model = trainer.model.convert()
          
     # Evaluation
     if training_args.do_eval:
