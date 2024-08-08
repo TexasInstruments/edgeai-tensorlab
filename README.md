@@ -104,15 +104,21 @@ The models can be trained using the below script, the arguments are explained be
 ```
 $ cd examples/pytorch/image-classification
 
-$ python run_image_classification.py --dataset_name ${dataset_folder} --output_dir ${output_dir} --overwrite_output_dir --do_train --do_eval --per_device_train_batch_size 128 --per_device_eval_batch_size 128 --model_name_or_path ${model_name} --ignore_mismatched_sizes True --trust_remote_code True
+$ python run_image_classification.py --dataset_name ${dataset_folder} --output_dir ${output_dir} --overwrite_output_dir --do_train --do_eval --per_device_train_batch_size 128 --per_device_eval_batch_size 128 --model_name_or_path ${model_name} --size 256     --crop_size 224 --rescale_factor 1.0 --image_mean "123.675 116.28 103.53" --image_scale "0.017125 0.017507 0.017429" --ignore_mismatched_sizes True --trust_remote_code True --dataloader_num_workers 12
+
 ```
 
 | Argument | Value (or examples)   | Notes    |
 | :-----:  | :---:    | :---: |
 | model_name_or_path | microsoft/swin-tiny-patch4-window7-224 | Supported models are in Model Zoo, other models can be explored from huggingface.co | 
+| size | 256 | Image resize - it it is an int, resize the shortest edge to this size.  |
+| crop_size |224| Image crop size - center crop to this size. |
 | dataset_name | ${dataset_folder} | The dataset directory having the loading script. The dataset name from huggingface hub can also be specified instead. train_dir and val_dir can be skipped if dataset_name is specified.  |
-| train_dir  | ${dataset_folder}/train      |  The folder consisting of training images need to be specified for the no code solution of datasets. Not needed of dataset_name is provided. |
-| validation_dir  | ${dataset_folder}/val      |  The folder consisting of validation images need to be specified for the no code solution of datasets. Not needed of dataset_name is provided. |
+| train_dir  | ${dataset_folder}/train      |  The folder consisting of training images need to be specified for the no code solution of datasets. Not needed if dataset_name is provided. |
+| validation_dir  | ${dataset_folder}/val      |  The folder consisting of validation images need to be specified for the no code solution of datasets. Not needed if dataset_name is provided. |
+| rescale_factor | 1.0 | rescale_factor to multiply the input image." |
+| image_mean | "123.675 116.28 103.53" | Mean value to be subtracted from input image. |
+| image_scale | "0.017125 0.017507 0.017429" | Scale value to multiply the input image. |
 | output_dir  | ${output_dir}      |  The trained network as well as the onnx model will be saved here  |
 | overwrite_output_dir | - | No Value is required, otherwise will be required to specify new output dir |
 | remove_unused_columns | False | |
@@ -121,7 +127,8 @@ $ python run_image_classification.py --dataset_name ${dataset_folder} --output_d
 | per_device_train_batch_size | 128| To specify the batch size during training (per device)|
 | per_device_eval_batch_size | 128 | To specify the batch size during evaluation (per device)|
 | ignore_mismatched_sizes | True | Will enable to load a pretrained model whose head dimensions are different|
-| trust_remote_code| True | Will enable using the datasets which are not present in the hub
+| trust_remote_code| True | Will enable using the datasets which are not present in the hub |
+| dataloader_num_workers | 12 ||
 
 
 <h3> Object Detection </h3>
@@ -175,7 +182,7 @@ Quantization does not support distributed training currently, however we plan to
 ```
 $ cd examples/pytorch/image-classification
 
-$ CUDA_VISIBLE_DEVICES=0 python run_image_classification.py --dataset_name ${dataset_folder} --output_dir ${output_dir} --overwrite_output_dir --do_train --do_eval --per_device_train_batch_size 128 --per_device_eval_batch_size 128 --model_name_or_path facebook/deit-tiny-patch16-224 --ignore_mismatched_sizes True --label_names labels --quantization 3 --quantize_type PTQ --quantize_calib_images 100 
+$ CUDA_VISIBLE_DEVICES=0 python run_image_classification.py --dataset_name ${dataset_folder} --output_dir ${output_dir} --overwrite_output_dir --do_train --do_eval --per_device_train_batch_size 128 --per_device_eval_batch_size 128 --model_name_or_path ${model_name} --size 256 --crop_size 224 --rescale_factor 1.0 --image_mean "123.675 116.28 103.53" --image_scale "0.017125 0.017507 0.017429" --ignore_mismatched_sizes True --trust_remote_code True --dataloader_num_workers 12 --label_names labels --quantization 3 --quantize_type PTQ --quantize_calib_images 100 
 ```
 
 Necessary Arguments on top of training script : 

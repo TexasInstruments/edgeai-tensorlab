@@ -388,7 +388,8 @@ def main():
         id2label[str(i)] = label
 
     # Load the accuracy metric from the datasets package
-    metric = evaluate.load("evaluate/metrics/accuracy/accuracy.py", cache_dir=model_args.cache_dir)
+    metric = evaluate.load("accuracy", cache_dir=model_args.cache_dir)
+    # metric = evaluate.load("evaluate/metrics/accuracy/accuracy.py", cache_dir=model_args.cache_dir)
 
     # Define our compute_metrics function. It takes an `EvalPrediction` object (a namedtuple with a
     # predictions and label_ids field) and has to return a dictionary string to float.
@@ -456,29 +457,29 @@ def main():
         image_std = model_args.image_std or (image_processor.image_std if hasattr(image_processor, "image_std") else None)  
         image_mean = model_args.image_mean or (image_processor.image_mean if hasattr(image_processor, "image_mean") else None)
 
-        # Create normalization transform
-        if hasattr(image_processor, "image_mean") and hasattr(image_processor, "image_std"):
-            normalize = Normalize(mean=image_processor.image_mean, std=image_processor.image_std)
-        else:
-            normalize = Lambda(lambda x: x)
-        _train_transforms = Compose(
-            [
-                RandomResizedCrop(crop_size),
-                RandomHorizontalFlip(),
-                Lambda(lambda x: np.array(x)*model_args.rescale_factor), # to avoid division by 255 in to_tensor, handle it here
-                ToTensor(),
-                normalize,
-            ]
-        )
-        _val_transforms = Compose(
-            [
-                Resize(size),
-                CenterCrop(crop_size),
-                Lambda(lambda x: np.array(x)*model_args.rescale_factor), # to avoid division by 255 in to_tensor, handle it here     
-                ToTensor(),
-                normalize,
-            ]
-        )
+    normalize = (
+        Normalize(mean=image_processor.image_mean, std=image_processor.image_std)
+        if hasattr(image_processor, "image_mean") and hasattr(image_processor, "image_std")
+        else Lambda(lambda x: x)
+    )
+    _train_transforms = Compose(
+        [
+            RandomResizedCrop(crop_size),
+            RandomHorizontalFlip(),
+            Lambda(lambda x: np.array(x, dtype=np.float32)*model_args.rescale_factor), # to avoid division by 255 in to_tensor, handle it here
+            ToTensor(),
+            normalize,
+        ]
+    )
+    _val_transforms = Compose(
+        [
+            Resize(size),
+            CenterCrop(crop_size),
+            Lambda(lambda x: np.array(x, dtype=np.float32)*model_args.rescale_factor), # to avoid division by 255 in to_tensor, handle it here     
+            ToTensor(),
+            normalize,
+        ]
+    )
 
     def train_transforms(example_batch):
         """Apply _train_transforms across a batch."""
@@ -495,9 +496,6 @@ def main():
         ]
         del example_batch[data_args.image_column_name]
         return example_batch
-
-    if model_optimization_args.quantization and model_optimization_args.quantize_type == "PTQ":
-        data_args.max_train_samples = model_optimization_args.quantize_calib_images * training_args.per_device_eval_batch_size * training_args.n_gpu
 
     assert (model_optimization_args.quantization==0 or model_optimization_args.quantization==3), \
         print("Only pt2e (args.quantization=3) based quantization is currently supported for hf-transformers ")
@@ -577,9 +575,6 @@ def main():
         trainer.save_metrics("train", train_result.metrics)
         trainer.save_state()
         
-    if model_optimization_args.quantization:
-        trainer.model.convert()
-
     # Model ONNX Export
     if model_optimization_args.do_onnx_export:
         export_device = 'cpu' if training_args.use_cpu else 'cuda:0'
@@ -608,7 +603,10 @@ def main():
             onnx.save(onnx_model, file_name)
             
         print("Model Export is now complete! \n")
-        
+       
+    if model_optimization_args.quantization:
+        trainer.model = trainer.model.convert()
+         
     # Evaluation
     if training_args.do_eval:
         metrics = trainer.evaluate()
