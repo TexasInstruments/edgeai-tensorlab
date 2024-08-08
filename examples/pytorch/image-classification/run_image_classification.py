@@ -490,15 +490,13 @@ def main():
         del example_batch[data_args.image_column_name]
         return example_batch
 
-    if model_optimization_args.quantization and model_optimization_args.quantize_type == "PTQ":
+    if data_args.max_train_samples is None and model_optimization_args.quantization and model_optimization_args.quantize_type == "PTQ":
         data_args.max_train_samples = model_optimization_args.quantize_calib_images * training_args.per_device_eval_batch_size * training_args.n_gpu
 
     assert (model_optimization_args.quantization==0 or model_optimization_args.quantization==3), \
         print("Only pt2e (args.quantization=3) based quantization is currently supported for hf-transformers ")
 
     if training_args.do_train:
-        if model_optimization_args.quantization == 3 and model_optimization_args.quantize_type != "QAT":
-            data_args.max_train_samples = model_optimization_args.quantize_calib_images * training_args.per_device_eval_batch_size * training_args.n_gpu
         if "train" not in dataset:
             raise ValueError("--do_train requires a train dataset")
         if data_args.max_train_samples is not None:
@@ -537,7 +535,7 @@ def main():
         #
         
         else: 
-            training_args.num_train_epochs = 2 # bias calibration in the second epoch
+            #training_args.num_train_epochs = 2 # bias calibration in the second epoch
             model = xmodelopt.quantization.v3.QATPT2EModule(model, total_epochs=training_args.num_train_epochs, is_qat=True, fast_mode=False,
                 qconfig_type="DEFAULT", example_inputs=example_input, convert_to_cuda=convert_to_cuda, 
                 bias_calibration_factor=model_optimization_args.bias_calibration_factor, 
@@ -571,12 +569,9 @@ def main():
         trainer.save_metrics("train", train_result.metrics)
         trainer.save_state()
         
-    if model_optimization_args.quantization:
-       trainer.model.convert()
-
     # Model ONNX Export
     if model_optimization_args.do_onnx_export:
-        export_device = 'cpu' if training_args.use_cpu else 'cuda:0'
+        export_device = 'cpu'
         file_name = model_args.model_name_or_path.split("/")[-1]
         file_name = training_args.output_dir + '/' + file_name + '_quantized.onnx' if model_optimization_args.quantization else \
             training_args.output_dir + '/' + file_name + '.onnx'
@@ -603,6 +598,9 @@ def main():
             
         print("Model Export is now complete! \n")
          
+    if model_optimization_args.quantization:
+       trainer.model.convert()
+
     # Evaluation
     if training_args.do_eval:
         metrics = trainer.evaluate()

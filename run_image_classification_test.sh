@@ -44,36 +44,42 @@
 
 
 MODEL_NAME_OR_PATH="facebook/deit-tiny-patch16-224"
-# "facebook/convnext-tiny-224"
-# "microsoft/swin-tiny-patch4-window7-224"
+# facebook/convnext-tiny-224
+# microsoft/swin-tiny-patch4-window7-224
+# facebook/deit-tiny-patch16-224
+# facebook/deit-small-patch16-224
+# microsoft/swin-tiny-patch4-window7-224
+# microsoft/swin-small-patch4-window7-224
+# facebook/convnext-tiny-224
+# facebook/convnext-small-224
 
 
 CUDA_VISIBLE_DEVICES="0" \
 python3 examples/pytorch/image-classification/run_image_classification.py \
                 --trust_remote_code True \
                 --dataset_name data/datasets/imagenet2012 \
-                --model_name_or_path ${MODEL_NAME_OR_PATH} \                
+                --model_name_or_path ${MODEL_NAME_OR_PATH} \
                 --output_dir outputs \
                 --remove_unused_columns False \
-                --do_train False \
+                --do_train True \
                 --do_eval True \
                 --per_device_train_batch_size 128 \
                 --per_device_eval_batch_size 128 \
                 --overwrite_output_dir \
                 --size 256 \
-                --crop_size 224 \              
+                --crop_size 224 \
                 --rescale_factor 1.0 \
-                --image_mean 123.675 116.28 103.53 \
-                --image_scale 0.017125 0.017507 0.017429 \
+                --image_mean "123.675 116.28 103.53" \
+                --image_scale "0.017125 0.017507 0.017429" \
                 --label_names labels \
                 --ignore_mismatched_sizes True \
                 --dataloader_drop_last True \
                 --save_strategy no \
-                --do_onnx_export False \
-                --dataloader_num_workers 12
-                #--quantization 3 \           # 0 for no quantization, 3 for PT2E quantization 
-                #--quantize_type PTQ \        # PTQ: Post Training Calibration, QAT: Quantization Aware Training            
-                #--quantize_calib_images 100 \
+                --do_onnx_export True \
+                --dataloader_num_workers 12 \
+                --quantization 3 \
+                --quantize_type PTQ
+                #--quantize_calib_images 5 \
                 #--max_eval_samples 1000 \
-                #--max_train_samples 1000 \
+                #--max_train_samples 200 \
                 #--use_cpu True \
