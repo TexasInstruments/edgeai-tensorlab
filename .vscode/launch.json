@@ -38,7 +38,7 @@
                 "--quantize_calib_images", "5",
                 "--dataloader_drop_last", "True",
                 "--save_strategy", "no",
-                "--do_onnx_export", "False",
+                "--do_onnx_export", "True",
                 "--dataloader_num_workers", "12",
                 //"--quantize_calib_images", "100",
                 // "--use_cpu", "True"
