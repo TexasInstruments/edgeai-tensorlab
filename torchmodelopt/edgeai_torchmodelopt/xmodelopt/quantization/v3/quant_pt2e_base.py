@@ -61,7 +61,8 @@ class QuantPT2EBaseModule(nn.Module):
         return self.module(*args, **kwargs)
 
     def convert(self, *args, **kwargs):
-        return quant_pt2e_func.convert(self.module, *args, **kwargs)
+        self.module = quant_pt2e_func.convert(self.module, *args, **kwargs)
+        return self
 
     def export(self, *args, **kwargs):
         return quant_pt2e_func.export(self.module, *args, **kwargs)
