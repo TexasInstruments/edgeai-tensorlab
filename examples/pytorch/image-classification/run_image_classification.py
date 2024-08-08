@@ -450,9 +450,6 @@ def main():
     else:
         crop_size = (image_processor.crop_size["height"], image_processor.crop_size["width"])
 
-    image_std = model_args.image_std or (image_processor.image_std if hasattr(image_processor, "image_std") else None)  
-    image_mean = model_args.image_mean or (image_processor.image_mean if hasattr(image_processor, "image_mean") else None)
-
     normalize = (
         Normalize(mean=image_processor.image_mean, std=image_processor.image_std)
         if hasattr(image_processor, "image_mean") and hasattr(image_processor, "image_std")
@@ -493,9 +490,12 @@ def main():
         del example_batch[data_args.image_column_name]
         return example_batch
 
+    if model_optimization_args.quantization and model_optimization_args.quantize_type == "PTQ":
+        data_args.max_train_samples = model_optimization_args.quantize_calib_images * training_args.per_device_eval_batch_size * training_args.n_gpu
+
     assert (model_optimization_args.quantization==0 or model_optimization_args.quantization==3), \
         print("Only pt2e (args.quantization=3) based quantization is currently supported for hf-transformers ")
-        
+
     if training_args.do_train:
         if model_optimization_args.quantization == 3 and model_optimization_args.quantize_type != "QAT":
             data_args.max_train_samples = model_optimization_args.quantize_calib_images * training_args.per_device_eval_batch_size * training_args.n_gpu
