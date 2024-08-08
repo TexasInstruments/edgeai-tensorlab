@@ -278,12 +278,18 @@ def register_onnx_symbolics():
         
         return symbolic_helper.quantize_helper(g, x, op_scale, op_zero_point, axis)
     
-    def aten_copy(g, x):
+    def aten_copy(g, x, *args):
         return x
     
     
     register_custom_op_symbolic(
         symbolic_name='aten::lift_fresh_copy',
+        symbolic_fn=aten_copy,
+        opset_version=17
+    )
+    
+    register_custom_op_symbolic(
+        symbolic_name='aten::_to_copy',
         symbolic_fn=aten_copy,
         opset_version=17
     )

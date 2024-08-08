@@ -196,30 +196,18 @@ def forward(self, *input, **kwargs):
     return self(*input, **kwargs)
 
 
-def convert(self, device='cpu', make_copy=False):
-    freeze(self)
-        
-    self.__quant_params__.bias_hooks = remove_hooks(self.__quant_params__.bias_hooks)   
-
+def convert(self, make_copy=False):
     orig_quant_params = copy.deepcopy(self.__quant_params__)
     model = copy.deepcopy(self).eval() if make_copy else self.eval()
-    setattr(model, "__quant_params__", orig_quant_params)
-    
-    torch.ao.quantization.move_exported_model_to_eval(model)
-
     # convert requires cpu model 
     #TODO check of this is required
     # self.to(torch.device(device))
     # now do the actual conversion
-    self = convert_pt2e(self)
-    
-    setattr(model, "__quant_params__", orig_quant_params)
-
-    # model, example_input = create_batch1_model(model, example_input)
-    
-    model = quant_pt2e_utils.remove_loss_branch(model)   
-
-    return self
+    model = convert_pt2e(model)
+    torch.ao.quantization.move_exported_model_to_eval(model)
+    model.eval = types.MethodType(train, model)
+    setattr(model, "__quant_params__", orig_quant_params)    
+    return model
 
 
 def train(self, mode: bool = True):
@@ -260,7 +248,7 @@ def train(self, mode: bool = True):
     else:
         self.__quant_params__.bias_hooks = remove_hooks(self.__quant_params__.bias_hooks)                      
         self.__quant_params__.outlier_hooks = remove_hooks(self.__quant_params__.outlier_hooks)
-        torch.ao.quantization.move_exported_model_to_eval(self)
+        # torch.ao.quantization.move_exported_model_to_eval(self)
         freeze(self)
     #
     return self
@@ -286,7 +274,9 @@ def load_weights(self, pretrained, *args, strict=True, state_dict_name=None, **k
     
 def export(self, example_input, filename='model.onnx', opset_version=17, model_quant_format=None, preserve_qdq_model=True,
            simplify=False, skipped_optimizers=None, device='cpu'):
-    
+    model = convert(self, make_copy=True)
+    model = quant_pt2e_utils.remove_loss_branch(model) 
+    # model, example_input = create_batch1_model(model, example_input)
     quant_pt2e_utils.register_onnx_symbolics()
  
     model = model.to(device=device)
@@ -312,27 +302,6 @@ def export(self, example_input, filename='model.onnx', opset_version=17, model_q
         else:
             example_inputs = example_input.to(device=device)
         torch.onnx.export(model, example_inputs, filename, opset_version=opset_version, training=torch._C._onnx.TrainingMode.PRESERVE)
-            # operator_export_type=torch._C._onnx.OperatorExportTypes.ONNX_FALLTHROUGH)
-            # operator_export_type=torch._C._onnx.OperatorExportTypes.ONNX_ATEN_FALLBACK)
-        # torch.ao.quantization.allow_exported_model_train_eval(model)
-        # torch.onnx.export(model, example_inputs, filename, opset_version=opset_version, training=torch._C._onnx.TrainingMode.EVAL)
-    #
-    
-# import onnxruntime
-# sess_options = onnxruntime.SessionOptions()
-# sess_options.graph_optimization_level = onnxruntime.GraphOptimizationLevel.ORT_ENABLE_ALL
-# session = onnxruntime.InferenceSession('/home/a0491009/quantization/edgeai-transformers/examples/pytorch/image-classification/imagenet/deit-tiny-patch16-224.onnx', sess_options)
-# input_name = session.get_inputs()[0].name
-# onnx_input = inputs['pixel_values'].cpu().data.numpy()
-# output = session.run([], {input_name: onnx_input})
-
-# import onnxruntime
-# sess_options = onnxruntime.SessionOptions()
-# sess_options.graph_optimization_level = onnxruntime.GraphOptimizationLevel.ORT_ENABLE_ALL
-# session = onnxruntime.InferenceSession('/home/a0491009/quantization/edgeai-transformers/examples/pytorch/image-classification/imagenet/deit-tiny-patch16-224_quantized.onnx', sess_options)
-# input_name = session.get_inputs()[0].name
-# onnx_input = example_input['pixel_values'].cpu().data.numpy()
-# output = session.run([], {input_name: onnx_input})
 
     if simplify:
         import onnx
