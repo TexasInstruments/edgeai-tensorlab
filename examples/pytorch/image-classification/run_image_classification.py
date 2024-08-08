@@ -457,29 +457,29 @@ def main():
         image_std = model_args.image_std or (image_processor.image_std if hasattr(image_processor, "image_std") else None)  
         image_mean = model_args.image_mean or (image_processor.image_mean if hasattr(image_processor, "image_mean") else None)
 
-    normalize = (
-        Normalize(mean=image_processor.image_mean, std=image_processor.image_std)
-        if hasattr(image_processor, "image_mean") and hasattr(image_processor, "image_std")
-        else Lambda(lambda x: x)
-    )
-    _train_transforms = Compose(
-        [
-            RandomResizedCrop(crop_size),
-            RandomHorizontalFlip(),
-            Lambda(lambda x: np.array(x, dtype=np.float32)*model_args.rescale_factor), # to avoid division by 255 in to_tensor, handle it here
-            ToTensor(),
-            normalize,
-        ]
-    )
-    _val_transforms = Compose(
-        [
-            Resize(size),
-            CenterCrop(crop_size),
-            Lambda(lambda x: np.array(x, dtype=np.float32)*model_args.rescale_factor), # to avoid division by 255 in to_tensor, handle it here     
-            ToTensor(),
-            normalize,
-        ]
-    )
+        normalize = (
+            Normalize(mean=image_processor.image_mean, std=image_processor.image_std)
+            if hasattr(image_processor, "image_mean") and hasattr(image_processor, "image_std")
+            else Lambda(lambda x: x)
+        )
+        _train_transforms = Compose(
+            [
+                RandomResizedCrop(crop_size),
+                RandomHorizontalFlip(),
+                Lambda(lambda x: np.array(x, dtype=np.float32)*model_args.rescale_factor), # to avoid division by 255 in to_tensor, handle it here
+                ToTensor(),
+                normalize,
+            ]
+        )
+        _val_transforms = Compose(
+            [
+                Resize(size),
+                CenterCrop(crop_size),
+                Lambda(lambda x: np.array(x, dtype=np.float32)*model_args.rescale_factor), # to avoid division by 255 in to_tensor, handle it here     
+                ToTensor(),
+                normalize,
+            ]
+        )
 
     def train_transforms(example_batch):
         """Apply _train_transforms across a batch."""
@@ -497,9 +497,12 @@ def main():
         del example_batch[data_args.image_column_name]
         return example_batch
 
+    if model_optimization_args.quantization and model_optimization_args.quantize_type == "PTQ":
+        data_args.max_train_samples = model_optimization_args.quantize_calib_images * training_args.per_device_eval_batch_size * training_args.n_gpu
+
     assert (model_optimization_args.quantization==0 or model_optimization_args.quantization==3), \
         print("Only pt2e (args.quantization=3) based quantization is currently supported for hf-transformers ")
-        
+
     if training_args.do_train:
         if model_optimization_args.quantization == 3 and model_optimization_args.quantize_type != "QAT":
             data_args.max_train_samples = model_optimization_args.quantize_calib_images * training_args.per_device_eval_batch_size * training_args.n_gpu
