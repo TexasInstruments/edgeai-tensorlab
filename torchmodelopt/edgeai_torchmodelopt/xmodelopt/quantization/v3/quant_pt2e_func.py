@@ -196,7 +196,9 @@ def forward(self, *input, **kwargs):
     return self(*input, **kwargs)
 
 
-def convert(self, make_copy=False):
+def convert(self, device="cpu", make_copy=False):
+    model = self.to(device=device)
+
     orig_quant_params = copy.deepcopy(self.__quant_params__)
     model = copy.deepcopy(self).eval() if make_copy else self.eval()
     # convert requires cpu model 
@@ -273,14 +275,12 @@ def load_weights(self, pretrained, *args, strict=True, state_dict_name=None, **k
     
     
 def export(self, example_input, filename='model.onnx', opset_version=17, model_quant_format=None, preserve_qdq_model=True,
-           simplify=False, skipped_optimizers=None, device='cpu'):
-    model = convert(self, make_copy=True)
+           simplify=False, skipped_optimizers=None, device='cpu', make_copy=True):
+    model = convert(self, device=device, make_copy=make_copy)
     model = quant_pt2e_utils.remove_loss_branch(model) 
     # model, example_input = create_batch1_model(model, example_input)
     quant_pt2e_utils.register_onnx_symbolics()
- 
-    model = model.to(device=device)
-    
+     
     if model_quant_format == ModelQuantFormat.INT_MODEL:
         # # Convert QDQ format to Int8 format
         import onnxruntime as ort
