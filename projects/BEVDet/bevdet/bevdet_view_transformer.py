@@ -328,16 +328,72 @@ class LSSViewTransformer(BaseModule):
                 tran_feat.view(B, N, self.out_channels, H, W))
         return bev_feat, depth
 
+    def precompute_1d_voxel_info(self, coor):
+        B, N, D, H, W, _ = coor.shape
+
+        num_points = B * N * D * H * W
+
+        # convert coordinate into the voxel space
+        coor = ((coor - self.grid_lower_bound.to(coor)) /
+                self.grid_interval.to(coor))
+
+        coor = coor.long().reshape(num_points, 3)
+        batch_idx = torch.arange(0, B).reshape(B, 1). \
+            expand(B, num_points // B).reshape(num_points, 1).to(coor)
+        coor = torch.cat((coor, batch_idx), 1)
+
+        # filter out points that are outside box
+        kept = (coor[:, 0] >= 0) & (coor[:, 0] < self.grid_size[0]) & \
+               (coor[:, 1] >= 0) & (coor[:, 1] < self.grid_size[1]) & \
+               (coor[:, 2] >= 0) & (coor[:, 2] < self.grid_size[2])
+
+        #if kept.size() == 0:
+        #    return None, None
+
+        # for our BEV pooling - coor in 1D tensor
+        num_grids = B*self.grid_size[2]*self.grid_size[1]*self.grid_size[0]
+        bev_feat = torch.zeros((int(num_grids.item()) + 1, self.out_channels), device=coor.device)
+
+        coor_1d = torch.zeros(num_points, device=coor.device)
+        coor_1d  = coor[:, 3] * (self.grid_size[2] * self.grid_size[1] * self.grid_size[0]) + \
+                   coor[:, 2] * (self.grid_size[1] * self.grid_size[0]) + \
+                   coor[:, 1] *  self.grid_size[0] + coor[:, 0]
+        coor_1d[(kept==False).nonzero().squeeze()] = B * self.grid_size[2] * self.grid_size[1] * self.grid_size[0]
+
+        return bev_feat, coor_1d.long().contiguous()
+
+
+    def view_transform_tidl(self, img, sensor2ego, cam2img, lidar2cam, ego2global, post_rts, bda,
+                            depth, tran_feat):
+        B, N, C, H, W = img.shape
+
+        coor = self.get_lidar_coor(sensor2ego, cam2img, lidar2cam, ego2global, post_rts, bda)
+        bev_feat, lidar_coor_1d = self.precompute_1d_voxel_info(coor)
+
+        feat = depth.unsqueeze(1) * tran_feat.unsqueeze(2)
+        feat = feat.permute(0, 2, 3, 4, 1)
+        feat = feat.reshape(B*N*self.D*H*W, self.out_channels)
+
+        num_grids = self.grid_size[2]*self.grid_size[1]*self.grid_size[0]
+        bev_feat = bev_feat.index_put_(tuple([lidar_coor_1d]), feat, accumulate=True)
+        
+        bev_feat = bev_feat[:int(num_grids.item()), :]
+        bev_feat = bev_feat.reshape(1, int(self.grid_size[2].item()), int(self.grid_size[1].item()), int(self.grid_size[0].item()), self.out_channels)
+        bev_feat = bev_feat.permute(0, 4, 1, 2, 3)
+
+        # collapse Z
+        bev_feat = torch.cat(bev_feat.unbind(dim=2), 1)
+        return bev_feat, depth
+
+
     def view_transform(self, img, sensor2ego, cam2img, lidar2cam, ego2global, post_rts, bda,
                        depth, tran_feat):
         for shape_id in range(3):
             assert depth.shape[shape_id+1] == self.frustum.shape[shape_id]
 
-        # slef.accelerate = False
-        #if self.accelerate:
-        #    self.pre_compute(input)
-
-        return self.view_transform_core(img, sensor2ego, cam2img, lidar2cam, ego2global, post_rts, bda,
+        #return self.view_transform_core(img, sensor2ego, cam2img, lidar2cam, ego2global, post_rts, bda,
+        #                                depth, tran_feat)
+        return self.view_transform_tidl(img, sensor2ego, cam2img, lidar2cam, ego2global, post_rts, bda,
                                         depth, tran_feat)
 
 

@@ -164,7 +164,7 @@ model = dict(
             post_max_size=500,
 
             # Scale-NMS
-            nms_type=['rotate'],
+            nms_type=['circle'],
             nms_thr=[0.2],
             nms_rescale_factor=[[1.0, 0.7, 0.7, 0.4, 0.55,
                                  1.1, 1.0, 1.0, 1.5, 3.5]]

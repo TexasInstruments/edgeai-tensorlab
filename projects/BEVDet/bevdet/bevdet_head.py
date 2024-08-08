@@ -15,6 +15,8 @@ from mmdet3d.registry import MODELS, TASK_UTILS
 from mmdet3d.structures import Det3DDataSample, xywhr2xyxyr
 from mmdet3d.models.dense_heads.centerpoint_head import CenterHead
 
+from mmdet3d.models.layers import circle_nms
+
 from mmcv.ops import nms_rotated
 
 from mmdet.utils import reduce_mean
@@ -216,6 +218,104 @@ class BEVDetHead(CenterHead):
                     bboxes[:, 2] = bboxes[:, 2] - bboxes[:, 5] * 0.5
                     bboxes = img_metas[i]['box_type_3d'](
                         bboxes, self.bbox_coder.code_size)
+                elif k == 'scores':
+                    scores = torch.cat([ret[i][k] for ret in rets])
+                elif k == 'labels':
+                    flag = 0
+                    for j, num_class in enumerate(self.num_classes):
+                        rets[j][i][k] += flag
+                        flag += num_class
+                    labels = torch.cat([ret[i][k].int() for ret in rets])
+            ret_list.append([bboxes, scores, labels])
+
+        return ret_list
+
+
+    def get_bboxes_onnx(self, preds_dicts, img_metas, img=None, rescale=False):
+        """Generate bboxes from bbox head predictions.
+
+        Args:
+            preds_dicts (tuple[list[dict]]): Prediction results.
+            img_metas (list[dict]): Point cloud and image's meta info.
+
+        Returns:
+            list[dict]: Decoded bbox, scores and labels after nms.
+        """
+        rets = []
+        for task_id, preds_dict in enumerate(preds_dicts):
+            batch_size = preds_dict[0]['heatmap'].shape[0]
+            batch_heatmap = preds_dict[0]['heatmap'].sigmoid()
+
+            batch_reg = preds_dict[0]['reg']
+            batch_hei = preds_dict[0]['height']
+
+            if self.norm_bbox:
+                batch_dim = torch.exp(preds_dict[0]['dim'])
+            else:
+                batch_dim = preds_dict[0]['dim']
+
+            batch_rots = preds_dict[0]['rot'][:, 0].unsqueeze(1)
+            batch_rotc = preds_dict[0]['rot'][:, 1].unsqueeze(1)
+
+            if 'vel' in preds_dict[0]:
+                batch_vel = preds_dict[0]['vel']
+            else:
+                batch_vel = None
+            temp = self.bbox_coder.decode(
+                batch_heatmap,
+                batch_rots,
+                batch_rotc,
+                batch_hei,
+                batch_dim,
+                batch_vel,
+                reg=batch_reg,
+                task_id=task_id)
+            batch_reg_preds = [box['bboxes'] for box in temp]
+            batch_cls_preds = [box['scores'] for box in temp]
+            batch_cls_labels = [box['labels'] for box in temp]
+            nms_type = self.test_cfg.get('nms_type')
+            if isinstance(nms_type, list):
+                nms_type = nms_type[task_id]
+            if nms_type == 'circle':
+                ret_task = []
+                for i in range(batch_size):
+                    boxes3d = temp[i]['bboxes']
+                    scores = temp[i]['scores']
+                    labels = temp[i]['labels']
+                    centers = boxes3d[:, [0, 1]]
+                    boxes = torch.cat([centers, scores.view(-1, 1)], dim=1)
+                    keep = torch.tensor(
+                        circle_nms(
+                            boxes.detach().cpu().numpy(),
+                            self.test_cfg['min_radius'][task_id],
+                            post_max_size=self.test_cfg['post_max_size']),
+                        dtype=torch.long,
+                        device=boxes.device)
+
+                    boxes3d = boxes3d[keep]
+                    scores = scores[keep]
+                    labels = labels[keep]
+                    ret = dict(bboxes=boxes3d, scores=scores, labels=labels)
+                    ret_task.append(ret)
+                rets.append(ret_task)
+            else:
+                rets.append(
+                    self.get_task_detections(batch_cls_preds, batch_reg_preds,
+                                             batch_cls_labels, img_metas,
+                                             task_id))
+
+        # Merge branches results
+        num_samples = len(rets[0])
+
+        ret_list = []
+        for i in range(num_samples):
+            for k in rets[0][i].keys():
+                if k == 'bboxes':
+                    bboxes = torch.cat([ret[i][k] for ret in rets])
+                    bboxes[:, 2] = bboxes[:, 2] - bboxes[:, 5] * 0.5
+                    bboxes = img_metas[i]['box_type_3d'](
+                        bboxes, self.bbox_coder.code_size)
+                    bboxes = bboxes.tensor
                 elif k == 'scores':
                     scores = torch.cat([ret[i][k] for ret in rets])
                 elif k == 'labels':
