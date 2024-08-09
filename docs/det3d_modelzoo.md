@@ -1,6 +1,6 @@
 # Object Detection Model Zoo
 
-MMDetection3D (./../README_mmdet3d.md) has large Model Zoo, supporting a lot of models. Many of them are high complexity models that are not suitable for embedded scenario that require high throughput. However, here we primarily list speed/accuracy of optimized models that we have trained ourselves or is recommended for TIDL.
+[MMDetection3D](https://github.com/open-mmlab/mmdetection3d) has large Model Zoo, supporting a lot of models. Many of them are high complexity models that are not suitable for embedded scenario that require high throughput. However, here we primarily list speed/accuracy of optimized models that we have trained ourselves or is recommended for TIDL.
 
 
 ## Features
@@ -18,9 +18,9 @@ MMDetection3D (./../README_mmdet3d.md) has large Model Zoo, supporting a lot of 
 |Dataset |Model Name                    |Max Num Voxels |Accuracy AP(Easy-Moderate-Hard)      |Config File |
 |--------|------------------------------|---------------|---------------------------|--------------------------------------------------------|
 |KITTI   |PointPillars (Car class)                  |10000          |**86.51 - 76.84 - 73.74**  |configs/pointPillars/tidl_pointpillars_hv_secfpn_8x6b_160e_kitti-3d-car.py    |
-|KITTI   |PointPillars Quantized (Car class)        |10000          |**82.45 - 74.59 - 67.31**  |configs/pointPillars/tidl_pointpillars_hv_secfpn_8x6b_160e_kitti-3d-car_qat.py|
+|KITTI   |PointPillars Quantized (Car class)        |10000          |**TBD**  |configs/pointPillars/tidl_pointpillars_hv_secfpn_8x6b_160e_kitti-3d-car_qat.py|
 |KITTI   |PointPillars (3 class)                    |10000          |**73.84 - 62.66 - 57.88**  |configs/pointPillars/tidl_pointpillars_hv_secfpn_8x6b_160e_kitti-3d-3class.py|
-|KITTI   |PointPillars Quantized (3 class)          |10000          |**65.97 - 54.74 - 50.92**  |configs/pointPillars/tidl_pointpillars_hv_secfpn_8x6b_160e_kitti-3d-3class_qat.py|
+|KITTI   |PointPillars Quantized (3 class)          |10000          |**TBD**  |configs/pointPillars/tidl_pointpillars_hv_secfpn_8x6b_160e_kitti-3d-3class_qat.py|
 |KITTI   |PointPainting (3 class)                   |10000          |**74.62 - 63.49 - 59.95**  |configs/pointPillars/tidl_pointpillars_hv_secfpn_8xb6_160e_kitti-3d-3class-painted.py|
 |KITTI   |PointPainting Quantized (3 class)         |10000          |**TBD**  |configs/pointPillars/tidl_pointpillars_hv_secfpn_8xb6_160e_kitti-3d-3class-painted_qat.py|
 

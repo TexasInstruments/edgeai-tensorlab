@@ -196,6 +196,7 @@ else:
     evaluation = dict(interval=1,save_best='KITTI/Car_3D_AP11_moderate_strict',rule='greater')
     checkpoint_config = dict(interval=1)
 
-    load_from = './checkpoints/PointPillar/hv_pointpillars_secfpn_6x8_160e_kitti-3d-car_20220331_134606-d42d15ed.pth'
-    work_dir  = './work_dirs/car_cls_quant_train_dir_2/'
+    #load_from = './work_dirs/tidl_pointpillars_hv_secfpn_8xb6-160e_kitti-3d-car/latests.pth'
+    #work_dir  = './work_dirs/car_cls_quant_train_dir_2/'
+    
     #custom_hooks = dict(type='FreezeRangeHook')

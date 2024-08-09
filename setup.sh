@@ -35,20 +35,20 @@ sudo apt-get install -y libjpeg-dev zlib1g-dev cmake libffi-dev protobuf-compile
 
 ######################################################################
 # upgrade pip
-pip3 install --no-input --upgrade pip setuptools
+pip3 install --no-input --upgrade pip==23.0.1 setuptools==60.2.0
 
 ######################################################################
 echo "installing torch, torchvision"
-pip3 install torch torchvision
+pip3 install torch==2.1.2 torchvision==0.16.2
 
 echo "installing requirements"
 pip3 install --no-input -r requirements.txt
 
 pip install -U openmim
-mim install mmengine
-mim install 'mmcv>=2.0.0rc4'
-mim install 'mmdet>=3.0.0'
-pip install mmsegmentation
+pip install mmengine==0.10.2
+pip install mmcv==2.1.0
+pip install mmdet==3.3.0
+pip install mmsegmentation==1.2.2
 
 
 ######################################################################

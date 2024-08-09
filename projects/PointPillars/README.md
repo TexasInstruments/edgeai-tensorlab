@@ -17,9 +17,9 @@ Object detection in point clouds is an important aspect of many robotics applica
 We implement PointPillars and provide the results and checkpoints on the KITTI dataset. The result can be found in [Object Detection Zoo](../../docs/det3d_modelzoo.md)
 
 ## Dataset Preperation
-Prepare dataset as per original mmdetection3d documentation [dataset preperation](../../docs/en/data_preparation.md). 
+Prepare the KITTI dataset as per the MMDetection3D documentation [KITTI dataset preperation](../../docs/en/advanced_guides/datasets/kitti.md). 
 
-**Note: Currently only KITTI dataset with pointPillars network is supported. For KITTI dataset optional ground plane data can be downloaded from [KITTI Plane data](https://download.openmmlab.com/mmdetection3d/data/train_planes.zip). For preparing the KITTI data with ground plane, please refer the mmdetection3d external link [dataset preperation external Link](https://mmdetection3d.readthedocs.io/en/latest/advanced_guides/datasets/kitti.html) and use below command from there**
+**Note: Currently only KITTI dataset with pointPillars network is supported. For KITTI dataset optional ground plane data can be downloaded from [KITTI Plane data](https://download.openmmlab.com/mmdetection3d/data/train_planes.zip). For preparing the KITTI data with ground plane, please refer the MMDetection3D documentation [KITTI dataset preperation](../../docs/en/advanced_guides/datasets/kitti.md) and use below command from there**
 
 ### Steps for Kitti Dataset preperation
 ```bash
@@ -39,7 +39,7 @@ python tools/create_data.py kitti --root-path ./data/kitti --out-dir ./data/kitt
 ```
 
 ### Steps for Semantic segmented painted Kitti Dataset preperation
-PointPainting : It is simple fusion algorithm for 3d object detection. This repository supports data preperation and training for points painting. Please refer https://arxiv.org/abs/1911.10150 for more details. Data preperation for points painting network is mentioned below
+PointPainting : It is simple fusion algorithm for 3d object detection. This repository supports data preperation and training for points painting. Please refer [PointPainting](https://arxiv.org/abs/1911.10150) for more details. Data preperation for points painting network is mentioned below
 
 It is expected that previous step of normal KITTI data preperation is already done. Also required to do one small change in mmseg installation package. Please change the function "simple_test" in the file ~/.pyenv/versions/3.10.13/envs/mmdet3d/lib/python3.10/site-packages/mmseg/models/segmentors/encoder_decoder.py as shown below to return the segmentation output just after CNN network and before post processing. Please note that only return tensor is changed.
 ```python
@@ -100,3 +100,11 @@ Complexity and Accuracy report of several trained models is available at the [3D
 
 ## Quantization
 This tutorial explains more about quantization and how to do [Quantization Aware Training (QAT)](../../docs/det3d_quantization.md) of detection models.
+
+
+## ONNX & Prototxt Export
+**Export of ONNX model (.onnx) and additional meta information (.prototxt)** is supported. The .prototxt contains meta information specified by **TIDL** for object detectors. 
+
+The export of meta information is now supported for **PointPillars** detectors. 
+
+For more information please see [Usage](../../docs/det3d_usage.md).
