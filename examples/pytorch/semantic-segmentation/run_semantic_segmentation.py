@@ -234,7 +234,7 @@ def main():
     # download the dataset.
     # TODO support datasets from local folders
     dataset = load_dataset(
-        data_args.dataset_name, cache_dir=model_args.cache_dir, trust_remote_code=model_args.trust_remote_code
+        data_args.dataset_name, data_dir=data_args.dataset_name, cache_dir=model_args.cache_dir, trust_remote_code=model_args.trust_remote_code
     )
 
     # Rename column names to standardized names (only "image" and "label" need to be present)
@@ -258,7 +258,7 @@ def main():
     else:
         repo_id = data_args.dataset_name
         filename = "id2label.json"
-    id2label = json.load(open(hf_hub_download(repo_id, filename, repo_type="dataset"), "r"))
+    id2label = json.load(open(os.path.join(repo_id, filename), "r"))
     id2label = {int(k): v for k, v in id2label.items()}
     label2id = {v: str(k) for k, v in id2label.items()}
 
@@ -285,15 +285,14 @@ def main():
             references=labels,
             num_labels=len(id2label),
             ignore_index=0,
-            reduce_labels=image_processor.do_reduce_labels,
+            reduce_labels=False, # The labels have already been reduced once during the loading, need not be reduced again
         )
         # add per category metrics as individual key-value pairs
         per_category_accuracy = metrics.pop("per_category_accuracy").tolist()
         per_category_iou = metrics.pop("per_category_iou").tolist()
 
-        metrics.update({f"accuracy_{id2label[i]}": v for i, v in enumerate(per_category_accuracy)})
-        metrics.update({f"iou_{id2label[i]}": v for i, v in enumerate(per_category_iou)})
-
+        metrics.update({f"accuracy_{id2label[i+1]}": v for i, v in enumerate(per_category_accuracy)})
+        metrics.update({f"iou_{id2label[i+1]}": v for i, v in enumerate(per_category_iou)})
         return metrics
 
     config = AutoConfig.from_pretrained(
@@ -344,6 +343,7 @@ def main():
             ToTensorV2(),
         ]
     )
+    max_size = height if width>=height else width
     val_transforms = A.Compose(
         [
             A.Lambda(
@@ -351,7 +351,9 @@ def main():
                 mask=reduce_labels_transform if data_args.do_reduce_labels else None,
                 p=1.0,
             ),
-            A.Resize(height=height, width=width, p=1.0),
+            # A.Resize(height=height, width=width, p=1.0),
+            A.SmallestMaxSize(max_size=max_size, p=1.0),
+            A.CenterCrop(height=height, width=width, p=1.0),
             A.Normalize(mean=image_processor.image_mean, std=image_processor.image_std, max_pixel_value=255.0, p=1.0),
             ToTensorV2(),
         ]

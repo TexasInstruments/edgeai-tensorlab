@@ -171,3 +171,4 @@ tags
 
 examples/pytorch/image-classification/imagenet/
 examples/pytorch/object-detection/od_results/
+examples/pytorch/semantic-segmentation/segformer_outputs/

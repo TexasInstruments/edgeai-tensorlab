@@ -163,6 +163,7 @@ $ python run_object_detection.py --model_name_or_path ${model_name} --output_dir
 | per_device_eval_batch_size | 64 | To specify the batch size during evaluation (per device)|
 | ignore_mismatched_sizes | True | Will enable to load a pretrained model whose head dimensions are different|
 | trust_remote_code| True | Will enable using the datasets which are not present in the hub |
+| eval_do_concat_batches | True | Needed if cuda is running out of memory during evaluation |
 
 <h3> Instance Segmentation </h3>
 
