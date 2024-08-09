@@ -604,6 +604,9 @@ def main():
             onnx.save(onnx_model, file_name)
             
         print("Model Export is now complete! \n")
+       
+    # if model_optimization_args.quantization:
+    #     trainer.model = trainer.model.convert()
          
     if model_optimization_args.quantization:
        trainer.model.convert()
