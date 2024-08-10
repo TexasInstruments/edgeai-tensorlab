@@ -161,6 +161,30 @@ class ModelArguments:
             )
         },
     )
+    size: Optional[str] = field(
+        default=None,
+        metadata={"help": "Image resize - it it is an int, resize the shortest edge to this size."},
+    )
+    crop_size: Optional[str] = field(
+        default=None,
+        metadata={"help": "Image crop size - center crop to this size."},
+    )
+    rescale_factor: Optional[float] = field(
+        default=1/255,
+        metadata={"help": "rescale_factor to multiply the input image."},
+    )
+    image_mean: Optional[str] = field(
+        default=None,
+        metadata={"help": "Mean value to be subtracted from input image."},
+    )
+    image_std: Optional[str] = field(
+        default=None,
+        metadata={"help": "Std to be used to divide the input image."},
+    )
+    image_scale: Optional[str] = field(
+        default=None,
+        metadata={"help": "Scale value to multiply the input image."},
+    )
     trust_remote_code: bool = field(
         default=False,
         metadata={
@@ -186,6 +210,26 @@ def main():
     else:
         model_args, data_args, training_args = parser.parse_args_into_dataclasses()
 
+    if model_args.size is not None:
+        model_args.size = [int(word) for word in model_args.size.split(" ")]
+        if len(model_args.size) == 1:
+            model_args.size = {"shortest_edge": model_args.size[0]}
+
+    if model_args.crop_size is not None:
+        model_args.crop_size = [int(word) for word in model_args.crop_size.split(" ")]
+        if len(model_args.crop_size) == 1:
+            model_args.crop_size = (model_args.crop_size[0], model_args.crop_size[0])
+
+    if model_args.image_std and model_args.image_scale:
+        assert False, "only one of image_std or image_scale should be specified"
+    elif model_args.image_scale is not None:
+        model_args.image_std = [1/float(word) for word in model_args.image_scale.split(" ")]
+    elif model_args.image_std is not None:
+        model_args.image_std = [float(word) for word in model_args.image_std.split(" ")]
+
+    if model_args.image_mean is not None:
+        model_args.image_mean = [float(word) for word in model_args.image_mean.split(" ")]
+        
     # Sending telemetry. Tracking the example usage helps us better allocate resources to maintain them. The
     # information sent is the one passed as arguments along with your Python/PyTorch versions.
     send_example_telemetry("run_semantic_segmentation", model_args, data_args)
@@ -320,14 +364,38 @@ def main():
         revision=model_args.model_revision,
         token=model_args.token,
         trust_remote_code=model_args.trust_remote_code,
+        rescale_factor=model_args.rescale_factor,
+        size=model_args.size, 
+        crop_size=model_args.crop_size,
+        image_mean=model_args.image_mean,
+        image_std=model_args.image_std
     )
-
-    # Define transforms to be applied to each image and target.
-    if "shortest_edge" in image_processor.size:
-        # We instead set the target size as (shortest_edge, shortest_edge) to here to ensure all images are batchable.
-        height, width = image_processor.size["shortest_edge"], image_processor.size["shortest_edge"]
+    
+     # Define torchvision transforms to be applied to each image.
+    if model_args.size is not None:
+        size = model_args.size["shortest_edge"] if "shortest_edge" in model_args.size else model_args.size
+    elif "shortest_edge" in image_processor.size:
+        size = image_processor.size["shortest_edge"]
     else:
-        height, width = image_processor.size["height"], image_processor.size["width"]
+        size = (image_processor.size["height"], image_processor.size["width"])
+
+    if model_args.crop_size is not None:
+        crop_size = model_args.crop_size
+    elif not hasattr(image_processor, 'crop_size'):
+        crop_size = size
+    elif isinstance(image_processor.crop_size, (int,tuple)):
+        crop_size = image_processor.crop_size
+    elif "shortest_edge" in image_processor.crop_size:
+        crop_size = image_processor.crop_size["shortest_edge"]
+    else:
+        crop_size = (image_processor.crop_size["height"], image_processor.crop_size["width"])
+        
+    if isinstance(crop_size, int):
+        crop_size = (crop_size, crop_size)
+    
+    if isinstance(size, int):
+        height=width=size
+    
     train_transforms = A.Compose(
         [
             A.Lambda(
@@ -337,13 +405,21 @@ def main():
             ),
             # pad image with 255, because it is ignored by loss
             A.PadIfNeeded(min_height=height, min_width=width, border_mode=0, value=255, p=1.0),
-            A.RandomCrop(height=height, width=width, p=1.0),
+            A.RandomCrop(height=crop_size[0], width=crop_size[1], p=1.0),
             A.HorizontalFlip(p=0.5),
-            A.Normalize(mean=image_processor.image_mean, std=image_processor.image_std, max_pixel_value=255.0, p=1.0),
+            A.Normalize(mean=image_processor.image_mean, std=image_processor.image_std, max_pixel_value=(1/image_processor.rescale_factor), p=1.0),
             ToTensorV2(),
         ]
     )
-    max_size = height if width>=height else width
+    
+    if isinstance(size, tuple):
+        transform = [A.Resize(height=size[0], width=size[1], p=1.0)]
+    else:
+        transform = [
+            A.SmallestMaxSize(max_size=size, p=1.0),
+            A.CenterCrop(height=crop_size[0], width=crop_size[1], p=1.0),
+        ]
+        
     val_transforms = A.Compose(
         [
             A.Lambda(
@@ -351,10 +427,8 @@ def main():
                 mask=reduce_labels_transform if data_args.do_reduce_labels else None,
                 p=1.0,
             ),
-            # A.Resize(height=height, width=width, p=1.0),
-            A.SmallestMaxSize(max_size=max_size, p=1.0),
-            A.CenterCrop(height=height, width=width, p=1.0),
-            A.Normalize(mean=image_processor.image_mean, std=image_processor.image_std, max_pixel_value=255.0, p=1.0),
+            *transform,
+            A.Normalize(mean=image_processor.image_mean, std=image_processor.image_std, max_pixel_value=(1/image_processor.rescale_factor), p=1.0),
             ToTensorV2(),
         ]
     )

@@ -62,9 +62,9 @@ Some issues can come :
 | Model | Model Name or Path   | Float Accuracy | 8-bit Quantized Accuracy|
 | :-----:  | :---:    | :---: | :---: |
  ||**Image Classification** ||
-| Deit Tiny | facebook/deit-tiny-patch16-224 | 72.2 | | 
+| Deit Tiny | facebook/deit-tiny-patch16-224 | 72.02  | 71.36 | 
 | Deit Small | facebook/deit-small-patch16-224 | 79.9 | | 
-| Swin Tiny | microsoft/swin-tiny-patch4-window7-224 | 81.2 | | 
+| Swin Tiny | microsoft/swin-tiny-patch4-window7-224 | 80.25 | 79.82 | 
 | Swin Small | microsoft/swin-small-patch4-window7-224 | 83.2 | | 
 | ConvNeXt Tiny | facebook/convnext-tiny-224 | 82.1 | |
 | ConvNeXt Small | facebook/convnext-small-224 | 83.1 | |
@@ -91,7 +91,7 @@ This folder based builder is a no-code solution for quickly creating an image da
 
 <h4> Dataset Loading Script </h4>
 
-This allows the user to load their own dataset at a much lower time. We need to place the script inside the dataset directory, and name the script same as the directory name. An example has been provided for loading the imagenet dataset over [here](src/transformers/data/datasets), where the scripts imagenet2012.py and classes.py are used for this purpose. After preparing the dataset, the imagenet structure should look like:
+This allows the user to load their own dataset at a much lower time. We need to place the script inside the dataset directory, and name the script same as the directory name. An example has been provided for loading the imagenet dataset over [here](data/datasets/imagenet2012), where the script imagenet2012.py is used for this purpose. After preparing the dataset, the imagenet structure should look like:
 
 ![](directory.png)
 
@@ -135,7 +135,7 @@ $ python run_image_classification.py --dataset_name ${dataset_folder} --output_d
 
 <h4> Dataset Preparation by Dataset Loading Script </h4>
 
-This allows the user to load their own dataset. We need to place the script inside the dataset directory, and name the script same as the directory name. An example has been provided for loading the coco dataset over [here](src/transformers/data/datasets), where the script coco.py is used for this purpose. After preparing the dataset, the coco structure should look like:
+This allows the user to load their own dataset. We need to place the script inside the dataset directory, and name the script same as the directory name. An example has been provided for loading the coco dataset over [here](data/datasets/coco), where the script coco.py is used for this purpose. After preparing the dataset, the coco structure should look like:
 
 ![](coco_directory.png)
 
@@ -148,7 +148,9 @@ The models can be trained using the below script, the arguments are explained be
 ```
 $ cd examples/pytorch/object-detection
 
-$ python run_object_detection.py --model_name_or_path ${model_name} --output_dir ${output_dir} --dataset_name ${dataset_folder} --do-train --do_eval --overwrite_output_dir --remove_unused_columns False --eval_do_concat_batches False --per_device_train_batch_size 64 --per_device_eval_batch_size 64
+$ python run_object_detection.py --model_name_or_path ${model_name} --output_dir ${output_dir} --dataset_name ${dataset_folder} --do-train --do_eval --overwrite_output_dir --remove_unused_columns False --eval_do_concat_batches False --per_device_train_batch_size 64 --per_device_eval_batch_size 64 --trust_remote_code True --eval_do_concat_batches
+
+```
 
 | Argument | Value (or examples)   | Notes    |
 | :-----:  | :---:    | :---: |
@@ -165,11 +167,45 @@ $ python run_object_detection.py --model_name_or_path ${model_name} --output_dir
 | trust_remote_code| True | Will enable using the datasets which are not present in the hub |
 | eval_do_concat_batches | True | Needed if cuda is running out of memory during evaluation |
 
-<h3> Instance Segmentation </h3>
+<h3> Semantic Segmentation </h3>
 
-<h4> Dataset Preparation </h4>
+<h4> Dataset Preparation by Dataset Loading Script </h4>
+
+This allows the user to load their own dataset. We need to place the script inside the dataset directory, and name the script same as the directory name. An example has been provided for loading the ADE20k dataset over [here](data/datasets/ADE20k), where the script ADE20k.py is used for this purpose. Further, the id2label mapping is also required which is available in same folder as id2label.json. After preparing the dataset, the ADE20k structure should look like:
+
+![](ade20k_directory.png)
+
+More details for complex datasets are available over [here.](https://huggingface.co/docs/datasets/en/dataset_script)
 
 <h4> Training </h4>
+
+The models can be trained using the below script, the arguments are explained below as well.
+ ```
+$ cd examples/pytorch/semantic-segmentation
+
+$ python run_semantic_segmentation.py --model_name_or_path ${model_name} --dataset_name ${dataset_folder} --output_dir ${output_dir} --remove_unused_columns False --do_train --do_eval --per_device_train_batch_size 8 --overwrite_output_dir --per_device_eval_batch_size 8 --trust_remote_code True --do_reduce_labels --max_eval_samples 2000 --eval_do_concat_batches --size 512 --crop_size 512 --image_mean "123.675 116.28 103.53" --image_scale "0.017125 0.017507 0.017429" --rescale_factor 1.0
+```
+
+| Argument | Value (or examples)   | Notes    |
+| :-----:  | :---:    | :---: |
+| model_name_or_path | nvidia/segformer-b0-finetuned-ade-512-512 | Supported models are in Model Zoo, other models can be explored from huggingface.co | 
+| dataset_name | ${dataset_folder} | The dataset directory having the loading script. The dataset name from huggingface hub can also be specified instead. |
+| size | 256 | Image resize - it it is an int, resize the shortest edge to this size.  |
+| crop_size |224| Image crop size - center crop to this size, will not take into affect if size argument was a tuple during validation. |
+| output_dir  | ${output_dir}      |  The trained network as well as the onnx model will be saved here  |
+| overwrite_output_dir | - | No Value is required, otherwise will be required to specify new output dir |
+| rescale_factor | 1.0 | rescale_factor to multiply the input image." |
+| image_mean | "123.675 116.28 103.53" | Mean value to be subtracted from input image. |
+| image_scale | "0.017125 0.017507 0.017429" | Scale value to multiply the input image. |
+| remove_unused_columns | False | |
+| do_train | - | No Value is required. This flag need not be provided if only validation is needed. |
+| do_eval | - | No Value is required |
+| per_device_train_batch_size | 64 | To specify the batch size during training (per device)|
+| per_device_eval_batch_size | 64 | To specify the batch size during evaluation (per device)|
+| trust_remote_code| True | Will enable using the datasets which are not present in the hub |
+| eval_do_concat_batches | True | Needed if cuda is running out of memory during evaluation |
+| max_eval_samples | 2000 | Examples to evaluate on can be changed using this parameter |
+| do_reduce_labels | - | No Value is required, needed to be specified if the dataset has labels starting from 1 instead of 0.|
 
 <h2> Quantization and ONNX Export </h2>
 
