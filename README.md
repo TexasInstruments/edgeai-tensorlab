@@ -62,30 +62,38 @@ Some issues can come :
 | Model | Model Name or Path   | Float Accuracy | 8-bit Quantized Accuracy|
 | :-----:  | :---:    | :---: | :---: |
  ||**Image Classification** ||
-| Deit Tiny | facebook/deit-tiny-patch16-224 | 72.02  | 71.36 | 
-| Deit Small | facebook/deit-small-patch16-224 | 79.9 | | 
-| Swin Tiny | microsoft/swin-tiny-patch4-window7-224 | 80.25 | 79.82 | 
-| Swin Small | microsoft/swin-small-patch4-window7-224 | 83.2 | | 
-| ConvNeXt Tiny | facebook/convnext-tiny-224 | 82.1 | |
-| ConvNeXt Small | facebook/convnext-small-224 | 83.1 | |
+| Deit Tiny | facebook/deit-tiny-patch16-224 | 72.02  | 71.35 | 
+| Deit Small | facebook/deit-small-patch16-224 | 79.73 | 76.03 | 
+| Swin Tiny | microsoft/swin-tiny-patch4-window7-224 | 80.25 | 79.84 | 
+| Swin Small | microsoft/swin-small-patch4-window7-224 | 82.75 | 81.47 | 
+| ConvNeXt Tiny | facebook/convnext-tiny-224 | 81.87 | 79.83 |
+| ConvNeXt Small | facebook/convnext-small-224 | 82.82 | 78.68 |
  ||**Object Detection** ||
- |DeTR ResNet50|facebook/detr-resnet-50| 42.0| |
+ |DeTR ResNet50|facebook/detr-resnet-50| 42.0 | - |
  || **Instance Segmentation** || 
- |SegFormer B0|nvidia/segformer-b0-finetuned-ade-512-512||
- |SegFormer B1|nvidia/segformer-b1-finetuned-ade-512-512||
-|SegFormer B2|nvidia/segformer-b2-finetuned-ade-512-512||
+ |SegFormer B0|nvidia/segformer-b0-finetuned-ade-512-512| | - |
+ |SegFormer B1|nvidia/segformer-b1-finetuned-ade-512-512| | - |
+|SegFormer B2|nvidia/segformer-b2-finetuned-ade-512-512| | - |
 
 <h2> Training and Testing </h2>
 
 We provide the scripts for training the models that we currently support as mentioned in the model zoo. We also explain how can the user use their own dataset to train the models. These could be taken as examples to support other image classification, object detection and image segmentation models as well.
 
-<h3> Image Classification </h3>
+
+<p align="center">
+<img src="classification_det_seg.png" alt="drawing" width="800" />
+</p>
+
+
+<h3> <b> Image Classification </b> </h3>
 
 <h4> Dataset Preparation </h4>
 
 The dataset need to be in a folder based format, where the train and validation images need to be separate directories. The images corresponding to each label also needs to be put separate directories. This is how the folder-based builder generates an example : 
 
-![](image.png)
+<p align="center">
+<img src="image.png" alt="drawing" width="500" />
+</p>
 
 This folder based builder is a no-code solution for quickly creating an image dataset with several thousand images. However, it cannot be scaled for more complex or large scale image datasets. We need to define our own dataset loading script for such use case.
 
@@ -128,10 +136,11 @@ $ python run_image_classification.py --dataset_name ${dataset_folder} --output_d
 | per_device_eval_batch_size | 128 | To specify the batch size during evaluation (per device)|
 | ignore_mismatched_sizes | True | Will enable to load a pretrained model whose head dimensions are different|
 | trust_remote_code| True | Will enable using the datasets which are not present in the hub |
-| dataloader_num_workers | 12 ||
+| do_onnx_export | True(default) | Will enable the onnx export of the network. |
+| dataloader_num_workers | 12 | Will increase the speed of training as well as validation|
 
 
-<h3> Object Detection </h3>
+<h3> <b> Object Detection </b> </h3>
 
 <h4> Dataset Preparation by Dataset Loading Script </h4>
 
@@ -165,9 +174,10 @@ $ python run_object_detection.py --model_name_or_path ${model_name} --output_dir
 | per_device_eval_batch_size | 64 | To specify the batch size during evaluation (per device)|
 | ignore_mismatched_sizes | True | Will enable to load a pretrained model whose head dimensions are different|
 | trust_remote_code| True | Will enable using the datasets which are not present in the hub |
+| do_onnx_export | True(default) | Will enable the onnx export of the network. |
 | eval_do_concat_batches | True | Needed if cuda is running out of memory during evaluation |
 
-<h3> Semantic Segmentation </h3>
+<h3> <b> Semantic Segmentation </b> </h3>
 
 <h4> Dataset Preparation by Dataset Loading Script </h4>
 
@@ -206,8 +216,9 @@ $ python run_semantic_segmentation.py --model_name_or_path ${model_name} --datas
 | eval_do_concat_batches | True | Needed if cuda is running out of memory during evaluation |
 | max_eval_samples | 2000 | Examples to evaluate on can be changed using this parameter |
 | do_reduce_labels | - | No Value is required, needed to be specified if the dataset has labels starting from 1 instead of 0.|
+| do_onnx_export | True(default) | Will enable the onnx export of the network. |
 
-<h2> Quantization and ONNX Export </h2>
+<h2> Quantization </h2>
 
 We support quantization of the image classification networks mentioned in the model zoo. Here, we describe the scripts and the arguments necessary to invoke quantization. 
 
@@ -229,7 +240,7 @@ Necessary Arguments on top of training script :
 | label_names | labels | Needed to be specified to enable evaluation |
 | quantization | 3 | Whether to introduce quantization, an value of 3 would introduce quantization, and 0 signifies no quantization |
 | quantize_type | QAT | How do we want to quantize the network. (Options. QAT/ PTQ /PTC )   |
-| quantize_calib_images | 50 | The number of calibration images during Post-Training Quantization/Calibration  |
+| quantize_calib_images | 100 | The number of calibration images during Post-Training Quantization/Calibration  |
 
 
 Debugging - Common Issues : 
@@ -251,7 +262,7 @@ Debugging - Common Issues :
 - [ ]  Supporting quantization for object detection and segmentation models 
 - [ ]  Supporting model surgery for the networks 
 
-Here is the original documentation of the whole transformers repository. 
+Here is the original documentation of the transformers repository. 
 --------------------------------------------
 
 <p align="center">

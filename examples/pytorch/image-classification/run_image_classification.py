@@ -535,7 +535,7 @@ def main():
         #
         
         else: 
-            #training_args.num_train_epochs = 2 # bias calibration in the second epoch
+            # training_args.num_train_epochs = 2 # bias calibration in the second epoch
             model = xmodelopt.quantization.v3.QATPT2EModule(model, total_epochs=training_args.num_train_epochs, is_qat=True, fast_mode=False,
                 qconfig_type="DEFAULT", example_inputs=example_input, convert_to_cuda=convert_to_cuda, 
                 bias_calibration_factor=model_optimization_args.bias_calibration_factor, 
@@ -598,11 +598,8 @@ def main():
             
         print("Model Export is now complete! \n")
        
-    # if model_optimization_args.quantization:
-    #     trainer.model = trainer.model.convert()
-         
     if model_optimization_args.quantization:
-       trainer.model.convert()
+        trainer.model = trainer.model.convert()
 
     # Evaluation
     if training_args.do_eval:
