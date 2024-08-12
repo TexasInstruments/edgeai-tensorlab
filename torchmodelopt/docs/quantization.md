@@ -5,9 +5,9 @@
 
 
 ## How to quantize models
+- TIDL supports pre-quantized models, where the pre-quantization can be performed in Pytorch itself. Pre-quantized models can help to get better accuracy or to make the TIDL compilation faster. This repositiory deals with the methods to perform Pre-Training Quantization as well as the Quantization Aware Training. 
 - TIDL PTQ: On all the supported devices, TIDL supports PTQ using float models. For more details of TIDL PTQ, see the documentation of [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools)
 - Using edgeai-benchmark wrapper: [edgeai-benchmark](https://github.com/TexasInstruments/edgeai-benchmark) is a wrapper over edgeai-tidl-tools and it is used to compile models in our Model Zoo. The compilation parameters for each model is listed in the [config file published along with the models](https://github.com/TexasInstruments/edgeai-modelzoo/blob/main/models/configs.yaml). This is a yaml representation of [edgeai-benchmark/configs](https://github.com/TexasInstruments/edgeai-benchmark/configs)
-- TIDL also supports pre-quantized models, where the pre-quantization can be performed in Pytorch itself. Pre-quantized models can help to get better accuracy or to make the TIDL compilation faster. This repositiory deals with the methods to perform Pre-Training Quantization as well as the Quantization Aware Training. 
 
 
 ## How to create pre-quantized models
