@@ -190,7 +190,7 @@ def remove_channels_conv_next(modules, node, next_bn_nodes, next_conv_node_list,
         modules[next_bn_nodes[node.target].target].num_features =  modules[node.target].weight.shape[0]
     
     for n_id in next_conv_node_list[node.target]:
-        if modules[n_id.target].weight.shape[1]==1: #dwconv 
+        if ((modules[n_id.target].weight.shape[1]==1) and (modules[n_id.target].in_channels!= 1)): #dwconv 
             modules[n_id.target].in_channels = modules[node.target].weight.shape[0]
             modules[n_id.target].groups = modules[node.target].weight.shape[0]
             continue
@@ -633,7 +633,7 @@ def get_sum_of_all_conv_below(curr_node, all_modules, next_bn_nodes, next_conv_n
     # gets the inner dimension concat of all the nodes conneected to the curr_node
     for node in next_conv_node_list[curr_node.target]:
         if node.target not in ignore_node_target_list:
-            is_depthwise_node = (all_modules[node.target].weight.shape[1] == 1)
+            is_depthwise_node = ((all_modules[node.target].weight.shape[1] == 1) and (all_modules[node.target].in_channels != 1))
             wt_node = abs(get_bn_adjusted_weight(node=node, modules=all_modules, next_bn_nodes=next_bn_nodes).transpose(0,1).reshape(out_channels, -1).detach())
             wt_node = wt_node.mean(axis=1).unsqueeze(1) if global_pruning else wt_node
             if is_depthwise_node:
@@ -648,7 +648,7 @@ def search_for_first_conv(curr_node, all_modules):
     for node in curr_node.args:
         if node.args and isinstance(node.target, str) and (node.target in all_modules):
             if isinstance(all_modules[node.target], nn.Conv2d):
-                is_depthwise_node = (all_modules[node.target].weight.shape[1] == 1)
+                is_depthwise_node = ((all_modules[node.target].weight.shape[1] == 1) and (all_modules[node.target].in_channels != 1))
                 if not(is_depthwise_node):
                     return node
         return search_for_first_conv(node, all_modules)
@@ -658,7 +658,7 @@ def get_net_weight_node_channel_prune(curr_node, all_modules, next_bn_nodes, nex
     # outputs the net weight for a node, incorporates the sum of nodes of the below( inner dimensions )
     # if the node is depthwise, we should output the net_weight of the previous conv to this depthwise
     if isinstance(module,nn.Conv2d):
-        is_depthwise_node = (module.weight.shape[1] == 1)
+        is_depthwise_node = ((all_modules[curr_node.target].weight.shape[1] == 1) and (all_modules[curr_node.target].in_channels != 1))
         if is_depthwise_node:
             # search in args until we find a conv
             prev_conv_node  = search_for_first_conv(curr_node, all_modules)
