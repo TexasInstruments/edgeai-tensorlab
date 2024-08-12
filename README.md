@@ -36,6 +36,13 @@ For using the object detection networks, specific requirements are needed to be 
 $ cd examples/pytorch/object-detection
 $ pip install -r requirements.txt
 ```
+Similarly could be done for semantic segmentation networks using :
+
+```
+$ cd examples/pytorch/semantic-segmentation
+$ pip install -r requirements.txt
+```
+
 
 However, this repositiory utilizes the EdgeAI-ModelOptimization to introduce surgery and quantization in the networks, which can be build by : 
 
@@ -59,21 +66,21 @@ Some issues can come :
 
 <h2> Model Zoo </h2>
 
-| Model | Model Name or Path   | Float Accuracy | 8-bit Quantized Accuracy|
-| :-----:  | :---:    | :---: | :---: |
- ||**Image Classification** ||
-| Deit Tiny | facebook/deit-tiny-patch16-224 | 72.02  | 71.35 | 
-| Deit Small | facebook/deit-small-patch16-224 | 79.73 | 76.03 | 
-| Swin Tiny | microsoft/swin-tiny-patch4-window7-224 | 80.25 | 79.84 | 
-| Swin Small | microsoft/swin-small-patch4-window7-224 | 82.75 | 81.47 | 
-| ConvNeXt Tiny | facebook/convnext-tiny-224 | 81.87 | 79.83 |
-| ConvNeXt Small | facebook/convnext-small-224 | 82.82 | 78.68 |
+| Model | Model Name or Path   | Accuracy | 
+| :-----:  | :---:    | :---: | 
+ ||**Image Classification** |
+| Deit Tiny | facebook/deit-tiny-patch16-224 | 72.02  | 
+| Deit Small | facebook/deit-small-patch16-224 | 79.73 | 
+| Swin Tiny | microsoft/swin-tiny-patch4-window7-224 | 80.25 | 
+| Swin Small | microsoft/swin-small-patch4-window7-224 | 82.75 | 
+| ConvNeXt Tiny | facebook/convnext-tiny-224 | 81.87 | 
+| ConvNeXt Small | facebook/convnext-small-224 | 82.82 | 
  ||**Object Detection** ||
- |DeTR ResNet50|facebook/detr-resnet-50| 42.0 | - |
+ |DeTR ResNet50|facebook/detr-resnet-50| 42.0 | 
  || **Instance Segmentation** || 
- |SegFormer B0|nvidia/segformer-b0-finetuned-ade-512-512| | - |
- |SegFormer B1|nvidia/segformer-b1-finetuned-ade-512-512| | - |
-|SegFormer B2|nvidia/segformer-b2-finetuned-ade-512-512| | - |
+ |SegFormer B0|nvidia/segformer-b0-finetuned-ade-512-512| | 
+ |SegFormer B1|nvidia/segformer-b1-finetuned-ade-512-512| | 
+|SegFormer B2|nvidia/segformer-b2-finetuned-ade-512-512| | 
 
 <h2> Training and Testing </h2>
 
@@ -136,7 +143,7 @@ $ python run_image_classification.py --dataset_name ${dataset_folder} --output_d
 | per_device_eval_batch_size | 128 | To specify the batch size during evaluation (per device)|
 | ignore_mismatched_sizes | True | Will enable to load a pretrained model whose head dimensions are different|
 | trust_remote_code| True | Will enable using the datasets which are not present in the hub |
-| do_onnx_export | True(default) | Will enable the onnx export of the network. |
+| do_onnx_export | True (default) | Will enable the onnx export of the network. |
 | dataloader_num_workers | 12 | Will increase the speed of training as well as validation|
 
 
@@ -174,7 +181,7 @@ $ python run_object_detection.py --model_name_or_path ${model_name} --output_dir
 | per_device_eval_batch_size | 64 | To specify the batch size during evaluation (per device)|
 | ignore_mismatched_sizes | True | Will enable to load a pretrained model whose head dimensions are different|
 | trust_remote_code| True | Will enable using the datasets which are not present in the hub |
-| do_onnx_export | True(default) | Will enable the onnx export of the network. |
+| do_onnx_export | True (default) | Will enable the onnx export of the network. |
 | eval_do_concat_batches | True | Needed if cuda is running out of memory during evaluation |
 
 <h3> <b> Semantic Segmentation </b> </h3>
@@ -216,31 +223,7 @@ $ python run_semantic_segmentation.py --model_name_or_path ${model_name} --datas
 | eval_do_concat_batches | True | Needed if cuda is running out of memory during evaluation |
 | max_eval_samples | 2000 | Examples to evaluate on can be changed using this parameter |
 | do_reduce_labels | - | No Value is required, needed to be specified if the dataset has labels starting from 1 instead of 0.|
-| do_onnx_export | True(default) | Will enable the onnx export of the network. |
-
-<h2> Quantization </h2>
-
-We support quantization of the image classification networks mentioned in the model zoo. Here, we describe the scripts and the arguments necessary to invoke quantization. 
-
-Quantization does not support distributed training currently, however we plan to add it in future releases. 
-
-
-<h3> Image Classification </h3>
-
-```
-$ cd examples/pytorch/image-classification
-
-$ CUDA_VISIBLE_DEVICES=0 python run_image_classification.py --dataset_name ${dataset_folder} --output_dir ${output_dir} --overwrite_output_dir --do_train --do_eval --per_device_train_batch_size 128 --per_device_eval_batch_size 128 --model_name_or_path ${model_name} --size 256 --crop_size 224 --rescale_factor 1.0 --image_mean "123.675 116.28 103.53" --image_scale "0.017125 0.017507 0.017429" --ignore_mismatched_sizes True --trust_remote_code True --dataloader_num_workers 12 --label_names labels --quantization 3 --quantize_type PTQ --quantize_calib_images 100 
-```
-
-Necessary Arguments on top of training script : 
-
-| Argument | Value (or examples)   | Notes    |
-| :-----:  | :---:    | :---: |
-| label_names | labels | Needed to be specified to enable evaluation |
-| quantization | 3 | Whether to introduce quantization, an value of 3 would introduce quantization, and 0 signifies no quantization |
-| quantize_type | QAT | How do we want to quantize the network. (Options. QAT/ PTQ /PTC )   |
-| quantize_calib_images | 100 | The number of calibration images during Post-Training Quantization/Calibration  |
+| do_onnx_export | True (default) | Will enable the onnx export of the network. |
 
 
 Debugging - Common Issues : 
