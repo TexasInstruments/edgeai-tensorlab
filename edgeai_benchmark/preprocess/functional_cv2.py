@@ -110,8 +110,8 @@ def resize(img, size, **kwargs):
     if not (isinstance(size, int) or (isinstance(size, Sequence) and len(size) in (1, 2))):
         raise TypeError('Got inappropriate size arg: {}'.format(size))
 
+    resize_with_pad = kwargs.get('resize_with_pad', False)
     if isinstance(size, int) or len(size) == 1:
-        resize_with_pad = kwargs.get('resize_with_pad', False)
         if resize_with_pad:
             if isinstance(size, Sequence):
                 size = size[0]
@@ -165,7 +165,35 @@ def resize(img, size, **kwargs):
             return img, border
         #
     else:
-        border = (0,0,0,0)
-        img = cv2.resize(img, dsize=size[::-1], interpolation=interpolation)
-        return img, border
+        if resize_with_pad:
+            w, h = img.shape[1],img.shape[0]
+            if(size[0]/h < size[1]/w):
+                oh = size[0]
+                ow = int(size[0] * w / h)
+                img = cv2.resize(img, (ow, oh), interpolation=interpolation)
+            else:
+                ow = size[1]
+                oh = int(size[1] * h / w)
+                img = cv2.resize(img, (ow, oh), interpolation=interpolation)
+            
+            # pad if necessary
+            wpad = (size[1] - ow)
+            hpad = (size[1] - oh)
+            if  isinstance(resize_with_pad, (list, tuple)):
+                if "corner" in resize_with_pad:
+                    top, left = 0, 0
+                    bottom, right = hpad, wpad
+            else :
+                top = hpad // 2
+                bottom = hpad - top
+                left = wpad // 2
+                right = wpad - left
+
+            img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=pad_color)
+            border=(left,top,right,bottom)
+            return img, border
+        else:
+            border = (0,0,0,0)
+            img = cv2.resize(img, dsize=size[::-1], interpolation=interpolation)
+            return img, border
     #
