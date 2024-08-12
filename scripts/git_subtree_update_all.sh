@@ -43,3 +43,4 @@ git subtree pull --prefix edgeai-mmpose ssh://git@bitbucket.itg.ti.com/edgeai-al
 git subtree pull --prefix edgeai-mmrazor ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-mmrazor.git r10.0
 git subtree pull --prefix edgeai-mmdeploy ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-mmdeploy.git r10.0
 git subtree pull --prefix edgeai-datasets ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-datasets.git r10.0
+git subtree pull --prefix edgeai-hf-transformers ssh://git@bitbucket.itg.ti.com/edgeai-algo/edgeai-hf-transformers.git r10.0
