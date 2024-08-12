@@ -13,9 +13,9 @@ If you are getting accuracy degradation with 8-bit inference, the first thing to
 
 
 ### Quantization Schemes
-Post Training Quantization (PTQ): Post Training Quantization involves range estimation for weights and activations and also minor tweaks to the model (such as bias adjustments). TIDL can accept a floating point model and do PTQ using a few sample images. This is done during the import of the model in TIDL. More details are in [Post Training Quantization in TIDL (**PTQ**) documentation](./docs/ptq.md).<br>
+Post Training Quantization (PTQ): Post Training Quantization involves range estimation for weights and activations and also minor tweaks to the model (such as bias adjustments). TIDL can accept a floating point model and do PTQ using a few sample images. This is done during the import of the model in TIDL. More details are in [**Post Training Quantization in TIDL (PTQ) documentation**](./docs/ptq.md).<br>
 
-Quantization Aware Training (QAT): This is needed only if the accuracy obtained with PTQ is not satisfactory. QAT operates as a second phase after the initial training in floating point, in the training framework. More details are in [Quantization Aware Training (**QAT**) documentation](./docs/qat.md).
+Quantization Aware Training (QAT): This is needed only if the accuracy obtained with PTQ is not satisfactory. QAT operates as a second phase after the initial training in floating point, in the training framework. More details are in [**Quantization Aware Training (QAT) documentation**](./docs/qat.md).
 
 In this repository, we have  guidelines on how to choose models and how train them to get the best accuracy with Quantization. It is unlikely that there will be significant accuracy drop with PTQ if these guidelines are followed. In spite of this, if there are models that have significant accuracy drop with quantization, it is possible to improve the accuracy using QAT. Please read more details in the documentation for QAT.
 

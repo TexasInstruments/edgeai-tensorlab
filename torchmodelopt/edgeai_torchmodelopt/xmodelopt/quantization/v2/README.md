@@ -23,3 +23,12 @@ Post Training Quantization (PTQ): Post Training Quantization involves range esti
 Quantization Aware Training (QAT): This is needed only if the accuracy obtained with PTQ is not satisfactory. QAT operates as a second phase after the initial training in floating point, in the training framework. More details are in [Quantization Aware Training (**QAT**) documentation](./docs/qat.md).
 
 
+## Results
+
+Following are the results of 8 bit quantization of torchvision models and their lite alternatives. There is a marginal drop in accuracy for these networks. The networks are trained on imagenet dataset using the torchvision training package.
+
+| Models        |  Float Accuracy          | Int8 Quantized Model Accuracy   |
+| ------------- |:-------------:    | :-----:                |
+| MobileNetv2-lite  | 72.938 | 72.476           |
+| ResNet50     | 76.13         |   75.052    
+

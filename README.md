@@ -1,12 +1,5 @@
 # EdgeAI-ModelOptimization
 
-### Notice
-If you have not visited the following landing pages, please do so before attempting to use this repository.
-- https://www.ti.com/edgeai 
-- https://github.com/TexasInstruments/edgeai
-
-<hr>
-
 
 ## EdgeAI-TorchModelOpt
 * [EdgeAI-TorchModelOpt Documentation](./torchmodelopt/README.md) - Tools and utilities to help the development of embedded friendly DNN(Deep Neural Network) Models in [Pytorch](https://pytorch.org) - we call these **model optimization tools**.
