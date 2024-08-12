@@ -155,7 +155,7 @@ def init(model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qn
 
 
 def insert_all_hooks(model):
-    model.__quant_params__.outlier_hooks += quant_fx_utils.add_fc_outlier_supression_hook(model)
+    # model.__quant_params__.outlier_hooks += quant_fx_utils.add_fc_outlier_supression_hook(model)
     model.__quant_params__.bias_hooks += quant_fx_utils.add_bias_calibration_hook(model, \
             calibration_factor = model.__quant_params__.bias_calibration_factor)
     return model

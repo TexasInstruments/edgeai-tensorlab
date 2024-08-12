@@ -2,21 +2,12 @@
 
 ## Table of contents
 1. [Introduction](#introduction)
-2. [Overview](#overview)
+2. [Installation] (#installation)
+2. [Features](#features)
     1. [Quantization](#quantization)
     2. [Model Surgery](#model-surgery)
     3. [Sparsity](#sparsity)
-    4. [Model Utilities](#model-utilities)
-3. [Getting Started](#getting-started)
-    1. [Installation](#installation)
-    2. [User Guides](#user-guides)
-        1. [Quantization](#quantization-1)
-        2. [Model Surgery](#model-surgery-1)
-        3. [Sparsity](#sparsity-1)
-4. [Results](#results)
-    1. [Model Surgery](#model-surgery-2)
-    2. [Quantization](#quantization-2)
-    3. [Sparsity](#sparsity-2)
+    4. [Other Utilities](#other-utilities)
 5. [FAQ](#faq)
 6. [Contributors](#contributors) 
 
@@ -61,9 +52,9 @@ cd edgeai-modeloptimization/torchmodelopt
 [Model Surgery documentation](./docs/surgery.md)
 
 
-### Pruning/Sparsity:
+### Sparsity:
 
-[Model Pruning documentation](./docs/pruning.md)
+[Model Sparsity documentation](./docs/pruning.md)
 
 
 ### Other Utilities:

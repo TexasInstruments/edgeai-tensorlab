@@ -43,7 +43,7 @@ class QuantFxBaseModule(torch.nn.Module):
             it can also be an instance of torch.ao.quantization.QConfig as used when using torch.ao.quantization apis
         '''
         super().__init__()
-        self.module = quant_fx_func.init(model, *args, add_methods=False, **kwargs)
+        self.module = quant_fx_func.init(model, *args, add_methods=True, **kwargs)
         self._add_passthrough_attributes(passthrough_attributes)
 
     def load_weights(self, *args, **kwargs):

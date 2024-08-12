@@ -277,8 +277,8 @@ def load_weights(self, pretrained, *args, strict=True, state_dict_name=None, **k
 def export(self, example_input, filename='model.onnx', opset_version=17, model_quant_format=None, preserve_qdq_model=True,
            simplify=False, skipped_optimizers=None, device='cpu', make_copy=True):
     model = convert(self, device=device, make_copy=make_copy)
-    model = quant_pt2e_utils.remove_loss_branch(model) 
     # model, example_input = create_batch1_model(model, example_input)
+    model = quant_pt2e_utils.remove_loss_branch(model) 
     quant_pt2e_utils.register_onnx_symbolics()
      
     if model_quant_format == ModelQuantFormat.INT_MODEL:
