@@ -1,9 +1,9 @@
 
-- Prune/sparsify a model: [edgeai_torchmodelopt.xmodelopt.pruning](../edgeai_torchmodelopt/xmodelopt/pruning) - Both structured and unstructured pruning is supported. Structured pruning includes N:M pruning and channel pruning. Here, we provide with a few parametrization techniques, and the user can bring their own technique as well and implement as a part of the toolkit.<br>
+- Prune/sparsify a model: [edgeai_torchmodelopt.xmodelopt.pruning](./pruning/v2) - Both structured and unstructured pruning is supported. Structured pruning includes N:M pruning and channel pruning. Here, we provide with a few parametrization techniques, and the user can bring their own technique as well and implement as a part of the toolkit.<br>
 
 - Channel Pruning/Sparsity uses torch.fx to find the connections and obtain a smaller network after the training with induced sparsity finishes. 
 
-The detailed usage for the API is documented in [Model Sparsity](../edgeai_torchmodelopt/xmodelopt/pruning/README.md).
+The detailed usage for the API is documented in [Model Sparsity](./v2/README.md).
 
 ## Results
 

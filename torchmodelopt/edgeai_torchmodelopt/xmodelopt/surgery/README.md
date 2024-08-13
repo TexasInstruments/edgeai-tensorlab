@@ -1,13 +1,13 @@
 
 ### Latest Model surgery tool (v2) 
-[edgeai_torchmodelopt.xmodelopt.surgery.v2](../edgeai_torchmodelopt/xmodelopt/surgery/v2) - Easily replace layers (Modules, operators, functional) which could also include SOC specific unsupported layers with other layers without modifying the model code to create embedded friendly models. This uses torch.fx based surgery to handle models that uses torch modules, operators and functionals. (Compared to this, legacy surgery using **torch.nn** can only handle modules)<br>
+[edgeai_torchmodelopt.xmodelopt.surgery.v2](./v2) - Easily replace layers (Modules, operators, functional) which could also include SOC specific unsupported layers with other layers without modifying the model code to create embedded friendly models. This uses torch.fx based surgery to handle models that uses torch modules, operators and functionals. (Compared to this, legacy surgery using **torch.nn** can only handle modules)<br>
 
-The detailed usage and adding the custom replacement dictionary for the API is documented in [Model Surgery](../edgeai_torchmodelopt/xmodelopt/surgery/v2/README.md).
+The detailed usage and adding the custom replacement dictionary for the API is documented in [Model Surgery](./v2/README.md).
 
 ### Legacy Model surgery tool (v1)
-[edgeai_torchmodelopt.xmodelopt.surgery.v1](../edgeai_torchmodelopt/xmodelopt/surgery/v1) - Our legacy implementation of Model surgery using **torch.nn** modules.<br>
+[edgeai_torchmodelopt.xmodelopt.surgery.v1](./v1) - Our legacy implementation of Model surgery using **torch.nn** modules.<br>
 
-The detailed usage and adding the custom replacement dictionary for the API is documented in [Model Surgery](../edgeai_torchmodelopt/xmodelopt/surgery/v1/README.md).
+The detailed usage and adding the custom replacement dictionary for the API is documented in [Model Surgery](./v1/README.md).
 
 ## Results
 

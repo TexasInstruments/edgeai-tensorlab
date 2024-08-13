@@ -44,17 +44,17 @@ cd edgeai-modeloptimization/torchmodelopt
 ## Features
 ### Quantization:
 
-[Quantization documentation](./xmodelopt/quantization/README.md)
+[Quantization documentation](./edgeai_torchmodelopt/xmodelopt/quantization/README.md)
 
 
 ### Model Surgery:
 
-[Model Surgery documentation](./xmodelopt/surgery/README.md)
+[Model Surgery documentation](./edgeai_torchmodelopt/xmodelopt/surgery/README.md)
 
 
 ### Pruning/Sparsity:
 
-[Model Pruning/Sparsity documentation](./xmodelopt/pruning/README.md)
+[Model Pruning/Sparsity documentation](./edgeai_torchmodelopt/xmodelopt/pruning/README.md)
 
 
 ### Other Utilities:

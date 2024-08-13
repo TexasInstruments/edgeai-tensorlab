@@ -15,3 +15,8 @@ To get the best accuracy at the quantization stage, it is important that the mod
 - Weight decay is applied to all layers / parameters and that weight decay factor is good.<br>
 - Ensure that the Convolution layers in the network have Batch Normalization layers immediately after that. The only exception allowed to this rule is for the very last Convolution layer in the network (for example the prediction layer in a segmentation network or detection network, where adding Batch normalization might hurt the floating point accuracy).<br>
 
+It is important to refactor your code such that it is symbolically traceable and properly quantizable (observers are inserted at proper locations). More information about symbolic tracing support can be found [here](https://pytorch.org/docs/stable/fx.html#limitations-of-symbolic-tracing). Few common suggestions could be :
+1. Removing the assert statements in the code because the symbolic tracing step does not have shape inference and it could cause some issues.
+2. Using torch functions for arithmetics, for example, using torch.add(a,b) instead of a + b.
+3. If some module is not supposted to be quantized, it can be wrapped with @torch.fx.wrap
+

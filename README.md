@@ -2,7 +2,7 @@
 
 
 ## EdgeAI-TorchModelOpt
-* [EdgeAI-TorchModelOpt Documentation](./torchmodelopt/README.md) - Tools and utilities to help the development of embedded friendly DNN(Deep Neural Network) Models in [Pytorch](https://pytorch.org) - we call these **model optimization tools**.
+* [EdgeAI-TorchModelOpt Documentation](./torchmodelopt/README.md) - Tools and utilities to help the development of embedded friendly DNN(Deep Neural Network) Models in [Pytorch](https://pytorch.org) - we call these **model optimization tools**. They include Model Quantization, Sparsity and Model Surgery to enable faster implementation on the mobile devices. 
 
 
 ## ONNX Model Optimizer
