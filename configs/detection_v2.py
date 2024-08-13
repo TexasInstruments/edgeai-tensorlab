@@ -74,7 +74,7 @@ def get_configs(settings, work_dir):
                     det_options=True, ext_options={
                      'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL 
                      }),
-                model_path=f'{settings.models_path}/vision/detection/coco/hf-transformers/detr_resnet50_transformers_simp.onnx'),
+                model_path=f'{settings.models_path}/vision/detection/coco/hf-transformers/detr_fb_resnet50_800x800_simp.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, reshape_list=[(-1,4),(-1,1),(-1,1)],logits_bbox_to_bbox_ls=True,formatter=postprocess.DetectionXYWH2XYXYCenterXY()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90(label_offset=0,num_classes=91)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':42.0}, model_shortlist=80)
