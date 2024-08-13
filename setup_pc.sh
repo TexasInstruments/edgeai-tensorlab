@@ -30,7 +30,7 @@
 
 ######################################################################
 # change default tidl_tools version if needed - examples: latest stable r9.1 r9.0
-TIDL_TOOLS_RELEASE_NAME="${1:-r9.2}"
+TIDL_TOOLS_RELEASE_NAME="${1:-r10.0}"
 echo "tidl_tools version ${TIDL_TOOLS_RELEASE_NAME}"
 
 
@@ -97,8 +97,35 @@ echo "Installing tidl_tools verion: ${TIDL_TOOLS_RELEASE_NAME} ..."
 declare -a TIDL_TOOLS_DOWNLOAD_LINKS
 
 if [[ $TIDL_TOOLS_RELEASE_NAME == "latest" || $TIDL_TOOLS_RELEASE_NAME == "r10.0" ]]; then
-  echo "r10.0 tidl-tools is not yet available. this setup script will be updated once it's available. please use r9.2 for now"
-  exit 1
+  # python version check = 3.10
+  version_match=`python3 -c 'import sys;r=0 if sys.version_info >= (3,10) and sys.version_info < (3,11) else 1;print(r)'`
+  if [ $version_match -ne 0 ]; then
+      echo "python version must be == 3.10 for $TIDL_TOOLS_RELEASE_NAME"
+      exit 1
+  fi
+  # installers for internal release
+  echo "--------------------------------------------------------------------------------------------------------------"
+  echo "Important note: The release name provided is: ${TIDL_TOOLS_RELEASE_NAME}"
+  echo "--------------------------------------------------------------------------------------------------------------"
+
+  # onnx - override the onnx version installed by onnxsim
+  pip3 install --no-input protobuf==3.20.2 onnx==1.13.0
+
+  TARGET_SOCS=(TDA4VM AM68A AM69A AM62A AM67A)
+  TIDL_TOOLS_RELEASE_ID=10_00_02_00
+  TIDL_TOOLS_VERSION_NAME="10.0"
+  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/dlr-1.13.0-py3-none-any.whl
+  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/tvm-0.12.0-cp310-cp310-linux_x86_64.whl
+  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/onnxruntime_tidl-1.14.0-cp310-cp310-linux_x86_64.whl
+  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/tflite_runtime-2.8.2-cp310-cp310-linux_x86_64.whl
+  # these are internal links for now
+  TIDL_TOOLS_DOWNLOAD_LINKS=("https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/TIDL_TOOLS/AM68PA/tidl_tools${TIDL_TOOLS_TYPE_SUFFIX}.tar.gz" "https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/TIDL_TOOLS/AM68A/tidl_tools${TIDL_TOOLS_TYPE_SUFFIX}.tar.gz" "https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/TIDL_TOOLS/AM69A/tidl_tools${TIDL_TOOLS_TYPE_SUFFIX}.tar.gz" "https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/TIDL_TOOLS/AM62A/tidl_tools${TIDL_TOOLS_TYPE_SUFFIX}.tar.gz" "https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/TIDL_TOOLS/AM67A/tidl_tools${TIDL_TOOLS_TYPE_SUFFIX}.tar.gz")
+  for (( soc_idx=0; soc_idx<"${#TARGET_SOCS[@]}"; soc_idx++ )); do
+    TARGET_SOC=${TARGET_SOCS[$soc_idx]}
+    TIDL_TOOLS_DOWNLOAD_LINK=${TIDL_TOOLS_DOWNLOAD_LINKS[$soc_idx]}
+    echo "$TARGET_SOC $TIDL_TOOLS_DOWNLOAD_LINK"
+  done
+
 elif [[ $TIDL_TOOLS_RELEASE_NAME == "stable" || $TIDL_TOOLS_RELEASE_NAME == "r9.2" ]]; then
   # python version check = 3.10
   version_match=`python3 -c 'import sys;r=0 if sys.version_info >= (3,10) and sys.version_info < (3,11) else 1;print(r)'`
