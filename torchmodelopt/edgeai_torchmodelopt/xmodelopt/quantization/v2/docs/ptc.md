@@ -25,11 +25,11 @@ import edgeai_torchmodelopt
 # create your model here:
 model = ...
 
-# load your pretrained checkpoint/weights here to do PTQ
+# load your pretrained checkpoint/weights here to do PTC
 pretrained_data = torch.load(pretrained_path)
 model.load_state_dict(pretrained_data)
 
-# wrap your model in xnn.quantization.QATFxModule. 
+# wrap your model in xnn.quantization.PTCFxModule. 
 # once it is wrapped, the actual model is in model.module
 model = edgeai_torchmodelopt.xmodelopt.quantization.v2.PTCFxModule(model, backend='qnnpack', bias_calibration_factor=0.01, num_batch_norm_update_epochs=1, num_observer_update_epochs=2)
 
@@ -67,7 +67,7 @@ Optional: Careful attention needs to be given to how the parameters of the pretr
 
 If you are using TIDL to infer a model trained using QAT tools provided in this repository, please set the following in the import config file of TIDL to use the provided calibration parameters: <br>
 ```
-'advanced_options:prequantized_model' : 1 # Bypasses the need of calibration
-'accuracy_level': 7  #enable advanced PTQ
+'advanced_options:prequantized_model' : 1 # Bypasses TIDL quantization
+'accuracy_level': 0 
 ```
 

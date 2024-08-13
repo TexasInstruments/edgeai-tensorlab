@@ -2,7 +2,7 @@
 
 ## Table of contents
 1. [Introduction](#introduction)
-2. [Installation] (#installation)
+2. [Installation](#installation)
 2. [Features](#features)
     1. [Quantization](#quantization)
     2. [Model Surgery](#model-surgery)

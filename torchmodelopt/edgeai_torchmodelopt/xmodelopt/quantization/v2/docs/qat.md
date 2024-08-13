@@ -1,5 +1,5 @@
 ## Quantization Aware Training (QAT)
-QAT is needed only if the accuracy obtained with PTQ is not satisfactory.
+QAT is needed only if the accuracy obtained with PTQ / PTC is not satisfactory.
 
 QAT is easy to incorporate into an existing PyTorch training code. We provide a wrapper module called QATFxModule to automate all the tasks required for QAT. The user simply needs to wrap their model in QATFxModule and do the training.
 
@@ -66,7 +66,7 @@ Optional: Careful attention needs to be given to how the parameters of the pretr
 
 If you are using TIDL to infer a model trained using QAT tools provided in this repository, please set the following in the import config file of TIDL to use the provided calibration parameters: <br>
 ```
-'advanced_options:prequantized_model' : 1 # Bypasses the need of calibration
-'accuracy_level': 7  #enable advanced PTQ
+'advanced_options:prequantized_model' : 1 # Bypasses TIDL quantization
+'accuracy_level': 0 
 ```
 
