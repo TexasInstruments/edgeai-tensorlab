@@ -14,3 +14,5 @@ graphviz
 h5py
 #protobuf==3.20.2
 #onnx==1.13.0
+onnxsim==0.4.35
+graphviz
