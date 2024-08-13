@@ -171,10 +171,3 @@ tags
 examples/pytorch/image-classification/imagenet/
 examples/pytorch/object-detection/od_results/
 examples/pytorch/semantic-segmentation/segformer_outputs/
-
-data/
-
-!data/datasets/imagenet2012/imagenet2012.py
-!data/datasets/coco/coco.py
-!data/datasets/ADE20k/ADE20k.py
-!data/datasets/ADE20k/id2label.json
