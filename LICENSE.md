@@ -1,4 +1,4 @@
-Copyright (c) 2018-2023, Texas Instruments Incorporated
+Copyright (c) 2018-2024, Texas Instruments Incorporated
 All Rights Reserved.
 
 Redistribution and use in source and binary forms, with or without
