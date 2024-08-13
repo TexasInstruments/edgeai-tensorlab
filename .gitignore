@@ -171,3 +171,10 @@ tags
 examples/pytorch/image-classification/imagenet/
 examples/pytorch/object-detection/od_results/
 examples/pytorch/semantic-segmentation/segformer_outputs/
+
+data/datasets/imagenet2012/data
+data/datasets/coco/annotations
+data/datasets/coco/train2017
+data/datasets/coco/val2017
+data/datasets/ADE20k/annotations
+data/datasets/ADE20k/images
