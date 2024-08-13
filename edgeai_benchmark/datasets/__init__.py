@@ -184,8 +184,14 @@ def get_datasets(settings, download=False, dataset_list=None):
         # but only one is selected and assigned to the key imagenet
         # all the imagenet models will use this variant.
         print(f'Value of download here: {download}')# TODO: LUKE remove
-        dataset_cache[DATASET_CATEGORY_IMAGENET]['calibration_dataset'] = ImageNetDataSetType(**imagenet_cls_calib_cfg, download=download)
-        dataset_cache[DATASET_CATEGORY_IMAGENET]['input_dataset'] = ImageNetDataSetType(**imagenet_cls_val_cfg, download=False)
+        try:
+            dataset_cache[DATASET_CATEGORY_IMAGENET]['calibration_dataset'] = ImageNetDataSetType(**imagenet_cls_calib_cfg, download=download)
+            dataset_cache[DATASET_CATEGORY_IMAGENET]['input_dataset'] = ImageNetDataSetType(**imagenet_cls_val_cfg, download=False)
+        except:
+            dataset_cache[DATASET_CATEGORY_IMAGENET]['calibration_dataset'] = DATASET_CATEGORY_IMAGENET
+            dataset_cache[DATASET_CATEGORY_IMAGENET]['input_dataset'] = DATASET_CATEGORY_IMAGENET
+            print('ImageNet Classification dataset could not be loaded')
+        #
     #
     if check_dataset_load(settings, DATASET_CATEGORY_COCOKPTS) and (DATASET_CATEGORY_COCOKPTS in dataset_list):
         print(utils.log_color("\nINFO", f"loading dataset", f"category:{DATASET_CATEGORY_COCOKPTS} variant:{DATASET_CATEGORY_COCOKPTS}"))
@@ -204,9 +210,14 @@ def get_datasets(settings, download=False, dataset_list=None):
             num_frames=min(settings.num_frames,5000),
             name=DATASET_CATEGORY_COCOKPTS,
             filter_imgs=filter_imgs)
-
-        dataset_cache[DATASET_CATEGORY_COCOKPTS]['calibration_dataset'] = COCOKeypoints(**coco_kpts_calib_cfg, download=download)
-        dataset_cache[DATASET_CATEGORY_COCOKPTS]['input_dataset'] = COCOKeypoints(**coco_kpts_val_cfg, download=False)
+        try:
+            dataset_cache[DATASET_CATEGORY_COCOKPTS]['calibration_dataset'] = COCOKeypoints(**coco_kpts_calib_cfg, download=download)
+            dataset_cache[DATASET_CATEGORY_COCOKPTS]['input_dataset'] = COCOKeypoints(**coco_kpts_val_cfg, download=False)
+        except:
+            dataset_cache[DATASET_CATEGORY_COCOKPTS]['calibration_dataset'] = DATASET_CATEGORY_COCOKPTS
+            dataset_cache[DATASET_CATEGORY_COCOKPTS]['input_dataset'] = DATASET_CATEGORY_COCOKPTS
+            print('COCO Keypoint Detection dataset could not be loaded')
+        #
     #
     if check_dataset_load(settings, DATASET_CATEGORY_YCBV) and (DATASET_CATEGORY_YCBV in dataset_list):
         print(utils.log_color("\nINFO", f"loading dataset", f"category:{DATASET_CATEGORY_YCBV} variant:{DATASET_CATEGORY_YCBV}"))
@@ -225,9 +236,14 @@ def get_datasets(settings, download=False, dataset_list=None):
             num_frames=min(settings.num_frames,900),
             name=DATASET_CATEGORY_YCBV,
             filter_imgs=filter_imgs)
-
-        dataset_cache[DATASET_CATEGORY_YCBV]['calibration_dataset'] = YCBV(**ycbv_calib_cfg, download=download)
-        dataset_cache[DATASET_CATEGORY_YCBV]['input_dataset'] = YCBV(**ycbv_val_cfg, download=False)
+        try:
+            dataset_cache[DATASET_CATEGORY_YCBV]['calibration_dataset'] = YCBV(**ycbv_calib_cfg, download=download)
+            dataset_cache[DATASET_CATEGORY_YCBV]['input_dataset'] = YCBV(**ycbv_val_cfg, download=False)
+        except:
+            dataset_cache[DATASET_CATEGORY_YCBV]['calibration_dataset'] = DATASET_CATEGORY_YCBV
+            dataset_cache[DATASET_CATEGORY_YCBV]['input_dataset'] = DATASET_CATEGORY_YCBV
+            print('YCBV 6D-Pose dataset could not be loaded')
+        #
     #
     if check_dataset_load(settings, DATASET_CATEGORY_COCO) and (DATASET_CATEGORY_COCO in dataset_list):
         print(utils.log_color("\nINFO", f"loading dataset", f"category:{DATASET_CATEGORY_COCO} variant:{DATASET_CATEGORY_COCO}"))
@@ -243,8 +259,14 @@ def get_datasets(settings, download=False, dataset_list=None):
             shuffle=False, # can be set to True as well, if needed
             num_frames=min(settings.num_frames,5000),
             name=DATASET_CATEGORY_COCO)
-        dataset_cache[DATASET_CATEGORY_COCO]['calibration_dataset'] = COCODetection(**coco_det_calib_cfg, download=download)
-        dataset_cache[DATASET_CATEGORY_COCO]['input_dataset'] = COCODetection(**coco_det_val_cfg, download=False)
+        try:
+            dataset_cache[DATASET_CATEGORY_COCO]['calibration_dataset'] = COCODetection(**coco_det_calib_cfg, download=download)
+            dataset_cache[DATASET_CATEGORY_COCO]['input_dataset'] = COCODetection(**coco_det_val_cfg, download=False)
+        except:
+            dataset_cache[DATASET_CATEGORY_COCO]['calibration_dataset'] = DATASET_CATEGORY_COCO
+            dataset_cache[DATASET_CATEGORY_COCO]['input_dataset'] = DATASET_CATEGORY_COCO
+            print('COCO Detection dataset could not be loaded')
+        #
     #
     if check_dataset_load(settings, DATASET_CATEGORY_WIDERFACE) and (DATASET_CATEGORY_WIDERFACE in dataset_list):
         print(utils.log_color("\nINFO", f"loading dataset", f"category:{DATASET_CATEGORY_WIDERFACE} variant:{DATASET_CATEGORY_WIDERFACE}"))
@@ -260,8 +282,14 @@ def get_datasets(settings, download=False, dataset_list=None):
             shuffle=False, # can be set to True as well, if needed
             num_frames=min(settings.num_frames,3226),
             name=DATASET_CATEGORY_WIDERFACE)
-        dataset_cache[DATASET_CATEGORY_WIDERFACE]['calibration_dataset'] = WiderFaceDetection(**widerface_det_calib_cfg, download=download)
-        dataset_cache[DATASET_CATEGORY_WIDERFACE]['input_dataset'] = WiderFaceDetection(**widerface_det_val_cfg, download=False)
+        try:
+            dataset_cache[DATASET_CATEGORY_WIDERFACE]['calibration_dataset'] = WiderFaceDetection(**widerface_det_calib_cfg, download=download)
+            dataset_cache[DATASET_CATEGORY_WIDERFACE]['input_dataset'] = WiderFaceDetection(**widerface_det_val_cfg, download=False)
+        except:
+            dataset_cache[DATASET_CATEGORY_WIDERFACE]['calibration_dataset'] = DATASET_CATEGORY_WIDERFACE
+            dataset_cache[DATASET_CATEGORY_WIDERFACE]['input_dataset'] = DATASET_CATEGORY_WIDERFACE
+            print('WIDERFACE Detection dataset could not be loaded')
+        #
     #
     if check_dataset_load(settings, DATASET_CATEGORY_COCOSEG21) and (DATASET_CATEGORY_COCOSEG21 in dataset_list):
         print(utils.log_color("\nINFO", f"loading dataset", f"category:{DATASET_CATEGORY_COCOSEG21} variant:{DATASET_CATEGORY_COCOSEG21}"))
@@ -277,8 +305,14 @@ def get_datasets(settings, download=False, dataset_list=None):
             shuffle=True,
             num_frames=min(settings.num_frames,5000),
             name=DATASET_CATEGORY_COCOSEG21)
-        dataset_cache[DATASET_CATEGORY_COCOSEG21]['calibration_dataset'] = COCOSegmentation(**cocoseg21_calib_cfg, download=download)
-        dataset_cache[DATASET_CATEGORY_COCOSEG21]['input_dataset'] = COCOSegmentation(**cocoseg21_val_cfg, download=False)
+        try:
+            dataset_cache[DATASET_CATEGORY_COCOSEG21]['calibration_dataset'] = COCOSegmentation(**cocoseg21_calib_cfg, download=download)
+            dataset_cache[DATASET_CATEGORY_COCOSEG21]['input_dataset'] = COCOSegmentation(**cocoseg21_val_cfg, download=False)
+        except:
+            dataset_cache[DATASET_CATEGORY_COCOSEG21]['calibration_dataset'] = DATASET_CATEGORY_COCOSEG21
+            dataset_cache[DATASET_CATEGORY_COCOSEG21]['input_dataset'] = DATASET_CATEGORY_COCOSEG21
+            print('COCO 21 class Segmentation dataset could not be loaded')
+        #
     #
     if check_dataset_load(settings, DATASET_CATEGORY_ADE20K) and (DATASET_CATEGORY_ADE20K in dataset_list):
         print(utils.log_color("\nINFO", f"loading dataset", f"category:{DATASET_CATEGORY_ADE20K} variant:{DATASET_CATEGORY_ADE20K}"))
@@ -294,8 +328,14 @@ def get_datasets(settings, download=False, dataset_list=None):
             shuffle=True,
             num_frames=min(settings.num_frames, 2000),
             name=DATASET_CATEGORY_ADE20K)
-        dataset_cache[DATASET_CATEGORY_ADE20K]['calibration_dataset'] = ADE20KSegmentation(**ade20k_seg_calib_cfg, download=download)
-        dataset_cache[DATASET_CATEGORY_ADE20K]['input_dataset'] = ADE20KSegmentation(**ade20k_seg_val_cfg, download=False)
+        try:
+            dataset_cache[DATASET_CATEGORY_ADE20K]['calibration_dataset'] = ADE20KSegmentation(**ade20k_seg_calib_cfg, download=download)
+            dataset_cache[DATASET_CATEGORY_ADE20K]['input_dataset'] = ADE20KSegmentation(**ade20k_seg_val_cfg, download=False)
+        except:
+            dataset_cache[DATASET_CATEGORY_ADE20K]['calibration_dataset'] = DATASET_CATEGORY_ADE20K
+            dataset_cache[DATASET_CATEGORY_ADE20K]['input_dataset'] = DATASET_CATEGORY_ADE20K
+            print('ADE20K Segmentation dataset could not be loaded')
+        #
     #
     if check_dataset_load(settings, DATASET_CATEGORY_ADE20K32) and (DATASET_CATEGORY_ADE20K32 in dataset_list):
         print(utils.log_color("\nINFO", f"loading dataset", f"category:{DATASET_CATEGORY_ADE20K32} variant:{DATASET_CATEGORY_ADE20K32}"))
@@ -311,8 +351,14 @@ def get_datasets(settings, download=False, dataset_list=None):
             shuffle=True,
             num_frames=min(settings.num_frames, 2000),
             name=DATASET_CATEGORY_ADE20K32)
-        dataset_cache[DATASET_CATEGORY_ADE20K32]['calibration_dataset'] = ADE20KSegmentation(**ade20k_seg_calib_cfg, num_classes=32, download=download)
-        dataset_cache[DATASET_CATEGORY_ADE20K32]['input_dataset'] = ADE20KSegmentation(**ade20k_seg_val_cfg, num_classes=32, download=False)
+        try:
+            dataset_cache[DATASET_CATEGORY_ADE20K32]['calibration_dataset'] = ADE20KSegmentation(**ade20k_seg_calib_cfg, num_classes=32, download=download)
+            dataset_cache[DATASET_CATEGORY_ADE20K32]['input_dataset'] = ADE20KSegmentation(**ade20k_seg_val_cfg, num_classes=32, download=False)
+        except:
+            dataset_cache[DATASET_CATEGORY_ADE20K32]['calibration_dataset'] = DATASET_CATEGORY_ADE20K32
+            dataset_cache[DATASET_CATEGORY_ADE20K32]['input_dataset'] = DATASET_CATEGORY_ADE20K32
+            print('ADE20K32 Segmentation dataset could not be loaded')
+        #
     #
     if check_dataset_load(settings, DATASET_CATEGORY_VOC2012) and (DATASET_CATEGORY_VOC2012 in dataset_list):
         print(utils.log_color("\nINFO", f"loading dataset", f"category:{DATASET_CATEGORY_VOC2012} variant:{DATASET_CATEGORY_VOC2012}"))
@@ -328,8 +374,14 @@ def get_datasets(settings, download=False, dataset_list=None):
             shuffle=True,
             num_frames=min(settings.num_frames, 1449),
             name=DATASET_CATEGORY_VOC2012)
-        dataset_cache[DATASET_CATEGORY_VOC2012]['calibration_dataset'] = VOC2012Segmentation(**voc_seg_calib_cfg, download=download)
-        dataset_cache[DATASET_CATEGORY_VOC2012]['input_dataset'] = VOC2012Segmentation(**voc_seg_val_cfg, download=False)
+        try:
+            dataset_cache[DATASET_CATEGORY_VOC2012]['calibration_dataset'] = VOC2012Segmentation(**voc_seg_calib_cfg, download=download)
+            dataset_cache[DATASET_CATEGORY_VOC2012]['input_dataset'] = VOC2012Segmentation(**voc_seg_val_cfg, download=False)
+        except:
+            dataset_cache[DATASET_CATEGORY_VOC2012]['calibration_dataset'] = DATASET_CATEGORY_VOC2012
+            dataset_cache[DATASET_CATEGORY_VOC2012]['input_dataset'] = DATASET_CATEGORY_VOC2012
+            print('VOC2012 Segmentation dataset could not be loaded')
+        #
     #
     if check_dataset_load(settings, DATASET_CATEGORY_NYUDEPTHV2) and (DATASET_CATEGORY_NYUDEPTHV2 in dataset_list):
         print(utils.log_color("\nINFO", f"loading dataset", f"category:{DATASET_CATEGORY_NYUDEPTHV2} variant:{DATASET_CATEGORY_NYUDEPTHV2}"))
@@ -378,8 +430,14 @@ def get_datasets(settings, download=False, dataset_list=None):
             name=DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD
         )
 
-        dataset_cache[DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD]['calibration_dataset'] = RobokitSegmentation(**dataset_calib_cfg, download=True)
-        dataset_cache[DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD]['input_dataset'] = RobokitSegmentation(**dataset_val_cfg, download=True)
+        try:
+            dataset_cache[DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD]['calibration_dataset'] = RobokitSegmentation(**dataset_calib_cfg, download=True)
+            dataset_cache[DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD]['input_dataset'] = RobokitSegmentation(**dataset_val_cfg, download=True)
+        except:
+            dataset_cache[DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD]['calibration_dataset'] = DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD
+            dataset_cache[DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD]['input_dataset'] = DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD
+            print('Robokit Segmentation dataset could not be loaded')
+        #
     #
 
     if check_dataset_load(settings, DATASET_CATEGORY_TI_ROBOKIT_VISLOC_ZED1HD) and (DATASET_CATEGORY_TI_ROBOKIT_VISLOC_ZED1HD in dataset_list):
@@ -403,8 +461,14 @@ def get_datasets(settings, download=False, dataset_list=None):
             name=DATASET_CATEGORY_TI_ROBOKIT_VISLOC_ZED1HD
         )
 
-        dataset_cache[DATASET_CATEGORY_TI_ROBOKIT_VISLOC_ZED1HD]['calibration_dataset'] = RobokitVisualLocalization(**dataset_calib_cfg, download=True)
-        dataset_cache[DATASET_CATEGORY_TI_ROBOKIT_VISLOC_ZED1HD]['input_dataset'] = RobokitVisualLocalization(**dataset_val_cfg, download=True)
+        try:
+            dataset_cache[DATASET_CATEGORY_TI_ROBOKIT_VISLOC_ZED1HD]['calibration_dataset'] = RobokitVisualLocalization(**dataset_calib_cfg, download=True)
+            dataset_cache[DATASET_CATEGORY_TI_ROBOKIT_VISLOC_ZED1HD]['input_dataset'] = RobokitVisualLocalization(**dataset_val_cfg, download=True)
+        except:
+            dataset_cache[DATASET_CATEGORY_TI_ROBOKIT_VISLOC_ZED1HD]['calibration_dataset'] = DATASET_CATEGORY_TI_ROBOKIT_VISLOC_ZED1HD
+            dataset_cache[DATASET_CATEGORY_TI_ROBOKIT_VISLOC_ZED1HD]['input_dataset'] = DATASET_CATEGORY_TI_ROBOKIT_VISLOC_ZED1HD
+            print('Robokit VisLoc dataset could not be loaded')
+        #
     #
 
     # the following are datasets cannot be downloaded automatically
@@ -424,8 +488,14 @@ def get_datasets(settings, download=False, dataset_list=None):
                 shuffle=True,
                 num_frames=min(settings.num_frames,500),
                 name=DATASET_CATEGORY_CITYSCAPES)
-            dataset_cache[DATASET_CATEGORY_CITYSCAPES]['calibration_dataset'] = CityscapesSegmentation(**cityscapes_seg_calib_cfg, download=False)
-            dataset_cache[DATASET_CATEGORY_CITYSCAPES]['input_dataset'] = CityscapesSegmentation(**cityscapes_seg_val_cfg, download=False)
+            try:
+                dataset_cache[DATASET_CATEGORY_CITYSCAPES]['calibration_dataset'] = CityscapesSegmentation(**cityscapes_seg_calib_cfg, download=False)
+                dataset_cache[DATASET_CATEGORY_CITYSCAPES]['input_dataset'] = CityscapesSegmentation(**cityscapes_seg_val_cfg, download=False)
+            except:
+                dataset_cache[DATASET_CATEGORY_CITYSCAPES]['calibration_dataset'] = DATASET_CATEGORY_CITYSCAPES
+                dataset_cache[DATASET_CATEGORY_CITYSCAPES]['input_dataset'] = DATASET_CATEGORY_CITYSCAPES
+                print('Cityscapes Segmentation dataset could not be loaded')
+            #
         #
         if check_dataset_load(settings, DATASET_CATEGORY_KITTI_LIDAR_DET_3CLASS) and (DATASET_CATEGORY_KITTI_LIDAR_DET_3CLASS in dataset_list):
             print(utils.log_color("\nINFO", f"loading dataset", f"category:{DATASET_CATEGORY_KITTI_LIDAR_DET_3CLASS} variant:{DATASET_CATEGORY_KITTI_LIDAR_DET_3CLASS}"))
@@ -451,7 +521,9 @@ def get_datasets(settings, download=False, dataset_list=None):
                 dataset_cache[DATASET_CATEGORY_KITTI_LIDAR_DET_3CLASS]['calibration_dataset'] = KittiLidar3D(**dataset_calib_cfg, download=False, read_anno=False)
                 dataset_cache[DATASET_CATEGORY_KITTI_LIDAR_DET_3CLASS]['input_dataset'] = KittiLidar3D(**dataset_val_cfg, download=False, read_anno=True)
             except Exception as message:
-                print(f'KittiLidar3D dataset loader could not be created: {message}')
+                dataset_cache[DATASET_CATEGORY_KITTI_LIDAR_DET_3CLASS]['calibration_dataset'] = DATASET_CATEGORY_KITTI_LIDAR_DET_3CLASS
+                dataset_cache[DATASET_CATEGORY_KITTI_LIDAR_DET_3CLASS]['input_dataset'] = DATASET_CATEGORY_KITTI_LIDAR_DET_3CLASS
+                print(f'KittiLidar3D 3 class dataset loader could not be created: {message}')
             #
         #
         if check_dataset_load(settings, DATASET_CATEGORY_KITTI_LIDAR_DET_1CLASS) and (DATASET_CATEGORY_KITTI_LIDAR_DET_1CLASS in dataset_list):
@@ -478,7 +550,9 @@ def get_datasets(settings, download=False, dataset_list=None):
                 dataset_cache[DATASET_CATEGORY_KITTI_LIDAR_DET_1CLASS]['calibration_dataset'] = KittiLidar3D(**dataset_calib_cfg, download=False, read_anno=False)
                 dataset_cache[DATASET_CATEGORY_KITTI_LIDAR_DET_1CLASS]['input_dataset'] = KittiLidar3D(**dataset_val_cfg, download=False, read_anno=True)
             except Exception as message:
-                print(f'KittiLidar3D dataset loader could not be created: {message}')
+                dataset_cache[DATASET_CATEGORY_KITTI_LIDAR_DET_1CLASS]['calibration_dataset'] = DATASET_CATEGORY_KITTI_LIDAR_DET_1CLASS
+                dataset_cache[DATASET_CATEGORY_KITTI_LIDAR_DET_1CLASS]['input_dataset'] = DATASET_CATEGORY_KITTI_LIDAR_DET_1CLASS
+                print(f'KittiLidar3D 1 class dataset loader could not be created: {message}')
             #
         #
 
@@ -499,9 +573,11 @@ def get_datasets(settings, download=False, dataset_list=None):
                 max_disp=192,
                 num_frames=min(settings.num_frames, 50))
             try:
-                dataset_cache['kitti_2015']['calibration_dataset'] = Kitti2015(**dataset_calib_cfg, download=False)
-                dataset_cache['kitti_2015']['input_dataset'] = Kitti2015(**dataset_val_cfg, download=False)
+                dataset_cache[DATASET_CATEGORY_KITTI_2015]['calibration_dataset'] = Kitti2015(**dataset_calib_cfg, download=False)
+                dataset_cache[DATASET_CATEGORY_KITTI_2015]['input_dataset'] = Kitti2015(**dataset_val_cfg, download=False)
             except Exception as message:
+                dataset_cache[DATASET_CATEGORY_KITTI_2015]['calibration_dataset'] = DATASET_CATEGORY_KITTI_2015
+                dataset_cache[DATASET_CATEGORY_KITTI_2015]['input_dataset'] = DATASET_CATEGORY_KITTI_2015
                 print(f'Kitti 2015 dataset loader could not be created: {message}')
             #         
         #
