@@ -173,17 +173,3 @@ examples/pytorch/object-detection/od_results/
 examples/pytorch/semantic-segmentation/segformer_outputs/
 
 data/
-
-# !data/datasets/imagenet2012/imagenet2012.py
-# data/datasets/coco/annotations/*
-# data/datasets/coco/train2017/*
-# data/datasets/coco/val2017/*
-# data/datasets/ADE20k/annotations/*
-# data/datasets/ADE20k/images/*
-
-# data/datasets/imagenet2012/data/*
-# data/datasets/coco/annotations/*
-# data/datasets/coco/train2017/*
-# data/datasets/coco/val2017/*
-# data/datasets/ADE20k/annotations/*
-# data/datasets/ADE20k/images/*
