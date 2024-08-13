@@ -396,6 +396,9 @@ def main():
     if isinstance(size, int):
         height=width=size
     
+    # size if is a int, then it is supposed to be the shortest_edge
+    # crop_size is a tuple of expected final dimension
+    
     train_transforms = A.Compose(
         [
             A.Lambda(

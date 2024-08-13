@@ -76,11 +76,15 @@ Some issues can come :
 | ConvNeXt Tiny | facebook/convnext-tiny-224 | 81.87 | 
 | ConvNeXt Small | facebook/convnext-small-224 | 82.82 | 
  ||**Object Detection** ||
- |DeTR ResNet50|facebook/detr-resnet-50| 42.0 | 
+ |DeTR ResNet50|facebook/detr-resnet-50| 37.97 | 
  || **Instance Segmentation** || 
  |SegFormer B0|nvidia/segformer-b0-finetuned-ade-512-512| | 
  |SegFormer B1|nvidia/segformer-b1-finetuned-ade-512-512| | 
 |SegFormer B2|nvidia/segformer-b2-finetuned-ade-512-512| | 
+
+The image classification models were evaluated on the imagenet-1k dataset by using the pretrained weights. 
+DeTR object detection was evaluated on the COCO'17 dataset and all the images were resized to 800 x 800 before inference.
+As for segmentation models, the complete evaluations were difficult, so we have evaluated on 25% (500 examples) of ADE20k dataset.
 
 <h2> Training and Testing </h2>
 
@@ -119,7 +123,7 @@ The models can be trained using the below script, the arguments are explained be
 ```
 $ cd examples/pytorch/image-classification
 
-$ python run_image_classification.py --dataset_name ${dataset_folder} --output_dir ${output_dir} --overwrite_output_dir --do_train --do_eval --per_device_train_batch_size 128 --per_device_eval_batch_size 128 --model_name_or_path ${model_name} --size 256     --crop_size 224 --rescale_factor 1.0 --image_mean "123.675 116.28 103.53" --image_scale "0.017125 0.017507 0.017429" --ignore_mismatched_sizes True --trust_remote_code True --dataloader_num_workers 12
+$ python run_image_classification.py --dataset_name ${dataset_folder} --output_dir ${output_dir} --overwrite_output_dir --do_train --do_eval --per_device_train_batch_size 128 --per_device_eval_batch_size 128 --model_name_or_path ${model_name} --size 256 --crop_size 224 --rescale_factor 1.0 --image_mean "123.675 116.28 103.53" --image_scale "0.017125 0.017507 0.017429" --ignore_mismatched_sizes True --trust_remote_code True --dataloader_num_workers 12
 
 ```
 
@@ -164,14 +168,18 @@ The models can be trained using the below script, the arguments are explained be
 ```
 $ cd examples/pytorch/object-detection
 
-$ python run_object_detection.py --model_name_or_path ${model_name} --output_dir ${output_dir} --dataset_name ${dataset_folder} --do-train --do_eval --overwrite_output_dir --remove_unused_columns False --eval_do_concat_batches False --per_device_train_batch_size 64 --per_device_eval_batch_size 64 --trust_remote_code True --eval_do_concat_batches
+$ CUDA_VISIBLE_DEVICES=0 python run_object_detection.py --model_name_or_path ${model_name} --size 800 --output_dir ${output_dir} --dataset_name ${dataset_folder} --rescale_factor 1.0 --image_mean "123.675 116.28 103.53" --image_scale "0.017125 0.017507 0.017429" --do-train --do_eval --overwrite_output_dir --remove_unused_columns False --eval_do_concat_batches False --per_device_train_batch_size 64 --per_device_eval_batch_size 64 --trust_remote_code True --eval_do_concat_batches
 
 ```
 
 | Argument | Value (or examples)   | Notes    |
 | :-----:  | :---:    | :---: |
 | model_name_or_path | facebook/detr-resnet-50 | Supported models are in Model Zoo, other models can be explored from huggingface.co | 
+| size | 800 | Image resize - if it is an int, resize the image to this size, else (height, width) needs to be provided.  |
 | dataset_name | ${dataset_folder} | The dataset directory having the loading script. The dataset name from huggingface hub can also be specified instead. |
+| rescale_factor | 1.0 | rescale_factor to multiply the input image." |
+| image_mean | "123.675 116.28 103.53" | Mean value to be subtracted from input image. |
+| image_scale | "0.017125 0.017507 0.017429" | Scale value to multiply the input image. |
 | output_dir  | ${output_dir}      |  The trained network as well as the onnx model will be saved here  |
 | overwrite_output_dir | - | No Value is required, otherwise will be required to specify new output dir |
 | remove_unused_columns | False | |
