@@ -314,6 +314,26 @@ class ModelArguments:
             )
         },
     )
+    size: Optional[str] = field(
+        default=None,
+        metadata={"help": "Image resize - it it is an int, resize the shortest edge to this size."},
+    )
+    rescale_factor: Optional[float] = field(
+        default=1/255,
+        metadata={"help": "rescale_factor to multiply the input image."},
+    )
+    image_mean: Optional[str] = field(
+        default=None,
+        metadata={"help": "Mean value to be subtracted from input image."},
+    )
+    image_std: Optional[str] = field(
+        default=None,
+        metadata={"help": "Std to be used to divide the input image."},
+    )
+    image_scale: Optional[str] = field(
+        default=None,
+        metadata={"help": "Scale value to multiply the input image."},
+    )  
     trust_remote_code: bool = field(
         default=False,
         metadata={
@@ -383,6 +403,21 @@ def main():
     else:
         model_args, data_args, training_args, model_optimization_args = parser.parse_args_into_dataclasses()
 
+    if model_args.size is not None:
+        model_args.size = [int(word) for word in model_args.size.split(" ")]
+        if len(model_args.size) == 1:
+            model_args.size = {"shortest_edge": model_args.size[0]}
+
+    if model_args.image_std and model_args.image_scale:
+        assert False, "only one of image_std or image_scale should be specified"
+    elif model_args.image_scale is not None:
+        model_args.image_std = [1/float(word) for word in model_args.image_scale.split(" ")]
+    elif model_args.image_std is not None:
+        model_args.image_std = [float(word) for word in model_args.image_std.split(" ")]
+
+    if model_args.image_mean is not None:
+        model_args.image_mean = [float(word) for word in model_args.image_mean.split(" ")]
+          
     # # Sending telemetry. Tracking the example usage helps us better allocate resources to maintain them. The
     # # information sent is the one passed as arguments along with your Python/PyTorch versions.
     send_example_telemetry("run_object_detection", model_args, data_args)
@@ -472,15 +507,27 @@ def main():
     )
     image_processor = AutoImageProcessor.from_pretrained(
         model_args.image_processor_name or model_args.model_name_or_path,
-        do_resize=True,
-        size={"max_height": data_args.image_square_size, "max_width": data_args.image_square_size},
-        do_pad=True,
-        pad_size={"height": data_args.image_square_size, "width": data_args.image_square_size},
         **common_pretrained_args,
     )
     
-    # image_processor = AutoImageProcessor.from_pretrained(
-    #     model_args.image_processor_name or model_args.model_name_or_path)
+    if model_args.image_mean is not None:
+        image_processor.image_mean = model_args.image_mean
+    if model_args.image_std is not None:
+        image_processor.image_std = model_args.image_std
+    if model_args.rescale_factor is not None:
+        image_processor.rescale_factor = model_args.rescale_factor
+    
+    # Define torchvision transforms to be applied to each image.
+    if model_args.size is not None:
+        image_processor.size['height'] = model_args.size["shortest_edge"] if "shortest_edge" in model_args.size else model_args.size
+        image_processor.size['width'] = model_args.size["shortest_edge"] if "shortest_edge" in model_args.size else model_args.size
+        if "shortest_edge" in image_processor.size:
+            temp = image_processor.size.pop("shortest_edge")
+        if "longest_edge" in image_processor.size:
+            temp = image_processor.size.pop("longest_edge")
+        if isinstance(image_processor.size['height'], tuple):
+            image_processor.size['height'] = image_processor.size['height'][0]
+            image_processor.size['width'] = image_processor.size['width'][1]
     
     # ------------------------------------------------------------------------------------------------
     # Define image augmentations and dataset transforms

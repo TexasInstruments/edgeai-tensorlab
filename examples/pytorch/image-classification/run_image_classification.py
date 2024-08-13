@@ -454,6 +454,9 @@ def main():
         else:
             crop_size = (image_processor.crop_size["height"], image_processor.crop_size["width"])
 
+        # size if is a int, then it is supposed to be the shortest_edge
+        # crop_size is a tuple of expected final dimension
+    
         image_std = model_args.image_std or (image_processor.image_std if hasattr(image_processor, "image_std") else None)  
         image_mean = model_args.image_mean or (image_processor.image_mean if hasattr(image_processor, "image_mean") else None)
 
