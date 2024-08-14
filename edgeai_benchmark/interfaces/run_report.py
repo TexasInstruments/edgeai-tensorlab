@@ -204,6 +204,9 @@ def run_report(settings, rewrite_results=True, skip_pattern=None):
         results_table[artifact_id] = results_line_dict
     #
 
+    # sort the results table based on keys
+    results_table = {k:v for k, v in sorted(results_table.items(), key=lambda item: item[0])}
+
     date = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     report_csv = os.path.join(benchmark_dir, f'report_{date}.csv')
     with open(report_csv, 'w') as wfp:
