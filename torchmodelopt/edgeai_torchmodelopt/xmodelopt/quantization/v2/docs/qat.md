@@ -16,6 +16,9 @@ Please see the documentation of [Pytorch native QAT](https://pytorch.org/docs/st
 
 
 #### How to use QATFxModule
+
+Example ipython notebook to use the API is available [over here](../../../../../example_notebooks/quantization_qat.ipynb).
+
 The following is a brief description of how to use this wrapper module:
 ```
 import edgeai_torchmodelopt
