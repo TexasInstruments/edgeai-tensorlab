@@ -143,7 +143,7 @@ def get_configs(settings, work_dir):
                 model_path=f'../edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/detr_r50_8xb2-150e_20240722_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=False, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 39.9}, model_shortlist=None)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 39.9}, model_shortlist=80)
         ),
         #efficientDET-B0-Lite
         'od-8970':utils.dict_update(common_cfg,
