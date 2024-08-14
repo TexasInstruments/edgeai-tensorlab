@@ -68,19 +68,19 @@ Some issues can come :
 
 | Model | Model Name or Path   | Accuracy | 
 | :-----:  | :---:    | :---: | 
- ||**Image Classification** |
+ ||**Image Classification** | ImageNet-1k Dataset | 
 | Deit Tiny | facebook/deit-tiny-patch16-224 | 72.02  | 
 | Deit Small | facebook/deit-small-patch16-224 | 79.73 | 
 | Swin Tiny | microsoft/swin-tiny-patch4-window7-224 | 80.25 | 
 | Swin Small | microsoft/swin-small-patch4-window7-224 | 82.75 | 
 | ConvNeXt Tiny | facebook/convnext-tiny-224 | 81.87 | 
 | ConvNeXt Small | facebook/convnext-small-224 | 82.82 | 
- ||**Object Detection** ||
+ ||**Object Detection** | COCO Dataset |
  |DeTR ResNet50|facebook/detr-resnet-50| 37.97 | 
- || **Instance Segmentation** || 
- |SegFormer B0|nvidia/segformer-b0-finetuned-ade-512-512| | 
- |SegFormer B1|nvidia/segformer-b1-finetuned-ade-512-512| | 
-|SegFormer B2|nvidia/segformer-b2-finetuned-ade-512-512| | 
+ || **Instance Segmentation** | 25% of ADE20k Dataset| 
+ |SegFormer B0|nvidia/segformer-b0-finetuned-ade-512-512| 32.85 | 
+ |SegFormer B1|nvidia/segformer-b1-finetuned-ade-512-512| 36.66 | 
+|SegFormer B2|nvidia/segformer-b2-finetuned-ade-512-512| 41.89 | 
 
 The image classification models were evaluated on the imagenet-1k dataset by using the pretrained weights. 
 DeTR object detection was evaluated on the COCO'17 dataset and all the images were resized to 800 x 800 before inference.

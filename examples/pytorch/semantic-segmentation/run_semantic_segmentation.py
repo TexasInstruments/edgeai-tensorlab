@@ -45,6 +45,7 @@ from transformers.trainer_utils import get_last_checkpoint
 from transformers.utils import check_min_version, send_example_telemetry
 from transformers.utils.versions import require_version
 
+from edgeai_torchmodelopt import xmodelopt
 
 """ Finetuning any 🤗 Transformers model supported by AutoModelForSemanticSegmentation for semantic segmentation leveraging the Trainer API."""
 
@@ -197,18 +198,61 @@ class ModelArguments:
     )
 
 
+@dataclass
+class ModelOptimizationArguments:
+    """
+    Arguments pertaining to which type of model optimizations needs to be done.
+    """
+    
+    model_surgery: int = field(
+        default=0, 
+        metadata={
+            "help": "Whether we need to do model surgery in our network. (Options. 0(No Surgery), 1(native), 2(fx), 3(pt2e))"
+    })
+    quantization: int = field(
+        default=0,
+        metadata={
+            "help" : "Whether we need to introduce quantization in our network. (Options. 0(No Surgery), 1(native), 2(fx), 3(pt2e)). \
+                As of now, only 0/3 is supported for this repository"
+        }
+    )
+    quantize_type: str = field(
+        default='QAT',
+        metadata={
+            "help" : "How do we want to quantize our network (Options. QAT, PTC/PTQ). This is only applicable when quantization is set to 3"
+        }
+    )
+    quantize_calib_images: int = field(
+        default=50,
+        metadata={
+            "help" : "Incase of PTC/PTQ, the number of images to be used for calibration"
+        }
+    )
+    bias_calibration_factor: float = field(
+        default=0,
+        metadata={
+            "help" : "The bias calibration factor to be used, 0 incase of no bias calibration "
+        }
+    )
+    do_onnx_export: bool = field(
+        default=True,
+        metadata={
+            "help": "Whether we want to export the onnx network. (Default=True)"
+        }
+    )
+
 def main():
     # See all possible arguments in src/transformers/training_args.py
     # or by passing the --help flag to this script.
     # We now keep distinct sets of args, for a cleaner separation of concerns.
 
-    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments))
+    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments, ModelOptimizationArguments))
     if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
         # If we pass only one argument to the script and it's the path to a json file,
         # let's parse it to get our arguments.
-        model_args, data_args, training_args = parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
+        model_args, data_args, training_args, model_optimization_args = parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
     else:
-        model_args, data_args, training_args = parser.parse_args_into_dataclasses()
+        model_args, data_args, training_args, model_optimization_args = parser.parse_args_into_dataclasses()
 
     if model_args.size is not None:
         model_args.size = [int(word) for word in model_args.size.split(" ")]
@@ -395,6 +439,9 @@ def main():
     
     if isinstance(size, int):
         height=width=size
+    else:
+        height = size[0]
+        width = size[1]
     
     # size if is a int, then it is supposed to be the shortest_edge
     # crop_size is a tuple of expected final dimension
@@ -455,6 +502,12 @@ def main():
     preprocess_train_batch_fn = partial(preprocess_batch, transforms=train_transforms)
     preprocess_val_batch_fn = partial(preprocess_batch, transforms=val_transforms)
 
+    if data_args.max_train_samples is None and model_optimization_args.quantization and model_optimization_args.quantize_type == "PTQ":
+        data_args.max_train_samples = model_optimization_args.quantize_calib_images * training_args.per_device_eval_batch_size * training_args.n_gpu
+
+    assert (model_optimization_args.quantization==0 or model_optimization_args.quantization==3), \
+        print("Only pt2e (args.quantization=3) based quantization is currently supported for hf-transformers ")
+
     if training_args.do_train:
         if "train" not in dataset:
             raise ValueError("--do_train requires a train dataset")
@@ -475,6 +528,36 @@ def main():
         # Set the validation transforms
         dataset["validation"].set_transform(preprocess_val_batch_fn)
 
+
+    if model_optimization_args.quantization == 3:
+        assert training_args.per_device_train_batch_size == training_args.per_device_eval_batch_size, \
+            print("only fixed batch size across train and eval is currently supported, (args.per_device_train_batch_size and args.per_device_eval_batch_size should be same)")  
+        example_input = next(iter(dataset["validation"]))
+        example_input['labels'] = example_input['labels'].unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1, 1)
+        example_input['pixel_values'] = example_input['pixel_values'].unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1, 1, 1)
+        convert_to_cuda = False if training_args.use_cpu else True
+        
+        if model_optimization_args.quantize_type == "QAT":
+            num_observer_update_epochs = int(len(dataset["train"]) * ((training_args.num_train_epochs//2)+1) / (training_args.n_gpu*training_args.per_device_train_batch_size))
+            num_batch_norm_update_epochs = int(len(dataset["train"]) * ((training_args.num_train_epochs//2)-1) / (training_args.n_gpu*training_args.per_device_train_batch_size))
+            model = xmodelopt.quantization.v3.QATPT2EModule(model, total_epochs=training_args.num_train_epochs, is_qat=True, fast_mode=False,
+                qconfig_type="DEFAULT", example_inputs=example_input, convert_to_cuda=convert_to_cuda, 
+                bias_calibration_factor=model_optimization_args.bias_calibration_factor,
+                num_observer_update_epochs = num_observer_update_epochs,
+                num_batch_norm_update_epochs = num_batch_norm_update_epochs)
+        #
+        
+        else: 
+            # training_args.num_train_epochs = 2 # bias calibration in the second epoch
+            model = xmodelopt.quantization.v3.QATPT2EModule(model, total_epochs=training_args.num_train_epochs, is_qat=True, fast_mode=False,
+                qconfig_type="DEFAULT", example_inputs=example_input, convert_to_cuda=convert_to_cuda, 
+                bias_calibration_factor=model_optimization_args.bias_calibration_factor, 
+                num_observer_update_epochs=model_optimization_args.quantize_calib_images)
+            # need to turn the parameter update off during PTQ/PTC
+            training_args.dont_update_parameters = True
+        #
+    #
+    
     # Initialize our trainer
     trainer = Trainer(
         model=model,
@@ -498,6 +581,40 @@ def main():
         trainer.log_metrics("train", train_result.metrics)
         trainer.save_metrics("train", train_result.metrics)
         trainer.save_state()
+
+    # Model ONNX Export
+    if model_optimization_args.do_onnx_export:
+        export_device = 'cpu'
+        original_device = next(trainer.model.parameters()).device
+        file_name = model_args.model_name_or_path.split("/")[-1]
+        file_name = training_args.output_dir + '/' + file_name + '_quantized.onnx' if model_optimization_args.quantization else \
+            training_args.output_dir + '/' + file_name + '.onnx'
+        if hasattr(trainer.model, 'export'):
+            trainer.model.export(example_input, filename=file_name, simplify=True, device=export_device)
+        else:
+            export_model = trainer.model.eval().to(export_device)
+            example_input = next(iter(dataset["validation"]))
+            labels = example_input.pop('labels')
+            # example_input['labels'] = torch.tensor(example_input.pop('label')).unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1)
+            example_input['pixel_values'] = example_input['pixel_values'].unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1, 1, 1)
+            if isinstance(example_input, dict):
+                example_inputs = ()
+                for val in example_input.values():
+                    example_inputs += tuple([val.to(device=export_device)])
+            else:
+                example_inputs = example_input.to(device=export_device)
+            torch.onnx.export(export_model, example_inputs, file_name, opset_version=17, training=torch._C._onnx.TrainingMode.PRESERVE)
+            import onnx
+            from onnxsim import simplify
+            onnx_model = onnx.load(file_name)
+            onnx_model, check = simplify(onnx_model)
+            onnx.save(onnx_model, file_name)
+            trainer.model = trainer.model.to(original_device)
+            
+        print("Model Export is now complete! \n")
+       
+    if model_optimization_args.quantization:
+        trainer.model = trainer.model.convert()
 
     # Evaluation
     if training_args.do_eval:
