@@ -1,5 +1,4 @@
 -r requirements.txt
-opencv-python-headless
 onnxsim
 git+https://github.com/NVIDIA/TensorRT@release/8.5#subdirectory=tools/onnx-graphsurgeon
 git+https://github.com/TexasInstruments/edgeai-tidl-tools.git#subdirectory=scripts
@@ -17,3 +16,4 @@ h5py
 onnxsim==0.4.35
 graphviz
 colored
+opencv-python-headless
