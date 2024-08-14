@@ -73,7 +73,7 @@ def get_configs(settings, work_dir):
                 runtime_options=settings.runtime_options_onnx_np2(
                     det_options=True, ext_options={
                      'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL 
-                     }),
+                     }, fast_calibration=True),
                 model_path=f'{settings.models_path}/vision/detection/coco/hf-transformers/detr_fb_resnet50_800x800_simp.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, reshape_list=[(-1,4),(-1,1),(-1,1)],logits_bbox_to_bbox_ls=True,formatter=postprocess.DetectionXYWH2XYXYCenterXY()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90(label_offset=0,num_classes=91)),
@@ -83,7 +83,7 @@ def get_configs(settings, work_dir):
             preprocess=preproc_transforms.get_transform_onnx((800,1216), (800,1216), reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
             session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True),
                 runtime_options=settings.runtime_options_onnx_np2(
-                   det_options=True, ext_options={}),
+                   det_options=True, ext_options={}, fast_calibration=True),
                 model_path=f'../edgeai-modelzoo/models/vision/detection/coco/mmdet/fcos_r50-caffe_fpn_gn-head_ms-640-800-2x_coco.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, reshape_list=[(-1,5),(-1,1)], formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
@@ -92,18 +92,21 @@ def get_configs(settings, work_dir):
         'od-8940':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((800,1216), (800,1216), reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
             session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True,
-                                                                        deny_list_from_start_end_node = {
-                                                                            '/Sigmoid_1':None,
-                                                                            '/Sigmoid_4':None,
-                                                                            '/Sigmoid_3':None,
-                                                                            '/Sigmoid':None,
-                                                                            '/Sigmoid_2':None,
-                                                                            '/bbox_head/Clip':None,
-                                                                            '/bbox_head/Clip_2':None,
-                                                                            '/bbox_head/Clip_3':None,}),
+                                                                        # deny_list_from_start_end_node = {
+                                                                        #     '/Sigmoid_1':None,
+                                                                        #     '/Sigmoid_4':None,
+                                                                        #     '/Sigmoid_3':None,
+                                                                        #     '/Sigmoid':None,
+                                                                        #     '/Sigmoid_2':None,
+                                                                        #     '/bbox_head/Clip':None,
+                                                                        #     '/bbox_head/Clip_2':None,
+                                                                        #     '/bbox_head/Clip_3':None,}
+                                                                        ),
                 runtime_options=settings.runtime_options_onnx_np2(
                    det_options=True, ext_options={
-                    }),
+                    'object_detection:meta_arch_type': 9,
+                    'object_detection:meta_layers_names_list':f'../edgeai-modelzoo/models/vision/detection/coco/mmdet/centernet-update_r50-caffe_fpn_ms-1x.prototxt',
+                    }, fast_calibration=True),
                 model_path=f'../edgeai-modelzoo/models/vision/detection/coco/mmdet/centernet-update_r50-caffe_fpn_ms-1x.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, reshape_list=[(-1,5),(-1,1)], formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
@@ -112,11 +115,14 @@ def get_configs(settings, work_dir):
         'od-8950':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((448, 672), (448, 672), reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
             session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=False, 
-                                                                        deny_list_from_start_end_node = {'/bbox_head/Sigmoid':None}),
+                                                                        # deny_list_from_start_end_node = {'/bbox_head/Sigmoid':None}
+                                                                        ),
                 runtime_options=settings.runtime_options_onnx_np2(
                    det_options=True, ext_options={
-                    'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL
-                    }),
+                    'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL,
+                    'object_detection:meta_arch_type': 9,
+                    'object_detection:meta_layers_names_list': f'../edgeai-modelzoo/models/vision/detection/coco/mmdet/centernet_r18_crop512.prototxt',
+                    }, fast_calibration=True),
                 model_path=f'../edgeai-modelzoo/models/vision/detection/coco/mmdet/centernet_r18_crop512.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, reshape_list=[(-1,5),(-1,1)], formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
@@ -131,7 +137,7 @@ def get_configs(settings, work_dir):
                     det_options=True, ext_options={
                      'object_detection:meta_arch_type': 6, 
                      'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL
-                     }),
+                     }, fast_calibration=True),
                 model_path=f'../edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/detr_r50_8xb2-150e_20240722_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=False, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
