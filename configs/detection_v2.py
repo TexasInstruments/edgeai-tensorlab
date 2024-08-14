@@ -104,6 +104,7 @@ def get_configs(settings, work_dir):
                                                                         ),
                 runtime_options=settings.runtime_options_onnx_np2(
                    det_options=True, ext_options={
+                    'advanced_options:output_feature_16bit_names_list': '/bbox_head/conv_cls_2/Conv_output_0, /bbox_head/conv_cls_3/Conv_output_0, /bbox_head/conv_cls_4/Conv_output_0, /bbox_head/conv_cls/Conv_output_0, /bbox_head/conv_cls_1/Conv_output_0, /bbox_head/conv_reg_2/Conv_output_0, /bbox_head/conv_reg_3/Conv_output_0, /bbox_head/conv_reg_4/Conv_output_0, /bbox_head/conv_reg/Conv_output_0, /bbox_head/conv_reg_1/Conv_output_0',
                     'object_detection:meta_arch_type': 9,
                     'object_detection:meta_layers_names_list':f'../edgeai-modelzoo/models/vision/detection/coco/mmdet/centernet-update_r50-caffe_fpn_ms-1x.prototxt',
                     }, fast_calibration=True),
@@ -119,6 +120,7 @@ def get_configs(settings, work_dir):
                                                                         ),
                 runtime_options=settings.runtime_options_onnx_np2(
                    det_options=True, ext_options={
+                    'advanced_options:output_feature_16bit_names_list':'/bbox_head/heatmap_head/heatmap_head.2/Conv_output_0, /bbox_head/wh_head/wh_head.2/Conv_output_0, /bbox_head/offset_head/offset_head.2/Conv_output_0',
                     'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL,
                     'object_detection:meta_arch_type': 9,
                     'object_detection:meta_layers_names_list': f'../edgeai-modelzoo/models/vision/detection/coco/mmdet/centernet_r18_crop512.prototxt',
