@@ -2,6 +2,8 @@
 
 This can be used to replace modules in a model that are derived from torch.nn.Modules. Most of the common classes used a model such as torch.nn.Conv2d, torch.nn.BatchNorm2d, torch.nn.ReLU are derived from torch.nn.Modules, so they can be easily replaced. If a model has used torch.relu operator directory or a x.relu (x being a tensor), those can also be replaced by this surgery utility. 
 
+Example ipython notebook to use the API can be found [over here](../../../../example_notebooks/surgery.ipynb).
+
 ## APIs
 
 ### convert_to_lite_fx

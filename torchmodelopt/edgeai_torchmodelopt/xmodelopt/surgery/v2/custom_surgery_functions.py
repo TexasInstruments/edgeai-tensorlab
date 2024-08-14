@@ -507,7 +507,7 @@ class ReplacementPermute(nn.Module):
         return torch.permute(x, self.dims)
         
             
-def replace_permute_layer(model:nn.Module, pattern=None, verbose_mode=False):
+def replace_permute_layer(model:nn.Module, pattern=None, verbose_mode=False, **kwargs):
     model = torch.fx.symbolic_trace(model)
     i = 0
     for node in model.graph.nodes:

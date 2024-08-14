@@ -65,7 +65,8 @@ class QuantFxBaseModule(torch.nn.Module):
         return self.module(*args, **kwargs)
 
     def convert(self, *args, **kwargs):
-        return quant_fx_func.convert(self.module, *args, **kwargs)
+        self.module = quant_fx_func.convert(self.module, *args, **kwargs)
+        return self
 
     def export(self, *args, **kwargs):
         return quant_fx_func.export(self.module, *args, **kwargs)
