@@ -42,5 +42,5 @@ def convert_to_lite_fx(model:torch.nn.Module,replacement_dict:Dict[Any,Union[tor
     if example_input is None:
         warnings.warn("example_input optional and used only in models using LayerNorm. Using a default value since it was not provided.")
         example_input = torch.rand(1,3,224,224) # Default input shape
-    return replace_unsupported_layers(model, replacement_dict=replacement_dict, verbose_mode=verbose_mode,example_input=example_input, **kwargs)
+    return replace_unsupported_layers(model, replacement_dict=replacement_dict, verbose_mode=verbose_mode, example_input=example_input, **kwargs)
 

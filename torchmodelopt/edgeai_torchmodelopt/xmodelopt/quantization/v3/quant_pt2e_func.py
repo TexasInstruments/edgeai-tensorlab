@@ -95,6 +95,10 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
     quantizer = quantizer or TIDLRTQuantizer()
     quantizer.set_global(qconfig_mode)
     
+    # for copy_arg in copy_args:
+    #     if hasattr(module, copy_arg):
+    #         setattr(replace_obj, copy_arg, getattr(module, copy_arg))
+    
     if kwargs.get('convert_to_cuda', False):
         m = m.to(device='cpu')
     
