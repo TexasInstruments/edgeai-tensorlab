@@ -170,7 +170,7 @@ def get_configs(settings, work_dir):
         'ss-8750':utils.dict_update(ade20k_cfg,
             preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True),
-                runtime_options=settings.runtime_options_onnx_p2(),
+                runtime_options=settings.runtime_options_onnx_p2(fast_calibration=True),
                 model_path=f'{settings.models_path}/vision/segmentation/ade20k/hf-transformers/segformer_b0_finetuned_ade_512_512_transformers_simp.onnx'),
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':None}, model_shortlist=80)
@@ -178,7 +178,7 @@ def get_configs(settings, work_dir):
         'ss-8760':utils.dict_update(ade20k_cfg,
             preprocess=preproc_transforms.get_transform_jai((640,640), (640,640), backend='cv2', interpolation=cv2.INTER_AREA),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True),
-                runtime_options=settings.runtime_options_onnx_p2(),
+                runtime_options=settings.runtime_options_onnx_p2(fast_calibration=True),
                 model_path=f'{settings.models_path}/vision/segmentation/ade20k/hf-transformers/segformer_b5_finetuned_ade_640_640_transformers_simp.onnx'),
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':None}, model_shortlist=80)
