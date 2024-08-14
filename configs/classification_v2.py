@@ -157,56 +157,6 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv2/regnet_x_800mf_lite_wt-v2_20230920.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':75.21}, model_shortlist=100)
         ),
-        ################################## experimental transformer models - eg. deit/swin ##################
-        'cl-6600':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True),
-                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
-                model_path=f'../edgeai-modelforest/models/vision/experimental/deit_tiny_1.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':75.21}, model_shortlist=None)
-        ),
-        'cl-6610':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True),
-                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
-                model_path=f'../edgeai-modelforest/models/vision/experimental/deit_small_patch16_224_sim.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':75.21}, model_shortlist=None)
-        ),
-        'cl-6620':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True),
-                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
-                model_path=f'../edgeai-modelforest/models/vision/experimental/deit3_small_patch16_224_sim.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':75.21}, model_shortlist=None)
-        ),
-        'cl-6630':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True),
-                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
-                model_path=f'../edgeai-modelforest/models/vision/experimental/swin_tiny_1.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':75.21}, model_shortlist=None)
-        ),
-        'cl-6640':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True),
-                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
-                model_path=f'../edgeai-modelforest/models/vision/experimental/swin_base_patch4_window12_384_1.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':75.21}, model_shortlist=None)
-        ),
-        'cl-6650':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True),
-                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
-                model_path=f'../edgeai-modelforest/models/vision/experimental/swinv2_tiny_window8_256_sim.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':75.21}, model_shortlist=None)
-        ),
-        'cl-6660':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True),
-                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
-                model_path=f'../edgeai-modelforest/models/vision/experimental/swinv2_base_window12to24_192to384_22kft1k.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':75.21}, model_shortlist=None)
-        ),
         ################################## huggingface transformer models ##################
         'cl-6700':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
