@@ -134,7 +134,7 @@ def get_configs(settings, work_dir):
         #DETR mmdetection
         'od-8960':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((800, 800), (800, 800), resize_with_pad=False, backend='cv2'),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True),
                 runtime_options=settings.runtime_options_onnx_np2(
                     det_options=True, ext_options={
                      'object_detection:meta_arch_type': 6, 
