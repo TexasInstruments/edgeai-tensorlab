@@ -25,11 +25,12 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
+import copy
 import os
 import sys
 import argparse
 import yaml
+import pprint
 from edgeai_benchmark import *
 
 
@@ -91,7 +92,7 @@ if __name__ == '__main__':
 
     configs_dict={'configs': {}}
     for result_dict in results_list:
-        if result_dict:
+        if result_dict and isinstance(result_dict, dict) and 'config_path' in result_dict:
            config_path = result_dict['config_path']
            with open(config_path) as fp:
                config_dict = yaml.safe_load(fp)
@@ -100,8 +101,43 @@ if __name__ == '__main__':
            config_path = os.path.normpath(os.path.abspath(config_path))
            config_path = config_path.replace(models_path_full+os.sep, '')
            configs_dict['configs'][model_id] = config_path
+        #
+    #
 
     configlist_path = os.path.join(settings.models_path, 'configs.yaml')
     with open(configlist_path, 'w') as fp:
         yaml.safe_dump(configs_dict, fp, sort_keys=False)
+    #
+
+    model_info_dicts = {}
+    for result_dict in results_list:
+        if result_dict and isinstance(result_dict, dict) and 'config_path' in result_dict:
+           config_path = result_dict['config_path']
+           with open(config_path) as fp:
+               config_dict = yaml.safe_load(fp)
+           #
+           model_info = config_dict['model_info']
+           model_id = config_dict['session']['model_id']
+           model_path = config_dict['session']['model_path']
+           session_name = config_dict['session']['session_name']
+           session_sort_name = sessions.session_name_to_short_name[session_name].upper()
+           compact_name = model_info.get('compact_name', os.path.splitext(os.path.basename(model_path))[0])
+           artifact_name = session_sort_name + '-' + model_id.upper() + '-' + compact_name
+           shortlisted = bool(model_info.get('shortlisted', False))
+           recommended = bool(model_info.get('recommended', False))
+           model_info_dict = {
+               'model_id': model_id,
+               'session_name': session_name,
+               'artifact_name': artifact_name,
+               'shortlisted': shortlisted,
+               'recommended':recommended
+           }
+           model_info_dicts.update({model_id:model_info_dict})
+        #
+    #
+    model_info_dicts = {k: v for k, v in sorted(model_info_dicts.items(), key=lambda item: item[0])}
+    model_info_path = os.path.join(settings.models_path, 'model_infos.py')
+    with open(model_info_path, 'w') as fp:
+        pp = pprint.PrettyPrinter(indent=2, stream=fp)
+        pp.pprint(model_info_dicts)
     #

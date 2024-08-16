@@ -54,8 +54,15 @@ class BasePipeline():
         # pop out dataset info from the pipeline config,
         # because it will increase the size of the para.yaml and result.yaml files
         if self.pipeline_config['input_dataset'] is not None:
-            self.pipeline_config['calibration_dataset'].get_param('kwargs').pop('dataset_info', None)
-            self.dataset_info = self.pipeline_config['input_dataset'].get_param('kwargs').pop('dataset_info', None)
+            calibration_dataset = self.pipeline_config['calibration_dataset']
+            if isinstance(calibration_dataset, dict):
+                calibration_dataset.get_param('kwargs').pop('dataset_info', None)
+            #
+            self.dataset_info = None
+            input_dataset = self.pipeline_config['input_dataset']
+            if isinstance(input_dataset, dict):
+                self.dataset_info = input_dataset.get_param('kwargs').pop('dataset_info', None)
+            #
         else:
             self.dataset_info = None
         #

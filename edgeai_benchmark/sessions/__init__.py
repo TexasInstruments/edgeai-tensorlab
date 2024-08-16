@@ -47,6 +47,13 @@ session_type_to_name_dict = {
 }
 
 
+session_name_to_short_name = {
+    constants.SESSION_NAME_TVMDLR : 'tvm',
+    constants.SESSION_NAME_TFLITERT: 'tfl',
+    constants.SESSION_NAME_ONNXRT: 'onr'
+}
+
+
 def get_session_name(session_type):
     assert session_type in session_type_to_name_dict, f'unrecognized session_type: {session_type}'
     return session_type_to_name_dict[session_type]
