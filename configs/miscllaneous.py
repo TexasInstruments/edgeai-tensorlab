@@ -57,7 +57,7 @@ def get_configs(settings, work_dir):
                 runtime_options=settings.runtime_options_onnx_qat_v1(),
                 model_path=f'{settings.models_path}/vision/visual_localization/carla/edgeai-tv/tiad_dkaze_carla_768x384_model.onnx'),
             postprocess=postproc_transforms.get_transform_none(),
-            model_info=dict(metric_reference={'accuracy_localization%':None}, model_shortlist=10)
+            model_info=dict(metric_reference={'accuracy_localization%':None}, model_shortlist=10, compact_name='tiad-dkaze-carla-768x384', shortlisted=False)
         ),
     }
     return pipeline_configs

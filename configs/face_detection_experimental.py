@@ -59,7 +59,7 @@ def get_configs(settings, work_dir):
         #       ONNX MODELS
         #################onnx models#####################################
         # edgeai-yolov5 models - IMPORTANT - see licence of the repository edgeai-yolov5 before using this model
-        'od-8450':utils.dict_update(common_cfg,
+        'od-8450expt':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(640, 640, resize_with_pad=True, backend='cv2', pad_color=[114, 114, 114]),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=(0.0, 0.0, 0.0), input_scale=(0.003921568627, 0.003921568627, 0.003921568627)),
                 runtime_options=settings.runtime_options_onnx_np2(

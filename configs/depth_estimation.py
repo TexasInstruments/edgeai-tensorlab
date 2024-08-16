@@ -61,7 +61,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/depth_estimation/nyudepthv2/fast-depth/fast-depth.onnx'),
             postprocess=postproc_depth_estimation_onnx,
             metric=dict(disparity=False, scale_shift=False),
-            model_info=dict(metric_reference={'accuracy_delta_1%':77.1}, model_shortlist=50)
+            model_info=dict(metric_reference={'accuracy_delta_1%':77.1}, model_shortlist=50, compact_name='depth-est-fast-depth-224x224', shortlisted=False)
         ),
         'de-7310':utils.dict_update(nyudepthv2_cfg,
             preprocess=preproc_transforms.get_transform_jai((256,256), (256,256), backend='cv2', interpolation=cv2.INTER_CUBIC),
@@ -71,7 +71,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/depth_estimation/nyudepthv2/MiDaS/midas-small.onnx'),
             postprocess=postproc_depth_estimation_onnx,
             metric=dict(disparity=True, scale_shift=True),
-            model_info=dict(metric_reference={'accuracy_delta_1%':86.4}, model_shortlist=50)
+            model_info=dict(metric_reference={'accuracy_delta_1%':86.4}, model_shortlist=50, compact_name='depth-est-midas-small-256x256', shortlisted=False)
         ),
     }
     return pipeline_configs

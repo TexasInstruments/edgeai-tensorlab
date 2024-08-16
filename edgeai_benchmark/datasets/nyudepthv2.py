@@ -47,7 +47,7 @@ class NYUDepthV2(DatasetBase):
         try:
             import h5py
         except:
-            print(f'{os.path.basename(__file__)}: h5py package was not found. functionality in this file {os.path.basename(__file__)} may not work')
+            print(utils.log_color('WARNING', f'{os.path.basename(__file__)} - h5py package was not found, functionality in this file may not work'))
             raise
 
         self.force_download = True if download == 'always' else False

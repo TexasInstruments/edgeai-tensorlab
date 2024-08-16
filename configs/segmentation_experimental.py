@@ -83,7 +83,7 @@ def get_configs(settings, work_dir):
         #       ONNX MODELS
         #################mlperf models###################################
         #------------------------robokit models-----------------------
-        # 'ss-7610': utils.dict_update(robokitseg_cfg,
+        # 'ss-7610expt': utils.dict_update(robokitseg_cfg,
         #     preprocess=preproc_transforms.get_transform_jai((432,768), (432,768), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**sessions.get_jai_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_onnx_np2(),
@@ -94,7 +94,7 @@ def get_configs(settings, work_dir):
         #------------------------------------------------------------------
         # #the onnxrt compiled model config that was here was moved to segmentation.py
         #------------------------------------------------------------------
-        # 'ss-5818': utils.dict_update(robokitseg_cfg,
+        # 'ss-5818expt': utils.dict_update(robokitseg_cfg,
         #     preprocess=preproc_transforms.get_transform_jai((432,768), (432,768), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=sessions.TVMDLRSession(**sessions.get_jai_quant_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_onnx_qat_v1(),
@@ -104,7 +104,7 @@ def get_configs(settings, work_dir):
         # ),
         #------------------------cityscapes models-----------------------
         # # edgeai: segmentation - deeplabv3lite_mobilenetv2_768x384_20190626-085932 expected_metric: 69.13% mean-iou
-        # 'ss-8500':utils.dict_update(cityscapes_cfg,
+        # 'ss-8500expt':utils.dict_update(cityscapes_cfg,
         #     preprocess=preproc_transforms.get_transform_jai((384,768), (384,768), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**sessions.get_jai_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_onnx_p2(),
@@ -113,7 +113,7 @@ def get_configs(settings, work_dir):
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':69.13})
         # ),
         # # edgeai: segmentation - fpnlite_aspp_mobilenetv2_768x384_20200120-135701 expected_metric: 70.48% mean-iou
-        # 'ss-8520':utils.dict_update(cityscapes_cfg,
+        # 'ss-8520expt':utils.dict_update(cityscapes_cfg,
         #     preprocess=preproc_transforms.get_transform_jai((384,768), (384,768), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**sessions.get_jai_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_onnx_p2(),
@@ -122,7 +122,7 @@ def get_configs(settings, work_dir):
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':70.48})
         # ),
         # # edgeai: segmentation - unetlite_aspp_mobilenetv2_768x384_20200129-164340 expected_metric: 68.97% mean-iou
-        # 'ss-8540':utils.dict_update(cityscapes_cfg,
+        # 'ss-8540expt':utils.dict_update(cityscapes_cfg,
         #     preprocess=preproc_transforms.get_transform_jai((384,768), (384,768), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**sessions.get_jai_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_onnx_p2(),
@@ -131,7 +131,7 @@ def get_configs(settings, work_dir):
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':68.97})
         # ),
         # # edgeai: segmentation - fpnlite_aspp_regnetx800mf_768x384_20200911-144003 expected_metric: 72.01% mean-iou
-        # 'ss-8560':utils.dict_update(cityscapes_cfg,
+        # 'ss-8560expt':utils.dict_update(cityscapes_cfg,
         #     preprocess=preproc_transforms.get_transform_jai((384,768), (384,768), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**sessions.get_jai_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_onnx_p2(),
@@ -140,7 +140,7 @@ def get_configs(settings, work_dir):
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':72.01})
         # ),
         # # edgeai: segmentation - fpnlite_aspp_regnetx1.6gf_1024x512_20200914-132016 expected_metric: 75.84% mean-iou
-        # 'ss-8570':utils.dict_update(cityscapes_cfg,
+        # 'ss-8570expt':utils.dict_update(cityscapes_cfg,
         #     preprocess=preproc_transforms.get_transform_jai((512,1024), (512,1024), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**sessions.get_jai_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_onnx_p2(),
@@ -149,7 +149,7 @@ def get_configs(settings, work_dir):
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':75.84})
         # ),
         # # edgeai: segmentation - fpnlite_aspp_regnetx3.2gf_1536x768_20200915-092738 expected_metric: 78.90% mean-iou
-        # 'ss-8580':utils.dict_update(cityscapes_cfg,
+        # 'ss-8580expt':utils.dict_update(cityscapes_cfg,
         #     preprocess=preproc_transforms.get_transform_jai((768,1536), (768,1536), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**sessions.get_jai_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_onnx_p2(),
@@ -158,7 +158,7 @@ def get_configs(settings, work_dir):
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':78.90})
         # ),
         # # torchvision: segmentation - torchvision deeplabv3-resnet50 - expected_metric: 73.5% MeanIoU.
-        # 'ss-8590':utils.dict_update(cityscapes_cfg,
+        # 'ss-8590expt':utils.dict_update(cityscapes_cfg,
         #     preprocess=preproc_transforms.get_transform_onnx((520,1040), (520,1040), backend='cv2'),
         #     session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_onnx_p2(),
@@ -167,7 +167,7 @@ def get_configs(settings, work_dir):
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':73.5})
         # ),
         # # torchvision: segmentation - torchvision fcn-resnet50 - expected_metric: 71.6% MeanIoU.
-        # 'ss-8600':utils.dict_update(cityscapes_cfg,
+        # 'ss-8600expt':utils.dict_update(cityscapes_cfg,
         #     preprocess=preproc_transforms.get_transform_onnx((520,1040), (520,1040), backend='cv2'),
         #     session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_onnx_p2(),
@@ -177,7 +177,7 @@ def get_configs(settings, work_dir):
         # ),
         #------------------------ade20k 32 class models-----------------------
         #  PTQ accuracy is good. Will remove in future.
-        # 'ss-8618':utils.dict_update(ade20k_cfg_class32,
+        # 'ss-8618expt':utils.dict_update(ade20k_cfg_class32,
         #     preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**sessions.get_jai_quant_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_onnx_qat_v1(),
@@ -185,7 +185,7 @@ def get_configs(settings, work_dir):
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':51.61})
         # ),
-        # 'ss-8638':utils.dict_update(ade20k_cfg_class32,
+        # 'ss-8638expt':utils.dict_update(ade20k_cfg_class32,
         #     preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**sessions.get_jai_quant_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_onnx_qat_v1(),
@@ -194,7 +194,7 @@ def get_configs(settings, work_dir):
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':49.98})
         # ),
         #  PTQ accuracy is good. Will remove in future.
-        # 'ss-8658':utils.dict_update(ade20k_cfg_class32,
+        # 'ss-8658expt':utils.dict_update(ade20k_cfg_class32,
         #     preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**sessions.get_jai_quant_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_onnx_qat_v1(),
@@ -203,7 +203,7 @@ def get_configs(settings, work_dir):
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':50.93})
         # ),
         #  PTQ accuracy is good. Will remove in future.
-        # 'ss-8678':utils.dict_update(ade20k_cfg_class32,
+        # 'ss-8678expt':utils.dict_update(ade20k_cfg_class32,
         #     preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
         #     session=onnx_session_type(**sessions.get_jai_quant_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_onnx_qat_v1(),
@@ -214,7 +214,7 @@ def get_configs(settings, work_dir):
         # #################################################################
         # #       MXNET MODELS
         # #################################################################
-        # 'ss-5810':utils.dict_update(cocoseg21_cfg,
+        # 'ss-5810expt':utils.dict_update(cocoseg21_cfg,
         #     preprocess=preproc_transforms.get_transform_onnx((480,480), (480,480), backend='cv2'),
         #     session=mxnet_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_mxnet_np2(),
@@ -224,7 +224,7 @@ def get_configs(settings, work_dir):
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':None})
         # ),
-        # 'ss-5820':utils.dict_update(cocoseg21_cfg,
+        # 'ss-5820expt':utils.dict_update(cocoseg21_cfg,
         #     preprocess=preproc_transforms.get_transform_onnx((480,480), (480,480), backend='cv2'),
         #     session=mxnet_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_mxnet_np2(),
@@ -234,7 +234,7 @@ def get_configs(settings, work_dir):
         #     postprocess=postproc_segmentation_onnx,
         #     model_info=dict(metric_reference={'accuracy_mean_iou%':None})
         # ),
-        # 'ss-5830':utils.dict_update(ade20k_cfg,
+        # 'ss-5830expt':utils.dict_update(ade20k_cfg,
         #     preprocess=preproc_transforms.get_transform_mxnet((480,480), (480,480), backend='cv2', resize_with_pad=True),
         #     session=mxnet_session_type(**sessions.get_mxnet_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_mxnet_np2(),
@@ -249,7 +249,7 @@ def get_configs(settings, work_dir):
         # #       TFLITE MODELS
         # #################mlperf models###################################
         # # tensorflow-deeplab-cityscapes-segmentation- deeplabv3_mnv2_cityscapes_train - expected_metric: 73.57% MeanIoU.
-        # 'ss-2550': utils.dict_update(cityscapes_cfg,
+        # 'ss-2550expt': utils.dict_update(cityscapes_cfg,
         #     preprocess=preproc_transforms.get_transform_tflite((1024, 2048), (1024, 2048), backend='cv2'),
         #     session=tflite_session_type(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir, input_mean=(127.5, 127.5, 127.5), input_scale=(1/127.5, 1/127.5, 1/127.5)),
         #         runtime_options=settings.runtime_options_tflite_np2(),

@@ -56,7 +56,7 @@ def get_configs(settings, work_dir):
         #       ONNX MODELS
         #################onnx models#####################################
         # edgeai-yolov5 models - IMPORTANT - see licence of the repository edgeai-yolov5 before using this model
-        'od-8100':utils.dict_update(common_cfg,
+        'od-8100expt':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(640, 640,  resize_with_pad=True, backend='cv2', pad_color=[114,114,114]),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=(0.0, 0.0, 0.0), input_scale=(0.003921568627, 0.003921568627, 0.003921568627)),
                 runtime_options=settings.runtime_options_onnx_np2(
@@ -69,7 +69,7 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':37.4}, model_shortlist=None)
         ),
-        'od-8110':utils.dict_update(common_cfg,
+        'od-8110expt':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(384, 384,  resize_with_pad=True, backend='cv2', pad_color=[114,114,114]),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=(0.0, 0.0, 0.0), input_scale=(0.003921568627, 0.003921568627, 0.003921568627)),
                 runtime_options=settings.runtime_options_onnx_np2(
@@ -82,7 +82,7 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':32.8}, model_shortlist=None)
         ),
-        'od-8120':utils.dict_update(common_cfg,
+        'od-8120expt':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(640, 640, resize_with_pad=True, backend='cv2', pad_color=[114,114,114]),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=(0.0, 0.0, 0.0), input_scale=(0.003921568627, 0.003921568627, 0.003921568627)),
                 runtime_options=settings.runtime_options_onnx_np2(
@@ -95,7 +95,7 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':44.1}, model_shortlist=None)
         ),
-        'od-8130':utils.dict_update(common_cfg,
+        'od-8130expt':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(640, 640, resize_with_pad=True, backend='cv2', pad_color=[114,114,114]),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=(0.0, 0.0, 0.0), input_scale=(0.003921568627, 0.003921568627, 0.003921568627)),
                 runtime_options=settings.runtime_options_onnx_np2(
@@ -109,7 +109,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':47.1}, model_shortlist=None)
         ),
         # edgeai-yolox models
-        'od-8140': utils.dict_update(common_cfg,
+        'od-8140expt': utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
             session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir),
                 runtime_options=settings.runtime_options_onnx_np2(
@@ -121,7 +121,7 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 39.1})
         ),
-        'od-8150': utils.dict_update(common_cfg,
+        'od-8150expt': utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
             session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir),
                 runtime_options=settings.runtime_options_onnx_np2(
@@ -133,7 +133,7 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 45.5})
             ),
-        'od-8180': utils.dict_update(common_cfg,
+        'od-8180expt': utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(416, 416, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
             session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir),
                 runtime_options=settings.runtime_options_onnx_np2(
@@ -145,7 +145,7 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 32.0})
             ),
-        'od-8190': utils.dict_update(common_cfg,
+        'od-8190expt': utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(416, 416, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
             session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir),
                 runtime_options=settings.runtime_options_onnx_np2(
@@ -159,7 +159,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 25.8})
         ),
         # edgeai-torchvision models
-        # 'od-8160':utils.dict_update(common_cfg,
+        # 'od-8160expt':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
         #     session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_onnx_np2(
@@ -170,7 +170,7 @@ def get_configs(settings, work_dir):
         #     metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90(label_offset=0)),
         #     model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':25.0})
         # ),
-        # 'od-8170':utils.dict_update(common_cfg,
+        # 'od-8170expt':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
         #     session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_onnx_np2(
@@ -182,7 +182,7 @@ def get_configs(settings, work_dir):
         #     model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':30.3})
         # ),
         # # yolov3: detection - yolov3 416x416 - expected_metric: 31.0% COCO AP[0.5-0.95]
-        # 'od-8010':utils.dict_update(common_cfg,
+        # 'od-8010expt':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.get_transform_onnx((416,416), (416,416), backend='cv2'),
         #     session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=(0.0, 0.0, 0.0), input_scale=(1/255.0, 1/255.0, 1/255.0)),
         #         runtime_options=settings.runtime_options_onnx_p2(det_options=True),
@@ -197,7 +197,7 @@ def get_configs(settings, work_dir):
         #       MXNET MODELS
         #################################################################
         # # mxnet : gluoncv model : detection - yolo3_darknet53_coco - accuracy: 36.0% ap[0.5:0.95], 57.2% ap50
-        # 'od-5050':utils.dict_update(common_cfg,
+        # 'od-5050expt':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.get_transform_onnx((416,416), (416,416), backend='cv2'),
         #     session=mxnet_session_type(**sessions.get_mxnet_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_mxnet_p2(),
@@ -209,7 +209,7 @@ def get_configs(settings, work_dir):
         #     model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':36.0})
         # ),
         # # mxnet : gluoncv model : detection - center_net_resnet18_v1b_coco - accuracy: 26.6% ap[0.5:0.95], 28.1% ap50
-        # 'od-5060':utils.dict_update(common_cfg,
+        # 'od-5060expt':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
         #     session=mxnet_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_mxnet_p2(),
@@ -221,7 +221,7 @@ def get_configs(settings, work_dir):
         #     model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':26.6})
         # ),
         # # mxnet : gluoncv model : detection - yolo3_mobilenet1.0_coco - accuracy: 28.6% ap[0.5:0.95], 48.9% ap50
-        # 'od-5020':utils.dict_update(common_cfg,
+        # 'od-5020expt':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.get_transform_onnx((416,416), (416,416), backend='cv2'),
         #     session=mxnet_session_type(**sessions.get_mxnet_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_mxnet_np2(),
@@ -233,7 +233,7 @@ def get_configs(settings, work_dir):
         #     model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':28.6})
         # ),
         # # mxnet : gluoncv model : detection - ssd_512_resnet50_v1_coco - accuracy: 30.6% ap[0.5:0.95], 50.0% ap50
-        # 'od-5030':utils.dict_update(common_cfg,
+        # 'od-5030expt':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
         #     session=mxnet_session_type(**sessions.get_mxnet_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_mxnet_p2(),
@@ -245,7 +245,7 @@ def get_configs(settings, work_dir):
         #     model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':30.6})
         # ),
         # # mxnet : gluoncv model : detection - ssd_512_mobilenet1.0_coco - accuracy: 21.7% ap[0.5:0.95], 39.2% ap50
-        # 'od-5040':utils.dict_update(common_cfg,
+        # 'od-5040expt':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
         #     session=mxnet_session_type(**sessions.get_mxnet_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_mxnet_np2(),
@@ -259,7 +259,7 @@ def get_configs(settings, work_dir):
         #################################################################
         #       TFLITE MODELS
         #################tflite models###################################
-        'od-2040':utils.dict_update(common_cfg,
+        'od-2040expt':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite((320,320), (320,320), backend='cv2'),
             session=tflite_session_type(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir),
                 runtime_options=settings.runtime_options_tflite_np2(detection_options=True),
@@ -268,7 +268,7 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':26.6})
         ),
-        'od-2050':utils.dict_update(common_cfg,
+        'od-2050expt':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite((640,640), (640,640), backend='cv2'),
             session=tflite_session_type(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir),
                 runtime_options=settings.runtime_options_tflite_np2(detection_options=True),
@@ -277,7 +277,7 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':32.0})
         ),
-        # 'od-2120':utils.dict_update(common_cfg,
+        # 'od-2120expt':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.get_transform_tflite((1024,1024), (1024,1024), backend='cv2'),
         #     session=tflite_session_type(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_tflite_np2(det_options=True),

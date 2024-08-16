@@ -103,7 +103,7 @@ def get_configs(settings, work_dir):
         # ),
         ####################### pycls regnet models ##################################################
         # # pycls: classification regnetx400mf_224x224 expected_metric: 72.7% top-1 accuracy
-        # 'cl-6120':utils.dict_update(common_cfg,
+        # 'cl-6120expt':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.get_transform_onnx(reverse_channels=True),
         #     session=onnx_session_type(**sessions.get_onnx_bgr_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_onnx_np2(),
@@ -111,7 +111,7 @@ def get_configs(settings, work_dir):
         #     model_info=dict(metric_reference={'accuracy_top1%':72.7})
         # ),
         # # pycls: classification regnetx800mf_224x224 expected_metric: 75.2% top-1 accuracy
-        # 'cl-6130':utils.dict_update(common_cfg,
+        # 'cl-6130expt':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.get_transform_onnx(reverse_channels=True),
         #     session=onnx_session_type(**sessions.get_onnx_bgr_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_onnx_np2(),
@@ -119,7 +119,7 @@ def get_configs(settings, work_dir):
         #     model_info=dict(metric_reference={'accuracy_top1%':75.2})
         # ),
         # # pycls: classification regnetx1.6gf_224x224 expected_metric: 77.0% top-1 accuracy
-        # 'cl-6140':utils.dict_update(common_cfg,
+        # 'cl-6140expt':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.get_transform_onnx(reverse_channels=True),
         #     session=onnx_session_type(**sessions.get_onnx_bgr_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_onnx_np2(),
@@ -128,7 +128,7 @@ def get_configs(settings, work_dir):
         # ),
         #
         # # torchvision: classification vgg16_224x224 expected_metric: 71.59% top-1 accuracy - too slow inference
-        # 'cl-6370':utils.dict_update(common_cfg,
+        # 'cl-6370expt':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.get_transform_onnx(),
         #     session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_onnx_np2(),
@@ -137,7 +137,7 @@ def get_configs(settings, work_dir):
         # ),
         ########################### jai-devkit models ########################################################
         # # jai-devkit: classification mobilenetv3_large_lite qat expected_metric: 71.614% top-1 accuracy
-        # 'cl-6508':utils.dict_update(common_cfg,
+        # 'cl-6508expt':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.get_transform_onnx(),
         #     session=onnx_session_type(**sessions.get_onnx_quant_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_onnx_qat_v1(),
@@ -145,7 +145,7 @@ def get_configs(settings, work_dir):
         #     model_info=dict(metric_reference={'accuracy_top1%':71.614})
         # ),
         # # jai-devkit: classification mobilenetv3_large_lite_x2r expected_metric: 74.160% top-1 accuracy
-        # 'cl-6510':utils.dict_update(common_cfg,
+        # 'cl-6510expt':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.get_transform_onnx(),
         #     session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_onnx_p2(),
@@ -155,7 +155,7 @@ def get_configs(settings, work_dir):
         #
         ################# github/onnx/models #############################
         # # github onnx model: classification resnet18_v2 expected_metric: 69.70% top-1 accuracy
-        # 'cl-6000':utils.dict_update(common_cfg,
+        # 'cl-6000expt':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.get_transform_onnx(),
         #     session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_onnx_np2(),
@@ -201,7 +201,7 @@ def get_configs(settings, work_dir):
         #       MXNet MODELS
         #################################################################
         # # mxnet : gluoncv model : classification - mobilenetv2_1.0 - accuracy: 72.04% top1
-        # 'cl-3410':utils.dict_update(common_cfg,
+        # 'cl-3410expt':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.get_transform_onnx(backend='cv2'),
         #     session=mxnet_session_type(**sessions.get_mxnet_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_mxnet_np2(),
@@ -211,7 +211,7 @@ def get_configs(settings, work_dir):
         #     model_info=dict(metric_reference={'accuracy_top1%':72.04})
         # ),
         # # mxnet : gluoncv model : classification - resnet50_v1d - accuracy: 79.15% top1
-        # 'cl-3420':utils.dict_update(common_cfg,
+        # 'cl-3420expt':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.get_transform_onnx(backend='cv2'),
         #     session=mxnet_session_type(**sessions.get_mxnet_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_mxnet_p2(),
@@ -221,7 +221,7 @@ def get_configs(settings, work_dir):
         #     model_info=dict(metric_reference={'accuracy_top1%':79.15})
         # ),
         # # mxnet : gluoncv model : classification - xception - accuracy: 79.56% top1
-        # 'cl-3430':utils.dict_update(common_cfg,
+        # 'cl-3430expt':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.get_transform_onnx(342, 299, backend='cv2'),
         #     session=mxnet_session_type(**sessions.get_mxnet_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_mxnet_p2(),
@@ -231,7 +231,7 @@ def get_configs(settings, work_dir):
         #     model_info=dict(metric_reference={'accuracy_top1%':79.56})
         # ),
         # # mxnet : gluoncv model : classification - hrnet_w18_small_v2_c - reference accuracy: is from hrnet website, not from gluoncv
-        # 'cl-3480':utils.dict_update(common_cfg,
+        # 'cl-3480expt':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.get_transform_onnx(backend='cv2'),
         #     session=mxnet_session_type(**sessions.get_mxnet_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_mxnet_p2(),
@@ -241,7 +241,7 @@ def get_configs(settings, work_dir):
         #     model_info=dict(metric_reference={'accuracy_top1%':75.1})
         # ),
         # # mxnet : gluoncv model : classification - hrnet_w30_c - - reference accuracy: is from hrnet website, not from gluoncv
-        # 'cl-3510':utils.dict_update(common_cfg,
+        # 'cl-3510expt':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.get_transform_onnx(backend='cv2'),
         #     session=mxnet_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_mxnet_np2(),
@@ -255,7 +255,7 @@ def get_configs(settings, work_dir):
         # #       TFLITE MODELS
         # ##################tensorflow models##############################
         # # tensorflow/models: classification mobilenetv2_224x224 quant expected_metric: 70.8% top-1 accuracy
-        # 'cl-0018':utils.dict_update(common_cfg,
+        # 'cl-0018expt':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.get_transform_tflite_quant(),
         #     session=tflite_session_type(**sessions.get_tflite_quant_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_tflite_np2(),
@@ -264,7 +264,7 @@ def get_configs(settings, work_dir):
         #     model_info=dict(metric_reference={'accuracy_top1%':70.8})
         # ),
         # # tf hosted models: classification nasnet mobile expected_metric: 73.9% top-1 accuracy
-        # 'cl-0240':utils.dict_update(common_cfg,
+        # 'cl-0240expt':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.get_transform_tflite(),
         #     session=tflite_session_type(**sessions.get_tflite_quant_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_tflite_np2(),
@@ -281,7 +281,7 @@ def get_configs(settings, work_dir):
         #     model_info=dict(metric_reference={'accuracy_top1%':77.6})
         # ),
         # tf hosted models: classification densenet expected_metric: 74.98% top-1 accuracy (from publication)
-        'cl-0150':utils.dict_update(common_cfg,
+        'cl-0150expt':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite(),
             session=tflite_session_type(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir, input_mean=(123.68, 116.78, 103.94), input_scale=(1/255, 1/255, 1/255)),
                 runtime_options=settings.runtime_options_tflite_np2(),
@@ -292,7 +292,7 @@ def get_configs(settings, work_dir):
         #
         # ##################tf2-models#####################################################
         # # tf2_models: classification xception expected_metric: 79.0% top-1 accuracy
-        # 'cl-0250':utils.dict_update(common_cfg,
+        # 'cl-0250expt':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.tflite_session_cfg(342, 299),
         #     session=tflite_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_tflite_np2(),

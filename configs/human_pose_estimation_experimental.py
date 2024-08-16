@@ -60,7 +60,7 @@ def get_configs(settings, work_dir):
         #       ONNX MODELS
         ################# onnx models ###############################
         # yolov5 based keypoint/human pose estimation - post processing is handled completely by TIDL
-        'kd-7040':utils.dict_update(common_cfg,
+        'kd-7040expt':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(640, 640, resize_with_pad=True,  backend='cv2', pad_color=[114,114,114]),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, input_mean=(0.0, 0.0, 0.0),  input_scale=(0.003921568627, 0.003921568627, 0.003921568627)),
                 runtime_options=settings.runtime_options_onnx_p2(
@@ -72,7 +72,7 @@ def get_configs(settings, work_dir):
             postprocess=postproc_transforms.get_transform_detection_yolov5_pose_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS(), keypoint=True),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':54.9}, model_shortlist=None)
         ),
-        'kd-7050':utils.dict_update(common_cfg,
+        'kd-7050expt':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(640, 640, resize_with_pad=True, backend='cv2', pad_color=[114,114,114]),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, input_mean=(0.0, 0.0, 0.0),  input_scale=(0.003921568627, 0.003921568627, 0.003921568627)),
                 runtime_options=settings.runtime_options_onnx_np2(
@@ -86,7 +86,7 @@ def get_configs(settings, work_dir):
         ),
         # edgeai-mmpose based models
         # human pose estimation : mobilenetv2 + fpn_spp + udp, Expected AP : 42.31
-        'kd-7000':utils.dict_update(common_cfg,
+        'kd-7000expt':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(resize=512, crop=512, resize_with_pad=True,
                 backend='cv2', add_flip_image=settings.flip_test, pad_color=[127,127,127]),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
@@ -97,7 +97,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':42.31})
         ),
         # human pose estimation : resnet50 + fpn_spp, Expected AP : 50.4
-        'kd-7010':utils.dict_update(common_cfg,
+        'kd-7010expt':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(resize=512, crop=512, resize_with_pad=True,
                 backend='cv2', add_flip_image=settings.flip_test, pad_color=[127,127,127]),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
@@ -108,7 +108,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':50.4})
         ),
         # human pose estimation : mobilenetv2 + pan_spp + udp, Expected AP : 45.41
-        'kd-7020':utils.dict_update(common_cfg,
+        'kd-7020expt':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(resize=512, crop=512, resize_with_pad=True, 
                 backend='cv2', add_flip_image=settings.flip_test, pad_color=[127,127,127]),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
@@ -119,7 +119,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':45.41})
         ),
         # human pose estimation : resnet50 + pan_spp + udp, Expected AP : 51.62
-        'kd-7030':utils.dict_update(common_cfg,
+        'kd-7030expt':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(resize=512, crop=512, resize_with_pad=True, 
                 backend='cv2', add_flip_image=settings.flip_test, pad_color=[127,127,127]),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),

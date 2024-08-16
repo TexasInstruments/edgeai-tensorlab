@@ -72,7 +72,7 @@ def get_configs(settings, work_dir):
             postprocess=postproc_stereo_disparity_onnx,
             # To REVISIT!
             metric=dict(disparity=True),
-            model_info=dict(metric_reference={'accuracy_pixel_error':0.7})
+            model_info=dict(metric_reference={'accuracy_pixel_error':0.7}, model_shortlist=None, compact_name='gwcNet-gc-stereo-kitti2015-1184x384', shortlisted=False)
         ),
     }
     return pipeline_configs

@@ -68,7 +68,7 @@ def get_configs(settings, work_dir):
                         }),
                 model_path=f'{settings.models_path}/vision/object_6d_pose/ycbv/edgeai-yolox/yolox_s_object_pose_ti_lite_640x480_57p75.onnx'),
             postprocess=postproc_transforms.get_transform_detection_yolo_6d_object_pose_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS(), object6dpose=True),
-            model_info=dict(metric_reference={'accuracy_add(s)_p1%':54.10}, model_shortlist=10)
+            model_info=dict(metric_reference={'accuracy_add(s)_p1%':54.10}, model_shortlist=10, compact_name='yolox-s-6d-object_pose-640x480', shortlisted=True)
         ),
     }
     return pipeline_configs
