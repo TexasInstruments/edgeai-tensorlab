@@ -4,6 +4,7 @@ import numpy as np
 import os
 
 
+
 class ONNXBackendDataset(DatasetBase):
     '''
     Dataset used for onnx backend tests
@@ -73,6 +74,7 @@ class ONNXBackendDataset(DatasetBase):
         output_list = output_list[0]
 
         # Convert output_list to output_dict based on output names
+        import onnx
         out_info = onnx.load(os.path.join(self.path, "model.onnx")).graph.output
         output_dict = {}
         for output, info in zip(output_list, out_info):
