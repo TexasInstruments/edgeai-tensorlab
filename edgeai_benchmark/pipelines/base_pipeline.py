@@ -32,7 +32,7 @@ import copy
 import yaml
 import time
 import itertools
-from .. import utils, constants
+from .. import utils, constants, datasets
 
 
 class BasePipeline():
@@ -53,18 +53,14 @@ class BasePipeline():
         self.result_yaml = os.path.join(self.run_dir, 'result.yaml')
         # pop out dataset info from the pipeline config,
         # because it will increase the size of the para.yaml and result.yaml files
-        if self.pipeline_config['input_dataset'] is not None:
-            calibration_dataset = self.pipeline_config['calibration_dataset']
-            if isinstance(calibration_dataset, dict):
-                calibration_dataset.get_param('kwargs').pop('dataset_info', None)
-            #
-            self.dataset_info = None
-            input_dataset = self.pipeline_config['input_dataset']
-            if isinstance(input_dataset, dict):
-                self.dataset_info = input_dataset.get_param('kwargs').pop('dataset_info', None)
-            #
-        else:
-            self.dataset_info = None
+        self.dataset_info = None
+        calibration_dataset = self.pipeline_config.get('calibration_dataset', None)
+        if isinstance(calibration_dataset, datasets.DatasetBase):
+            self.dataset_info = calibration_dataset.get_param('kwargs').pop('dataset_info', None)
+        #
+        input_dataset = self.pipeline_config.get('input_dataset', None)
+        if isinstance(input_dataset, datasets.DatasetBase):
+            self.dataset_info = input_dataset.get_param('kwargs').pop('dataset_info', None)
         #
         if self.dataset_info is not None:
             self.dataset_info_file = os.path.join(self.run_dir, 'dataset.yaml')

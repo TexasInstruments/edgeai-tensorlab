@@ -34,6 +34,16 @@ import pprint
 from edgeai_benchmark import *
 
 
+def dict_to_strdict(d):
+    info_str = '{ '
+    for k, v in d.items():
+        k_str = "'" + f'{k}' + "'"
+        v_str = f'{v}' if isinstance(v, bool) else "'" + f'{v}' + "'"
+        info_str += f'{k_str}' + ': ' + f'{v_str}, '
+    info_str += '}'
+    return info_str
+
+
 if __name__ == '__main__':
     print(f'argv: {sys.argv}')
     # the cwd must be the root of the respository
@@ -150,7 +160,7 @@ if __name__ == '__main__':
         # write code to write model_info dict in one line
         fp.write(f'\n'+'{')
         for model_id, model_info_dict in model_info_dicts.items():
-            model_info_str = '{ ' + ''.join(["'" + f'{k}' + "': '" + f'{v}' + "', " for k,v in model_info_dict.items()]) + ' }'
+            model_info_str = dict_to_strdict(model_info_dict)
             fp.write(f'\n    \'{model_id}\': {model_info_str},')
         #
         fp.write(f'\n'+'}')

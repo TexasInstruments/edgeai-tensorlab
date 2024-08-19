@@ -27,8 +27,14 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #################################################################################
 import os
+from . import logger_utils
 
-from .model_infos import MODEL_INFOS_DICT
+try:
+    from .model_infos import MODEL_INFOS_DICT
+except Exception as e:
+    MODEL_INFOS_DICT = {}
+    print(logger_utils.log_color("\nERROR", "Error in python import of MODEL_INFOS_DICT", str(e)))
+    raise
 
 model_id_artifacts_pair = {v['model_id']+'_'+v['session_name']:v['artifact_name']
                            for k, v in MODEL_INFOS_DICT.items()
