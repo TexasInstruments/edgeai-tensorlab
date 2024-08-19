@@ -100,7 +100,7 @@ MODELS_LIST=./work_dirs/modelartifacts/benchmarks_models_list.txt
 ##################################################################
 
 PYARGS1="./scripts/generate_models_list.py ${SETTINGS} --target_device ${TARGET_SOC} --models_list_file $MODELS_LIST --dataset_loading False"
-PYARGS2="./scripts/benchmark_modelzoo.py ${SETTINGS} --target_device ${TARGET_SOC} "
+PYARGS2="./scripts/benchmark_modelzoo.py ${SETTINGS} --target_device ${TARGET_SOC} --run_import False"
 PYARGS3="./scripts/generate_report.py ${SETTINGS}"
 PYDEBUG="python3 -m debugpy --listen ${HOSTNAME}:${PORT} --wait-for-client"
 echo "==================================================================="
