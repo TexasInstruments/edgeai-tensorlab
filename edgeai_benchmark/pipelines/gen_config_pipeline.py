@@ -78,7 +78,7 @@ class GenConfigPipeline(BasePipeline):
         else:
             print(utils.log_color('\nWARNING', 'skip writing config as it is already written',f'{model_id}: {model_path}'))
 
-        result_dict = {'success': write_gen_config, 'config_path': self.config_yaml}
+        result_dict = {'model_id':model_id, 'success': write_gen_config, 'config_path': self.config_yaml, 'pipeline_param':pipeline_param}
         print(utils.log_color('\n\nSUCCESS', 'gen config', f'{result_dict}\n'))
 
         return result_dict

@@ -64,6 +64,7 @@ MODEL_INFOS_DICT = \
     'cl-3090': { 'model_id': 'cl-3090', 'recommended': True, 'shortlisted': True, 'session_name': 'tvmdlr', 'artifact_name': 'TVM-CL-3090-mobileNetV2-tv', },
     'cl-6360': { 'model_id': 'cl-6360', 'recommended': True, 'shortlisted': True, 'session_name': 'onnxrt', 'artifact_name': 'ONR-CL-6360-regNetx-200mf', },
     'kd-7060': { 'model_id': 'kd-7060', 'recommended': True, 'shortlisted': True, 'session_name': 'onnxrt', 'artifact_name': 'ONR-KD-7060-human-pose-yolox-s-640x640', },
+    'od-2020': { 'model_id': 'od-2020', 'recommended': True, 'shortlisted': True, 'session_name': 'tflitert', 'artifact_name': 'TFL-OD-2020-ssdLite-mobDet-DSP-coco-320x320', },
     'od-5120': { 'model_id': 'od-5120', 'recommended': True, 'shortlisted': True, 'session_name': 'tvmdlr', 'artifact_name': 'TVM-OD-5120-ssdLite-mobDet-DSP-coco-320x320', },
     'od-8020': { 'model_id': 'od-8020', 'recommended': True, 'shortlisted': True, 'session_name': 'onnxrt', 'artifact_name': 'ONR-OD-8020-ssd-lite-mobv2-mmdet-coco-512x512', },
     'od-8200': { 'model_id': 'od-8200', 'recommended': True, 'shortlisted': True, 'session_name': 'onnxrt', 'artifact_name': 'ONR-OD-8200-yolox-nano-lite-mmdet-coco-416x416', },
@@ -83,6 +84,7 @@ MODEL_INFOS_DICT = \
     'cl-0130': { 'model_id': 'cl-0130', 'recommended': False, 'shortlisted': True, 'session_name': 'tflitert', 'artifact_name': 'TFL-CL-0130-efficientNet-lite0', },
     'cl-0140': { 'model_id': 'cl-0140', 'recommended': False, 'shortlisted': True, 'session_name': 'tflitert', 'artifact_name': 'TFL-CL-0140-efficientNet-lite4', },
     'cl-0160': { 'model_id': 'cl-0160', 'recommended': False, 'shortlisted': True, 'session_name': 'tflitert', 'artifact_name': 'TFL-CL-0160-resNet50V1p5-mlperf', },
+    'cl-6090': { 'model_id': 'cl-6090', 'recommended': False, 'shortlisted': True, 'session_name': 'onnxrt', 'artifact_name': 'ONR-CL-6090-mobileNetV2-tv', },
     'cl-6098': { 'model_id': 'cl-6098', 'recommended': False, 'shortlisted': True, 'session_name': 'onnxrt', 'artifact_name': 'ONR-CL-6098-mobileNetV2-tv-qat', },
     'cl-6100': { 'model_id': 'cl-6100', 'recommended': False, 'shortlisted': True, 'session_name': 'onnxrt', 'artifact_name': 'ONR-CL-6100-resNet18', },
     'cl-6101': { 'model_id': 'cl-6101', 'recommended': False, 'shortlisted': True, 'session_name': 'onnxrt', 'artifact_name': 'ONR-CL-6101-resNet18-512x512', },
@@ -102,6 +104,7 @@ MODEL_INFOS_DICT = \
     'od-8040': { 'model_id': 'od-8040', 'recommended': False, 'shortlisted': True, 'session_name': 'onnxrt', 'artifact_name': 'ONR-OD-8040-ssd-lite-regNetX-200mf-fpn-bgr-mmdet-coco-320x320', },
     'od-8210': { 'model_id': 'od-8210', 'recommended': False, 'shortlisted': True, 'session_name': 'onnxrt', 'artifact_name': 'ONR-OD-8210-yolox-tiny-lite-mmdet-coco-416x416', },
     'ss-8630': { 'model_id': 'ss-8630', 'recommended': False, 'shortlisted': True, 'session_name': 'onnxrt', 'artifact_name': 'ONR-SS-8630-unetlite-aspp-mobv2-tv-ade20k32-512x512', },
+    'ss-8710': { 'model_id': 'ss-8710', 'recommended': False, 'shortlisted': True, 'session_name': 'onnxrt', 'artifact_name': 'ONR-SS-8710-deeplabv3lite-mobv2-cocoseg21-512x512', },
     'ss-8720': { 'model_id': 'ss-8720', 'recommended': False, 'shortlisted': True, 'session_name': 'onnxrt', 'artifact_name': 'ONR-SS-8720-deeplabv3lite-regnetx800mf-cocoseg21-512x512', },
     'ss-8740': { 'model_id': 'ss-8740', 'recommended': False, 'shortlisted': True, 'session_name': 'onnxrt', 'artifact_name': 'ONR-SS-8740-lraspp-mobV3-ti-lite-large-cocoseg21-512x512', },
     'cl-0038': { 'model_id': 'cl-0038', 'recommended': False, 'shortlisted': False, 'session_name': 'tflitert', 'artifact_name': 'TFL-CL-0038-InceptionNetV1', },
@@ -173,3 +176,4 @@ MODEL_INFOS_DICT = \
     'ss-8760': { 'model_id': 'ss-8760', 'recommended': False, 'shortlisted': False, 'session_name': 'onnxrt', 'artifact_name': 'ONR-SS-8760-segformerB5-transformer-ade-640x640', },
     'visloc-7500': { 'model_id': 'visloc-7500', 'recommended': False, 'shortlisted': False, 'session_name': 'onnxrt', 'artifact_name': 'ONR-VISLOC-7500-tiad-dkaze-carla-768x384', },
 }
+

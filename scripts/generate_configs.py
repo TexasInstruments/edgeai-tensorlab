@@ -104,9 +104,7 @@ if __name__ == '__main__':
     for result_dict in results_list:
         if result_dict and isinstance(result_dict, dict) and 'config_path' in result_dict:
            config_path = result_dict['config_path']
-           with open(config_path) as fp:
-               config_dict = yaml.safe_load(fp)
-           #
+           config_dict = result_dict['pipeline_param']
            model_id = config_dict['session']['model_id']
            config_path = os.path.normpath(os.path.abspath(config_path))
            config_path = config_path.replace(models_path_full+os.sep, '')
@@ -124,9 +122,7 @@ if __name__ == '__main__':
     for result_dict in results_list:
         if result_dict and isinstance(result_dict, dict) and 'config_path' in result_dict:
            config_path = result_dict['config_path']
-           with open(config_path) as fp:
-               config_dict = yaml.safe_load(fp)
-           #
+           config_dict = result_dict['pipeline_param']
            model_info = config_dict['model_info']
            model_id = config_dict['session']['model_id']
            model_path = config_dict['session']['model_path']

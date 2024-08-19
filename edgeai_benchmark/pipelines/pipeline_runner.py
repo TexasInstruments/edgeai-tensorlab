@@ -79,21 +79,19 @@ class PipelineRunner():
         # additional filtering required
         if self.settings.pipeline_type == constants.PIPELINE_GEN_CONFIG:
             pipelines_selected = {}
-            pipelines_selected1_ordered = {}
+            model_path_selected = []
             # we will go in this order of preference
             for supported_session_name in constants.SESSION_NAMES:
                 for model_id, pipeline_config in pipelines_selected1.items():
                     model_path = pipeline_config['session'].kwargs['model_path']
                     session_name = pipeline_config['session'].kwargs['session_name']
                     if session_name == supported_session_name:
-                        write_gen_config = model_path not in pipelines_selected1_ordered
+                        write_gen_config = model_path not in model_path_selected
                         pipeline_config['write_gen_config'] = write_gen_config
-                        pipelines_selected1_ordered.update({model_path: (model_id, pipeline_config)})
+                        pipelines_selected.update({model_id: pipeline_config})
+                        model_path_selected += [model_path]
                     #
                 #
-            #
-            for model_path, (model_id, pipeline_config) in pipelines_selected1_ordered.items():
-                pipelines_selected.update({model_id: pipeline_config})
             #
         else:
             pipelines_selected = pipelines_selected1
