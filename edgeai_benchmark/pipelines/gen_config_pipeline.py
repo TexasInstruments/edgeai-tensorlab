@@ -44,12 +44,12 @@ class GenConfigPipeline(BasePipeline):
         self.config_yaml = model_path_wo_ext + '_config.yaml'
 
     def __call__(self, description=''):
+        model_id = self.pipeline_config['session'].kwargs['model_id']
         model_path = self.pipeline_config['session'].kwargs['model_path']
         model_proto_path = self.pipeline_config['session'].kwargs['runtime_options'].get('object_detection:meta_layers_names_list', None)
+        write_gen_config = self.pipeline_config.get('write_gen_config', True)
 
-        # log some info
-        print(utils.log_color('\nINFO', 'running', model_path))
-        print(utils.log_color('\nINFO', 'pipeline_config', self.pipeline_config))
+        print(utils.log_color('\nINFO', 'running', f'{model_id}: {model_path}'))
 
         param_template = None
         if self.settings.param_template_file is not None:
@@ -58,26 +58,27 @@ class GenConfigPipeline(BasePipeline):
             #
         #
 
-        result_dict = None
-        if model_path is not None:
-            # write the dataset_info file
+        if model_path is None or not os.path.exists(model_path):
+            return None
+
+        self.pipeline_config['session'].kwargs['model_path'] = os.path.basename(model_path)
+        self.pipeline_config['session'].kwargs['artifacts_folder'] = os.path.basename(self.pipeline_config['session'].kwargs['artifacts_folder'])
+        if model_proto_path is not None:
+            self.pipeline_config['session'].kwargs['runtime_options']['object_detection:meta_layers_names_list'] = os.path.basename(model_proto_path)
+        #
+        # config file is not specific to any device.
+        # The one who uses the config file should spcify the device in his settings.
+        self.pipeline_config['session'].kwargs['target_device'] = None
+        pipeline_param = utils.pretty_object(self.pipeline_config)
+        pipeline_param = utils.cleanup_dict(pipeline_param, param_template)
+        if write_gen_config:
             with open(self.config_yaml, 'w') as fp:
-                self.pipeline_config['session'].kwargs['model_path'] = os.path.basename(model_path)
-                self.pipeline_config['session'].kwargs['artifacts_folder'] = os.path.basename(self.pipeline_config['session'].kwargs['artifacts_folder'])
-                if model_proto_path is not None:
-                    self.pipeline_config['session'].kwargs['runtime_options']['object_detection:meta_layers_names_list'] = os.path.basename(model_proto_path)
-                #
-                # config file is not specific to any device.
-                # The one who uses the config file should spcify the device in his settings.
-                self.pipeline_config['session'].kwargs['target_device'] = None
-                pipeline_param = utils.pretty_object(self.pipeline_config)
-                pipeline_param = utils.cleanup_dict(pipeline_param, param_template)
                 yaml.safe_dump(pipeline_param, fp, sort_keys=False)
             #
+        else:
+            print(utils.log_color('\nWARNING', 'skip writing config as it is already written',f'{model_id}: {model_path}'))
 
-            # now actually run the import and inference
-            result_dict = {'success': True, 'config_path': self.config_yaml}
-
-            print(utils.log_color('\n\nSUCCESS', 'gen config', f'{result_dict}\n'))
+        result_dict = {'success': write_gen_config, 'config_path': self.config_yaml}
+        print(utils.log_color('\n\nSUCCESS', 'gen config', f'{result_dict}\n'))
 
         return result_dict

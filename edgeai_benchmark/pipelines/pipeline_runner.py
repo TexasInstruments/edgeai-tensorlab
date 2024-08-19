@@ -85,7 +85,9 @@ class PipelineRunner():
                 for model_id, pipeline_config in pipelines_selected1.items():
                     model_path = pipeline_config['session'].kwargs['model_path']
                     session_name = pipeline_config['session'].kwargs['session_name']
-                    if session_name == supported_session_name and model_path not in pipelines_selected1_ordered:
+                    if session_name == supported_session_name:
+                        write_gen_config = model_path not in pipelines_selected1_ordered
+                        pipeline_config['write_gen_config'] = write_gen_config
                         pipelines_selected1_ordered.update({model_path: (model_id, pipeline_config)})
                     #
                 #
@@ -157,9 +159,9 @@ class PipelineRunner():
         cwd = os.getcwd()
         results_list = []
         total = len(self.pipeline_configs)
-        for pipeline_id, pipeline_config in enumerate(self.pipeline_configs.values()):
+        for pipeline_idx, (model_id, pipeline_config) in enumerate(self.pipeline_configs.items()):
             os.chdir(cwd)
-            description = f'{pipeline_id+1}/{total}' if total > 1 else ''
+            description = f'{pipeline_idx+1}/{total}' if total > 1 else ''
             result = self._run_pipeline(self.settings, pipeline_config, description=description)
             results_list.append(result)
         #
