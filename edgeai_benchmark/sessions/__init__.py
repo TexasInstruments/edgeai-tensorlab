@@ -47,7 +47,7 @@ session_type_to_name_dict = {
 }
 
 
-session_name_to_short_name = {
+session_name_to_compact_name = {
     constants.SESSION_NAME_TVMDLR : 'tvm',
     constants.SESSION_NAME_TFLITERT: 'tfl',
     constants.SESSION_NAME_ONNXRT: 'onr'

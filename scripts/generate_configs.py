@@ -88,9 +88,9 @@ if __name__ == '__main__':
     # run the pipeline
     results_list = interfaces.run_gen_config(settings, work_dir)
 
-    models_path_full = os.path.normpath(os.path.abspath(settings.models_path))
-
+    # configs.yaml
     configs_dict={'configs': {}}
+    models_path_full = os.path.normpath(os.path.abspath(settings.models_path))
     for result_dict in results_list:
         if result_dict and isinstance(result_dict, dict) and 'config_path' in result_dict:
            config_path = result_dict['config_path']
@@ -109,6 +109,7 @@ if __name__ == '__main__':
         yaml.safe_dump(configs_dict, fp, sort_keys=False)
     #
 
+    # model_infos.py
     model_info_dicts = {}
     for result_dict in results_list:
         if result_dict and isinstance(result_dict, dict) and 'config_path' in result_dict:
@@ -120,24 +121,37 @@ if __name__ == '__main__':
            model_id = config_dict['session']['model_id']
            model_path = config_dict['session']['model_path']
            session_name = config_dict['session']['session_name']
-           session_sort_name = sessions.session_name_to_short_name[session_name].upper()
-           compact_name = model_info.get('compact_name', os.path.splitext(os.path.basename(model_path))[0])
+           session_sort_name = sessions.session_name_to_compact_name[session_name].upper()
+           compact_name = model_info.get('compact_name', None)
+           if compact_name is None:
+               compact_name = os.path.splitext(os.path.basename(model_path))[0]
+           #
            artifact_name = session_sort_name + '-' + model_id.upper() + '-' + compact_name
            shortlisted = bool(model_info.get('shortlisted', False))
            recommended = bool(model_info.get('recommended', False))
            model_info_dict = {
                'model_id': model_id,
+               'recommended': recommended,
+               'shortlisted': shortlisted,
                'session_name': session_name,
                'artifact_name': artifact_name,
-               'shortlisted': shortlisted,
-               'recommended':recommended
            }
            model_info_dicts.update({model_id:model_info_dict})
         #
     #
     model_info_dicts = {k: v for k, v in sorted(model_info_dicts.items(), key=lambda item: item[0])}
+    model_info_dicts = {k: v for k, v in sorted(model_info_dicts.items(), key=lambda item: int(item[1]['shortlisted']), reverse=True)}
+    model_info_dicts = {k: v for k, v in sorted(model_info_dicts.items(), key=lambda item: int(item[1]['recommended']), reverse=True)}
     model_info_path = os.path.join(settings.models_path, 'model_infos.py')
+    model_info_str_dict = {}
     with open(model_info_path, 'w') as fp:
-        pp = pprint.PrettyPrinter(indent=2, stream=fp)
-        pp.pprint(model_info_dicts)
+        # pp = pprint.PrettyPrinter(indent=2, stream=fp)
+        # pp.pprint(model_info_dicts)
+        # write code to write model_info dict in one line
+        fp.write(f'\n'+'{')
+        for model_id, model_info_dict in model_info_dicts.items():
+            model_info_str = '{ ' + ''.join(["'" + f'{k}' + "': '" + f'{v}' + "', " for k,v in model_info_dict.items()]) + ' }'
+            fp.write(f'\n    \'{model_id}\': {model_info_str},')
+        #
+        fp.write(f'\n'+'}')
     #

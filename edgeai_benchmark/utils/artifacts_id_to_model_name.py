@@ -42,8 +42,6 @@ recommended_model_list = {v['model_id']+'_'+v['session_name']:v['artifact_name']
                           for k, v in MODEL_INFOS_DICT.items()
                           if v['recommended']}
 
-print(recommended_model_list)
-
 super_set = list(model_id_artifacts_pair.keys())
 
 
