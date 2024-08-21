@@ -40,6 +40,37 @@ from .replace_modules import replace_modules as replace_modules_func
 
 from . import convert_to_lite 
 
+
+def convert_to_lite_model(model, inplace=True, replacement_dict=None, **kwargs):
+    '''
+    converts the model to lite model using replacement dict 
+    wrapper to the function that does the surgery
+
+    it does default surgery if no replacement dictionry is given
+    replacement dictionry must contains flag name as keys and True/False or a replacement dictionary corresponding to flag as value
+    
+    behavior for each value:
+    value               behavior
+    True            ->  convert according to mapped replacement dict
+    False           ->  discard it
+    dict            ->  update the main replacement dictionary with the entries of it
+    
+    values for replacement dict
+    key: a torch.nn.Module that has to be replaced OR a callable which takes a module as input and returns boolean
+    value: a list. the fist entry is a constructor or a callable that creates the replacement module
+                the remaining entries are properties that have to be copied from old module to newly created module.
+    '''
+    
+    warnings.warn("WARNING - xmodelopt.v1.surgery is based on the modules. For superior functionality, please use the torch.fx based xmodelopt.v2.surgery instead")
+    replacement_dict = replacement_dict or get_replacement_flag_dict_default(**kwargs)
+    replacement_dict = _get_replacement_dict(replacement_dict)
+    model = replace_modules_func(model, inplace=inplace, replacement_dict=replacement_dict)
+    return model
+
+
+#Default Flags for replacement dict 
+# for custom replacement add a custom flag name (any string not in default flag) as key and map it to a dict containing pattern and replacement
+# note if same key is used for two pattern the last replacement will be performed
 default_replacement_flag_dict: dict[str, bool|dict] ={
     'squeeze_and_excite_to_identity' : True,
     'all_activation_to_relu': True,
@@ -58,6 +89,8 @@ default_replacement_flag_dict: dict[str, bool|dict] ={
     # 'custom_surgery_flag':{},
 }
 
+#Mapping between the flags and the actual replacements corresponding to them
+# This dictionary is used whenever a flag is enabled to fetch the corresponding replacement entries
 flag_to_dict_entries:dict[str, dict] = {
     'squeeze_and_excite_to_identity':{SqueezeExcitation: [torch.nn.Identity]},
     'relu_inplace_to_relu':{torch.nn.ReLU: [torch.nn.ReLU]}, #'inplace' is not used
@@ -80,6 +113,10 @@ flag_to_dict_entries:dict[str, dict] = {
 
 
 def _get_replacement_dict(replacement_flag_dict=None):
+    '''
+    this function actually converts the flags mapped to True to their corresponding replacements
+    if the flags is not registered in 'flag_to_dict_entries', its value should be a dict of replacement and that will be updated in the dictionary
+    '''
     replacement_flag_dict =replacement_flag_dict or get_replacement_flag_dict_default()
     replacement_dict = {}
     for k,v in replacement_flag_dict.items():
@@ -93,14 +130,14 @@ def _get_replacement_dict(replacement_flag_dict=None):
                 warnings.warn(f'if {k} is not a default flag or its value is not a boolean, the value must be a dict. So, this entry will be discarded!')
                 continue
         replacement_dict.update(v)
+    return replacement_dict
 
 
 def get_replacement_flag_dict_default(groups_dw=None, group_size_dw=None, **kwargs):
     '''
-    A dictionary with the fllowing structure.
-    key: a torch.nn.Module that has to be replaced OR a callable which takes a module as input and returns boolean
-    value: a list. the fist entry is a constructor or a callable that creates the replacement module
-                the remaining entries are properties that have to be copied from old module to newly created module.
+    returns default flag dictionary with the fllowing structure.
+    key: a flag string
+    value: True/False if it is registered in 'flag_to_dict_entries' else a dictionary containing the replacement entries corresponding to it
     '''
     default_replacement_flag_dict['conv2d_to_conv2d_dw_conv2d'][torch.nn.Conv2d][1].update(groups_dw=groups_dw, group_size_dw=group_size_dw)
     return default_replacement_flag_dict
@@ -134,14 +171,6 @@ def _create_lite_model_impl(model_function, pretrained_backbone_names=None, repl
         utils.load_weights(model, pretrained_backbone, state_dict_name=['state_dict', 'model'],
                             change_names_dict=pretrained_backbone_names)
     #
-    return model
-
-
-def convert_to_lite_model(model, inplace=True, replacement_dict=None, **kwargs):
-    warnings.warn("WARNING - xmodelopt.v1.surgery is based on the modules. For superior functionality, please use the torch.fx based xmodelopt.v2.surgery instead")
-    replacement_dict = replacement_dict or get_replacement_flag_dict_default(**kwargs)
-    replacement_dict = _get_replacement_dict(replacement_dict)
-    model = replace_modules_func(model, inplace=inplace, replacement_dict=replacement_dict)
     return model
 
 
