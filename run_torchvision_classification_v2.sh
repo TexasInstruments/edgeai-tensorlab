@@ -3,7 +3,8 @@
 # torch.fx based model surgery and training
 
 # PYTHONPATH must start with a : to be able to load local modules
-export PYTHONPATH=:$PYTHONPATH
+# but this can cause a confusion the installed torchvision and the local torchvision
+#export PYTHONPATH=:$PYTHONPATH
 
 # Date/time in YYYYMMDD-HHmmSS format
 DATE_TIME=`date +'%Y%m%d-%H%M%S'`
@@ -41,7 +42,7 @@ val_crop_size=224
 
 #=========================================================================================
 command="./references/classification/train.py --data-path=./data/datasets/imagenet \
---epochs=150 --batch-size=64 --wd=4e-5 --lr=0.05 --lr-scheduler=cosineannealinglr --lr-warmup-epochs=5 \
+--epochs=1 --batch-size=64 --wd=4e-5 --lr=0.05 --lr-scheduler=cosineannealinglr --lr-warmup-epochs=5 \
 --model=${model} --model-surgery=2 \
 --opset-version=18 --val-resize-size=$val_resize_size --val-crop-size=$val_crop_size"
 

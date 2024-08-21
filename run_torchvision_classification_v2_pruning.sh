@@ -3,7 +3,8 @@
 # torch.fx based model surgery and training
 
 # PYTHONPATH must start with a : to be able to load local modules
-export PYTHONPATH=:$PYTHONPATH
+# but this can cause a confusion the installed torchvision and the local torchvision
+# export PYTHONPATH=:$PYTHONPATH
 
 # Date/time in YYYYMMDD-HHmmSS format
 DATE_TIME=`date +'%Y%m%d-%H%M%S'`
