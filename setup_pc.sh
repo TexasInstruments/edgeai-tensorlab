@@ -36,6 +36,8 @@ echo "tidl_tools version ${TIDL_TOOLS_RELEASE_NAME}"
 
 #######################################################################
 # TIDL_TOOLS_TYPE_SUFFIX can be "" or "_gpu" from r9.2 onwards
+# TIDL_TOOLS_TYPE_SUFFIX="_gpu" to use tidl-tools compiled with CUDA support
+# requires nvidia-hpc-sdk to be insalled for it to work: https://developer.nvidia.com/nvidia-hpc-sdk-237-downloads
 TIDL_TOOLS_TYPE_SUFFIX=${TIDL_TOOLS_TYPE_SUFFIX:-""}
 
 #######################################################################
@@ -50,7 +52,8 @@ sudo apt-get install -y cmake \
 
 #################################################################################
 # upgrade pip
-pip3 install --no-input --upgrade pip==23.3.1 setuptools==69.0.2
+pip3 install --no-input --upgrade pip==24.2 setuptools==73.0.0
+pip3 install --no-input cython wheel numpy==1.23.0
 
 ######################################################################
 echo 'Installing python packages...'
