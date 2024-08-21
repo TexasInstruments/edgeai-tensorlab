@@ -113,32 +113,43 @@ def _get_proper_input_args(curr_partition:fx.Node|SourcePartition, fx_model:fx.G
     args = remove_duplicates(args)
     return args
 
+
+# Note: The source code is copied from pytorch github (https://github.com/pytorch/pytorch/blob/main/torch/fx/passes/utils/source_matcher_utils.py#L51)
+# and modified as per requirement 
 def get_source_partition(graph:fx.Graph, wanted_sources:list, filter_fn = None):
+    '''
+    a custom made get_source_partitions that can handle any type of modules and functions that are wrapped for fx
+    
+    Note: This function is also defined on surgery.v3.utils. If this is modified later on, same changes have to be made on that function definition 
+    
+    '''
     modules: Dict[Type, Dict[str, List[fx.Node]]] = {}
-    # a custom made get_source_partitions that can handle any type of modules and functions that are wrapped for fx
     
     for node in graph.nodes:
-        
+        found = False
         if (nn_module_stack:= node.meta.get("nn_module_stack", None)):
-            key = None
             for k,v in nn_module_stack.items():
                 if v[1] in wanted_sources:
                     key = k
-                    break
-            if key is None:
-                continue
-            source_fn = nn_module_stack[key]
-        elif (source_fn_st := node.meta.get("source_fn_stack", None)):
+                    source_fn = nn_module_stack[key]
+                    diff_modules = modules.setdefault(source_fn[1], {})
+                    partition = diff_modules.setdefault(source_fn[0], [])
+                    partition.append(node)
+                    
+                    found = True
+                    if not issubclass(v[1],nn.Sequential) :
+                        break 
 
+        if not found and (source_fn_st := node.meta.get("source_fn_stack", None)):
             source_fn = source_fn_st[-1]
             if source_fn[1] not in wanted_sources:
                 continue
+            diff_modules = modules.setdefault(source_fn[1], {})
+            partition = diff_modules.setdefault(source_fn[0], [])
+            partition.append(node) if node not in partition else None
+
         else:
             continue
-
-        diff_modules = modules.setdefault(source_fn[1], {})
-        partition = diff_modules.setdefault(source_fn[0], [])
-        partition.append(node)
     
     def make_partition(nodes: List[fx.Node], module_type: Type) -> SourcePartition:
         input_nodes = set()
@@ -1212,6 +1223,7 @@ def get_net_weights_all(module:fx.GraphModule, pattern_partitions:dict[Any,List[
                     
     return net_weights
 
+# Note: This part is copied to surgery any changes made here must be copied there
 from torch.onnx import symbolic_helper, register_custom_op_symbolic
 def register_custom_ops_for_onnx(opset_version):
     def aten_unsafe_view(g, x, dim, *args):
