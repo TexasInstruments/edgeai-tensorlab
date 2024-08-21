@@ -33,6 +33,9 @@ import torch
 from torch import nn , Tensor   
 
 
+# Note: Some of the modules from this file are copied to surgery v3. 
+#       So if changes are made in them, those must be done there as well
+
 # Squeeze and excitation module with relu and hardsigmoid as activation function
 class SEModule(nn.Module):
     def __init__(self) -> None:
