@@ -30,44 +30,16 @@
 #################################################################################
 
 import enum
-import warnings
 import torch
-from torch.ao.quantization import QConfig, QConfigMapping, get_default_qat_qconfig, get_default_qconfig_mapping
-from torch.ao.quantization import MovingAverageMinMaxObserver, MovingAveragePerChannelMinMaxObserver, \
-    FakeQuantize, FusedMovingAvgObsFakeQuantize
-import torch.ao.quantization
-import torch.ao.quantization.quantize_fx
 import torch.nn as nn
+import torch.ao.quantization
+from torch.ao.quantization import QConfig
+import torch.ao.quantization.quantize_fx
+from torch.ao.quantization.qconfig_mapping import _get_default_qconfig_mapping_with_default_qconfig
 
 from .... import xnn
-
 from . import observer_types
 from . import fake_quantize_types
-
-try:
-    # this is not part of torch 2.0.1 release - so provide an alternate implementation for now
-    from torch.ao.quantization.qconfig_mapping import \
-        get_default_qat_qconfig_mapping, _get_default_qconfig_mapping_with_default_qconfig
-    warnings.warn("could not find _get_default_qconfig_mapping_with_default_qconfig in torch.ao.quantization.qconfig_mapping")
-except:
-    from torch.ao.quantization.qconfig_mapping import _FIXED_QPARAMS_OP_TO_OBSERVER
-    def _get_default_qconfig_mapping_with_default_qconfig(
-        is_qat: bool,
-        backend: str,
-        default_qconfig: QConfig,
-    ) -> QConfigMapping:
-        """
-        Return a QConfigMapping that uses the provided qconfig as the default QConfig.
-        """
-        if is_qat:
-            qconfig_mapping = get_default_qat_qconfig_mapping(backend)
-        else:
-            qconfig_mapping = get_default_qconfig_mapping(backend)
-        qconfig_mapping.set_global(default_qconfig)
-        for pattern in qconfig_mapping.object_type_qconfigs.keys():
-            if pattern not in _FIXED_QPARAMS_OP_TO_OBSERVER:
-                qconfig_mapping.set_object_type(pattern, default_qconfig)
-        return qconfig_mapping
 
 
 class QConfigMethod(enum.Enum):
