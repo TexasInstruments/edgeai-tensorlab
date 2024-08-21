@@ -37,6 +37,7 @@ from types import FunctionType,BuiltinFunctionType
 from typing import Union, Dict, Any
 import warnings
 from functools import partial
+from torchvision.ops.misc import SqueezeExcitation
 from copy import deepcopy
 
 from . import custom_modules, custom_surgery_functions,surgery
@@ -51,14 +52,19 @@ except:
 
 
 def convert_to_lite_fx(model:torch.nn.Module, example_input:list=[], example_kwargs:dict={}, replacement_dict:Dict[Any,Union[torch.nn.Module,callable]]=None, aten_graph:bool = False, verbose_mode:bool=False, *args, **kwargs):
+    '''
+    converts model into lite model using replacement dict
+    if no replacement dict is provided it does the default replacement
+    '''
     return replace_unsupported_layers(model, example_input= example_input, example_kwargs=example_kwargs, replacement_dict=replacement_dict, aten_graph=aten_graph, verbose_mode=verbose_mode, **kwargs)
 
 
-#Flags for replacement dict
-# for custom 
+#Default Flags for replacement dict
+# for custom replacement add a custom flag name (any string not in default flag) as key and map it to a dict containing pattern and replacement
+# note if same key is used for two pattern the last replacement will be performed
 default_replacement_flag_dict: dict[str, bool|dict] ={
     'squeeze_and_excite_to_identity' : True,
-    'all_activation_to_relu': True,
+    'all_activation_to_relu': False,
     'relu_inplace_to_relu' : True,
     'gelu_to_relu' : True,
     'relu6_to_relu' : True,
@@ -76,6 +82,9 @@ default_replacement_flag_dict: dict[str, bool|dict] ={
 }
 
 
+#Default Flags for replacement dict with no training required as subset of default flags
+# for custom replacement add a custom flag name (any string not in default flag) as key and map it to a dict containing pattern and replacement
+# note if same key is used for two pattern the last replacement will be performed
 default_replacement_flag_dict_no_training:dict[str,bool|dict] ={
     'relu6_to_relu' : True,
     'dropout_inplace_to_dropout':True,
@@ -87,8 +96,10 @@ default_replacement_flag_dict_no_training:dict[str,bool|dict] ={
 }
 
 
+#Mapping between the flags and the actual replacements corresponding to them
+# This dictionary is used whenever a flag is enabled to fetch the corresponding replacement entries
 flag_to_dict_entries:dict [str:dict] ={
-    'squeeze_and_excite_to_identity' : {SEModule:nn.Identity,},
+    'squeeze_and_excite_to_identity' : {SEModule:nn.Identity,SqueezeExcitation:nn.Identity},
     'all_activation_to_ReLu': {nn.ReLU:nn.ReLU, nn.ReLU6:nn.ReLU, nn.GELU:nn.ReLU, nn.SiLU:nn.ReLU, nn.Hardswish:nn.ReLU, nn.Hardsigmoid:nn.ReLU, nn.LeakyReLU:nn.ReLU,},
     'relu_inplace_to_relu' : {nn.ReLU: nn.ReLU},
     'gelu_to_relu' : {nn.GELU: nn.ReLU},
@@ -108,6 +119,10 @@ flag_to_dict_entries:dict [str:dict] ={
 
 # returns default dictionary for replacement
 def get_replacement_flag_dict_default():
+    '''
+    returns the default flag dictionary.
+    to see the dict print 'default_replacement_flag_dict' from the file this function is in
+    '''
     return default_replacement_flag_dict
 
 
@@ -115,7 +130,11 @@ def get_replacement_dict(
     replacement_flag_dict: dict[str|nn.Module|FunctionType|type,bool|nn.Module|FunctionType|type|tuple[FunctionType,FunctionType]]=None,
     can_retrain:bool = True
     ):
-    
+    '''
+    this function actually converts the flags mapped to True to their corresponding replacements
+    if no replacement_flag_dict is given it uses default flag dictionary based on can_retrain
+    if the flags is not registered in 'flag_to_dict_entries', its value should be a dict of replacement and that will be updated in the dictionary
+    '''
     if can_retrain:
         replacement_flag_dict = replacement_flag_dict or default_replacement_flag_dict
     else:
@@ -129,16 +148,18 @@ def get_replacement_dict(
             v1 = v1()
             
         if isinstance(v1,dict):
-            assert 'func' in v1 and isinstance(v1['func'],FunctionType) 
-            assert 'kwargs' in v1 and isinstance (v1['kwargs'],dict)
-            input_adjustment_func = v1.get('input_adjustment_func',None)
-            v1 = partial(v1['func'],**v1['kwargs'])
+            assert 'gen_func' in v1 and isinstance(v1['gen_func'],FunctionType), "if value is a dict, it must contain a value for 'gen_func'"
+            kwargs = v1.get('kwargs', None)
+            v1['func'] = adjust_value_for_replacement_dict(v1['func'])
+            input_adjustment_func = v1.get('input_adjustment_func',None) or v1['func'][1]
+            v1 = partial(v1['func'][0],**kwargs) if kwargs else v1['func'][0]
         
         if not isinstance(v1,tuple):
             v1 = v1,input_adjustment_func
         else:
             assert len(v1) == 2
-            v1 = adjust_value_for_replacement_dict(v1[0])[0],v1[1]
+            adjusted_v1 =adjust_value_for_replacement_dict(v1[0])
+            v1 = adjusted_v1[0],v1[1] or adjusted_v1[1]
         
         return v1
     
@@ -177,17 +198,33 @@ def replace_unsupported_layers(model:nn.Module, example_input:list=[], example_k
     #TODO write appropiate documentation for this function
     
     '''
-    main function that does the surgery
-    key             |   value
-    module/type     |   module (if same module is applicable all instances of former)
-    module/type     |   type (if the __init__ doesn't require any positional arguement
-                        and same  module with default keyword arguments (if any) is applicable
-                        all instances of former )
-    module/type     |   a replacement module generator function (generates a module based on
-                        partition and main model or returns None if no replacement required) 
-    module/type     |   tuple of two elements
-                        first   : replacement module generator function (sane as prev) and 
-                        second  : a input adjustment function based on the partition and inputs given to it (default: pass them as they appear in partition.input_nodes)
+    wrapper to the function that does the surgery
+
+    it does default surgery if no replacement dictionry is given
+    replacement dictionry must contains flag name as keys and True/False or a replacement dictionary corresponding to flag as value
+    
+    behavior for each value:
+    value               behavior
+    True            ->  convert according to mapped replacement dict
+    False           ->  discard it
+    dict            ->  update the main replacement dictionary with the entries of it
+    
+    values for replacement dict
+    keys can be any of a module, a module class, torch.fx wrapped function or a method name of Tensor (str)
+    values can be 
+    value type                                      perpose
+    type                                        ->  converts all partitions of key to the default module of that type
+    module                                      ->  converts all partitions of key to a copy of that module
+    a function                                  ->  converts all partitions of key to a copy of module generated by the function
+                                                    which is traced through input generated from the input nodes to the partition 
+    tuple of any of above and a function        ->  converts all partitions of key to a copy of module generated by corresponding method
+                                                    which is traced through input generated by second func
+    dict(must have a value for 'gen_func',)     ->  converts all partitions of key to a copy of module generated by the gen_Func 
+                                                    if 'kwargs' is in dict so the gen_func will have those kwargs
+                                                    if 'input_adjustment_func' is in dict, the module will be traced using input generated by it 
+                                                    else which is traced through input generated from the input nodes to the partition 
+    list of any of above                        ->  converts all partitions of key to a copy of module generated from all the changes in the list 
+                                                    if possible in same order
     '''
     
     #TODO Check for functions    
