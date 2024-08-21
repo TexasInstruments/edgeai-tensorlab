@@ -112,7 +112,7 @@ def _is_replacable(pattern:Union[GraphModule, nn.Module, callable]):
     return True
 
 
-def replace_unsupported_layers(model:nn.Module, replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, copy_args:list=[], can_retrain=True, verbose_mode:bool=False):
+def replace_unsupported_layers(model:nn.Module, replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, copy_args:list=[], can_retrain=True, example_input=None, verbose_mode:bool=False):
     '''
     main function that does the surgery
 
