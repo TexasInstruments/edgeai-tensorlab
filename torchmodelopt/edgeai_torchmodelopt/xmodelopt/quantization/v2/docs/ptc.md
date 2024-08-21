@@ -18,7 +18,9 @@ Please see the documentation of [Pytorch fx-based PTQ](https://pytorch.org/tutor
 
 
 #### How to use  PTCFxModule
-The following is a brief description of how to use this wrapper module:
+Example ipython notebook to use the API is available [over here](../../../../../example_notebooks/quantization_ptc.ipynb).
+
+The following is a brief description of how to use this wrapper module: 
 ```
 import edgeai_torchmodelopt
 
@@ -37,9 +39,8 @@ model = edgeai_torchmodelopt.xmodelopt.quantization.v2.PTCFxModule(model, backen
 ## pretrained_ptc_data = torch.load(pretrained_ptc_path)
 ## model.module.load_state_dict(pretrained_ptc_data)
 
-# your training loop here with with loss, backward, optimizer and scheduler. 
-# this is the usual training loop - but use a lower learning rate such as 1e-5
-model.eval()
+# your training loop here without loss, backward, optimizer and scheduler. 
+model.train()
 for images, target in my_dataset_calibration:
     output = model(images)
 

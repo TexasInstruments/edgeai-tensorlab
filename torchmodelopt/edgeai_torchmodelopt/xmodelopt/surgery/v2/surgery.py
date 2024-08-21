@@ -92,17 +92,6 @@ _unsupported_module_dict_no_retrain={
 }
 
 
-_unsupported_module_dict_no_retrain={
-    nn.ReLU(inplace=True):nn.ReLU(),
-    nn.ReLU():nn.ReLU(), # check if it might be required for QAT, if ranges are different #TODO
-    nn.Dropout(inplace=True):nn.Dropout(),
-    custom_modules.Focus():custom_modules.OptimizedFocus(), # will only effective if focus appears jus after the input
-    'upsample':custom_surgery_functions.replace_resize_with_scale_factor, # for segmentation model -> deeplabv3
-    'maxpool_ge_5':custom_surgery_functions.replace_maxpool2d_kernel_size_ge_5, # for segmentation model -> deeplabv3
-    'avgpool_ge_5':custom_surgery_functions.replace_avgpool2d_kernel_size_ge_5,   
-}
-
-
 def _is_replacable(pattern:Union[GraphModule, nn.Module, callable]):
     try:
         if not isinstance(pattern,GraphModule):
@@ -133,15 +122,7 @@ def replace_unsupported_layers(model:nn.Module, replacement_dict:Dict[Any,Union[
     else:
         is_train_mode = False
         
-    if can_retrain:
-        replacement_dict = replacement_dict or _unsupported_module_dict
-    else:
-        replacement_dict = replacement_dict or _unsupported_module_dict_no_retrain
-        
-    if can_retrain:
-        replacement_dict = replacement_dict or _unsupported_module_dict
-    else:
-        replacement_dict = replacement_dict or _unsupported_module_dict_no_retrain
+    replacement_dict = replacement_dict or get_replacement_dict_default(can_retrain)
         
     model = deepcopy(model)
 
@@ -159,7 +140,7 @@ def replace_unsupported_layers(model:nn.Module, replacement_dict:Dict[Any,Union[
             model = replace_function_nodes(model, pattern, replacement, verbose_mode=verbose_mode, **kwargs)
         elif isfunction(replacement) or ismethod(replacement):
             # for self-made surgery function 
-            model = replacement(model, pattern = pattern, example_input = example_input,verbose_mode=verbose_mode)
+            model = replacement(model, pattern = pattern, example_input = example_input, verbose_mode=verbose_mode)
         else:
             # class of MOdule of
             if isinstance(pattern, type):
@@ -183,9 +164,11 @@ def replace_unsupported_layers(model:nn.Module, replacement_dict:Dict[Any,Union[
     return model
 
 
-# returns default dictionary for replacement
-def get_replacement_dict_default():
-    return _unsupported_module_dict
+def get_replacement_dict_default(can_retrain=True):
+    if can_retrain:
+        return _unsupported_module_dict
+    else:
+        return _unsupported_module_dict_no_retrain
 
 
 class SurgeryModule(torch.nn.Module):

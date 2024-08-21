@@ -145,6 +145,7 @@ def init(model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qn
         # add a wrapper for model.train()
         model.__train_backup__ = types.MethodType(model.train.__func__, model)
         model.train = types.MethodType(train, model)
+        model.eval = types.MethodType(train, model)
         # other methods
         model.freeze = types.MethodType(freeze, model)
         model.unfreeze = types.MethodType(unfreeze, model)
@@ -203,7 +204,7 @@ def convert(self, device='cpu', model_quant_format=None, convert_custom_config=N
 
 
 def export(self, example_input, filename='model.onnx', opset_version=17, model_quant_format=None, preserve_qdq_model=True,
-           simplify=False, skipped_optimizers=None):
+           simplify=True, skipped_optimizers=None):
     
     register_custom_op_symbolic(
         symbolic_name='quantized::matmul', 
