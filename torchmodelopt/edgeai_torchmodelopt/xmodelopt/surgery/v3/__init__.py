@@ -40,7 +40,7 @@ from functools import partial
 from copy import deepcopy
 
 from . import custom_modules, custom_surgery_functions,surgery
-from .surgery import SurgeryModule, _replace_unsupported_layers, get_replacement_dict_default
+from .surgery import _replace_unsupported_layers
 
 # for repo specific modules 
 try:
@@ -78,6 +78,7 @@ default_replacement_flag_dict: dict[str, bool|dict] ={
 
 default_replacement_flag_dict_no_training:dict[str,bool|dict] ={
     'relu6_to_relu' : True,
+    'dropout_inplace_to_dropout':True,
     'break_maxpool2d_with_kernel_size_greater_than_equalto_5':True,
     'break_avgpool2d_with_kernel_size_greater_than_equalto_5':True,
     'convert_resize_params_size_to_scale':True,
@@ -86,7 +87,7 @@ default_replacement_flag_dict_no_training:dict[str,bool|dict] ={
 }
 
 
-string_to_dict_entries:dict [str:dict] ={
+flag_to_dict_entries:dict [str:dict] ={
     'squeeze_and_excite_to_identity' : {SEModule:nn.Identity,},
     'all_activation_to_ReLu': {nn.ReLU:nn.ReLU, nn.ReLU6:nn.ReLU, nn.GELU:nn.ReLU, nn.SiLU:nn.ReLU, nn.Hardswish:nn.ReLU, nn.Hardsigmoid:nn.ReLU, nn.LeakyReLU:nn.ReLU,},
     'relu_inplace_to_relu' : {nn.ReLU: nn.ReLU},
@@ -104,6 +105,12 @@ string_to_dict_entries:dict [str:dict] ={
     'convert_resize_params_size_to_scale':{nn.Upsample:custom_surgery_functions.gen_func_for_upsample},
 }
 
+
+# returns default dictionary for replacement
+def get_replacement_flag_dict_default():
+    return default_replacement_flag_dict
+
+
 def get_replacement_dict(
     replacement_flag_dict: dict[str|nn.Module|FunctionType|type,bool|nn.Module|FunctionType|type|tuple[FunctionType,FunctionType]]=None,
     can_retrain:bool = True
@@ -116,10 +123,29 @@ def get_replacement_dict(
         
     replacement_dict:dict[Any,list[tuple]] = {}
     
+    def adjust_value_for_replacement_dict(v1):
+        input_adjustment_func = None
+        if isinstance(v1,type) and issubclass(v1,nn.Module):
+            v1 = v1()
+            
+        if isinstance(v1,dict):
+            assert 'func' in v1 and isinstance(v1['func'],FunctionType) 
+            assert 'kwargs' in v1 and isinstance (v1['kwargs'],dict)
+            input_adjustment_func = v1.get('input_adjustment_func',None)
+            v1 = partial(v1['func'],**v1['kwargs'])
+        
+        if not isinstance(v1,tuple):
+            v1 = v1,input_adjustment_func
+        else:
+            assert len(v1) == 2
+            v1 = adjust_value_for_replacement_dict(v1[0])[0],v1[1]
+        
+        return v1
+    
     for k,v in replacement_flag_dict.items():
-        if k in string_to_dict_entries and v in (True,False):
+        if k in flag_to_dict_entries and v in (True,False):
                 if v:
-                    v = string_to_dict_entries[k]
+                    v = flag_to_dict_entries[k]
                 else:
                     continue
         else:
@@ -127,24 +153,6 @@ def get_replacement_dict(
                 warnings.warn(f'if {k} is not a default flag or its value is not a boolean, the value must be a dict. So, this entry will be discarded!')
                 continue
         
-        def adjust_value_for_replacement_dict(v1):
-            input_adjustment_func = None
-            if isinstance(v1,type) and issubclass(v1,nn.Module):
-                v1 = v1()
-                
-            if isinstance(v1,dict):
-                assert 'func' in v1 and isinstance(v1['func'],FunctionType) 
-                assert 'kwargs' in v1 and isinstance (v1['kwargs'],dict)
-                input_adjustment_func = v1.get('input_adjustment_func',None)
-                v1 = partial(v1['func'],**v1['kwargs'])
-            
-            if not isinstance(v1,tuple):
-                v1 = v1,input_adjustment_func
-            else:
-                assert len(v1) == 2
-                v1 = adjust_value_for_replacement_dict(v1[0])[0],v1[1]
-            
-            return v1
         
         for k1,v1 in v.items():
             if isinstance(k1,nn.Module):
@@ -163,11 +171,6 @@ def get_replacement_dict(
                 replacement_dict[k1] = v1 if isinstance(v1,list) else [v1]
     
     return replacement_dict
-
-
-# returns default dictionary for replacement
-def get_replacement_dict_default():
-    return default_replacement_flag_dict
 
 
 def replace_unsupported_layers(model:nn.Module, example_input:list=[], example_kwargs:dict={}, replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, aten_graph:bool = False, copy_args:list=[],  can_retrain=True, verbose_mode:bool=False):
@@ -218,7 +221,7 @@ class SurgeryModule(torch.nn.Module):
     def __init__(self, model, replacement_dict=None) -> None:
         '''perform surgery on the model and creates a new model'''
         super().__init__()
-        self.replacement_dict=replacement_dict or get_replacement_dict_default()
+        self.replacement_dict=replacement_dict or get_replacement_flag_dict_default()
         self.module = replace_unsupported_layers(model, self.replacement_dict)
 
     def forward(self,x,*args,**kwargs):

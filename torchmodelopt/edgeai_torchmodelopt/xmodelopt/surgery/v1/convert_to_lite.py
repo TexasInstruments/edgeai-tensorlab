@@ -29,17 +29,9 @@
 #
 #################################################################################
 
-import copy
-import functools
 import torch
-import inspect
-import math
-import warnings
 
-from torchvision.ops.misc import SqueezeExcitation
-from ....xnn import utils
 from ....xnn import layers
-from .replace_modules import replace_modules as replace_modules_func
 
 
 #################################################################################################
@@ -53,11 +45,11 @@ from .replace_modules import replace_modules as replace_modules_func
 # # this will need model_surgery to be handled n every model,
 # # so not using this method for the time being
 # def mobilenet_v3_large_lite( **kwargs):
-#     return mobilenet_v3_large(model_surgery=xnn.model_surgery.convert_to_lite_model, **kwargs)
+#     return mobilenet_v3_large(model_surgery=xnn.model_surgery._convert_to_lite_model, **kwargs)
 #################################################################################################
 
 
-__all__ = ['convert_to_lite_model', 'create_lite_model', 'get_replacement_dict_default']
+# __all__ = ['_convert_to_lite_model', 'create_lite_model', '_get_replacement_dict_default']
 
 
 def _check_dummy(current_m):
@@ -84,7 +76,7 @@ def _replace_conv2d(current_m=None, groups_dw=None, group_size_dw=None,
     with_activation: introduce an activation fn between the depthwise and pointwise default: (True,False).
     - the above default choices are done to mimic a regulr convolution at a much lower complexity.
     - while replacing a regular convolution with a dws, we may not want to put a bn at the end,
-      as a bn may be already there after this conv. same case with activation
+    as a bn may be already there after this conv. same case with activation
 
     Note: it is also possible to do checks inside this function and if we dont want to replace, return the original module
     '''
@@ -114,68 +106,4 @@ def _replace_groupnorm(current_m=None):
     #
     return current_m
 
-
-def get_replacement_dict_default(groups_dw=None, group_size_dw=None, **kwargs):
-    '''
-    A dictionary with the fllowing structure.
-    key: a torch.nn.Module that has to be replaced OR a callable which takes a module as input and returns boolean
-    value: a list. the fist entry is a constructor or a callable that creates the replacement module
-                the remaining entries are properties that have to be copied from old module to newly created module.
-    '''
-    replacement_dict_lite = {
-        torch.nn.ReLU: [torch.nn.ReLU], #'inplace' is not used
-        torch.nn.Dropout: [torch.nn.Dropout, 'p'], #'inplace' is not used
-        torch.nn.ReLU6: [torch.nn.ReLU], #'inplace' is not used
-        torch.nn.Hardswish: [torch.nn.ReLU], #'inplace' is not used
-        torch.nn.SiLU: [torch.nn.ReLU], #'inplace' is not used
-        torch.nn.LeakyReLU: [torch.nn.ReLU],  # 'inplace' is not used
-        torch.nn.GroupNorm: [_replace_groupnorm],
-        torch.nn.InstanceNorm2d: [torch.nn.BatchNorm2d, 'num_features'],
-        SqueezeExcitation: [torch.nn.Identity],
-        # with_normalization: whether to insert BN after replacing 3x3/5x5 conv etc. with dw-seperable conv
-        # with_activation: whether to insert ReLU after replacing conv with dw-seperable conv
-        torch.nn.Conv2d: [_replace_conv2d, dict(groups_dw=groups_dw, group_size_dw=group_size_dw, with_normalization=(True,False), with_activation=(True,False))],
-        # just a dummy entry to show that the key and value can be a functions
-        # the key should return a boolean and the first entry of value(list) should return an instance of torch.nn.Module
-        _check_dummy: [_replace_dummy]
-    }
-    return replacement_dict_lite
-
-
-# this function can be used after creating the model to transform it into a lite model.
-def create_lite_model(model_function, pretrained_backbone_names=None, pretrained=None, model_urls_dict=None,
-                      model_name_lite=None, replacement_dict=None, **kwargs):
-    model_name_lite = model_name_lite or f'{model_function.__name__}_lite'
-    lookup_pretrained = pretrained is True and model_urls_dict is not None and model_name_lite in model_urls_dict
-    pretrained = model_urls_dict[model_name_lite] if lookup_pretrained else pretrained
-    model = _create_lite_model_impl(model_function, pretrained_backbone_names, pretrained=pretrained,
-                                   replacement_dict=replacement_dict, **kwargs)
-    return model
-
-
-def _create_lite_model_impl(model_function, pretrained_backbone_names=None, replacement_dict=None, **kwargs):
-    pretrained = kwargs.pop('pretrained', None)
-    pretrained_backbone = kwargs.pop('pretrained_backbone', None)
-    # if pretrained is set to true, we will try to hanlde it inside model
-    if pretrained_backbone is not None:
-        model = model_function(pretrained=(pretrained is True), pretrained_backbone=(pretrained_backbone is True), **kwargs)
-    else:
-        model = model_function(pretrained=(pretrained is True), **kwargs)
-    #
-    model = convert_to_lite_model(model, replacement_dict=replacement_dict, **kwargs)
-    if pretrained and pretrained is not True:
-        utils.load_weights(model, pretrained, state_dict_name=['state_dict', 'model'])
-    elif pretrained_backbone and pretrained_backbone is not True:
-        pretrained_backbone_names = pretrained_backbone_names if pretrained_backbone_names else {'^features.':'backbone.'}
-        utils.load_weights(model, pretrained_backbone, state_dict_name=['state_dict', 'model'],
-                           change_names_dict=pretrained_backbone_names)
-    #
-    return model
-
-
-def convert_to_lite_model(model, inplace=True, replacement_dict=None, **kwargs):
-    warnings.warn("WARNING - xmodelopt.v1.surgery is based on the modules. For superior functionality, please use the torch.fx based xmodelopt.v2.surgery instead")
-    replacement_dict = replacement_dict or get_replacement_dict_default(**kwargs)
-    model = replace_modules_func(model, inplace=inplace, replacement_dict=replacement_dict)
-    return model
 

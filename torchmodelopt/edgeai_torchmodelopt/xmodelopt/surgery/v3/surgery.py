@@ -55,9 +55,7 @@ from . import replacer
 
 # from .custom_symbolic_trace import custom_symbolic_trace
 
-__all__ = ['replace_unsupported_layers', 'get_replacement_dict_default','SurgeryModule']
-
-
+__all__ = ['_replace_unsupported_layers',]
 
 
 def _replace_unsupported_layers(model:nn.Module, example_input:list=[], example_kwargs:dict={}, replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, aten_graph:bool = False, copy_args:list=[], verbose_mode:bool=False):
