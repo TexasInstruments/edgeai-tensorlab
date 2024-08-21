@@ -62,7 +62,7 @@ def ConvDWLayer2d(in_planes, out_planes, kernel_size=None, stride=1, padding=Non
 
 ############################################################### 
 def ConvNormAct2d(in_planes, out_planes, kernel_size=None, stride=1, padding=None, dilation=1, groups=1, bias=False, \
-              normalization=DefaultNorm2d, activation=DefaultAct2d):
+                normalization=DefaultNorm2d, activation=DefaultAct2d):
     """convolution with padding, BN, ReLU"""
     groups, group_size = check_groups(in_planes, out_planes, groups=groups, group_size=None)
     if type(kernel_size) in (list,tuple):

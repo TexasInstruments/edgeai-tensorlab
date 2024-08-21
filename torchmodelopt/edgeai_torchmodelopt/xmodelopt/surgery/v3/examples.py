@@ -29,22 +29,10 @@
 #
 #################################################################################
 
-from . import v1
-from . import v2
-from . import v3
-from .v2 import *
+from torch import nn
+from torch.fx import symbolic_trace 
+import copy
+import math
+import torch
 
-
-class SyrgeryVersion:
-    NO_SURGERY = 0
-    SURGERY_V1 = SURGERY_LEGACY = 1
-    SURGERY_V2 = SURGERY_FX = 2
-    SURGERY_V3 = SURGERY_PT2E = 3
-
-    @classmethod
-    def get_dict(cls):
-        return {k:v for k,v in cls.__dict__.items() if not k.startswith("__")}
-
-    @classmethod
-    def get_choices(cls):
-        return {v:k for k,v in cls.__dict__.items() if not k.startswith("__")}
+from edgeai_torchmodelopt import xmodelopt

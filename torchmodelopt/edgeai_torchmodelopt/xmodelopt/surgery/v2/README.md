@@ -41,7 +41,7 @@ replacement_dict = edgeai_torchmodelopt.xmodelopt.surgery.v2.get_replacement_dic
 replacement_dict.update({'layerNorm':custom_surgery_functions.replace_layer_norm})
 ```
 
-In this case replace_layer_norm function is responsible for implementing the logic to replace the desired layer. The utility function [replacer.straight_chain_searcher](replacer.straight_chain_searcher) can be used to find the matches that have to be replaced - see examples in [custom_surgery_functions.py](custom_surgery_functions.py).
+In this case replace_layer_norm function is responsible for implementing the logic to replace the desired layer. The utility function [replacer.straight_chain_searcher](replacer.py#L179) can be used to find the matches that have to be replaced - see examples in [custom_surgery_functions.py](custom_surgery_functions.py).
 
 
 ## Note:

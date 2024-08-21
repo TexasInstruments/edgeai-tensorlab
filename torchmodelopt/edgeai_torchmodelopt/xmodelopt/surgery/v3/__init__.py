@@ -29,27 +29,29 @@
 #
 #################################################################################
 
+import enum
 import torch
 from torch import nn
-from copy import deepcopy
-from types import FunctionType
+import types
+from types import FunctionType,BuiltinFunctionType
 from typing import Union, Dict, Any
 import warnings
+from functools import partial
+from copy import deepcopy
 
-from . import custom_modules, custom_surgery_functions
+from . import custom_modules, custom_surgery_functions,surgery
 from .surgery import _replace_unsupported_layers
 
+# for repo specific modules 
 try:
     from timm.layers.squeeze_excite import SEModule
 except:
+    # this will make the program skip the search for pattern
     SEModule = None
 
 
-def convert_to_lite_fx(model:torch.nn.Module,replacement_dict:Dict[Any,Union[torch.nn.Module,callable]]=None, verbose_mode:bool=False, example_input = None,**kwargs):
-    if example_input is None:
-        # "example_input optional and used only in models using LayerNorm. Using a default value since it was not provided.
-        example_input = torch.rand(1,3,224,224) # Default input shape
-    return replace_unsupported_layers(model, replacement_dict=replacement_dict, verbose_mode=verbose_mode, example_input=example_input, **kwargs)
+def convert_to_lite_fx(model:torch.nn.Module, example_input:list=[], example_kwargs:dict={}, replacement_dict:Dict[Any,Union[torch.nn.Module,callable]]=None, aten_graph:bool = False, verbose_mode:bool=False, *args, **kwargs):
+    return replace_unsupported_layers(model, example_input= example_input, example_kwargs=example_kwargs, replacement_dict=replacement_dict, aten_graph=aten_graph, verbose_mode=verbose_mode, **kwargs)
 
 
 #Flags for replacement dict
@@ -65,13 +67,10 @@ default_replacement_flag_dict: dict[str, bool|dict] ={
     'hardsigmoid_to_relu' : True,
     'leakyrelu_to_relu' : True,
     'dropout_inplace_to_dropout':True,
-    'replace_CNBlock':True,
-    'focus_to_optimized_focus':True,
     'break_maxpool2d_with_kernel_size_greater_than_equalto_5':True,
     'break_avgpool2d_with_kernel_size_greater_than_equalto_5':True,
     'convert_resize_params_size_to_scale':True,
-    'replace_conv_k_size_6_to_k_size_5':True,
-    # 'promote_conv2d_with_even_kernel_to_larger_odd_kernel':False,
+    'promote_conv2d_with_even_kernel_to_larger_odd_kernel':False,
     'break_conv2d_with_kernel_size_greater_than_7':False,
     # 'custom_surgery_flag':{},
 }
@@ -80,17 +79,16 @@ default_replacement_flag_dict: dict[str, bool|dict] ={
 default_replacement_flag_dict_no_training:dict[str,bool|dict] ={
     'relu6_to_relu' : True,
     'dropout_inplace_to_dropout':True,
-    'focus_to_optimized_focus':True,
     'break_maxpool2d_with_kernel_size_greater_than_equalto_5':True,
     'break_avgpool2d_with_kernel_size_greater_than_equalto_5':True,
     'convert_resize_params_size_to_scale':True,
-    # 'promote_conv2d_with_even_kernel_to_larger_odd_kernel':False,
+    'promote_conv2d_with_even_kernel_to_larger_odd_kernel':False,
     # 'custom_surgery_flag':{},
 }
 
 
 flag_to_dict_entries:dict [str:dict] ={
-    'squeeze_and_excite_to_identity' : {SEModule:nn.Identity,custom_modules.SEModule():nn.Identity(),custom_modules.SEModule1():nn.Identity()},
+    'squeeze_and_excite_to_identity' : {SEModule:nn.Identity,},
     'all_activation_to_ReLu': {nn.ReLU:nn.ReLU, nn.ReLU6:nn.ReLU, nn.GELU:nn.ReLU, nn.SiLU:nn.ReLU, nn.Hardswish:nn.ReLU, nn.Hardsigmoid:nn.ReLU, nn.LeakyReLU:nn.ReLU,},
     'relu_inplace_to_relu' : {nn.ReLU: nn.ReLU},
     'gelu_to_relu' : {nn.GELU: nn.ReLU},
@@ -100,13 +98,11 @@ flag_to_dict_entries:dict [str:dict] ={
     'hardsigmoid_to_relu' : {nn.Hardsigmoid: nn.ReLU},
     'leakyrelu_to_relu' : {nn.LeakyReLU: nn.ReLU},
     'dropout_inplace_to_dropout':{nn.Dropout: nn.Dropout},
-    'replace_CNBlock':{'CNBlock':custom_surgery_functions.replace_cnblock},
-    'focus_to_optimized_focus':{custom_modules.Focus():custom_modules.OptimizedFocus()},
-    'replace_conv_k_size_6_to_k_size_5':{'conv_6':custom_surgery_functions.replace_conv2d_kernel_size_6},
-    'break_conv2d_with_kernel_size_greater_than_7':{'conv_ge_7':custom_surgery_functions.replace_conv2d_kernel_size_gt_7},
-    'break_maxpool2d_with_kernel_size_greater_than_equalto_5':{'maxpool_ge_5':custom_surgery_functions.replace_maxpool2d_kernel_size_ge_5},
-    'break_avgpool2d_with_kernel_size_greater_than_equalto_5':{'avgpool_ge_5':custom_surgery_functions.replace_avgpool2d_kernel_size_ge_5},
-    'convert_resize_params_size_to_scale':{'upsample':custom_surgery_functions.replace_resize_with_scale_factor},
+    'promote_conv2d_with_even_kernel_to_larger_odd_kernel':{nn.Conv2d:custom_surgery_functions.gen_func_for_conv2d_even_kernel_to_odd},
+    'break_conv2d_with_kernel_size_greater_than_7':{nn.Conv2d:custom_surgery_functions.gen_func_for_conv2d_kernel_gt_7},
+    'break_maxpool2d_with_kernel_size_greater_than_equalto_5':{nn.MaxPool2d:custom_surgery_functions.gen_func_for_pool},
+    'break_avgpool2d_with_kernel_size_greater_than_equalto_5':{nn.AvgPool2d:custom_surgery_functions.gen_func_for_pool},
+    'convert_resize_params_size_to_scale':{nn.Upsample:custom_surgery_functions.gen_func_for_upsample},
 }
 
 
@@ -127,7 +123,25 @@ def get_replacement_dict(
         
     replacement_dict:dict[Any,list[tuple]] = {}
     
-    replacement_dict = {}
+    def adjust_value_for_replacement_dict(v1):
+        input_adjustment_func = None
+        if isinstance(v1,type) and issubclass(v1,nn.Module):
+            v1 = v1()
+            
+        if isinstance(v1,dict):
+            assert 'func' in v1 and isinstance(v1['func'],FunctionType) 
+            assert 'kwargs' in v1 and isinstance (v1['kwargs'],dict)
+            input_adjustment_func = v1.get('input_adjustment_func',None)
+            v1 = partial(v1['func'],**v1['kwargs'])
+        
+        if not isinstance(v1,tuple):
+            v1 = v1,input_adjustment_func
+        else:
+            assert len(v1) == 2
+            v1 = adjust_value_for_replacement_dict(v1[0])[0],v1[1]
+        
+        return v1
+    
     for k,v in replacement_flag_dict.items():
         if k in flag_to_dict_entries and v in (True,False):
                 if v:
@@ -138,7 +152,25 @@ def get_replacement_dict(
             if not isinstance(v,dict):
                 warnings.warn(f'if {k} is not a default flag or its value is not a boolean, the value must be a dict. So, this entry will be discarded!')
                 continue
-        replacement_dict.update(v)
+        
+        
+        for k1,v1 in v.items():
+            if isinstance(k1,nn.Module):
+                k1 = type(k1)
+            if isinstance(v1,list):
+                v1 = [adjust_value_for_replacement_dict(item) for item in v1]
+            else:
+                v1 = adjust_value_for_replacement_dict(v1)
+            
+            if k1 in replacement_dict:
+                if isinstance(v1 ,list):
+                    replacement_dict[k1].extend(v1)
+                else:
+                    replacement_dict[k1].append(v1)
+            else:
+                replacement_dict[k1] = v1 if isinstance(v1,list) else [v1]
+    
+    return replacement_dict
 
 
 def replace_unsupported_layers(model:nn.Module, example_input:list=[], example_kwargs:dict={}, replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, aten_graph:bool = False, copy_args:list=[],  can_retrain=True, verbose_mode:bool=False):
@@ -146,15 +178,16 @@ def replace_unsupported_layers(model:nn.Module, example_input:list=[], example_k
     
     '''
     main function that does the surgery
-
-    it does default surgery if no replacement dictionry is given
-    replacement dictionry may contain
-    keys                value
-    callable        ->  callable            : any call function to call_function if they take same argument partial agument may -                                         be used 
-    callable        ->  nn.Module           : any call function to call_function if they take same argument partial agument may -                                         be used 
-    Any             ->  Callable            : any self-made surgery function 
-    nn.Module       ->  nn.Module           : any nn.Module pattern to replace with another nn.Module
-    type            ->  type/nn.Module      : replaces sub-module of same type as patttern using traditional python approach 
+    key             |   value
+    module/type     |   module (if same module is applicable all instances of former)
+    module/type     |   type (if the __init__ doesn't require any positional arguement
+                        and same  module with default keyword arguments (if any) is applicable
+                        all instances of former )
+    module/type     |   a replacement module generator function (generates a module based on
+                        partition and main model or returns None if no replacement required) 
+    module/type     |   tuple of two elements
+                        first   : replacement module generator function (sane as prev) and 
+                        second  : a input adjustment function based on the partition and inputs given to it (default: pass them as they appear in partition.input_nodes)
     '''
     
     #TODO Check for functions    

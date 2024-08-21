@@ -50,7 +50,9 @@ def replace_resize_with_scale_factor(model,verbose_mode=False, **kwargs):
     '''
 
     traced_m=custom_symbolic_trace(model) if not isinstance(model, torch.fx.GraphModule) else model
+    traced_m=custom_symbolic_trace(model) if not isinstance(model, torch.fx.GraphModule) else model
     pattern_m= nn.Upsample()
+    traced_pattern= custom_symbolic_trace(pattern_m)
     traced_pattern= custom_symbolic_trace(pattern_m)
     matches= replacer.straight_chain_searcher(traced_m,traced_pattern)
     
@@ -68,7 +70,7 @@ def replace_resize_with_scale_factor(model,verbose_mode=False, **kwargs):
         print('resize',len(matches))
     return traced_m
 
- 
+
 
 def _replace_pool_size_ge_5(model:nn.Module,  pool_class=nn.MaxPool2d,pool_function=nn.functional.max_pool2d,  verbose_mode=False, **kwargs):
     '''
@@ -127,7 +129,7 @@ def _replace_pool_size_ge_5(model:nn.Module,  pool_class=nn.MaxPool2d,pool_funct
                     new_node=traced_model.graph.call_module(new_node_name,args,{})
                     node.replace_all_uses_with(new_node)
                 traced_model.graph.erase_node(node)
-         
+        
     traced_model.graph.lint()
     traced_model.recompile()
     if verbose_mode:
@@ -329,6 +331,17 @@ def replace_layer_norm(model:nn.Module, example_input:torch.Tensor = None, verbo
                 if (arg.op == 'call_method' and arg.target=='mean') or (arg.target==nn.functional.adaptive_avg_pool2d) \
                     or (arg.op == 'call_module' and type(t_modules[arg.target]) == nn.AdaptiveAvgPool2d):
                     prev = arg
+                if isinstance(arg.args[0],Node):
+                    arg = arg.args[0] 
+                elif isinstance(arg.args[0],Iterable):
+                    temp_args = [a for a in arg.args if isinstance(a,Node)]
+                    if len(temp_args):
+                        arg = temp_args[0] 
+                    else: 
+                        break
+                if (arg.op == 'call_method' and arg.target=='mean') or (arg.target==nn.functional.adaptive_avg_pool2d) \
+                    or (arg.op == 'call_module' and type(t_modules[arg.target]) == nn.AdaptiveAvgPool2d):
+                    prev = arg
                     break
                 args=[]
                 for arg1 in arg.args:
@@ -382,7 +395,18 @@ def replace_layer_norm(model:nn.Module, example_input:torch.Tensor = None, verbo
                         else: 
                             break
                     if (arg.op == 'call_method' and arg.target=='mean') or (arg.target==nn.functional.adaptive_avg_pool2d) \
-                       or (arg.op == 'call_module' and type(t_modules[arg.target]) == nn.AdaptiveAvgPool2d):
+                        or (arg.op == 'call_module' and type(t_modules[arg.target]) == nn.AdaptiveAvgPool2d):
+                        prev = arg
+                    if isinstance(arg.args[0],Node):
+                        arg = arg.args[0] 
+                    elif isinstance(arg.args[0],Iterable):
+                        temp_args = [a for a in arg.args if isinstance(a,Node)]
+                        if len(temp_args):
+                            arg = temp_args[0] 
+                        else: 
+                            break
+                    if (arg.op == 'call_method' and arg.target=='mean') or (arg.target==nn.functional.adaptive_avg_pool2d) \
+                        or (arg.op == 'call_module' and type(t_modules[arg.target]) == nn.AdaptiveAvgPool2d):
                         prev = arg
                         break
                     args=[]
@@ -412,11 +436,10 @@ def replace_layer_norm(model:nn.Module, example_input:torch.Tensor = None, verbo
 
 
 #not effective so not implemented
-
-def replace_se_layer(model:nn.Module, verbose_mode=False, **kwargs):
+def replace_se_layer(model:nn.Module, pattern= None, example_input = None, verbose_mode=False):
     traced_model=remove_identiy(model)
     modules=dict(traced_model.named_modules())
-     
+    
     matched=[]
     nodes=[]
     for node in traced_model.graph.nodes:
@@ -432,7 +455,6 @@ def replace_se_layer(model:nn.Module, verbose_mode=False, **kwargs):
                     nn.functional.leaky_relu,
                     nn.functional.gelu,
                     nn.functional.hardtanh,)
-                                     
     while i< len(nodes):
         node=nodes[i]
         if ((node.op == 'call_module' and isinstance(modules[node.target],nn.AdaptiveAvgPool2d)) 
