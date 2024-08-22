@@ -294,8 +294,12 @@ class BEVDet_export_model(nn.Module):
         bev_feat      = inputs[2]
                 
         num_grids = self.grid_size[2]*self.grid_size[1]*self.grid_size[0]
-        bev_feat = bev_feat.index_put_(tuple([lidar_coor_1d]), feat, accumulate=True)
-        
+        # accumulate=True is not exported correctly.
+        # So set accumulate=False, and modify the onnx model by adding attrs["reduction"]='add' 
+        # using the onnx surgery tool
+        #bev_feat = bev_feat.index_put_(tuple([lidar_coor_1d]), feat, accumulate=True)
+        bev_feat.index_put_(tuple([lidar_coor_1d]), feat, accumulate=False)
+
         bev_feat = bev_feat[:num_grids, :]
         bev_feat = bev_feat.reshape(1, self.grid_size[2], self.grid_size[1], self.grid_size[0], self.C)
         bev_feat = bev_feat.permute(0, 4, 1, 2, 3)
@@ -327,7 +331,11 @@ class BEVDet_export_model(nn.Module):
         bev_feat = inputs[2]
                 
         num_grids = B*self.grid_size[2]*self.grid_size[1]*self.grid_size[0]
-        bev_feat = bev_feat.index_put_(tuple([lidar_coor_1d]), feat, accumulate=True)
+        # accumulate=True is not exported correctly.
+        # So set accumulate=False, and modify the onnx model by adding attrs["reduction"]='add' 
+        # using the onnx surgery tool
+        #bev_feat = bev_feat.index_put_(tuple([lidar_coor_1d]), feat, accumulate=True)
+        bev_feat.index_put_(tuple([lidar_coor_1d]), feat, accumulate=False)
 
         bev_feat = bev_feat[:num_grids, :]
         bev_feat = bev_feat.reshape(B, self.grid_size[2], self.grid_size[1], self.grid_size[0], self.C)

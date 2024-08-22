@@ -391,9 +391,12 @@ class LSSViewTransformer(BaseModule):
         for shape_id in range(3):
             assert depth.shape[shape_id+1] == self.frustum.shape[shape_id]
 
-        #return self.view_transform_core(img, sensor2ego, cam2img, lidar2cam, ego2global, post_rts, bda,
-        #                                depth, tran_feat)
-        return self.view_transform_tidl(img, sensor2ego, cam2img, lidar2cam, ego2global, post_rts, bda,
+        if img.shape[0] == 1:
+            # It works only when batch_size = 1 (e.g. for inferencing)
+            return self.view_transform_tidl(img, sensor2ego, cam2img, lidar2cam, ego2global, post_rts, bda,
+                                            depth, tran_feat)
+
+        return self.view_transform_core(img, sensor2ego, cam2img, lidar2cam, ego2global, post_rts, bda,
                                         depth, tran_feat)
 
 

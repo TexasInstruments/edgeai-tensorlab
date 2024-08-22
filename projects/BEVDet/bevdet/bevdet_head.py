@@ -241,6 +241,52 @@ class BEVDetHead(CenterHead):
         Returns:
             list[dict]: Decoded bbox, scores and labels after nms.
         """
+        ret_list = []
+        for task_id, preds_dict in enumerate(preds_dicts):
+            batch_size = preds_dict[0]['heatmap'].shape[0]
+            batch_heatmap = preds_dict[0]['heatmap'].sigmoid()
+
+            batch_reg = preds_dict[0]['reg']
+            batch_hei = preds_dict[0]['height']
+
+            if self.norm_bbox:
+                batch_dim = torch.exp(preds_dict[0]['dim'])
+            else:
+                batch_dim = preds_dict[0]['dim']
+
+            batch_rots = preds_dict[0]['rot'][:, 0].unsqueeze(1)
+            batch_rotc = preds_dict[0]['rot'][:, 1].unsqueeze(1)
+
+            if 'vel' in preds_dict[0]:
+                batch_vel = preds_dict[0]['vel']
+            else:
+                batch_vel = None
+            ret = self.bbox_coder.decode(
+                batch_heatmap,
+                batch_rots,
+                batch_rotc,
+                batch_hei,
+                batch_dim,
+                batch_vel,
+                reg=batch_reg,
+                task_id=task_id)
+
+            ret_list.append(ret)
+
+        return ret_list
+
+    '''
+    # Include a whole BBoxes regression
+    def get_bboxes_onnx(self, preds_dicts, img_metas, img=None, rescale=False):
+        """Generate bboxes from bbox head predictions.
+
+        Args:
+            preds_dicts (tuple[list[dict]]): Prediction results.
+            img_metas (list[dict]): Point cloud and image's meta info.
+
+        Returns:
+            list[dict]: Decoded bbox, scores and labels after nms.
+        """
         rets = []
         for task_id, preds_dict in enumerate(preds_dicts):
             batch_size = preds_dict[0]['heatmap'].shape[0]
@@ -270,6 +316,7 @@ class BEVDetHead(CenterHead):
                 batch_vel,
                 reg=batch_reg,
                 task_id=task_id)
+
             batch_reg_preds = [box['bboxes'] for box in temp]
             batch_cls_preds = [box['scores'] for box in temp]
             batch_cls_labels = [box['labels'] for box in temp]
@@ -313,9 +360,9 @@ class BEVDetHead(CenterHead):
                 if k == 'bboxes':
                     bboxes = torch.cat([ret[i][k] for ret in rets])
                     bboxes[:, 2] = bboxes[:, 2] - bboxes[:, 5] * 0.5
-                    bboxes = img_metas[i]['box_type_3d'](
-                        bboxes, self.bbox_coder.code_size)
-                    bboxes = bboxes.tensor
+                    #bboxes = img_metas[i]['box_type_3d'](
+                    #    bboxes, self.bbox_coder.code_size)
+                    #bboxes = bboxes.tensor
                 elif k == 'scores':
                     scores = torch.cat([ret[i][k] for ret in rets])
                 elif k == 'labels':
@@ -327,6 +374,7 @@ class BEVDetHead(CenterHead):
             ret_list.append([bboxes, scores, labels])
 
         return ret_list
+    '''
 
     def get_task_detections(self, batch_cls_preds,
                             batch_reg_preds, batch_cls_labels, img_metas,
