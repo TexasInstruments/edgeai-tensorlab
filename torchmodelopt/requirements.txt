@@ -6,3 +6,4 @@ matplotlib
 pyyaml
 torchinfo
 onnxsim
+pydot

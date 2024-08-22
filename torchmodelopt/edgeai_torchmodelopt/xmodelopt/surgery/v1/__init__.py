@@ -29,10 +29,10 @@
 #
 #################################################################################
 
-import torch
 import warnings
 import torch
-import warnings
+from torch import nn
+
 
 from torchvision.ops.misc import SqueezeExcitation
 from ....xnn import utils
@@ -61,8 +61,8 @@ def convert_to_lite_model(model, inplace=True, replacement_dict=None, **kwargs):
                 the remaining entries are properties that have to be copied from old module to newly created module.
     '''
     
-    warnings.warn("WARNING - xmodelopt.v1.surgery is based on the modules. For superior functionality, please use the torch.fx based xmodelopt.v2.surgery instead")
-    replacement_dict = replacement_dict or get_replacement_flag_dict_default(**kwargs)
+    warnings.warn("WARNING - xmodelopt.v1.surgery can only replace modules. To replace functions or operators, please use the torch.fx based xmodelopt.v2.surgery instead")
+    replacement_dict = replacement_dict or get_replacement_dict_default(**kwargs)
     replacement_dict = _get_replacement_dict(replacement_dict)
     model = replace_modules_func(model, inplace=inplace, replacement_dict=replacement_dict)
     return model
@@ -73,7 +73,7 @@ def convert_to_lite_model(model, inplace=True, replacement_dict=None, **kwargs):
 # note if same key is used for two pattern the last replacement will be performed
 default_replacement_flag_dict: dict[str, bool|dict] ={
     'squeeze_and_excite_to_identity' : True,
-    'all_activation_to_relu': True,
+    'all_activation_to_relu': False,
     'relu_inplace_to_relu' : True,
     'gelu_to_relu' : True,
     'relu6_to_relu' : True,
@@ -83,7 +83,8 @@ default_replacement_flag_dict: dict[str, bool|dict] ={
     'leakyrelu_to_relu' : True,
     'dropout_inplace_to_dropout':True,
     'conv2d_to_conv2d_dw_conv2d':True,
-    'instancenorm_to_batchnorm':True,
+    'break_maxpool2d_with_kernel_size_greater_than_equalto_5': False,
+    'instancenorm_to_batchnorm':False,
     'groupnorm_to_batchnorm':False,
     'remove_identity': True
     # 'custom_surgery_flag':{},
@@ -93,6 +94,7 @@ default_replacement_flag_dict: dict[str, bool|dict] ={
 # This dictionary is used whenever a flag is enabled to fetch the corresponding replacement entries
 flag_to_dict_entries:dict[str, dict] = {
     'squeeze_and_excite_to_identity':{SqueezeExcitation: [torch.nn.Identity]},
+    'all_activation_to_relu': {nn.ReLU:nn.ReLU, nn.ReLU6:nn.ReLU, nn.GELU:nn.ReLU, nn.SiLU:nn.ReLU, nn.Hardswish:nn.ReLU, nn.Hardsigmoid:nn.ReLU, nn.LeakyReLU:nn.ReLU,},
     'relu_inplace_to_relu':{torch.nn.ReLU: [torch.nn.ReLU]}, #'inplace' is not used
     'dropout_inplace_to_dropout':{torch.nn.Dropout: [torch.nn.Dropout, 'p']}, #'inplace' is not used
     'relu6_to_relu':{torch.nn.ReLU6: [torch.nn.ReLU]}, #'inplace' is not used
@@ -101,11 +103,12 @@ flag_to_dict_entries:dict[str, dict] = {
     'gelu_to_relu':{torch.nn.GELU: [torch.nn.ReLU]}, #'inplace' is not used
     'silu_to_relu':{torch.nn.SiLU: [torch.nn.ReLU]}, #'inplace' is not used
     'leakyrelu_to_relu':{torch.nn.LeakyReLU: [torch.nn.ReLU]},  # 'inplace' is not used
-    'groupnorm_to_batchnorm':{torch.nn.GroupNorm: [convert_to_lite._replace_groupnorm]},
+    'groupnorm_to_batchnorm':{torch.nn.GroupNorm: [convert_to_lite._replace_group_norm]},
     'instancenorm_to_batchnorm':{torch.nn.InstanceNorm2d: [torch.nn.BatchNorm2d, 'num_features']},
     # with_normalization: whether to insert BN after replacing 3x3/5x5 conv etc. with dw-seperable conv
     # with_activation: whether to insert ReLU after replacing conv with dw-seperable conv
     'conv2d_to_conv2d_dw_conv2d':{torch.nn.Conv2d: [convert_to_lite._replace_conv2d, dict(groups_dw=None, group_size_dw=None, with_normalization=(True,False), with_activation=(True,False))]},
+    'break_maxpool2d_with_kernel_size_greater_than_equalto_5': {torch.nn.MaxPool2d:[convert_to_lite.replace_maxpool2d]},
     # just a dummy entry to show that the key and value can be a functions
     # the key should return a boolean and the first entry of value(list) should return an instance of torch.nn.Module
     'remove_identity':{convert_to_lite._check_dummy: [convert_to_lite._replace_dummy]}
@@ -117,7 +120,7 @@ def _get_replacement_dict(replacement_flag_dict=None):
     this function actually converts the flags mapped to True to their corresponding replacements
     if the flags is not registered in 'flag_to_dict_entries', its value should be a dict of replacement and that will be updated in the dictionary
     '''
-    replacement_flag_dict =replacement_flag_dict or get_replacement_flag_dict_default()
+    replacement_flag_dict =replacement_flag_dict or get_replacement_dict_default()
     replacement_dict = {}
     for k,v in replacement_flag_dict.items():
         if k in flag_to_dict_entries and v in (True,False):
@@ -133,14 +136,22 @@ def _get_replacement_dict(replacement_flag_dict=None):
     return replacement_dict
 
 
-def get_replacement_flag_dict_default(groups_dw=None, group_size_dw=None, **kwargs):
+def get_replacement_dict_default(groups_dw=None, group_size_dw=None, return_flags=True, **kwargs):
     '''
-    returns default flag dictionary with the fllowing structure.
-    key: a flag string
-    value: True/False if it is registered in 'flag_to_dict_entries' else a dictionary containing the replacement entries corresponding to it
+    when return_flags is True, returns default flag dictionary with the fllowing structure.
+        key: a flag string
+        value: True/False if it is registered in 'flag_to_dict_entries' else a dictionary containing the replacement entries corresponding to it
+    otherwise, returns flag_to_dict_entries containing the following type of key/value pairs
+        key: a string
+        value: a dict with keys as module types to be replaced and values as the replacement functions/modules
     '''
-    default_replacement_flag_dict['conv2d_to_conv2d_dw_conv2d'][torch.nn.Conv2d][1].update(groups_dw=groups_dw, group_size_dw=group_size_dw)
-    return default_replacement_flag_dict
+    flag_to_dict_entries['conv2d_to_conv2d_dw_conv2d'][torch.nn.Conv2d][1].update(groups_dw=groups_dw, group_size_dw=group_size_dw)
+    if return_flags:
+        ret_val = default_replacement_flag_dict
+    else:
+        ret_val = flag_to_dict_entries
+    
+    return ret_val
 
 
 # this function can be used after creating the model to transform it into a lite model.

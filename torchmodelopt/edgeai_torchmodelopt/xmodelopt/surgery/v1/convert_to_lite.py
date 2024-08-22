@@ -107,3 +107,27 @@ def _replace_group_norm(current_m=None):
     return current_m
 
 
+class SequentialMaxPool2d(torch.nn.Sequential):
+    def __init__(self, kernel_size, stride):
+        num_pool = (kernel_size - 1) // 2
+        pool_modules = []
+        strides_remaining = stride
+        for n in range(num_pool):
+            strides_remaining = strides_remaining // 2
+            s = 2 if strides_remaining > 0 else 1
+            pool_modules += [torch.nn.MaxPool2d(kernel_size=3, stride=s, padding=1)]
+        #
+        # reverse the list, so that the one with larger stride comes last
+        pool_modules = pool_modules[::-1]
+        super().__init__(*pool_modules)
+        self.kernel_size = kernel_size
+        self.stride = stride
+
+
+def replace_maxpool2d(m):
+    if m.kernel_size > 3:
+        new_m = SequentialMaxPool2d(m.kernel_size, m.stride)
+    else:
+        new_m = m
+    #
+    return new_m
