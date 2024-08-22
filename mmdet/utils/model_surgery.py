@@ -57,9 +57,9 @@ def convert_to_lite_model(model, cfg):
         convert_to_lite_model_args = dict()
     replacement_dict = copy.deepcopy(edgeai_torchmodelopt.xmodelopt.surgery.v1.get_replacement_dict_default(**convert_to_lite_model_args))
     replacements_ext = {
-        Focus:[FocusLite, 'in_channels', 'out_channels', 'kernel_size', 'stride'],
-        bricks.Swish:[torch.nn.ReLU],
-        torch.nn.MaxPool2d:[replace_maxpool2d]
+        'mmdet_convert_focus_to_focuslite': {Focus:[FocusLite, 'in_channels', 'out_channels', 'kernel_size', 'stride']},
+        'mmdet_convert_swish_to_relu': {bricks.Swish:[torch.nn.ReLU]},
+        'mmdet_break_maxpool2d_with_kernel_size_greater_than_equalto_5': {torch.nn.MaxPool2d:[replace_maxpool2d]}
     }
     replacement_dict.update(replacements_ext)
     model = edgeai_torchmodelopt.xmodelopt.surgery.v1.convert_to_lite_model(model, replacement_dict=replacement_dict,
