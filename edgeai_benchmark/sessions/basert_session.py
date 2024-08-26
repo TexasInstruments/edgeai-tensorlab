@@ -110,6 +110,7 @@ class BaseRTSession(utils.ParamsBase):
         # optimizations specific to TIDL
         self.kwargs['tidl_onnx_model_optimizer'] = self.kwargs.get('tidl_onnx_model_optimizer', False)
         self.kwargs['deny_list_from_start_end_node'] = self.kwargs.get('deny_list_from_start_end_node', None)
+        self.kwargs['output_feature_16bit_names_list_from_start_end'] = self.kwargs.get('output_feature_16bit_names_list_from_start_end', None)
 
         # store the current directory so that we can go back there any time
         self.cwd = os.getcwd()
@@ -587,13 +588,17 @@ class BaseRTSession(utils.ParamsBase):
                     print("running tidl_onnx_model_optimizer on the model")
                     from osrt_model_tools.onnx_tools.tidl_onnx_model_optimizer import optimize
                     optimize(model_file0, model_file0)
-                    
+                #
                 if self.kwargs['deny_list_from_start_end_node']:
                     print("Finding the deny list nodes from the given start and end node")
                     from osrt_model_tools.onnx_tools.tidl_onnx_model_utils import get_all_node_names
                     deny_list = get_all_node_names(model_file0, self.kwargs['deny_list_from_start_end_node'])
                     self.kwargs['runtime_options']['deny_list:layer_name'] = deny_list
                 #
+                if self.kwargs['output_feature_16bit_names_list_from_start_end']:
+                    output_feature_16bit_names_list = utils.get_all_output_names(model_file0, self.kwargs['output_feature_16bit_names_list_from_start_end'])
+                    self.kwargs['runtime_options']['advanced_options:output_feature_16bit_names_list'] = output_feature_16bit_names_list
+                #                
             #
         elif model_file0.endswith('.tflite'):
             if is_new_file:

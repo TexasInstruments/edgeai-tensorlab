@@ -69,7 +69,9 @@ def get_configs(settings, work_dir):
         # Transformer models from huggingface transformers
         'od-8920':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((800,800),(800,800), resize_with_pad=False, backend='cv2'),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True,
+                    #output_feature_16bit_names_list_from_start_end={'/model/decoder/layers.5/Add_1_output_0':None}
+                ),
                 runtime_options=settings.runtime_options_onnx_np2(
                     det_options=True, ext_options={
                      'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL 
