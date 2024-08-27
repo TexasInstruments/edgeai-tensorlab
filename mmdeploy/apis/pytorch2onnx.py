@@ -24,7 +24,7 @@ def torch2onnx(img: Any,
                model_cfg: Union[str, mmengine.Config],
                model_checkpoint: Optional[str] = None,
                device: str = 'cuda:0',
-               model_surgery: Any = 0):
+               torch_model = None):
     """Convert PyTorch model to ONNX model.
 
     Examples:
@@ -70,10 +70,10 @@ def torch2onnx(img: Any,
     from mmdeploy.apis import build_task_processor
     task_processor = build_task_processor(model_cfg, deploy_cfg, device)
 
-    # torch_model = task_processor.build_pytorch_model(model_checkpoint)
-    torch_model = build_model_from_cfg(model_cfg, model_checkpoint, device)
+    if torch_model is None:
+        torch_model = task_processor.build_pytorch_model(model_checkpoint)
 
-    input_metas={}
+    input_metas=None
     if not isinstance(img, str):
         model_inputs = img
     else:
@@ -106,14 +106,6 @@ def torch2onnx(img: Any,
     keep_initializers_as_inputs = onnx_cfg.get('keep_initializers_as_inputs',
                                                True)
     optimize = onnx_cfg.get('optimize', False)
-
-    if model_surgery is None:
-        if hasattr(model_cfg,'convert_to_lite_model'):
-            model_surgery = model_cfg.convert_to_lite_model.model_surgery
-    # model surgery
-    if model_surgery == 1:
-        torch_model = convert_to_lite_model(torch_model, model_cfg)
-    load_checkpoint(torch_model, model_checkpoint, map_location='cpu')
 
     if backend == Backend.NCNN.value:
         """NCNN backend needs a precise blob counts, while using onnx optimizer

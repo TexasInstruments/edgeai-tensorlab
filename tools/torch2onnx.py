@@ -14,11 +14,10 @@ from mmdeploy.utils import (get_ir_config, get_partition_config,
                             get_root_logger, load_config)
 from mmdeploy.utils import build_model_from_cfg
 from mmengine.logging import print_log
+from mmengine.runner import load_checkpoint
+from mmdet.utils import convert_to_lite_model
 
 from edgeai_torchmodelopt import xonnx
-
-from edgeai_torchmodelopt import xonnx
-
 from edgeai_torchmodelopt import xnn
 
 def parse_args():
@@ -40,7 +39,6 @@ def parse_args():
         help='Directory to save output files.')
     parser.add_argument(
         '--device', help='device used for conversion', default='cpu')
-    parser.add_argument('--model-surgery', type=int, default=0)
     parser.add_argument(
         '--simplify',
         action='store_true',
@@ -80,6 +78,24 @@ def main():
     if hasattr(model_cfg, 'resize_with_scale_factor') and model_cfg.resize_with_scale_factor:
         torch.nn.functional._interpolate_orig = torch.nn.functional.interpolate
         torch.nn.functional.interpolate = xnn.layers.resize_with_scale_factor
+
+    # torch_model = task_processor.build_pytorch_model(model_checkpoint)
+    torch_model = build_model_from_cfg(args.model_cfg, args.checkpoint, args.device)
+
+    #model surgery
+    model_surgery = args.model_surgery
+    if args.model_surgery is None:
+        if hasattr(model_cfg, 'convert_to_lite_model'):
+            model_surgery = model_cfg.convert_to_lite_model.model_surgery
+    
+    if model_surgery:
+        if model_surgery == 1:
+            device = next(torch_model.parameters()).device
+            torch_model = convert_to_lite_model(torch_model, model_cfg)
+            torch_model = torch_model.to(torch.device(device))
+        elif model_surgery == 2: 
+            assert False, 'model surgery 2 is not supported currently'
+    load_checkpoint(torch_model, args.checkpoint, map_location='cpu')
     
     img_size = args.img_size
     if img_size is None and hasattr(model_cfg, 'input_size'):
@@ -99,7 +115,7 @@ def main():
             model_cfg=args.model_cfg,
             model_checkpoint=args.checkpoint,
             device=args.device,
-            model_surgery=args.model_surgery)
+            torch_model=torch_model)
     else :
         torch2onnx(
             args.img,
@@ -109,7 +125,7 @@ def main():
             model_cfg=args.model_cfg,
             model_checkpoint=args.checkpoint,
             device=args.device,
-            model_surgery=args.model_surgery)
+            torch_model=torch_model)
 
     # partition model
     partition_cfgs = get_partition_config(deploy_cfg)
