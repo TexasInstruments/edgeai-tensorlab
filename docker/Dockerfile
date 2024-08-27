@@ -97,8 +97,8 @@ RUN source ${HOME_DIR}/.bashrc && \
 
 # update pip setuptools
 RUN source ${HOME_DIR}/.bashrc && \
-    pip install --no-input --upgrade pip setuptools && \
-    pip install --no-input --upgrade wheel cython numpy
+    pip3 install --no-input --upgrade pip==24.2 setuptools==73.0.0 && \
+    pip3 install --no-input cython wheel numpy==1.23.0
 
 # Note 1: this can be reversed later as a last step after all installations are done.
 # enabling write permissions for all users, if support is needed for users passed via --user argument of docker run

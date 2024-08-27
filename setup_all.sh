@@ -36,7 +36,7 @@
 USE_INTERNAL_REPO=0
 
 # set to 1 to enable other extra models
-PLUGINS_ENABLE_EXTRA=1
+PLUGINS_ENABLE_EXTRA=0
 
 # clone git repositories
 CLONE_GIT_REPOS=0
@@ -45,7 +45,7 @@ CLONE_GIT_REPOS=0
 UPDATE_GIT_REPOS=0
 
 # use requirements from: pip list --format=freeze
-USE_PIP_FREEZE_REQUIREMENTS=1
+USE_PIP_FREEZE_REQUIREMENTS=0
 
 #################################################################################
 if [[ ${USE_INTERNAL_REPO} -eq 0 ]]; then
@@ -85,11 +85,10 @@ if [[ ${UPDATE_GIT_REPOS} -ne 0 ]]; then
     echo "git pull done."
 fi
 
-
 #################################################################################
 # upgrade pip
-pip3 install --no-input --upgrade pip==23.3.1 setuptools==69.0.2
-pip install --no-input --upgrade wheel cython numpy==1.23.0
+pip3 install --no-input --upgrade pip==24.2 setuptools==73.0.0
+pip3 install --no-input cython wheel numpy==1.23.0
 
 #################################################################################
 echo "preparing environment..."
@@ -119,14 +118,16 @@ echo "installing: edgeai-benchmark"
 cd ../edgeai-benchmark
 ./setup_pc.sh r10.0
 
+######################################################################
 echo "installing edgeai-modelmaker"
 cd ../edgeai-modelmaker
 ./setup.sh
 
+######################################################################
 # make sure that we are using pillow-simd (which is faster)
 pip install --no-input -U --force-reinstall pillow-simd
 
-if [[ ${USE_PIP_FREEZE_REQUIREMENTS} -ne 1 ]]; then
+if [[ ${USE_PIP_FREEZE_REQUIREMENTS} -ne 0 ]]; then
     pip install -r requirements_freeze.txt
 fi
 

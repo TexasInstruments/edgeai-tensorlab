@@ -29,7 +29,7 @@ These functionalities that are supported are fully integrated and the user can c
 - Image Classification
 - Object Detection
 - Semantic Segmentation
-- Keypoint Detection
+- Keypoint Detection (Note: Keypoint Detection support is broken as of now, but we plan to bring it back with a more flexible backend training repository)
 
 #### Model Types
 For Object Detection, we use YOLOX models. For Image Classification we have support for MobileNetV2 and RegNetX. For Semantic Segmentation we have support DeepLabV3Plus, FPN and UNet models. For Keypoint Detection we use the [YOLO-pose](https://arxiv.org/abs/2204.06806) method.
@@ -93,7 +93,7 @@ pyenv install 3.10
 pyenv virtualenv 3.10 py310
 pyenv rehash
 pyenv activate py310
-pip install --upgrade pip setuptools
+pip3 install --no-input --upgrade pip==24.2 setuptools==73.0.0
 ```
 
 Step 1.5a: **Activate the Python environment.** This activation step needs to be done everytime one starts a new terminal or shell. (Alternately, this also can be written to the .bashrc, so that this will be the default penv environment).
