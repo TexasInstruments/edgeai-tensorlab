@@ -109,9 +109,9 @@ class QUANTScaleType:
 
 
 class PreQuantizedModelType:
-    PREQUANTIZED_MODEL_TYPE_NONE = 0
-    PREQUANTIZED_MODEL_TYPE_V1 = 1
-    PREQUANTIZED_MODEL_TYPE_V2 = 2
+    PREQUANTIZED_MODEL_TYPE_NONE = None
+    PREQUANTIZED_MODEL_TYPE_CLIP = 0
+    PREQUANTIZED_MODEL_TYPE_QDQ = 1
 
 
 # some options in runtime_options
