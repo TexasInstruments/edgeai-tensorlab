@@ -111,6 +111,10 @@ echo "installing: edgeai-mmdetection"
 cd ../edgeai-mmdetection
 ./setup_cpu.sh
 
+echo "installing: edgeai-mmdeploy"
+cd ../edgeai-mmdeploy
+./setup_cpu.sh
+
 # uninstall the onnxruntime was installed by setups above, so that the correct version can be installed.
 pip uninstall --yes onnxruntime
 
