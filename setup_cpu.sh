@@ -44,7 +44,10 @@ pip3 install --no-input torch==2.4.0 torchvision==0.19.0 --index-url https://dow
 ######################################################################
 pip install -U openmim
 mim install mmengine
-mim install "mmcv-lite>=2.2.0"
+
+#in CPU mode, mmcv-lite is sufficient, but it doesn't work well with mmdetection, so, install mmcv instead
+#mim install "mmcv-lite>=2.2.0"
+mim install "mmcv>=2.2.0"
 
 pip install -v -e .
 
