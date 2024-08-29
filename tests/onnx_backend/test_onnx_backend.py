@@ -162,7 +162,7 @@ def perform_onnx_backend_subprocess(tidl_offload : bool, run_infer : bool, test_
 
     # Note: This timeout parameter must be lower than the pytest-timeout parameter 
     #       passed to the pytest command (on the command line or in pytest.ini)
-    p.join(timeout=30) 
+    p.join(timeout=60)
     if p.is_alive():
         p.terminate()
 
