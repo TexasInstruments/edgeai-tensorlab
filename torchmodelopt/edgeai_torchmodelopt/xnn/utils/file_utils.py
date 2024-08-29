@@ -1,5 +1,5 @@
 #################################################################################
-# Copyright (c) 2018-2023, Texas Instruments Incorporated - http://www.ti.com
+# Copyright (c) 2018-2022, Texas Instruments Incorporated - http://www.ti.com
 # All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -29,42 +29,52 @@
 #
 #################################################################################
 
-from .file_utils import *
-from .print_utils import *
-from .function_utils import *
-from .data_utils import *
-from .load_weights import *
-from .tensor_utils import *
-from .logger import *
-from .hist_utils import *
-from .params_base import *
-from .misc_utils import *
-from .config_dict import *
-from .attr_dict import *
-from .weights_utils import *
-from .image_utils import *
-from .module_utils import *
-from .model_complexity import *
-from .bn_utils import *
-from .range_utils import *
-from .quant_utils import *
-from .amp import *
-from .path_utils import *
-from .import_utils import *
-from .distributed_utils import *
-from .graph_drawer_utils import *
+import os
+import sys
+import errno
 
 
-try: from .tensor_utils_internal import *
-except: pass
+def is_url(download_entry):
+    return isinstance(download_entry, str) and \
+            (download_entry.startswith('http://') or download_entry.startswith('https://'))
 
-try: from .export_utils_internal import *
-except: pass
 
-# change has_range_estimator to True here to use a more accurate range estimator
-has_range_estimator = False #True
-if has_range_estimator:
-    try: from .range_estimator_internal import *
-    except: has_range_estimator = False
-#
+def _absolute_path(relpath):
+    if relpath is None:
+        return relpath
+    elif relpath.startswith('http://') or relpath.startswith('https://'):
+        return relpath
+    else:
+        return os.path.abspath(os.path.expanduser(os.path.normpath(relpath)))
 
+
+def absolute_path(relpath):
+    if isinstance(relpath, (list,tuple)):
+        return [_absolute_path(f) for f in relpath]
+    else:
+        return _absolute_path(relpath)
+
+
+def remove_if_exists(path):
+    try:
+        os.remove(path)
+    except OSError as e:
+        if e.errno != errno.ENOENT:
+            raise
+
+
+def make_symlink(source, dest):
+    if source is None or (not os.path.exists(source)):
+        print(f'make_symlink failed - source: {source} is invalid')
+        return
+    #
+    remove_if_exists(dest)
+    if os.path.dirname(source) == os.path.dirname(dest):
+        base_dir = os.path.dirname(source)
+        cur_dir = os.getcwd()
+        os.chdir(base_dir)
+        os.symlink(os.path.basename(source), os.path.basename(dest))
+        os.chdir(cur_dir)
+    else:
+        os.symlink(source, dest)
+    #
