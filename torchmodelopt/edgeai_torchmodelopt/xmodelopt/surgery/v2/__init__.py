@@ -100,7 +100,7 @@ default_replacement_flag_dict_no_training:dict[str,bool|dict] ={
 # This dictionary is used whenever a flag is enabled to fetch the corresponding replacement entries
 flag_to_dict_entries:dict [str:dict] ={
     'squeeze_and_excite_to_identity' : {SEModule:nn.Identity,custom_modules.SEModule():nn.Identity(),custom_modules.SEModule1():nn.Identity(),'se_layer':custom_surgery_functions.replace_se_layer},
-    'all_activation_to_ReLu': {nn.ReLU:nn.ReLU, nn.ReLU6:nn.ReLU, nn.GELU:nn.ReLU, nn.SiLU:nn.ReLU, nn.Hardswish:nn.ReLU, nn.Hardsigmoid:nn.ReLU, nn.LeakyReLU:nn.ReLU,},
+    'all_activation_to_relu': {nn.ReLU:nn.ReLU, nn.ReLU6:nn.ReLU, nn.GELU:nn.ReLU, nn.SiLU:nn.ReLU, nn.Hardswish:nn.ReLU, nn.Hardsigmoid:nn.ReLU, nn.LeakyReLU:nn.ReLU,},
     'relu_inplace_to_relu' : {nn.ReLU: nn.ReLU},
     'gelu_to_relu' : {nn.GELU: nn.ReLU},
     'relu6_to_relu' : {nn.ReLU6: nn.ReLU},
