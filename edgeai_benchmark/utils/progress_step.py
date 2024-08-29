@@ -29,7 +29,7 @@
 import sys
 import time
 from colorama import Fore
-from tqdm.auto import tqdm
+from tqdm import tqdm
 from .timer_utils import display_time_bar
 
 __all__ = ['progress_step', 'progress_step_tqdm', 'progress_step_lite']

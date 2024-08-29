@@ -73,7 +73,7 @@ import tarfile
 from typing import Any, Callable, List, Iterable, Optional, TypeVar
 from urllib.parse import urlparse
 import zipfile
-from tqdm.auto import tqdm
+from tqdm import tqdm
 
 from . import model_utils
 
