@@ -92,8 +92,8 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': None}, model_shortlist=100, compact_name='FCOS-r50-fpn-gn-head-coco-1216x800', shortlisted=False)
         ),
         'od-8940':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx((800,1216), (800,1216), reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
-            session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True,
+            preprocess=preproc_transforms.get_transform_onnx((800,1216), (800,1216), reverse_channels=True, resize_with_pad=False, backend='cv2'),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=(103.53, 116.28, 123.675), input_scale=(1.0, 1.0, 1.0), input_optimization=False, tidl_onnx_model_optimizer=True,
                                                                         # deny_list_from_start_end_node = {
                                                                         #     '/Sigmoid_1':None,
                                                                         #     '/Sigmoid_4':None,
@@ -116,8 +116,8 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': None}, model_shortlist=100, compact_name='CenterNet-update-r50-fpn-coco-1216x800', shortlisted=False)
         ),
         'od-8950':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_onnx((448, 672), (448, 672), reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
-            session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=False, 
+            preprocess=preproc_transforms.get_transform_onnx((448, 672), (448, 672), reverse_channels=False, resize_with_pad=False, backend='cv2'),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=False,
                                                                         # deny_list_from_start_end_node = {'/bbox_head/Sigmoid':None}
                                                                         ),
                 runtime_options=settings.runtime_options_onnx_np2(
