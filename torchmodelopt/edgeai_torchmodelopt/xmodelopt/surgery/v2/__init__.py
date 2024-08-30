@@ -160,7 +160,7 @@ def get_replacement_dict(
     return replacement_dict
 
 
-def replace_unsupported_layers(model:nn.Module, example_input:list=[], example_kwargs:dict={}, replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, aten_graph:bool = False, copy_args:list=[],  can_retrain=True, verbose_mode:bool=False):
+def replace_unsupported_layers(model:nn.Module, example_input:list=[], replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, copy_args:list=[],  can_retrain=True, verbose_mode:bool=False):
     #TODO write appropiate documentation for this function
     
     '''
@@ -196,7 +196,7 @@ def replace_unsupported_layers(model:nn.Module, example_input:list=[], example_k
     
     model = deepcopy(model)
     
-    final_model = _replace_unsupported_layers(model,example_input,example_kwargs,replacement_dict,aten_graph,copy_args,verbose_mode)
+    final_model = _replace_unsupported_layers(model, replacement_dict, copy_args, example_input, verbose_mode)
     
     if is_train_mode:
         final_model.train()
