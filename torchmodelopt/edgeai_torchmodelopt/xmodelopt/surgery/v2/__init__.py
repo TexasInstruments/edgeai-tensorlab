@@ -192,11 +192,11 @@ def replace_unsupported_layers(model:nn.Module, example_input:list=[], replaceme
     else:
         is_train_mode = False
         
-    replacement_dict = get_replacement_dict(replacement_dict,can_retrain=can_retrain)
+    replacement_dict = get_replacement_dict(replacement_dict, can_retrain=can_retrain)
     
     model = deepcopy(model)
-    
-    final_model = _replace_unsupported_layers(model, replacement_dict, copy_args, example_input, verbose_mode)
+
+    final_model = _replace_unsupported_layers(model, example_input, example_kwargs, replacement_dict, aten_graph, copy_args, verbose_mode)
     
     if is_train_mode:
         final_model.train()

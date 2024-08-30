@@ -29,7 +29,7 @@
 #
 #################################################################################
 
-from .quant_pt2e_base import QuantPT2EBaseModule
+from .quant_base import QuantPT2EBaseModule
 import sys
 
 class QATPT2EModule(QuantPT2EBaseModule):

@@ -38,7 +38,7 @@ from torch.ao.quantization.quantizer.xnnpack_quantizer import XNNPACKQuantizer, 
 
 from .... import xnn
 from . import qconfig_types
-from . import quant_pt2e_utils
+from . import quant_utils
 from .quantizers import TIDLRTQuantizer
 
 import copy

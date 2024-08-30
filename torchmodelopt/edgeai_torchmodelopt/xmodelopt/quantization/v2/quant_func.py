@@ -48,7 +48,7 @@ from .... import xnn
 from ...surgery.v2 import custom_surgery_functions, replace_unsupported_layers
 
 from . import qconfig_types
-from . import quant_fx_utils
+from . import quant_utils
 
 try:
     from timm import models
@@ -80,7 +80,7 @@ def init(model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qn
             raise RuntimeError("total_epochs must be provided")
     #
 
-	if dynamo_export:
+    if dynamo_export:
         example_inputs = example_inputs if example_inputs is not None else \
             torch.ones(1,3,224,224).to(next(model.parameters()).device)
         example_inputs = example_inputs[0] if isinstance(example_inputs, tuple) else example_inputs
@@ -103,14 +103,14 @@ def init(model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qn
     
     if has_timm:
         replacement_dict={
-            "attention_to_quant_attention": {models.vision_transformer.Attention: quant_fx_utils.QuantAttention},
-            "window_attention_to_quant_attention": {models.swin_transformer.WindowAttention: quant_fx_utils.QuantAttention},
-            "layer_norm_to_quant_layer_norm": {nn.LayerNorm: quant_fx_utils.QuantLayerNorm},
+            "attention_to_quant_attention": {models.vision_transformer.Attention: quant_utils.QuantAttention},
+            "window_attention_to_quant_attention": {models.swin_transformer.WindowAttention: quant_utils.QuantAttention},
+            "layer_norm_to_quant_layer_norm": {nn.LayerNorm: quant_utils.QuantLayerNorm},
             "permute_change_to_export":{'permute': custom_surgery_functions.replace_permute_layer}
         }
     else:
         replacement_dict={
-            "layer_norm_to_quant_layer_norm": {nn.LayerNorm: quant_fx_utils.QuantLayerNorm},
+            "layer_norm_to_quant_layer_norm": {nn.LayerNorm: quant_utils.QuantLayerNorm},
             "permute_change_to_export":{'permute': custom_surgery_functions.replace_permute_layer}
         }
         
@@ -174,9 +174,9 @@ def init(model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qn
 
 def insert_all_hooks(model, insert_outlier_hook=True, insert_bias_hook = True):
     # if len(model.__quant_params__.outlier_hooks)==0 and insert_outlier_hook:
-    #     model.__quant_params__.outlier_hooks += quant_fx_utils.add_fc_outlier_supression_hook(model)
+    #     model.__quant_params__.outlier_hooks += quant_utils.add_fc_outlier_supression_hook(model)
     if len(model.__quant_params__.bias_hooks)==0 and insert_bias_hook:
-        model.__quant_params__.bias_hooks += quant_fx_utils.add_bias_calibration_hook(model, \
+        model.__quant_params__.bias_hooks += quant_utils.add_bias_calibration_hook(model, \
                 calibration_factor = model.__quant_params__.bias_calibration_factor)
     return model
 
@@ -229,12 +229,12 @@ def export(self, example_input, filename='model.onnx', opset_version=17, model_q
     
     register_custom_op_symbolic(
         symbolic_name='quantized::matmul', 
-        symbolic_fn=quant_fx_utils.quantized_matmul, 
+        symbolic_fn=quant_utils.quantized_matmul, 
         opset_version=17)
 
     register_custom_op_symbolic(
         symbolic_name='quantized::softmax', 
-        symbolic_fn=quant_fx_utils.quantized_softmax, 
+        symbolic_fn=quant_utils.quantized_softmax, 
         opset_version=17)
     
     if model_quant_format == ModelQuantFormat.INT_MODEL:
@@ -291,7 +291,6 @@ def train(self, mode: bool = True):
         if freeze_observers and len(self.__quant_params__.outlier_hooks)>0:
             self.__quant_params__.outlier_hooks = remove_hooks(self.__quant_params__.outlier_hooks)
         
-        quant_utils.adjust_gradual_quantization(self)
         self.__quant_params__.num_epochs_tracked += 1
     else:
         self.__quant_params__.bias_hooks = remove_hooks(self.__quant_params__.bias_hooks)                      

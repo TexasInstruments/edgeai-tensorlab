@@ -135,7 +135,7 @@ class AdaptivePerChannelWeightObserver(torch.ao.quantization.PerChannelMinMaxObs
         return x_orig
 
 
-class AdaptiveActivationObserver(observer_utils.CumulativeFastHistogramObserver):
+class AdaptiveActivationObserver(observer_utils.CumulativeMSEHistogramObserver):
     def __init__(self, *args, quant_min=0, quant_max=255, dtype=torch.quint8, qscheme=torch.per_tensor_affine, power2_scale=False, range_max=None, fixed_range=False, **kwargs):
         super().__init__(*args, quant_min=quant_min, quant_max=quant_max, dtype=dtype, qscheme=qscheme, **kwargs)
         self.symmetric = (qscheme == torch.per_tensor_symmetric) #(qscheme in (torch.per_channel_symmetric, torch.per_tensor_symmetric))

@@ -133,7 +133,7 @@ def get_act_quantization_config(activation_qconfig, is_qat=True, fast_mode=False
     return activation_observer
 
 
-def get_qconfig_from_dict(qconfig_dict):
+def get_quantization_config(qconfig_dict, is_qat=True, fast_mode=False):
     # custom qconfig_type parameters are given in a dict
     weight_observer = get_weight_quantization_config(qconfig_dict.get('weight', dict()), is_qat=is_qat)
     activation_observer = get_act_quantization_config(qconfig_dict.get('activation', dict()), is_qat=is_qat, fast_mode=fast_mode)
@@ -191,7 +191,7 @@ def get_quantization_config_default(qconfig_type, is_qat=True, fast_mode=False):
 ####################################################################
 
 
-def get_qconfig(qconfig_type=None, is_qat, fast_mode=False, backend='qnnpack'):
+def get_qconfig(qconfig_type=None, is_qat=True, fast_mode=False, backend='qnnpack'):
     if isinstance(qconfig_type, QConfig):
         return qconfig_type
     elif isinstance(qconfig_type, str):
@@ -207,7 +207,7 @@ def get_qconfig(qconfig_type=None, is_qat, fast_mode=False, backend='qnnpack'):
 
 def get_qconfig_mapping(is_qat, backend, qconfig_type=None):
     qconfig_type_base = qconfig_type[0] if isinstance(qconfig_type, (list,tuple)) else qconfig_type
-    qconfig_type = get_qconfig(is_qat, backend, qconfig_type_base)
+    qconfig_type = get_qconfig(qconfig_type=qconfig_type_base, is_qat=is_qat, backend=backend)
     qconfig_map = _get_default_qconfig_mapping_with_default_qconfig(is_qat, backend, qconfig_type)
     # apply specific qconfigs to specific types if needed
     qconfig_reuse = torch.ao.quantization.default_reuse_input_qconfig

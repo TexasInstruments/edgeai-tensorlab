@@ -30,7 +30,7 @@
 #################################################################################
 
 import torch
-from .quant_fx_base import QuantFxBaseModule
+from .quant_base import QuantFxBaseModule
 import warnings
 
 
