@@ -1,4 +1,3 @@
-
 #################################################################################
 # Copyright (c) 2018-2023, Texas Instruments Incorporated - http://www.ti.com
 # All Rights Reserved.
@@ -30,10 +29,25 @@
 #
 #################################################################################
 
+from .quant_pt2e_base import QuantPT2EBaseModule
+import sys
 
-from .qconfig_types import *
+class QATPT2EModule(QuantPT2EBaseModule):
+    def __init__(self, *args, is_qat=True, **kwargs):
+        if sys.version_info.minor>11 or sys.version_info.minor<8:
+            raise NotImplementedError("Pt2e is currently supported only for python>3.8 or python<3.11")
+        super().__init__(*args, is_qat=is_qat, **kwargs)
+        # raise NotImplementedError("QATPT2E Quantization is not supported yet")
 
 
-from . import quant_func
-
-from .quant_module import QATFxModule, PTCFxModule
+class PTQPT2EModule(QuantPT2EBaseModule):
+    def __init__(self, *args, is_qat=False, **kwargs):
+        if sys.version_info.minor>11 or sys.version_info.minor<8:
+            raise NotImplementedError("Pt2e is currently supported only for python>3.8 or python<3.11")
+        super().__init__(*args, is_qat=is_qat, **kwargs)
+        # raise NotImplementedError("QATPT2E Quantization is not supported yet")
+    
+    
+class PTQCalibratePT2EModule():
+    def __init__(self, *args, backend='qnnpack', is_qat=False, **kwargs):
+        raise NotImplementedError("QATPT2E Quantization is not supported yet")

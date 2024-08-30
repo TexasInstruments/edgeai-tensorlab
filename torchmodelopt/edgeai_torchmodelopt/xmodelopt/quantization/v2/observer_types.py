@@ -33,8 +33,7 @@ import functools
 import math
 import random
 import torch
-from torch.ao.quantization import MinMaxObserver, PerChannelMinMaxObserver, HistogramObserver, \
-    MovingAverageMinMaxObserver, MovingAveragePerChannelMinMaxObserver
+import torch.ao.quantization
 
 from .... import xnn
 from . import observer_utils
@@ -43,20 +42,24 @@ from . import observer_utils
 ####################################################################
 # select which histogram observer to use in this file as the base
 
-# FastHistogramObserver = observer_utils.MSEHistogramObserverBase
-# MovingAverageFastHistogramObserver = observer_utils.MovingAverageMSEHistogramObserverBase
+# histogram observers derived from pytorch's observers. cumulative one is sutable for activations.
+# observer_utils.MSEHistogramObserverBase
+# observer_utils.MovingAverageMSEHistogramObserverBase
 
-FastHistogramObserver = observer_utils.RangeShrinkHistogramObserverBase
-MovingAverageFastHistogramObserver = observer_utils.MovingAverageRangeShrinkHistogramObserverBase
+# fast histogram observers defined by us. cumulative one is sutable for activations.
+# these range shrink ones may help in the case of CNNs
+# observer_utils.RangeShrinkHistogramObserverBase
+# observer_utils.MovingAverageRangeShrinkHistogramObserverBase
 
 
 ####################################################################
-class AdaptiveWeightObserver(FastHistogramObserver):
+class AdaptiveWeightObserver(torch.ao.quantization.MinMaxObserver):
     def __init__(self, *args, quant_min=-128, quant_max=+127, dtype=torch.qint8, qscheme=torch.per_tensor_symmetric, power2_scale=False, range_max=None, fixed_range=False, **kwargs):
         super().__init__(*args, quant_min=quant_min, quant_max=quant_max, dtype=dtype, qscheme=qscheme, **kwargs)
         self.power2_scale = power2_scale
         self.range_max = range_max
         self.fixed_range = fixed_range
+        self.freeze_observer = False
 
     @torch.jit.export
     def _calculate_qparams(self, min_val, max_val):
@@ -73,6 +76,8 @@ class AdaptiveWeightObserver(FastHistogramObserver):
             return super()._calculate_qparams(min_val, max_val)
 
     def forward(self, x_orig):
+        if self.freeze_observer:
+            return x_orig
         x_orig = super().forward(x_orig)
         if self.range_max is not None:
             signed_range = torch.min(self.min_val.detach()).item() < 0.0
@@ -89,12 +94,13 @@ class AdaptiveWeightObserver(FastHistogramObserver):
         return x_orig
 
 
-class AdaptivePerChannelWeightObserver(PerChannelMinMaxObserver):
+class AdaptivePerChannelWeightObserver(torch.ao.quantization.PerChannelMinMaxObserver):
     def __init__(self, *args, quant_min=-128, quant_max=+127, dtype=torch.qint8, qscheme=torch.per_channel_symmetric, power2_scale=False, range_max=None, fixed_range=False, **kwargs):
         super().__init__(*args, quant_min=quant_min, quant_max=quant_max, dtype=dtype, qscheme=qscheme, **kwargs)
         self.power2_scale = power2_scale
         self.range_max = range_max
         self.fixed_range = fixed_range
+        self.freeze_observer = False
 
     @torch.jit.export
     def _calculate_qparams(self, min_val, max_val):
@@ -111,6 +117,8 @@ class AdaptivePerChannelWeightObserver(PerChannelMinMaxObserver):
             return super()._calculate_qparams(min_val, max_val)
 
     def forward(self, x_orig):
+        if self.freeze_observer:
+            return x_orig
         x_orig = super().forward(x_orig)
         if self.range_max is not None:
             signed_range = torch.min(self.min_val.detach()).item() < 0.0
@@ -127,13 +135,14 @@ class AdaptivePerChannelWeightObserver(PerChannelMinMaxObserver):
         return x_orig
 
 
-class AdaptiveActivationObserver(MovingAverageFastHistogramObserver):
+class AdaptiveActivationObserver(observer_utils.CumulativeFastHistogramObserver):
     def __init__(self, *args, quant_min=0, quant_max=255, dtype=torch.quint8, qscheme=torch.per_tensor_affine, power2_scale=False, range_max=None, fixed_range=False, **kwargs):
         super().__init__(*args, quant_min=quant_min, quant_max=quant_max, dtype=dtype, qscheme=qscheme, **kwargs)
         self.symmetric = (qscheme == torch.per_tensor_symmetric) #(qscheme in (torch.per_channel_symmetric, torch.per_tensor_symmetric))
         self.power2_scale = power2_scale
         self.range_max = range_max
         self.fixed_range = fixed_range
+        self.freeze_observer = False
 
     @torch.jit.export
     def _calculate_qparams(self, min_val, max_val):
@@ -157,6 +166,8 @@ class AdaptiveActivationObserver(MovingAverageFastHistogramObserver):
             return super()._calculate_qparams(min_val, max_val)
 
     def forward(self, x_orig):
+        if self.freeze_observer:
+            return x_orig
         x_orig = super().forward(x_orig)
         if self.range_max is not None:
             signed_range = torch.min(self.min_val.detach()).item() < 0.0
@@ -171,31 +182,19 @@ class AdaptiveActivationObserver(MovingAverageFastHistogramObserver):
             #
         #
         return x_orig
-    
-    
-class AdaptiveOutlierRemovalActivationObserver(AdaptiveActivationObserver):
-    def __init__(self, *args, quant_min=0, quant_max=255, dtype=torch.quint8, qscheme=torch.per_tensor_affine, power2_scale=False, range_max=None, fixed_range=False, **kwargs):
-        super().__init__(*args, quant_min=quant_min, quant_max=quant_max, dtype=dtype, qscheme=qscheme, **kwargs)
-        self.symmetric = (qscheme == torch.per_tensor_symmetric) #(qscheme in (torch.per_channel_symmetric, torch.per_tensor_symmetric))
-        self.power2_scale = power2_scale
-        self.range_max = range_max
-        self.fixed_range = fixed_range
 
-    def forward(self, x_orig):
-        mean_val = x_orig.mean(dim=(0,1))
-        std_val = x_orig.std(dim=(0,1))
-        clip_val_max = mean_val + 3*std_val
-        clip_val_min = mean_val - 3*std_val
-        x_orig = torch.clip(x_orig, min=clip_val_min, max = clip_val_max)
-        x_orig = super().forward(x_orig)
-        return x_orig
+
+class AdaptiveActivationObserverFast(AdaptiveActivationObserver):
+    def __init__(self, *args, fast_mode=True, **kwargs):
+        super().__init__(*args, fast_mode=fast_mode, **kwargs)
+
 
 
 ####################################################################
 ADAPTIVE_WEIGHT_OBSERVER_TYPES = (AdaptiveWeightObserver,
                                   AdaptivePerChannelWeightObserver)
 
-ADAPTIVE_ACTIVATION_OBSERVER_TYPES = (AdaptiveActivationObserver, AdaptiveOutlierRemovalActivationObserver)
+ADAPTIVE_ACTIVATION_OBSERVER_TYPES = (AdaptiveActivationObserver,)
 
 ADAPTIVE_OBSERVER_TYPES = tuple(list(ADAPTIVE_WEIGHT_OBSERVER_TYPES) + list(ADAPTIVE_ACTIVATION_OBSERVER_TYPES))
 

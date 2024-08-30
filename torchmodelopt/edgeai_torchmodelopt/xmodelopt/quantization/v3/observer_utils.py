@@ -34,8 +34,8 @@ import math
 import random
 import torch
 import torch
-from torch.ao.quantization import MinMaxObserver, PerChannelMinMaxObserver, HistogramObserver, \
-    MovingAverageMinMaxObserver, MovingAveragePerChannelMinMaxObserver
+import torch.ao.quantization
+
 from .... import xnn
 
 
@@ -67,26 +67,30 @@ def ceil2_num(x):
 ####################################################################
 # histogram observer from torch.ao.quantization
 # (MSE based and includes merging of histograms across iterations)
-class MovingAverageMSEHistogramObserverBase(HistogramObserver):
-    def __init__(self, *args, range_shrink_percentile=None, **kwargs):
+class CumulativeMSEHistogramObserver(torch.ao.quantization.HistogramObserver):
+    def __init__(self, *args, range_shrink_percentile=None, fast_mode=False, **kwargs):
         super().__init__(*args, bins=256, upsample_rate=16, **kwargs)
+        self.fast_mode = fast_mode
 
     def forward(self, x_orig: torch.Tensor) -> torch.Tensor:
-        fast_mode = True
         fast_stride = 2
         fast_stride2 = fast_stride * 2
-        if fast_mode and len(x_orig.size()) == 4 and (x_orig.size(2) > fast_stride2) and (x_orig.size(3) > fast_stride2):
+        is_large_tensor4 = len(x_orig.size()) == 4 and (x_orig.size(-2) > fast_stride2) and (x_orig.size(-1) > fast_stride2)
+        is_large_tensor3 = len(x_orig.size()) == 3 and (x_orig.size(-1) > fast_stride2)
+        src = x_orig
+        if self.fast_mode and (is_large_tensor3 or is_large_tensor4):
             r_start = random.randint(0, fast_stride - 1)
             c_start = random.randint(0, fast_stride - 1)
-            src = x_orig[..., r_start::fast_stride, c_start::fast_stride]
-        else:
-            src = x_orig
+            if is_large_tensor4:
+                src = x_orig[..., r_start::fast_stride, c_start::fast_stride]
+            elif is_large_tensor3:
+                src = x_orig[..., r_start::fast_stride]
         #
         super().forward(src)
         return x_orig
 
 
-class MSEHistogramObserverBase(MovingAverageMSEHistogramObserverBase):
+class MSEHistogramObserver(CumulativeMSEHistogramObserver):
     def __init__(self, *args, range_shrink_percentile=None, **kwargs):
         super().__init__(*args, bins=256, upsample_rate=16, **kwargs)
 
@@ -101,7 +105,7 @@ RANGE_SHRINK_PERCENTILE_DEFAULT = 0.01
 RANGE_SHRINK_PERCENTILE_LOWBIT = 0.1
 
 
-class MovingAverageRangeShrinkHistogramObserverBase(MinMaxObserver):
+class MovingAverageRangeShrinkHistogramObserverBase(torch.ao.quantization.MinMaxObserver):
     # histogram observer may improve accuracy.
     # default histogram observer in torch.ao.quantization is too slow - so using a custom one
     def __init__(

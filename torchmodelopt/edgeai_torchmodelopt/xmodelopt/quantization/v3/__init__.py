@@ -31,5 +31,9 @@
 #################################################################################
 
 
+from .qconfig_types import *
 
-from .quant_pt2e_module import QATPT2EModule, PTQPT2EModule
+
+from . import quant_func
+
+from .quant_module import QATPT2EModule, PTQPT2EModule

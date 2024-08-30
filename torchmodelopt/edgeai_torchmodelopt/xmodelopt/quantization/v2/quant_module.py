@@ -1,4 +1,3 @@
-
 #################################################################################
 # Copyright (c) 2018-2023, Texas Instruments Incorporated - http://www.ti.com
 # All Rights Reserved.
@@ -30,10 +29,24 @@
 #
 #################################################################################
 
+import torch
+from .quant_fx_base import QuantFxBaseModule
+import warnings
 
-from .qconfig_types import *
+
+class QATFxModule(QuantFxBaseModule):
+    def __init__(self, *args, backend='qnnpack', is_qat=True, **kwargs):
+        warnings.warn("Fx based quantization wrapper will be depercated in the future after pt2e quantization wrapper is completed.")
+        super().__init__(*args, is_qat=is_qat, backend=backend, **kwargs)
 
 
-from . import quant_func
-
-from .quant_module import QATFxModule, PTCFxModule
+class PTCFxModule(QuantFxBaseModule):
+    '''
+    Post Training Calibration (PTC) for Quantization is similar to Post Training Quantization
+    PTC can be integrated inton the training script easily with couple of lines of change. 
+    It is faster than QAT as it doesn't actively train the weights.
+    '''
+    def __init__(self, *args, backend='qnnpack', is_qat=False, bias_calibration_factor=0.01, num_batch_norm_update_epochs=0, num_observer_update_epochs=1, **kwargs):
+        warnings.warn("Fx based quantization wrapper will be depercated in the future after pt2e quantization wrapper is completed.")
+        super().__init__(*args, is_qat=is_qat, backend=backend, bias_calibration_factor=bias_calibration_factor, \
+            num_batch_norm_update_epochs=num_batch_norm_update_epochs, num_observer_update_epochs=num_observer_update_epochs, **kwargs)
