@@ -201,14 +201,9 @@ def forward(self, *input, **kwargs):
 
 
 def convert(self, device="cpu", make_copy=False):
-    model = self.to(device=device)
-
     orig_quant_params = copy.deepcopy(self.__quant_params__)
     model = copy.deepcopy(self).eval() if make_copy else self.eval()
-    # convert requires cpu model 
-    #TODO check of this is required
-    # self.to(torch.device(device))
-    # now do the actual conversion
+    model = model.to(device=device)
     model = convert_pt2e(model)
     torch.ao.quantization.move_exported_model_to_eval(model)
     model.eval = types.MethodType(train, model)

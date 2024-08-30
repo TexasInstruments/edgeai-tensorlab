@@ -245,7 +245,7 @@ class QuantLayerNorm(torch.nn.Module):
 def register_onnx_symbolics():
     
     def aten_softmax(g: jit_utils.GraphContext, input, dim, *args):
-        output = g.op("Softmax", input) #FIXME need to pass dim as well, TIDL needs axis 
+        output = g.op("Softmax", input) #FIXME need to pass dim as well, TIDL needs axis, default works though
         return output
 
     def aten_unsafe_view(g, x, dim, *args):
@@ -281,6 +281,26 @@ def register_onnx_symbolics():
     def aten_copy(g, x, *args):
         return x
     
+    def aten_batchnorm(g, x, weight, bias, running_mean, running_var, momentum, eps):
+        print("Batchnorm from _native_batch_norm_legit_no_training might be buggy, haven't tested it yet.")
+        # Tensor input, Tensor? weight, Tensor? bias, Tensor running_mean, Tensor running_var, float momentum, float eps
+
+        weight, bias, running_mean, running_var = symbolic_helper._batchnorm_helper(
+            g, x, weight, bias, running_mean, running_var
+        )
+        out = g.op(
+            "BatchNormalization",
+            x,
+            weight,
+            bias,
+            running_mean,
+            running_var,
+            # epsilon_f=eps,
+            # momentum_f=1 - momentum,
+            outputs=1,
+        )
+        return out, out, out       
+    
     
     register_custom_op_symbolic(
         symbolic_name='aten::lift_fresh_copy',
@@ -304,6 +324,11 @@ def register_onnx_symbolics():
         symbolic_fn=aten_unsafe_view, 
         opset_version=17)
 
+    register_custom_op_symbolic(
+        symbolic_name='aten::_native_batch_norm_legit_no_training', 
+        symbolic_fn=aten_batchnorm, 
+        opset_version=17)
+    
     register_custom_op_symbolic(
         symbolic_name='quantized_decomposed::quantize_per_tensor', 
         symbolic_fn=quantized_decomposed_quantize, 
