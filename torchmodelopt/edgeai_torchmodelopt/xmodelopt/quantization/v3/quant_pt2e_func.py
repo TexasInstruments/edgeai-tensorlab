@@ -63,7 +63,7 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
     
     if not total_epochs:
         if not is_qat:
-            total_epochs = 1
+            total_epochs = 2
         else:
             raise RuntimeError("total_epochs must be provided")
 
