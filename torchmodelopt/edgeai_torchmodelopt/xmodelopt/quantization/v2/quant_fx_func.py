@@ -82,15 +82,15 @@ def init(model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qn
     
     if has_timm:
         replacement_dict={
-            models.vision_transformer.Attention : quant_fx_utils.QuantAttention,
-            models.swin_transformer.WindowAttention : quant_fx_utils.QuantAttention,
-            nn.LayerNorm : quant_fx_utils.QuantLayerNorm,
-            'permute' : custom_surgery_functions.replace_permute_layer
+            "attention_to_quant_attention": {models.vision_transformer.Attention: quant_fx_utils.QuantAttention},
+            "window_attention_to_quant_attention": {models.swin_transformer.WindowAttention: quant_fx_utils.QuantAttention},
+            "layer_norm_to_quant_layer_norm": {nn.LayerNorm: quant_fx_utils.QuantLayerNorm},
+            "permute_change_to_export":{'permute': custom_surgery_functions.replace_permute_layer}
         }
     else:
         replacement_dict={
-            nn.LayerNorm : quant_fx_utils.QuantLayerNorm,
-            'permute' : custom_surgery_functions.replace_permute_layer
+            "layer_norm_to_quant_layer_norm": {nn.LayerNorm: quant_fx_utils.QuantLayerNorm},
+            "permute_change_to_export":{'permute': custom_surgery_functions.replace_permute_layer}
         }
         
     orig_device = next(model.parameters()).device
