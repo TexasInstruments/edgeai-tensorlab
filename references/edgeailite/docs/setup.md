@@ -32,8 +32,7 @@ From SDK/TIDL version 9.0, the Python version required is 3.10 (Note: Prior to S
 pyenv install 3.10
 pyenv virtualenv 3.10 torchvision
 pyenv activate torchvision
-pip install --upgrade pip
-pip install --upgrade setuptools
+pip3 install --no-input --upgrade pip==24.2 setuptools==73.0.0
 ```
 
 Activation of Python environment - this activation step needs to be done everytime one starts a new terminal or shell. (Alternately, this also can be written to the .bashrc, so that this will be the default penv environment).

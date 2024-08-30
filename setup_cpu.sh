@@ -51,9 +51,6 @@ pip3 install --no-input torchinfo pycocotools opencv-python
 echo "installing requirements"
 pip3 install --no-input -r requirements.txt
 
-######################################################################
-# can we move this inside the requirements file is used.
-pip3 install --no-input protobuf==3.20.2 onnx==1.13.0
 
 ######################################################################
 # no need to do this build/install torchvision from this repo - we can use off-the-shelf torchvision installed above along with torch install
@@ -67,3 +64,6 @@ pip3 install -e ./references/edgeailite/
 
 #pip install git+https://github.com/TexasInstruments/edgeai-modeloptimization.git@main#subdirectory=torchmodelopt
 pip install -e ../edgeai-modeloptimization/torchmodelopt
+
+######################################################################
+pip3 install --no-input protobuf==3.20.2 onnx==1.13.0
