@@ -50,19 +50,6 @@ def is_fake_quant_with_param(self, pmodule, cmodule, fake_quant_types):
     return isinstance(cmodule, fake_quant_types) and num_params > 0
 
 
-def quantized_softmax(g: jit_utils.GraphContext, x, dim, op_scale, op_zero_point):
-    x, _, _, _ = symbolic_helper.dequantize_helper(g, x)
-    output = g.op("Softmax", x)
-    return symbolic_helper.quantize_helper(g, output, op_scale, op_zero_point)
-
-
-# def quantized_matmul(g: jit_utils.GraphContext, x, y, op_scale, op_zero_point):
-#     x, _, _, _ = symbolic_helper.dequantize_helper(g, x)
-#     y, _, _, _ = symbolic_helper.dequantize_helper(g, y)
-#     output = g.op("MatMul", x, y)
-#     return symbolic_helper.quantize_helper(g, output, op_scale, op_zero_point)
-
-
 @torch.fx.wrap
 def _get_rel_pos_bias(relative_position_bias_table, relative_position_index, window_area) -> torch.Tensor:
     relative_position_bias = relative_position_bias_table[
@@ -164,11 +151,6 @@ def register_onnx_symbolics():
         
         return symbolic_helper.quantize_helper(g, x, op_scale, op_zero_point)
 
-    def quantized_decomposed_dequantize(g, x, op_scale, op_zero_point, *args):
-        # Tensor input, float scale, int zero_point, int quant_min, int quant_max, ScalarType dtype, *, ScalarType? out_dtype=None
-        x, _, _, _ = symbolic_helper.dequantize_helper(g, x)
-        return x
-
     def quantized_decomposed_quantize_channel(g, x, op_scale, op_zero_point, axis, quant_min, quant_max, dtype, *args):
         # Tensor input, Tensor scales, Tensor zero_points, int axis, int quant_min, int quant_max, ScalarType dtype, *, Tensor(a!) out) -> Tensor(a!)
         # x, _, _, _ = symbolic_helper.dequantize_helper(g, x)
@@ -180,6 +162,16 @@ def register_onnx_symbolics():
         
         return symbolic_helper.quantize_helper(g, x, op_scale, op_zero_point, axis)
     
+    def quantized_decomposed_dequantize(g, x, op_scale, op_zero_point, *args):
+        # Tensor input, float scale, int zero_point, int quant_min, int quant_max, ScalarType dtype, *, ScalarType? out_dtype=None, Tensor(a!) out
+        x, _, _, _ = symbolic_helper.dequantize_helper(g, x)
+        return x
+    
+    def quantized_decomposed_dequantize_channel(g, x, op_scale, op_zero_point, axis, *args):
+        # Tensor input, Tensor scales, Tensor? zero_points, int axis, int quant_min, int quant_max, ScalarType dtype, *, ScalarType? out_dtype=None, Tensor(a!) out
+        x, _, _, _ = symbolic_helper.dequantize_helper(g, x)
+        return x
+
     def aten_copy(g, x, *args):
         return x
     
@@ -248,7 +240,7 @@ def register_onnx_symbolics():
 
     register_custom_op_symbolic(
         symbolic_name='quantized_decomposed::dequantize_per_channel', 
-        symbolic_fn=quantized_decomposed_dequantize, 
+        symbolic_fn=quantized_decomposed_dequantize_channel, 
         opset_version=17)
     
     
@@ -370,8 +362,6 @@ def _fc_outlier_supression_hook(m, x):
     std_val = x.std(dim=(0,1))
     clip_val_max = mean_val + 3*std_val
     clip_val_min = mean_val - 3*std_val
-    # clip_val_max = mean_val - 3*std_val
-    # clip_val_min = mean_val + 3*std_val
     x = torch.clip(x, min=clip_val_min, max = clip_val_max)
     return tuple([x])
 

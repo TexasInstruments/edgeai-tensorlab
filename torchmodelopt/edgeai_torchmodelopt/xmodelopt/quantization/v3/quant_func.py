@@ -140,9 +140,9 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
 
 def insert_all_hooks(model, insert_outlier_hook=True, insert_bias_hook = True):
     if len(model.__quant_params__.outlier_hooks)==0 and insert_outlier_hook:
-        model.__quant_params__.outlier_hooks += quant_pt2e_utils.add_fc_outlier_supression_hook(model)
+        model.__quant_params__.outlier_hooks += quant_utils.add_fc_outlier_supression_hook(model)
     if len(model.__quant_params__.bias_hooks)==0 and insert_bias_hook:
-        model.__quant_params__.bias_hooks += quant_pt2e_utils.add_bias_calibration_hook(model, \
+        model.__quant_params__.bias_hooks += quant_utils.add_bias_calibration_hook(model, \
                 calibration_factor = model.__quant_params__.bias_calibration_factor)
     return model
 
@@ -236,7 +236,6 @@ def train(self, mode: bool = True):
         if freeze_observers and len(self.__quant_params__.outlier_hooks)>0:
             self.__quant_params__.outlier_hooks = remove_hooks(self.__quant_params__.outlier_hooks)
           
-        quant_utils.adjust_gradual_quantization(self)
         self.__quant_params__.num_epochs_tracked += 1
     else:
         self.__quant_params__.bias_hooks = remove_hooks(self.__quant_params__.bias_hooks)                      
@@ -269,8 +268,12 @@ def export(self, example_input, filename='model.onnx', opset_version=17, model_q
            simplify=False, skipped_optimizers=None, device='cpu', make_copy=True):
     model = convert(self, device=device, make_copy=make_copy)
     # model, example_input = create_batch1_model(model, example_input)
-    model = quant_pt2e_utils.remove_loss_branch(model) 
-    quant_pt2e_utils.register_onnx_symbolics()
+    model = quant_utils.remove_loss_branch(model) 
+    quant_utils.register_onnx_symbolics()
+    from torch.fx import passes
+    g = passes.graph_drawer.FxGraphDrawer(model, "try_model")
+    with open('/home/a0491009/quantization/svg_files/prepared_qat_fx.svg', "wb") as f:
+        f.write(g.get_dot_graph().create_svg())
      
     if model_quant_format == ModelQuantFormat.INT_MODEL:
         # # Convert QDQ format to Int8 format
