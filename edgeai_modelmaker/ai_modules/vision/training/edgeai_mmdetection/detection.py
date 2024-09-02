@@ -358,8 +358,13 @@ class ModelTraining:
         config_strs += [f'work_dir   = "{self.params.training.training_path}"']
         config_strs += [f'classes = {classes}']
         config_strs += [f'data_root   = "{self.params.dataset.dataset_path}"']
-        config_strs += [f'total_epochs   = {self.params.training.training_epochs}']
+        config_strs += [f'max_epochs   = {self.params.training.training_epochs}']
         config_strs += [f'export_onnx_model=True']
+        config_strs += [f'optim_wrapper=dict(\n'
+                        f'  optimizer=dict(\n'
+                        f'    lr={self.params.training.learning_rate}\n'
+                        f'  ) \n'                            
+                        f') \n']
         config_strs += [f'model=dict(\n'
                         f'  bbox_head=dict(\n'
                         f'    num_classes={self.params.training.num_classes}\n'
