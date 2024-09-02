@@ -50,6 +50,7 @@ from transformers import (
 from transformers.trainer_utils import get_last_checkpoint
 from transformers.utils import check_min_version, send_example_telemetry
 from transformers.utils.versions import require_version
+import copy
 
 from edgeai_torchmodelopt import xmodelopt
 
@@ -407,6 +408,7 @@ def main():
         revision=model_args.model_revision,
         token=model_args.token,
         trust_remote_code=model_args.trust_remote_code,
+        attn_implementation="eager" # the default is sdpa mode, need to use eager for proper quantization
     )
     model = AutoModelForImageClassification.from_pretrained(
         model_args.model_name_or_path,
@@ -528,6 +530,7 @@ def main():
         convert_to_cuda = False if training_args.use_cpu else True
         
         if model_optimization_args.quantize_type == "QAT":
+            # epochs update in the quantization with every model.train() call, thus using the observer and batchnorm update accordingly
             num_observer_update_epochs = int(len(dataset["train"]) * ((training_args.num_train_epochs//2)+1) / (training_args.n_gpu*training_args.per_device_train_batch_size))
             num_batch_norm_update_epochs = int(len(dataset["train"]) * ((training_args.num_train_epochs//2)-1) / (training_args.n_gpu*training_args.per_device_train_batch_size))
             model = xmodelopt.quantization.v3.QATPT2EModule(model, total_epochs=training_args.num_train_epochs, is_qat=True, fast_mode=False,
@@ -581,7 +584,7 @@ def main():
         if hasattr(trainer.model, 'export'):
             trainer.model.export(example_input, filename=file_name, simplify=True, device=export_device)
         else:
-            trainer.model.eval()
+            export_model = copy.deepcopy(trainer.model.eval()).to(device=export_device)
             example_input = next(iter(dataset["validation"]))
             labels = example_input.pop('label')
             # example_input['labels'] = torch.tensor(example_input.pop('label')).unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1)
@@ -592,7 +595,7 @@ def main():
                     example_inputs += tuple([val.to(device=export_device)])
             else:
                 example_inputs = example_input.to(device=export_device)
-            torch.onnx.export(trainer.model, example_inputs, file_name, opset_version=17, training=torch._C._onnx.TrainingMode.PRESERVE)
+            torch.onnx.export(export_model, example_inputs, file_name, opset_version=17, training=torch._C._onnx.TrainingMode.PRESERVE)
             import onnx
             from onnxsim import simplify
             onnx_model = onnx.load(file_name)
@@ -601,8 +604,8 @@ def main():
             
         print("Model Export is now complete! \n")
        
-    if model_optimization_args.quantization:
-        trainer.model = trainer.model.convert()
+    # if model_optimization_args.quantization:
+    #     trainer.model = trainer.model.convert(device='cuda')
 
     # Evaluation
     if training_args.do_eval:
