@@ -115,6 +115,24 @@ flag_to_dict_entries:dict[str, dict] = {
 }
 
 
+def get_replacement_dict_default(groups_dw=None, group_size_dw=None, return_flags=True, **kwargs):
+    '''
+    when return_flags is True, returns default flag dictionary with the fllowing structure.
+        key: a flag string
+        value: True/False if it is registered in 'flag_to_dict_entries' else a dictionary containing the replacement entries corresponding to it
+    otherwise, returns flag_to_dict_entries containing the following type of key/value pairs
+        key: a string
+        value: a dict with keys as module types to be replaced and values as the replacement functions/modules
+    '''
+    flag_to_dict_entries['conv2d_to_conv2d_dw_conv2d'][torch.nn.Conv2d][1].update(groups_dw=groups_dw, group_size_dw=group_size_dw)
+    if return_flags:
+        ret_val = default_replacement_flag_dict
+    else:
+        ret_val = flag_to_dict_entries
+    
+    return ret_val
+
+
 def _get_replacement_dict(replacement_flag_dict=None):
     '''
     this function actually converts the flags mapped to True to their corresponding replacements
@@ -134,24 +152,6 @@ def _get_replacement_dict(replacement_flag_dict=None):
                 continue
         replacement_dict.update(v)
     return replacement_dict
-
-
-def get_replacement_dict_default(groups_dw=None, group_size_dw=None, return_flags=True, **kwargs):
-    '''
-    when return_flags is True, returns default flag dictionary with the fllowing structure.
-        key: a flag string
-        value: True/False if it is registered in 'flag_to_dict_entries' else a dictionary containing the replacement entries corresponding to it
-    otherwise, returns flag_to_dict_entries containing the following type of key/value pairs
-        key: a string
-        value: a dict with keys as module types to be replaced and values as the replacement functions/modules
-    '''
-    flag_to_dict_entries['conv2d_to_conv2d_dw_conv2d'][torch.nn.Conv2d][1].update(groups_dw=groups_dw, group_size_dw=group_size_dw)
-    if return_flags:
-        ret_val = default_replacement_flag_dict
-    else:
-        ret_val = flag_to_dict_entries
-    
-    return ret_val
 
 
 # this function can be used after creating the model to transform it into a lite model.

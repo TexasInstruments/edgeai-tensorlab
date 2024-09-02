@@ -120,17 +120,17 @@ flag_to_dict_entries:dict [str:dict] ={
 
 
 # returns default dictionary for replacement
-def get_replacement_flag_dict_default():
+def get_replacement_flag_dict_default(return_flags = True):
     '''
     returns the default flag dictionary.
     to see the dict print 'default_replacement_flag_dict' from the file this function is in
     '''
-    return default_replacement_flag_dict
+    return default_replacement_flag_dict if return_flags else flag_to_dict_entries
 
 
 def get_replacement_dict(
     replacement_flag_dict: dict[str|nn.Module|FunctionType|type,bool|nn.Module|FunctionType|type|tuple[FunctionType,FunctionType]]=None,
-    can_retrain:bool = True
+    can_retrain:bool = True,
     ):
     '''
     this function actually converts the flags mapped to True to their corresponding replacements

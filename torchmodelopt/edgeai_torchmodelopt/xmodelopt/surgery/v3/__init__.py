@@ -118,12 +118,12 @@ flag_to_dict_entries:dict [str:dict] ={
 
 
 # returns default dictionary for replacement
-def get_replacement_flag_dict_default():
+def get_replacement_flag_dict_default(return_flags = True):
     '''
     returns the default flag dictionary.
     to see the dict print 'default_replacement_flag_dict' from the file this function is in
     '''
-    return default_replacement_flag_dict
+    return default_replacement_flag_dict if return_flags else flag_to_dict_entries
 
 
 def get_replacement_dict(
@@ -173,7 +173,6 @@ def get_replacement_dict(
             if not isinstance(v,dict):
                 warnings.warn(f'if {k} is not a default flag or its value is not a boolean, the value must be a dict. So, this entry will be discarded!')
                 continue
-        
         
         for k1,v1 in v.items():
             if isinstance(k1,nn.Module):

@@ -1,4 +1,5 @@
 import torch
+import os
 from itertools import chain
 from torch.fx.passes.graph_drawer import FxGraphDrawer,_WEIGHT_TEMPLATE
 from torch.fx.node import _format_arg
@@ -404,6 +405,7 @@ def clean(model:fx.GraphModule):
 
 
 def save_svg_pt2e(model, model_name, path_to_export = '.', hanging_nodes=True):
+    os.makedirs(path_to_export, exist_ok=True)
     if not hanging_nodes:
         model_name += '_nh'
         model = clean(model)
@@ -417,6 +419,7 @@ def save_svg_pt2e(model, model_name, path_to_export = '.', hanging_nodes=True):
 
 
 def save_svg_fx(model, model_name, path_to_export = '.', hanging_nodes=True):
+    os.makedirs(path_to_export, exist_ok=True)
     if not hanging_nodes:
         model_name += '_nh'
         model = clean(model)
