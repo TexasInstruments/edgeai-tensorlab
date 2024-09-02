@@ -58,24 +58,14 @@ from . import replacer
 __all__ = ['_replace_unsupported_layers',]
 
 
-def _replace_unsupported_layers(model:nn.Module, example_input:list=[], example_kwargs:dict={}, replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, aten_graph:bool = False, copy_args:list=[], verbose_mode:bool=False):
+def _replace_unsupported_layers(model:nn.Module, example_input:list=[], example_kwargs:dict={}, replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, aten_graph:bool = False, copy_attrs:list=[], verbose_mode:bool=False):
     
     
     # assuming if it is a graph module it is generated through dynamo export 
     # TODO make symbolic trace generated module is goes through dynamo export
     traced_model,_ =(model,None) if isinstance(model,GraphModule) else torch_dynamo.export(model,aten_graph=aten_graph,assume_static_by_default=True)(*example_input,**example_kwargs) 
     
-    wanted_sources = set()
-    for pattern in replacement_dict:
-        if isinstance(pattern,type):
-            wanted_sources.add(pattern)
-        elif isinstance(pattern,nn.Module):
-            wanted_sources.add(type(pattern))
-        elif isinstance(pattern,(FunctionType,BuiltinFunctionType)):
-            wanted_sources.add(pattern)
-    
     replacer.__net_module_replaced = 0
-    print(replacement_dict)
     
     for pattern, replacement in replacement_dict.items():
         if pattern is None:

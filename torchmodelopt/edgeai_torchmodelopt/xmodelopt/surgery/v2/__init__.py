@@ -120,17 +120,17 @@ flag_to_dict_entries:dict [str:dict] ={
 
 
 # returns default dictionary for replacement
-def get_replacement_flag_dict_default():
+def get_replacement_flag_dict_default(return_flags = True):
     '''
     returns the default flag dictionary.
     to see the dict print 'default_replacement_flag_dict' from the file this function is in
     '''
-    return default_replacement_flag_dict
+    return default_replacement_flag_dict if return_flags else flag_to_dict_entries
 
 
 def get_replacement_dict(
     replacement_flag_dict: dict[str|nn.Module|FunctionType|type,bool|nn.Module|FunctionType|type|tuple[FunctionType,FunctionType]]=None,
-    can_retrain:bool = True
+    can_retrain:bool = True,
     ):
     '''
     this function actually converts the flags mapped to True to their corresponding replacements
@@ -160,7 +160,7 @@ def get_replacement_dict(
     return replacement_dict
 
 
-def replace_unsupported_layers(model:nn.Module, example_input:list=[], example_kwargs:dict={}, replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, aten_graph:bool = False, copy_args:list=[],  can_retrain=True, verbose_mode:bool=False):
+def replace_unsupported_layers(model:nn.Module, example_input:list=[], replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, copy_args:list=[],  can_retrain=True, verbose_mode:bool=False):
     #TODO write appropiate documentation for this function
     
     '''
@@ -196,7 +196,7 @@ def replace_unsupported_layers(model:nn.Module, example_input:list=[], example_k
     
     model = deepcopy(model)
     
-    final_model = _replace_unsupported_layers(model,example_input,example_kwargs,replacement_dict,aten_graph,copy_args,verbose_mode)
+    final_model = _replace_unsupported_layers(model, replacement_dict, copy_args, example_input, verbose_mode)
     
     if is_train_mode:
         final_model.train()

@@ -31,16 +31,9 @@
 
 import torch
 from torch import nn
-from torchvision import ops
 from typing import Union, Dict, Any
-from copy import deepcopy
-from torch.fx import GraphModule, symbolic_trace
+from torch.fx import GraphModule
 from inspect import isfunction, ismethod
-
-try:
-    from timm.layers.squeeze_excite import SEModule
-except:
-    SEModule = None
 
 from . import custom_modules, custom_surgery_functions
 from .replacer import graph_pattern_replacer,replace_module_nodes,replace_function_nodes

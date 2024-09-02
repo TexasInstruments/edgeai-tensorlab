@@ -139,19 +139,35 @@ class ReplacedModule(nn.Module):
             elif 'example_value' in node.meta:
                 self.inputs[node] = node.meta['example_value']
         self.module = self.gen_func(main_model,partition,aten_graph)
-        # print(self.module)
+        example_args,example_kwargs =self.input_adjustment_func(partition,self.inputs)
+        if self.module is not None:
+            x = None
+            arg_tensors = [x for x in example_args if isinstance(x, torch.Tensor)]
+            kwarg_tensors = [x for x in example_kwargs.values() if isinstance(x, torch.Tensor)]
+            if (param := next(main_model.parameters(),None)) is not None:
+                x = param
+            elif len(arg_tensors):   
+                x = arg_tensors[0]
+            elif len(kwarg_tensors):
+                x = kwarg_tensors[0]
+            
+            if x is not None:
+                self.module = self.module.to(device= x.device)
+            else:
+                print(f'A tensor couldn\'t be found to change the replaced module\'s device from cpu to main model\'s device, the module {partition.source} will not be changed.')
+                self.module = None
+            
         if trace_through and self.module is not None:
             try:
-                example_args,example_kwargs =self.input_adjustment_func(partition,self.inputs)
                 self.module, _ = torch_dynamo.export(self.module,aten_graph=aten_graph,assume_static_by_default=True)(*example_args,**example_kwargs)
                 num_inputs = len([node for node in self.module.graph.nodes if node.op == 'placeholder'])
                 out_nodes = [node for node in self.module.graph.nodes if node.op == 'output']
                 num_outputs = len(out_nodes[0].args[0])
                 if num_inputs != len(partition.input_nodes) and num_outputs != len(partition.output_nodes):
-                    print(f'Replacement has {num_inputs} inputs and {num_outputs} whereas original partition of {partition.source.__name__} has {len(partition.input_nodes)} inputs {len(partition.output_nodes)} outputs. So replacement is not possible.')
+                    print(f'Replacement has {num_inputs} inputs and {num_outputs} whereas original partition of {partition.source} has {len(partition.input_nodes)} inputs {len(partition.output_nodes)} outputs. So the module {partition.source} will not be changed.')
                     self.module = None
             except Exception as e:
-                print(f'While creating a replacement for the partition of {partition.source.__name__} found exception {e.with_traceback()}. So, no replacement will be done')
+                print(f'While creating a replacement for the partition of {partition.source} found exception {e}. So,the module {partition.source} will not be changed.')
                 self.module = None
 
                 

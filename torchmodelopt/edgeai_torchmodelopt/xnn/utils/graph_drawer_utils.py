@@ -1,4 +1,5 @@
 import torch
+import os
 from itertools import chain
 from torch.fx.passes.graph_drawer import FxGraphDrawer,_WEIGHT_TEMPLATE
 from torch.fx.node import _format_arg
@@ -331,8 +332,12 @@ class CustomPT2EGraphDrawer(FxGraphDrawer):
                         
                         if hasattr(value,'shape') and len(value.shape):
                             shape= list(value.shape) 
-                        elif isinstance(value, Iterable) and not isinstance(value,(str,torch.Tensor)):
-                            shape = [(list(a.shape) if (hasattr(value,'shape') and len(list(a.shape))) else a) for a in value]
+                        elif isinstance(value, (list, tuple)) :
+                            shape = []
+                            for val in value:
+                                if hasattr(val,'shape') and len(val.shape) != 0:
+                                    shape.append(list(val.shape))
+                                else: shape.append(val)
                         else:
                             shape = value
                         label = str (shape)
@@ -368,8 +373,13 @@ class CustomPT2EGraphDrawer(FxGraphDrawer):
 
                     if hasattr(value,'shape') and len(value.shape):
                         shape= list(value.shape) 
-                    elif isinstance(value, Iterable) and not isinstance(value,(str,torch.Tensor)):
-                        shape = [(list(a.shape) if (hasattr(value,'shape') and len(list(a.shape))) else a) for a in value]
+                    elif isinstance(value, (list, tuple)):
+                        shape = []
+                        for val in value:
+                            if hasattr(val,'shape') and len(val.shape) != 0:
+                                shape.append(list(val.shape))
+                            else:
+                                shape.append(val)
                     else:
                         shape = value
                     label = str(shape)
@@ -394,12 +404,13 @@ def clean(model:fx.GraphModule):
     return model  
 
 
-def save_svg_pt2e(model, model_name, hanging_nodes=True):
+def save_svg_pt2e(model, model_name, path_to_export = '.', hanging_nodes=True):
+    os.makedirs(path_to_export, exist_ok=True)
     if not hanging_nodes:
         model_name += '_nh'
         model = clean(model)
     g = CustomPT2EGraphDrawer(model,model_name, )
-    with open(f'/home/a0507161/Kunal/Quantization_exp/pt2e_exp/{model_name}_pt2e.svg', "wb") as f:
+    with open(f'{path_to_export}/{model_name}_pt2e.svg', "wb") as f:
         try:
             f.write(g.get_dot_graph().create_svg())
         except Exception as e:
@@ -407,12 +418,13 @@ def save_svg_pt2e(model, model_name, hanging_nodes=True):
             raise e
 
 
-def save_svg_fx(model, model_name, hanging_nodes=True):
+def save_svg_fx(model, model_name, path_to_export = '.', hanging_nodes=True):
+    os.makedirs(path_to_export, exist_ok=True)
     if not hanging_nodes:
         model_name += '_nh'
         model = clean(model)
     g = CustomFxGraphDrawer(model,model_name)
-    with open(f'/home/a0507161/Kunal/Quantization_exp/pt2e_exp/{model_name}_fx.svg', "wb") as f:
+    with open(f'{path_to_export}/{model_name}_fx.svg', "wb") as f:
         try:
             f.write(g.get_dot_graph().create_svg())
         except Exception as e:
