@@ -159,7 +159,7 @@ def get_configs(settings, work_dir):
                 model_path=f'../edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/efficientdet_effb0_bifpn_lite_512x512_20240612_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 32.2}, model_shortlist=None, compact_name='efficientDet-b0-bifpn-lite-coco-512x512', shortlisted=False)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 32.2}, model_shortlist=100, compact_name='efficientDet-b0-bifpn-lite-coco-512x512', shortlisted=False)
         ),
     }
     return pipeline_configs
