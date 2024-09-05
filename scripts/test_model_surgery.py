@@ -47,7 +47,7 @@ def get_args_parser(add_help = True):
     )
     parser.add_argument('--original-accuracy','--acc',dest='orig_acc', default=78, type=float, help='accuracy of original model')
     parser.add_argument('--result-path',type=str,default=None,help='path to csv file that will store all result (default: result.csv in parent directory of output directory)')
-    parser.add_argument("--opset-version", default='18', type=str, help="ONNX Opset version")
+    parser.add_argument("--opset-version", default='17', type=str, help="ONNX Opset version")
     return parser
 
 

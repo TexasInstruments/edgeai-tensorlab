@@ -42,12 +42,21 @@ val_resize_size=232 #256 #232
 val_crop_size=224
 
 # --quantization-type can be one of: WT8SP2_AT8SP2, WC8_AT8
+# WC8_AT8SP2 would mean : 
+#          Weight     -   channel-wise 8-bit quantized
+#          Activation -   tensor-wise 8-bit quantized with a power-2 scale 
 
-#=========================================================================================
+#==================================QAT=====================================================
+# command="./references/classification/train.py --data-path=./data/datasets/imagenet \
+# --epochs=25 --batch-size=64 --wd=4e-5 --lr=0.0001 --lr-scheduler=cosineannealinglr --lr-warmup-epochs=1 \
+# --model=${model} --model-surgery=2 --quantization=2 --quantization-type=WT8SP2_AT8SP2 --quantization-method=QAT \
+# --train-epoch-size-factor=0.2 --opset-version=17 --val-resize-size=$val_resize_size --val-crop-size=$val_crop_size"
+
+#==================================PTC=====================================================
 command="./references/classification/train.py --data-path=./data/datasets/imagenet \
---epochs=25 --batch-size=64 --wd=4e-5 --lr=0.0001 --lr-scheduler=cosineannealinglr --lr-warmup-epochs=1 \
---model=${model} --model-surgery=2 --quantization=2 --quantization-type=WT8SP2_AT8SP2 \
---train-epoch-size-factor=0.2 --opset-version=18 --val-resize-size=$val_resize_size --val-crop-size=$val_crop_size"
+--epochs=3 --batch-size=64 --wd=4e-5 --lr=0.0001 --lr-scheduler=cosineannealinglr --lr-warmup-epochs=1 \
+--model=${model} --model-surgery=2 --quantization=2 --quantization-type=MSA_WC8_AT8 --quantization-method=PTC \
+--quantize-calib-images=100 --opset-version=17 --val-resize-size=$val_resize_size --val-crop-size=$val_crop_size"
 
 # training: single GPU (--device=cuda:0)or CPU (--device=cpu) run
 # python3 ${command} --weights=${model_weights} --output-dir=${output_dir}
