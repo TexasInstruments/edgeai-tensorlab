@@ -65,7 +65,7 @@ for i in ${!models[@]}; do
     command="./scripts/test_model_surgery.py --data-path=${dataset_path} --gpus=$gpus \
     --batch-size=${batch_sizes[$i]} --model=${model} \
     --original-accuracy=${ORIGINAL_ACCURACY[$i]} \
-    --opset-version=18 --val-resize-size=$val_resize_size --val-crop-size=$val_crop_size"
+    --opset-version=17 --val-resize-size=$val_resize_size --val-crop-size=$val_crop_size"
     output_dir="${out_dir}/${model}"
     echo $model
     echo $command --weights=${model_weights[$i]} --output-dir=${output_dir} --result-path=${result_path}

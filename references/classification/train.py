@@ -32,30 +32,31 @@ def train_one_epoch(model, criterion, optimizer, data_loader, device, epoch, arg
     for i, (image, target) in enumerate(metric_logger.log_every(data_loader, args.print_freq, header)):
         start_time = time.time()
         image, target = image.to(device), target.to(device)
-        with torch.cuda.amp.autocast(enabled=scaler is not None):
+        with torch.amp.autocast(device_type=device, enabled=scaler is not None):
             output = model(image)
             loss = criterion(output, target)
 
-        optimizer.zero_grad()
-        if scaler is not None:
-            scaler.scale(loss).backward()
-            if args.clip_grad_norm is not None:
-                # we should unscale the gradients of optimizer's assigned params if do gradient clipping
-                scaler.unscale_(optimizer)
-                nn.utils.clip_grad_norm_(model.parameters(), args.clip_grad_norm)
-            scaler.step(optimizer)
-            scaler.update()
-        else:
-            loss.backward()
-            if args.clip_grad_norm is not None:
-                nn.utils.clip_grad_norm_(model.parameters(), args.clip_grad_norm)
-            optimizer.step()
+        if not(args.dont_update_parameters):
+            optimizer.zero_grad()
+            if scaler is not None:
+                scaler.scale(loss).backward()
+                if args.clip_grad_norm is not None:
+                    # we should unscale the gradients of optimizer's assigned params if do gradient clipping
+                    scaler.unscale_(optimizer)
+                    nn.utils.clip_grad_norm_(model.parameters(), args.clip_grad_norm)
+                scaler.step(optimizer)
+                scaler.update()
+            else:
+                loss.backward()
+                if args.clip_grad_norm is not None:
+                    nn.utils.clip_grad_norm_(model.parameters(), args.clip_grad_norm)
+                optimizer.step()
 
-        if model_ema and i % args.model_ema_steps == 0:
-            model_ema.update_parameters(model)
-            if epoch < args.lr_warmup_epochs:
-                # Reset ema buffer to keep copying weights during warmup period
-                model_ema.n_averaged.fill_(0)
+            if model_ema and i % args.model_ema_steps == 0:
+                model_ema.update_parameters(model)
+                if epoch < args.lr_warmup_epochs:
+                    # Reset ema buffer to keep copying weights during warmup period
+                    model_ema.n_averaged.fill_(0)
 
         acc1, acc5 = utils.accuracy(output, target, topk=(1, 5))
         batch_size = image.shape[0]
@@ -234,8 +235,13 @@ def load_data(traindir, valdir, args):
 
 
 def export_model(args, model, epoch, model_name):
+    do_export = True
     if args.quantization:
-        if hasattr(model, "convert"):
+        if hasattr(model, "export"):
+            example_input = torch.rand((1,3,args.val_crop_size,args.val_crop_size))
+            model.export(example_input, os.path.join(args.output_dir, model_name))
+            do_export=False
+        elif hasattr(model, "convert"):
             model = model.convert()
         else:
             model = torch.ao.quantization.quantize_fx.convert_fx(model)
@@ -244,8 +250,11 @@ def export_model(args, model, epoch, model_name):
     else:
         export_device = next(model.parameters()).device
     #
-    example_input = torch.rand((1,3,args.val_crop_size,args.val_crop_size), device=export_device)
-    utils.export_on_master(model, example_input, os.path.join(args.output_dir, model_name), opset_version=args.opset_version)
+    if do_export:
+        example_input = torch.rand((1,3,args.val_crop_size,args.val_crop_size), device=export_device)
+        utils.export_on_master(model, example_input, os.path.join(args.output_dir, model_name), opset_version=args.opset_version)
+    
+    print("Model Export is now Complete!")
 
 
 def split_weights(weights_name):
@@ -333,12 +342,19 @@ def main(args):
     elif args.pruning == edgeai_torchmodelopt.xmodelopt.pruning.PruningVersion.PRUNING_FX: #2
         model = edgeai_torchmodelopt.xmodelopt.pruning.PrunerModule(model, pruning_ratio=args.pruning_ratio, total_epochs=args.epochs, pruning_init_train_ep=args.pruning_init_train_ep,
                                             pruning_class=args.pruning_class, pruning_type=args.pruning_type, pruning_global=args.pruning_global, pruning_m=args.pruning_m)
-    
+
     if args.quantization == edgeai_torchmodelopt.xmodelopt.quantization.QuantizationVersion.QUANTIZATION_LEGACY:
         dummy_input = torch.rand(1,3,args.val_crop_size,args.val_crop_size)
         model = edgeai_torchmodelopt.xmodelopt.quantization.v1.QuantTrainModule(model, dummy_input=dummy_input, total_epochs=args.epochs)
     elif args.quantization == edgeai_torchmodelopt.xmodelopt.quantization.QuantizationVersion.QUANTIZATION_FX:
-        model = edgeai_torchmodelopt.xmodelopt.quantization.v2.QATFxModule(model, total_epochs=args.epochs, qconfig_type=args.quantization_type)
+        if args.quantization_method == "QAT":
+            model = edgeai_torchmodelopt.xmodelopt.quantization.v2.QATFxModule(model, total_epochs=args.epochs, qconfig_type=args.quantization_type)
+        elif args.quantization_method in ("PTQ", "PTC"):
+            model = edgeai_torchmodelopt.xmodelopt.quantization.v2.PTCFxModule(model, total_epochs=args.epochs, qconfig_type=args.quantization_type,
+                                                                               dynamo_export=False, bias_calibration_factor=0.01)
+            args.train_epoch_size_factor = int(args.quantize_calib_images)/len(data_loader)
+            args.dont_update_parameters = True
+            
 
     if args.weights_url and args.test_only:
         print(f"loading pretrained checkpoint for test: {args.weights_url}")
@@ -645,11 +661,14 @@ def get_args_parser(add_help=True):
     parser.add_argument("--use-v2", action="store_true", help="Use V2 transforms")
     parser.add_argument("--weights-state-dict-name", default="model", type=str, help="the weights member name to load from the checkpoint")
 
+    parser.add_argument("--dont-update-parameters", default=False, type=bool, help="The model parameters will not be updated during training if this flag is set to True")
     # options to create faster models
     parser.add_argument("--model-surgery", "--lite-model", default=0, type=int, choices=edgeai_torchmodelopt.xmodelopt.surgery.SyrgeryVersion.get_choices(), help="model surgery to create lite models")
 
     parser.add_argument("--quantization", "--quantize", dest="quantization", default=0, type=int, choices=edgeai_torchmodelopt.xmodelopt.quantization.QuantizationVersion.get_choices(), help="Quaantization Aware Training (QAT)")
-    parser.add_argument("--quantization-type", default=None, help="Actual Quaantization Flavour - applies only if quantization is enabled")
+    parser.add_argument("--quantization-type", default=None, help="Actual Quantization Flavour - applies only if quantization is enabled")
+    parser.add_argument("--quantization-method", default=None, help="Quantization Method to be used - either PTC or QAT ")
+    parser.add_argument("--quantize-calib-images", default=100, help="Calibration Images for PTC - applies only if quantization and PTC is enabled")
 
     parser.add_argument("--pruning", default=0, type=int, help="Pruning/Sparsity")
     parser.add_argument("--pruning-ratio", default=0.640625, type=float, help="Pruning/Sparsity Factor - applies only if pruning is enabled")
@@ -660,7 +679,7 @@ def get_args_parser(add_help=True):
     parser.add_argument("--pruning-m", type=int, help="The value of m in n:m pruning. Used only in case of n:m pruning")
     
     parser.add_argument("--compile-model", default=0, type=int, help="Compile the model using PyTorch2.0 functionality")
-    parser.add_argument("--opset-version", default=18, type=int, help="ONNX Opset version")
+    parser.add_argument("--opset-version", default=17, type=int, help="ONNX Opset version")
     parser.add_argument("--train-epoch-size-factor", default=0.0, type=float,
                         help="Training validation breaks after one iteration - for quick experimentation")
     parser.add_argument("--val-epoch-size-factor", default=0.0, type=float,

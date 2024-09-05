@@ -47,7 +47,7 @@ val_crop_size=224
 command="./references/classification/train.py --data-path=./data/datasets/imagenet \
 --epochs=80 --batch-size=256 --wd=4e-5 --lr=0.005 --lr-scheduler=cosineannealinglr --lr-warmup-epochs=3 \
 --model=${model} --model-surgery=2 --quantization=0 --quantization-type=WT8SP2_AT8SP2 --val-epoch-size-factor=1 \
---train-epoch-size-factor=1 --opset-version=18 --val-resize-size=$val_resize_size --val-crop-size=$val_crop_size \
+--train-epoch-size-factor=1 --opset-version=17 --val-resize-size=$val_resize_size --val-crop-size=$val_crop_size \
 --pruning=2 --pruning-type=n2m --pruning-global=0 --pruning-ratio=0.640625 --pruning-m=64 --pruning-init-train-ep=5"
 
 # training: single GPU (--device=cuda:0)or CPU (--device=cpu) run

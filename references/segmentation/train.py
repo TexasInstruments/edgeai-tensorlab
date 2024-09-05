@@ -388,7 +388,7 @@ def get_args_parser(add_help=True):
 
     parser.add_argument("--backend", default="PIL", type=str.lower, help="PIL or tensor - case insensitive")
     parser.add_argument("--use-v2", action="store_true", help="Use V2 transforms")
-    parser.add_argument("--opset-version", default=18, help="ONNX Opset version")
+    parser.add_argument("--opset-version", default=17, help="ONNX Opset version")
     parser.add_argument("--train-epoch-size-factor", default=0.0, type=float,
                         help="Training validation breaks after one iteration - for quick experimentation")
     parser.add_argument("--val-epoch-size-factor", default=0.0, type=float,
