@@ -168,7 +168,7 @@ def _save_mmdet_proto_retinanet(cfg, model, input_size, output_filename, input_n
                                             confidence_threshold=0.3)
 
     retinanet = tidl_meta_arch_mmdet_pb2.TidlMaRetinaNet(box_input=reg_proto_names, class_input=cls_proto_names,
-                                              output=output_names, x_scale=1.0, y_scale=1.0, width_scale=1.0, height_scale=1.0,
+                                              output=output_names, x_scale=1.0, y_scale=1.0, width_scale=1.0, height_scale=1.0, x_offset=0.5, y_offset=0.5,
                                               in_width=input_size[3], in_height=input_size[2],
                                               score_converter=score_converter, anchor_param=anchor_param,
                                               detection_output_param=detection_output_param,

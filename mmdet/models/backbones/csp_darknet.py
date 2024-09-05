@@ -10,6 +10,17 @@ from torch.nn.modules.batchnorm import _BatchNorm
 from mmdet.registry import MODELS
 from ..layers import CSPLayer
 
+#weight initialization for conv layer of Focus_lite to \
+#behave same as Focus layer
+def custom_weights(m):
+    m.weight.data.fill_(0)
+    m.bias.data.fill_(0)
+    for i,w in enumerate(m.weight):
+        x=i%3
+        y=(i//3)%2
+        z=i//6
+        w.data[x][y][z] = 1  
+
 
 class Focus(nn.Module):
     """Focus width and height information into channel space.
@@ -120,6 +131,64 @@ class FocusLite(nn.Module):
         x = self.conv_in(x)
         return self.conv(x)
 
+
+class FocusLitePreInit(nn.Module):
+    """Focus width and height information into channel space.
+
+    Args:
+        in_channels (int): The input channels of this Module.
+        out_channels (int): The output channels of this Module.
+        kernel_size (int): The kernel size of the convolution. Default: 1
+        stride (int): The stride of the convolution. Default: 1
+        conv_cfg (dict): Config dict for convolution layer. Default: None,
+            which means using conv2d.
+        norm_cfg (dict): Config dict for normalization layer.
+            Default: dict(type='BN', momentum=0.03, eps=0.001).
+        act_cfg (dict): Config dict for activation layer.
+            Default: dict(type='Swish').
+    """
+
+    def __init__(self,
+                 in_channels,
+                 out_channels,
+                 kernel_size=1,
+                 stride=1,
+                 conv_cfg=None,
+                 norm_cfg=dict(type='BN', momentum=0.03, eps=0.001),
+                 act_cfg=dict(type='Swish')):
+        super().__init__()
+        self.conv_in = nn.Conv2d(
+            in_channels,
+            in_channels * 4,
+            kernel_size=2,
+            stride=2,
+            groups=1
+            )
+        self.conv_in.weight.requires_grad = False
+        self.conv_in.bias.requires_grad = False
+        self.conv = ConvModule(
+            in_channels * 4,
+            out_channels,
+            kernel_size,
+            stride,
+            padding=(kernel_size - 1) // 2,
+            conv_cfg=conv_cfg,
+            norm_cfg=norm_cfg,
+            act_cfg=act_cfg)
+        
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+        self.kernel_size = kernel_size
+        self.stride = stride
+        self.__pre_initialized__ = True
+
+        self.conv_in.apply(custom_weights)
+        
+    def forward(self, x):
+        # shape of x (b,c,w,h) -> y(b,4c,w/2,h/2)
+        x = self.conv_in(x)
+        return self.conv(x)
+    
 
 class SPPBottleneck(BaseModule):
     """Spatial pyramid pooling layer used in YOLOv3-SPP.
