@@ -29,18 +29,19 @@
 #
 #################################################################################
 
-import enum
 import torch
-import torch.nn as nn
+import enum
+import warnings
 import torch.ao.quantization
 from torch.ao.quantization import QConfig
 import torch.ao.quantization.quantize_fx
 from torch.ao.quantization.qconfig_mapping import _get_default_qconfig_mapping_with_default_qconfig
 
 from .... import xnn
+
 from . import observer_types
 from . import fake_quantize_types
-
+    
 
 class QConfigMethod(enum.Enum):
     DISABLED = 0
@@ -89,17 +90,20 @@ def get_repr_string_from_dict(input_dict):
 
 
 ####################################################################
-def get_weight_observer_from_dict(weight_qconfig):
+
+def get_weight_quantization_config(weight_qconfig, is_qat=True):
     observer_name = 'CustomAdaptiveWeightObserver' + '__' + get_repr_string_from_dict(weight_qconfig)
     weight_bitwidth = weight_qconfig.get('bitwidth', 8)
     weight_qscheme = weight_qconfig.get('qscheme', torch.per_channel_symmetric)
-    # qconfig
+	
     WeightObserverBaseToUse = observer_types.AdaptivePerChannelWeightObserver \
         if weight_qscheme == torch.per_channel_symmetric else observer_types.AdaptiveWeightObserver
+
     weight_observer = xnn.utils.partialclass(WeightObserverBaseToUse,
                                              quant_min=weight_qconfig.get('quant_min', -(2 ** (weight_bitwidth-1))),
                                              quant_max=weight_qconfig.get('quant_max', (2 ** (weight_bitwidth-1)) - 1),
                                              dtype=weight_qconfig.get('dtype', torch.qint8),
+                                             qscheme=weight_qconfig.get('qscheme', torch.per_tensor_symmetric),
                                              power2_scale=weight_qconfig.get('power2_scale', False),
                                              range_max=weight_qconfig.get('range_max', None),
                                              fixed_range=weight_qconfig.get('fixed_range', False),
@@ -107,10 +111,13 @@ def get_weight_observer_from_dict(weight_qconfig):
     return weight_observer
 
 
-def get_activation_observer_from_dict(activation_qconfig):
+def get_act_quantization_config(activation_qconfig, is_qat=True, fast_mode=False):
     observer_name = 'CustomAdaptiveActivationObserver' + get_repr_string_from_dict(activation_qconfig)
     activation_bitwidth = activation_qconfig.get('bitwidth', 8)
-    activation_observer = xnn.utils.partialclass(observer_types.AdaptiveActivationObserver,
+
+    AdaptiveActivationObserverToUse = observer_types.AdaptiveActivationObserverFast if fast_mode else observer_types.AdaptiveActivationObserver
+    
+    activation_observer = xnn.utils.partialclass(AdaptiveActivationObserverToUse,
                                              quant_min=activation_qconfig.get('quant_min', 0),
                                              quant_max=activation_qconfig.get('quant_max', (2 ** activation_bitwidth) - 1),
                                              dtype=activation_qconfig.get('dtype', torch.quint8),
@@ -120,74 +127,78 @@ def get_activation_observer_from_dict(activation_qconfig):
                                              fixed_range=activation_qconfig.get('fixed_range', False),
                                              class_name=activation_qconfig.get('observer_name', observer_name),
                                              range_shrink_percentile=activation_qconfig.get('range_shrink_percentile', 0.01))
+               
+    fake_quantized_activation_observer = fake_quantize_types.AdaptiveActivationFakeQuantize.with_args(observer=activation_observer) if is_qat else activation_observer
+    
     return activation_observer
 
 
-def get_qconfig_from_dict(qconfig_dict):
+def get_quantization_config(qconfig_dict, is_qat=True, fast_mode=False):
     # custom qconfig_type parameters are given in a dict
-    weight_observer = get_weight_observer_from_dict(qconfig_dict['weight']) if isinstance(qconfig_dict['weight'], dict) else qconfig_dict['weight']
-    activation_observer = get_activation_observer_from_dict(qconfig_dict['activation']) if isinstance(qconfig_dict['activation'], dict) else qconfig_dict['activation']
+    weight_observer = get_weight_quantization_config(qconfig_dict.get('weight', dict()), is_qat=is_qat)
+    activation_observer = get_act_quantization_config(qconfig_dict.get('activation', dict()), is_qat=is_qat, fast_mode=fast_mode)
+
     qconfig_obj = QConfig(weight=fake_quantize_types.AdaptiveWeightFakeQuantize.with_args(observer=weight_observer),
                           activation=fake_quantize_types.AdaptiveActivationFakeQuantize.with_args(observer=activation_observer))
     return qconfig_obj
 
 
 ####################################################################
-_QCONFIG_TYPE_TO_DICT = dict()
+def get_quantization_config_default(qconfig_type, is_qat=True, fast_mode=False):
+    _QCONFIG_TYPE_TO_DICT = dict()
 
-# per-channel
-_QCONFIG_TYPE_TO_DICT[QConfigType.WC8_AT8] = get_qconfig_from_dict(dict(
-    weight=dict(qscheme=torch.per_channel_symmetric),
-    activation=dict(qscheme=torch.per_tensor_affine)))
+    # per-channel
+    _QCONFIG_TYPE_TO_DICT[QConfigType.WC8_AT8] = get_quantization_config(dict(
+        weight=dict(qscheme=torch.per_channel_symmetric),
+        activation=dict(qscheme=torch.per_tensor_affine)), is_qat=is_qat, fast_mode=fast_mode)
 
-# per-channel transformers
-_QCONFIG_TYPE_TO_DICT[QConfigType.MSA_WC8_AT8] = get_qconfig_from_dict(dict(
-    weight=dict(qscheme=torch.per_channel_symmetric),
-    activation=dict(qscheme=torch.per_tensor_affine, range_shrink_percentile=0)))
+    # per-channel transformers
+    _QCONFIG_TYPE_TO_DICT[QConfigType.MSA_WC8_AT8] = get_quantization_config(dict(
+        weight=dict(qscheme=torch.per_channel_symmetric),
+        activation=dict(qscheme=torch.per_tensor_affine, range_shrink_percentile=0)), is_qat=is_qat, fast_mode=fast_mode)
 
-# symmetric power-of-2
-_QCONFIG_TYPE_TO_DICT[QConfigType.WT8SYMP2_AT8SYMP2] = get_qconfig_from_dict(dict(
-    weight=dict(qscheme=torch.per_tensor_symmetric, power2_scale=True),
-    activation=dict(qscheme=torch.per_tensor_symmetric, power2_scale=True)))
+    # symmetric power-of-2
+    _QCONFIG_TYPE_TO_DICT[QConfigType.WT8SYMP2_AT8SYMP2] = get_quantization_config(dict(
+        weight=dict(qscheme=torch.per_tensor_symmetric, power2_scale=True),
+        activation=dict(qscheme=torch.per_tensor_symmetric, power2_scale=True)), is_qat=is_qat, fast_mode=fast_mode)
 
-# per-channel symmetric power-of-2
-_QCONFIG_TYPE_TO_DICT[QConfigType.WC8SYMP2_AT8SYMP2] = get_qconfig_from_dict(dict(
-    weight=dict(qscheme=torch.per_channel_symmetric, power2_scale=True),
-    activation=dict(qscheme=torch.per_tensor_symmetric, power2_scale=True)))
+    # per-channel symmetric power-of-2
+    _QCONFIG_TYPE_TO_DICT[QConfigType.WC8SYMP2_AT8SYMP2] = get_quantization_config(dict(
+        weight=dict(qscheme=torch.per_channel_symmetric, power2_scale=True),
+        activation=dict(qscheme=torch.per_tensor_symmetric, power2_scale=True)), is_qat=is_qat, fast_mode=fast_mode)
 
-# per-channel symmetric power-of-2, fixed activation range
-_QCONFIG_TYPE_TO_DICT[QConfigType.WC8SYMP2_AT8SYMP2R4] = get_qconfig_from_dict(dict(
-    weight=dict(qscheme=torch.per_channel_symmetric, power2_scale=True),
-    activation=dict(qscheme=torch.per_tensor_symmetric, power2_scale=True, rage_max=4, fixed_range=True)))
+    # per-channel symmetric power-of-2, fixed activation range
+    _QCONFIG_TYPE_TO_DICT[QConfigType.WC8SYMP2_AT8SYMP2R4] = get_quantization_config(dict(
+        weight=dict(qscheme=torch.per_channel_symmetric, power2_scale=True),
+        activation=dict(qscheme=torch.per_tensor_symmetric, power2_scale=True, rage_max=4, fixed_range=True)), is_qat=is_qat, fast_mode=fast_mode)
 
-# 4 bit weight
-_QCONFIG_TYPE_TO_DICT[QConfigType.WC4_AT8] = get_qconfig_from_dict(dict(
-    weight=dict(bitwidth=4, qscheme=torch.per_channel_symmetric),
-    activation=dict(qscheme=torch.per_tensor_affine)))
+    # 4 bit weight
+    _QCONFIG_TYPE_TO_DICT[QConfigType.WC4_AT8] = get_quantization_config(dict(
+        weight=dict(bitwidth=4, qscheme=torch.per_channel_symmetric),
+        activation=dict(qscheme=torch.per_tensor_affine)), is_qat=is_qat, fast_mode=fast_mode)
 
-# 4 bit weight, restricted range
-_QCONFIG_TYPE_TO_DICT[QConfigType.WC4M4_AT8] = get_qconfig_from_dict(dict(
-    weight=dict(bitwidth=4, qscheme=torch.per_channel_symmetric, range_max=4),
-    activation=dict(qscheme=torch.per_tensor_affine)))
+    # 4 bit weight, restricted range
+    _QCONFIG_TYPE_TO_DICT[QConfigType.WC4M4_AT8] = get_quantization_config(dict(
+        weight=dict(bitwidth=4, qscheme=torch.per_channel_symmetric, range_max=4),
+        activation=dict(qscheme=torch.per_tensor_affine)), is_qat=is_qat, fast_mode=fast_mode)
 
-###########
-# _QCONFIG_TYPE_TO_DICT[QConfigType.DEFAULT] = _QCONFIG_TYPE_TO_DICT[QConfigType.WC8_AT8]
-_QCONFIG_TYPE_TO_DICT[QConfigType.DEFAULT] = _QCONFIG_TYPE_TO_DICT[QConfigType.MSA_WC8_AT8]
+    ###########
+    # _QCONFIG_TYPE_TO_DICT[QConfigType.DEFAULT] = _QCONFIG_TYPE_TO_DICT[QConfigType.WC8_AT8]
+    _QCONFIG_TYPE_TO_DICT[QConfigType.DEFAULT] = _QCONFIG_TYPE_TO_DICT[QConfigType.MSA_WC8_AT8]
 
-# Note: get_default_qat_qconfig from pytorch uses fused_moving_avg_obs_fake_quant and that cannot be exported to onnx
-#_QCONFIG_TYPE_TO_DICT[QConfigType.DEFAULT] = get_default_qat_qconfig()
+    return _QCONFIG_TYPE_TO_DICT[qconfig_type]
 
 ####################################################################
 
 
-def get_qconfig(is_qat, backend='qnnpack', qconfig_type=None):
+def get_qconfig(qconfig_type=None, is_qat=True, fast_mode=False, backend='qnnpack'):
     if isinstance(qconfig_type, QConfig):
         return qconfig_type
-    elif isinstance(qconfig_type, str) and qconfig_type in _QCONFIG_TYPE_TO_DICT:
-        qconfig_obj = _QCONFIG_TYPE_TO_DICT[qconfig_type]
+    elif isinstance(qconfig_type, str):
+        qconfig_obj = get_quantization_config_default(qconfig_type, is_qat=is_qat, fast_mode=fast_mode)
     elif isinstance(qconfig_type, dict):
         # custom qconfig_type parameters are given in a dict
-        qconfig_obj = get_qconfig_from_dict(is_qat=is_qat, backend=backend, qconfig_type=qconfig_type)
+        qconfig_obj = get_quantization_config(qconfig_type, is_qat=is_qat, fast_mode=fast_mode)
     else:
         raise RuntimeError("Unknown qconfig_type: " + str(qconfig_type))
     #
@@ -196,7 +207,7 @@ def get_qconfig(is_qat, backend='qnnpack', qconfig_type=None):
 
 def get_qconfig_mapping(is_qat, backend, qconfig_type=None):
     qconfig_type_base = qconfig_type[0] if isinstance(qconfig_type, (list,tuple)) else qconfig_type
-    qconfig_type = get_qconfig(is_qat, backend, qconfig_type_base)
+    qconfig_type = get_qconfig(qconfig_type=qconfig_type_base, is_qat=is_qat, backend=backend)
     qconfig_map = _get_default_qconfig_mapping_with_default_qconfig(is_qat, backend, qconfig_type)
     # apply specific qconfigs to specific types if needed
     qconfig_reuse = torch.ao.quantization.default_reuse_input_qconfig
@@ -211,46 +222,6 @@ def _apply_qconfig(pmodule, cmodule, cname, qconfig_aux, current_device):
     elif isinstance(cmodule, fake_quantize_types.ADAPTIVE_ACTIVATION_FAKE_QUANT_TYPES):
         setattr(pmodule, cname, qconfig_aux.activation().to(current_device))
     #
-
-
-def adjust_mixed_precision_qconfig(model, is_qat, backend, qconfig_type):
-    if not isinstance(qconfig_type, (list,tuple)) or len(qconfig_type) == 1:
-        return model
-
-    current_device = next(model.parameters()).device
-    qconfig_type_aux = qconfig_type[-1]
-    qconfig_aux = get_qconfig(is_qat, backend, qconfig_type_aux)
-
-    input_fake_quant_module = None
-    input_conv_module = None
-    output_linear_module = None
-    depthwise_conv_module = None
-    for pname, pmodule in list(model.named_modules()):
-        if not input_fake_quant_module and isinstance(pmodule, fake_quantize_types.AdaptiveActivationFakeQuantize):
-            # input activation_module
-            input_fake_quant_module = pmodule
-        if not input_conv_module and isinstance(pmodule, torch.nn.Conv2d) and pmodule.in_channels < 8:
-            # first conv module
-            input_conv_module = pmodule
-        if isinstance(pmodule, torch.nn.Linear):
-            # last linear module
-            output_linear_module = pmodule
-        if isinstance(pmodule, torch.nn.Conv2d) and pmodule.groups == pmodule.in_channels:
-            depthwise_conv_module = pmodule
-        #
-    #
-    for pname, pmodule in list(model.named_modules()):
-        for cname, cmodule in list(pmodule.named_children()):
-            if (pmodule is input_conv_module) or (pmodule is output_linear_module):
-                _apply_qconfig(pmodule, cmodule, cname, qconfig_aux, current_device)
-            # elif pmodule is depthwise_conv_module:
-            #     _apply_qconfig(pmodule, cmodule, cname, qconfig_aux, current_device)
-            elif cmodule is input_fake_quant_module:
-                _apply_qconfig(pmodule, cmodule, cname, qconfig_aux, current_device)
-            #
-        #
-    #
-    return model
 
 
 def is_softmax_present(node, find_level):

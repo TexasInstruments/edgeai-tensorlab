@@ -48,7 +48,7 @@ from .... import xnn
 from ...surgery.v2 import custom_surgery_functions, replace_unsupported_layers
 
 from . import qconfig_types
-from . import quant_fx_utils
+from . import quant_utils
 
 try:
     from timm import models
@@ -66,7 +66,7 @@ class ModelQuantFormat:
 
 def init(model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qnnpack",
             total_epochs=0, num_batch_norm_update_epochs=None, num_observer_update_epochs=None,
-            qconfig_mode=qconfig_types.QConfigMode.DEFAULT, add_methods=True, **kwargs):
+            qconfig_mode=qconfig_types.QConfigMode.DEFAULT, add_methods=True, dynamo_export=False, **kwargs):
 
     if hasattr(model, '__quant_params__'):
         print('IGNORED: quant init called on a model that was already quantized')
@@ -79,18 +79,39 @@ def init(model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qn
         else:
             raise RuntimeError("total_epochs must be provided")
     #
+
+    if dynamo_export:
+        example_inputs = example_inputs if example_inputs is not None else \
+            torch.ones(1,3,224,224).to(next(model.parameters()).device)
+        example_inputs = example_inputs[0] if isinstance(example_inputs, tuple) else example_inputs
+
+        if kwargs.get('convert_to_cuda', False):
+            for key, value in example_inputs.items():
+                example_inputs[key] = value.to(device='cuda:0')
+            model = model.to(device='cuda:0')
+
+        #orig_model = copy.deepcopy(model)
+
+        if isinstance(example_inputs, dict):
+            m, guards = torchdynamo.export(model, **example_inputs, aten_graph=False, assume_static_by_default=True)
+            print("Dynamo Export Completed ! \n\n")
+        else:
+            m, guards = torchdynamo.export(model, example_inputs, aten_graph=False, assume_static_by_default=True)
+        #
+        model = m
+		
     
     if has_timm:
         replacement_dict={
-            models.vision_transformer.Attention : quant_fx_utils.QuantAttention,
-            models.swin_transformer.WindowAttention : quant_fx_utils.QuantAttention,
-            nn.LayerNorm : quant_fx_utils.QuantLayerNorm,
-            'permute' : custom_surgery_functions.replace_permute_layer
+            "attention_to_quant_attention": {models.vision_transformer.Attention: quant_utils.QuantAttention},
+            "window_attention_to_quant_attention": {models.swin_transformer.WindowAttention: quant_utils.QuantAttention},
+            "layer_norm_to_quant_layer_norm": {nn.LayerNorm: quant_utils.QuantLayerNorm},
+            "permute_change_to_export":{'permute': custom_surgery_functions.replace_permute_layer}
         }
     else:
         replacement_dict={
-            nn.LayerNorm : quant_fx_utils.QuantLayerNorm,
-            'permute' : custom_surgery_functions.replace_permute_layer
+            "layer_norm_to_quant_layer_norm": {nn.LayerNorm: quant_utils.QuantLayerNorm},
+            "permute_change_to_export":{'permute': custom_surgery_functions.replace_permute_layer}
         }
         
     orig_device = next(model.parameters()).device
@@ -132,14 +153,7 @@ def init(model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qn
     model.__quant_params__.outlier_hooks = []
     model.__quant_params__.bias_hooks = []
     model.__quant_params__.bias_calibration_factor = kwargs.get("bias_calibration_factor", 0)
-
-    # related to adaptive quantization
-    model.__quant_params__.qconfig_mode = qconfig_types.QConfigMode(qconfig_mode)
-    model.__quant_params__.forzen_layer_names_list = []
-
     model = qconfig_types.adjust_matmul_inputs_qconfig(model)
-    # model = qconfig_types.adjust_fc_outlier_supression_deprecated(model)
-    model = qconfig_types.adjust_mixed_precision_qconfig(model, is_qat, backend, qconfig_type)
 
     if add_methods:
         # add a wrapper for model.train()
@@ -152,13 +166,18 @@ def init(model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qn
         model.convert = types.MethodType(convert, model)
         model.export = types.MethodType(export, model)
     #    
+    print("Model Preparation is now complete! ")
+    
+    model = insert_all_hooks(model)
     return model
 
 
-def insert_all_hooks(model):
-    # model.__quant_params__.outlier_hooks += quant_fx_utils.add_fc_outlier_supression_hook(model)
-    model.__quant_params__.bias_hooks += quant_fx_utils.add_bias_calibration_hook(model, \
-            calibration_factor = model.__quant_params__.bias_calibration_factor)
+def insert_all_hooks(model, insert_outlier_hook=True, insert_bias_hook = True):
+    # if len(model.__quant_params__.outlier_hooks)==0 and insert_outlier_hook:
+    #     model.__quant_params__.outlier_hooks += quant_utils.add_fc_outlier_supression_hook(model)
+    if len(model.__quant_params__.bias_hooks)==0 and insert_bias_hook:
+        model.__quant_params__.bias_hooks += quant_utils.add_bias_calibration_hook(model, \
+                calibration_factor = model.__quant_params__.bias_calibration_factor)
     return model
 
 
@@ -192,40 +211,37 @@ def forward(self, *input, **kwargs):
     return self(*input, **kwargs)
 
 
-def convert(self, device='cpu', model_quant_format=None, convert_custom_config=None, backend_config=None):          
-    self.__quant_params__.bias_hooks = remove_hooks(self.__quant_params__.bias_hooks)                      
-    self.__quant_params__.outlier_hooks = remove_hooks(self.__quant_params__.outlier_hooks)
-    freeze(self)
-    # convert requires cpu model
-    self.to(torch.device(device))
+def convert(self, device='cpu', model_quant_format=None, convert_custom_config=None, backend_config=None, make_copy=False):
+    orig_quant_params = copy.deepcopy(self.__quant_params__)
+    model = copy.deepcopy(self).eval() if make_copy else self.eval()
+    model = model.to(device=device)
     # now do the actual conversion
-    self = quantize_fx.convert_fx(self, convert_custom_config=convert_custom_config, backend_config=backend_config)
-    return self
+    model = quantize_fx.convert_fx(model, convert_custom_config=convert_custom_config, backend_config=backend_config)
+    model.eval = types.MethodType(train, model)
+    setattr(model, "__quant_params__", orig_quant_params)
+    return model
 
 
 def export(self, example_input, filename='model.onnx', opset_version=17, model_quant_format=None, preserve_qdq_model=True,
-           simplify=True, skipped_optimizers=None):
+           simplify=True, skipped_optimizers=None, device='cpu', make_copy=True):
+    
+    model = convert(self, device=device, make_copy=make_copy)
     
     register_custom_op_symbolic(
         symbolic_name='quantized::matmul', 
-        symbolic_fn=quant_fx_utils.quantized_matmul, 
+        symbolic_fn=quant_utils.quantized_matmul, 
         opset_version=17)
 
     register_custom_op_symbolic(
         symbolic_name='quantized::softmax', 
-        symbolic_fn=quant_fx_utils.quantized_softmax, 
+        symbolic_fn=quant_utils.quantized_softmax, 
         opset_version=17)
     
-    # Through this, the quant_params will be passed, and if updated, will update in self as well
-    orig_quant_params = copy.deepcopy(self.__quant_params__)
-    model = copy.deepcopy(self)
-    setattr(model, "__quant_params__", orig_quant_params)
-    model = convert(model)
     if model_quant_format == ModelQuantFormat.INT_MODEL:
         # # Convert QDQ format to Int8 format
         import onnxruntime as ort
         qdq_filename = os.path.splitext(filename)[0] + '_qdq.onnx'
-        torch.onnx.export(model, example_input.to('cpu'), qdq_filename, opset_version=opset_version)
+        torch.onnx.export(model, example_input.to(device=device), qdq_filename, opset_version=opset_version)
         so = ort.SessionOptions()
         so.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_EXTENDED
         so.optimized_model_filepath = filename
@@ -235,7 +251,7 @@ def export(self, example_input, filename='model.onnx', opset_version=17, model_q
             os.remove(qdq_filename)
         #
     else:
-        torch.onnx.export(model, example_input.to('cpu'), filename, opset_version=opset_version)
+        torch.onnx.export(model, example_input.to(device=device), filename, opset_version=opset_version)
     #
     if simplify:
         import onnx
@@ -252,7 +268,6 @@ def train(self, mode: bool = True):
         self.__train_backup__(mode=mode)
     # also freeze the params if required
     if mode is True:
-        self = insert_all_hooks(self)
         # set the default epoch at which freeze occurs during training (if missing)
         num_batch_norm_update_epochs = self.__quant_params__.num_batch_norm_update_epochs or ((self.__quant_params__.total_epochs//2)-1)
         num_observer_update_epochs = self.__quant_params__.num_observer_update_epochs or ((self.__quant_params__.total_epochs//2)+1)
@@ -266,13 +281,20 @@ def train(self, mode: bool = True):
         #
         freeze(self, freeze_bn=freeze_bn, freeze_observers=freeze_observers)
         
+        # we will probably need better logic to extend to adding more hooks in the toolkit #TODO
+        if len(self.__quant_params__.outlier_hooks)==0 and not(freeze_observers):
+            self = insert_all_hooks(self, insert_bias_hook=False)
+        if len(self.__quant_params__.bias_hooks)==0:
+            self = insert_all_hooks(self, insert_outlier_hook=False)
+        
         # Removing the outlier hook when the observers are also frozen
-        if freeze_bn and freeze_observers:
+        if freeze_observers and len(self.__quant_params__.outlier_hooks)>0:
             self.__quant_params__.outlier_hooks = remove_hooks(self.__quant_params__.outlier_hooks)
         
-        quant_fx_utils.adjust_gradual_quantization(self)
         self.__quant_params__.num_epochs_tracked += 1
     else:
+        self.__quant_params__.bias_hooks = remove_hooks(self.__quant_params__.bias_hooks)                      
+        self.__quant_params__.outlier_hooks = remove_hooks(self.__quant_params__.outlier_hooks)
         freeze(self)
     #
     return self

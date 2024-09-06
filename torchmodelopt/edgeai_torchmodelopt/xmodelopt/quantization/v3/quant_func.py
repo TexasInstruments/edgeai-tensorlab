@@ -38,7 +38,7 @@ from torch.ao.quantization.quantizer.xnnpack_quantizer import XNNPACKQuantizer, 
 
 from .... import xnn
 from . import qconfig_types
-from . import quant_pt2e_utils
+from . import quant_utils
 from .quantizers import TIDLRTQuantizer
 
 import copy
@@ -63,7 +63,7 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
     
     if not total_epochs:
         if not is_qat:
-            total_epochs = 1
+            total_epochs = 2
         else:
             raise RuntimeError("total_epochs must be provided")
 
@@ -79,9 +79,7 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
     orig_model = copy.deepcopy(model)
     
     if isinstance(example_inputs, dict):
-        # m = capture_pre_autograd_graph(model, example_inputs)
         m, guards = torchdynamo.export(model, **example_inputs, aten_graph=True, assume_static_by_default=True, )
-        # m, guards = torchdynamo.export(model, aten_graph=True, assume_static_by_default=True)(**example_inputs)
         print("Dynamo Export Completed ! \n\n")
     else:
         m, guards = torchdynamo.export(model, example_inputs, aten_graph=True, assume_static_by_default=True)
@@ -121,12 +119,6 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
     model.__quant_params__.bias_hooks = []
     model.__quant_params__.bias_calibration_factor = kwargs.get("bias_calibration_factor", 0)
     model.__quant_params__.original_model = orig_model
-    
-    # related to adaptive quantization
-    # model.__quant_params__.qconfig_mode = qconfig_types.QConfigMode(qconfig_mode)
-    # model.__quant_params__.forzen_layer_names_list = []
-    
-    model = qconfig_types.adjust_mixed_precision_qconfig(model, is_qat, qconfig_type)
 
     
     if add_methods:
@@ -148,9 +140,9 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
 
 def insert_all_hooks(model, insert_outlier_hook=True, insert_bias_hook = True):
     if len(model.__quant_params__.outlier_hooks)==0 and insert_outlier_hook:
-        model.__quant_params__.outlier_hooks += quant_pt2e_utils.add_fc_outlier_supression_hook(model)
+        model.__quant_params__.outlier_hooks += quant_utils.add_fc_outlier_supression_hook(model)
     if len(model.__quant_params__.bias_hooks)==0 and insert_bias_hook:
-        model.__quant_params__.bias_hooks += quant_pt2e_utils.add_bias_calibration_hook(model, \
+        model.__quant_params__.bias_hooks += quant_utils.add_bias_calibration_hook(model, \
                 calibration_factor = model.__quant_params__.bias_calibration_factor)
     return model
 
@@ -201,14 +193,9 @@ def forward(self, *input, **kwargs):
 
 
 def convert(self, device="cpu", make_copy=False):
-    model = self.to(device=device)
-
     orig_quant_params = copy.deepcopy(self.__quant_params__)
     model = copy.deepcopy(self).eval() if make_copy else self.eval()
-    # convert requires cpu model 
-    #TODO check of this is required
-    # self.to(torch.device(device))
-    # now do the actual conversion
+    model = model.to(device=device)
     model = convert_pt2e(model)
     torch.ao.quantization.move_exported_model_to_eval(model)
     model.eval = types.MethodType(train, model)
@@ -249,7 +236,6 @@ def train(self, mode: bool = True):
         if freeze_observers and len(self.__quant_params__.outlier_hooks)>0:
             self.__quant_params__.outlier_hooks = remove_hooks(self.__quant_params__.outlier_hooks)
           
-        quant_pt2e_utils.adjust_gradual_quantization(self)
         self.__quant_params__.num_epochs_tracked += 1
     else:
         self.__quant_params__.bias_hooks = remove_hooks(self.__quant_params__.bias_hooks)                      
@@ -282,8 +268,12 @@ def export(self, example_input, filename='model.onnx', opset_version=17, model_q
            simplify=False, skipped_optimizers=None, device='cpu', make_copy=True):
     model = convert(self, device=device, make_copy=make_copy)
     # model, example_input = create_batch1_model(model, example_input)
-    model = quant_pt2e_utils.remove_loss_branch(model) 
-    quant_pt2e_utils.register_onnx_symbolics()
+    model = quant_utils.remove_loss_branch(model) 
+    quant_utils.register_onnx_symbolics()
+    from torch.fx import passes
+    g = passes.graph_drawer.FxGraphDrawer(model, "try_model")
+    with open('/home/a0491009/quantization/svg_files/prepared_qat_fx.svg', "wb") as f:
+        f.write(g.get_dot_graph().create_svg())
      
     if model_quant_format == ModelQuantFormat.INT_MODEL:
         # # Convert QDQ format to Int8 format

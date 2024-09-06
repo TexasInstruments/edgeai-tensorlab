@@ -29,25 +29,24 @@
 #
 #################################################################################
 
-from .quant_pt2e_base import QuantPT2EBaseModule
-import sys
-
-class QATPT2EModule(QuantPT2EBaseModule):
-    def __init__(self, *args, is_qat=True, **kwargs):
-        if sys.version_info.minor>11 or sys.version_info.minor<8:
-            raise NotImplementedError("Pt2e is currently supported only for python>3.8 or python<3.11")
-        super().__init__(*args, is_qat=is_qat, **kwargs)
-        # raise NotImplementedError("QATPT2E Quantization is not supported yet")
+import torch
+from .quant_base import QuantFxBaseModule
+import warnings
 
 
-class PTQPT2EModule(QuantPT2EBaseModule):
-    def __init__(self, *args, is_qat=False, **kwargs):
-        if sys.version_info.minor>11 or sys.version_info.minor<8:
-            raise NotImplementedError("Pt2e is currently supported only for python>3.8 or python<3.11")
-        super().__init__(*args, is_qat=is_qat, **kwargs)
-        # raise NotImplementedError("QATPT2E Quantization is not supported yet")
-    
-    
-class PTQCalibratePT2EModule():
-    def __init__(self, *args, backend='qnnpack', is_qat=False, **kwargs):
-        raise NotImplementedError("QATPT2E Quantization is not supported yet")
+class QATFxModule(QuantFxBaseModule):
+    def __init__(self, *args, backend='qnnpack', is_qat=True, **kwargs):
+        warnings.warn("Fx based quantization wrapper will be depercated in the future after pt2e quantization wrapper is completed.")
+        super().__init__(*args, is_qat=is_qat, backend=backend, **kwargs)
+
+
+class PTCFxModule(QuantFxBaseModule):
+    '''
+    Post Training Calibration (PTC) for Quantization is similar to Post Training Quantization
+    PTC can be integrated inton the training script easily with couple of lines of change. 
+    It is faster than QAT as it doesn't actively train the weights.
+    '''
+    def __init__(self, *args, backend='qnnpack', is_qat=False, bias_calibration_factor=0.01, num_batch_norm_update_epochs=0, num_observer_update_epochs=1, **kwargs):
+        warnings.warn("Fx based quantization wrapper will be depercated in the future after pt2e quantization wrapper is completed.")
+        super().__init__(*args, is_qat=is_qat, backend=backend, bias_calibration_factor=bias_calibration_factor, \
+            num_batch_norm_update_epochs=num_batch_norm_update_epochs, num_observer_update_epochs=num_observer_update_epochs, **kwargs)
