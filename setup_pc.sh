@@ -300,6 +300,14 @@ for (( soc_idx=0; soc_idx<"${#TARGET_SOCS[@]}"; soc_idx++ )); do
   echo "release_name: ${TIDL_TOOLS_RELEASE_NAME}" >> ${TIDL_TOOLS_PATH}/version.yaml
 done
 
+if [ -d "${CURRENT_WORK_DIR}/../edgeai-tidl-tools" ]; then
+  echo "found edgeai-tidl-tools, installing osrt_model_tools in develop mode"
+  pip3 uninstall -y osrt_model_tools
+  cd ${CURRENT_WORK_DIR}/../edgeai-tidl-tools/scripts
+  python3 setup.py develop
+  cd ${CURRENT_WORK_DIR}
+fi
+
 ######################################################################
 # PYTHONPATH
 # make sure current directory is visible for python import
