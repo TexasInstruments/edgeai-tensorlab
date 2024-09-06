@@ -120,7 +120,7 @@ def get_source_partition(graph:fx.Graph, wanted_sources:list, filter_fn = None):
     '''
     a custom made get_source_partitions that can handle any type of modules and functions that are wrapped for fx
     
-    Note: This function is also defined on pruning.v3.utils. If this is modified later on, same changes have to be made on that function definition 
+    Note: This function is also defined on surgery.v3.utils. If this is modified later on, same changes have to be made on that function definition 
     
     '''
     modules: Dict[Type, Dict[str, List[fx.Node]]] = {}

@@ -118,12 +118,14 @@ flag_to_dict_entries:dict [str:dict] ={
 
 
 # returns default dictionary for replacement
-def get_replacement_flag_dict_default(return_flags = True):
+def get_replacement_flag_dict_default(return_flags = True, can_retrain = False):
     '''
     returns the default flag dictionary.
     to see the dict print 'default_replacement_flag_dict' from the file this function is in
     '''
-    return default_replacement_flag_dict if return_flags else flag_to_dict_entries
+    flag_dict = default_replacement_flag_dict_no_training if can_retrain else default_replacement_flag_dict
+    repalcement_entries_dict = get_replacement_dict(flag_dict,)
+    return flag_dict if return_flags else repalcement_entries_dict
 
 
 def get_replacement_dict(
@@ -135,10 +137,7 @@ def get_replacement_dict(
     if no replacement_flag_dict is given it uses default flag dictionary based on can_retrain
     if the flags is not registered in 'flag_to_dict_entries', its value should be a dict of replacement and that will be updated in the dictionary
     '''
-    if can_retrain:
-        replacement_flag_dict = replacement_flag_dict or default_replacement_flag_dict
-    else:
-        replacement_flag_dict = replacement_flag_dict or default_replacement_flag_dict_no_training
+    replacement_flag_dict = replacement_flag_dict or (default_replacement_flag_dict if can_retrain else default_replacement_flag_dict_no_training)
         
     replacement_dict:dict[Any,list[tuple]] = {}
     
