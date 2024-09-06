@@ -40,7 +40,8 @@ import operator
 import copy
 # from . import custom_modules
 
-from .custom_symbolic_trace import custom_symbolic_trace
+# from .custom_symbolic_trace import custom_symbolic_trace
+custom_symbolic_trace = symbolic_trace
 '''
 this module's function are implemented to changes nodes only.
 no change is made on the incoming arguments and keyword arguments.
@@ -430,7 +431,7 @@ def _remove_hanging_nodes(main_module:GraphModule):
     def find_hanging_nodes(main_module:GraphModule):
         count =[]
         for node in main_module.graph.nodes:
-            if (node.op != 'output' and len(node.users)==0):
+            if (node.op not in ('output','placeholder') and len(node.users)==0):
                 count.append(node)
         return count
     h_nodes=find_hanging_nodes(main_module)

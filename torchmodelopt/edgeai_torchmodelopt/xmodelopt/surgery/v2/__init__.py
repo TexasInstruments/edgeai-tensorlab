@@ -72,7 +72,7 @@ default_replacement_flag_dict: dict[str, bool|dict] ={
     'leakyrelu_to_relu' : True,
     'dropout_inplace_to_dropout':True,
     'replace_CNBlock':True,
-    'focus_to_optimized_focus':True,
+    'focus_to_optimized_focus':False,
     'break_maxpool2d_with_kernel_size_greater_than_equalto_5':True,
     'break_avgpool2d_with_kernel_size_greater_than_equalto_5':True,
     'convert_resize_params_size_to_scale':True,

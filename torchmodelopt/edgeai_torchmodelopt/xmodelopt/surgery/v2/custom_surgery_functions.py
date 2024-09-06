@@ -38,9 +38,11 @@ from copy import deepcopy
 from ....xnn.layers import resize_with_scale_factor
 
 from . import replacer
-from .custom_symbolic_trace import custom_symbolic_trace
+# from .custom_symbolic_trace import custom_symbolic_trace
 from . import custom_modules
 from typing import Iterable
+
+custom_symbolic_trace = symbolic_trace
 
 
 def replace_resize_with_scale_factor(model,verbose_mode=False, **kwargs):
@@ -50,9 +52,7 @@ def replace_resize_with_scale_factor(model,verbose_mode=False, **kwargs):
     '''
 
     traced_m=custom_symbolic_trace(model) if not isinstance(model, torch.fx.GraphModule) else model
-    traced_m=custom_symbolic_trace(model) if not isinstance(model, torch.fx.GraphModule) else model
     pattern_m= nn.Upsample()
-    traced_pattern= custom_symbolic_trace(pattern_m)
     traced_pattern= custom_symbolic_trace(pattern_m)
     matches= replacer.straight_chain_searcher(traced_m,traced_pattern)
     
@@ -221,7 +221,7 @@ def replace_conv2d_kernel_size_6(model:nn.Module, verbose_mode=False,**kwargs):
     to have same output pixels original stride is added to last conv module
     '''
 
-    traced_model = symbolic_trace(model) if not isinstance(model, torch.fx.GraphModule) else model
+    traced_model = custom_symbolic_trace(model) if not isinstance(model, torch.fx.GraphModule) else model
     modules=dict(traced_model.named_modules())
     no_of_conv=0
     
@@ -240,7 +240,7 @@ def replace_conv2d_kernel_size_6(model:nn.Module, verbose_mode=False,**kwargs):
                     padding=min(2,padding)
                     replacement.append(nn.Conv2d(in_channels, out_channels, kernel_size=5,stride=stride,padding=padding))
                     replacer._replace_pattern(traced_model,node,node,replacement,no_of_conv)
-                    # no_of_conv+=1
+                    no_of_conv += 1
         
         if node.target == nn.functional.conv2d:
             #for functional conv
@@ -255,10 +255,13 @@ def replace_conv2d_kernel_size_6(model:nn.Module, verbose_mode=False,**kwargs):
             in_channels=weight_shape[1]
             out_channels=weight_shape[0]
             k_size=weight_shape[2]
+            if k_size != 6:
+                continue
             replacement= nn.Sequential()
             padding=min(2,padding)
             replacement.append(nn.Conv2d(in_channels, out_channels, kernel_size=5,stride=stride,padding=padding))
             traced_model.add_submodule(f'replaced_conv_{no_of_conv}',replacement)
+            no_of_conv += 1
             args=(node.args[0],)
             with traced_model.graph.inserting_before(node):
                 new_node=traced_model.graph.call_module(f'replaced_conv_{no_of_conv}',args,{})
@@ -530,7 +533,7 @@ class ReplacementPermute(nn.Module):
         
             
 def replace_permute_layer(model:nn.Module, pattern=None, verbose_mode=False, **kwargs):
-    model = torch.fx.symbolic_trace(model)
+    model = custom_symbolic_trace(model)
     i = 0
     for node in model.graph.nodes:
         if node.op == 'call_method' and node.target=='permute':
