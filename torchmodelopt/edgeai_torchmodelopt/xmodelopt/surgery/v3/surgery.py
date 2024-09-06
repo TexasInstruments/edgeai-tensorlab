@@ -58,7 +58,7 @@ from . import replacer
 __all__ = ['_replace_unsupported_layers',]
 
 
-def _replace_unsupported_layers(model:nn.Module, example_input:list=[], example_kwargs:dict={}, replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, aten_graph:bool = False, copy_attrs:list=[], verbose_mode:bool=False):
+def _replace_unsupported_layers(model:nn.Module, example_input:list=[], example_kwargs:dict={}, replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, aten_graph:bool = False, copy_args:list=[], verbose_mode:bool=False):
     
     
     # assuming if it is a graph module it is generated through dynamo export 

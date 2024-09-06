@@ -46,7 +46,7 @@ except:
     SEModule = None
 
 
-def convert_to_lite_fx(model:torch.nn.Module,replacement_dict:Dict[Any,Union[torch.nn.Module,callable]]=None, verbose_mode:bool=False, example_input = None,**kwargs):
+def convert_to_lite_fx(model:torch.nn.Module, example_input:list=[], example_kwargs:dict={}, replacement_dict:Dict[Any,Union[torch.nn.Module,callable]]=None, verbose_mode:bool=False, **kwargs):
     '''
     converts model into lite model using replacement dict
     if no replacement dict is provided it does the default replacement
@@ -54,7 +54,7 @@ def convert_to_lite_fx(model:torch.nn.Module,replacement_dict:Dict[Any,Union[tor
     if example_input is None:
         # "example_input optional and used only in models using LayerNorm. Using a default value since it was not provided.
         example_input = torch.rand(1,3,224,224) # Default input shape
-    return replace_unsupported_layers(model, replacement_dict=replacement_dict, verbose_mode=verbose_mode, example_input=example_input, **kwargs)
+    return replace_unsupported_layers(model, example_input=example_input, example_kwargs=example_kwargs, replacement_dict=replacement_dict, verbose_mode=verbose_mode, **kwargs)
 
 
 #Default Flags for replacement dict
@@ -160,7 +160,7 @@ def get_replacement_dict(
     return replacement_dict
 
 
-def replace_unsupported_layers(model:nn.Module, example_input:list=[], replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, copy_args:list=[],  can_retrain=True, verbose_mode:bool=False):
+def replace_unsupported_layers(model:nn.Module, example_input:list=[], example_kwargs:dict={}, replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, copy_args:list=[],  can_retrain=True, verbose_mode:bool=False, **kwargs):
     #TODO write appropiate documentation for this function
     
     '''
@@ -195,8 +195,8 @@ def replace_unsupported_layers(model:nn.Module, example_input:list=[], replaceme
     replacement_dict = get_replacement_dict(replacement_dict, can_retrain=can_retrain)
     
     model = deepcopy(model)
-
-    final_model = _replace_unsupported_layers(model, example_input, example_kwargs, replacement_dict, aten_graph, copy_args, verbose_mode)
+    
+    final_model = _replace_unsupported_layers(model,  example_input, example_kwargs, replacement_dict, copy_args, verbose_mode, **kwargs)
     
     if is_train_mode:
         final_model.train()
