@@ -46,7 +46,7 @@ except:
     SEModule = None
 
 
-def convert_to_lite_fx(model:torch.nn.Module,replacement_dict:Dict[Any,Union[torch.nn.Module,callable]]=None, verbose_mode:bool=False, example_input = None,**kwargs):
+def convert_to_lite_fx(model:torch.nn.Module, example_input:list=[], example_kwargs:dict={}, replacement_dict:Dict[Any,Union[torch.nn.Module,callable]]=None, verbose_mode:bool=False, **kwargs):
     '''
     converts model into lite model using replacement dict
     if no replacement dict is provided it does the default replacement
@@ -54,7 +54,7 @@ def convert_to_lite_fx(model:torch.nn.Module,replacement_dict:Dict[Any,Union[tor
     if example_input is None:
         # "example_input optional and used only in models using LayerNorm. Using a default value since it was not provided.
         example_input = torch.rand(1,3,224,224) # Default input shape
-    return replace_unsupported_layers(model, replacement_dict=replacement_dict, verbose_mode=verbose_mode, example_input=example_input, **kwargs)
+    return replace_unsupported_layers(model, example_input=example_input, example_kwargs=example_kwargs, replacement_dict=replacement_dict, verbose_mode=verbose_mode, **kwargs)
 
 
 #Default Flags for replacement dict
@@ -72,7 +72,7 @@ default_replacement_flag_dict: dict[str, bool|dict] ={
     'leakyrelu_to_relu' : True,
     'dropout_inplace_to_dropout':True,
     'replace_CNBlock':True,
-    'focus_to_optimized_focus':True,
+    'focus_to_optimized_focus':False,
     'break_maxpool2d_with_kernel_size_greater_than_equalto_5':True,
     'break_avgpool2d_with_kernel_size_greater_than_equalto_5':True,
     'convert_resize_params_size_to_scale':True,
@@ -120,12 +120,14 @@ flag_to_dict_entries:dict [str:dict] ={
 
 
 # returns default dictionary for replacement
-def get_replacement_flag_dict_default(return_flags = True):
+def get_replacement_flag_dict_default(return_flags = True, can_retrain = False):
     '''
     returns the default flag dictionary.
     to see the dict print 'default_replacement_flag_dict' from the file this function is in
     '''
-    return default_replacement_flag_dict if return_flags else flag_to_dict_entries
+    flag_dict = default_replacement_flag_dict_no_training if can_retrain else default_replacement_flag_dict
+    repalcement_entries_dict = get_replacement_dict(flag_dict,)
+    return flag_dict if return_flags else repalcement_entries_dict
 
 
 def get_replacement_dict(
@@ -160,7 +162,7 @@ def get_replacement_dict(
     return replacement_dict
 
 
-def replace_unsupported_layers(model:nn.Module, example_input:list=[], replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, copy_args:list=[],  can_retrain=True, verbose_mode:bool=False):
+def replace_unsupported_layers(model:nn.Module, example_input:list=[], example_kwargs:dict={}, replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, copy_args:list=[],  can_retrain=True, verbose_mode:bool=False, **kwargs):
     #TODO write appropiate documentation for this function
     
     '''
@@ -195,8 +197,8 @@ def replace_unsupported_layers(model:nn.Module, example_input:list=[], replaceme
     replacement_dict = get_replacement_dict(replacement_dict, can_retrain=can_retrain)
     
     model = deepcopy(model)
-
-    final_model = _replace_unsupported_layers(model, example_input, example_kwargs, replacement_dict, aten_graph, copy_args, verbose_mode)
+    
+    final_model = _replace_unsupported_layers(model,  example_input, example_kwargs, replacement_dict, copy_args, verbose_mode, **kwargs)
     
     if is_train_mode:
         final_model.train()

@@ -62,7 +62,11 @@ def resize_with(x, size=None, scale_factor=None, mode='nearest', align_corners=N
         if scale_factor is None and force_scale_factor:
             size = size[-2:] if len(size) > 2 else size
             x_size = x.data.size()[-2:]
-            scale_factor = [float(torch.true_divide(size[0],x_size[0])), float(torch.true_divide(size[1],x_size[1]))]
+            try:
+                # caused error for pt2e
+                scale_factor = [float(torch.true_divide(size[0],x_size[0])), float(torch.true_divide(size[1],x_size[1]))]
+            except:
+                scale_factor = [size[0]/x_size[0], size[1]/x_size[1]]
             size = None
         #
         y = interpolate_fn(x, size=size, scale_factor=scale_factor, mode=mode, align_corners=align_corners, recompute_scale_factor=recompute_scale_factor)

@@ -124,6 +124,19 @@ def get_source_partition(graph:fx.Graph, wanted_sources:list, filter_fn = None):
     
     '''
     modules: Dict[Type, Dict[str, List[fx.Node]]] = {}
+    def get_all_args(args:list):
+        result = []
+        for arg in args:
+            if isinstance(arg,fx.Node):
+                result.append(arg)
+            elif isinstance(arg,(list,tuple)):
+                result.extend(get_all_args(arg))
+        return result
+    
+    def add_node_to_partition(source_fn:tuple,node:fx.Node):
+        diff_modules = modules.setdefault(source_fn[1], {})
+        partition = diff_modules.setdefault(source_fn[0], [])
+        partition.append(node) if node not in partition else None
     
     for node in graph.nodes:
         found = False
@@ -132,10 +145,7 @@ def get_source_partition(graph:fx.Graph, wanted_sources:list, filter_fn = None):
                 if v[1] in wanted_sources:
                     key = k
                     source_fn = nn_module_stack[key]
-                    diff_modules = modules.setdefault(source_fn[1], {})
-                    partition = diff_modules.setdefault(source_fn[0], [])
-                    partition.append(node)
-                    
+                    add_node_to_partition(source_fn, node)
                     found = True
                     if not issubclass(v[1],nn.Sequential) :
                         break 
@@ -144,20 +154,18 @@ def get_source_partition(graph:fx.Graph, wanted_sources:list, filter_fn = None):
             source_fn = source_fn_st[-1]
             if source_fn[1] not in wanted_sources:
                 continue
-            diff_modules = modules.setdefault(source_fn[1], {})
-            partition = diff_modules.setdefault(source_fn[0], [])
-            partition.append(node) if node not in partition else None
-
+            add_node_to_partition(source_fn, node)
         else:
             continue
+
     
     def make_partition(nodes: List[fx.Node], module_type: Type) -> SourcePartition:
         input_nodes = set()
         output_nodes = set()
         params = set()
         for node in nodes:
-            for arg in node.args:
-                if isinstance(arg, fx.Node) and arg not in nodes:
+            for arg in get_all_args(node.args):
+                if arg not in nodes:
                     input_nodes.add(arg)
 
             if node.op == "get_attr":
@@ -190,10 +198,24 @@ def get_source_partition(graph:fx.Graph, wanted_sources:list, filter_fn = None):
             filtered_modules[tp] = filtered_name_to_partition
         modules = filtered_modules
 
+    def separate_partitions(partitions:list[fx.Node]):
+        reuslt = []
+        temp = []
+        for node in partitions:
+            temp.append(node)
+            if all(user not in partitions for user in node.users) and node.next not in partitions:
+                reuslt.append(temp)
+                temp = []
+        return reuslt
+    
     for k, v in modules.items():
-        ret[k] = [make_partition(partition, k) for partition in v.values()]
+        ret[k] = []
+        for key,partitions in v.items():
+            for partition in separate_partitions(partitions):
+                ret[k].append(make_partition(partition, k))
 
     return ret
+
 
 
 def get_pruning_partitions(module:fx.GraphModule):
