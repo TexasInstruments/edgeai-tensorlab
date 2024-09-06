@@ -108,7 +108,7 @@ class BaseRTSession(utils.ParamsBase):
         self.kwargs['shape_inference'] = self.kwargs.get('shape_inference', True)
 
         # optimizations specific to TIDL
-        self.kwargs['tidl_onnx_model_optimizer'] = self.kwargs.get('tidl_onnx_model_optimizer', False)
+        self.kwargs['tidl_onnx_model_optimizer'] = self.kwargs.get('tidl_onnx_model_optimizer', None)
         self.kwargs['deny_list_from_start_end_node'] = self.kwargs.get('deny_list_from_start_end_node', None)
         self.kwargs['output_feature_16bit_names_list_from_start_end'] = self.kwargs.get('output_feature_16bit_names_list_from_start_end', None)
 
@@ -586,8 +586,17 @@ class BaseRTSession(utils.ParamsBase):
                 #
                 if self.kwargs['tidl_onnx_model_optimizer']:
                     print("running tidl_onnx_model_optimizer on the model")
+                    from osrt_model_tools.onnx_tools.tidl_onnx_model_optimizer.ops import get_optimizers
                     from osrt_model_tools.onnx_tools.tidl_onnx_model_optimizer import optimize
-                    optimize(model_file0, model_file0)
+                    optimizers = get_optimizers()
+                    if isinstance(self.kwargs['tidl_onnx_model_optimizer'], dict):
+                        for key, value in self.kwargs['tidl_onnx_model_optimizer'].items():
+                            if key in optimizers:
+                                optimizers[key] = value       
+                            else:
+                                print(f"The given transformation {key} has not been implemented yet.")
+                    #                    
+                    optimize(model = model_file0, out_model = model_file0, custom_optimizers = optimizers)
                 #
                 if self.kwargs['deny_list_from_start_end_node']:
                     print("Finding the deny list nodes from the given start and end node")
