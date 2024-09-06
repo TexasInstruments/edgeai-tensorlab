@@ -43,11 +43,12 @@ class CustomFxGraphDrawer(FxGraphDrawer):
             return arg_strs.replace("{", r"\{").replace("}", r"\}")
 
 
-        label = "{" + f"name=%{node.name}|op_code={node.op}\n"
+        label = "{" + f"name=%{node.name}|op_code={node.op}\n|"
 
         if node.op == "call_module":
             leaf_module = self._get_leaf_node(module, node)
-            label += r"\n" + str(leaf_module) + r"\n|"
+            label += str(node.target) + r"\n|"
+            label += str(leaf_module) + r"\n|"
             extra = ""
             if hasattr(leaf_module, "__constants__"):
                 extra = r"\n".join(
@@ -208,11 +209,12 @@ class CustomPT2EGraphDrawer(FxGraphDrawer):
             return arg_strs.replace("{", r"\{").replace("}", r"\}")
 
 
-        label = "{" + f"name=%{node.name}|op_code={node.op}\n"
+        label = "{" + f"name=%{node.name}|op_code={node.op}\n|"
 
         if node.op == "call_module":
             leaf_module = self._get_leaf_node(module, node)
-            label += r"\n" + str(leaf_module) + r"\n|"
+            label += str(node.target) + r"\n|"
+            label += str(leaf_module) + r"\n|"
             extra = ""
             if hasattr(leaf_module, "__constants__"):
                 extra = r"\n".join(
@@ -414,7 +416,7 @@ def save_svg_pt2e(model, model_name, path_to_export = '.', hanging_nodes=True):
         try:
             f.write(g.get_dot_graph().create_svg())
         except Exception as e:
-            g.get_dot_graph().write('temp.txt',None)
+            g.get_dot_graph().write(f'{path_to_export}/temp.txt',None)
             raise e
 
 
@@ -428,5 +430,5 @@ def save_svg_fx(model, model_name, path_to_export = '.', hanging_nodes=True):
         try:
             f.write(g.get_dot_graph().create_svg())
         except Exception as e:
-            g.get_dot_graph().write('temp.txt',None)
+            g.get_dot_graph().write(f'{path_to_export}temp.txt',None)
             raise e
