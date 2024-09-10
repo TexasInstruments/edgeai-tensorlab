@@ -1,7 +1,7 @@
 -r requirements.txt
 opencv-python-headless
 onnxsim
-git+https://github.com/TexasInstruments/edgeai-tidl-tools.git#subdirectory=scripts
+git+https://github.com/TexasInstruments/edgeai-tidl-tools.git@09_02_09_00#subdirectory=scripts
 numpy==1.23.0
 tflite
 flatbuffers==1.12.0
