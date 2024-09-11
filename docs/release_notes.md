@@ -1,4 +1,18 @@
 
+## Release 10.0 (10_00_00)
+- Date: September 2024
+- Release branch: r10.0
+- [Source code](https://github.com/TexasInstruments/edgeai-tensorlab/tree/r10.0)
+- [Model Zoo](https://github.com/TexasInstruments/edgeai-tensorlab/tree/r10.0/edgeai-modelzoo)
+- [Release Manifest](https://software-dl.ti.com/jacinto7/esd/modelzoo/10_00_00/)
+
+### Important Updates
+- edgeai-hf-transformers (fork of https://github.com/huggingface/transformers) repository added, enabling training of Transformer based Image Classification, Segmentation and Object Detection Models. 
+- Improvements for Model Surgery and Quantization in edgeai-modeloptimization
+- Several additional models added in edgeai-modelzoo and edgeai-benchmark
+
+<hr>
+
 ## Release 9.2 (09_02_00)
 - Date: April 2024
 - Release branch: r9.2
@@ -6,6 +20,7 @@
 - [Model Zoo](https://github.com/TexasInstruments/edgeai-tensorlab/tree/r9.2/edgeai-modelzoo)
 - [Release Manifest](https://software-dl.ti.com/jacinto7/esd/modelzoo/09_02_00/)
 
+<hr>
 
 ## Release 9.1 (09_01_00)
 - Date: December 2023
@@ -14,6 +29,7 @@
 - [Model Zoo](https://github.com/TexasInstruments/edgeai-tensorlab/tree/r9.1/edgeai-modelzoo)
 - [Release Manifest](https://software-dl.ti.com/jacinto7/esd/modelzoo/09_01_00/)
 
+<hr>
 
 ## Release 9.0 (09_00_00)
 - Date: August 2023
@@ -22,6 +38,7 @@
 - [Model Zoo](https://github.com/TexasInstruments/edgeai-tensorlab/tree/r9.1/edgeai-modelzoo)
 - [Release Manifest](https://software-dl.ti.com/jacinto7/esd/modelzoo/09_01_00/)
 
+<hr>
 
 ## Release 8.6 (08_06_00)
 - Date: March 2023
@@ -30,6 +47,7 @@
 - [Model Zoo](https://github.com/TexasInstruments/edgeai-tensorlab/tree/r8.6/edgeai-modelzoo)
 - [Release Manifest](https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00/)
 
+<hr>
 
 ## Release 8.2 (08_02_00)
 - Date: April 2022
@@ -42,6 +60,7 @@
 - [Compiled Model artifacts list for edgeai-yolov5](https://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/edgeai-yolov5/pretrained_models/modelartifacts/8bits/artifacts.csv)
 - [Release Manifest for edgeai-yolov5](https://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_02_00_11/manifest.html)
 
+<hr>
 
 ## Release 8.1 (08_01_00)
 - Date: December 2021
@@ -53,3 +72,5 @@
 #### Additional models
 - Note: YOLOv5 models are not part of this repository but providing the link here: https://github.com/TexasInstruments/edgeai-yolov5/
 - Note: YOLOv5 model artifacts are not part of this repository but providing the links here:  https://software-dl.ti.com/jacinto7/esd/modelzoo/gplv3/08_01_00_05/edgeai-yolov5/pretrained_models/modelartifacts/8bits/artifacts.csv
+
+<hr>
