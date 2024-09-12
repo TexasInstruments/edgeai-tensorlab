@@ -18,4 +18,4 @@ pytest
 graphviz
 h5py
 scipy
-git+https://github.com/TexasInstruments/edgeai-tidl-tools.git#subdirectory=scripts
+git+https://github.com/TexasInstruments/edgeai-tidl-tools.git@08_02_00_05#subdirectory=scripts
