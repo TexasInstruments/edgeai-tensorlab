@@ -22,6 +22,6 @@ graphviz
 h5py
 scipy
 wurlitzer
-git+https://github.com/TexasInstruments/edgeai-tidl-tools.git#subdirectory=scripts
+git+https://github.com/TexasInstruments/edgeai-tidl-tools.git@08.04.00.06#subdirectory=scripts
 plyfile
 scikit-learn
