@@ -113,7 +113,7 @@ def init(model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qn
     orig_device = next(model.parameters()).device
     copy_args=["scale", "qkv", "proj", "num_heads", "head_dim", "weight", "bias", "eps",
                 "relative_position_index", "relative_position_bias_table", "window_area"]
-    model = replace_unsupported_layers(model, replacement_dict=replacement_dict, copy_args=copy_args)
+    model = convert_to_lite_fx(model, replacement_dict=replacement_dict, copy_args=copy_args)
     model = model.to(orig_device)
 
     # handle None here
