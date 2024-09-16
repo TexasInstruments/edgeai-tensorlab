@@ -37,6 +37,7 @@ from torch.ao.quantization import quantize_fx
 from torch.ao.quantization import QConfigMapping
 from torch.ao.quantization import FakeQuantize
 from torch.ao.quantization import get_default_qconfig
+from torch.ao.quantization.backend_config.native import get_native_backend_config
 import statistics
 import functools
 import types
@@ -45,7 +46,7 @@ import copy
 
 from .... import xnn
 
-from ...surgery.v2 import custom_surgery_functions, replace_unsupported_layers
+from ...surgery.v2 import custom_surgery_functions, convert_to_lite_fx
 
 from . import qconfig_types
 from . import quant_utils
@@ -117,7 +118,7 @@ def init(model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qn
     orig_device = next(model.parameters()).device
     copy_args=["scale", "qkv", "proj", "num_heads", "head_dim", "weight", "bias", "eps",
                 "relative_position_index", "relative_position_bias_table", "window_area"]
-    model = replace_unsupported_layers(model, replacement_dict, copy_args=copy_args)
+    model = convert_to_lite_fx(model, replacement_dict, copy_args=copy_args)
     model = model.to(orig_device)
 
     # handle None here
@@ -134,11 +135,12 @@ def init(model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qn
     torch.backends.quantized.engine = backend
 
     qconfig_mapping = qconfig_types.get_qconfig_mapping(is_qat, backend, qconfig_type)
+    backend_config = get_native_backend_config()
     if is_qat:
-        model = quantize_fx.prepare_qat_fx(model, qconfig_mapping, example_inputs)
+        model = quantize_fx.prepare_qat_fx(model, qconfig_mapping, example_inputs, backend_config=backend_config)
     else:
         model.eval()
-        model = quantize_fx.prepare_fx(model, qconfig_mapping, example_inputs)
+        model = quantize_fx.prepare_fx(model, qconfig_mapping, example_inputs, backend_config=backend_config)
     #
 
     # a place to put all state variables
@@ -237,6 +239,12 @@ def export(self, example_input, filename='model.onnx', opset_version=17, model_q
         symbolic_fn=quant_utils.quantized_softmax, 
         opset_version=17)
     
+    register_custom_op_symbolic(
+        symbolic_name='aten::quantize_per_channel', 
+        symbolic_fn=quant_utils.aten_quantize_channel, 
+        opset_version=17)
+    
+    
     if model_quant_format == ModelQuantFormat.INT_MODEL:
         # # Convert QDQ format to Int8 format
         import onnxruntime as ort
@@ -254,11 +262,15 @@ def export(self, example_input, filename='model.onnx', opset_version=17, model_q
         torch.onnx.export(model, example_input.to(device=device), filename, opset_version=opset_version)
     #
     if simplify:
-        import onnx
-        from onnxsim import simplify
-        onnx_model = onnx.load(filename)
-        onnx_model, check = simplify(onnx_model, skipped_optimizers=skipped_optimizers)
-        onnx.save(onnx_model, filename)
+        try:
+            import onnx
+            from onnxsim import simplify
+            onnx_model = onnx.load(filename)
+            onnx_model, check = simplify(onnx_model, skipped_optimizers=skipped_optimizers)
+            onnx.save(onnx_model, filename)
+        except:
+            print("Something went wrong in simplification - maybe due to multi processes, skippping this step")
+        
     #
 
 

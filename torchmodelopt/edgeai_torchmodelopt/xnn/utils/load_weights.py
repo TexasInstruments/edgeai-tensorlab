@@ -76,6 +76,9 @@ def load_weights(model, pretrained, change_names_dict=None, keep_original_names=
         data = widen_model_data(data, factor=width_mult)
     #
     
+    if 'state_dict' in data:
+        data = data['state_dict']
+    
     try:
         model.load_state_dict(data, strict=True)
     except:

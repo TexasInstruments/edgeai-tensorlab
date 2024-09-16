@@ -212,8 +212,12 @@ def replace_unsupported_layers(model:nn.Module, example_input:list=[], example_k
     replacement_dict = get_replacement_dict(replacement_dict, can_retrain=can_retrain)
     
     model = deepcopy(model)
+<<<<<<< HEAD
     
     final_model = _replace_unsupported_layers(model,  example_input, example_kwargs, replacement_dict, copy_args, verbose_mode, **kwargs)
+=======
+    final_model = _replace_unsupported_layers(model, replacement_dict=replacement_dict, copy_args=copy_args, example_input=example_input, verbose_mode=verbose_mode)
+>>>>>>> 3dc9ac7 (bug fixes related to surgery in quantization and add backend_config experiments)
     
     if is_train_mode:
         final_model.train()
