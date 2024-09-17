@@ -33,15 +33,18 @@ import warnings
 import torch
 from torch import nn
 
-
-from torchvision.ops.misc import SqueezeExcitation
+try:
+    from torchvision.ops.misc import SqueezeExcitation
+    has_tv = True
+except:
+    has_tv = False
 from ....xnn import utils
 from .replace_modules import replace_modules as replace_modules_func
 
 from . import convert_to_lite 
 
 
-def convert_to_lite_model(model, inplace=True, replacement_dict=None, **kwargs):
+def convert_to_lite_model(model, replacement_dict=None, inplace=True, **kwargs):
     '''
     converts the model to lite model using replacement dict 
     wrapper to the function that does the surgery
@@ -93,7 +96,6 @@ default_replacement_flag_dict: dict[str, bool|dict] ={
 #Mapping between the flags and the actual replacements corresponding to them
 # This dictionary is used whenever a flag is enabled to fetch the corresponding replacement entries
 flag_to_dict_entries:dict[str, dict] = {
-    'squeeze_and_excite_to_identity':{SqueezeExcitation: [torch.nn.Identity]},
     'all_activation_to_relu': {nn.ReLU:nn.ReLU, nn.ReLU6:nn.ReLU, nn.GELU:nn.ReLU, nn.SiLU:nn.ReLU, nn.Hardswish:nn.ReLU, nn.Hardsigmoid:nn.ReLU, nn.LeakyReLU:nn.ReLU,},
     'relu_inplace_to_relu':{torch.nn.ReLU: [torch.nn.ReLU]}, #'inplace' is not used
     'dropout_inplace_to_dropout':{torch.nn.Dropout: [torch.nn.Dropout, 'p']}, #'inplace' is not used
@@ -113,6 +115,7 @@ flag_to_dict_entries:dict[str, dict] = {
     # the key should return a boolean and the first entry of value(list) should return an instance of torch.nn.Module
     'remove_identity':{convert_to_lite._check_dummy: [convert_to_lite._replace_dummy]}
 }
+flag_to_dict_entries.update(squeeze_and_excite_to_identity=({SqueezeExcitation: [torch.nn.Identity]} if has_tv else {}))
 
 
 def get_replacement_dict_default(groups_dw=None, group_size_dw=None, return_flags=True, **kwargs):

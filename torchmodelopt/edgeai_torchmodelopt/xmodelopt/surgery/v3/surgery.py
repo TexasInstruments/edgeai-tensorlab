@@ -63,6 +63,7 @@ def _replace_unsupported_layers(model:nn.Module, example_input:list=[], example_
     
     # assuming if it is a graph module it is generated through dynamo export 
     # TODO make symbolic trace generated module is goes through dynamo export
+    model(*example_input, **example_kwargs)
     traced_model,_ =(model,None) if isinstance(model,GraphModule) else torch_dynamo.export(model,aten_graph=aten_graph,assume_static_by_default=True)(*example_input,**example_kwargs) 
     
     replacer.__net_module_replaced = 0

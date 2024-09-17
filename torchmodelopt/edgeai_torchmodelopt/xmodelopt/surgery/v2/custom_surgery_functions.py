@@ -31,8 +31,7 @@
 
 from torch import nn,Tensor
 from torch.fx import symbolic_trace, Node
-from torchvision import models,ops
-import inspect,torch, operator,torchvision
+import inspect,torch, operator
 from copy import deepcopy
 
 from ....xnn.layers import resize_with_scale_factor

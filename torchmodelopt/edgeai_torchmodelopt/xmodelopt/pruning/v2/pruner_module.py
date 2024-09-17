@@ -29,8 +29,11 @@
 #
 #################################################################################
 
-
-from torchvision import models as tvmodels
+try:
+    from torchvision import models as tvmodels
+    has_tv = True
+except Exception as e:
+    has_tv = False
 import torch
 import torch.nn as nn
 import torch.fx as fx
@@ -430,7 +433,7 @@ class ChannelOnlyBlendPruningParametrization(BlendPruningParametrization):
                 else:
                     raise Exception('This parametrization is only for inner projection layer of attention layers (for timm)')
         elif curr_node.op == 'call_function':
-            if curr_node.target == tvmodels.swin_transformer.shifted_window_attention:
+            if has_tv and curr_node.target == tvmodels.swin_transformer.shifted_window_attention:
                 self.num_heads = list(curr_node.args)[-1]
             else:
                 raise Exception('This parametrization is only for inner projection layer of shifted window attention layers (for torchvision)')
@@ -546,7 +549,7 @@ class HeadOnlyBlendPruningParametrization(BlendPruningParametrization):
                 else:
                     raise Exception('This parametrization is only for inner projection layer of attention layers (for timm)')
         elif curr_node.op == 'call_function':
-            if curr_node.target == tvmodels.swin_transformer.shifted_window_attention:
+            if has_tv and curr_node.target == tvmodels.swin_transformer.shifted_window_attention:
                 self.num_heads = list(curr_node.args)[-1]
             else:
                 raise Exception('This parametrization is only for inner projection layer of shifted window attention layers (for torchvision)')
@@ -661,7 +664,7 @@ class HeadChannelBlendPruningParametrization(BlendPruningParametrization):
                 else:
                     raise Exception('This parametrization is only for inner projection layer of attention layers (for timm)')
         elif curr_node.op == 'call_function':
-            if curr_node.target == tvmodels.swin_transformer.shifted_window_attention:
+            if has_tv and curr_node.target == tvmodels.swin_transformer.shifted_window_attention:
                 self.num_heads = list(curr_node.args)[-1]
             else:
                 raise Exception('This parametrization is only for inner projection layer of shifted window attention layers (for torchvision)')
@@ -1002,7 +1005,7 @@ class PrunerModule(torch.nn.Module):
                 continue
             elif node.op == 'call_function':
                 #TODO about the weights and bias nodes
-                if node.target == tvmodels.swin_transformer.shifted_window_attention:
+                if has_tv and node.target == tvmodels.swin_transformer.shifted_window_attention:
                     qkv_weight_node  = node.args[1]
                     proj_weight_node  = node.args[2]
                     qkv_module,_ =qkv_weight_node.target.rsplit('.',1)
@@ -1219,7 +1222,7 @@ class PrunerModule(torch.nn.Module):
         modules_params = []
         for node in model_graph.nodes:
             if node.op == 'call_function':
-                if node.target == tvmodels.swin_transformer.shifted_window_attention:
+                if has_tv and node.target == tvmodels.swin_transformer.shifted_window_attention:
                     qkv_weight_node  = node.args[1]
                     proj_weight_node  = node.args[2]
                     qkv_module,_ =qkv_weight_node.target.rsplit('.',1)

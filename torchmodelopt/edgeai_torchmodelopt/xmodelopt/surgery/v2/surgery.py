@@ -97,6 +97,7 @@ def _replace_unsupported_layers(model:nn.Module, example_input:list=[], example_
                 # calls the main surgery function
                 model = graph_pattern_replacer(model, pattern, replacement, verbose_mode=verbose_mode)
     model = custom_surgery_functions.remove_identiy(model)
+    model.delete_all_unused_submodules()
     
     return model
 

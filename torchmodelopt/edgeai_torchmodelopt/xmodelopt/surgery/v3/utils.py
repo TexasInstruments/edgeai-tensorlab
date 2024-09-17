@@ -37,9 +37,14 @@ try:
     has_wandb = True
 except:
     has_wandb = False
-import torchvision
 import os
-from torchvision import datasets, transforms
+try:
+    import torchvision
+    has_tv = True
+except:
+    has_tv = False
+if has_tv:
+    from torchvision import datasets, transforms
 from torch import distributed as dist
 from enum import Enum
 import time
@@ -166,36 +171,37 @@ def _initializeWandb(projectName:str,lr=0.001,arch=None,datadir:str=None,epochs=
 def _initializeDevice():
     return  torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-def _initializeDataLoader(dataDir:str,batchSize:int=256):
-    traindir = os.path.join(dataDir, 'train')
-    valdir = os.path.join(dataDir, 'val')
-    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                    std=[0.229, 0.224, 0.225])
+if has_tv:
+    def _initializeDataLoader(dataDir:str,batchSize:int=256):
+        traindir = os.path.join(dataDir, 'train')
+        valdir = os.path.join(dataDir, 'val')
+        normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                        std=[0.229, 0.224, 0.225])
 
-    train_dataset = datasets.ImageFolder(
-        traindir,
-        transforms.Compose([
-            transforms.RandomResizedCrop(224),
-            transforms.RandomHorizontalFlip(),
-            transforms.ToTensor(),
-            normalize,
-        ]))
+        train_dataset = datasets.ImageFolder(
+            traindir,
+            transforms.Compose([
+                transforms.RandomResizedCrop(224),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                normalize,
+            ]))
 
-    val_dataset = datasets.ImageFolder(
-        valdir,
-        transforms.Compose([
-            transforms.Resize(256),
-            transforms.CenterCrop(224),
-            transforms.ToTensor(),
-            normalize,
-        ]))
+        val_dataset = datasets.ImageFolder(
+            valdir,
+            transforms.Compose([
+                transforms.Resize(256),
+                transforms.CenterCrop(224),
+                transforms.ToTensor(),
+                normalize,
+            ]))
 
-    train_loader = torch.utils.data.DataLoader(
-        train_dataset, batch_size=batchSize, shuffle=True, pin_memory=True)
+        train_loader = torch.utils.data.DataLoader(
+            train_dataset, batch_size=batchSize, shuffle=True, pin_memory=True)
 
-    val_loader = torch.utils.data.DataLoader(
-        val_dataset, batch_size=batchSize, shuffle=False, pin_memory=True )
-    return train_loader,val_loader
+        val_loader = torch.utils.data.DataLoader(
+            val_dataset, batch_size=batchSize, shuffle=False, pin_memory=True )
+        return train_loader,val_loader
 
 
 def exportAndSimplifyOnnx(model:nn.Module,dummyInput:torch.Tensor,onnxFileName:str):

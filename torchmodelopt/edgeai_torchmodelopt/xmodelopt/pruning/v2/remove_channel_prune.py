@@ -32,30 +32,44 @@
 
 import torch
 import torch.fx as fx
-import torchvision
-from edgeai_torchmodelopt.xmodelopt.pruning import create_channel_pruned_model2
+try:
+    import torchvision
+    has_tv = True
+except:
+    has_tv = False
+from edgeai_torchmodelopt.xmodelopt.pruning.v2 import create_channel_pruned_model2
 import copy
 
-num_classes = 10
-model = torchvision.models.vit_b_16(num_classes =num_classes)
-# model = torchvision.models.resnet50()
-current_model_dict = model.state_dict()
-model_path = '/home/a0507161/Kunal/transformer_sparsity/outputs/vit_b_16/2024_05_21_17_58_52/last_checkpoint.pth'
-state_dict = torch.load(model_path)
-state_dict = state_dict['model']
+def main():
+    if not has_tv:
+        print('''
+    This is a test script for channel pruning. This only supports torchvision till now. So, the code will exit now.
+    ''')
+        return
 
-new_state_dict={k:v if v.size()==current_model_dict[k].size()  else  current_model_dict[k] for k,v in zip(current_model_dict.keys(), state_dict.values())}
-model.load_state_dict(state_dict=new_state_dict)
+    num_classes = 10
+    model = torchvision.models.vit_b_16(num_classes =num_classes)
+    # model = torchvision.models.resnet50()
+    current_model_dict = model.state_dict()
+    model_path = '/home/a0507161/Kunal/transformer_sparsity/outputs/vit_b_16/2024_05_21_17_58_52/last_checkpoint.pth'
+    state_dict = torch.load(model_path)
+    state_dict = state_dict['model']
 
-orig_model = copy.deepcopy(model)
+    new_state_dict={k:v if v.size()==current_model_dict[k].size()  else  current_model_dict[k] for k,v in zip(current_model_dict.keys(), state_dict.values())}
+    model.load_state_dict(state_dict=new_state_dict)
 
-final_model = create_channel_pruned_model2(model)
+    orig_model = copy.deepcopy(model)
 
-dummy_input = torch.randn(10, 3, 224, 224)
-print("The forward pass is starting \n")
+    final_model = create_channel_pruned_model2(model)
 
-y = final_model(dummy_input)
-print("The forward pass completed \n")
+    dummy_input = torch.randn(10, 3, 224, 224)
+    print("The forward pass is starting \n")
 
-torch.onnx.export(orig_model, dummy_input, model_path[:-4]+"_orig.onnx")
-torch.onnx.export(final_model, dummy_input, model_path[:-4]+"_final.onnx")
+    y = final_model(dummy_input)
+    print("The forward pass completed \n")
+
+    torch.onnx.export(orig_model, dummy_input, model_path[:-4]+"_orig.onnx")
+    torch.onnx.export(final_model, dummy_input, model_path[:-4]+"_final.onnx")
+
+if __name__ == '__main__':
+    main()
