@@ -59,7 +59,6 @@ python3 examples/pytorch/image-classification/run_image_classification.py \
                 --trust_remote_code True \
                 --dataset_name data/datasets/imagenet2012 \
                 --trust_remote_code True \
-                --dataset_name data/datasets/imagenet2012 \
                 --model_name_or_path ${MODEL_NAME_OR_PATH} \
                 --output_dir outputs \
                 --remove_unused_columns False \

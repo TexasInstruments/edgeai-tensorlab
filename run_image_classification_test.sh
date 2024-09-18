@@ -43,15 +43,13 @@
 #--image_scale 0.017125 0.017507 0.017429
 
 
-MODEL_NAME_OR_PATH="facebook/deit-tiny-patch16-224"
-# facebook/convnext-tiny-224
-# microsoft/swin-tiny-patch4-window7-224
-# facebook/deit-tiny-patch16-224
-# facebook/deit-small-patch16-224
-# microsoft/swin-tiny-patch4-window7-224
-# microsoft/swin-small-patch4-window7-224
-# facebook/convnext-tiny-224
-# facebook/convnext-small-224
+# MODEL_NAME_OR_PATH="microsoft/resnet-50"
+# MODEL_NAME_OR_PATH="facebook/convnext-tiny-224"
+# MODEL_NAME_OR_PATH="facebook/convnext-small-224"
+# MODEL_NAME_OR_PATH="facebook/deit-tiny-patch16-224"
+# MODEL_NAME_OR_PATH="facebook/deit-small-patch16-224"
+MODEL_NAME_OR_PATH="microsoft/swin-tiny-patch4-window7-224"
+# MODEL_NAME_OR_PATH="microsoft/swin-small-patch4-window7-224"
 
 
 CUDA_VISIBLE_DEVICES="0" \
