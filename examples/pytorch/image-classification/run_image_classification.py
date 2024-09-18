@@ -233,6 +233,13 @@ class ModelOptimizationArguments:
             "help" : "How do we want to quantize our network (Options. QAT, PTC/PTQ). This is only applicable when quantization is set to 3"
         }
     )
+    qconfig_type: str = field(
+        default='DEFAULT',
+        metadata={
+            "help" : "The qconfig schemes for inducing the quantization. (Options. DEFAULT, WC8_AT8, MSA_WC8_AT8, WT8SYMP2_AT8SYMP2, ...). \
+                The full list and explanations can be obtained from qconfig_types.py"
+        }
+    )
     quantize_calib_images: int = field(
         default=50,
         metadata={
@@ -541,7 +548,7 @@ def main():
             num_observer_update_epochs = int(len(dataset["train"]) * ((training_args.num_train_epochs//2)+1) / (training_args.n_gpu*training_args.per_device_train_batch_size))
             num_batch_norm_update_epochs = int(len(dataset["train"]) * ((training_args.num_train_epochs//2)-1) / (training_args.n_gpu*training_args.per_device_train_batch_size))
             model = xmodelopt.quantization.v3.QATPT2EModule(model, total_epochs=training_args.num_train_epochs, is_qat=True, fast_mode=False,
-                qconfig_type="DEFAULT", example_inputs=example_input, convert_to_cuda=convert_to_cuda, 
+                qconfig_type=model_optimization_args.qconfig_type, example_inputs=example_input, convert_to_cuda=convert_to_cuda, 
                 bias_calibration_factor=model_optimization_args.bias_calibration_factor,
                 num_observer_update_epochs = num_observer_update_epochs,
                 num_batch_norm_update_epochs = num_batch_norm_update_epochs)
@@ -550,9 +557,9 @@ def main():
         else: 
             # training_args.num_train_epochs = 2 # bias calibration in the second epoch
             model = xmodelopt.quantization.v3.QATPT2EModule(model, total_epochs=training_args.num_train_epochs, is_qat=True, fast_mode=False,
-                qconfig_type="DEFAULT", example_inputs=example_input, convert_to_cuda=convert_to_cuda, 
+                qconfig_type=model_optimization_args.qconfig_type, example_inputs=example_input, convert_to_cuda=convert_to_cuda, 
                 bias_calibration_factor=model_optimization_args.bias_calibration_factor, 
-                num_observer_update_epochs=model_optimization_args.quantize_calib_images)
+                num_observer_update_epochs=model_optimization_args.quantize_calib_images,)
             # need to turn the parameter update off during PTQ/PTC
             training_args.dont_update_parameters = True
         #
@@ -589,7 +596,11 @@ def main():
         file_name = training_args.output_dir + '/' + file_name + '_quantized.onnx' if model_optimization_args.quantization else \
             training_args.output_dir + '/' + file_name + '.onnx'
         if hasattr(trainer.model, 'export'):
-            trainer.model.export(example_input, filename=file_name, simplify=True, device=export_device)
+            try:
+                trainer.model.export(example_input, filename=file_name, simplify=True, device='cpu')
+            except:
+                print("The onnx export in cpu device failed, trying in cuda.")
+                trainer.model.export(example_input, filename=file_name, simplify=True, device='cuda')
         else:
             export_model = copy.deepcopy(trainer.model.eval()).to(device=export_device)
             example_input = next(iter(dataset["validation"]))

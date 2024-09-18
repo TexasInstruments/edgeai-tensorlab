@@ -3737,26 +3737,6 @@ class Trainer:
                 loss_kwargs["num_items_in_batch"] = num_items_in_batch
             inputs = {**inputs, **loss_kwargs}
         outputs = model(**inputs)
-# import onnxruntime
-# sess_options = onnxruntime.SessionOptions()
-# sess_options.graph_optimization_level = onnxruntime.GraphOptimizationLevel.ORT_ENABLE_ALL
-# session = onnxruntime.InferenceSession('/home/a0491009/quantization/edgeai-transformers/examples/pytorch/image-classification/imagenet/deit-tiny-patch16-224.onnx', sess_options)
-# input_name = session.get_inputs()[0].name
-# onnx_input = inputs['pixel_values'].cpu().data.numpy()
-# output = session.run([], {input_name: onnx_input})
-        
-        
-        
-# import onnxruntime
-# sess_options = onnxruntime.SessionOptions()
-# sess_options.graph_optimization_level = onnxruntime.GraphOptimizationLevel.ORT_ENABLE_ALL
-# session = onnxruntime.InferenceSession('/home/a0491009/quantization/edgeai-transformers/examples/pytorch/image-classification/imagenet/deit-tiny-patch16-224.onnx', sess_options)
-# input_name = session.get_inputs()[0].name
-# head_mask = session.get_inputs()[1].name
-# onnx_input = inputs['pixel_values'].cpu().data.numpy()
-# output = session.run([], {input_name: onnx_input,  head_mask: np.ones((20, 1), dtype=np.int64)})
-
-
         
         # Save past state if it exists
         # TODO: this needs to be fixed and made cleaner later.
