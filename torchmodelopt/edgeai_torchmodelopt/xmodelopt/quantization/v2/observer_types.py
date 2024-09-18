@@ -142,20 +142,31 @@ class AdaptiveActivationObserver(observer_utils.CumulativeMSEHistogramObserver):
     @torch.jit.export
     def _calculate_qparams(self, min_val, max_val):
         r"""Calculates the quantization parameters."""
-        if self.symmetric:
-            signed_range = torch.min(min_val.detach()).item() < 0.0
-            max_abs = torch.max(torch.abs(min_val), torch.abs(max_val))
-            min_val = -max_abs if signed_range else max_abs * 0.0
-            max_val = max_abs
-
-        scale, zero_point = super()._calculate_qparams(min_val, max_val)
-
-        if self.power2_scale:
-            scale, zero_point = observer_utils._adjust_qparams_power2_scale(
-                min_val, max_val, self.quant_min, self.quant_max, scale, zero_point, self.eps)
-
-        return scale, zero_point
-
+        if self.symmetric or self.power2_scale:
+            if self.symmetric:
+                signed_range = torch.min(min_val.detach()).item() < 0.0
+                max_abs = torch.max(torch.abs(min_val), torch.abs(max_val))
+                min_val = -max_abs if signed_range else max_abs * 0.0
+                max_val = max_abs
+                if self.power2_scale:
+                    quant_min_orig, quant_max_orig = self.quant_min, self.quant_max
+                    self.quant_min, self.quant_max = observer_utils.ceil2_num(self.quant_min), observer_utils.ceil2_num(self.quant_max)
+                    min_val, max_val = observer_utils.ceil2_tensor(min_val), observer_utils.ceil2_tensor(max_val)
+                    qparams = super()._calculate_qparams(min_val, max_val)
+                    self.quant_min, self.quant_max = quant_min_orig, quant_max_orig
+                    return qparams
+                else:
+                    qparams = super()._calculate_qparams(min_val, max_val)
+                    return qparams
+            else: # affine power-of-2
+                scale, zero_point = super()._calculate_qparams(min_val, max_val)
+                new_scale = observer_utils._ceil2_tensor(scale)
+                min_val_neg = torch.min(min_val, torch.zeros_like(min_val))
+                scale_factor = torch.div(scale, new_scale)
+                new_zero_point = torch.mul(zero_point, scale_factor) - torch.mul(min_val_neg, (scale_factor-1)) 
+                return new_scale, new_zero_point
+        else:
+            return super()._calculate_qparams(min_val, max_val)
 
     def forward(self, x_orig):
         if self.freeze_observer:
