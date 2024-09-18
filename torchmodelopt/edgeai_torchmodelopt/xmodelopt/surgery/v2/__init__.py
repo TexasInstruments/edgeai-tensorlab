@@ -132,7 +132,7 @@ def get_replacement_flag_dict_default(return_flags = True, can_retrain = True):
     flag_dict = default_replacement_flag_dict if can_retrain else default_replacement_flag_dict_no_training
     if return_flags :
         return flag_dict
-    repalcement_entries_dict = {}
+    replacement_entries_dict = {}
     for k,v in flag_dict.items():
         if k in flag_to_dict_entries and v in (True,False):
                 if v:
@@ -141,8 +141,8 @@ def get_replacement_flag_dict_default(return_flags = True, can_retrain = True):
                     continue
         else:
             continue
-        repalcement_entries_dict.update({k,v})
-    return repalcement_entries_dict
+        replacement_entries_dict.update({k,v})
+    return replacement_entries_dict
 
 
 def get_replacement_dict(

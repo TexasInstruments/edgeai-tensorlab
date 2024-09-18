@@ -1,8 +1,11 @@
 import torch
 from torch import nn, fx
 from typing import Any
+import copy
 
 from . import surgery, pruning, quantization
+
+__all__ = ['apply_model_optimization', 'apply_model_surgery', 'apply_pruning', 'apply_quantization', 'prepare_model_for_onnx', 'apply_tranformation_to_submodules', 'TransformationWrapper']
 
 def apply_model_optimization(model: nn.Module, example_inputs: list=[], example_kwargs: dict={}, model_surgery_dict: dict[str,Any]=None, pruning_dict: dict[str,Any]=None, quantization_dict: dict[str,Any]=None,):
     '''
@@ -24,6 +27,9 @@ def apply_model_optimization(model: nn.Module, example_inputs: list=[], example_
             iii)    Quantization    -> 'quantization_func'
     '''
     model(*example_inputs,**example_kwargs)
+    model_surgery_dict = copy.deepcopy(model_surgery_dict)
+    pruning_dict = copy.deepcopy(pruning_dict)
+    quantization_dict = copy.deepcopy(quantization_dict)
     if model_surgery_dict:
         assert isinstance(model_surgery_dict,dict), 'If model surgery is defined, it must be a dict.'
         assert 'version' in model_surgery_dict, 'A version key must be in model surgery dict to specify version'
@@ -42,7 +48,7 @@ def apply_model_optimization(model: nn.Module, example_inputs: list=[], example_
         assert isinstance(quantization_dict,dict), 'If quantization is defined, it must be a dict.'
         assert 'version' in quantization_dict, 'A version key must be in quantization dict to specify version'
         quantization_version = quantization_dict.pop('version')
-        quantization_func = quantization_dict.pop('quantization_func',apply_pruning)
+        quantization_func = quantization_dict.pop('quantization_func',apply_quantization)
         model = quantization_func(model, example_inputs, example_kwargs, quantization_version, quantization_dict)
     return model
 
@@ -55,23 +61,25 @@ def prepare_model_for_onnx(orig_model: nn.Module, trained_model: nn.Module, exam
 
 def apply_model_surgery(model: nn.Module, example_inputs: list=[], example_kwargs: dict={}, version: int=3, model_surgery_kwargs: dict[str,Any]=None, *args, **kwargs):
     model(*example_inputs, **example_kwargs)
+    model_surgery_kwargs = copy.deepcopy(model_surgery_kwargs)
     if version in (1,2,3):
         assert 'replacement_dict' in model_surgery_kwargs, "A 'replacement_dict' must be present in surgery kwargs."
     if version == 1:
         replacement_dict = model_surgery_kwargs.pop('replacement_dict')
-        model = surgery.v1.convert_to_lite_model(model, replacement_dict=replacement_dict, **model_surgery_kwargs)
+        model = surgery.v1.convert_to_lite_model(model, replacement_dict, **model_surgery_kwargs)
     elif version == 2:
         replacement_dict = model_surgery_kwargs.pop('replacement_dict')
-        model = surgery.v2.convert_to_lite_fx(model, example_inputs=example_inputs, example_kwargs=example_kwargs, replacement_dict=replacement_dict, **model_surgery_kwargs)
+        model = surgery.v2.convert_to_lite_fx(model, replacement_dict, example_inputs, example_kwargs, **model_surgery_kwargs)
     elif version == 3:
         replacement_dict = model_surgery_kwargs.pop('replacement_dict')
-        model = surgery.v3.convert_to_lite_pt2e(model, example_inputs= example_inputs, example_kwargs= example_kwargs, replacement_dict=replacement_dict, **model_surgery_kwargs)
-        
+        model = surgery.v3.convert_to_lite_pt2e(model,replacement_dict, example_inputs, example_kwargs, **model_surgery_kwargs)
+        # model,_ = torch._dynamo.export(model,aten_graph=False,assume_static_by_default=True)(*example_inputs,**example_kwargs)
     return model
 
 
 def apply_pruning(model: nn.Module, example_inputs: list=[], example_kwargs: dict={}, version: int=3, pruning_kwargs: dict[str,Any]=None, *args, **kwargs):
     model(*example_inputs, **example_kwargs)
+    pruning_kwargs = copy.deepcopy(pruning_kwargs)
     if version == 1:
         assert False, "Pruning is currently not supported in the legacy modules based method"
     if version in (2,3):
@@ -85,8 +93,9 @@ def apply_pruning(model: nn.Module, example_inputs: list=[], example_kwargs: dic
     return model
 
 
-def apply_quantization(model: nn.Module, example_inputs: list=[], example_kwargs: dict={}, version: int=3, quantization_kwargs: dict[str,Any]=None, *args, **kwargs):
+def apply_quantization(model: nn.Module, example_inputs: list=[], example_kwargs: dict={}, version: int=2, quantization_kwargs: dict[str,Any]=None, *args, **kwargs):
     model(*example_inputs, **example_kwargs)
+    quantization_kwargs = copy.deepcopy(quantization_kwargs)
     if version in (1,2,3):
         # for common kwargs
         pass
@@ -99,10 +108,37 @@ def apply_quantization(model: nn.Module, example_inputs: list=[], example_kwargs
         elif quantization_method in ('PTQ', 'PTC'):
             model = quantization.v2.PTCFxModule(model,**quantization_kwargs)
     elif version == 3:
-        assert False, "Quantization is currently not supported in the PT2E based method"
+        # assert False, "Quantization is currently not supported in the PT2E based method"
         quantization_method = quantization_kwargs.pop('quantization_method',None)
         if quantization_method == 'QAT':
-            model = quantization.v3.QATPT2EModule(model,**quantization_kwargs)
+            model = quantization.v3.QATPT2EModule(model, example_inputs=example_inputs, **quantization_kwargs)
         elif quantization_method in ('PTQ', 'PTC'):
-            model = quantization.v3.PTQPT2EModule(model,**quantization_kwargs)
+            model = quantization.v3.PTQPT2EModule(model, example_inputs=example_inputs, **quantization_kwargs)
     return model
+
+
+def apply_tranformation_to_submodules(model:nn.Module, transformation_dict: dict, *args, **kwargs):
+    module_dict = dict(model.named_modules())
+    for name, wrapper_fn in transformation_dict.items() :
+        if name not in module_dict:
+            continue
+        module = module_dict[name]
+        splits = name.rsplit('.',1)
+        if len(splits) == 1:
+            splits = '',splits[0]
+        parent_module, sub_module_name = splits
+        parent_module = model if parent_module == '' else module_dict[parent_module]
+        module = wrapper_fn(module, *args, **kwargs)
+        setattr(parent_module,sub_module_name,module)
+    return model
+
+
+class TransformationWrapper:
+    def __init__(self, wrapper:callable, fn:callable=None):
+        self.wrapper = wrapper
+        self.fn = fn
+        
+    def __call__(self, *args, **kwargs):
+        if self.fn is None:
+            raise ValueError("the fn function to be wrapped should not be None")
+        return self.wrapper(self.fn, *args, **kwargs)
