@@ -265,7 +265,7 @@ def load_weights(self, pretrained, *args, strict=True, state_dict_name=None, **k
     
     
 def export(self, example_input, filename='model.onnx', opset_version=17, model_quant_format=None, preserve_qdq_model=True,
-           simplify=False, skipped_optimizers=None, device='cpu', make_copy=True):
+           simplify=False, skipped_optimizers=None, device='cpu', make_copy=True, insert_metadata=True):
     model = convert(self, device=device, make_copy=make_copy)
     # model, example_input = create_batch1_model(model, example_input)
     model = quant_utils.remove_loss_branch(model) 
@@ -300,6 +300,15 @@ def export(self, example_input, filename='model.onnx', opset_version=17, model_q
         onnx_model, check = simplify(onnx_model, skipped_optimizers=skipped_optimizers)
         onnx.save(onnx_model, filename)
     
+    if insert_metadata:
+        import onnx
+        from ....version import __version__
+        onnx_model = onnx.load(filename)
+        meta = onnx_model.metadata_props.add()
+        meta.key = "model_source"
+        meta.value = f"edgeai_torchmodelopt_{__version__}"
+        onnx.save(onnx_model, filename)
+        
     
 def create_batch1_model(orig_quantized_model, example_inputs):
     

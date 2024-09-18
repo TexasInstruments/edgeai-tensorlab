@@ -55,7 +55,7 @@ def import_file_folder(file_or_folder_name):
 
 
 def get_version():
-    version_file = os.path.realpath(os.path.join(os.path.dirname(__file__), 'version.py'))
+    version_file = os.path.realpath(os.path.join(os.path.dirname(__file__), 'edgeai_torchmodelopt' , 'version.py'))
     print(f"version_file={version_file}")
     version = import_file_folder(version_file)
     hash = git_hash()

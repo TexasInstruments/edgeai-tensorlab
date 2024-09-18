@@ -226,7 +226,7 @@ def convert(self, device='cpu', model_quant_format=None, convert_custom_config=N
 
 
 def export(self, example_input, filename='model.onnx', opset_version=17, model_quant_format=None, preserve_qdq_model=True,
-           simplify=True, skipped_optimizers=None, device='cpu', make_copy=True):
+           simplify=True, skipped_optimizers=None, device='cpu', make_copy=True, insert_metadata=True):
     
     model = convert(self, device=device, make_copy=make_copy)
     
@@ -271,7 +271,16 @@ def export(self, example_input, filename='model.onnx', opset_version=17, model_q
             onnx.save(onnx_model, filename)
         except:
             print("Something went wrong in simplification - maybe due to multi processes, skippping this step")
-        
+    #
+    
+    if insert_metadata:
+        import onnx
+        from ....version import __version__
+        onnx_model = onnx.load(filename)
+        meta = onnx_model.metadata_props.add()
+        meta.key = "model_source"
+        meta.value = f"edgeai_torchmodelopt_{__version__}"
+        onnx.save(onnx_model, filename)   
     #
 
 
