@@ -312,6 +312,15 @@ def export(self, example_input, filename='model.onnx', opset_version=17, model_q
         onnx_model, check = simplify(onnx_model, skipped_optimizers=skipped_optimizers)
         onnx.save(onnx_model, filename)
     
+    if insert_metadata:
+        import onnx
+        from ....version import __version__
+        onnx_model = onnx.load(filename)
+        meta = onnx_model.metadata_props.add()
+        meta.key = "model_source"
+        meta.value = f"edgeai_torchmodelopt_{__version__}"
+        onnx.save(onnx_model, filename)
+        
     
 def create_batch1_model(orig_quantized_model, example_inputs):
     
