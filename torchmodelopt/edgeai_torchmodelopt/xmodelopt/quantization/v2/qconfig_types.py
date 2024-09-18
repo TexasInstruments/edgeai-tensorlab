@@ -59,9 +59,12 @@ class QConfigType():
     
     MSA_WC8_AT8 = "MSA_WC8_AT8"                 # WC8_AT8 + no range shrink (mostly for attention networks with important peaks)
 
-    WT8SYMP2_AT8SYMP2 = "WT8SYMP2_AT8SYMP2"     # per-tensor symmetric power-power-of-2 quantization for both weights and activations
-    WC8SYMP2_AT8SYMP2 = "WC8SYMP2_AT8SYMP2"     # per-channel symmetric power-power-of-2 quantization for weights, per-tensor symmetric for activations
+    WT8SYMP2_AT8SYMP2 = "WT8SYMP2_AT8SYMP2"     # per-tensor symmetric power-of-2 quantization for both weights and activations
+    WC8SYMP2_AT8SYMP2 = "WC8SYMP2_AT8SYMP2"     # per-channel symmetric power-of-2 quantization for weights, per-tensor symmetric power-of-2 for activations
     WC8SYMP2_AT8SYMP2R4 = "WC8SYMP2_AT8SYMP2R4" # same as above with fixed activation range
+    
+    WC8P2_AT8P2 = "WC8P2_AT8P2"                 # per-channel symmetric power-of-2 quantization for weights, per-tensor affine power-of-2 for activations
+    MSA_WC8P2_AT8P2 = "MSA_WC8P2_AT8P2"         # WC8P2_AT8P2 + no range shrink (mostly for attention networks with important peaks)
 
     WC4_AT8 = "WC4_AT8"                         # 4-bits per-channel quantization for weights, 8-bit per-tensor quantization for activations
     WC4M4_AT8 = "WC4M4_AT8"                     # same as above with a maximum weight range
@@ -166,6 +169,16 @@ def get_quantization_config_default(qconfig_type, is_qat=True, fast_mode=False):
     _QCONFIG_TYPE_TO_DICT[QConfigType.WC8SYMP2_AT8SYMP2] = get_quantization_config(dict(
         weight=dict(qscheme=torch.per_channel_symmetric, power2_scale=True),
         activation=dict(qscheme=torch.per_tensor_symmetric, power2_scale=True)), is_qat=is_qat, fast_mode=fast_mode)
+    
+    # per-channel power-of-2
+    _QCONFIG_TYPE_TO_DICT[QConfigType.WC8P2_AT8P2] = get_quantization_config(dict(
+        weight=dict(qscheme=torch.per_channel_symmetric, power2_scale=True),
+        activation=dict(qscheme=torch.per_tensor_affine, power2_scale=True)), is_qat=is_qat, fast_mode=fast_mode)
+    
+    # per-channel power-of-2 transformers
+    _QCONFIG_TYPE_TO_DICT[QConfigType.MSA_WC8P2_AT8P2] = get_quantization_config(dict(
+        weight=dict(qscheme=torch.per_channel_symmetric, power2_scale=True),
+        activation=dict(qscheme=torch.per_tensor_affine, power2_scale=True, range_shrink_percentile=0)), is_qat=is_qat, fast_mode=fast_mode)
 
     # per-channel symmetric power-of-2, fixed activation range
     _QCONFIG_TYPE_TO_DICT[QConfigType.WC8SYMP2_AT8SYMP2R4] = get_quantization_config(dict(

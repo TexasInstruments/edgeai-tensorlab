@@ -270,10 +270,6 @@ def export(self, example_input, filename='model.onnx', opset_version=17, model_q
     # model, example_input = create_batch1_model(model, example_input)
     model = quant_utils.remove_loss_branch(model) 
     quant_utils.register_onnx_symbolics()
-    from torch.fx import passes
-    g = passes.graph_drawer.FxGraphDrawer(model, "try_model")
-    with open('/home/a0491009/quantization/svg_files/prepared_qat_fx.svg', "wb") as f:
-        f.write(g.get_dot_graph().create_svg())
      
     if model_quant_format == ModelQuantFormat.INT_MODEL:
         # # Convert QDQ format to Int8 format

@@ -82,6 +82,7 @@ def init(model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qn
     #
 
     if dynamo_export:
+        import torch._dynamo as torchdynamo
         example_inputs = example_inputs if example_inputs is not None else \
             torch.ones(1,3,224,224).to(next(model.parameters()).device)
         example_inputs = example_inputs[0] if isinstance(example_inputs, tuple) else example_inputs
