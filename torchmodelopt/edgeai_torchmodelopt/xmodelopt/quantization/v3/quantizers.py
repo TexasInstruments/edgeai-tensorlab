@@ -57,8 +57,6 @@ from torch.fx import Node
 from torch.fx.passes.utils.source_matcher_utils import get_source_partitions
 
 from . import qconfig_types
-# from .observer_types import AdaptiveOutlierRemovalActivationObserver
-
 
 def _mark_nodes_as_annotated(nodes: List[Node]):
     for node in nodes:
@@ -345,8 +343,14 @@ class TIDLRTQuantizer(Quantizer):
             
             act_qspec = get_input_act_qspec(quantization_config)
             # setting the symmetric inputs
+            # messy way of doing it, need better #TODO
             act_qspec_symmetric = qconfig_types.get_act_quantization_config(
-                dict(qscheme=torch.per_tensor_symmetric))
+                dict(
+                    qscheme=torch.per_tensor_symmetric, 
+                    power2_scale=act_qspec.observer_or_fake_quant_ctr.p.keywords['observer'].__init__._partialmethod.keywords['power2_scale'], 
+                    range_shrink_percentile=act_qspec.observer_or_fake_quant_ctr.p.keywords['observer'].__init__._partialmethod.keywords['range_shrink_percentile']
+                )
+            )
 
             input_act0 = matmul_node.args[0]  # type: ignore[union-attr]
             assert isinstance(input_act0, Node)
@@ -418,31 +422,6 @@ class TIDLRTQuantizer(Quantizer):
                 continue
             
             act_qspec = get_input_act_qspec(quantization_config)
-                         
-            # TODO right now manually modifying, need to get the orig config from quantization_config 
-            # and need to modify its observer, or hook will handle it
-            # outlier_removal_act_qspec = qconfig_types.get_act_quantization_config(dict(
-            #     observer_or_fake_quant_ctr=AdaptiveOutlierRemovalActivationObserver)
-            # )    
-            
-            # input_qspec_map = {}
-            # is_mlp_layer0 = False
-            # is_mlp_layer1 = False
-            
-            # input_act0 = add_node.args[0]
-            # if isinstance(input_act0, Node):
-            #     is_mlp_layer0, linear_node = is_mlp_add_layer(input_act0, 6)
-                
-            # input_act1 = add_node.args[1]
-            # if isinstance(input_act1, Node):
-            #     is_mlp_layer1, linear_node = is_mlp_add_layer(input_act1, 6)
-                
-            # if is_mlp_layer0 or is_mlp_layer1:
-            #     _annotate_output_qspec(linear_node.next, outlier_removal_act_qspec)
-            #     if is_mlp_layer0:
-            #         input_qspec_map[input_act1] = act_qspec
-            #     else:
-            #         input_qspec_map[input_act0] = act_qspec   
             
             input_qspec_map = {}
             input_qspec_map[add_node.args[0]] = act_qspec
