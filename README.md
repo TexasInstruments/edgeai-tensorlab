@@ -89,6 +89,7 @@ Make sure to use the correct config file, same as used while training and provid
 ###  Export
 
 **Export of ONNX model (.onnx) and additional meta information (.prototxt)** is supported. The .prototxt contains meta information specified by **TIDL** for object detectors. 
+It is required to have the edgeai-mmdeploy setup before trying to export ONNX models, which could be obtained from [here](https://github.com/TexasInstruments/edgeai-tensorlab/tree/main/edgeai-mmdeploy).
 
 Run the following code to export the model.
 

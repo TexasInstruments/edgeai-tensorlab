@@ -168,7 +168,8 @@ class FPN(BaseModule):
         Returns:
             tuple: Feature maps, each is a 4D-tensor.
         """
-        assert len(inputs) == len(self.in_channels)
+        # to stop getting len not supported from trace
+        # assert len(inputs) == len(self.in_channels)
 
         # build laterals
         laterals = [

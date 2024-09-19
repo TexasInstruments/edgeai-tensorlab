@@ -18,14 +18,14 @@ from mmdet.evaluation import DumpDetResults
 from mmdet.registry import RUNNERS
 from mmdet.utils import setup_cache_size_limit_of_dynamo
 import mmdet.hooks
-from mmdet.utils import convert_to_lite_model
+from mmdet.utils.model_optimization import get_replacement_dict, wrap_optimize_func, get_input, wrap_fn_for_bbox_head
 
 from edgeai_torchmodelopt import xmodelopt
 from edgeai_torchmodelopt import xnn
 
 
 # TODO: support fuse_conv_bn and format_only
-def parse_args():
+def parse_args(args = None):
     parser = argparse.ArgumentParser(
         description='MMDet test (and eval) a model')
     parser.add_argument('config', help='test config file path')
@@ -68,14 +68,14 @@ def parse_args():
     parser.add_argument('--local_rank', '--local-rank', type=int, default=0)
     parser.add_argument('--model-surgery', type=int, default=None)
     parser.add_argument('--quantization', type=int, default=0)
-    args = parser.parse_args()
+    args = parser.parse_args(args) if parser else parser.parse_args()
     if 'LOCAL_RANK' not in os.environ:
         os.environ['LOCAL_RANK'] = str(args.local_rank)
     return args
 
 
-def main():
-    args = parse_args()
+def main(args=None):
+    args = parse_args(args)
 
     # Reduce the number of repeated compilations and improve
     # testing speed.
@@ -162,69 +162,34 @@ def main():
     if hasattr(cfg, 'resize_with_scale_factor') and cfg.resize_with_scale_factor:
         torch.nn.functional._interpolate_orig = torch.nn.functional.interpolate
         torch.nn.functional.interpolate = xnn.layers.resize_with_scale_factor
+    
+    runner._init_model_weights()
+    
+    is_wrapped = False
+    if is_model_wrapper(runner.model):
+        runner.model = runner.model.module
+        is_wrapped = True
 
+    example_inputs, example_kwargs = get_input(runner.model, cfg,)
     if model_surgery:
-        runner._init_model_weights()
-
-        if model_surgery == 1:
-            device = next(runner.model.parameters()).device
-            runner.model = convert_to_lite_model(runner.model, cfg)
-            runner.model = runner.model.to(torch.device(device))
-        elif model_surgery == 2:
-            assert False, 'model surgery 2 is not supported currently'
-            surgery_wrapper = xmodelopt.surgery.v2.convert_to_lite_fx
-
-            is_wrapped = False
-            if is_model_wrapper(runner.model):
-                runner.model = runner.model.module
-                is_wrapped = True
-            #
-            if hasattr(runner.model, 'surgery_init'):
-                print('wrapping the model to prepare for surgery')
-                runner.model = runner.model.surgery_init(
-                    surgery_wrapper, total_epochs=runner.max_epochs)
-            else:
-                # raise RuntimeError(f'surgery_init method is not supported for {type(runner.model)}')
-                runner.model.backbone = surgery_wrapper(runner.model.backbone)
-                # runner.model.neck = surgery_wrapper(runner.model.neck)
-                runner.model.bbox_head = surgery_wrapper(
-                    runner.model.bbox_head)
-            #
-            if is_wrapped:
-                runner.model = runner.wrap_model(
-                    runner.cfg.get('model_wrapper_cfg'), runner.model)
-            #
-
+        model_surgery_dict = dict(version=model_surgery, replacement_dict=get_replacement_dict(model_surgery, cfg), surgery_func = wrap_optimize_func(xmodelopt.apply_model_surgery))
+    else:
+        model_surgery_dict = None
+    
     if args.quantization:
-        # load the checkpoint before quantization wrapper
-        runner.load_or_resume()
-
-        is_wrapped = False
-        if is_model_wrapper(runner.model):
-            runner.model = runner.model.module
-            is_wrapped = True
-        #
-
-        if args.quantization == xmodelopt.quantization.QuantizationVersion.QUANTIZATION_V1:
-            test_loader = runner.build_dataloader(runner._test_dataloader)
-            example_input = next(iter(test_loader))
-            runner.model = xmodelopt.quantization.v1.QuantTrainModule(
-                runner.model, dummy_input=example_input, total_epochs=runner.max_epochs)
-        elif args.quantization == xmodelopt.quantization.QuantizationVersion.QUANTIZATION_V2:
-            if hasattr(runner.model, 'quant_init'):
-                print_log('wrapping the model to prepare for quantization')
-                runner.model = runner.model.quant_init(
-                    xmodelopt.quantization.v2.QATFxModule, total_epochs=runner.max_epochs)
-            else:
-                print_log(f'quant_init method is not supported for {type(runner.model)}. attempting to use the generic wrapper')
-                runner.model = xmodelopt.quantization.v2.QATFxModule(runner.model, total_epochs=runner.max_epochs)
-            #
-        #
-
-        if is_wrapped:
-            runner.model = runner.wrap_model(runner.cfg.get('model_wrapper_cfg'), runner.model)
-        #
-            
+        transformation_dict = dict(backbone=None, neck=None, bbox_head=xmodelopt.TransformationWrapper(wrap_fn_for_bbox_head))
+        quantization_dict = dict(version=args.quantization, quantization_func=xmodelopt.apply_quantization, quantization_method='QAT', transformation_dict = transformation_dict, copy_attrs=['train_step', 'val_step', 'test_step', 'data_preprocessor', 'parse_losses', 'bbox_head'], total_epochs=runner.max_epochs)
+    else:
+        quantization_dict = None
+    
+    orig_model = deepcopy(runner.model)
+    runner.model = xmodelopt.apply_model_optimization(runner.model,example_inputs,example_kwargs,model_surgery_dict=model_surgery_dict, quantization_dict=quantization_dict)
+    
+    if is_wrapped:
+        runner.model = runner.wrap_model(
+            runner.cfg.get('model_wrapper_cfg'), runner.model)
+    print_log('model optimization done')
+    # print(runner.model)
     runner.test()
 
 

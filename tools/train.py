@@ -5,6 +5,7 @@ import os.path as osp
 import warnings
 import torch
 import onnx
+from copy import deepcopy
 
 from mmengine.config import Config, DictAction
 from mmengine.registry import RUNNERS
@@ -13,10 +14,11 @@ from mmengine.model import is_model_wrapper
 from mmengine.logging import print_log
 from mmengine.model.base_module import BaseModule
 from mmengine.runner.loops import EpochBasedTrainLoop
+from mmengine.utils.path import symlink
 
 from mmdet.utils import setup_cache_size_limit_of_dynamo
 
-from mmdet.utils import convert_to_lite_model
+from mmdet.utils.model_optimization import get_replacement_dict, wrap_optimize_func, get_input, wrap_fn_for_bbox_head
 # from mmdet.utils import save_model_proto
 from mmdeploy.utils import save_model_proto
 from mmdeploy.utils import build_model_from_cfg
@@ -25,7 +27,7 @@ from edgeai_torchmodelopt import xmodelopt
 from edgeai_torchmodelopt import xnn
 from edgeai_torchmodelopt import xonnx
 
-def parse_args():
+def parse_args(args = None):
     parser = argparse.ArgumentParser(description='Train a detector')
     parser.add_argument('config', help='train config file path')
     parser.add_argument('--work-dir', help='the dir to save logs and models')
@@ -70,7 +72,8 @@ def parse_args():
     parser.add_argument('--quantize-type', type=str, default='QAT')
     parser.add_argument('--quantize-calib-images', type=int, default=50)
     parser.add_argument('--export-onnx-model', action='store_true', default=False, help='whether to export the onnx network' )
-    args = parser.parse_args()
+    parser.add_argument('--simplify', action='store_true', default=False, help='whether to simplify the onnx model or not model' )
+    args = parser.parse_args(args) if args else parser.parse_args()
     if 'LOCAL_RANK' not in os.environ:
         os.environ['LOCAL_RANK'] = str(args.local_rank)
 
@@ -79,7 +82,7 @@ def parse_args():
 
 def main(args=None):
 
-    args = args or parse_args()
+    args =  parse_args(args)
 
     # Reduce the number of repeated compilations and improve
     # training speed.
@@ -183,76 +186,35 @@ def main(args=None):
         torch.nn.functional.interpolate = xnn.layers.resize_with_scale_factor
 
     # model surgery
+    runner._init_model_weights()
+    
+    is_wrapped = False
+    if is_model_wrapper(runner.model):
+        runner.model = runner.model.module
+        is_wrapped = True
+
+    example_inputs, example_kwargs = get_input(runner.model, cfg,)
     if model_surgery:
-        runner._init_model_weights()
-
-        if model_surgery == 1:
-            device = next(runner.model.parameters()).device
-            runner.model = convert_to_lite_model(runner.model, cfg)
-            runner.model = runner.model.to(torch.device(device))
-        elif model_surgery == 2: 
-            assert False, 'model surgery 2 is not supported currently'
-            surgery_wrapper = xmodelopt.surgery.v2.convert_to_lite_fx
-
-            is_wrapped = False
-            if is_model_wrapper(runner.model):
-                runner.model = runner.model.module
-                is_wrapped = True
-            #
-                
-            if hasattr(runner.model, 'surgery_init'):
-                print_log('wrapping the model to prepare for surgery')
-                runner.model = runner.model.surgery_init(surgery_wrapper)
-            else:
-                # raise RuntimeError(f'surgery_init method is not supported for {type(runner.model)}')
-                runner.model.backbone = surgery_wrapper(runner.model.backbone)
-                # runner.model.neck = surgery_wrapper(runner.model.neck)
-                runner.model.bbox_head = surgery_wrapper(runner.model.bbox_head)
-            #
-                
-            if is_wrapped:
-                runner.model = runner.wrap_model(runner.cfg.get('model_wrapper_cfg'), runner.model)
-        print_log('model surgery done')
-        #
-
+        model_surgery_dict = dict(version=model_surgery, replacement_dict=get_replacement_dict(model_surgery, cfg), surgery_func = wrap_optimize_func(xmodelopt.apply_model_surgery))
+    else:
+        model_surgery_dict = None
+    
     if args.quantization:
-        # load the checkpoint before quantization wrapper
-        runner.load_or_resume()
-
-        is_wrapped = False
-        if is_model_wrapper(runner.model):
-            runner.model = runner.model.module
-            is_wrapped = True
-        #
-            
-        if args.quantization == xmodelopt.quantization.QuantizationVersion.QUANTIZATION_V1:
-            test_loader = runner.build_dataloader(runner._test_dataloader)
-            example_input = next(iter(test_loader))
-            runner.model = xmodelopt.quantization.v1.QuantTrainModule(
-                runner.model, dummy_input=example_input, total_epochs=runner.max_epochs)
-        elif args.quantization == xmodelopt.quantization.QuantizationVersion.QUANTIZATION_V2:
-            if args.quantize_type in ['PTQ', 'PTC']:
-                quantize_wrapper = xmodelopt.quantization.v2.PTCFxModule
-            else:
-                quantize_wrapper = xmodelopt.quantization.v2.QATFxModule
-            if hasattr(runner.model, 'quant_init'):
-                print_log('wrapping the model to prepare for quantization')
-                runner.model = runner.model.quant_init(
-                    quantize_wrapper, total_epochs=runner.max_epochs)
-            else:
-                print_log(
-                    f'quant_init method is not supported for {type(runner.model)}. attempting to use the generic wrapper')
-                runner.model = quantize_wrapper(runner.model, total_epochs=runner.max_epochs)
-            #
-        #
-                
-        if is_wrapped:
-            runner.model = runner.wrap_model(runner.cfg.get('model_wrapper_cfg'), runner.model)
-        #
- 
+        transformation_dict = dict(backbone=None, neck=None, bbox_head=xmodelopt.TransformationWrapper(wrap_fn_for_bbox_head))
+        quantization_dict = dict(version=args.quantization, quantization_func=xmodelopt.apply_quantization, quantization_method='QAT', transformation_dict = transformation_dict, copy_attrs=['train_step', 'val_step', 'test_step', 'data_preprocessor', 'parse_losses', 'bbox_head'], total_epochs=runner.max_epochs)
+    else:
+        quantization_dict = None
+    
+    orig_model = deepcopy(runner.model)
+    runner.model = xmodelopt.apply_model_optimization(runner.model,example_inputs,example_kwargs,model_surgery_dict=model_surgery_dict, quantization_dict=quantization_dict)
+    
+    if is_wrapped:
+        runner.model = runner.wrap_model(
+            runner.cfg.get('model_wrapper_cfg'), runner.model)
+    print_log('model optimization done')
     runner.train()
-
-    if args.export_onnx_model or (hasattr(cfg, 'export_onnx_model') and cfg.export_onnx_model):
+    # print(runner.model)
+    if xnn.utils.distributed_utils.is_main_process() and (args.export_onnx_model or (hasattr(cfg, 'export_onnx_model') and cfg.export_onnx_model)):
         # Exporting Model after Training : Uses custom mmdeploy
         try:
             from mmdeploy.apis import torch2onnx
@@ -261,6 +223,13 @@ def main(args=None):
         
         save_file = 'model.onnx'
         save_file = osp.join(cfg.work_dir,save_file)
+        is_wrapped = False
+        if is_model_wrapper(runner.model):
+            runner.model = runner.model.module
+            is_wrapped = True
+        example_inputs, example_kwargs = get_input(runner.model,cfg,1)
+        runner.model = xmodelopt.prepare_model_for_onnx(orig_model, runner.model, example_inputs, example_kwargs, model_surgery_dict=model_surgery_dict, quantization_dict=quantization_dict)
+        
         
         torch2onnx(img='../edgeai-mmdetection/demo/demo.jpg', work_dir=cfg.work_dir, save_file=save_file, model_cfg = cfg, \
             deploy_cfg='../edgeai-mmdeploy/configs/mmdet/detection/detection_onnxruntime_static.py', torch_model = runner.model)
@@ -268,23 +237,24 @@ def main(args=None):
         xonnx.prune_layer_names(save_file, save_file, opset_version=17)
     
         onnx_model = onnx.load(save_file)
-        # if args.simplify:
-        #     try:
-        #         import onnxsim
-        #         onnx_model, check = onnxsim.simplify(onnx_model)
-        #         assert check, 'assert check failed'
-        #     except Exception as e:
-        #         print_log(f'Simplify failure: {e}')
-        # onnx.save(onnx_model, save_file)
-        # print_log(f'ONNX export success, save into {save_file}')
+        if args.simplify:
+            try:
+                import onnxsim
+                onnx_model, check = onnxsim.simplify(onnx_model)
+                assert check, 'assert check failed'
+            except Exception as e:
+                print_log(f'Simplify failure: {e}')
+        onnx.save(onnx_model, save_file)
+        print_log(f'ONNX export success, save into {save_file}')
 
         output_names = ['dets', 'labels']
         feature_names = [node.name for node in onnx_model.graph.output[2:]]
         # write prototxt
         input_shapes = [[d.dim_value for d in _input.type.tensor_type.shape.dim] for _input in onnx_model.graph.input]
         fake_input = torch.randn(*input_shapes[0]).to('cpu')
-        save_model_proto(cfg, runner.model, onnx_model, fake_input, save_file, feature_names=feature_names, output_names=output_names)
-
+        save_model_proto(cfg, getattr(runner.model,'module',runner.model), onnx_model, fake_input, save_file, feature_names=feature_names, output_names=output_names)
+    else:
+        return
 
 if __name__ == '__main__':
     main()

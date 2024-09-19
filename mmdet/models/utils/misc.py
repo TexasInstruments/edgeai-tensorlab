@@ -1,12 +1,13 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 from functools import partial
 from typing import List, Optional, Sequence, Tuple, Union
+import warnings
 
 import numpy as np
 import torch
 from mmengine.structures import InstanceData
 from mmengine.utils import digit_version
-from six.moves import map, zip
+# from six.moves import map, zip
 from torch import Tensor
 from torch.autograd import Function
 from torch.nn import functional as F
@@ -215,9 +216,42 @@ def multi_apply(func, *args, **kwargs):
             a kind of returned results by the function
     """
     pfunc = partial(func, **kwargs) if kwargs else func
-    map_results = map(pfunc, *args)
-    return tuple(map(list, zip(*map_results)))
-
+    if False:
+        # original code
+        map_results = map(pfunc, *args)
+        return tuple(map(list, zip(*map_results)))
+    else:
+        # print('map is not working with torch._dynamo.export, using alternate implementation')
+        args0 = [arg[0] for arg in args]
+        outputs1 = pfunc(*args0)
+        map_results = [[out] for out in outputs1]
+        try:
+            # for pt2e as it has inputs as faketensors
+            num_inputs = len(args[0])
+        except:
+            # for fx as it doesn't support len or iter on proxy
+            module_list = None
+            if len(args)>1:
+                for arg in args[1:]:
+                    if isinstance(arg, torch.nn.ModuleList):
+                        module_list = arg
+                        break
+            if module_list is None:
+                paren_module = func.__self__
+                for attr_name in dir(paren_module):
+                    attr =  getattr(paren_module, attr_name)
+                    if isinstance(attr, torch.nn.ModuleList):
+                        module_list = attr
+                        break
+            num_inputs = 1 if module_list is None else len(module_list)
+        for i in range(1,num_inputs):
+            inp = args[0][i]
+            modules = [m[i] for m in args[1:]]
+            rs = pfunc(inp,*modules)
+            for j, r in enumerate(rs):
+                map_results[j].append(r)
+        return tuple(map_results)
+    
 
 def unmap(data, count, inds, fill=0):
     """Unmap a subset of item (data) back to the original set of items (of size

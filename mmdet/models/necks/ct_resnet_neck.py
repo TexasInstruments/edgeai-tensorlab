@@ -97,6 +97,7 @@ class CTResNetNeck(BaseModule):
 
     def forward(self, x: Sequence[torch.Tensor]) -> Tuple[torch.Tensor]:
         """model forward."""
-        assert isinstance(x, (list, tuple))
+        # to avoid error while in symbolic trace
+        # assert isinstance(x, (list, tuple))
         outs = self.deconv_layers(x[-1])
         return outs,
