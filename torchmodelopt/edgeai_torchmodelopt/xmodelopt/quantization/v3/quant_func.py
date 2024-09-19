@@ -69,7 +69,7 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
 
     example_inputs = example_inputs if example_inputs is not None else \
         torch.ones(1,3,224,224).to(next(model.parameters()).device)
-    example_inputs = example_inputs[0] if isinstance(example_inputs, tuple) else example_inputs
+    example_inputs = example_inputs[0] if isinstance(example_inputs, (list, tuple)) else example_inputs
     
     if kwargs.get('convert_to_cuda', False):
         for key, value in example_inputs.items():
@@ -248,7 +248,12 @@ def train(self, mode: bool = True):
 
 def calibrate(self, freeze_bn=True, freeze_observers=False):
     self.eval()
-    freeze(self, freeze_bn, freeze_observers)
+    if hasattr(self, 'freeze'):
+        self.frezee(freeze_bn, freeze_observers)
+    elif hasattr(self, 'module'):
+        freeze(self.module, freeze_bn, freeze_observers)
+    else:
+        freeze(self, freeze_bn, freeze_observers)
     return self
 
 
@@ -265,21 +270,21 @@ def load_weights(self, pretrained, *args, strict=True, state_dict_name=None, **k
     
     
 def export(self, example_input, filename='model.onnx', opset_version=17, model_quant_format=None, preserve_qdq_model=True,
-           simplify=False, skipped_optimizers=None, device='cpu', make_copy=True):
-    model = convert(self, device=device, make_copy=make_copy)
+           simplify=True, skipped_optimizers=None, device='cpu', make_copy=True, **export_kwargs):
+    if hasattr(self,'convert'):
+        model = self.convert(device=device,make_copy=make_copy)
+    elif hasattr(self,'module'):
+        model = convert(self.module, device=device, make_copy=make_copy)
+    else:
+        model = convert(self, device=device, make_copy=make_copy)
     # model, example_input = create_batch1_model(model, example_input)
     model = quant_utils.remove_loss_branch(model) 
     quant_utils.register_onnx_symbolics()
-    from torch.fx import passes
-    g = passes.graph_drawer.FxGraphDrawer(model, "try_model")
-    with open('/home/a0491009/quantization/svg_files/prepared_qat_fx.svg', "wb") as f:
-        f.write(g.get_dot_graph().create_svg())
-     
     if model_quant_format == ModelQuantFormat.INT_MODEL:
         # # Convert QDQ format to Int8 format
         import onnxruntime as ort
         qdq_filename = os.path.splitext(filename)[0] + '_qdq.onnx'
-        torch.onnx.export(model, example_input.to('cpu'), qdq_filename, opset_version=opset_version, training=torch._C._onnx.TrainingMode.PRESERVE)
+        torch.onnx.export(model, example_input.to('cpu'), qdq_filename, opset_version=opset_version, training=torch._C._onnx.TrainingMode.PRESERVE, **export_kwargs)
         so = ort.SessionOptions()
         so.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_EXTENDED
         so.optimized_model_filepath = filename
@@ -295,7 +300,7 @@ def export(self, example_input, filename='model.onnx', opset_version=17, model_q
                 example_inputs += tuple([val.to(device=device)])
         else:
             example_inputs = example_input.to(device=device)
-        torch.onnx.export(model, example_inputs, filename, opset_version=opset_version, training=torch._C._onnx.TrainingMode.PRESERVE)
+        torch.onnx.export(model, example_inputs, filename, opset_version=opset_version, training=torch._C._onnx.TrainingMode.PRESERVE, **export_kwargs)
 
     if simplify:
         import onnx

@@ -32,6 +32,7 @@
 import os
 import sys
 import errno
+from .distributed_utils import is_main_process
 
 
 def is_url(download_entry):
@@ -68,13 +69,14 @@ def make_symlink(source, dest):
         print(f'make_symlink failed - source: {source} is invalid')
         return
     #
-    remove_if_exists(dest)
-    if os.path.dirname(source) == os.path.dirname(dest):
-        base_dir = os.path.dirname(source)
-        cur_dir = os.getcwd()
-        os.chdir(base_dir)
-        os.symlink(os.path.basename(source), os.path.basename(dest))
-        os.chdir(cur_dir)
-    else:
-        os.symlink(source, dest)
+    if is_main_process():
+        remove_if_exists(dest)
+        if os.path.dirname(source) == os.path.dirname(dest):
+            base_dir = os.path.dirname(source)
+            cur_dir = os.getcwd()
+            os.chdir(base_dir)
+            os.symlink(os.path.basename(source), os.path.basename(dest))
+            os.chdir(cur_dir)
+        else:
+            os.symlink(source, dest)
     #

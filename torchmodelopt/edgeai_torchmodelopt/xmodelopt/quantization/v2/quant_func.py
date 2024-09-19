@@ -45,7 +45,7 @@ import copy
 
 from .... import xnn
 
-from ...surgery.v2 import custom_surgery_functions, replace_unsupported_layers
+from ...surgery.v2 import custom_surgery_functions, convert_to_lite_fx
 
 from . import qconfig_types
 from . import quant_utils
@@ -117,7 +117,7 @@ def init(model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qn
     orig_device = next(model.parameters()).device
     copy_args=["scale", "qkv", "proj", "num_heads", "head_dim", "weight", "bias", "eps",
                 "relative_position_index", "relative_position_bias_table", "window_area"]
-    model = replace_unsupported_layers(model, replacement_dict, copy_args=copy_args)
+    model = convert_to_lite_fx(model, replacement_dict, copy_args=copy_args)
     model = model.to(orig_device)
 
     # handle None here
@@ -223,9 +223,13 @@ def convert(self, device='cpu', model_quant_format=None, convert_custom_config=N
 
 
 def export(self, example_input, filename='model.onnx', opset_version=17, model_quant_format=None, preserve_qdq_model=True,
-           simplify=True, skipped_optimizers=None, device='cpu', make_copy=True):
-    
-    model = convert(self, device=device, make_copy=make_copy)
+           simplify=True, skipped_optimizers=None, device='cpu', make_copy=True, **export_kwargs):
+    if hasattr(self,'convert'):
+        model = self.convert(device=device,make_copy=make_copy)
+    elif hasattr(self,'module'):
+        model = convert(self.module, device=device, make_copy=make_copy)
+    else:
+        model = convert(self, device=device, make_copy=make_copy)
     
     register_custom_op_symbolic(
         symbolic_name='quantized::matmul', 
@@ -241,7 +245,7 @@ def export(self, example_input, filename='model.onnx', opset_version=17, model_q
         # # Convert QDQ format to Int8 format
         import onnxruntime as ort
         qdq_filename = os.path.splitext(filename)[0] + '_qdq.onnx'
-        torch.onnx.export(model, example_input.to(device=device), qdq_filename, opset_version=opset_version)
+        torch.onnx.export(model, example_input.to(device=device), qdq_filename, opset_version=opset_version, **export_kwargs)
         so = ort.SessionOptions()
         so.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_EXTENDED
         so.optimized_model_filepath = filename
@@ -251,7 +255,7 @@ def export(self, example_input, filename='model.onnx', opset_version=17, model_q
             os.remove(qdq_filename)
         #
     else:
-        torch.onnx.export(model, example_input.to(device=device), filename, opset_version=opset_version)
+        torch.onnx.export(model, example_input.to(device=device), filename, opset_version=opset_version, **export_kwargs)
     #
     if simplify:
         import onnx
@@ -302,7 +306,12 @@ def train(self, mode: bool = True):
 
 def calibrate(self, freeze_bn=True, freeze_observers=False):
     self.eval()
-    freeze(self, freeze_bn, freeze_observers)
+    if hasattr(self, 'freeze'):
+        self.frezee(freeze_bn, freeze_observers)
+    elif hasattr(self, 'module'):
+        freeze(self.module, freeze_bn, freeze_observers)
+    else:
+        freeze(self, freeze_bn, freeze_observers)
     return self
     
 
