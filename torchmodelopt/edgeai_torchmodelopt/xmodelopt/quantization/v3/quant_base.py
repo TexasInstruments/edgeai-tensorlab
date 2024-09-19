@@ -29,12 +29,14 @@
 #
 #################################################################################
 
+import types
 import torch
 from . import quant_func
+from ...utils import apply_tranformation_to_submodules, TransformationWrapper
 
 
 class QuantPT2EBaseModule(torch.nn.Module):
-    def __init__(self, model, *args, quantizer=None, add_methods=True, **kwargs):
+    def __init__(self, model, *args, transformation_dict:dict=None, copy_attrs:list[str]=[], add_methods=True, **kwargs):
         '''
         model: input model to be used for QAT / PTC
         qconfig_type: qconfig_type can be one of the modes defined in qconfig_types (string)
@@ -42,30 +44,95 @@ class QuantPT2EBaseModule(torch.nn.Module):
             it can also be an instance of torch.ao.quantization.QConfig as used when using torch.ao.quantization apis
         '''
         super().__init__()
-        self.module = quant_func.init(model, *args, quantizer=quantizer, add_methods=add_methods, **kwargs)
+        # self.module = quant_func.init(model, *args, add_methods=add_methods, **kwargs)
+        self.module = model
+        self.module_dict = dict(model.named_modules())
+        if transformation_dict is None:
+            transformation_dict = {'':quant_func.init}
+        elif isinstance(transformation_dict, dict):
+            for key, value in transformation_dict.items():
+                if value is None:
+                    transformation_dict[key] = quant_func.init
+                elif isinstance(value, TransformationWrapper) and value.fn is None:
+                    value.fn = quant_func.init
+        self.transformation_dict = transformation_dict
         
+        def create_function(fn_name):
+            def func(self, *args, **kwargs):
+                f = getattr(self.module, fn_name)
+                return f(*args, **kwargs)
+            f= types.MethodType(func, self)
+            setattr(self, fn_name, f)
+        
+        def create_property(name):
+            if hasattr(self.module, name):
+                attribute_getter = lambda self: getattr(self.module, name)
+                attribute_setter = lambda self, value: setattr(self.module, name, value)
+                new_property = property(fget=attribute_getter, fset=attribute_setter)
+                setattr(self.__class__, name, new_property)
+        
+        for attr_name in copy_attrs:
+            if hasattr(self.module, attr_name):
+                attr = getattr(self.module,attr_name)
+                if isinstance(attr, (types.MethodType, types.FunctionType)):
+                    create_function(attr_name)
+                else:
+                    create_property(attr_name)
+        
+        self.module = apply_tranformation_to_submodules(self.module, self.transformation_dict, *args, add_methods=add_methods, **kwargs)
+
     def load_weights(self, *args, **kwargs):
         quant_func.load_weights(self.module, *args, **kwargs)
 
     def train(self, *args, **kwargs):
-        return quant_func.train(self.module, *args, **kwargs)
+        # return quant_func.train(self.module, *args, **kwargs)
+        for key,value in self.transformation_dict.items():
+            if isinstance(value, TransformationWrapper) :
+                value.fn = quant_func.train
+            else:
+                self.transformation_dict[key] = quant_func.train
+        self.module = apply_tranformation_to_submodules(self.module, self.transformation_dict, *args, **kwargs)
+        return self
     
     def calibrate(self, *args, **kwargs):
-        return quant_func.calibrate(self.module, *args, **kwargs)
+        return quant_func.calibrate(self, *args, **kwargs)
 
     def freeze(self, *args, **kwargs):
-        return quant_func.freeze(self.module, *args, **kwargs)
+        # return quant_func.freeze(self.module, *args, **kwargs)
+        for key,value in self.transformation_dict.items():
+            if isinstance(value, TransformationWrapper) :
+                value.fn = quant_func.freeze
+            else:
+                self.transformation_dict[key] = quant_func.freeze
+        self.module = apply_tranformation_to_submodules(self.module, self.transformation_dict, *args, **kwargs)
+        return self
+    
 
     def unfreeze(self, *args, **kwargs):
-        return quant_func.unfreeze(self.module, *args, **kwargs)
-
+        # return quant_func.unfreeze(self.module, *args, **kwargs)
+        for key,value in self.transformation_dict.items():
+            if isinstance(value, TransformationWrapper) :
+                value.fn = quant_func.unfreeze
+            else:
+                self.transformation_dict[key] = quant_func.unfreeze
+        self.module = apply_tranformation_to_submodules(self.module, self.transformation_dict, *args, **kwargs)
+        return self
+    
+    
     def forward(self, *args, **kwargs):
         return self.module(*args, **kwargs)
 
     def convert(self, *args, **kwargs):
-        self.module = quant_func.convert(self.module, *args, **kwargs)
+        # self.module = quant_func.convert(self.module, *args, **kwargs)
+        for key,value in self.transformation_dict.items():
+            if isinstance(value, TransformationWrapper) :
+                value.fn = quant_func.convert
+            else:
+                self.transformation_dict[key] = quant_func.convert
+        self.module = apply_tranformation_to_submodules(self.module, self.transformation_dict, *args, **kwargs)
         return self
-
+    
+    
     def export(self, *args, **kwargs):
-        return quant_func.export(self.module, *args, **kwargs)
+        return quant_func.export(self, *args, **kwargs)
 
