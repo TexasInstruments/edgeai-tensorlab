@@ -31,8 +31,7 @@
 
 import types
 import torch
-from . import quant_func
-from ...utils import apply_tranformation_to_submodules, TransformationWrapper
+from . import quant_func_wrapper
 
 
 class QuantPT2EBaseModule(torch.nn.Module):
@@ -46,15 +45,6 @@ class QuantPT2EBaseModule(torch.nn.Module):
         super().__init__()
         # self.module = quant_func.init(model, *args, add_methods=add_methods, **kwargs)
         self.module = model
-        self.module_dict = dict(model.named_modules())
-        if transformation_dict is None:
-            transformation_dict = {'':quant_func.init}
-        elif isinstance(transformation_dict, dict):
-            for key, value in transformation_dict.items():
-                if value is None:
-                    transformation_dict[key] = quant_func.init
-                elif isinstance(value, TransformationWrapper) and value.fn is None:
-                    value.fn = quant_func.init
         self.transformation_dict = transformation_dict
         
         def create_function(fn_name):
@@ -79,43 +69,29 @@ class QuantPT2EBaseModule(torch.nn.Module):
                 else:
                     create_property(attr_name)
         
-        self.module = apply_tranformation_to_submodules(self.module, self.transformation_dict, *args, add_methods=add_methods, **kwargs)
+        self.module =quant_func_wrapper.init(self.module, *args, transformation_dict=self.transformation_dict, add_methods=add_methods, **kwargs)
 
     def load_weights(self, *args, **kwargs):
-        quant_func.load_weights(self.module, *args, **kwargs)
+        quant_func_wrapper.load_weights(self.module, *args, **kwargs)
 
     def train(self, *args, **kwargs):
         # return quant_func.train(self.module, *args, **kwargs)
-        for key,value in self.transformation_dict.items():
-            if isinstance(value, TransformationWrapper) :
-                value.fn = quant_func.train
-            else:
-                self.transformation_dict[key] = quant_func.train
-        self.module = apply_tranformation_to_submodules(self.module, self.transformation_dict, *args, **kwargs)
+        self.module = quant_func_wrapper.train(self.module, *args, transformation_dict=self.transformation_dict, **kwargs)
         return self
     
     def calibrate(self, *args, **kwargs):
-        return quant_func.calibrate(self, *args, **kwargs)
+        return quant_func_wrapper.calibrate(self.module, *args, **kwargs)
 
     def freeze(self, *args, **kwargs):
         # return quant_func.freeze(self.module, *args, **kwargs)
-        for key,value in self.transformation_dict.items():
-            if isinstance(value, TransformationWrapper) :
-                value.fn = quant_func.freeze
-            else:
-                self.transformation_dict[key] = quant_func.freeze
-        self.module = apply_tranformation_to_submodules(self.module, self.transformation_dict, *args, **kwargs)
+        
+        self.module = quant_func_wrapper.freeze(self.module, *args, transformation_dict=self.transformation_dict, **kwargs)
         return self
     
 
     def unfreeze(self, *args, **kwargs):
-        # return quant_func.unfreeze(self.module, *args, **kwargs)
-        for key,value in self.transformation_dict.items():
-            if isinstance(value, TransformationWrapper) :
-                value.fn = quant_func.unfreeze
-            else:
-                self.transformation_dict[key] = quant_func.unfreeze
-        self.module = apply_tranformation_to_submodules(self.module, self.transformation_dict, *args, **kwargs)
+        # return quant_func.unfreeze(self.module, *args, **kwargs)  
+        self.module = quant_func_wrapper.unfreeze(self.module, *args, transformation_dict=self.transformation_dict, **kwargs)
         return self
     
     
@@ -124,15 +100,11 @@ class QuantPT2EBaseModule(torch.nn.Module):
 
     def convert(self, *args, **kwargs):
         # self.module = quant_func.convert(self.module, *args, **kwargs)
-        for key,value in self.transformation_dict.items():
-            if isinstance(value, TransformationWrapper) :
-                value.fn = quant_func.convert
-            else:
-                self.transformation_dict[key] = quant_func.convert
-        self.module = apply_tranformation_to_submodules(self.module, self.transformation_dict, *args, **kwargs)
+        self.module = quant_func_wrapper.convert(self.module, *args, transformation_dict=self.transformation_dict, **kwargs)
         return self
     
     
     def export(self, *args, **kwargs):
-        return quant_func.export(self, *args, **kwargs)
+        return quant_func_wrapper.export(self.module, *args, transformation_dict=self.transformation_dict, **kwargs)
+
 

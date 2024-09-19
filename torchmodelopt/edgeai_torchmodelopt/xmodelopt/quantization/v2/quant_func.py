@@ -229,13 +229,15 @@ def _is_observed_module(module) -> bool:
 
 
 def export(self, example_input, filename='model.onnx', opset_version=17, model_qconfig_format=None, preserve_qdq_model=True,
-           simplify=True, skipped_optimizers=None, device='cpu', make_copy=True, **export_kwargs):
+           simplify=True, skipped_optimizers=None, device='cpu', make_copy=True, is_converted=False, **export_kwargs):
     if _is_observed_module(self):
+        model = convert(self, device=device, make_copy=make_copy)
+    elif not is_converted:
         model = convert(self, device=device, make_copy=make_copy)
     else:
         model = self
         warnings.warn("model has already been converted before calling export. make sure it is done correctly.")
-    
+        
     register_custom_op_symbolic(
         symbolic_name='quantized::matmul',
         symbolic_fn=quant_utils.quantized_matmul,
@@ -309,16 +311,12 @@ def train(self, mode: bool = True):
     return self
 
 
-def calibrate(self, freeze_bn=True, freeze_observers=False):
+def calibrate(self, freeze_bn=True, freeze_observers=False, freeze_fn=None):
     self.eval()
-    if hasattr(self, 'freeze'):
-        self.frezee(freeze_bn, freeze_observers)
-    elif hasattr(self, 'module'):
-        freeze(self.module, freeze_bn, freeze_observers)
-    else:
-        freeze(self, freeze_bn, freeze_observers)
+    freeze_fn=freeze_fn or freeze
+    freeze_fn(self, freeze_bn, freeze_observers)
     return self
-    
+
 
 def load_weights(self, pretrained, *args, strict=True, state_dict_name=None, **kwargs):
     data_dict = torch.load(self, pretrained, *args, **kwargs)
