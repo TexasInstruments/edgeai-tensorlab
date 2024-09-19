@@ -8,6 +8,7 @@ import torch
 from mmdeploy.apis.core import PIPELINE_MANAGER
 from mmdeploy.core import RewriterContext, patch_model
 from mmdeploy.utils import IR, Backend, get_ir_config, get_root_logger
+import torch.ao.quantization
 from .optimizer import *  # noqa
 from .passes import optimize_onnx
 
@@ -135,9 +136,9 @@ def export(model: torch.nn.Module,
             args = tuple([_.cpu() for _ in args])
         else:
             raise RuntimeError(f'Not supported args: {args}')
-        torch.onnx.export(
-            patched_model,
-            args,
+        do_export = True
+        if hasattr(patched_model,'export'):
+            patched_model.export(args,
             output_path,
             export_params=True,
             input_names=input_names,
@@ -146,6 +147,26 @@ def export(model: torch.nn.Module,
             dynamic_axes=dynamic_axes,
             keep_initializers_as_inputs=keep_initializers_as_inputs,
             verbose=verbose)
+            do_export = False
+        elif hasattr(patched_model,'convert'):
+            patched_model = patched_model.convert()
+        else:
+            try:
+                patched_model = torch.ao.quantization.quantize_fx.convert_fx(patched_model)
+            except:
+                pass
+        if do_export:
+            torch.onnx.export(
+                patched_model,
+                args,
+                output_path,
+                export_params=True,
+                input_names=input_names,
+                output_names=output_names,
+                opset_version=opset_version,
+                dynamic_axes=dynamic_axes,
+                keep_initializers_as_inputs=keep_initializers_as_inputs,
+                verbose=verbose)
 
         if input_metas is not None:
             patched_model.forward = model_forward
