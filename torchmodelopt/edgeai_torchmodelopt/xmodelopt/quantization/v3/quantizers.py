@@ -30,6 +30,7 @@
 #################################################################################
 
 import torch
+import torch.ao.quantization
 from torch.ao.quantization.quantizer.utils import (
     _annotate_input_qspec_map,
     _annotate_output_qspec
@@ -110,10 +111,12 @@ def is_mlp_add_layer(node, find_level, found_linear=False, linear_node=None):
 
 class TIDLRTQuantizer(Quantizer):
 
-    def __init__(self):
+    def __init__(self, is_qat, fast_mode=False):
         super().__init__()
         self.global_config: QuantizationConfig = None  # type: ignore[assignment]
         self.operator_type_config: Dict[str, Optional[QuantizationConfig]] = {}
+        self.is_qat = is_qat 
+        self.fast_mode = fast_mode
 
     def set_global(self, quantization_config: QuantizationConfig):
         """set global QuantizationConfig used for the backend.
@@ -344,12 +347,18 @@ class TIDLRTQuantizer(Quantizer):
             act_qspec = get_input_act_qspec(quantization_config)
             # setting the symmetric inputs
             # messy way of doing it, need better #TODO
+            if hasattr(act_qspec.observer_or_fake_quant_ctr, "p") and hasattr(act_qspec.observer_or_fake_quant_ctr.p, "keywords"):
+                observer = act_qspec.observer_or_fake_quant_ctr.p.keywords['observer']
+            else:
+                observer = act_qspec.observer_or_fake_quant_ctr
             act_qspec_symmetric = qconfig_types.get_act_quantization_config(
                 dict(
                     qscheme=torch.per_tensor_symmetric, 
-                    power2_scale=act_qspec.observer_or_fake_quant_ctr.p.keywords['observer'].__init__._partialmethod.keywords['power2_scale'], 
-                    range_shrink_percentile=act_qspec.observer_or_fake_quant_ctr.p.keywords['observer'].__init__._partialmethod.keywords['range_shrink_percentile']
-                )
+                    power2_scale=observer.__init__._partialmethod.keywords['power2_scale'], 
+                    range_shrink_percentile=observer.__init__._partialmethod.keywords['range_shrink_percentile']
+                ),
+                is_qat=self.is_qat,
+                fast_mode=self.fast_mode
             )
 
             input_act0 = matmul_node.args[0]  # type: ignore[union-attr]

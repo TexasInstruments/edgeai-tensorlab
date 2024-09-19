@@ -84,7 +84,7 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
     # qconfig_mode = get_symmetric_quantization_config(is_qat=False)
     
     # methods to quantize individual layers/modules types are in quantizer
-    quantizer = quantizer or TIDLRTQuantizer()
+    quantizer = quantizer or TIDLRTQuantizer(is_qat=is_qat, fast_mode=fast_mode)
     quantizer.set_global(qconfig_mode)
     
     # for copy_arg in copy_args:
