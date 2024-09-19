@@ -63,7 +63,7 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
 
     example_inputs = example_inputs if example_inputs is not None else \
         torch.ones(1,3,224,224).to(next(model.parameters()).device)
-    example_inputs = example_inputs[0] if isinstance(example_inputs, tuple) else example_inputs
+    example_inputs = example_inputs[0] if isinstance(example_inputs, (list, tuple)) else example_inputs
     
     if kwargs.get('convert_to_cuda', False):
         if isinstance(example_inputs, dict):
@@ -260,7 +260,12 @@ def train(self, mode: bool = True):
 
 def calibrate(self, freeze_bn=True, freeze_observers=False):
     self.eval()
-    freeze(self, freeze_bn, freeze_observers)
+    if hasattr(self, 'freeze'):
+        self.frezee(freeze_bn, freeze_observers)
+    elif hasattr(self, 'module'):
+        freeze(self.module, freeze_bn, freeze_observers)
+    else:
+        freeze(self, freeze_bn, freeze_observers)
     return self
 
 
@@ -282,7 +287,7 @@ def _is_observed_module(module) -> bool:
 
 
 def export(self, example_input, filename='model.onnx', opset_version=17, model_qconfig_format=None, preserve_qdq_model=True,
-           simplify=False, skipped_optimizers=None, device='cpu', make_copy=True, insert_metadata=True):
+           simplify=False, skipped_optimizers=None, device='cpu', make_copy=True, insert_metadata=True, **export_kwargs):
 
     if _is_observed_module(self):
         model = convert(self, device=device, make_copy=make_copy)
@@ -299,7 +304,7 @@ def export(self, example_input, filename='model.onnx', opset_version=17, model_q
         # # Convert QDQ format to Int8 format
         import onnxruntime as ort
         qdq_filename = os.path.splitext(filename)[0] + '_qdq.onnx'
-        torch.onnx.export(model, example_input.to('cpu'), qdq_filename, opset_version=opset_version, training=torch._C._onnx.TrainingMode.PRESERVE)
+        torch.onnx.export(model, example_input.to('cpu'), qdq_filename, opset_version=opset_version, training=torch._C._onnx.TrainingMode.PRESERVE, **export_kwargs)
         so = ort.SessionOptions()
         so.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_EXTENDED
         so.optimized_model_filepath = filename
@@ -315,7 +320,7 @@ def export(self, example_input, filename='model.onnx', opset_version=17, model_q
                 example_inputs += tuple([val.to(device=device)])
         else:
             example_inputs = example_input.to(device=device)
-        torch.onnx.export(model, example_inputs, filename, opset_version=opset_version, training=torch._C._onnx.TrainingMode.PRESERVE)
+        torch.onnx.export(model, example_inputs, filename, opset_version=opset_version, training=torch._C._onnx.TrainingMode.PRESERVE, **export_kwargs)
 
     if simplify:
         import onnx
