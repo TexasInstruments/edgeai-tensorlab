@@ -64,7 +64,6 @@
 #################################################################################
 
 
-# from torchvision.datasets
 import os
 import os.path
 import hashlib

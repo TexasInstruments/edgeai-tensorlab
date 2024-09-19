@@ -38,15 +38,19 @@ import warnings
 
 from . import custom_modules, custom_surgery_functions
 from .surgery import _replace_unsupported_layers
-
-from torchvision.ops.misc import SqueezeExcitation
+try:
+    from torchvision.ops.misc import SqueezeExcitation
+    tv_se_module = SqueezeExcitation(48, 16)
+except:
+    tv_se_module = None
 try:
     from timm.layers.squeeze_excite import SEModule
+    timm_se_module = SEModule(256) # TODO pattern for SE Module in timm 
 except:
-    SEModule = None
+    timm_se_module = None
 
 
-def convert_to_lite_fx(model:torch.nn.Module, example_input:list=[], example_kwargs:dict={}, replacement_dict:Dict[Any,Union[torch.nn.Module,callable]]=None, verbose_mode:bool=False, **kwargs):
+def convert_to_lite_fx(model:torch.nn.Module, replacement_dict:Dict[Any,Union[torch.nn.Module,callable]]=None, example_input:list=[], example_kwargs:dict={}, verbose_mode:bool=False, **kwargs):
     '''
     converts model into lite model using replacement dict
     if no replacement dict is provided it does the default replacement
@@ -86,9 +90,9 @@ default_replacement_flag_dict: dict[str, bool|dict] ={
 # for custom replacement add a custom flag name (any string not in default flag) as key and map it to a dict containing pattern and replacement
 # note if same key is used for two pattern the last replacement will be performed
 default_replacement_flag_dict_no_training:dict[str,bool|dict] ={
-    'relu6_to_relu' : True,
+    # 'relu6_to_relu' : True,
     'dropout_inplace_to_dropout':True,
-    'focus_to_optimized_focus':True,
+    # 'focus_to_optimized_focus':True,
     'break_maxpool2d_with_kernel_size_greater_than_equalto_5':True,
     'break_avgpool2d_with_kernel_size_greater_than_equalto_5':True,
     'convert_resize_params_size_to_scale':True,
@@ -99,7 +103,7 @@ default_replacement_flag_dict_no_training:dict[str,bool|dict] ={
 #Mapping between the flags and the actual replacements corresponding to them
 # This dictionary is used whenever a flag is enabled to fetch the corresponding replacement entries
 flag_to_dict_entries:dict [str:dict] ={
-    'squeeze_and_excite_to_identity' : {SEModule:nn.Identity,custom_modules.SEModule():nn.Identity(),custom_modules.SEModule1():nn.Identity(),'se_layer':custom_surgery_functions.replace_se_layer},
+    'squeeze_and_excite_to_identity' : {timm_se_module:nn.Identity,tv_se_module:nn.Identity,custom_modules.SEModule():nn.Identity(),custom_modules.SEModule1():nn.Identity(),'se_layer':custom_surgery_functions.replace_se_layer},
     'all_activation_to_relu': {nn.ReLU:nn.ReLU, nn.ReLU6:nn.ReLU, nn.GELU:nn.ReLU, nn.SiLU:nn.ReLU, nn.Hardswish:nn.ReLU, nn.Hardsigmoid:nn.ReLU, nn.LeakyReLU:nn.ReLU,},
     'relu_inplace_to_relu' : {nn.ReLU: nn.ReLU},
     'gelu_to_relu' : {nn.GELU: nn.ReLU},
@@ -120,14 +124,25 @@ flag_to_dict_entries:dict [str:dict] ={
 
 
 # returns default dictionary for replacement
-def get_replacement_flag_dict_default(return_flags = True, can_retrain = False):
+def get_replacement_flag_dict_default(return_flags = True, can_retrain = True):
     '''
     returns the default flag dictionary.
     to see the dict print 'default_replacement_flag_dict' from the file this function is in
     '''
-    flag_dict = default_replacement_flag_dict_no_training if can_retrain else default_replacement_flag_dict
-    repalcement_entries_dict = get_replacement_dict(flag_dict,)
-    return flag_dict if return_flags else repalcement_entries_dict
+    flag_dict = default_replacement_flag_dict if can_retrain else default_replacement_flag_dict_no_training
+    if return_flags :
+        return flag_dict
+    replacement_entries_dict = {}
+    for k,v in flag_dict.items():
+        if k in flag_to_dict_entries and v in (True,False):
+                if v:
+                    v = flag_to_dict_entries[k]
+                else:
+                    continue
+        else:
+            continue
+        replacement_entries_dict.update({k,v})
+    return replacement_entries_dict
 
 
 def get_replacement_dict(
@@ -179,10 +194,10 @@ def replace_unsupported_layers(model:nn.Module, example_input:list=[], example_k
     
     values for replacement dict
     keys                value
-    callable        ->  callable            : any call function to call_function if they take same argument partial agument may -                                         be used 
-    callable        ->  nn.Module           : any call function to call_function if they take same argument partial agument may -                                         be used 
+    callable        ->  callable            : any call function to call_function if they take same argument partial agument may be used 
+    callable        ->  nn.Module           : any call function to call_function if they take same argument partial agument may be used 
     Any             ->  Callable            : any self-made surgery function 
-    nn.Module       ->  nn.Module/type          : any nn.Module pattern to replace with another nn.Module
+    nn.Module       ->  nn.Module/type      : any nn.Module pattern to replace with another nn.Module
     type            ->  type/nn.Module      : replaces sub-module of same type as patttern using traditional python approach 
     '''
     

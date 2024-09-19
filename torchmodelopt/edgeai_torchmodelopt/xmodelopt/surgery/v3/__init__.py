@@ -51,7 +51,7 @@ except:
     SEModule = None
 
 
-def convert_to_lite_fx(model:torch.nn.Module, example_input:list=[], example_kwargs:dict={}, replacement_dict:Dict[Any,Union[torch.nn.Module,callable]]=None, aten_graph:bool = False, verbose_mode:bool=False, *args, **kwargs):
+def convert_to_lite_pt2e(model:torch.nn.Module, replacement_dict:Dict[Any,Union[torch.nn.Module,callable]]=None, example_input:list=[], example_kwargs:dict={}, aten_graph:bool = False, verbose_mode:bool=False, *args, **kwargs):
     '''
     converts model into lite model using replacement dict
     if no replacement dict is provided it does the default replacement
@@ -118,14 +118,25 @@ flag_to_dict_entries:dict [str:dict] ={
 
 
 # returns default dictionary for replacement
-def get_replacement_flag_dict_default(return_flags = True, can_retrain = False):
+def get_replacement_flag_dict_default(return_flags = True, can_retrain = True):
     '''
     returns the default flag dictionary.
     to see the dict print 'default_replacement_flag_dict' from the file this function is in
     '''
-    flag_dict = default_replacement_flag_dict_no_training if can_retrain else default_replacement_flag_dict
-    repalcement_entries_dict = get_replacement_dict(flag_dict,)
-    return flag_dict if return_flags else repalcement_entries_dict
+    flag_dict = default_replacement_flag_dict if can_retrain else default_replacement_flag_dict_no_training
+    if return_flags :
+        return flag_dict
+    replacement_entries_dict = {}
+    for k,v in flag_dict.items():
+        if k in flag_to_dict_entries and v in (True,False):
+                if v:
+                    v = flag_to_dict_entries[k]
+                else:
+                    continue
+        else:
+            continue
+        replacement_entries_dict.update({k,v})
+    return replacement_entries_dict
 
 
 def get_replacement_dict(
@@ -192,7 +203,7 @@ def get_replacement_dict(
     return replacement_dict
 
 
-def replace_unsupported_layers(model:nn.Module, example_input:list=[], example_kwargs:dict={}, replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, aten_graph:bool = False, copy_args:list=[],  can_retrain=True, verbose_mode:bool=False):
+def replace_unsupported_layers(model:nn.Module, example_input:list=[], example_kwargs:dict={}, replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, aten_graph:bool = False, copy_args:list=[],  can_retrain=True, verbose_mode:bool=False,**kwargs):
     #TODO write appropiate documentation for this function
     
     '''

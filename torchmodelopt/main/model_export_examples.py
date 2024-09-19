@@ -34,12 +34,19 @@ import os
 import argparse
 import datetime
 import torch
-import torchvision
+try:
+    import torchvision
+    has_tv = True
+except:
+    has_tv = False
 import onnx
 import onnxsim
 
 
 def main(args):
+    if not has_tv:
+        print('This script is dependent on torchvision and as it is not installed, the script will close')
+        return
     os.makedirs(args.output_path, exist_ok=True)
     # all_models = ["mobilenet_v2"]
     # all_models = ["mobilenet_v2", "convnext_large"]

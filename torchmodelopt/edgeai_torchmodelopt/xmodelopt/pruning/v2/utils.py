@@ -35,13 +35,16 @@ import operator
 import torch
 import torch.fx as fx
 import torch.nn as nn
-from torchvision import models as tvmodels
-
+try:
+    from torchvision import models as tvmodels
+    has_tv = True
+except:
+    has_tv = False
 
 _call_functions_to_look =[
     tvmodels.swin_transformer.shifted_window_attention,
     tvmodels.swin_transformer._get_relative_position_bias,
-]
+] if has_tv else []
 
 
 def remove_duplicates(items:list):
@@ -219,7 +222,7 @@ def find_next_prunned_nodes(node:fx.Node,model:fx.GraphModule,old_result:dict=No
         if n_id.op == 'output':
             continue
         elif n_id.op == 'call_function':
-            if n_id.target == tvmodels.swin_transformer.shifted_window_attention:
+            if has_tv and n_id.target == tvmodels.swin_transformer.shifted_window_attention:
                 result.append(n_id)
         elif n_id.op == 'call_module':
             module = modules[n_id.target]
@@ -250,7 +253,7 @@ def find_prev_pruned_nodes(node:fx.Node,model:fx.GraphModule,old_result:dict = {
         if n_id.op == 'get_attr':
             continue
         elif n_id.op == 'call_function':
-            if n_id.target == tvmodels.swin_transformer.shifted_window_attention:
+            if has_tv and n_id.target == tvmodels.swin_transformer.shifted_window_attention:
                 result.append(n_id)
         elif n_id.op == 'call_module':
             module = modules[n_id.target]
@@ -292,7 +295,7 @@ def create_channel_pruned_model2(model):
                 pruning_dim[node.name] = 0
 
         elif node.op == 'call_function':
-            if node.target == tvmodels.swin_transformer.shifted_window_attention:
+            if has_tv and node.target == tvmodels.swin_transformer.shifted_window_attention:
                 pruning_dim[node.name] = 0
         elif node.op == 'get_attr':
             if  any(f in [n.target for n in node.users] for f in _call_functions_to_look):
@@ -313,7 +316,7 @@ def create_channel_pruned_model2(model):
                 if len(prev_nodes):
                     n_id = prev_nodes[0]
                     if n_id.op == 'call_function':
-                        if n_id.target == tvmodels.swin_transformer.shifted_window_attention:
+                        if has_tv and n_id.target == tvmodels.swin_transformer.shifted_window_attention:
                             qkv_weight_node  = node.args[1]
                             proj_weight_node  = node.args[2]
                             qkv_module,_ =qkv_weight_node.target.rsplit('.',1)
@@ -453,7 +456,7 @@ def create_channel_pruned_model2(model):
                         if module.in_proj_weight.shape[1] == nonzero_idx.shape[0]:
                             module.in_proj_weight = torch.nn.Parameter(module.in_proj_weight[:,nonzero_idx])
                 elif n.op == 'call_function':
-                    if n.target == tvmodels.swin_transformer.shifted_window_attention:
+                    if has_tv and n.target == tvmodels.swin_transformer.shifted_window_attention:
                         pass
     fx_model.graph.lint()
     fx_model.recompile()                                      
@@ -542,7 +545,7 @@ def find_layers_in_prev(node:fx.Node, connected_list:list,fx_model:fx.graph_modu
             else:
                 find_layers_in_prev(n_id,connected_list,fx_model,visited_nodes)
         elif n_id.op == 'call_function':
-            if n_id.target == tvmodels.swin_transformer.shifted_window_attention:
+            if has_tv and n_id.target == tvmodels.swin_transformer.shifted_window_attention:
                 connected_list.append(n_id)
                 visited_nodes.append(n_id.name)
             else:
@@ -578,7 +581,7 @@ def find_all_connected_nodes(model):
     
     def extract_dims(connected_list_prev:list):
         module_nodes = [n for n in connected_list_prev if isinstance(n,fx.Node) and n.op == 'call_module']
-        module_nodes.extend([ n for n in connected_list_prev if isinstance(n,fx.Node) and n.target == tvmodels.swin_transformer.shifted_window_attention])
+        module_nodes.extend([ n for n in connected_list_prev if isinstance(n,fx.Node) and n.target == tvmodels.swin_transformer.shifted_window_attention] if has_tv else [])
         if module_nodes:
             if module_nodes[0].op == 'call_module':
                 first_module = modules[module_nodes[0].target]
@@ -615,7 +618,7 @@ def find_all_connected_nodes(model):
                 # also if there is concat layer, it wont affect us because any number of channels can be concat to anything #TODO
                 # problem with mul layer as well
         is_mul = (node.op == 'call_function' and node.target in (torch.mul,operator.mul)) or (node.op == 'call_method' and node.target == 'mul')
-        if len(args)>1 and not is_mul and node.target not in (tvmodels.swin_transformer.shifted_window_attention,):
+        if len(args)>1 and not is_mul and node.target not in ((tvmodels.swin_transformer.shifted_window_attention,) if has_tv else []):
             connected_list = []
             find_layers_in_prev(node, connected_list,  fx_model)
             if connected_list:
@@ -820,7 +823,7 @@ def get_net_weights_all(model, next_conv_node_list, all_connected_nodes, next_bn
                     if layer_name not in net_weights:
                         net_weights[layer_name] = ((wt.mean(dim=1) if global_pruning else wt),0)
             elif node.op == 'call_function':
-                if node.target == tvmodels.swin_transformer.shifted_window_attention:
+                if has_tv and node.target == tvmodels.swin_transformer.shifted_window_attention:
                     qkv_weight_node = node.args[1]
                     qkv_weight = params[qkv_weight_node.target]
                     net_weights[node.name] = ((qkv_weight.mean(dim=1) if global_pruning else qkv_weight),0)

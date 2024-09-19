@@ -241,9 +241,9 @@ def _replace_all_matches(main_module:GraphModule, pattern_partitions:list[Source
         for replacement in replacements[(i+1):]:
             replace_module, input_adjustment_func =replacement
             temp_partitions = utils.get_source_partition(replace_module_copy.module.graph,[source])[source]
-            temp_partition_string = _get_partition_string(replace_module_copy.module, temp_partition)
-            is_temp_new = temp_partition_string not in temp_partition_module_map
             for temp_partition in temp_partitions:
+                temp_partition_string = _get_partition_string(replace_module_copy.module, temp_partition)
+                is_temp_new = temp_partition_string not in temp_partition_module_map
                 temp_replace_module_copy = ReplacedModule(replace_module_copy.module, temp_partition, 
                                                     gen_func=default_module_gen_func if isinstance(replace_module,nn.Module) else replace_module,
                                                     input_adjustment_func= input_adjustment_func or default_input_adjustment_func,
