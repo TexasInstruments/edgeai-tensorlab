@@ -287,7 +287,6 @@ def export(self, example_input, filename='model.onnx', opset_version=17, model_q
         model = self
         warnings.warn("model has already been converted before calling export. make sure it is done correctly.")
 
-    # model, example_input = create_batch1_model(model, example_input)
     model = quant_utils.remove_loss_branch(model)
     quant_utils.register_onnx_symbolics()
 
