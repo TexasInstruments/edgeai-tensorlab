@@ -5,7 +5,6 @@ from typing import Any, Optional, Union
 import torch
 import mmengine
 from mmengine.runner import load_checkpoint
-from mmdet.utils import convert_to_lite_model
 from mmdeploy.utils import build_model_from_cfg
 from mmdet.apis import init_detector
 
