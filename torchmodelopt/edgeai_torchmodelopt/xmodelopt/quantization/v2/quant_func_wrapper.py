@@ -32,7 +32,6 @@ def insert_all_hooks(*args, **kwargs):
 
 insert_all_hooks = functools.partial(wrapped_transformation_fn, fn=quant_func.insert_all_hooks)
 
-
 def export(self, *args, transformation_dict=None, is_converted=False, device='cpu', make_copy=True, **kwargs):
     if is_converted:
         model = self
