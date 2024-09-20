@@ -243,8 +243,8 @@ def export(self, example_input, filename='model.onnx', opset_version=17, model_q
         warnings.warn("model has already been converted before calling export. make sure it is done correctly.")
         
     register_custom_op_symbolic(
-        symbolic_name='quantized::matmul', 
-        symbolic_fn=quant_utils.quantized_matmul, 
+        symbolic_name='quantized::matmul',
+        symbolic_fn=quant_utils.quantized_matmul,
         opset_version=opset_version)
 
     register_custom_op_symbolic(
