@@ -211,7 +211,7 @@ def forward(self, *input, **kwargs):
     return self(*input, **kwargs)
 
 
-def convert(self, device='cpu', model_quant_format=None, convert_custom_config=None, backend_config=None, make_copy=False):
+def convert(self, *args, device='cpu', model_quant_format=None, convert_custom_config=None, backend_config=None, make_copy=False, **kwargs):
     orig_quant_params = copy.deepcopy(self.__quant_params__)
     model = copy.deepcopy(self).eval() if make_copy else self.eval()
     model = model.to(device=device)
@@ -232,12 +232,12 @@ def export(self, example_input, filename='model.onnx', opset_version=17, model_q
     register_custom_op_symbolic(
         symbolic_name='quantized::matmul', 
         symbolic_fn=quant_utils.quantized_matmul, 
-        opset_version=17)
+        opset_version=opset_version)
 
     register_custom_op_symbolic(
         symbolic_name='quantized::softmax', 
         symbolic_fn=quant_utils.quantized_softmax, 
-        opset_version=17)
+        opset_version=opset_version)
     
     if model_quant_format == ModelQuantFormat.INT_MODEL:
         # # Convert QDQ format to Int8 format

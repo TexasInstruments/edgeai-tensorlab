@@ -192,7 +192,7 @@ def forward(self, *input, **kwargs):
     return self(*input, **kwargs)
 
 
-def convert(self, device="cpu", make_copy=False):
+def convert(self, *args, device="cpu", make_copy=False, **kwargs):
     orig_quant_params = copy.deepcopy(self.__quant_params__)
     model = copy.deepcopy(self).eval() if make_copy else self.eval()
     model = model.to(device=device)
