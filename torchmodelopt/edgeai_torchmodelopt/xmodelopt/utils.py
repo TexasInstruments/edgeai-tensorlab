@@ -2,6 +2,7 @@ import torch
 from torch import nn, fx
 from typing import Any
 import copy
+import types
 
 from . import surgery, pruning, quantization
 
@@ -155,3 +156,32 @@ def wrapped_transformation_fn(fn, model, *args, transformation_dict=None, **kwar
         return apply_tranformation_to_submodules(model,transformation_dict, *args, **kwargs)
     else:
         return fn(model, *args, **kwargs)
+    
+    
+class OptimizationBaseModule(nn.Module):
+    def __init__(self, model,*args, transformation_dict=None, copy_attrs=[], **kwargs) -> None:
+        super().__init__()
+        self.module = model
+        self.transformation_dict = transformation_dict
+        
+        def create_function(fn_name):
+            def func(self, *args, **kwargs):
+                f = getattr(self.module, fn_name)
+                return f(*args, **kwargs)
+            f= types.MethodType(func, self)
+            setattr(self, fn_name, f)
+        
+        def create_property(name):
+            if hasattr(self.module, name):
+                attribute_getter = lambda self: getattr(self.module, name)
+                attribute_setter = lambda self, value: setattr(self.module, name, value)
+                new_property = property(fget=attribute_getter, fset=attribute_setter)
+                setattr(self.__class__, name, new_property)
+        
+        for attr_name in copy_attrs:
+            if hasattr(self.module, attr_name):
+                attr = getattr(self.module,attr_name)
+                if isinstance(attr, (types.MethodType, types.FunctionType)):
+                    create_function(attr_name)
+                else:
+                    create_property(attr_name)
