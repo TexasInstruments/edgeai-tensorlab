@@ -35,7 +35,42 @@ from . import utils
 
 class ConfigDict(utils.AttrDict):
     def __init__(self, input=None, **kwargs):
-        super().__init__(input, **kwargs)
+        super().__init__()
+
+        # initialize with default values
+        self._initialize()
+
+        # read the given settings file
+        input_dict = dict()
+        settings_file = None
+        if isinstance(input, str):
+            ext = os.path.splitext(input)[1]
+            assert ext == '.yaml', f'unrecognized file type for: {input}'
+            with open(input) as fp:
+                input_dict = yaml.safe_load(fp)
+            #
+            settings_file = input
+        elif isinstance(input, dict):
+            input_dict = input
+        elif input is not None:
+            assert False, 'got invalid input'
+        #
+        # override the entries with kwargs
+        for k, v in kwargs.items():
+            input_dict[k] = v
+        #
+        for key, value in input_dict.items():
+            if key == 'include_files' and input_dict['include_files'] is not None:
+                include_base_path = os.path.dirname(settings_file) if settings_file is not None else './'
+                idict = self._parse_include_files(value, include_base_path)
+                self.update(idict)
+            else:
+                self.__setattr__(key, value)
+            #
+        #
+        # format keys - replace special {} keywords
+        self.format_keywords()
+
         # collect basic keys that are added during initialization
         # only these will be copied during call to basic_settings()
         self.basic_keys = list(self.keys())
@@ -188,3 +223,31 @@ class ConfigDict(utils.AttrDict):
         self.fast_calibration_factor = None
         # cna use this file as template to cleanup model config file
         self.param_template_file = None
+
+    def _parse_include_files(self, include_files, include_base_path):
+        input_dict = {}
+        include_files = utils.as_list(include_files)
+        for include_file in include_files:
+            append_base = not (include_file.startswith('/') and include_file.startswith('./'))
+            include_file = os.path.join(include_base_path, include_file) if append_base else include_file
+            with open(include_file) as ifp:
+                idict = yaml.safe_load(ifp)
+                input_dict.update(idict)
+            #
+        #
+        return input_dict
+
+    def format_keywords(self):
+        # any entry in the value with and item in {} will be replaced by the attribute from this class
+        # for example if value is './work_dirs/modelartifacts/{target_device}'
+        # then {target_device} will be replaced by the actual target_device value
+        for key, value in self.items():
+            if isinstance(value, str) and '{' in value:
+                matched_keyword = re.findall(r'\{(.*?)\}', value)[0]
+                replacement = self.__getattr__(matched_keyword)
+                replacement = replacement or ''
+                to_replace = '{' + f'{matched_keyword}' + '}'
+                new_value = value.replace(to_replace, replacement)
+                self[key] = new_value
+            #
+        #

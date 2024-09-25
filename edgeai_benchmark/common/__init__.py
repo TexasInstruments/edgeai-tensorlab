@@ -27,51 +27,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-import os
-
-
-def get_local_path(file_path, dest_dir):
-    # sometimes, some http/https links can have '?' - remove the characters from there
-    file_path = [f.split('?')[0] for f in file_path] if isinstance(file_path,(list,tuple)) else file_path.split('?')[0]
-    if isinstance(file_path, (list,tuple)):
-        file_path_local = [os.path.join(dest_dir, os.path.basename(m)) for m in file_path]
-    else:
-        file_path_local = os.path.join(dest_dir, os.path.basename(file_path))
-    #
-    return file_path_local
-
-
-def file_exists(file_path):
-    has_file = True
-    if isinstance(file_path, (list,tuple)):
-        for f in file_path:
-            has_file = has_file and os.path.exists(f)
-        #
-    else:
-        has_file = os.path.exists(file_path)
-    #
-    return has_file
-
-
-def get_input_shape_onnx(onnx_model, num_inputs=1):
-    input_shape = {}
-    for input_idx in range(num_inputs):
-        input_i = onnx_model.graph.input[input_idx]
-        name = input_i.name
-        shape = [dim.dim_value for dim in input_i.type.tensor_type.shape.dim]
-        input_shape.update({name: shape})
-    #
-    return input_shape
-
-
-def get_output_shape_onnx(onnx_model, num_outputs=1):
-    output_shape = {}
-    num_outputs = 1
-    for output_idx in range(num_outputs):
-        output_i = onnx_model.graph.output[output_idx]
-        name = output_i.name
-        shape = [dim.dim_value for dim in output_i.type.tensor_type.shape.dim]
-        output_shape.update({name:shape})
-    #
-    return output_shape
-
+from .misc_utils import *
+from .attr_dict import *
+from .params_base import *
+from .postprocess_utils import *
+from .dataset_utils import *
