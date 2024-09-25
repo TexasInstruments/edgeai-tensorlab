@@ -45,8 +45,6 @@ from .. import constants
 from .keypoints import *
 
 
-
-
 ##############################################################################
 # utils
 def get_font_cv2():
@@ -512,71 +510,6 @@ class LogitsToLabelScore():
         return tensor_list_softmax, info_dict  
     
 
-class DetectionFormatting():
-    def __init__(self, dst_indices, src_indices):
-        self.src_indices = src_indices
-        self.dst_indices = dst_indices
-
-    def __call__(self, bbox, info_dict):
-        bbox_copy = copy.deepcopy(bbox)
-        bbox_copy[..., self.dst_indices] = bbox[..., self.src_indices]
-        return bbox_copy, info_dict
-
-
-class DetectionXYXY2YXYX(DetectionFormatting):
-    def __init__(self, dst_indices=(0, 1, 2, 3), src_indices=(1, 0, 3, 2)):
-        super().__init__(dst_indices, src_indices)
-
-
-class DetectionYXYX2XYXY(DetectionFormatting):
-    def __init__(self, dst_indices=(0, 1, 2, 3), src_indices=(1, 0, 3, 2)):
-        super().__init__(dst_indices, src_indices)
-
-
-class DetectionYXHW2XYWH(DetectionFormatting):
-    def __init__(self, dst_indices=(0, 1, 2, 3), src_indices=(1, 0, 3, 2)):
-        super().__init__(dst_indices, src_indices)
-
-
-class DetectionXYXY2XYWH():
-    def __call__(self, bbox, info_dict):
-        w = bbox[..., 2] - bbox[..., 0]
-        h = bbox[..., 3] - bbox[..., 1]
-        bbox[..., 2] = w
-        bbox[..., 3] = h
-        return bbox, info_dict
-
-
-class DetectionXYWH2XYXY():
-    def __call__(self, bbox, info_dict):
-        x2 = bbox[..., 0] + bbox[..., 2]
-        y2 = bbox[..., 1] + bbox[..., 3]
-        bbox[..., 2] = x2
-        bbox[..., 3] = y2
-        return bbox, info_dict
-    
-class DetectionXYWH2XYXYCenterXY():
-    def __call__(self, bbox, info_dict):
-        x1 = bbox[..., 0] - 0.5 * bbox[..., 2]
-        y1 = bbox[..., 1] - 0.5 * bbox[..., 3]
-        x2 = bbox[..., 0] + 0.5 * bbox[..., 2]
-        y2 = bbox[..., 1] + 0.5 * bbox[..., 3]
-        img_shape =  info_dict['data_shape']
-        resize_shape =  info_dict['resize_shape']
-        bbox[..., 0] = x1 * resize_shape[1]
-        bbox[..., 1] = y1 * resize_shape[0]
-        bbox[..., 2] = x2 * resize_shape[1]
-        bbox[..., 3] = y2 * resize_shape[0]
-        return bbox, info_dict
-    
-
-class DetectionBoxSL2BoxLS(DetectionFormatting):
-    def __init__(self, dst_indices=(4, 5), src_indices=(5, 4)):
-        super().__init__(dst_indices, src_indices)
-
-class Yolov4DetectionBoxSL2BoxLS(DetectionFormatting):
-    def __init__(self, dst_indices=(0,1,2,3,4), src_indices=(1,2,3,4,0)):
-        super().__init__(dst_indices, src_indices)
 
 
 class DetectionImageSave():
