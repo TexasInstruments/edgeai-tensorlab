@@ -16,21 +16,14 @@ Accuracy of lite models
 | COCO    | YOLOXPose-small-lite   | 640x640     | 55.9, 84.24    | configs_edgeailite/yoloxpose/yoloxpose_s_lite_coco-640.py    |       |
 
 
-## Acknowledgement
-
-This is an open source project that is contributed by researchers and engineers from various colleges and companies. We appreciate all the contributors who implement their methods or add new features, as well as users who give valuable feedbacks.
-
-We wish that the toolbox and benchmark could serve the growing research community by providing a flexible toolkit to train existing detectors and also to develop their own new detectors.
-
-
 ## Citation
 
 This package/toolbox is an extension of mmpose (https://github.com/open-mmlab/mmpose). If you use this repository or benchmark in your research or work, please cite the following:
 
 ```
 @article{EdgeAI-MMPose,
-  title   = {{EdgeAI-MMPose}: An Extension To Open MMLab Detection Toolbox and Benchmark},
-  author  = {Texas Instruments EdgeAI Development Team, edgeai-devkit@list.ti.com},
+  title   = {EdgeAI-MMPose: An extension to OpenMMLab Pose Estimation Toolbox and Benchmark},
+  author  = {Edge AI Development Team, Texas Instruments},
   journal = {https://github.com/TexasInstruments/edgeai},
   year={2024}
 }
