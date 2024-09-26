@@ -1,7 +1,8 @@
 
 ## Release 10.0 (10_00_00)
+- Git branch: **r10.0**
 - Date: September 2024
-- Release branch: r10.0
+- [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) version used: **10_00_06_00**
 - [Source code](https://github.com/TexasInstruments/edgeai-tensorlab/tree/r10.0)
 - [Model Zoo](https://github.com/TexasInstruments/edgeai-tensorlab/tree/r10.0/edgeai-modelzoo)
 - [Release Manifest](https://software-dl.ti.com/jacinto7/esd/modelzoo/10_00_00/)
@@ -14,8 +15,8 @@
 <hr>
 
 ## Release 9.2 (09_02_00)
+- Release branch: **r9.2**
 - Date: April 2024
-- Release branch: r9.2
 - [Source code](https://github.com/TexasInstruments/edgeai-tensorlab/tree/r9.2)
 - [Model Zoo](https://github.com/TexasInstruments/edgeai-tensorlab/tree/r9.2/edgeai-modelzoo)
 - [Release Manifest](https://software-dl.ti.com/jacinto7/esd/modelzoo/09_02_00/)
@@ -23,8 +24,8 @@
 <hr>
 
 ## Release 9.1 (09_01_00)
+- Release branch: **r9.1**
 - Date: December 2023
-- Release branch: r9.1
 - [Source code](https://github.com/TexasInstruments/edgeai-tensorlab/tree/r9.1)
 - [Model Zoo](https://github.com/TexasInstruments/edgeai-tensorlab/tree/r9.1/edgeai-modelzoo)
 - [Release Manifest](https://software-dl.ti.com/jacinto7/esd/modelzoo/09_01_00/)
@@ -32,8 +33,8 @@
 <hr>
 
 ## Release 9.0 (09_00_00)
+- Release branch: **r9.0**
 - Date: August 2023
-- Release branch: r9.0
 - [Source code](https://github.com/TexasInstruments/edgeai-tensorlab/tree/r9.1)
 - [Model Zoo](https://github.com/TexasInstruments/edgeai-tensorlab/tree/r9.1/edgeai-modelzoo)
 - [Release Manifest](https://software-dl.ti.com/jacinto7/esd/modelzoo/09_01_00/)
@@ -41,8 +42,8 @@
 <hr>
 
 ## Release 8.6 (08_06_00)
+- Release branch: **r8.6**
 - Date: March 2023
-- Release branch: r8.6
 - [Source code](https://github.com/TexasInstruments/edgeai-tensorlab/tree/r8.6)
 - [Model Zoo](https://github.com/TexasInstruments/edgeai-tensorlab/tree/r8.6/edgeai-modelzoo)
 - [Release Manifest](https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00/)
@@ -50,8 +51,8 @@
 <hr>
 
 ## Release 8.2 (08_02_00)
+- Release branch: **r8.2**
 - Date: April 2022
-- Release branch: r8.2
 - [Source code](https://github.com/TexasInstruments/edgeai-tensorlab/tree/r8.2)
 - [Model Zoo](https://github.com/TexasInstruments/edgeai-tensorlab/tree/r8.2/edgeai-modelzoo)
 - [Release Manifest](https://software-dl.ti.com/jacinto7/esd/modelzoo/08_02_00/)

@@ -1,10 +1,10 @@
-    
+# Post Training Quantization and Quantization Aware Training using PyTorch FX Based API 
 
-
-# Post Training Quantization and Quantization Aware Training using PyTorch FX Based Quantization API and deployment in TI devices
+*PyTorch based Quantization for deployment in TI devices*
 
 ## Authors 
-**Parakh Agarwal, Manu Mathew** <br>
+**Parakh Agarwal, Manu Mathew, Kunal Patel** <br>
+
 *Processors, Embedded Processing, Texas Instruments*
 
 ## Introduction
