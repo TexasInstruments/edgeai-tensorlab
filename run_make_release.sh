@@ -30,7 +30,31 @@
 
 git stash
 
-git checkout release
+git checkout r10.0
 
-git-filter-repo --strip-blobs-bigger-than 5M --force --refs release
+#remove --squash to keep history
+git merge --allow-unrelated-histories -X theirs main --squash
 
+# remove internal files
+find . -name *.pth -delete
+find . -name *.pt -delete
+find . -name *.tflite -delete
+find . -name *.pb -delete
+find . -name *.onnx -delete
+find . -name *.json -delete
+find . -name *.params -delete
+find . -name *.prototxt -delete
+find . -name *.caffemodel -delete
+find . -name *.tar -delete
+find . -name *.zip -delete
+
+git add -u
+
+# commit
+git commit -a -m 'release commit'
+
+#git push
+
+#git checkout main
+
+#git stash pop
