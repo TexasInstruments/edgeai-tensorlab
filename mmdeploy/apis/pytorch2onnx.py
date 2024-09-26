@@ -2,6 +2,7 @@
 import os.path as osp
 from typing import Any, Optional, Union
 
+import torch
 import mmengine
 from mmengine.runner import load_checkpoint
 from mmdet.utils import convert_to_lite_model
@@ -76,6 +77,13 @@ def torch2onnx(img: Any,
     input_metas=None
     if not isinstance(img, str):
         model_inputs = img
+    elif hasattr(model_cfg, 'input_size'):
+        if isinstance(model_cfg.input_size,tuple):
+            img_size = model_cfg.input_size
+        else:
+            img_size = (model_cfg.input_size,model_cfg.input_size)
+        model_inputs = torch.randn(1, 3,
+                             *img_size).to(device)
     else:
         data, model_inputs = task_processor.create_input(
             img,
@@ -95,7 +103,7 @@ def torch2onnx(img: Any,
     backend = get_backend(deploy_cfg).value
 
     onnx_cfg = get_onnx_config(deploy_cfg)
-    opset_version = onnx_cfg.get('opset_version', 11)
+    opset_version = onnx_cfg.get('opset_version', 17)
 
     input_names = onnx_cfg['input_names']
     output_names = onnx_cfg['output_names']

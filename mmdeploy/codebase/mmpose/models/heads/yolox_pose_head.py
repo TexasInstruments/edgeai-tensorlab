@@ -69,7 +69,15 @@ def predict(self,
     flatten_decoded_kpts = self.decode_kpt_reg(flatten_kpt_offsets,
                                                flatten_priors, flatten_stride)
 
+    #singleclass
     scores = flatten_cls_scores * flatten_objectness
+
+    #multiclass
+    # category_id = flatten_cls_scores.argmax(dim=-1,keepdim=True)
+    # class_score = flatten_cls_scores.max(dim=-1,keepdim=True).values
+    # scores = class_score * flatten_objectness
+
+    category_id = torch.zeros(scores.data.shape)
 
     pred_kpts = torch.cat([flatten_decoded_kpts,
                            flatten_kpt_vis.unsqueeze(3)],
@@ -110,9 +118,18 @@ def predict(self,
         keep_top_k=keep_top_k,
         output_index=True)
 
-    batch_inds = torch.arange(num_imgs, device=scores.device).view(-1, 1)
-    dets = torch.cat([bboxes, scores], dim=2)
-    dets = dets[batch_inds, nms_indices, ...]
-    pred_kpts = pred_kpts[batch_inds, nms_indices, ...]
+    #seperated detection and keypoints
+    # batch_inds = torch.arange(num_imgs, device=scores.device).view(-1, 1)
+    # dets = torch.cat([bboxes, scores], dim=2)
+    # dets = dets[batch_inds, nms_indices, ...]
+    # pred_kpts = pred_kpts[batch_inds, nms_indices, ...]
 
-    return dets, pred_kpts
+    # return dets, pred_kpts
+
+    #combined detection and keypoints as detections
+    batch_inds = torch.arange(num_imgs, device=scores.device).view(-1, 1)
+    pred_kpts = pred_kpts.reshape(*pred_kpts.data.shape[:-2],51)
+    detections = torch.cat([bboxes, scores, category_id, pred_kpts], dim=2)
+    detections = detections[batch_inds, nms_indices, ...]
+
+    return detections

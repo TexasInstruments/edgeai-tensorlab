@@ -46,8 +46,9 @@ def save_model_proto(cfg, model, onnx_model, input, output_filename, input_names
     is_fcos = hasattr(cfg.model, 'bbox_head') and ('FCOS' in cfg.model.bbox_head.type)
     is_retinanet = hasattr(cfg.model, 'bbox_head') and ('Retina' in cfg.model.bbox_head.type)
     is_yolov3 = hasattr(cfg.model, 'bbox_head') and ('YOLOV3' in cfg.model.bbox_head.type)
-    is_yolox = hasattr(cfg.model, 'bbox_head') and ('YOLOXHead' in cfg.model.bbox_head.type)
+    is_yolox = hasattr(cfg.model, 'bbox_head') and ('YOLOXHead' in cfg.model.bbox_head.type or 'YOLOXPoseHead' in cfg.model.bbox_head.type)
     is_efficientdet = hasattr(cfg.model,'bbox_head') and ('EfficientDetSepBNHead' in cfg.model.bbox_head.type)
+    is_yoloxpose = hasattr(cfg.model, 'head') and ('YOLOXPoseHead' in cfg.model.head.type)
     input_names = input_names or ('input',)
 
     if is_ssd:
@@ -70,7 +71,10 @@ def save_model_proto(cfg, model, onnx_model, input, output_filename, input_names
         feature_names = prepare_model_for_layer_outputs(onnx_model, export_layer_types='Conv', match_layer = 'Transpose',
                                                         return_layer='Conv')
         _save_mmdet_proto_efficientdet(cfg, model, input_size, output_filename, input_names, feature_names, output_names)
-
+    elif is_yoloxpose:
+        feature_names = prepare_model_for_layer_outputs(onnx_model, export_layer_types='Conv', match_layer = 'Concat',
+                                                        return_layer='Concat')
+        _save_mmdet_proto_yoloxpose(cfg, model, input_size, output_filename, input_names, feature_names, output_names)
     #
 
 
@@ -110,7 +114,12 @@ def prepare_model_for_layer_outputs(onnx_model, export_layer_types=None, match_l
         if onnx_model.graph.node[i].op_type in export_layer_types:
             for j in range(len(onnx_model.graph.node)):
                 if output_0 in onnx_model.graph.node[j].input:
-                    if onnx_model.graph.node[j].op_type == match_layer:
+                    if onnx_model.graph.node[j].op_type == 'QuantizeLinear':
+                        output_0 = onnx_model.graph.node[j].output[0]
+                        for k in range(len(onnx_model.graph.node)):
+                             if output_0 in onnx_model.graph.node[k].input and onnx_model.graph.node[k].op_type == 'DequantizeLinear':
+                                output_0 = onnx_model.graph.node[k].output[0]
+                    elif onnx_model.graph.node[j].op_type == match_layer:
                         if return_layer not in export_layer_types:
                             if onnx_model.graph.node[j].output[0] not in layer_output_names:
                                 layer_output_names.append(onnx_model.graph.node[j].output[0])
@@ -297,6 +306,43 @@ def _save_mmdet_proto_yolox(cfg, model, input_size, output_filename, input_names
                                             yolo_param=yolo_params,
                                             detection_output_param=detection_output_param,
                                             framework='MMDetection')
+
+    arch = tidl_meta_arch_mmdet_pb2.TIDLMetaArch(name='yolox',  tidl_yolo=[yolox])
+
+    with open(output_filename, 'wt') as pfile:
+        txt_message = text_format.MessageToString(arch)
+        pfile.write(txt_message)
+
+
+###########################################################
+def _save_mmdet_proto_yoloxpose(cfg, model, input_size, output_filename, input_names=None, proto_names=None, output_names=None):
+    bbox_head = model.head
+    # anchor_generator = bbox_head.anchor_generator
+    base_sizes = model.head.featmap_strides
+
+    background_label_id = -1
+    num_classes = model.head.head_module.num_classes
+    #score_converter = tidl_meta_arch_mmdet_pb2.SIGMOID
+    num_keypoint = model.head.num_keypoints if hasattr(model.head, "num_keypoints") else None
+    keypoint_confidence = True if (num_keypoint is not None and num_keypoint>0) else None
+
+    yolo_params = []
+    for base_size_id, base_size in enumerate(base_sizes):
+        yolo_param = tidl_meta_arch_mmdet_pb2.TIDLYoloParams(input=proto_names[base_size_id],
+                                                        anchor_width=[base_size],
+                                                        anchor_height=[base_size])
+        yolo_params.append(yolo_param)
+
+    nms_param = tidl_meta_arch_mmdet_pb2.TIDLNmsParam(nms_threshold=0.45, top_k=200)
+    detection_output_param = tidl_meta_arch_mmdet_pb2.TIDLOdPostProc(num_classes=num_classes, share_location=True,
+                                            background_label_id=background_label_id, nms_param=nms_param,
+                                            code_type=tidl_meta_arch_mmdet_pb2.CODE_TYPE_YOLO_X, keep_top_k=200,
+                                            confidence_threshold=0.3,num_keypoint=num_keypoint,keypoint_confidence=keypoint_confidence)
+
+    yolox = tidl_meta_arch_mmdet_pb2.TidlYoloOd(name='yolox', output=output_names,
+                                            in_width=input_size[3], in_height=input_size[2],
+                                            yolo_param=yolo_params,
+                                            detection_output_param=detection_output_param,)
 
     arch = tidl_meta_arch_mmdet_pb2.TIDLMetaArch(name='yolox',  tidl_yolo=[yolox])
 
