@@ -29,6 +29,7 @@
 #
 #################################################################################
 
+import warnings
 import torch
 import torch._dynamo as torchdynamo
 from torch.ao.quantization.quantize_pt2e import prepare_pt2e, prepare_qat_pt2e, convert_pt2e 
@@ -275,10 +276,11 @@ def export(self, example_input, filename='model.onnx', opset_version=17, model_q
     if _is_observed_module(self):
         model = convert(self, device=device, make_copy=make_copy)
     else:
+        model = self
         warnings.warn("model has already been converted before calling export. make sure it is done correctly.")
 
-	# model, example_input = create_batch1_model(model, example_input)
-    model = quant_utils.remove_loss_branch(model) 
+    # model, example_input = create_batch1_model(model, example_input)
+    model = quant_utils.remove_loss_branch(model)
     quant_utils.register_onnx_symbolics()
 
     #from torch.fx import passes
