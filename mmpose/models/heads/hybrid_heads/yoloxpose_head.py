@@ -216,6 +216,10 @@ class YOLOXPoseHeadModule(BaseModule):
             bbox_preds.append(self.out_bbox[i](reg_feat))
             kpt_offsets.append(self.out_kpt[i](pose_feat))
             kpt_vis.append(self.out_kpt_vis[i](pose_feat))
+        
+            outs = torch.cat((bbox_preds[i], objectnesses[i], cls_scores[i], kpt_offsets[i], kpt_vis[i]), dim=1)
+            shape_data = [bbox_preds[i].data.shape[1], objectnesses[i].data.shape[1],  cls_scores[i].data.shape[1], kpt_offsets[i].data.shape[1],kpt_vis[i].data.shape[1]]
+            bbox_preds[i], objectnesses[i], cls_scores[i], kpt_offsets[i], kpt_vis[i] = torch.split(outs, shape_data, dim=1)
 
         return cls_scores, objectnesses, bbox_preds, kpt_offsets, kpt_vis
 

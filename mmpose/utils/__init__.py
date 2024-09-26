@@ -6,9 +6,10 @@ from .dist_utils import reduce_mean
 from .logger import get_root_logger
 from .setup_env import register_all_modules, setup_multi_processes
 from .timer import StopWatch
+from .model_surgery import convert_to_lite_model
 
 __all__ = [
     'get_root_logger', 'collect_env', 'StopWatch', 'setup_multi_processes',
     'register_all_modules', 'SimpleCamera', 'SimpleCameraTorch',
-    'adapt_mmdet_pipeline', 'reduce_mean'
+    'adapt_mmdet_pipeline', 'reduce_mean', 'convert_to_lite_model'
 ]

@@ -2,11 +2,16 @@
 import argparse
 import os
 import os.path as osp
+import torch
 
 import mmengine
 from mmengine.config import Config, DictAction
 from mmengine.hooks import Hook
 from mmengine.runner import Runner
+from mmengine.model import is_model_wrapper
+from mmpose.utils import convert_to_lite_model
+
+from edgeai_torchmodelopt import xmodelopt
 
 
 def parse_args():
@@ -55,6 +60,7 @@ def parse_args():
     # will pass the `--local-rank` parameter to `tools/test.py` instead
     # of `--local_rank`.
     parser.add_argument('--local_rank', '--local-rank', type=int, default=0)
+    parser.add_argument('--model-surgery', type=int, default=None)
     parser.add_argument(
         '--badcase',
         action='store_true',
@@ -158,6 +164,24 @@ def main():
 
         runner.register_hook(SaveMetricHook(), 'LOWEST')
 
+    #model surgery
+    model_surgery = args.model_surgery
+    if args.model_surgery is None:
+        if hasattr(cfg, 'convert_to_lite_model'):
+            model_surgery = cfg.convert_to_lite_model.model_surgery
+    
+    if model_surgery:
+        # runner._init_model_weights()
+
+        if model_surgery == 1:
+            device = next(runner.model.parameters()).device
+            runner.model = convert_to_lite_model(runner.model, cfg)
+            runner.model = runner.model.to(torch.device(device))
+        elif model_surgery == 2: 
+            assert False, 'model surgery 2 is not supported currently'
+
+
+    print(runner.model)
     # start testing
     runner.test()
 

@@ -1,5 +1,5 @@
 default_scope = 'mmyolo'
-custom_imports = dict(imports=['models', 'datasets'])
+# custom_imports = dict(imports=['models', 'datasets'])
 
 # hooks
 default_hooks = dict(
