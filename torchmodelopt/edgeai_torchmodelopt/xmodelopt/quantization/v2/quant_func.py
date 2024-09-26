@@ -237,10 +237,7 @@ def export(self, example_input, filename='model.onnx', opset_version=17, model_q
     if _is_observed_module(self):
         model = convert(self, device=device, make_copy=make_copy)
     else:
-<<<<<<< HEAD
         model = self
-=======
->>>>>>> e6eab60 (changes while using from tinyml-modeloptimization)
         warnings.warn("model has already been converted before calling export. make sure it is done correctly.")
 
     register_custom_op_symbolic(
