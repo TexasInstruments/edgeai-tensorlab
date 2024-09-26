@@ -284,10 +284,11 @@ def export(self, example_input, filename='model.onnx', opset_version=17, model_q
     elif not is_converted:
         model = convert(self, device=device, make_copy=make_copy)
     else:
+        model = self
         warnings.warn("model has already been converted before calling export. make sure it is done correctly.")
 
-	# model, example_input = create_batch1_model(model, example_input)
-    model = quant_utils.remove_loss_branch(model) 
+    # model, example_input = create_batch1_model(model, example_input)
+    model = quant_utils.remove_loss_branch(model)
     quant_utils.register_onnx_symbolics()
 
     #from torch.fx import passes
