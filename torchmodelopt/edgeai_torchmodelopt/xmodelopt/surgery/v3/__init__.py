@@ -37,8 +37,12 @@ from types import FunctionType,BuiltinFunctionType
 from typing import Union, Dict, Any
 import warnings
 from functools import partial
-from torchvision.ops.misc import SqueezeExcitation
 from copy import deepcopy
+
+try:
+    from torchvision.ops.misc import SqueezeExcitation
+except:
+    SqueezeExcitation = None
 
 from . import custom_modules, custom_surgery_functions,surgery
 from .surgery import _replace_unsupported_layers

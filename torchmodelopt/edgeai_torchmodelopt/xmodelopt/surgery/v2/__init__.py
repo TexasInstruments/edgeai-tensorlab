@@ -38,11 +38,13 @@ import warnings
 
 from . import custom_modules, custom_surgery_functions
 from .surgery import _replace_unsupported_layers
+
 try:
     from torchvision.ops.misc import SqueezeExcitation
     tv_se_module = SqueezeExcitation(48, 16)
 except:
     tv_se_module = None
+
 try:
     from timm.layers.squeeze_excite import SEModule
     timm_se_module = SEModule(256) # TODO pattern for SE Module in timm 

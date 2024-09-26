@@ -38,6 +38,7 @@ try:
     has_tv = True
 except:
     has_tv = False
+
 from ....xnn import utils
 from .replace_modules import replace_modules as replace_modules_func
 
