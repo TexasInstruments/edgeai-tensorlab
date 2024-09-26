@@ -30,6 +30,7 @@
 #################################################################################
 
 import types
+import types
 import torch
 from . import quant_func_wrapper
 from ...utils.optimization_base import OptimizationBaseModule, add_attrs

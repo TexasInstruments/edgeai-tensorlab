@@ -264,12 +264,7 @@ def load_weights(self, pretrained, *args, strict=True, state_dict_name=None, **k
         #
     #
     self.load_state_dict(data_dict, strict=strict)
-    
 
-def export(self, example_input, filename='model.onnx', opset_version=17, model_quant_format=None, preserve_qdq_model=True,
-           simplify=True, skipped_optimizers=None, device='cpu', make_copy=True, is_converted=False, **export_kwargs):
-    if not is_converted:
-        model = convert(self, device=device, make_copy=make_copy)
     
 # from: torch/ao/quantization/fx/graph_module.py
 def _is_observed_module(module) -> bool:
@@ -278,7 +273,6 @@ def _is_observed_module(module) -> bool:
 
 def export(self, example_input, filename='model.onnx', opset_version=17, model_qconfig_format=None, preserve_qdq_model=True,
            simplify=True, skipped_optimizers=None, device='cpu', make_copy=True, is_converted=False, **export_kwargs):
-
     if _is_observed_module(self):
         model = convert(self, device=device, make_copy=make_copy)
     elif not is_converted:
@@ -289,12 +283,6 @@ def export(self, example_input, filename='model.onnx', opset_version=17, model_q
 
     model = quant_utils.remove_loss_branch(model)
     quant_utils.register_onnx_symbolics()
-
-    #from torch.fx import passes
-    #g = passes.graph_drawer.FxGraphDrawer(model, "try_model")
-    #with open('/home/a0491009/quantization/svg_files/prepared_qat_fx.svg', "wb") as f:
-    #    f.write(g.get_dot_graph().create_svg())
-
     if model_qconfig_format == qconfig_types.QConfigFormat.INT_MODEL:
         # # Convert QDQ format to Int8 format
         import onnxruntime as ort
