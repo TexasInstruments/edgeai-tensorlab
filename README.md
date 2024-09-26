@@ -1,3 +1,70 @@
+# EdgeAI-MMPose
+
+
+This repository is an extension of the popular [mmpose](https://github.com/open-mmlab/mmpose) open source repository for keypoint detection training. In edge-mmpose, we focus on yolox based keypoint detection models that are optimized for speed and accuracy so that they run efficiently on embedded devices. For this purpose, we have added a set of embedded friendly model configurations and scripts.
+
+
+<hr>
+
+
+
+
+
+
+### Models 
+
+Accuracy of lite models
+
+| Dataset | Model             | Input Size  | AP[0.5:0.95]%, AP50% | config file | Notes |
+|---------|-------------------|-------------|----------------------|-------------|-------|
+|         | **YOLOX models** 
+| COCO    | YOLOXpose-tiny-lite    | 416x416     | 47.2, 76.1     | configs/body_2d_keypoint/yoloxpose/coco/yoloxpose_tiny_4xb64-300e_coco-416.py |       |
+| COCO    | YOLOXpose-small-lite   | 640x640     | 55.9, 84.24    | configs/body_2d_keypoint/yoloxpose/coco/yoloxpose_s_8xb32-300e_coco-640.py    |       |
+
+
+## Acknowledgement
+
+This is an open source project that is contributed by researchers and engineers from various colleges and companies. We appreciate all the contributors who implement their methods or add new features, as well as users who give valuable feedbacks.
+
+We wish that the toolbox and benchmark could serve the growing research community by providing a flexible toolkit to train existing detectors and also to develop their own new detectors.
+
+
+## License
+
+Please see [LICENSE](./LICENSE) file of this repository.
+
+## Citation
+
+This package/toolbox is an extension of mmpose (https://github.com/open-mmlab/mmpose). If you use this repository or benchmark in your research or work, please cite the following:
+
+```
+@article{EdgeAI-MMPose,
+  title   = {{EdgeAI-MMPose}: An Extension To Open MMLab Detection Toolbox and Benchmark},
+  author  = {Texas Instruments EdgeAI Development Team, edgeai-devkit@list.ti.com},
+  journal = {https://github.com/TexasInstruments/edgeai},
+  year={2024}
+}
+```
+```bibtex
+@misc{mmpose2020,
+    title={OpenMMLab Pose Estimation Toolbox and Benchmark},
+    author={MMPose Contributors},
+    howpublished = {\url{https://github.com/open-mmlab/mmpose}},
+    year={2020}
+}
+```
+
+
+
+
+
+
+
+
+
+# Original mmpose documentation
+
+
 <div align="center">
   <img src="resources/mmpose-logo.png" width="450"/>
   <div>&nbsp;</div>
