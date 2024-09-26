@@ -29,6 +29,7 @@
 #
 #################################################################################
 
+import warnings
 import torch
 import torch._dynamo as torchdynamo
 from torch.ao.quantization.quantize_pt2e import prepare_pt2e, prepare_qat_pt2e, convert_pt2e 
@@ -44,13 +45,6 @@ from .quantizers import TIDLRTQuantizer
 import copy
 import os
 import types
-
-class ModelQuantFormat:
-    FLOAT_MODEL = "FLOAT_MODEL"
-    FAKEQ_MODEL = "FAKEQ_MODEL"
-    QDQ_MODEL = "QDQ_MODEL"
-    INT_MODEL = "INT_MODEL"
-    _NUM_FORMATS_ = 4
 
 
 def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None, qconfig_type=None,
@@ -193,13 +187,20 @@ def forward(self, *input, **kwargs):
 
 
 def convert(self, device="cpu", make_copy=False):
-    orig_quant_params = copy.deepcopy(self.__quant_params__)
+    if hasattr(self, '__quant_params__'):
+        orig_quant_params = copy.deepcopy(self.__quant_params__)
+    else:
+        warnings.warn("__quant_params__ is missing in quant_func module. it may be due to a deepcopy.")
+        orig_quant_params = None
+
     model = copy.deepcopy(self).eval() if make_copy else self.eval()
     model = model.to(device=device)
     model = convert_pt2e(model)
     torch.ao.quantization.move_exported_model_to_eval(model)
     model.eval = types.MethodType(train, model)
-    setattr(model, "__quant_params__", orig_quant_params)    
+
+    if orig_quant_params:
+        setattr(model, "__quant_params__", orig_quant_params)
     return model
 
 
@@ -262,20 +263,32 @@ def load_weights(self, pretrained, *args, strict=True, state_dict_name=None, **k
         #
     #
     self.load_state_dict(data_dict, strict=strict)
+
     
-    
-def export(self, example_input, filename='model.onnx', opset_version=17, model_quant_format=None, preserve_qdq_model=True,
+# from: torch/ao/quantization/fx/graph_module.py
+def _is_observed_module(module) -> bool:
+    return hasattr(module, "meta") and "_observed_graph_module_attrs" in module.meta
+
+
+def export(self, example_input, filename='model.onnx', opset_version=17, model_qconfig_format=None, preserve_qdq_model=True,
            simplify=False, skipped_optimizers=None, device='cpu', make_copy=True):
-    model = convert(self, device=device, make_copy=make_copy)
+
+    if _is_observed_module(self):
+        model = convert(self, device=device, make_copy=make_copy)
+    else:
+        model = self
+        warnings.warn("model has already been converted before calling export. make sure it is done correctly.")
+
     # model, example_input = create_batch1_model(model, example_input)
-    model = quant_utils.remove_loss_branch(model) 
+    model = quant_utils.remove_loss_branch(model)
     quant_utils.register_onnx_symbolics()
-    from torch.fx import passes
-    g = passes.graph_drawer.FxGraphDrawer(model, "try_model")
-    with open('/home/a0491009/quantization/svg_files/prepared_qat_fx.svg', "wb") as f:
-        f.write(g.get_dot_graph().create_svg())
-     
-    if model_quant_format == ModelQuantFormat.INT_MODEL:
+
+    #from torch.fx import passes
+    #g = passes.graph_drawer.FxGraphDrawer(model, "try_model")
+    #with open('/home/a0491009/quantization/svg_files/prepared_qat_fx.svg', "wb") as f:
+    #    f.write(g.get_dot_graph().create_svg())
+
+    if model_qconfig_format == qconfig_types.QConfigFormat.INT_MODEL:
         # # Convert QDQ format to Int8 format
         import onnxruntime as ort
         qdq_filename = os.path.splitext(filename)[0] + '_qdq.onnx'

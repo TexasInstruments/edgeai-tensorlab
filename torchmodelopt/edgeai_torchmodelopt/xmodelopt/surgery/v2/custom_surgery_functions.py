@@ -29,6 +29,7 @@
 #
 #################################################################################
 
+import numbers
 from torch import nn,Tensor
 from torch.fx import symbolic_trace, Node
 import inspect,torch, operator
@@ -88,7 +89,7 @@ def _replace_pool_size_ge_5(model:nn.Module,  pool_class=nn.MaxPool2d,pool_funct
             #for call module pool
             module=modules[node.target]
             if isinstance(module,pool_class):
-                if module.kernel_size >4:
+                if module.kernel_size > 4:
                     k_size=module.kernel_size 
                     stride=module.stride
                     padding=module.padding
@@ -490,7 +491,10 @@ def replace_se_layer(model:nn.Module, pattern= None, example_input = None, verbo
 
 
 def remove_identiy(model:nn.Module, verbose_mode=False, **kwargs):
-    model=deepcopy(model)
+    # removed due to RuntimeError
+    # RuntimeError: Only Tensors created explicitly by the user (graph leaves) support the deepcopy protocol at the moment.
+    # model=deepcopy(model)
+
     traced_model=custom_symbolic_trace(model) if not isinstance(model, torch.fx.GraphModule) else model
     modules= dict(traced_model.named_modules())
     n=0

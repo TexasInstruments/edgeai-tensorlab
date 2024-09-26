@@ -194,7 +194,7 @@ class AdaptiveActivationObserverFast(AdaptiveActivationObserver):
 ADAPTIVE_WEIGHT_OBSERVER_TYPES = (AdaptiveWeightObserver,
                                   AdaptivePerChannelWeightObserver)
 
-ADAPTIVE_ACTIVATION_OBSERVER_TYPES = (AdaptiveActivationObserver,)
+ADAPTIVE_ACTIVATION_OBSERVER_TYPES = (AdaptiveActivationObserver, AdaptiveActivationObserverFast)
 
 ADAPTIVE_OBSERVER_TYPES = tuple(list(ADAPTIVE_WEIGHT_OBSERVER_TYPES) + list(ADAPTIVE_ACTIVATION_OBSERVER_TYPES))
 
