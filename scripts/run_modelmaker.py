@@ -49,7 +49,7 @@ def main(config):
     model_name = config['training']['model_name']
     model_description = ai_target_module.runner.ModelRunner.get_model_description(model_name)
     if model_description is None:
-        print(f"please check if the given model_name is a supported one: {model_name}")
+        print(f"please check if the given model_name is valid: {model_name}")
         return False
     #
 
@@ -70,7 +70,8 @@ def main(config):
     print(params)
 
     if target_device not in params.training.target_devices:
-        print(f'{model_name} is not supported for {target_device}. please try another model.')
+        model_descriptions = ai_target_module.runner.ModelRunner.get_model_descriptions(params)
+        print(f'{model_name} is not a supported model for the device {target_device}. please try one of the supported models: {" ".join(list(model_descriptions.keys()))}')
         return False
     #
 
