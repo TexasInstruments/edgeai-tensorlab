@@ -36,6 +36,10 @@ class Focus(nn.Module):
                  norm_cfg=dict(type='BN', momentum=0.03, eps=0.001),
                  act_cfg=dict(type='Swish')):
         super().__init__()
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+        self.kernel_size = kernel_size
+        self.stride = stride
         self.conv = ConvModule(
             in_channels * 4,
             out_channels,

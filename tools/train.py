@@ -2,9 +2,21 @@
 import argparse
 import os
 import os.path as osp
+import torch
+import onnx
 
 from mmengine.config import Config, DictAction
 from mmengine.runner import Runner
+from mmengine.registry import RUNNERS
+from mmengine.model import is_model_wrapper
+from mmengine.logging import print_log
+from mmpose.utils import convert_to_lite_model
+
+from mmdeploy.utils import save_model_proto
+
+from edgeai_torchmodelopt import xmodelopt
+from edgeai_torchmodelopt import xnn
+from edgeai_torchmodelopt import xonnx
 
 
 def parse_args():
@@ -50,6 +62,7 @@ def parse_args():
         type=float,
         default=1,
         help='display time of every window. (second)')
+    parser.add_argument('--model-surgery', type=int, default=None)
     parser.add_argument(
         '--cfg-options',
         nargs='+',
@@ -69,6 +82,7 @@ def parse_args():
     # will pass the `--local-rank` parameter to `tools/train.py` instead
     # of `--local_rank`.
     parser.add_argument('--local_rank', '--local-rank', type=int, default=0)
+    parser.add_argument('--export-onnx-model', action='store_true', default=False, help='whether to export the onnx network' )
     args = parser.parse_args()
     if 'LOCAL_RANK' not in os.environ:
         os.environ['LOCAL_RANK'] = str(args.local_rank)
@@ -137,12 +151,13 @@ def merge_args(cfg, args):
     return cfg
 
 
-def main():
-    args = parse_args()
+def main(args=None):
+    args = args or parse_args()
 
     # load config
     cfg = Config.fromfile(args.config)
 
+    cfg.launcher = args.launcher
     # merge CLI arguments to config
     cfg = merge_args(cfg, args)
 
@@ -152,10 +167,69 @@ def main():
                              cfg.get('preprocess_cfg', {}))
 
     # build the runner from config
-    runner = Runner.from_cfg(cfg)
+    if 'runner_type' not in cfg:
+        # build the default runner
+        runner = Runner.from_cfg(cfg)
+    else:
+        # build customized runner from the registry
+        # if 'runner_type' is set in the cfg
+        runner = RUNNERS.build(cfg)
+
+    #model surgery
+    model_surgery = args.model_surgery
+    if args.model_surgery is None:
+        if hasattr(cfg, 'convert_to_lite_model'):
+            model_surgery = cfg.convert_to_lite_model.model_surgery
+    
+    if model_surgery:
+        runner._init_model_weights()
+
+        if model_surgery == 1:
+            device = next(runner.model.parameters()).device
+            runner.model = convert_to_lite_model(runner.model, cfg)
+            runner.model = runner.model.to(torch.device(device))
+        elif model_surgery == 2: 
+            assert False, 'model surgery 2 is not supported currently'
+
+    #print Model
+    print(runner.model)
 
     # start training
     runner.train()
+
+    #
+    if args.export_onnx_model or (hasattr(cfg, 'export_onnx_model') and cfg.export_onnx_model):
+        # Exporting Model after Training : Uses custom mmdeploy
+        try:
+            from mmdeploy.apis import torch2onnx
+        except:
+            raise ModuleNotFoundError
+        
+        save_file = 'model.onnx'
+        save_file = osp.join(cfg.work_dir,save_file)
+        
+        torch2onnx(img='../edgeai-mmdetection/demo/demo.jpg', work_dir=cfg.work_dir, save_file=save_file, model_cfg = cfg, \
+            deploy_cfg='../edgeai-mmdeploy/configs/mmpose/pose-detection_yolox-pose_onnxruntime_dynamic.py', torch_model = runner.model, device='cpu')
+        
+        xonnx.prune_layer_names(save_file, save_file, opset_version=17)
+    
+        onnx_model = onnx.load(save_file)
+        #simplify
+        try:
+            import onnxsim
+            onnx_model, check = onnxsim.simplify(onnx_model)
+            assert check, 'assert check failed'
+        except Exception as e:
+            print_log(f'Simplify failure: {e}')
+        onnx.save(onnx_model, save_file)
+        print_log(f'ONNX export success, save into {save_file}')
+
+        output_names = ['detections']
+        feature_names = [node.name for node in onnx_model.graph.output[2:]]
+        # write prototxt
+        input_shapes = [[d.dim_value for d in _input.type.tensor_type.shape.dim] for _input in onnx_model.graph.input]
+        fake_input = torch.randn(*input_shapes[0]).to('cpu')
+        save_model_proto(cfg, runner.model, onnx_model, fake_input, save_file, feature_names=feature_names, output_names=output_names)
 
 
 if __name__ == '__main__':

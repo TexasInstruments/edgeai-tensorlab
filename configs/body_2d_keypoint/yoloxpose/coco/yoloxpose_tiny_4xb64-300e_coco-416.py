@@ -1,5 +1,6 @@
 _base_ = './yoloxpose_s_8xb32-300e_coco-640.py'
 
+
 # model settings
 widen_factor = 0.375
 deepen_factor = 0.33
@@ -51,13 +52,14 @@ train_pipeline_stage1 = [
     dict(type='GenerateTarget', encoder=_base_.codec),
     dict(
         type='PackPoseInputs',
-        extra_mapping_labels={
-            'bbox': 'bboxes',
-            'bbox_labels': 'labels',
-            'keypoints': 'keypoints',
-            'keypoints_visible': 'keypoints_visible',
-            'area': 'areas'
-        }),
+        # extra_mapping_labels={
+        #     'bbox': 'bboxes',
+        #     'bbox_labels': 'labels',
+        #     'keypoints': 'keypoints',
+        #     'keypoints_visible': 'keypoints_visible',
+        #     'area': 'areas'
+        # }
+        ),
 ]
 train_dataloader = dict(
     batch_size=64, dataset=dict(pipeline=train_pipeline_stage1))
