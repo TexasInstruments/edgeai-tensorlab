@@ -3,23 +3,17 @@
 
 This repository is an extension of the popular [mmpose](https://github.com/open-mmlab/mmpose) open source repository for keypoint detection training. In edge-mmpose, we focus on yolox based keypoint detection models that are optimized for speed and accuracy so that they run efficiently on embedded devices. For this purpose, we have added a set of embedded friendly model configurations and scripts.
 
-
 <hr>
-
-
-
-
-
 
 ### Models 
 
 Accuracy of lite models
 
-| Dataset | Model             | Input Size  | AP[0.5:0.95]%, AP50% | config file | Notes |
-|---------|-------------------|-------------|----------------------|-------------|-------|
-|         | **YOLOX models** 
-| COCO    | YOLOXpose-tiny-lite    | 416x416     | 47.2, 76.1     | configs_edgeailite/yoloxpose_tiny_lite-416.py |       |
-| COCO    | YOLOXpose-small-lite   | 640x640     | 55.9, 84.24    | configs_edgeailite/yoloxpose_s_lite-640.py    |       |
+| Dataset | Model                  | Input Size  | AP[0.5:0.95]%, AP50% | config file | Notes |
+|---------|------------------------|-------------|----------------------|-------------|-------|
+|         | **YOLOXPose models** 
+| COCO    | YOLOXPose-tiny-lite    | 416x416     | 47.2, 76.1     | configs_edgeailite/yoloxpose/yoloxpose_tiny_lite_coco-416.py |       |
+| COCO    | YOLOXPose-small-lite   | 640x640     | 55.9, 84.24    | configs_edgeailite/yoloxpose/yoloxpose_s_lite_coco-640.py    |       |
 
 
 ## Acknowledgement
@@ -28,10 +22,6 @@ This is an open source project that is contributed by researchers and engineers 
 
 We wish that the toolbox and benchmark could serve the growing research community by providing a flexible toolkit to train existing detectors and also to develop their own new detectors.
 
-
-## License
-
-Please see [LICENSE](./LICENSE) file of this repository.
 
 ## Citation
 
@@ -53,13 +43,6 @@ This package/toolbox is an extension of mmpose (https://github.com/open-mmlab/mm
     year={2020}
 }
 ```
-
-
-
-
-
-
-
 
 
 # Original mmpose documentation
