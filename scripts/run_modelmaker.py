@@ -67,6 +67,13 @@ def main(config):
     # update the params with model_description, preset and config
     params = params.update(model_description).update(preset_description).update(config)
 
+    print(params)
+
+    if target_device not in params.training.target_devices:
+        print(f'{model_name} is not supported for {target_device}. please try another model.')
+        return False
+    #
+
     # create the runner
     model_runner = ai_target_module.runner.ModelRunner(
         params
