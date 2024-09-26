@@ -18,8 +18,8 @@ Accuracy of lite models
 | Dataset | Model             | Input Size  | AP[0.5:0.95]%, AP50% | config file | Notes |
 |---------|-------------------|-------------|----------------------|-------------|-------|
 |         | **YOLOX models** 
-| COCO    | YOLOXpose-tiny-lite    | 416x416     | 47.2, 76.1     | configs/body_2d_keypoint/yoloxpose/coco/yoloxpose_tiny_4xb64-300e_coco-416.py |       |
-| COCO    | YOLOXpose-small-lite   | 640x640     | 55.9, 84.24    | configs/body_2d_keypoint/yoloxpose/coco/yoloxpose_s_8xb32-300e_coco-640.py    |       |
+| COCO    | YOLOXpose-tiny-lite    | 416x416     | 47.2, 76.1     | configs_edgeailite/yoloxpose_tiny_lite-416.py |       |
+| COCO    | YOLOXpose-small-lite   | 640x640     | 55.9, 84.24    | configs_edgeailite/yoloxpose_s_lite-640.py    |       |
 
 
 ## Acknowledgement
