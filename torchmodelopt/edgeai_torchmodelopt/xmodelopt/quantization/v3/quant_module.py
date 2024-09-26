@@ -38,6 +38,9 @@ class QATPT2EModule(QuantPT2EBaseModule):
             raise NotImplementedError("Pt2e is currently supported only for python>3.8 or python<3.11")
         super().__init__(*args, is_qat=is_qat, **kwargs)
         # raise NotImplementedError("QATPT2E Quantization is not supported yet")
+    
+    def prepare(self, model, *args, is_qat=True, **kwargs):
+        return super().prepare(model, *args, is_qat=is_qat, **kwargs)
 
 
 class PTQPT2EModule(QuantPT2EBaseModule):
@@ -45,9 +48,11 @@ class PTQPT2EModule(QuantPT2EBaseModule):
         if sys.version_info.minor>11 or sys.version_info.minor<8:
             raise NotImplementedError("Pt2e is currently supported only for python>3.8 or python<3.11")
         super().__init__(*args, is_qat=is_qat, **kwargs)
-        # raise NotImplementedError("QATPT2E Quantization is not supported yet")
+        # raise NotImplementedError("PTQPT2E Quantization is not supported yet")
     
+    def prepare(self, model, *args, is_qat=False, **kwargs):
+        return super().prepare(model, *args, is_qat=is_qat, **kwargs)
     
 class PTQCalibratePT2EModule():
     def __init__(self, *args, backend='qnnpack', is_qat=False, **kwargs):
-        raise NotImplementedError("QATPT2E Quantization is not supported yet")
+        raise NotImplementedError("PTQCalibratePT2E Quantization is not supported yet")

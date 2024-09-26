@@ -32,11 +32,10 @@
 import types
 import torch
 from . import quant_func_wrapper
-from .quant_func_wrapper import ModelQuantFormat
-from ...utils import OptimizationBaseModule
+from ...utils.optimization_base import OptimizationBaseModule, add_attrs
 
 class QuantPT2EBaseModule(OptimizationBaseModule):
-    def __init__(self, model, *args, transformation_dict:dict=None, copy_attrs:list[str]=[], add_methods=True, **kwargs):
+    def __init__(self, model, *args, transformation_dict:dict=None, copy_attrs:list[str]=None, add_methods=True, **kwargs):
         '''
         model: input model to be used for QAT / PTC
         qconfig_type: qconfig_type can be one of the modes defined in qconfig_types (string)
@@ -44,9 +43,18 @@ class QuantPT2EBaseModule(OptimizationBaseModule):
             it can also be an instance of torch.ao.quantization.QConfig as used when using torch.ao.quantization apis
         '''
         # self.module = quant_func.init(model, *args, add_methods=add_methods, **kwargs)
+        copy_attrs= copy_attrs or []
         super().__init__(model,*args, transformation_dict=transformation_dict, copy_attrs=copy_attrs, **kwargs)
-        
-        self.module =quant_func_wrapper.init(self.module, *args, transformation_dict=self.transformation_dict, add_methods=add_methods, **kwargs)
+        self.prepare(self.module, *args, transformation_dict=self.transformation_dict, add_methods=add_methods, **kwargs)
+    
+    def prepare(self, model, *args, transformation_dict=None, add_methods=True, **kwargs):
+        self.module =quant_func_wrapper.init(model, *args, transformation_dict=transformation_dict, add_methods=add_methods, **kwargs)
+
+    @classmethod
+    def _add_attrs_to(cls, obj, attr_names=None):
+        assert isinstance(obj, OptimizationBaseModule), 'This only works if self is OptimizationBaseModule object'
+        attr_names = attr_names or ['load_weights', 'calibrate', 'freeze', 'unfreeze']
+        add_attrs(obj, attr_names, cls)
 
     def load_weights(self, *args, **kwargs):
         quant_func_wrapper.load_weights(self.module, *args, **kwargs)
