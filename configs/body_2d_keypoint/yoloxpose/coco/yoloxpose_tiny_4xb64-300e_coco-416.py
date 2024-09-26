@@ -1,16 +1,11 @@
 _base_ = './yoloxpose_s_8xb32-300e_coco-640.py'
 
-find_unused_parameters=True
-convert_to_lite_model = dict(model_surgery=1)
 
 # model settings
 widen_factor = 0.375
 deepen_factor = 0.33
 checkpoint = 'https://download.openmmlab.com/mmdetection/v2.0/yolox/yolox_' \
     'tiny_8x8_300e_coco/yolox_tiny_8x8_300e_coco_20211124_171234-b4047906.pth'
-
-load_from = '/data/files/a0508577/work/edgeai-algo/edgeai-mmpose/work_dirs/' \
-    'checkpoints/yoloxpose_tiny_4xb64-300e_coco-416-76eb44ca_20230829_new.pth'
 
 model = dict(
     data_preprocessor=dict(batch_augments=[
