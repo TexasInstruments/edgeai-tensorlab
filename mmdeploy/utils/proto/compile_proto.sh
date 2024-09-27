@@ -1,1 +1,1 @@
-protoc tidl_meta_arch_mmdet.proto --python_out=./
+protoc tidl_meta_arch_mmdeploy.proto --python_out=./
