@@ -2,7 +2,8 @@
 ## Release 10.0 (10_00_00)
 - Git branch: **r10.0**
 - Date: September 2024
-- [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) version used: **10_00_06_00**
+- **What is new**: Tech Reports added(**Object detection, PyTorch FX based Quantization**) - see link below, edgeai-mmpose(fork of open-mmlab/mmpose for efficient keypoint detection), edgeai-hf-transformers(fork of huggingface/transformers)
+- Tools: [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) version used: **10_00_06_00**
 - [Source code](https://github.com/TexasInstruments/edgeai-tensorlab/tree/r10.0)
 - [Model Zoo](https://github.com/TexasInstruments/edgeai-tensorlab/tree/r10.0/edgeai-modelzoo)
 - [Release Manifest](https://software-dl.ti.com/jacinto7/esd/modelzoo/10_00_00/)
