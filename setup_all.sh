@@ -45,7 +45,7 @@ CLONE_GIT_REPOS=0
 UPDATE_GIT_REPOS=0
 
 # use requirements from: pip list --format=freeze
-USE_PIP_FREEZE_REQUIREMENTS=0
+USE_PIP_FREEZE_REQUIREMENTS=1
 
 #################################################################################
 if [[ ${USE_INTERNAL_REPO} -eq 0 ]]; then
