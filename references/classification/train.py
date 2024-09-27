@@ -288,7 +288,7 @@ def main(args):
     if args.distributed and args.parallel:
         raise RuntimeError("both DistributedDataParallel and DataParallel cannot be used simultaneously")
 
-    device = torch.device(args.device)
+    device = args.device #torch.device(args.device)
 
     if args.use_deterministic_algorithms:
         torch.backends.cudnn.benchmark = False
