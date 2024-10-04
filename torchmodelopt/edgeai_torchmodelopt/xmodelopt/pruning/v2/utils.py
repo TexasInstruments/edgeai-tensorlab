@@ -35,16 +35,17 @@ import operator
 import torch
 import torch.fx as fx
 import torch.nn as nn
+
 try:
     from torchvision import models as tvmodels
+    _call_functions_to_look = [
+        tvmodels.swin_transformer.shifted_window_attention,
+        tvmodels.swin_transformer._get_relative_position_bias,
+    ]
     has_tv = True
 except:
+    _call_functions_to_look = []
     has_tv = False
-
-_call_functions_to_look =[
-    tvmodels.swin_transformer.shifted_window_attention,
-    tvmodels.swin_transformer._get_relative_position_bias,
-] if has_tv else []
 
 
 def remove_duplicates(items:list):
