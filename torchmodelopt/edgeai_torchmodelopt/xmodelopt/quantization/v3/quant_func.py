@@ -66,19 +66,24 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
     example_inputs = example_inputs[0] if isinstance(example_inputs, tuple) else example_inputs
     
     if kwargs.get('convert_to_cuda', False):
-        for key, value in example_inputs.items():
-            example_inputs[key] = value.to(device='cuda:0')
+        if isinstance(example_inputs, dict):
+            for key, value in example_inputs.items():
+                example_inputs[key] = value.to(device='cuda:0')
+        else:
+            example_inputs = example_inputs.to(device='cuda:0')
+                
         model = model.to(device='cuda:0')
 
     orig_model = copy.deepcopy(model)
+        
+    decomposition_table = {torch.ops.aten.layer_norm.default: quant_utils.native_layer_norm}
     
     if isinstance(example_inputs, dict):
-        m, guards = torchdynamo.export(model, **example_inputs, aten_graph=True, assume_static_by_default=True, )
+        m, guards = torchdynamo.export(orig_model, **example_inputs, aten_graph=True, assume_static_by_default=True, pre_dispatch=True, decomposition_table=decomposition_table)
         print("Dynamo Export Completed ! \n\n")
     else:
-        m, guards = torchdynamo.export(model, example_inputs, aten_graph=True, assume_static_by_default=True)
-    
-    qconfig_type = qconfig_type or qconfig_types.QConfigType.DEFAULT
+        m, guards = torchdynamo.export(orig_model, example_inputs, aten_graph=True, assume_static_by_default=True, pre_dispatch=True, decomposition_table=decomposition_table)
+
     qconfig_mode = qconfig_types.get_qconfig(qconfig_type, is_qat=is_qat, fast_mode=fast_mode)
     
     # qconfig_mode = get_symmetric_quantization_config(is_qat=False)
@@ -171,7 +176,7 @@ def freeze(self, freeze_bn=True, freeze_observers=True):
         ]:
             new_args = list(n.args)
             new_args[5] = not(freeze_bn)
-            n.args = new_args
+            n.args = tuple(new_args)
     self.recompile()      
             
     return self
@@ -195,7 +200,8 @@ def convert(self, device="cpu", make_copy=False):
 
     model = copy.deepcopy(self).eval() if make_copy else self.eval()
     model = model.to(device=device)
-    model = convert_pt2e(model)
+    model = convert_pt2e(model, use_reference_representation=False, fold_quantize= False)
+    model.eval = types.MethodType(train, model)
     torch.ao.quantization.move_exported_model_to_eval(model)
     model.eval = types.MethodType(train, model)
 
@@ -336,11 +342,12 @@ def create_batch1_model(orig_quantized_model, example_inputs):
     
     if hasattr(orig_quantized_model, "__quant_params__") and hasattr(orig_quantized_model.__quant_params__, 'original_model'):
         orig_model = orig_quantized_model.__quant_params__.original_model
+        decomposition_table = {torch.ops.aten.layer_norm.default: torch._decomp.decompositions.native_layer_norm_backward_out}
         if isinstance(example_inputs, dict):
-            m, guards = torchdynamo.export(orig_model, **example_inputs, aten_graph=True, assume_static_by_default=True)
+            m, guards = torchdynamo.export(orig_model, **example_inputs, aten_graph=True, assume_static_by_default=True, pre_dispatch=True, decomposition_table=decomposition_table)
             print("Dynamo export completed again")
         else:
-            m, guards = torchdynamo.export(orig_model, example_inputs, aten_graph=True, assume_static_by_default=True)
+            m, guards = torchdynamo.export(orig_model, example_inputs, aten_graph=True, assume_static_by_default=True, pre_dispatch=True, decomposition_table=decomposition_table)
     
         quantizer = orig_quantized_model.__quant_params__.quantizer
         model = prepare_pt2e(m, quantizer)
