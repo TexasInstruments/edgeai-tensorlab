@@ -121,13 +121,13 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
 
     if add_methods:
         # add a wrapper for model.train()
-        def train_quant(self, mode=False):
-            if mode:
-                torch.ao.quantization.move_exported_model_to_train(self)
-            else:
-                torch.ao.quantization.move_exported_model_to_eval(self)
+        # def train_quant(self, mode=True):
+        #     if mode:
+        #         torch.ao.quantization.move_exported_model_to_train(self)
+        #     else:
+        #         torch.ao.quantization.move_exported_model_to_eval(self)
                 
-        model.__train_backup__ = types.MethodType(train_quant, model)
+        # model.__train_backup__ = types.MethodType(train_quant, model)
         model.train = types.MethodType(train, model)
         model.eval = types.MethodType(train, model)
         # other methods
