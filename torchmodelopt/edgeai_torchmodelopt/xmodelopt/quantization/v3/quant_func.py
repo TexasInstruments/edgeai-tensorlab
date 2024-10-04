@@ -119,10 +119,15 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
     model.__quant_params__.bias_calibration_factor = kwargs.get("bias_calibration_factor", 0)
     model.__quant_params__.original_model = orig_model
 
-    
     if add_methods:
         # add a wrapper for model.train()
-        # model.__train_backup__ = types.MethodType(model.train.__func__, model)
+        def train_quant(self, mode=False):
+            if mode:
+                torch.ao.quantization.move_exported_model_to_train(self)
+            else:
+                torch.ao.quantization.move_exported_model_to_eval(self)
+                
+        model.__train_backup__ = types.MethodType(train_quant, model)
         model.train = types.MethodType(train, model)
         model.eval = types.MethodType(train, model)
         # other methods
@@ -277,7 +282,7 @@ def _is_observed_module(module) -> bool:
 
 
 def export(self, example_input, filename='model.onnx', opset_version=17, model_qconfig_format=None, preserve_qdq_model=True,
-           simplify=False, skipped_optimizers=None, device='cpu', make_copy=True):
+           simplify=False, skipped_optimizers=None, device='cpu', make_copy=True, insert_metadata=True):
 
     if _is_observed_module(self):
         model = convert(self, device=device, make_copy=make_copy)

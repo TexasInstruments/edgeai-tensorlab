@@ -232,7 +232,7 @@ def _is_observed_module(module) -> bool:
 
 
 def export(self, example_input, filename='model.onnx', opset_version=17, model_qconfig_format=None, preserve_qdq_model=True,
-           simplify=True, skipped_optimizers=None, device='cpu', make_copy=True):
+           simplify=True, skipped_optimizers=None, device='cpu', make_copy=True, insert_metadata=True):
 
     if _is_observed_module(self):
         model = convert(self, device=device, make_copy=make_copy)
