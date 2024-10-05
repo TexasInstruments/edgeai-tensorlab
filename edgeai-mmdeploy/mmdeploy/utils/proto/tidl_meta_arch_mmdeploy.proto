@@ -1,0 +1,330 @@
+// Copyright (c) 2018-2020, Texas Instruments
+// All Rights Reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+// * Redistributions of source code must retain the above copyright notice, this
+//   list of conditions and the following disclaimer.
+//
+// * Redistributions in binary form must reproduce the above copyright notice,
+//   this list of conditions and the following disclaimer in the documentation
+//   and/or other materials provided with the distribution.
+//
+// * Neither the name of the copyright holder nor the names of its
+//   contributors may be used to endorse or promote products derived from
+//   this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+// FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+// DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+// SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+// OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+syntax = "proto2";
+
+package tidl_meta_arch_mmdeploy;
+
+// Top level configuration for TIDL Meta Architechtures
+message TIDLMetaArch {
+  optional string name = 1;
+  repeated TidlMaCaffeSsd caffe_ssd = 2;
+  repeated TidlMaTfOdApiSsd tf_od_api_ssd = 3;
+  repeated TidlMaSsd tidl_ssd = 4;
+  repeated TidlMaFasterRcnn tidl_faster_rcnn = 5;
+  repeated TidlYoloOd tidl_yolo = 6;
+  repeated TidlMaRetinaNet tidl_retinanet = 7;
+  repeated TidlMa3DOD tidl_3dod = 8;
+}
+
+message TIDLNmsParam {
+  // Threshold to be used in nms.
+  optional float nms_threshold = 1 [default = 0.3];
+  // Maximum number of results to be kept.
+  optional int32 top_k = 2;
+  // Parameter for adaptive nms.
+  optional float eta = 3 [default = 1.0];
+}
+
+// Encode/decode type.
+enum TIDLBoxCodeType {
+CORNER = 1;
+CENTER_SIZE = 2;
+CORNER_SIZE = 3;
+CENTER_SIZE_EXP = 4;
+CENTER_SIZE_YXHW = 5;
+CODE_TYPE_YOLO_V5 = 6;
+CODE_TYPE_YOLO_X = 7;
+CODE_TYPE_3DOD = 8;
+}
+
+enum TIDLScoreConverter {
+IDENTITY = 0;
+SIGMOID = 1;
+SOFTMAX = 2;
+}
+
+
+enum TIDLAnchorDataLayout {
+SEPARATED = 0;
+INTERLEAVED = 1;
+}
+
+// Message that store parameters used by PriorBoxLayer
+message PriorBoxParameter {
+
+  // Minimum box size (in pixels). Required!
+  repeated float min_size = 1;
+  // Maximum box size (in pixels). Required!
+  repeated float max_size = 2;
+  // Various of aspect ratios. Duplicate ratios will be ignored.
+  // If none is provided, we use default ratio 1.
+  repeated float aspect_ratio = 3;
+  // If true, will flip each aspect ratio.
+  // For example, if there is aspect ratio "r",
+  // we will generate aspect ratio "1.0/r" as well.
+  optional bool flip = 4 [default = true];
+  // If true, will clip the prior so that it is within [0, 1]
+  optional bool clip = 5 [default = false];
+  // Variance for adjusting the prior bboxes.
+  repeated float variance = 6;
+  // By default, we calculate img_height, img_width, step_x, step_y based on
+  // bottom[0] (feat) and bottom[1] (img). Unless these values are explicitely
+  // provided.
+  // Explicitly provide the img_size.
+  optional uint32 img_size = 7;
+  // Either img_size or img_h/img_w should be specified; not both.
+  optional uint32 img_h = 8;
+  optional uint32 img_w = 9;
+
+  // Explicitly provide the step size.
+  optional float step = 10;
+  // Either step or step_h/step_w should be specified; not both.
+  optional float step_h = 11;
+  optional float step_w = 12;
+
+  // Offset to the top left corner of each cell.
+  optional float offset = 13 [default = 0.5];
+  optional uint32 num_keypoint = 14 [default = 0];
+}
+
+// Message that store parameters used by PriorBoxLayer
+message PriorBox3DODParameter {
+
+  // box length (in cm). Required!
+  repeated float anchor_length = 1;
+  // box width (in cm). Required!
+  repeated float anchor_width = 2;
+  // box height (in cm). Required!
+  repeated float anchor_height = 3;
+
+  required float anchor_length_offset = 4;
+
+  repeated float rotation = 5;
+
+}
+
+message TIDLOdSaveParams {
+  // Output directory. If not empty, we will save the results.
+  optional string output_directory = 1;
+  // Output name prefix.
+  optional string output_name_prefix = 2;
+  // Output format.
+  //    VOC - PASCAL VOC output format.
+  //    COCO - MS COCO output format.
+  optional string output_format = 3;
+  // If you want to output results, must also provide the following two files.
+  // Otherwise, we will ignore saving results.
+  // label map file.
+  optional string label_map_file = 4;
+  // A file which contains a list of names and sizes with same order
+  // of the input DB. The file is in the following format:
+  //    name height width
+  //    ...
+  optional string name_size_file = 5;
+  // Number of test images. It can be less than the lines specified in
+  // name_size_file. For example, when we only want to evaluate on part
+  // of the test images.
+  optional uint32 num_test_image = 6;
+  // The resize parameter used in saving the data.
+  optional string resize_param = 7;
+}
+
+// Message that store parameters used by DetectionOutputLayer
+message TIDLOdPostProc {
+  // Number of classes to be predicted. Required!
+  optional uint32 num_classes = 1;
+  // If true, bounding box are shared among different classes.
+  optional bool share_location = 2 [default = true];
+  // Background label id. If there is no background class,
+  // set it as -1.
+  optional int32 background_label_id = 3 [default = 0];
+  // Parameters used for non maximum suppression.
+  optional TIDLNmsParam nms_param = 4;
+  // Parameters used for saving detection results.
+  optional TIDLOdSaveParams save_output_param = 5;
+  // Type of coding method for bbox.
+  optional TIDLBoxCodeType code_type = 6 [default = CORNER];
+  // If true, variance is encoded in target; otherwise we need to adjust the
+  // predicted offset accordingly.
+  optional bool variance_encoded_in_target = 8 [default = false];
+  // Number of total bboxes to be kept per image after nms step.
+  // -1 means keeping all bboxes after nms step.
+  optional int32 keep_top_k = 7 [default = -1];
+  // Only consider detections whose confidences are larger than a threshold.
+  // If not provided, consider all boxes.
+  optional float confidence_threshold = 9;
+  // If true, visualize the detection results.
+  optional bool visualize = 10 [default = false];
+  // The threshold used to visualize the detection results.
+  optional float visualize_threshold = 11;
+  // If provided, save outputs to video file.
+  optional string save_file = 12;
+  // Total number of keypoints predicted along with each bounding box.
+  optional uint32 num_keypoint = 13 [default = 0];
+  // If set to 1, there is a confidence term for each keypoint .
+  optional bool keypoint_confidence = 14 [default = false];
+}
+
+// Configuration for one  TIDL SSD HEAD
+message TidlMaSsd {
+  repeated string box_input = 1; // List of input tensors in the same order as prior_box_param
+  repeated string class_input = 2; // List of input tensors in the same order as prior_box_param
+  optional string output = 3; // the name of output tensor
+  optional string name = 4; // the name of the head
+  optional uint32 in_width = 5;
+  optional uint32 in_height = 6;
+  optional TIDLScoreConverter score_converter = 7 [default = SOFTMAX];
+  repeated PriorBoxParameter prior_box_param = 8;
+  optional TIDLOdPostProc detection_output_param = 9;
+  optional TIDLAnchorDataLayout data_layout = 10 [default = SEPARATED];
+}
+
+
+// Configuration for one  Caffe SSD HEAD
+message TidlMaCaffeSsd {
+  repeated string box_input = 1; // List of input tensors in the same order as prior_box_param
+  repeated string class_input = 2; // List of input tensors in the same order as prior_box_param
+  repeated string output = 3; // the name of output tensor
+  optional string name = 4; // the name of the head
+  optional uint32 in_width = 5;
+  optional uint32 in_height = 6;
+  optional TIDLScoreConverter score_converter = 7 [default = SOFTMAX];
+  repeated PriorBoxParameter prior_box_param = 8;
+  optional TIDLOdPostProc detection_output_param = 9;
+  optional TIDLAnchorDataLayout data_layout = 10 [default = SEPARATED];
+  optional string framework = 11;
+}
+
+// Configuration for list of TF OD API SSD heades
+message TidlMaTfOdApiSsd {
+  optional string name = 1;
+}
+
+// Configuration for list of TIDL Faster RCNN heades
+message TidlMaFasterRcnn {
+  optional string name = 1;
+}
+
+//Yolo v2/v3/v4 Box decoding
+/*
+def get_boxes(pred, anchors, classes):
+    grid_size = tf.shape(pred)[1]
+    box_xy, box_wh, object_probability, class_probabilities = tf.split(
+        pred, (2, 2, 1, classes), axis=-1
+    )
+    box_xy = tf.sigmoid(box_xy)
+    object_probability = tf.sigmoid(object_probability)
+    class_probabilities = tf.sigmoid(class_probabilities)
+    pred_box = tf.concat((box_xy, box_wh), axis=-1)
+    grid = tf.meshgrid(tf.range(grid_size), tf.range(grid_size))
+    grid = tf.expand_dims(tf.stack(grid, axis=-1), axis=2)
+    box_xy = (box_xy + tf.cast(grid, tf.float32)) / tf.cast(
+        grid_size, tf.float32
+    )
+    box_wh = tf.exp(box_wh) * anchors
+    box_x1y1 = box_xy - box_wh / 2
+    box_x2y2 = box_xy + box_wh / 2
+    bbox = tf.concat([box_x1y1, box_x2y2], axis=-1)
+    return bbox, object_probability, class_probabilities, pred_box
+ */
+
+// Configuration for one  TidlYoloOd v2/v3/v4
+message TidlYoloOd {
+  repeated TIDLYoloParams yolo_param = 1;
+  required TIDLOdPostProc detection_output_param = 2;
+  required string name = 3;
+  required uint32 in_width = 4;
+  required uint32 in_height = 5;
+  repeated string output = 6;
+  optional string framework = 7;
+}
+
+
+
+
+message TIDLYoloParams {
+  required string input = 1;
+  repeated float anchor_width = 2;
+  repeated float anchor_height = 3;
+}
+
+
+message RetinaNetAnchorParameter {
+  repeated float aspect_ratio = 1;
+  required float octave_base_scale  = 2;
+  required uint32 scales_per_octave = 3;
+}
+
+// Configuration for retinanet
+message TidlMaRetinaNet {
+  repeated string box_input = 1;
+  repeated string class_input = 2;
+  repeated string output = 3;
+  optional string name = 4;
+  required uint32 in_width = 5;
+  required uint32 in_height = 6;
+  optional uint32 anchorbox_order = 16 [default = 0];
+  optional float x_scale = 7 [default = 10.0];
+  optional float y_scale = 8 [default = 10.0];
+  optional float x_offset = 14 [default = 0.0];
+  optional float y_offset = 15 [default = 0.0];
+  optional float width_scale = 9 [default = 5.0];
+  optional float height_scale = 10 [default = 5.0];
+  optional TIDLScoreConverter score_converter = 11 [default = SOFTMAX];
+  required RetinaNetAnchorParameter anchor_param = 12;
+  required TIDLOdPostProc detection_output_param = 13;
+  optional string framework = 17;
+}
+
+// Configuration for one  anchor based 3D OD
+message TidlMa3DOD {
+  repeated string box_input = 1; // List of input tensors in the same order as prior_box_param
+  repeated string class_input = 2; // List of input tensors in the same order as prior_box_param
+  repeated string dir_input = 3; // List of input tensors in the same order as prior_box_param
+  repeated string output = 4; // the name of output tensor
+  optional string name = 5; // the name of the head
+  required float min_x = 6;
+  required float max_x = 7;
+  required float min_y = 8;
+  required float max_y = 9;
+  required float min_z = 10;
+  required float max_z = 11;
+  required float voxel_size_x = 12;
+  required float voxel_size_y = 13;
+  required uint32 max_points_per_voxel = 14;
+  optional TIDLScoreConverter score_converter = 15 [default = SIGMOID];
+  repeated PriorBox3DODParameter prior_box_3dod_param = 16;
+  optional TIDLOdPostProc detection_output_param = 17;
+  optional TIDLAnchorDataLayout data_layout = 18 [default = SEPARATED];
+}
+
+
+
+
