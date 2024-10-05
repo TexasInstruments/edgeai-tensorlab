@@ -36,7 +36,7 @@ import argparse
 
 
 def main(dest_url=None):
-    supported_ext = ['.tf', '.tflite', '.pth', '.pt', '.ptl', '.onnx', '.json', '.params', '.prototxt', '.caffemodel']
+    supported_ext = ['.tf', '.tflite', '.pth', '.pt', '.ptl', '.onnx', '.json', '.params', '.prototxt', '.caffemodel', '.log']
 
     files = glob.glob('models/*/*/*/*/*')
 
