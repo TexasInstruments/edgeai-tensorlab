@@ -30,7 +30,7 @@
 
 git stash
 
-git checkout r10.0
+#git checkout r10.0
 
 #remove --squash to keep history
 git merge --allow-unrelated-histories -X theirs main --squash
@@ -47,6 +47,7 @@ find . -name *.prototxt -delete
 find . -name *.caffemodel -delete
 find . -name *.tar -delete
 find . -name *.zip -delete
+find . -name *.log -delete
 
 git add -u
 
