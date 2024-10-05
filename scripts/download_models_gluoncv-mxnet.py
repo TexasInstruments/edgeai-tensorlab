@@ -1,5 +1,5 @@
 # Copyright (c) 2018-2021, Texas Instruments
-# All Rights Reserved.
+# All Rights Reserved
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -26,25 +26,22 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import argparse
 
-__version__ = '10.0.0'
+# Download MXNet model
 
-
-def print_version():
-    print(__version__)
+import os
+import gluoncv
 
 
-def print_version_(delimiter):
-    version_str = delimiter.join([f'{r:0>2}' for r in __version__.split('.')])
-    print(version_str)
+model_details = {
+    'fcn_resnet50_ade': [{'name': 'data', 'shape': (1, 3, 480, 480)}],
+    #'fcn_resnet101_coco': [{'name': 'data', 'shape': (1, 3, 480, 480)}],
+    #'deeplab_resnet101_coco': [{'name': 'data', 'shape': (1, 3, 480, 480)}],
+}
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--delimiter', default=None)
-    args = parser.parse_args()
-    if args.delimiter is not None:
-        print_version_(args.delimiter)
-    else:
-        print_version()
+for model_name, model_inputs in model_details.items():
+    net = gluoncv.model_zoo.get_model(model_name, pretrained=True)
+    net_dir = os.path.join('./', model_name)
+    gluoncv.utils.export_block(net_dir, net, data_shape=model_inputs[0]['shape'][1:], preprocess=False, layout='CHW')
+

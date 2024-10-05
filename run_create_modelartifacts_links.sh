@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # Copyright (c) 2018-2021, Texas Instruments
 # All Rights Reserved.
 #
@@ -26,25 +28,20 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import argparse
+##################################################################
+# target_device - use one of: TDA4VM AM62A AM68A AM69A AM67A AM62
+TARGET_SOC=${1:-TDA4VM}
 
-__version__ = '10.0.0'
+##################################################################
+version=$(python3 version.py --delimiter=_)
 
+directory_prefix=modelartifacts/${TARGET_SOC}/8bits
 
-def print_version():
-    print(__version__)
+dest_url=http://software-dl.ti.com/jacinto7/esd/modelzoo/${version}/${directory_prefix}
 
-
-def print_version_(delimiter):
-    version_str = delimiter.join([f'{r:0>2}' for r in __version__.split('.')])
-    print(version_str)
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--delimiter', default=None)
-    args = parser.parse_args()
-    if args.delimiter is not None:
-        print_version_(args.delimiter)
-    else:
-        print_version()
+for artifact in $(ls -1 ./${directory_prefix}/*.tar.gz)
+do
+artifact_basename=$(basename ${artifact})
+echo ${artifact_basename}
+echo ${dest_url}/${artifact_basename} > ./${directory_prefix}/${artifact_basename}.link
+done

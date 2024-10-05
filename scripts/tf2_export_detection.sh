@@ -44,7 +44,7 @@ MODEL_NAMES="./downloads/tf2/od/ssd_mobilenet_v1_fpn_640x640_coco17_tpu-8
 for model_name in ${MODEL_NAMES}; do
 LOCAL_DIR="${model_name}"
 
-python ${TF_MODELS_REPO}/research/object_detection/export_tflite_graph_tf2.py \
+python3 ${TF_MODELS_REPO}/research/object_detection/export_tflite_graph_tf2.py \
     --pipeline_config_path ${LOCAL_DIR}/pipeline.config \
     --trained_checkpoint_dir ${LOCAL_DIR}/checkpoint \
     --output_directory ${LOCAL_DIR}/tflite
