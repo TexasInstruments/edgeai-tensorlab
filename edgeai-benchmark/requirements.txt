@@ -1,0 +1,15 @@
+cython
+wheel
+pillow
+pycocotools
+colorama
+tqdm
+pyyaml
+pytest
+json_tricks
+munkres
+scipy
+wurlitzer
+plyfile
+scikit-learn
+debugpy

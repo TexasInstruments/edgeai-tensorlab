@@ -1,0 +1,16 @@
+-r requirements.txt
+onnxsim==0.4.35
+numpy==1.23.0
+git+https://github.com/NVIDIA/TensorRT@release/8.5#subdirectory=tools/onnx-graphsurgeon
+git+https://github.com/TexasInstruments/edgeai-tidl-tools.git@10_00_06_00#subdirectory=scripts
+tflite
+flatbuffers==1.12.0
+requests
+pytest
+graphviz
+h5py
+#protobuf==3.20.2
+#onnx==1.13.0
+graphviz
+colored
+opencv-python-headless
