@@ -39,3 +39,6 @@ mim install mmengine
 mim install "mmcv>=2.2.0"
 
 pip install -v -e .
+
+# openmim downgrades the version of setuptools. restore it
+pip3 install --no-input --upgrade pip==24.2 setuptools==73.0.0
