@@ -30,7 +30,7 @@ import os
 import numpy as np
 import torch
 # from .quantize import is_mmdet_quant_module
-from .proto import tidl_meta_arch_mmdet_pb2
+from .proto import tidl_meta_arch_mmdeploy_pb2
 from google.protobuf import text_format
 
 __all__ = ['save_model_proto']
@@ -146,24 +146,24 @@ def _save_mmdet_proto_ssd(cfg, model, input_size, output_filename, input_names=N
         aspect_ratio=anchor_generator.ratios[h_idx][2::2]
         step=anchor_generator.strides[h_idx]
         step=step[0] if isinstance(step,(tuple,list)) else step
-        prior_box_param.append(tidl_meta_arch_mmdet_pb2.PriorBoxParameter(min_size=min_size, max_size=max_size,
+        prior_box_param.append(tidl_meta_arch_mmdeploy_pb2.PriorBoxParameter(min_size=min_size, max_size=max_size,
                                                                      aspect_ratio=aspect_ratio, step=step,
                                                                      variance=bbox_head.bbox_coder.stds, clip=False, flip=True))
     #
 
-    nms_param = tidl_meta_arch_mmdet_pb2.TIDLNmsParam(nms_threshold=0.45, top_k=200)
-    detection_output_param = tidl_meta_arch_mmdet_pb2.TIDLOdPostProc(num_classes=bbox_head.num_classes+1, share_location=True,
+    nms_param = tidl_meta_arch_mmdeploy_pb2.TIDLNmsParam(nms_threshold=0.45, top_k=200)
+    detection_output_param = tidl_meta_arch_mmdeploy_pb2.TIDLOdPostProc(num_classes=bbox_head.num_classes+1, share_location=True,
                                             background_label_id=bbox_head.num_classes, nms_param=nms_param,
-                                            code_type=tidl_meta_arch_mmdet_pb2.CENTER_SIZE, keep_top_k=200,
+                                            code_type=tidl_meta_arch_mmdeploy_pb2.CENTER_SIZE, keep_top_k=200,
                                             confidence_threshold=0.3)
 
-    ssd = tidl_meta_arch_mmdet_pb2.TidlMaCaffeSsd(box_input=reg_proto_names, class_input=cls_proto_names,
+    ssd = tidl_meta_arch_mmdeploy_pb2.TidlMaCaffeSsd(box_input=reg_proto_names, class_input=cls_proto_names,
                                              output=output_names, prior_box_param=prior_box_param,
                                              in_width=input_size[3], in_height=input_size[2],
                                              detection_output_param=detection_output_param,
                                              framework='MMDetection')
 
-    arch = tidl_meta_arch_mmdet_pb2.TIDLMetaArch(name='ssd',  caffe_ssd=[ssd])
+    arch = tidl_meta_arch_mmdeploy_pb2.TIDLMetaArch(name='ssd',  caffe_ssd=[ssd])
 
     with open(output_filename, 'wt') as pfile:
         txt_message = text_format.MessageToString(arch)
@@ -183,25 +183,25 @@ def _save_mmdet_proto_retinanet(cfg, model, input_size, output_filename, input_n
 
     background_label_id = -1 if bbox_head.use_sigmoid_cls else bbox_head.num_classes
     num_classes = bbox_head.num_classes if bbox_head.use_sigmoid_cls else bbox_head.num_classes+1
-    score_converter = tidl_meta_arch_mmdet_pb2.SIGMOID if bbox_head.use_sigmoid_cls else tidl_meta_arch_mmdet_pb2.SOFTMAX
-    anchor_param = tidl_meta_arch_mmdet_pb2.RetinaNetAnchorParameter(aspect_ratio=anchor_generator.ratios,
+    score_converter = tidl_meta_arch_mmdeploy_pb2.SIGMOID if bbox_head.use_sigmoid_cls else tidl_meta_arch_mmdeploy_pb2.SOFTMAX
+    anchor_param = tidl_meta_arch_mmdeploy_pb2.RetinaNetAnchorParameter(aspect_ratio=anchor_generator.ratios,
                                                                 octave_base_scale=anchor_generator.octave_base_scale,
                                                                 scales_per_octave=anchor_generator.scales_per_octave)
 
-    nms_param = tidl_meta_arch_mmdet_pb2.TIDLNmsParam(nms_threshold=0.45, top_k=200)
-    detection_output_param = tidl_meta_arch_mmdet_pb2.TIDLOdPostProc(num_classes=num_classes, share_location=True,
+    nms_param = tidl_meta_arch_mmdeploy_pb2.TIDLNmsParam(nms_threshold=0.45, top_k=200)
+    detection_output_param = tidl_meta_arch_mmdeploy_pb2.TIDLOdPostProc(num_classes=num_classes, share_location=True,
                                             background_label_id=background_label_id, nms_param=nms_param,
-                                            code_type=tidl_meta_arch_mmdet_pb2.CENTER_SIZE, keep_top_k=200,
+                                            code_type=tidl_meta_arch_mmdeploy_pb2.CENTER_SIZE, keep_top_k=200,
                                             confidence_threshold=0.3)
 
-    retinanet = tidl_meta_arch_mmdet_pb2.TidlMaRetinaNet(box_input=reg_proto_names, class_input=cls_proto_names,
+    retinanet = tidl_meta_arch_mmdeploy_pb2.TidlMaRetinaNet(box_input=reg_proto_names, class_input=cls_proto_names,
                                               output=output_names, x_scale=1.0, y_scale=1.0, width_scale=1.0, height_scale=1.0,
                                               in_width=input_size[3], in_height=input_size[2],
                                               score_converter=score_converter, anchor_param=anchor_param,
                                               detection_output_param=detection_output_param,
                                               framework='MMDetection')
 
-    arch = tidl_meta_arch_mmdet_pb2.TIDLMetaArch(name='retinanet',  tidl_retinanet=[retinanet])
+    arch = tidl_meta_arch_mmdeploy_pb2.TIDLMetaArch(name='retinanet',  tidl_retinanet=[retinanet])
 
     with open(output_filename, 'wt') as pfile:
         txt_message = text_format.MessageToString(arch)
@@ -217,25 +217,25 @@ def _save_mmdet_proto_efficientdet(cfg, model, input_size, output_filename, inpu
 
     background_label_id = -1 if bbox_head.use_sigmoid_cls else bbox_head.num_classes
     num_classes = bbox_head.num_classes if bbox_head.use_sigmoid_cls else bbox_head.num_classes+1
-    score_converter = tidl_meta_arch_mmdet_pb2.SIGMOID if bbox_head.use_sigmoid_cls else tidl_meta_arch_mmdet_pb2.SOFTMAX
-    anchor_param = tidl_meta_arch_mmdet_pb2.RetinaNetAnchorParameter(aspect_ratio=anchor_generator.ratios,
+    score_converter = tidl_meta_arch_mmdeploy_pb2.SIGMOID if bbox_head.use_sigmoid_cls else tidl_meta_arch_mmdeploy_pb2.SOFTMAX
+    anchor_param = tidl_meta_arch_mmdeploy_pb2.RetinaNetAnchorParameter(aspect_ratio=anchor_generator.ratios,
                                                                 octave_base_scale=anchor_generator.octave_base_scale,
                                                                 scales_per_octave=anchor_generator.scales_per_octave)
 
-    nms_param = tidl_meta_arch_mmdet_pb2.TIDLNmsParam(nms_threshold=0.45, top_k=200)
-    detection_output_param = tidl_meta_arch_mmdet_pb2.TIDLOdPostProc(num_classes=num_classes, share_location=True,
+    nms_param = tidl_meta_arch_mmdeploy_pb2.TIDLNmsParam(nms_threshold=0.45, top_k=200)
+    detection_output_param = tidl_meta_arch_mmdeploy_pb2.TIDLOdPostProc(num_classes=num_classes, share_location=True,
                                             background_label_id=background_label_id, nms_param=nms_param,
-                                            code_type=tidl_meta_arch_mmdet_pb2.CENTER_SIZE, keep_top_k=200,
+                                            code_type=tidl_meta_arch_mmdeploy_pb2.CENTER_SIZE, keep_top_k=200,
                                             confidence_threshold=0.3)
 
-    retinanet = tidl_meta_arch_mmdet_pb2.TidlMaRetinaNet(box_input=reg_proto_names, class_input=cls_proto_names,
+    retinanet = tidl_meta_arch_mmdeploy_pb2.TidlMaRetinaNet(box_input=reg_proto_names, class_input=cls_proto_names,
                                               output=output_names, x_scale=1.0, y_scale=1.0, width_scale=1.0, height_scale=1.0,
                                               in_width=input_size[3], in_height=input_size[2],
                                               score_converter=score_converter, anchor_param=anchor_param,
                                               detection_output_param=detection_output_param,
                                               framework='MMDetection')
 
-    arch = tidl_meta_arch_mmdet_pb2.TIDLMetaArch(name='retinanet',  tidl_retinanet=[retinanet])
+    arch = tidl_meta_arch_mmdeploy_pb2.TIDLMetaArch(name='retinanet',  tidl_retinanet=[retinanet])
 
     with open(output_filename, 'wt') as pfile:
         txt_message = text_format.MessageToString(arch)
@@ -250,28 +250,28 @@ def _save_mmdet_proto_yolov3(cfg, model, input_size, output_filename, input_name
 
     background_label_id = -1
     num_classes = bbox_head.num_classes
-    #score_converter = tidl_meta_arch_mmdet_pb2.SIGMOID
+    #score_converter = tidl_meta_arch_mmdeploy_pb2.SIGMOID
 
     yolo_params = []
     for base_size_id, base_size in enumerate(base_sizes):
-        yolo_param = tidl_meta_arch_mmdet_pb2.TIDLYoloParams(input=proto_names[base_size_id],
+        yolo_param = tidl_meta_arch_mmdeploy_pb2.TIDLYoloParams(input=proto_names[base_size_id],
                                                         anchor_width=[b[0] for b in base_size],
                                                         anchor_height=[b[1] for b in base_size])
         yolo_params.append(yolo_param)
 
-    nms_param = tidl_meta_arch_mmdet_pb2.TIDLNmsParam(nms_threshold=0.45, top_k=200)
-    detection_output_param = tidl_meta_arch_mmdet_pb2.TIDLOdPostProc(num_classes=num_classes, share_location=True,
+    nms_param = tidl_meta_arch_mmdeploy_pb2.TIDLNmsParam(nms_threshold=0.45, top_k=200)
+    detection_output_param = tidl_meta_arch_mmdeploy_pb2.TIDLOdPostProc(num_classes=num_classes, share_location=True,
                                             background_label_id=background_label_id, nms_param=nms_param,
-                                            code_type=tidl_meta_arch_mmdet_pb2.CENTER_SIZE_EXP, keep_top_k=200,
+                                            code_type=tidl_meta_arch_mmdeploy_pb2.CENTER_SIZE_EXP, keep_top_k=200,
                                             confidence_threshold=0.3)
 
-    yolov3 = tidl_meta_arch_mmdet_pb2.TidlYoloOd(name='yolo_v3', output=output_names,
+    yolov3 = tidl_meta_arch_mmdeploy_pb2.TidlYoloOd(name='yolo_v3', output=output_names,
                                             in_width=input_size[3], in_height=input_size[2],
                                             yolo_param=yolo_params,
                                             detection_output_param=detection_output_param,
                                             framework='MMDetection')
 
-    arch = tidl_meta_arch_mmdet_pb2.TIDLMetaArch(name='yolo_v3',  tidl_yolo=[yolov3])
+    arch = tidl_meta_arch_mmdeploy_pb2.TIDLMetaArch(name='yolo_v3',  tidl_yolo=[yolov3])
 
     with open(output_filename, 'wt') as pfile:
         txt_message = text_format.MessageToString(arch)
@@ -286,28 +286,28 @@ def _save_mmdet_proto_yolox(cfg, model, input_size, output_filename, input_names
 
     background_label_id = -1
     num_classes = bbox_head.num_classes
-    #score_converter = tidl_meta_arch_mmdet_pb2.SIGMOID
+    #score_converter = tidl_meta_arch_mmdeploy_pb2.SIGMOID
 
     yolo_params = []
     for base_size_id, base_size in enumerate(base_sizes):
-        yolo_param = tidl_meta_arch_mmdet_pb2.TIDLYoloParams(input=proto_names[base_size_id],
+        yolo_param = tidl_meta_arch_mmdeploy_pb2.TIDLYoloParams(input=proto_names[base_size_id],
                                                         anchor_width=[base_size],
                                                         anchor_height=[base_size])
         yolo_params.append(yolo_param)
 
-    nms_param = tidl_meta_arch_mmdet_pb2.TIDLNmsParam(nms_threshold=0.45, top_k=200)
-    detection_output_param = tidl_meta_arch_mmdet_pb2.TIDLOdPostProc(num_classes=num_classes, share_location=True,
+    nms_param = tidl_meta_arch_mmdeploy_pb2.TIDLNmsParam(nms_threshold=0.45, top_k=200)
+    detection_output_param = tidl_meta_arch_mmdeploy_pb2.TIDLOdPostProc(num_classes=num_classes, share_location=True,
                                             background_label_id=background_label_id, nms_param=nms_param,
-                                            code_type=tidl_meta_arch_mmdet_pb2.CODE_TYPE_YOLO_X, keep_top_k=200,
+                                            code_type=tidl_meta_arch_mmdeploy_pb2.CODE_TYPE_YOLO_X, keep_top_k=200,
                                             confidence_threshold=0.3)
 
-    yolox = tidl_meta_arch_mmdet_pb2.TidlYoloOd(name='yolox', output=output_names,
+    yolox = tidl_meta_arch_mmdeploy_pb2.TidlYoloOd(name='yolox', output=output_names,
                                             in_width=input_size[3], in_height=input_size[2],
                                             yolo_param=yolo_params,
                                             detection_output_param=detection_output_param,
                                             framework='MMDetection')
 
-    arch = tidl_meta_arch_mmdet_pb2.TIDLMetaArch(name='yolox',  tidl_yolo=[yolox])
+    arch = tidl_meta_arch_mmdeploy_pb2.TIDLMetaArch(name='yolox',  tidl_yolo=[yolox])
 
     with open(output_filename, 'wt') as pfile:
         txt_message = text_format.MessageToString(arch)
@@ -322,29 +322,29 @@ def _save_mmdet_proto_yoloxpose(cfg, model, input_size, output_filename, input_n
 
     background_label_id = -1
     num_classes = model.head.head_module.num_classes
-    #score_converter = tidl_meta_arch_mmdet_pb2.SIGMOID
+    #score_converter = tidl_meta_arch_mmdeploy_pb2.SIGMOID
     num_keypoint = model.head.num_keypoints if hasattr(model.head, "num_keypoints") else None
     keypoint_confidence = True if (num_keypoint is not None and num_keypoint>0) else None
 
     yolo_params = []
     for base_size_id, base_size in enumerate(base_sizes):
-        yolo_param = tidl_meta_arch_mmdet_pb2.TIDLYoloParams(input=proto_names[base_size_id],
+        yolo_param = tidl_meta_arch_mmdeploy_pb2.TIDLYoloParams(input=proto_names[base_size_id],
                                                         anchor_width=[base_size],
                                                         anchor_height=[base_size])
         yolo_params.append(yolo_param)
 
-    nms_param = tidl_meta_arch_mmdet_pb2.TIDLNmsParam(nms_threshold=0.45, top_k=200)
-    detection_output_param = tidl_meta_arch_mmdet_pb2.TIDLOdPostProc(num_classes=num_classes, share_location=True,
+    nms_param = tidl_meta_arch_mmdeploy_pb2.TIDLNmsParam(nms_threshold=0.45, top_k=200)
+    detection_output_param = tidl_meta_arch_mmdeploy_pb2.TIDLOdPostProc(num_classes=num_classes, share_location=True,
                                             background_label_id=background_label_id, nms_param=nms_param,
-                                            code_type=tidl_meta_arch_mmdet_pb2.CODE_TYPE_YOLO_X, keep_top_k=200,
+                                            code_type=tidl_meta_arch_mmdeploy_pb2.CODE_TYPE_YOLO_X, keep_top_k=200,
                                             confidence_threshold=0.3,num_keypoint=num_keypoint,keypoint_confidence=keypoint_confidence)
 
-    yolox = tidl_meta_arch_mmdet_pb2.TidlYoloOd(name='yolox', output=output_names,
+    yolox = tidl_meta_arch_mmdeploy_pb2.TidlYoloOd(name='yolox', output=output_names,
                                             in_width=input_size[3], in_height=input_size[2],
                                             yolo_param=yolo_params,
                                             detection_output_param=detection_output_param,)
 
-    arch = tidl_meta_arch_mmdet_pb2.TIDLMetaArch(name='yolox',  tidl_yolo=[yolox])
+    arch = tidl_meta_arch_mmdeploy_pb2.TIDLMetaArch(name='yolox',  tidl_yolo=[yolox])
 
     with open(output_filename, 'wt') as pfile:
         txt_message = text_format.MessageToString(arch)
