@@ -1,61 +1,79 @@
-# Jacinto-AI-ModelZoo
+# EdgeAI-ModelZoo
 
-This repository provides a collection of example Deep Learning Models for various Computer Vision tasks. These tasks include image classification, segmentation and detection. The models in this repository can be run either in PC simulation mode or directly in [Jacinto 7](https://training.ti.com/jacinto7) family of SoCs, for example [TDA4VM](https://www.ti.com/product/TDA4VM). 
+This repository provides a collection of example Deep Neural Network (DNN) Models for various Computer Vision tasks.
 
-
-#### Notice
-This repository is part of Jacinto-AI-DevKit, which is a collection of repositories providing Training & Quantization scripts, Model Zoo and Accuracy Benchmarks. If you have not visited the landing page of [**Jacinto-AI-Devkit**](https://github.com/TexasInstruments/jacinto-ai-devkit) please do so before attempting to use this repository.
-
-This repository can be obtained by git clone.
-```
-git clone https://git.ti.com/git/jacinto-ai/jacinto-ai-modelzoo.git
-```
-
-Online Documentation [link](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-modelzoo/about/)
-
-Tree [view](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-modelzoo/tree/)
+In order to run Deep Neural Networks (a.k.a. DNNs or Deep Learning Models or simply models) on embedded hardware, they need to be optimized and converted into embedded friendly formats. We have converted/exported several models from the original training frameworks in PyTorch, Tensorflow and MxNet into these embedded friendly formats and is being hosted in this repository. In this process we also make sure that these models provide optimized inference speed on our SoCs, so sometimes minor modifications are made to the models wherever necessary. These models provide a good starting point for our customers to explore high performance Deep Learning on our SoCs.
 
 
-## Introduction
-In order to run Deep Neural Networks (a.k.a. DNNs or Deep Learning Models or simply models) on embedded hardware, they need to be converted into embedded friendly formats and optimized. We have converted/exported several models from the original training frameworks in PyTorch, Tensorflow and MxNet into these embedded friendly formats and is being hosted in this repository. In this process we also make sure that these models provide optimized inference speed on our SoCs, so sometimes minor modifications are made to the models wherever necessary. These models provide a good starting point for our customers to explore high performance Deep Learning on our SoCs.
+### Notice
+If you have not visited the following landing pages, please do so before attempting to use this repository.
+- https://www.ti.com/edgeai 
+- https://dev.ti.com/edgeai/
+- https://github.com/TexasInstruments/edgeai
+- Important Note: The models in this repository are being made available for experimentation and development  - they are not meant for deployment in production.
 
-DNNs can be run on our SoCs using RTOS SDK for Jacinto 7 (PROCESSOR-SDK-RTOS-J721E). It can be downloaded from the page for Processor SDK for Jacinto 7 TDA4x a.k.a. **[PROCESSOR-SDK-J721E](https://www.ti.com/tool/PROCESSOR-SDK-J721E)**. 
+<hr>
 
-RTOS SDK for Jacinto 7 TDA4x provides TI Deep Learning Library (TIDL), which is an optimized library that can run Neural Networks on our SoCs. TIDL provides several familiar interfaces for model inference - such as onnxruntime, tflite_runtime, tvm/dlr - apart from its own native interface. All these runtimes that are provided as part of TIDL have extensions on top of public domain runtimes that allow us to offload model execution into our high performance C7x+MMA DSP. For more information how to obtain and use these runtimes, please go through the TIDL documentation in the RTOS SDK. The documentation of TIDL can be seen if you click on the "SDK Documentation" link in the download page for [PROCESSOR-SDK-RTOS-J721E)](https://www.ti.com/tool/download/PROCESSOR-SDK-RTOS-J721E)
+## Components
+- [Pretrained Models](models)
+- [Compiled Model Artifacts](modelartifacts) - The pre-compiled model artifacts that we provide with this repository. See additional notes [for precompiled model artifacts](./docs/precompiled_modelartifacts.md) 
 
-### Components of this repository
-- **Exported DNN models** (eg. tflite onnx and mxnet/json/params formats) - ready to be imported with and used in TIDL.
-- Corresponding scripts and config files (for those models) to import/calibrate those models and run benchmarks - provided in a separate repository - [Jacinto-AI-Benchmark](https://git.ti.com/cgit/jacinto-ai/jacinto-ai-benchmark/about/) Please go through the documentation of that repository to understand the usage. 
-- Example **pre-imported/calibrated artifacts** for our platform - these artifacts can be directly used in our platform.
+<hr>
+
+## ModelZoo / pre-trained models collection & documentation
+
+#### Image classification
+- [Image Classification Models](./models/vision/classification/) includes CNN models and **Transformer models**
+
+#### Object detection
+- [Object Detection Models](./models/vision/detection/) includes CNN models and **Transformer models**
+- [Face Detection Models](./models/vision/detection/) See the section on Face Detection Models at the bottom of the page in this link.
+
+#### Semantic segmentation
+- [Semantic Segmentation Models](./models/vision/segmentation/) includes CNN models and **Transformer models**
+
+#### Depth estimation
+- [Depth Estimation Models](./models/vision/depth_estimation/)
+
+#### 3D object detection
+- [3D Object Detection Models](./models/vision/detection_3d/)
+
+#### 6D Pose Estimation
+- [6D Pose Estimation Models](./models/vision/object_6d_pose/)
+
+#### Public benchmarks
+- [MLPerf Machine Learning Models](./models/docs/mlperf/)
+
+<hr>
+
+## Supported SoCs
+List of supported SoCs are in [edgeai-benchmark](https://github.com/TexasInstruments/edgeai-tensorlab/tree/main/edgeai-benchmark) 
+
+<hr>
+
+## Compiling models
+[edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) provide information on compiling models for our SoCs. That is a good starting point to get familiarized with import/calibration and inference of models.
+
+[edgeai-benchmark](https://github.com/TexasInstruments/edgeai-tensorlab/tree/main/edgeai-benchmark) provides higher level scripts for model compilation, inference and accuracy benchmarking. You can find the compilation settings for these models there. The pre-compiled model artifacts here are compiled using that repository. The compiled artifacts from edgeai-benchmark can be used in EdgeAI SDKs of supported SOCs
+
+This repository contains .link files which have the URLs of actual DNN models. These models are arranged according to task that they are used for and then according to the training repositories that were used to train them. If you are using edgeai-benchmark to run model compilation of run benchmark, you have to *git clone* this repository as well.
+
+<hr>
+
+## Pre-complied model artifacts 
 
 
-**Important Note**: This repository is being made available for experimentation, analysis and research - this is not meant for deployment in production. We do not own the datasets that are used to train or evaluate these models and some of these datasets have restrictions on how they can be used.
+<hr>
 
+## Model inference
+[edgeai-benchmark](https://github.com/TexasInstruments/edgeai-tensorlab/tree/main/edgeai-benchmark) - as mentioned earlier edgeai-benchmark has been used to compile the models in the repository and compiled model artifacts are provided. edgeai-benchmark can also be used for inference & accuracy/performance benchmark of these models on PC or on EVM.
 
-## Usage
-TIDL documentation (see information above) and test scripts provide information on running Deep Learning models in our SoCs. That is a good starting point to get familiarized with import/calibration and inference of such models.
-
-However, we also provide higher level scripts that help to do inference and accuracy benchmarking on our platform easily, with just a few lines of Python code. These example scripts for Model Import/Calibration, Inference and Accuracy benchmarking are in the repository Jacinto-AI-Benchmark described above.
-
-
-## Model Zoo Documentation
-
-#### Image Classification
-[Image Classification Model Zoo](./models/vision/classification/classification.md)
-
-#### Object Detection
-[Object Detection Model Zoo](./models/vision/detection/detection.md)
-
-#### Semantic Segmentation
-[Semantic Segmentation Model Zoo](./models/vision/segmentation/segmentation.md)
-
-#### Public Benchmarks
-[MLPerf Machine Learning Model Zoo](./models/docs/mlperf/mlperf.md)
-
+<hr>
 
 ## LICENSE
 Please see the License under which this repository is made available: [LICENSE](./LICENSE.md)
 
+<hr>
 
 ## References
 [1] **ImageNet ILSVRC Dataset**: Olga Russakovsky*, Jia Deng*, Hao Su, Jonathan Krause, Sanjeev Satheesh, Sean Ma, Zhiheng Huang, Andrej Karpathy, Aditya Khosla, Michael Bernstein, Alexander C. Berg and Li Fei-Fei. (* = equal contribution) ImageNet Large Scale Visual Recognition Challenge. International Journal of Computer Vision, 2015. http://www.image-net.org/ <br>
@@ -86,4 +104,6 @@ Please see the License under which this repository is made available: [LICENSE](
 
 [14] **GluonCV**: GluonCV and GluonNLP: Deep Learning in Computer Vision and Natural Language Processing
 Jian Guo, He He, Tong He, Leonard Lausen, Mu Li, Haibin Lin, Xingjian Shi, Chenguang Wang, Junyuan Xie, Sheng Zha, Aston Zhang, Hang Zhang, Zhi Zhang, Zhongyue Zhang, Shuai Zheng, Yi Zhu, https://arxiv.org/abs/1907.04433
+
+[15] **WIDER FACE**: A Face Detection Benchmark, Yang, Shuo and Luo, Ping and Loy, Chen Change and Tang, Xiaoou, IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 2016, http://shuoyang1213.me/WIDERFACE/
 

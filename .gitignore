@@ -7,9 +7,22 @@
 *.egg-info/*
 */*.egg-info/*
 
-artifacts
-exports
+dependencies
 downloads
 
 docs/doctrees
 docs/html
+
+#*.pth
+#*.pt
+#*.tflite
+#*.pb
+#*.onnx
+#*.json
+#*.params
+#*.prototxt
+#*.caffemodel
+
+*.tar.gz
+
+
