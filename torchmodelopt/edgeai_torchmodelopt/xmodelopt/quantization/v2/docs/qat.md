@@ -9,7 +9,7 @@ The overall flow of training is as follows:<br>
 
 QATFxModule does the following operations to the model. Note that QATFxModule will handle these tasks - the only thing that is required is to wrap the user's module in QATFxModule as explained in the section "How to use  QATFxModule".<br>
 - Replace layers in the model by their Fake Quantized versions - including merging Conv+BN+Activation layers & range collection.<br>
-- Quantize weghts & activations during the forward pass.<br>
+- Quantize weights & activations during the forward pass.<br>
 - Other modifications to help the learning process.<br>
 
 Please see the documentation of [Pytorch native QAT](https://pytorch.org/docs/stable/quantization.html) for mode details.
@@ -57,7 +57,7 @@ model = model.convert()
 dummy_input = torch.rand((1,3,384,768))
 
 # export the model to onnx format - the trained module is in model.module
-torch.onnx.export(model.module, dummy_input, os.path.join(save_path,'model.onnx'), export_params=True, verbose=False, do_constant_folding=True, opset_version=18)
+torch.onnx.export(model.module, dummy_input, os.path.join(save_path,'model.onnx'), export_params=True, verbose=False, do_constant_folding=True, opset_version=17)
 ```
 
 Optional: Careful attention needs to be given to how the parameters of the pretrained model is loaded and trained model is saved as shown in the above code snippet. We have provided a utility function called edgeai_torchmodelopt.xnn.utils.load_weights() that prints which parameters are loaded correctly and which are not - you can use this load function if needed to ensure that your parameters are loaded correctly.

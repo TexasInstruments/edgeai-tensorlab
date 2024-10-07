@@ -52,6 +52,18 @@ class QConfigMethod(enum.Enum):
         return [e.value for e in cls]
 
 
+class QConfigFormat:
+    FLOAT_MODEL = "FLOAT_MODEL"    # original float model format
+    FAKEQ_MODEL = "FAKEQ_MODEL"    # trained FakeQ model before conversion
+    QDQ_MODEL = "QDQ_MODEL"        # converted QDQ model
+    INT_MODEL = "INT_MODEL"        # integer model
+    _NUM_FORMATS_ = 4
+
+    @classmethod
+    def choices(cls):
+        return [value for value in dir(cls) if not value.startswith('__') and value != 'choices']
+
+
 class QConfigType():
     DISABLED = 0
     DEFAULT = "DEFAULT"                         # default behavior is same as that of WC8_AT8

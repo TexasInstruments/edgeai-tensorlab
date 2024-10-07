@@ -31,7 +31,6 @@
 
 import torch
 from . import quant_func
-from .quant_func import ModelQuantFormat
 
 
 class QuantPT2EBaseModule(torch.nn.Module):

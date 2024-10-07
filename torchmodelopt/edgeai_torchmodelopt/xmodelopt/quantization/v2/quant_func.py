@@ -31,6 +31,7 @@
 
 import types
 import os
+import warnings
 import torch
 import torch.nn as nn
 from torch.ao.quantization import quantize_fx
@@ -56,13 +57,6 @@ try:
     has_timm = True
 except:
     has_timm = False
-
-class ModelQuantFormat:
-    FLOAT_MODEL = "FLOAT_MODEL"
-    FAKEQ_MODEL = "FAKEQ_MODEL"
-    QDQ_MODEL = "QDQ_MODEL"
-    INT_MODEL = "INT_MODEL"
-    _NUM_FORMATS_ = 4
 
 
 def init(model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qnnpack",
@@ -101,8 +95,8 @@ def init(model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qn
             m, guards = torchdynamo.export(model, example_inputs, aten_graph=False, assume_static_by_default=True)
         #
         model = m
-		
-    
+
+
     if has_timm:
         replacement_dict={
             "attention_to_quant_attention": {models.vision_transformer.Attention: quant_utils.QuantAttention},
@@ -115,11 +109,11 @@ def init(model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qn
             "layer_norm_to_quant_layer_norm": {nn.LayerNorm: quant_utils.QuantLayerNorm},
             "permute_change_to_export":{'permute': custom_surgery_functions.replace_permute_layer}
         }
-        
+
     orig_device = next(model.parameters()).device
     copy_args=["scale", "qkv", "proj", "num_heads", "head_dim", "weight", "bias", "eps",
                 "relative_position_index", "relative_position_bias_table", "window_area"]
-    model = convert_to_lite_fx(model, replacement_dict, copy_args=copy_args)
+    model = convert_to_lite_fx(model, replacement_dict=replacement_dict, copy_args=copy_args)
     model = model.to(orig_device)
 
     # handle None here
@@ -168,9 +162,9 @@ def init(model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qn
         model.unfreeze = types.MethodType(unfreeze, model)
         model.convert = types.MethodType(convert, model)
         model.export = types.MethodType(export, model)
-    #    
+    #
     print("Model Preparation is now complete! ")
-    
+
     model = insert_all_hooks(model)
     return model
 
@@ -189,8 +183,8 @@ def remove_hooks(hooks):
         hook_handle.remove()
     hooks = []
     return hooks
-    
-    
+
+
 def freeze(self, freeze_bn=True, freeze_observers=True):
     if freeze_observers is True:
         self.apply(torch.ao.quantization.disable_observer)
@@ -201,7 +195,7 @@ def freeze(self, freeze_bn=True, freeze_observers=True):
         self.apply(torch.nn.intrinsic.qat.freeze_bn_stats)
     elif freeze_bn is False:
         self.apply(torch.nn.intrinsic.qat.update_bn_stats)
-    #        
+    #
     return self
 
 
@@ -214,39 +208,49 @@ def forward(self, *input, **kwargs):
     return self(*input, **kwargs)
 
 
-def convert(self, device='cpu', model_quant_format=None, convert_custom_config=None, backend_config=None, make_copy=False):
-    orig_quant_params = copy.deepcopy(self.__quant_params__)
+def convert(self, device='cpu', model_qconfig_format=None, convert_custom_config=None, backend_config=None, make_copy=False):
+    if hasattr(self, '__quant_params__'):
+        orig_quant_params = copy.deepcopy(self.__quant_params__)
+    else:
+        warnings.warn("__quant_params__ is missing in quant_func module. it may be due to a deepcopy.")
+        orig_quant_params = None
+
     model = copy.deepcopy(self).eval() if make_copy else self.eval()
     model = model.to(device=device)
     # now do the actual conversion
     model = quantize_fx.convert_fx(model, convert_custom_config=convert_custom_config, backend_config=backend_config)
     model.eval = types.MethodType(train, model)
-    setattr(model, "__quant_params__", orig_quant_params)
+
+    if orig_quant_params:
+        setattr(model, "__quant_params__", orig_quant_params)
     return model
 
 
-def export(self, example_input, filename='model.onnx', opset_version=17, model_quant_format=None, preserve_qdq_model=True,
+# from: torch/ao/quantization/fx/graph_module.py
+def _is_observed_module(module) -> bool:
+    return hasattr(module, "meta") and "_observed_graph_module_attrs" in module.meta
+
+
+def export(self, example_input, filename='model.onnx', opset_version=17, model_qconfig_format=None, preserve_qdq_model=True,
            simplify=True, skipped_optimizers=None, device='cpu', make_copy=True, insert_metadata=True):
-    
-    model = convert(self, device=device, make_copy=make_copy)
-    
+
+    if _is_observed_module(self):
+        model = convert(self, device=device, make_copy=make_copy)
+    else:
+        model = self
+        warnings.warn("model has already been converted before calling export. make sure it is done correctly.")
+
     register_custom_op_symbolic(
-        symbolic_name='quantized::matmul', 
-        symbolic_fn=quant_utils.quantized_matmul, 
+        symbolic_name='quantized::matmul',
+        symbolic_fn=quant_utils.quantized_matmul,
         opset_version=17)
 
     register_custom_op_symbolic(
-        symbolic_name='quantized::softmax', 
-        symbolic_fn=quant_utils.quantized_softmax, 
+        symbolic_name='quantized::softmax',
+        symbolic_fn=quant_utils.quantized_softmax,
         opset_version=17)
-    
-    register_custom_op_symbolic(
-        symbolic_name='aten::quantize_per_channel', 
-        symbolic_fn=quant_utils.aten_quantize_channel, 
-        opset_version=17)
-    
-    
-    if model_quant_format == ModelQuantFormat.INT_MODEL:
+
+    if model_qconfig_format == qconfig_types.QConfigFormat.INT_MODEL:
         # # Convert QDQ format to Int8 format
         import onnxruntime as ort
         qdq_filename = os.path.splitext(filename)[0] + '_qdq.onnx'
@@ -302,20 +306,20 @@ def train(self, mode: bool = True):
             xnn.utils.print_once('Freezing ranges for subsequent epochs')
         #
         freeze(self, freeze_bn=freeze_bn, freeze_observers=freeze_observers)
-        
+
         # we will probably need better logic to extend to adding more hooks in the toolkit #TODO
         if len(self.__quant_params__.outlier_hooks)==0 and not(freeze_observers):
             self = insert_all_hooks(self, insert_bias_hook=False)
         if len(self.__quant_params__.bias_hooks)==0:
             self = insert_all_hooks(self, insert_outlier_hook=False)
-        
+
         # Removing the outlier hook when the observers are also frozen
         if freeze_observers and len(self.__quant_params__.outlier_hooks)>0:
             self.__quant_params__.outlier_hooks = remove_hooks(self.__quant_params__.outlier_hooks)
-        
+
         self.__quant_params__.num_epochs_tracked += 1
     else:
-        self.__quant_params__.bias_hooks = remove_hooks(self.__quant_params__.bias_hooks)                      
+        self.__quant_params__.bias_hooks = remove_hooks(self.__quant_params__.bias_hooks)
         self.__quant_params__.outlier_hooks = remove_hooks(self.__quant_params__.outlier_hooks)
         freeze(self)
     #

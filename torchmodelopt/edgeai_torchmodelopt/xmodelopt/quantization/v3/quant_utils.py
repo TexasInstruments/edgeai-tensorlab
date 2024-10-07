@@ -108,28 +108,17 @@ class QuantAttention(nn.Module):
         return x
 
 
-@torch.fx.wrap
 def LayerNormWithoutGB(x, eps):
     mean = torch.mean(x, dim=-1, keepdim=True)
     var = torch.pow(x - mean, 2).mean(dim=-1, keepdim=True)
     return (x - mean) / torch.sqrt(var + eps)
 
+def native_layer_norm(input, normalized_shape, weight, bias, eps: float = 1e-5,):
+    y = LayerNormWithoutGB(input, eps)
+    y = torch.mul(y, weight)
+    y = torch.add(y, bias)
+    return y
 
-class QuantLayerNorm(torch.nn.Module):
-    
-    def __init__(self, 
-                 normalized_shape = tuple(), 
-                 eps: float = 1e-5, 
-                 elementwise_affine: bool = True,
-                 device=None, dtype=None):
-        super().__init__()
-                
-    def forward(self, x):
-        y = LayerNormWithoutGB(x, self.eps)
-        y = torch.mul(y, self.weight)
-        y = torch.add(y, self.bias)
-        return y
-    
     
 def register_onnx_symbolics():
     
@@ -294,9 +283,14 @@ def _bias_calibration_hook(m, x, y, calibration_factor, bias_module):
     if isinstance(x, tuple):
         x = x[0]
     if len(x.shape) == 3:
-        float_mean = x.mean(dim=(0,1))
-        quant_mean = y.mean(dim=(0,1))
-        bias_error = float_mean - quant_mean 
+        if x.shape[1] == bias_module.shape[0]:
+            float_mean = x.mean(dim=(0,2))
+            quant_mean = y.mean(dim=(0,2))
+            bias_error = float_mean - quant_mean 
+        else:
+            float_mean = x.mean(dim=(0,1))
+            quant_mean = y.mean(dim=(0,1))
+            bias_error = float_mean - quant_mean 
     elif len(x.shape) == 4:
         if x.shape[1] == bias_module.shape[0]:
             float_mean = x.mean(dim=(0,2,3))
@@ -333,7 +327,7 @@ def add_bias_calibration_hook(model, calibration_factor=0):
             
             output_node = None
             for out_node in p.output_nodes:
-                if out_node.target in [torch.ops.aten.convolution.default, torch.ops.aten.addmm.default, 
+                if out_node.target in [torch.ops.aten.conv2d.default, torch.ops.aten.linear.default, 
                                        torch.ops.aten.view.default, torch.ops.aten.add.Tensor]:
                     output_node = out_node
                     break
@@ -367,9 +361,9 @@ def _fc_outlier_supression_hook(m, x):
 
 
 def is_mlp_fc2_layer(node, find_level, found_gelu=False, gelu_node=None):
-    if find_level < 0:
+    if find_level < 0 or not(hasattr(node, 'target')):
         return False, gelu_node
-    if node.target is torch.ops.aten.addmm.default:
+    if node.target == torch.ops.aten.linear.default:
         if found_gelu: 
             return True, gelu_node
         # else: 

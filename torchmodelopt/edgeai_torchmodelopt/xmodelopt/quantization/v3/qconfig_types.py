@@ -57,6 +57,18 @@ class QConfigMethod(enum.Enum):
         return [e.value for e in cls]
 
 
+class QConfigFormat:
+    FLOAT_MODEL = "FLOAT_MODEL"    # original float model format
+    FAKEQ_MODEL = "FAKEQ_MODEL"    # trained FakeQ model before conversion
+    QDQ_MODEL = "QDQ_MODEL"        # converted QDQ model
+    INT_MODEL = "INT_MODEL"        # integer model
+    _NUM_FORMATS_ = 4
+
+    @classmethod
+    def choices(cls):
+        return [value for value in dir(cls) if not value.startswith('__') and value != 'choices']
+
+
 class QConfigType():
     DISABLED = 0
     DEFAULT = "DEFAULT"                         # default behavior is same as that of WC8_AT8
@@ -111,7 +123,7 @@ def get_weight_quantization_config(weight_qconfig, is_qat=True):
                                              quant_min=weight_qconfig.get('quant_min', -(2 ** (weight_bitwidth-1))),
                                              quant_max=weight_qconfig.get('quant_max', (2 ** (weight_bitwidth-1)) - 1),
                                              dtype=weight_qconfig.get('dtype', torch.int8),
-                                             qscheme=weight_qconfig.get('qscheme', torch.per_tensor_symmetric),
+                                             qscheme=weight_qscheme,
                                              power2_scale=weight_qconfig.get('power2_scale', False),
                                              range_max=weight_qconfig.get('range_max', None),
                                              fixed_range=weight_qconfig.get('fixed_range', False),
