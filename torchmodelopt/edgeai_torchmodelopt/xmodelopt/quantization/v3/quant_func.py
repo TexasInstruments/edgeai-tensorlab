@@ -289,6 +289,8 @@ def export(self, example_input, filename='model.onnx', opset_version=17, model_q
         model = convert(self, device=device, make_copy=make_copy)
     elif not is_converted:
         model = convert(self, device=device, make_copy=make_copy)
+    elif not is_converted:
+        model = convert(self, device=device, make_copy=make_copy)
     else:
         model = self
         warnings.warn("model has already been converted before calling export. make sure it is done correctly.")

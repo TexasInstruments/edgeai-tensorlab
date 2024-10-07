@@ -208,7 +208,7 @@ def forward(self, *input, **kwargs):
     return self(*input, **kwargs)
 
 
-def convert(self, device='cpu', model_qconfig_format=None, convert_custom_config=None, backend_config=None, make_copy=False):
+def convert(self, *args, device='cpu', model_qconfig_format=None, convert_custom_config=None, backend_config=None, make_copy=False, **kwargs):
     if hasattr(self, '__quant_params__'):
         orig_quant_params = copy.deepcopy(self.__quant_params__)
     else:
