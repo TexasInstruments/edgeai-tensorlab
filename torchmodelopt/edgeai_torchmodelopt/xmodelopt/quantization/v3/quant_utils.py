@@ -277,6 +277,18 @@ def remove_loss_branch(model):
     
     return model
 
+def move_node_kwargs_to_device(model, device='cpu'):
+    for node in model.graph.nodes:
+        if "device" in node.kwargs:
+            with model.graph.inserting_before(node):
+                new_kwargs = dict(node.kwargs)
+                new_kwargs['device'] = torch.device(device)
+                new_node = model.graph.create_node(op=node.op, target=node.target, args=node.args, kwargs=new_kwargs)
+                node.replace_all_uses_with(new_node)
+                model.graph.erase_node(node)
+    model.graph.lint()
+    model.recompile()
+    return model
 
 def _bias_calibration_hook(m, x, y, calibration_factor, bias_module):
     bias_error = 0

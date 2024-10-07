@@ -292,6 +292,7 @@ def export(self, example_input, filename='model.onnx', opset_version=17, model_q
 
     # model, example_input = create_batch1_model(model, example_input)
     model = quant_utils.remove_loss_branch(model)
+    model = quant_utils.move_node_kwargs_to_device(model, device=device)
     quant_utils.register_onnx_symbolics()
 
     if model_qconfig_format == qconfig_types.QConfigFormat.INT_MODEL:
