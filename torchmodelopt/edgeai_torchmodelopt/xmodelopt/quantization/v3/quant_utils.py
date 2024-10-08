@@ -236,6 +236,9 @@ def register_onnx_symbolics():
 def remove_loss_branch(model): 
     # loss branch exists in the model definition, as well as we are supporting it for model training, however, 
     # the branch needs to be removed for onnx export, replacing the branch with identity
+    if not hasattr(model, 'graph'):
+        print("The loss branch is not getting removed in the model, exporting normally.")
+        return model
     for node in model.graph.nodes:
         if node.target=='output' and len(node.args[0])>1:
             # output node has more than one input branches

@@ -48,6 +48,7 @@ import copy
 from .... import xnn
 
 from ...surgery.v2 import custom_surgery_functions, convert_to_lite_fx
+from ...utils.hooks import add_example_args_kwargs
 
 from . import qconfig_types
 from . import quant_utils
@@ -59,10 +60,17 @@ except:
     has_timm = False
 
 
-def init(model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qnnpack",
+def init(model, qconfig_type=None, example_inputs=None, example_kwargs=None, is_qat=True, backend="qnnpack",
             total_epochs=0, num_batch_norm_update_epochs=None, num_observer_update_epochs=None,
             qconfig_mode=qconfig_types.QConfigMode.DEFAULT, add_methods=True, dynamo_export=False, **kwargs):
-
+    
+    example_kwargs = example_kwargs or {} 
+    if hasattr(model, '_example_inputs') and hasattr(model, '_example_kwargs'):
+        example_inputs= model._example_inputs
+        example_kwargs= model._example_kwargs
+    else:
+        add_example_args_kwargs(model,example_inputs=example_inputs, example_kwargs=example_kwargs)
+        
     if hasattr(model, '__quant_params__'):
         print('IGNORED: quant init called on a model that was already quantized')
         return model
@@ -154,7 +162,7 @@ def init(model, qconfig_type=None, example_inputs=None, is_qat=True, backend="qn
 
     if add_methods:
         # add a wrapper for model.train()
-        model.__train_backup__ = types.MethodType(model.train.__func__, model)
+        model.__quant_train_backup__ = types.MethodType(model.train.__func__, model)
         model.train = types.MethodType(train, model)
         model.eval = types.MethodType(train, model)
         # other methods
@@ -231,7 +239,7 @@ def _is_observed_module(module) -> bool:
     return hasattr(module, "meta") and "_observed_graph_module_attrs" in module.meta
 
 
-def export(self, example_input, filename='model.onnx', opset_version=17, model_qconfig_format=None, preserve_qdq_model=True,
+def export(self, example_inputs, filename='model.onnx', opset_version=17, model_qconfig_format=None, preserve_qdq_model=True,
            simplify=True, skipped_optimizers=None, device='cpu', make_copy=True, insert_metadata=True, is_converted=False, **export_kwargs):
 
     if _is_observed_module(self):
@@ -256,7 +264,7 @@ def export(self, example_input, filename='model.onnx', opset_version=17, model_q
         # # Convert QDQ format to Int8 format
         import onnxruntime as ort
         qdq_filename = os.path.splitext(filename)[0] + '_qdq.onnx'
-        torch.onnx.export(model, example_input.to(device=device), qdq_filename, opset_version=opset_version, **export_kwargs)
+        torch.onnx.export(model, example_inputs.to(device=device), qdq_filename, opset_version=opset_version, **export_kwargs)
         so = ort.SessionOptions()
         so.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_EXTENDED
         so.optimized_model_filepath = filename
@@ -266,7 +274,7 @@ def export(self, example_input, filename='model.onnx', opset_version=17, model_q
             os.remove(qdq_filename)
         #
     else:
-        torch.onnx.export(model, example_input.to(device=device), filename, opset_version=opset_version, **export_kwargs)
+        torch.onnx.export(model, example_inputs.to(device=device), filename, opset_version=opset_version, **export_kwargs)
     #
     if simplify:
         try:
@@ -292,8 +300,8 @@ def export(self, example_input, filename='model.onnx', opset_version=17, model_q
 
 def train(self, mode: bool = True):
     # put the model in expected mode
-    if hasattr(self, "__train_backup__"):
-        self.__train_backup__(mode=mode)
+    if hasattr(self, "__quant_train_backup__"):
+        self.__quant_train_backup__(mode=mode)
     # also freeze the params if required
     if mode is True:
         # set the default epoch at which freeze occurs during training (if missing)

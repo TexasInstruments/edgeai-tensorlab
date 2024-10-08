@@ -55,10 +55,9 @@ class QuantFxBaseModule(OptimizationBaseModule):
     
     @classmethod
     def _add_attrs_to(cls, obj, attr_names=None):
-        assert isinstance(obj, OptimizationBaseModule), 'This only works if self is OptimizationBaseModule object'
         attr_names = attr_names or ['load_weights', 'calibrate', 'freeze', 'unfreeze']
-        add_attrs(obj, attr_names, cls)
-                          
+        OptimizationBaseModule._add_attrs_to(obj, attr_names)
+    
     def load_weights(self, *args, **kwargs):
         quant_func_wrapper.load_weights(self.module, *args, **kwargs)
 

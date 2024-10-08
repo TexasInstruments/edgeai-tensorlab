@@ -1,13 +1,11 @@
-from copy import deepcopy
-import functools
-
 from . import quant_func
-from .quant_func import ModelQuantFormat
 from ...utils.transformation_utils import wrapped_transformation_fn
+from ...utils.hooks import add_example_args_kwargs
 
 
-def init(*args, **kwargs):
-    return wrapped_transformation_fn(quant_func.init, *args, **kwargs)
+def init(module, *args, example_inputs=None, example_kwargs=None, transformation_dict=None, **kwargs):
+    add_example_args_kwargs(module,example_inputs=example_inputs, example_kwargs=example_kwargs,transformation_dict=transformation_dict)
+    return wrapped_transformation_fn(quant_func.init, module, *args, example_inputs=example_inputs, example_kwargs=example_kwargs, transformation_dict=transformation_dict,**kwargs)
 
 
 def train(*args, **kwargs):
@@ -30,8 +28,6 @@ def insert_all_hooks(*args, **kwargs):
     return wrapped_transformation_fn(quant_func.insert_all_hooks, *args, **kwargs)
 
 
-insert_all_hooks = functools.partial(wrapped_transformation_fn, fn=quant_func.insert_all_hooks)
-
 def export(self, *args, transformation_dict = None, is_converted = False, device='cpu', make_copy=True, **kwargs):
     if is_converted:
         model = self
@@ -44,6 +40,9 @@ def calibrate(*args, **kwargs):
     return quant_func.calibrate(*args, freeze_bn= freeze, **kwargs)
 
 
-remove_hooks = quant_func.remove_hooks
+def remove_hooks(*args, **kwargs):
+    return wrapped_transformation_fn(quant_func.remove_hooks, *args, **kwargs)
+
+
 forward = quant_func.forward
 load_weights = quant_func.load_weights

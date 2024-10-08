@@ -32,12 +32,14 @@
 import warnings
 import torch
 import torch._dynamo as torchdynamo
+import torch.ao.quantization
 from torch.ao.quantization.quantize_pt2e import prepare_pt2e, prepare_qat_pt2e, convert_pt2e 
 from torch._export import capture_pre_autograd_graph
 
 from torch.ao.quantization.quantizer.xnnpack_quantizer import XNNPACKQuantizer, get_symmetric_quantization_config
 
 from .... import xnn
+from ...utils.hooks import add_example_args_kwargs
 from . import qconfig_types
 from . import quant_utils
 from .quantizers import TIDLRTQuantizer
@@ -47,9 +49,16 @@ import os
 import types
 
 
-def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None, qconfig_type=None,
-         qconfig_mode=qconfig_types.QConfigMode.DEFAULT,num_batch_norm_update_epochs=None, 
-         num_observer_update_epochs=None, add_methods=True, fast_mode=False, **kwargs):
+def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None, example_kwargs=None, qconfig_type=None,
+        qconfig_mode=qconfig_types.QConfigMode.DEFAULT,num_batch_norm_update_epochs=None, 
+        num_observer_update_epochs=None, add_methods=True, fast_mode=False, **kwargs ):
+    
+    example_kwargs = example_kwargs or {} 
+    if hasattr(model, '_example_inputs') and hasattr(model, '_example_kwargs'):
+        example_inputs= model._example_inputs
+        example_kwargs= model._example_kwargs
+    else:
+        add_example_args_kwargs(model,example_inputs=example_inputs, example_kwargs=example_kwargs)
     
     if hasattr(model, '__quant_params__'):
         print('IGNORED: quant init called on a model that was already quantized')
@@ -84,6 +93,7 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
     else:
         m, guards = torchdynamo.export(orig_model, example_inputs, aten_graph=True, assume_static_by_default=True, pre_dispatch=True, decomposition_table=decomposition_table)
 
+    qconfig_type = qconfig_type or qconfig_types.QConfigType.DEFAULT
     qconfig_mode = qconfig_types.get_qconfig(qconfig_type, is_qat=is_qat, fast_mode=fast_mode)
     
     # qconfig_mode = get_symmetric_quantization_config(is_qat=False)
@@ -121,13 +131,13 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
 
     if add_methods:
         # add a wrapper for model.train()
-        # def train_quant(self, mode=True):
-        #     if mode:
-        #         torch.ao.quantization.move_exported_model_to_train(self)
-        #     else:
-        #         torch.ao.quantization.move_exported_model_to_eval(self)
+        def train_quant(self, mode=True):
+            if mode:
+                torch.ao.quantization.move_exported_model_to_train(self)
+            else:
+                torch.ao.quantization.move_exported_model_to_eval(self)
                 
-        # model.__train_backup__ = types.MethodType(train_quant, model)
+        model.__quant_train_backup__ = types.MethodType(train_quant if is_qat else model.train.__func__, model)
         model.train = types.MethodType(train, model)
         model.eval = types.MethodType(train, model)
         # other methods
@@ -196,7 +206,7 @@ def forward(self, *input, **kwargs):
     return self(*input, **kwargs)
 
 
-def convert(self, device="cpu", make_copy=False):
+def convert(self,*args, device="cpu", make_copy=False,**kwargs):
     if hasattr(self, '__quant_params__'):
         orig_quant_params = copy.deepcopy(self.__quant_params__)
     else:
@@ -220,8 +230,8 @@ def train(self, mode: bool = True):
     # as of now, pass the expected number of epochs in num_batch_norm_update_epochs and num_observer_update_epochs variables, same is expected 
     # if the training code calls model.train() before every iteration 
     # put the model in expected mode
-    if hasattr(self, "__train_backup__"):
-        self.__train_backup__(mode=mode)
+    if hasattr(self, "__quant_train_backup__"):
+        self.__quant_train_backup__(mode=mode)
     # also freeze the params if required
     if mode is True:
         # torch.ao.quantization.move_exported_model_to_train(self)
@@ -230,6 +240,7 @@ def train(self, mode: bool = True):
         num_observer_update_epochs = self.__quant_params__.num_observer_update_epochs or ((self.__quant_params__.total_epochs//2)+1)
         freeze_bn = (self.__quant_params__.num_epochs_tracked >= num_batch_norm_update_epochs)
         freeze_observers = (self.__quant_params__.num_epochs_tracked >= num_observer_update_epochs)
+        freeze_bn = freeze_observers = False
         if freeze_bn:
             xnn.utils.print_once('Freezing BN for subsequent epochs')
         #
@@ -282,28 +293,26 @@ def _is_observed_module(module) -> bool:
     return hasattr(module, "meta") and "_observed_graph_module_attrs" in module.meta
 
 
-def export(self, example_input, filename='model.onnx', opset_version=17, model_qconfig_format=None, preserve_qdq_model=True,
-           simplify=False, skipped_optimizers=None, device='cpu', make_copy=True, insert_metadata=True, is_converted=False, **export_kwargs):
+def export(self, example_inputs, filename='model.onnx', opset_version=17, model_qconfig_format=None, preserve_qdq_model=True,
+           simplify=True, skipped_optimizers=None, device='cpu', make_copy=True, insert_metadata=True, is_converted=False, **export_kwargs):
 
     if _is_observed_module(self):
-        model = convert(self, device=device, make_copy=make_copy)
-    elif not is_converted:
         model = convert(self, device=device, make_copy=make_copy)
     elif not is_converted:
         model = convert(self, device=device, make_copy=make_copy)
     else:
         model = self
         warnings.warn("model has already been converted before calling export. make sure it is done correctly.")
+        
     # model, example_input = create_batch1_model(model, example_input)
     model = quant_utils.remove_loss_branch(model)
-    model = quant_utils.move_node_kwargs_to_device(model, device=device)
     quant_utils.register_onnx_symbolics()
 
     if model_qconfig_format == qconfig_types.QConfigFormat.INT_MODEL:
         # # Convert QDQ format to Int8 format
         import onnxruntime as ort
         qdq_filename = os.path.splitext(filename)[0] + '_qdq.onnx'
-        torch.onnx.export(model, example_input.to('cpu'), qdq_filename, opset_version=opset_version, training=torch._C._onnx.TrainingMode.PRESERVE, **export_kwargs)
+        torch.onnx.export(model, example_inputs.to('cpu'), qdq_filename, opset_version=opset_version, training=torch._C._onnx.TrainingMode.PRESERVE, **export_kwargs)
         so = ort.SessionOptions()
         so.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_EXTENDED
         so.optimized_model_filepath = filename
@@ -313,12 +322,12 @@ def export(self, example_input, filename='model.onnx', opset_version=17, model_q
             os.remove(qdq_filename)
         #
     else:
-        if isinstance(example_input, dict):
+        if isinstance(example_inputs, dict):
             example_inputs = ()
-            for val in example_input.values():
+            for val in example_inputs.values():
                 example_inputs += tuple([val.to(device=device)])
         else:
-            example_inputs = example_input.to(device=device)
+            example_inputs = example_inputs.to(device=device)
         torch.onnx.export(model, example_inputs, filename, opset_version=opset_version, training=torch._C._onnx.TrainingMode.PRESERVE, **export_kwargs)
 
     if simplify:

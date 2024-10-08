@@ -264,9 +264,9 @@ class TIDLRTQuantizer(Quantizer):
             assert isinstance(weight, Node)
             input_qspec_map[weight] = get_weight_qspec(quantization_config)
 
-            bias = conv_node.args[2]
-            if isinstance(bias, Node):
-                input_qspec_map[bias] = _derived_bias_quant_spec(weight, input_act, conv_node)
+            if len(conv_node.args) >= 3 and (bias := conv_node.args[2]) is not None:
+                if isinstance(bias, Node):
+                    input_qspec_map[bias] = _derived_bias_quant_spec(weight, input_act, conv_node)
 
             conv_node.meta["quantization_annotation"] = QuantizationAnnotation(
                 input_qspec_map=input_qspec_map,
