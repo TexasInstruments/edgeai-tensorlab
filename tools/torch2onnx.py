@@ -16,7 +16,7 @@ from mmdeploy.utils import (get_ir_config, get_partition_config,
 from mmdeploy.utils import build_model_from_cfg
 from mmengine.logging import print_log
 from mmengine.runner import load_checkpoint
-from mmdet.utils.model_optimization import get_replacement_dict, wrap_optimize_func, get_input
+from mmdet.utils.model_optimization import get_replacement_dict, wrap_fn_for_bbox_head, get_input
 
 from edgeai_torchmodelopt import xonnx
 from edgeai_torchmodelopt import xnn
@@ -105,17 +105,24 @@ def main():
     
     example_inputs, example_kwargs = get_input(torch_model, model_cfg, batch_size=args.batch_size if img_size else 1)
     
-    example_inputs, example_kwargs = get_input(torch_model, model_cfg,)
-    if model_surgery:
-        model_surgery_dict = dict(version=model_surgery, replacement_dict=get_replacement_dict(model_surgery, model_cfg), surgery_func = wrap_optimize_func(xmodelopt.apply_model_surgery))
-    else:
-        model_surgery_dict = None
+    # model surgery
     
+    is_wrapped = False
+
+    example_inputs, example_kwargs = get_input(torch_model, model_cfg,)
+    
+    transformation_dict = dict(backbone=None, neck=None, bbox_head=xmodelopt.TransformationWrapper(wrap_fn_for_bbox_head))
+    copy_attrs=['train_step', 'val_step', 'test_step', 'data_preprocessor', 'parse_losses', 'bbox_head', '_run_forward']
+    if model_surgery:
+        model_surgery_kwargs = dict(replacement_dict=get_replacement_dict(model_surgery, model_cfg))
+    else:
+        model_surgery_kwargs = None
     
     orig_model = deepcopy(torch_model)
-    model = xmodelopt.apply_model_optimization(torch_model,example_inputs,example_kwargs,model_surgery_dict=model_surgery_dict, )
-    print_log('model optimization done')
+    torch_model = xmodelopt.apply_model_optimization(torch_model,example_inputs,example_kwargs, model_surgery_version=model_surgery, quantization_version=args.quantization, model_surgery_kwargs=model_surgery_kwargs, transformation_dict=transformation_dict, copy_attrs=copy_attrs)
 
+    print_log('model optimization done')
+    
     load_checkpoint(torch_model, args.checkpoint, map_location='cpu')
 
     if img_size :

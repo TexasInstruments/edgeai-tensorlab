@@ -163,6 +163,7 @@ def main(args=None):
         torch.nn.functional._interpolate_orig = torch.nn.functional.interpolate
         torch.nn.functional.interpolate = xnn.layers.resize_with_scale_factor
     
+    # model surgery
     runner._init_model_weights()
     
     is_wrapped = False
@@ -171,19 +172,25 @@ def main(args=None):
         is_wrapped = True
 
     example_inputs, example_kwargs = get_input(runner.model, cfg,)
+    
+    transformation_dict = dict(backbone=None, neck=None, bbox_head=xmodelopt.TransformationWrapper(wrap_fn_for_bbox_head))
+    copy_attrs=['train_step', 'val_step', 'test_step', 'data_preprocessor', 'parse_losses', 'bbox_head', '_run_forward']
     if model_surgery:
-        model_surgery_dict = dict(version=model_surgery, replacement_dict=get_replacement_dict(model_surgery, cfg), surgery_func = wrap_optimize_func(xmodelopt.apply_model_surgery))
+        model_surgery_kwargs = dict(replacement_dict=get_replacement_dict(model_surgery, cfg))
     else:
-        model_surgery_dict = None
+        model_surgery_kwargs = None
     
     if args.quantization:
-        transformation_dict = dict(backbone=None, neck=None, bbox_head=xmodelopt.TransformationWrapper(wrap_fn_for_bbox_head))
-        quantization_dict = dict(version=args.quantization, quantization_func=xmodelopt.apply_quantization, quantization_method='QAT', transformation_dict = transformation_dict, copy_attrs=['train_step', 'val_step', 'test_step', 'data_preprocessor', 'parse_losses', 'bbox_head'], total_epochs=runner.max_epochs)
+        quantization_kwargs = dict(quantization_method='QAT', total_epochs=runner.max_epochs)
     else:
-        quantization_dict = None
+        quantization_kwargs = None
+    # if model_surgery_kwargs is not None and quantization_kwargs is None:
+    runner.call_hook('before_run')
+    runner.load_or_resume()
+    runner.call_hook('after_run')
     
     orig_model = deepcopy(runner.model)
-    runner.model = xmodelopt.apply_model_optimization(runner.model,example_inputs,example_kwargs,model_surgery_dict=model_surgery_dict, quantization_dict=quantization_dict)
+    runner.model = xmodelopt.apply_model_optimization(runner.model,example_inputs,example_kwargs, model_surgery_version=model_surgery, quantization_version=args.quantization, model_surgery_kwargs=model_surgery_kwargs, quantization_kwargs=quantization_kwargs, transformation_dict=transformation_dict, copy_attrs=copy_attrs)
     
     if is_wrapped:
         runner.model = runner.wrap_model(

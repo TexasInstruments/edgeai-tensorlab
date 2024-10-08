@@ -103,10 +103,12 @@ def wrap_fn_for_bbox_head(fn, module:nn.Module, *args, **kwargs):
                         main_module = parent_module.split('.',1)[0]
                         if hasattr(module, main_module):
                             delattr(module,main_module)
+        else:
+            module = new_bbox_head
     return module    
 
 
-def get_input(model, cfg,batch_size=None):
+def get_input(model, cfg, batch_size=None, to_export=False):
     image_size = None
     if hasattr(cfg,'image_size'):
         image_size = cfg.image_size
@@ -121,7 +123,7 @@ def get_input(model, cfg,batch_size=None):
     
     batch_size = batch_size or cfg.train_dataloader.batch_size
     x = torch.rand(batch_size, 3, *image_size)
-    x = x.to(device=next(model.parameters()).device)
+    x = x.to(device= 'cpu' if to_export else next(model.parameters()).device)
     example_inputs = [x]
     example_kwargs = {}
     return example_inputs,example_kwargs
@@ -175,26 +177,50 @@ def replace_maxpool2d(m):
     #
     return new_m
 
-def gen_func_for_maxpool_k_size_gt_3(main_module: GraphModule, partition: SourcePartition, aten_graph: bool = False):
+def gen_func_for_maxpool_k_size_gt_3(main_module: GraphModule, partition: SourcePartition, aten_graph: bool = True):
     if partition.source != nn.MaxPool2d:
         return None
     
     if aten_graph:
-        return None
+        if partition.output_nodes[0].target != torch.ops.aten.max_pool2d.default:
+            return None
+        maxpool_node = partition.output_nodes[0]
+        kernel_size = maxpool_node.args[1]
+        module = None
     else:
         modules = dict(main_module.named_modules())
         module = modules.get(partition.output_nodes[0].target,None)
         assert isinstance(module,nn.MaxPool2d)
-        return replace_maxpool2d(module) if module.kernel_size > 3 else None
+        kernel_size = module.kernel_size
+    if isinstance(kernel_size,(tuple,list)):
+        assert len(kernel_size) == 2 and kernel_size[0] == kernel_size[1]
+        kernel_size = kernel_size[0]
+    module = module or nn.MaxPool2d(kernel_size)
+    return replace_maxpool2d(module) if kernel_size > 3 else None
 
 
-def gen_func_for_focus(main_module: GraphModule, partition: SourcePartition, aten_graph: bool = False):
+def gen_func_for_focus(main_module: GraphModule, partition: SourcePartition, aten_graph: bool = True):
     from mmdet.models.backbones.csp_darknet import Focus, FocusLite
     if partition.source != Focus:
         return None
     
     if aten_graph:
-        return None
+        conv_node = None
+        for node in partition.nodes:
+            if node.op != 'call_function':
+                continue
+            if node.target == torch.ops.aten.conv2d.default:
+                conv_node = node
+                break
+        if conv_node is None:
+            return None
+        params = dict(main_module.named_parameters())
+        weight = params.get(conv_node.args[1].target)
+        assert len(weight.shape) == 4
+        out_channels, in_channels, *kernel_size = list(weight.shape)
+        if len(conv_node.args) >= 4:
+            stride = conv_node.args[3]
+        module = None
     else:
         modules = dict(main_module.named_modules())
         for node in partition.nodes:
@@ -205,7 +231,18 @@ def gen_func_for_focus(main_module: GraphModule, partition: SourcePartition, ate
                 break
         if not isinstance(module,nn.Conv2d):
             return None
-        return FocusLite(module.in_channels//4,module.out_channels,module.kernel_size[0],module.stride)
+        kernel_size = module.kernel_size 
+        stride = module.stride 
+        in_channels = module.in_channels
+        out_channels = module.out_channels
+    if isinstance(kernel_size,(tuple,list)):
+        assert len(kernel_size) == 2 and kernel_size[0] == kernel_size[1]
+        kernel_size = kernel_size[0]
+    if isinstance(stride,(tuple,list)):
+        assert len(stride) == 2 and stride[0] == stride[1]
+        stride = stride[0]
+    
+    return FocusLite(in_channels//4, out_channels,kernel_size,stride)
 
 def replace_focus_with_focus_lite(model:nn.Module, verbose_mode=False, **kwargs):
     from mmdet.models.backbones.csp_darknet import Focus, FocusLite
