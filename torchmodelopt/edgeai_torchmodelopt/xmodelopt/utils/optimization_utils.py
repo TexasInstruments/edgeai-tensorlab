@@ -10,22 +10,36 @@ __all__ = ['apply_model_optimization', 'apply_model_surgery', 'apply_pruning', '
 
 def apply_model_optimization(model: nn.Module, example_inputs: list=None, example_kwargs: dict=None, model_surgery_version=None, pruning_version=None, quantization_version=None, model_surgery_kwargs: dict[str,Any]=None, pruning_kwargs: dict[str,Any]=None, quantization_kwargs: dict[str,Any]=None, transformation_dict=None, copy_attrs=None):
     '''
-    A wrappper function to apply surgery, pruning and quantization
+    A wrapper function to apply surgery, pruning, and quantization
     
     Args:
     model               : model to be optimized
     example_inputs      : a list of example inputs (default: [] -> No positional args)
     example_kwargs      : a dict for example kwargs for the model (if any) (default: {} -> No kwargs)
-    model_surgery_kwargs  : a dict containing details for applying surgery (default: None -> No Surgery) 
-    pruning_kwargs        : a dict containing details for applying pruning (default: None -> No Pruning) 
-    quantization_kwargs   : a dict containing details for applying quantization (default: None -> No Quantization) 
     
-    Note:
-        1. All dict containing details for any kind of optimization must contain a int value for key 'version'
-        2. All dict containing details for any kind of optimization can contain a function as a value for there respective keys as below
-            i)      Surgery         -> 'surgery_func'
-            ii)     Pruning         -> 'pruning_func'
-            iii)    Quantization    -> 'quantization_func'
+    model_surgery_version  : an integer representing the version of model surgery to apply (default: None -> No surgery)
+                            - 0: No surgery
+                            - 1: Version 1 of model surgery
+                            - 2: Version 2 of model surgery
+                            - 3: Version 3 of model surgery
+    
+    pruning_version        : an integer representing the version of pruning to apply (default: None -> No pruning)
+                            - 0: No pruning
+                            - 1: Version 1 of pruning
+                            - 2: Version 2 of pruning
+                            - 3: Version 3 of pruning
+    
+    quantization_version   : an integer representing the version of quantization to apply (default: None -> No quantization)
+                            - 0: No quantization
+                            - 1: Version 1 of quantization
+                            - 2: Version 2 of quantization
+                            - 3: Version 3 of quantization
+    
+    model_surgery_kwargs   : a dict containing details for applying model surgery (default: None -> No surgery)
+    
+    pruning_kwargs         : a dict containing details for applying pruning (default: None -> No pruning)
+    
+    quantization_kwargs    : a dict containing details for applying quantization (default: None -> No quantization)
     '''
     example_inputs = example_inputs if example_inputs is not None else []
     example_kwargs = example_kwargs or {}
@@ -51,7 +65,7 @@ def apply_model_optimization(model: nn.Module, example_inputs: list=None, exampl
             main_model_optimization_version = pruning_version
         else:
             assert pruning_version == main_model_optimization_version, f'''
-            Different version of model optimization techniques aren't supported together!
+            Different versions of model optimization techniques aren't supported together!
             Previously got Surgery v{main_model_optimization_version} but got Pruning v{pruning_version}.
             '''
         main_kwargs.update(pruning_kwargs=pruning_kwargs)
@@ -62,7 +76,7 @@ def apply_model_optimization(model: nn.Module, example_inputs: list=None, exampl
             main_model_optimization_version = quantization_version
         else:
             assert quantization_version == main_model_optimization_version, f'''
-            Different version of model optimization techniques aren't supported together!
+            Different versions of model optimization techniques aren't supported together!
             Previously got Surgery and Pruning v{main_model_optimization_version} but got Quantization v{quantization_version}.
             '''
         main_kwargs.update(quantization_kwargs=quantization_kwargs)
@@ -77,17 +91,24 @@ def apply_model_optimization(model: nn.Module, example_inputs: list=None, exampl
     return model
 
 
-def prepare_model_for_onnx(orig_model: nn.Module, trained_model: nn.Module, example_inputs: list=None, example_kwargs: dict=None, model_surgery_version=None, pruning_version=None, quantization_version=None, model_surgery_kwargs: dict[str,Any]=None, pruning_kwargs: dict[str,Any]=None, quantization_kwargs: dict[str,Any]=None,):
-    example_inputs = example_inputs if example_inputs is not None else []
+def prepare_model_for_onnx(orig_model: nn.Module, trained_model: nn.Module, example_inputs: list=None, example_kwargs: dict=None, model_surgery_version=None, pruning_version=None, quantization_version=None, model_surgery_kwargs: dict[str,Any]=None, pruning_kwargs: dict[str,Any]=None, quantization_kwargs: dict[str,Any]=None, transformation_dict=None, copy_attrs=None):
+    example_inputs = example_inputs or []
     example_kwargs = example_kwargs or {}
     model_surgery_version = model_surgery_version or (0 if model_surgery_kwargs is None else 2)
     pruning_version = pruning_version or (0 if pruning_kwargs is None else 2)
     quantization_version = quantization_version or (0 if quantization_kwargs is None else 2)
-    final_model = apply_model_optimization(orig_model, example_inputs, example_kwargs, model_surgery_version=model_surgery_version, pruning_version=pruning_version, 
-                                            quantization_version=quantization_version, model_surgery_kwargs=model_surgery_kwargs, pruning_kwargs=pruning_kwargs, quantization_kwargs=quantization_kwargs)
+    
+    orig_model = orig_model.to('cpu')
+    example_inputs = [input_tensor.to('cpu') if isinstance(input_tensor, torch.Tensor) else input_tensor for input_tensor in example_inputs]
+    example_kwargs = {key: value.to('cpu') if isinstance(value, torch.Tensor) else value for key, value in example_kwargs.items()}
+    
+    final_model = apply_model_optimization(orig_model, example_inputs, example_kwargs, model_surgery_version=model_surgery_version, pruning_version=pruning_version, quantization_version=quantization_version, model_surgery_kwargs=model_surgery_kwargs, pruning_kwargs=pruning_kwargs, quantization_kwargs=quantization_kwargs, transformation_dict=transformation_dict, copy_attrs=copy_attrs)
+    
     state_dict = trained_model.state_dict()
     final_model.load_state_dict(state_dict)
+    
     return final_model
+
 
 def apply_model_surgery(model: nn.Module, example_inputs: list=None, example_kwargs: dict=None, version: int=3, model_surgery_kwargs: dict[str,Any]=None, *args, **kwargs):
     from .. import surgery
@@ -106,7 +127,7 @@ def apply_model_surgery(model: nn.Module, example_inputs: list=None, example_kwa
     elif version == 3:
         replacement_dict = model_surgery_kwargs.pop('replacement_dict')
         model = surgery.v3.convert_to_lite_pt2e(model,replacement_dict, example_inputs, example_kwargs, **model_surgery_kwargs)
-        # model,_ = torch._dynamo.export(model,aten_graph=False,assume_static_by_default=True)(*example_inputs,**example_kwargs)
+        # model,_ = torch._dynamo.export(model,aten_graph=True,pre_dispatch=True,assume_static_by_default=True)(*example_inputs,**example_kwargs)
     return model
 
 
@@ -125,7 +146,7 @@ def apply_pruning(model: nn.Module, example_inputs: list=None, example_kwargs: d
     if version == 2:
         model = pruning.v2.PrunerModule(model, **pruning_kwargs)
     elif version == 3:
-        model = pruning.v3.PrunerModule(model, example_args=example_inputs, example_kwargs=example_kwargs, **pruning_kwargs)
+        model = pruning.v3.PrunerModule(model, example_inputs=example_inputs, example_kwargs=example_kwargs, **pruning_kwargs)
     return model
 
 
