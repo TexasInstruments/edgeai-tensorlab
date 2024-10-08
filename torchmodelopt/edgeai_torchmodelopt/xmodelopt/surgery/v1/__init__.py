@@ -39,11 +39,11 @@ try:
 except:
     has_tv = False
 
-from ....xnn import utils
 from .replace_modules import replace_modules as replace_modules_func
-
 from . import convert_to_lite 
-
+from ....xnn import utils
+from ...utils.optimization_base import OptimizationBaseModule
+from ...utils.transformation_utils import wrapped_transformation_fn
 
 def convert_to_lite_model(model, replacement_dict=None, inplace=True, **kwargs):
     '''
@@ -189,3 +189,28 @@ def _create_lite_model_impl(model_function, pretrained_backbone_names=None, repl
     return model
 
 
+class SurgeryModule(OptimizationBaseModule):
+    '''
+    wrapper module  for performing surgery on module
+
+    it will do default surgery on model if no replacement dictionary is passed 
+    while initializing.
+    '''
+    
+    def __init__(self, model, *args, replacement_dict=None, transformation_dict=None, copy_attrs=None, **kwargs) -> None:
+        '''perform surgery on the model and creates a new model'''
+        copy_attrs= copy_attrs or []
+        super().__init__(model,*args, transformation_dict=transformation_dict, copy_attrs=copy_attrs, **kwargs)
+        self.replacement_dict=replacement_dict or get_replacement_dict_default()
+        self.module = wrapped_transformation_fn(convert_to_lite_model, model, replacement_dict=replacement_dict,)
+
+    def forward(self,x,*args,**kwargs):
+        '''
+        atleast one input required 
+        for more input, add them as a part of args
+        '''
+        return self.module(x,*args,**kwargs)
+
+    def get_replacement_dict(self):
+        '''returns the default replacement dictionary that can be updated further'''
+        return self.replacement_dict
