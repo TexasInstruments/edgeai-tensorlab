@@ -34,9 +34,6 @@ import torch
 import torch._dynamo as torchdynamo
 import torch.ao.quantization
 from torch.ao.quantization.quantize_pt2e import prepare_pt2e, prepare_qat_pt2e, convert_pt2e 
-from torch._export import capture_pre_autograd_graph
-
-from torch.ao.quantization.quantizer.xnnpack_quantizer import XNNPACKQuantizer, get_symmetric_quantization_config
 
 from .... import xnn
 from ...utils.hooks import add_example_args_kwargs
@@ -95,8 +92,6 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
     qconfig_type = qconfig_type or qconfig_types.QConfigType.DEFAULT
     qconfig_mode = qconfig_types.get_qconfig(qconfig_type, is_fake_quantize=is_fake_quantize, fast_mode=fast_mode)
     
-    # qconfig_mode = get_symmetric_quantization_config(is_qat=False)
-    
     # methods to quantize individual layers/modules types are in quantizer
     quantizer = quantizer or TIDLRTQuantizer(is_qat=is_qat, fast_mode=fast_mode, is_fake_quantize=is_fake_quantize)
     quantizer.set_global(qconfig_mode)
@@ -130,6 +125,7 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
 
     if add_methods:
         # add a wrapper for model.train()
+        # the accuracy for deit was going down due to this wrapper, needs to be implemented properly or debugged #TODO
         # def train_quant(self, mode=True):
         #     if mode:
         #         torch.ao.quantization.move_exported_model_to_train(self)
