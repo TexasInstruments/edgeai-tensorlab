@@ -1,5 +1,5 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-from typing import List, Optional, Sequence, Tuple
+from typing import List, Optional, Sequence, Tuple, Dict, Union
 
 import numpy as np
 import torch
@@ -525,7 +525,7 @@ class FCOSMono3DHead(AnchorFreeMono3DHead):
         """
         assert len(cls_scores) == len(bbox_preds) == len(dir_cls_preds) == \
             len(centernesses) == len(attr_preds)
-        num_levels = len(cls_scores)
+        num_levels = len(cls_scores) 
 
         featmap_sizes = [featmap.size()[-2:] for featmap in cls_scores]
         # TODO: refactor using prior_generator
@@ -653,6 +653,7 @@ class FCOSMono3DHead(AnchorFreeMono3DHead):
                 centerness = centerness[topk_inds]
                 dir_cls_score = dir_cls_score[topk_inds]
                 attr_score = attr_score[topk_inds]
+            
             # change the offset to actual center predictions
             bbox_pred[:, :2] = points - bbox_pred[:, :2]
             if rescale:
@@ -713,6 +714,303 @@ class FCOSMono3DHead(AnchorFreeMono3DHead):
             results.attr_labels = attrs
 
         return results
+
+    def predict_by_feat_onnx(self,
+                        cls_scores: List[Tensor],
+                        bbox_preds: List[Tensor],
+                        dir_cls_preds: List[Tensor],
+                        attr_preds: List[Tensor],
+                        centernesses: List[Tensor],
+                        batch_img_metas: Optional[List[dict]] = None,
+                        cfg: OptConfigType = None,
+                        rescale: bool = False,
+                        pad_cam2img: Tensor = None,
+                        inv_pad_cam2img: Tensor = None) -> List[dict]:
+        """Transform network output for a batch into bbox predictions.
+
+        Args:
+            cls_scores (list[Tensor]): Box scores for each scale level
+                Has shape (N, num_points * num_classes, H, W)
+            bbox_preds (list[Tensor]): Box energies / deltas for each scale
+                level with shape (N, num_points * 4, H, W)
+            dir_cls_preds (list[Tensor]): Box scores for direction class
+                predictions on each scale level, each is a 4D-tensor,
+                the channel number is num_points * 2. (bin = 2)
+            attr_preds (list[Tensor]): Attribute scores for each scale level
+                Has shape (N, num_points * num_attrs, H, W)
+            centernesses (list[Tensor]): Centerness for each scale level with
+                shape (N, num_points * 1, H, W)
+            batch_img_metas (list[dict]): Meta information of each image, e.g.,
+                image size, scaling factor, etc.
+            cfg (ConfigDict, optional): Test / postprocessing
+                configuration, if None, test_cfg would be used.
+                Defaults to None.
+            rescale (bool): If True, return boxes in original image space.
+                Defaults to False.
+
+        Returns:
+            list[:obj:`InstanceData`]: Object detection results of each image
+            after the post process. Each item usually contains following keys.
+
+                - scores_3d (Tensor): Classification scores, has a shape
+                  (num_instance, )
+                - labels_3d (Tensor): Labels of bboxes, has a shape
+                  (num_instances, ).
+                - bboxes_3d (Tensor): Contains a tensor with shape
+                  (num_instances, C), where C >= 7.
+        """
+        assert len(cls_scores) == len(bbox_preds) == len(dir_cls_preds) == \
+            len(centernesses) == len(attr_preds)
+        num_levels = len(cls_scores)
+
+        featmap_sizes = [featmap.size()[-2:] for featmap in cls_scores]
+        # TODO: refactor using prior_generator
+        mlvl_points = self.get_points(featmap_sizes, bbox_preds[0].dtype,
+                                      bbox_preds[0].device)
+        result_list = []
+        for img_id in range(len(batch_img_metas)):
+            img_meta = batch_img_metas[img_id]
+            cls_score_list = select_single_mlvl(cls_scores, img_id)
+            bbox_pred_list = select_single_mlvl(bbox_preds, img_id)
+
+            if self.use_direction_classifier:
+                dir_cls_pred_list = select_single_mlvl(dir_cls_preds, img_id) # dir_cls_preds[0]: [1,2,116,200]
+            else:
+                dir_cls_pred_list = [
+                    cls_scores[i][img_id].new_full(
+                        [2, *cls_scores[i][img_id].shape[1:]], 0).detach()
+                    for i in range(num_levels)
+                ]
+
+            if self.pred_attrs:
+                attr_pred_list = select_single_mlvl(attr_preds, img_id)  # attr_pred[0]: [1,9,116,200]
+            else:
+                attr_pred_list = [
+                    cls_scores[i][img_id].new_full(
+                        [self.num_attrs, *cls_scores[i][img_id].shape[1:]],
+                        self.attr_background_label).detach()
+                    for i in range(num_levels)
+                ]
+
+            centerness_pred_list = select_single_mlvl(centernesses, img_id)
+            results = self._predict_by_feat_single_onnx(
+                cls_score_list=cls_score_list,
+                bbox_pred_list=bbox_pred_list,
+                dir_cls_pred_list=dir_cls_pred_list,
+                attr_pred_list=attr_pred_list,
+                centerness_pred_list=centerness_pred_list,
+                mlvl_points=mlvl_points,
+                img_meta=img_meta,
+                cfg=cfg,
+                rescale=rescale,
+                pad_cam2img=pad_cam2img,
+                inv_pad_cam2img=inv_pad_cam2img)
+            result_list.append(results)
+        result_list_2d = None
+        return result_list, result_list_2d
+
+    def points_img2cam_with_inv(self,
+        points: Union[Tensor, np.ndarray],
+        inv_cam2img: Union[Tensor, np.ndarray]) -> Union[Tensor, np.ndarray]:
+        """Project points in image coordinates to camera coordinates.
+
+        Args:
+            points (Tensor or np.ndarray): 2.5D points in 2D images with shape
+                [N, 3], 3 corresponds with x, y in the image and depth.
+            cam2img (Tensor or np.ndarray): Camera intrinsic matrix. The shape can
+                be [3, 3], [3, 4] or [4, 4].
+
+        Returns:
+            Tensor or np.ndarray: Points in 3D space with shape [N, 3], 3
+            corresponds with x, y, z in 3D space.
+        """
+        assert inv_cam2img.shape[0] <= 4
+        assert inv_cam2img.shape[1] <= 4
+        assert points.shape[1] == 3
+
+        xys = points[:, :2]
+        depths = points[:, 2].view(-1, 1)
+        unnormed_xys = torch.cat([xys * depths, depths], dim=1)
+
+        # Do operation in homogeneous coordinates.
+        num_points = unnormed_xys.shape[0]
+        homo_xys = torch.cat([unnormed_xys, xys.new_ones((num_points, 1))], dim=1)
+        points3D = torch.mm(homo_xys, inv_cam2img)[:, :3]
+
+        return points3D
+
+
+    def _predict_by_feat_single_onnx(self,
+                                cls_score_list: List[Tensor],
+                                bbox_pred_list: List[Tensor],
+                                dir_cls_pred_list: List[Tensor],
+                                attr_pred_list: List[Tensor],
+                                centerness_pred_list: List[Tensor],
+                                mlvl_points: Tensor,
+                                img_meta: dict,
+                                cfg: ConfigType,
+                                rescale: bool = False,
+                                pad_cam2img: Tensor = None,
+                                inv_pad_cam2img: Tensor = None) -> Dict:
+        """Transform outputs for a single batch item into bbox predictions.
+
+        Args:
+            cls_scores (list[Tensor]): Box scores for a single scale level
+                Has shape (num_points * num_classes, H, W).
+            bbox_preds (list[Tensor]): Box energies / deltas for a single scale
+                level with shape (num_points * bbox_code_size, H, W).
+            dir_cls_preds (list[Tensor]): Box scores for direction class
+                predictions on a single scale level with shape
+                (num_points * 2, H, W)
+            attr_preds (list[Tensor]): Attribute scores for each scale level
+                Has shape (N, num_points * num_attrs, H, W)
+            centernesses (list[Tensor]): Centerness for a single scale level
+                with shape (num_points, H, W).
+            mlvl_points (list[Tensor]): Box reference for a single scale level
+                with shape (num_total_points, 2).
+            img_meta (dict): Metadata of input image.
+            cfg (mmengine.Config): Test / postprocessing configuration,
+                if None, test_cfg would be used.
+            rescale (bool): If True, return boxes in original image space.
+
+        Returns:
+            :obj:`InstanceData`: 3D Detection results of each image
+            after the post process.
+            Each item usually contains following keys.
+
+                - scores_3d (Tensor): Classification scores, has a shape
+                  (num_instance, )
+                - labels_3d (Tensor): Labels of bboxes, has a shape
+                  (num_instances, ).
+                - bboxes_3d (Tensor): Contains a tensor with shape
+                  (num_instances, C), where C >= 7.
+        """
+        scale_factor = img_meta['scale_factor']
+        cfg = self.test_cfg if cfg is None else cfg
+        assert len(cls_score_list) == len(bbox_pred_list) == len(mlvl_points)
+        mlvl_centers_2d = []
+        mlvl_bboxes = []
+        mlvl_scores = []
+        mlvl_dir_scores = []
+        mlvl_attr_scores = []
+        mlvl_centerness = []
+
+        for cls_score, bbox_pred, dir_cls_pred, attr_pred, centerness, \
+                points in zip(cls_score_list, bbox_pred_list,
+                              dir_cls_pred_list, attr_pred_list,
+                              centerness_pred_list, mlvl_points):
+            assert cls_score.size()[-2:] == bbox_pred.size()[-2:]
+            scores = cls_score.permute(1, 2, 0).reshape(
+                -1, self.cls_out_channels).sigmoid()
+            dir_cls_pred = dir_cls_pred.permute(1, 2, 0).reshape(-1, 2)
+            dir_cls_score = torch.max(dir_cls_pred, dim=-1)[1]
+            attr_pred = attr_pred.permute(1, 2, 0).reshape(-1, self.num_attrs)
+            attr_score = torch.max(attr_pred, dim=-1)[1]
+            centerness = centerness.permute(1, 2, 0).reshape(-1).sigmoid()
+
+            bbox_pred = bbox_pred.permute(1, 2,
+                                          0).reshape(-1,
+                                                     sum(self.group_reg_dims))
+            bbox_pred = bbox_pred[:, :self.bbox_code_size]
+            # Disable it for onnx model so that
+            # the model is independent of frame data
+            """
+            nms_pre = cfg.get('nms_pre', -1)
+            if nms_pre > 0 and scores.shape[0] > nms_pre: # Condition that could change ONNX
+                max_scores, _ = (scores * centerness[:, None]).max(dim=1)
+                _, topk_inds = max_scores.topk(nms_pre)
+                points = points[topk_inds, :]
+                bbox_pred = bbox_pred[topk_inds, :]
+                scores = scores[topk_inds, :]
+                dir_cls_pred = dir_cls_pred[topk_inds, :]
+                centerness = centerness[topk_inds]
+                dir_cls_score = dir_cls_score[topk_inds]
+                attr_score = attr_score[topk_inds]
+            """
+            # change the offset to actual center predictions
+            bbox_pred[:, :2] = points - bbox_pred[:, :2]
+            if rescale:
+                bbox_pred[:, :2] /= bbox_pred[:, :2].new_tensor(scale_factor)
+            pred_center2d = bbox_pred[:, :3].clone()
+            bbox_pred[:, :3] = self.points_img2cam_with_inv(bbox_pred[:, :3], inv_pad_cam2img)
+            mlvl_centers_2d.append(pred_center2d)
+            mlvl_bboxes.append(bbox_pred)
+            mlvl_scores.append(scores)
+            mlvl_dir_scores.append(dir_cls_score)
+            mlvl_attr_scores.append(attr_score)
+            mlvl_centerness.append(centerness)
+
+        mlvl_centers_2d = torch.cat(mlvl_centers_2d)
+        mlvl_bboxes = torch.cat(mlvl_bboxes)
+        mlvl_dir_scores = torch.cat(mlvl_dir_scores)
+
+        # change local yaw to global yaw for 3D nms
+        #cam2img = mlvl_centers_2d.new_zeros((4, 4))
+        #cam2img[:view.shape[0], :view.shape[1]] = \
+        #    mlvl_centers_2d.new_tensor(view)
+        mlvl_bboxes = self.bbox_coder.decode_yaw(mlvl_bboxes, mlvl_centers_2d,
+                                                 mlvl_dir_scores,
+                                                 self.dir_offset, pad_cam2img)
+
+        #mlvl_bboxes_for_nms = xywhr2xyxyr(img_meta['box_type_3d'](
+        #    mlvl_bboxes, box_dim=self.bbox_code_size,
+        #    origin=(0.5, 0.5, 0.5)).bev)
+        temp_tensor = mlvl_bboxes.clone()
+        dst = temp_tensor.new_tensor((0.5, 1.0, 0.5))
+        src = temp_tensor.new_tensor((0.5, 0.5, 0.5))
+        temp_tensor[:, :3] += temp_tensor[:, 3:6] * (dst - src)
+        temp_tensor[:, 6] = -temp_tensor[:, 6]
+        mlvl_bboxes_for_nms = xywhr2xyxyr(temp_tensor[:, [0, 2, 3, 5, 6]])
+
+        mlvl_scores = torch.cat(mlvl_scores)
+        padding = mlvl_scores.new_zeros(mlvl_scores.shape[0], 1)
+        # remind that we set FG labels to [0, num_class-1] since mmdet v2.0
+        # BG cat_id: num_class
+        mlvl_scores = torch.cat([mlvl_scores, padding], dim=1)
+        mlvl_attr_scores = torch.cat(mlvl_attr_scores)
+        mlvl_centerness = torch.cat(mlvl_centerness)
+        # no scale_factors in box3d_multiclass_nms
+        # Then we multiply it from outside
+        mlvl_nms_scores = mlvl_scores * mlvl_centerness[:, None]
+
+        return mlvl_bboxes, mlvl_bboxes_for_nms, mlvl_nms_scores, mlvl_dir_scores, mlvl_attr_scores
+
+        # NMS on C7x, so do not export NMS
+        # Revisit to figure out NMS (or part of it) could be export
+        """
+        results = box3d_multiclass_nms(mlvl_bboxes, mlvl_bboxes_for_nms,
+                                       mlvl_nms_scores, cfg.score_thr,
+                                       cfg.max_per_img, cfg, mlvl_dir_scores,
+                                       mlvl_attr_scores)
+
+        bboxes, scores, labels, dir_scores, attrs = results
+        attrs = attrs.to(labels.dtype)  # change data type to int
+        bboxes = img_meta['box_type_3d'](
+            bboxes, box_dim=self.bbox_code_size, origin=(0.5, 0.5, 0.5))
+        # Note that the predictions use origin (0.5, 0.5, 0.5)
+        # Due to the ground truth centers_2d are the gravity center of objects
+        # v0.10.0 fix inplace operation to the input tensor of cam_box3d
+        # So here we also need to add origin=(0.5, 0.5, 0.5)
+
+        results ={
+            'bboxes_3d': bboxes.tensor,
+            'scores_3d': scores,
+            'labels_3d': labels,
+        }
+        if self.pred_attrs and attrs is not None:
+            results['attr_labels'] = attrs
+
+        #results = InstanceData()
+        #results.bboxes_3d = bboxes
+        #results.scores_3d = scores
+        #results.labels_3d = labels
+        #if self.pred_attrs and attrs is not None:
+        #    results.attr_labels = attrs
+
+        return results
+        """
+
+
 
     def _get_points_single(self,
                            featmap_size: Tuple[int],

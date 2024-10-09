@@ -20,7 +20,6 @@ from mmdet3d.structures import (CameraInstance3DBoxes, LiDARInstance3DBoxes,
                                 bbox3d2result, xywhr2xyxyr)
 
 from mmdet3d.evaluation.metrics.nuscenes_metric import NuScenesMetric
-from mmdet3d.evaluation.metrics.nuscenes_metric import output_to_nusc_box
 
 
 @METRICS.register_module()

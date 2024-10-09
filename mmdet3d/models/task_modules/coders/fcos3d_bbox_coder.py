@@ -67,17 +67,36 @@ class FCOS3DBBoxCoder(BaseBBoxCoder):
         scale_offset, scale_depth, scale_size = scale[0:3]
 
         clone_bbox = bbox.clone()
-        bbox[:, :2] = scale_offset(clone_bbox[:, :2]).float()
-        bbox[:, 2] = scale_depth(clone_bbox[:, 2]).float()
-        bbox[:, 3:6] = scale_size(clone_bbox[:, 3:6]).float()
-
+        #bbox[:, :2] = scale_offset(clone_bbox[:, :2]).float()
+        #bbox[:, 2] = scale_depth(clone_bbox[:, 2]).float()
+        #bbox[:, 3:6] = scale_size(clone_bbox[:, 3:6]).float()
         if self.base_depths is None:
-            bbox[:, 2] = bbox[:, 2].exp()
-        elif len(self.base_depths) == 1:  # only single prior
+            if self.norm_on_bbox and not training:
+                bbox[:, :6] = torch.cat((scale_offset(clone_bbox[:, :2])*stride,
+                                         scale_depth(clone_bbox[:, 2]).exp().unsqueeze(1),
+                                         scale_size(clone_bbox[:, 3:6]).exp()), dim=1).float()
+            else:
+                bbox[:, :6] = torch.cat((scale_offset(clone_bbox[:, :2]),
+                                         scale_depth(clone_bbox[:, 2]).exp().unsqueeze(1),
+                                         scale_size(clone_bbox[:, 3:6]).exp()), dim=1).float()
+        else:
+            if self.norm_on_bbox and not training:
+                bbox[:, :6] = torch.cat((scale_offset(clone_bbox[:, :2])*stride,
+                                         scale_depth(clone_bbox[:, 2]).unsqueeze(1),
+                                         scale_size(clone_bbox[:, 3:6]).exp()), dim=1).float()
+            else:
+                bbox[:, :6] = torch.cat((scale_offset(clone_bbox[:, :2]),
+                                         scale_depth(clone_bbox[:, 2]).unsqueeze(1),
+                                         scale_size(clone_bbox[:, 3:6]).exp()), dim=1).float()
+
+        #if self.base_depths is None:
+        #    bbox[:, 2] = bbox[:, 2].exp()
+        #elif len(self.base_depths) == 1:  # only single prior
+        if self.base_depths is not None and len(self.base_depths) == 1:  # only single prior
             mean = self.base_depths[0][0]
             std = self.base_depths[0][1]
             bbox[:, 2] = mean + bbox.clone()[:, 2] * std
-        else:  # multi-class priors
+        elif self.base_depths is not None:  # multi-class priors
             assert len(self.base_depths) == cls_score.shape[1], \
                 'The number of multi-class depth priors should be equal to ' \
                 'the number of categories.'
@@ -88,7 +107,7 @@ class FCOS3DBBoxCoder(BaseBBoxCoder):
             std = depth_priors[:, 1]
             bbox[:, 2] = mean + bbox.clone()[:, 2] * std
 
-        bbox[:, 3:6] = bbox[:, 3:6].exp()
+        #bbox[:, 3:6] = bbox[:, 3:6].exp()
         if self.base_dims is not None:
             assert len(self.base_dims) == cls_score.shape[1], \
                 'The number of anchor sizes should be equal to the number ' \
@@ -100,10 +119,10 @@ class FCOS3DBBoxCoder(BaseBBoxCoder):
 
         assert self.norm_on_bbox is True, 'Setting norm_on_bbox to False '\
             'has not been thoroughly tested for FCOS3D.'
-        if self.norm_on_bbox:
-            if not training:
-                # Note that this line is conducted only when testing
-                bbox[:, :2] *= stride
+        #if self.norm_on_bbox:
+        #    if not training:
+        #        # Note that this line is conducted only when testing
+        #        bbox[:, :2] *= stride
 
         return bbox
 

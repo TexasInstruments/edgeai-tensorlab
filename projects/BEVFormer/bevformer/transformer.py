@@ -16,6 +16,7 @@ from mmdet3d.registry import MODELS
 
 from torch.nn.init import normal_
 from torchvision.transforms.functional import rotate
+from torchvision.transforms import _functional_tensor as F_t
 
 from .visual import save_tensor
 
@@ -112,6 +113,13 @@ class PerceptionTransformer(BaseModule):
             grid_length=[0.512, 0.512],
             bev_pos=None,
             prev_bev=None,
+            rotation_grid=None,
+            reference_points_cam=None,
+            bev_mask_count=None,
+            bev_valid_indices=None,
+            bev_valid_indices_count=None,
+            shift_xy=None,
+            can_bus=None,
             **kwargs):
         """
         obtain bev features.
@@ -122,33 +130,40 @@ class PerceptionTransformer(BaseModule):
         bev_pos = bev_pos.flatten(2).permute(2, 0, 1)  #[2500, 1, 256]
 
         # obtain rotation angle and shift with ego motion
-        delta_x = np.array([each['can_bus'][0]
-                           for each in kwargs['img_metas']])
-        delta_y = np.array([each['can_bus'][1]
-                           for each in kwargs['img_metas']])
-        ego_angle = np.array(
-            [each['can_bus'][-2] / np.pi * 180 for each in kwargs['img_metas']])
-        grid_length_y = grid_length[0]
-        grid_length_x = grid_length[1]
-        translation_length = np.sqrt(delta_x ** 2 + delta_y ** 2)
-        translation_angle = np.arctan2(delta_y, delta_x) / np.pi * 180
-        bev_angle = ego_angle - translation_angle
-        shift_y = translation_length * \
-            np.cos(bev_angle / 180 * np.pi) / grid_length_y / bev_h
-        shift_x = translation_length * \
-            np.sin(bev_angle / 180 * np.pi) / grid_length_x / bev_w
-        shift_y = shift_y * self.use_shift
-        shift_x = shift_x * self.use_shift
-        shift = bev_queries.new_tensor(
-            [shift_x, shift_y]).permute(1, 0)  # xy, bs -> bs, xy
+        # can be computed in advance
+        if shift_xy is None:
+            delta_x = np.array([each['can_bus'][0]
+                               for each in kwargs['img_metas']])
+            delta_y = np.array([each['can_bus'][1]
+                               for each in kwargs['img_metas']])
+            ego_angle = np.array(
+                [each['can_bus'][-2] / np.pi * 180 for each in kwargs['img_metas']])
+            grid_length_y = grid_length[0]
+            grid_length_x = grid_length[1]
+            translation_length = np.sqrt(delta_x ** 2 + delta_y ** 2)
+            translation_angle = np.arctan2(delta_y, delta_x) / np.pi * 180
+            bev_angle = ego_angle - translation_angle
+            shift_y = translation_length * \
+                np.cos(bev_angle / 180 * np.pi) / grid_length_y / bev_h
+            shift_x = translation_length * \
+                np.sin(bev_angle / 180 * np.pi) / grid_length_x / bev_w
 
-        if prev_bev is not None:
+            shift_y = shift_y * self.use_shift
+            shift_x = shift_x * self.use_shift
+            shift = bev_queries.new_tensor(
+                [shift_x, shift_y]).permute(1, 0)  # xy, bs -> bs, xy
+        else:
+            shift = shift_xy * (1 if self.use_shift else 0)
+
+
+        # Normal inference
+        if rotation_grid is None and prev_bev is not None:
             if prev_bev.shape[1] == bev_h * bev_w:
                 prev_bev = prev_bev.permute(1, 0, 2)
             if self.rotate_prev_bev:
                 for i in range(bs):
-                    # num_prev_bev = prev_bev.size(1)
                     rotation_angle = kwargs['img_metas'][i]['can_bus'][-1]
+
                     tmp_prev_bev = prev_bev[:, i].reshape(
                         bev_h, bev_w, -1).permute(2, 0, 1)
                     tmp_prev_bev = rotate(tmp_prev_bev, rotation_angle,
@@ -156,11 +171,24 @@ class PerceptionTransformer(BaseModule):
                     tmp_prev_bev = tmp_prev_bev.permute(1, 2, 0).reshape(
                         bev_h * bev_w, 1, -1)
                     prev_bev[:, i] = tmp_prev_bev[:, 0]
+        # ONNX model exporting
+        elif rotation_grid is not None and prev_bev is not None:
+            if prev_bev.shape[1] == bev_h * bev_w:
+                prev_bev = prev_bev.permute(1, 0, 2)
+            if self.rotate_prev_bev:
+                prev_bev = prev_bev[:, 0].reshape(
+                    bev_h, bev_w, -1).permute(2, 0, 1)
+                prev_bev = F_t._apply_grid_transform(prev_bev, grid=rotation_grid,
+                                                     mode='nearest', fill=None)
+                prev_bev = prev_bev.permute(1, 2, 0).reshape(
+                    bev_h * bev_w, 1, -1)
 
         # add can bus signals
-        can_bus = bev_queries.new_tensor(
-            [each['can_bus'] for each in kwargs['img_metas']])  # [:, :]
+        if can_bus is None:
+            can_bus = bev_queries.new_tensor(
+                [each['can_bus'] for each in kwargs['img_metas']])  # [:, :]
         can_bus = self.can_bus_mlp(can_bus)[None, :, :]
+
         # It causes the error while exporting the onnx model
         #bev_queries = bev_queries + can_bus * self.use_can_bus
         bev_queries = bev_queries + can_bus * (1 if self.use_can_bus else 0)
@@ -198,6 +226,10 @@ class PerceptionTransformer(BaseModule):
             level_start_index=level_start_index,
             prev_bev=prev_bev,
             shift=shift,
+            reference_points_cam=reference_points_cam,
+            bev_mask_count=bev_mask_count,
+            bev_valid_indices=bev_valid_indices,
+            bev_valid_indices_count=bev_valid_indices_count,
             **kwargs
         )
 
@@ -215,6 +247,13 @@ class PerceptionTransformer(BaseModule):
                 reg_branches=None,
                 cls_branches=None,
                 prev_bev=None,
+                rotation_grid=None,
+                reference_points_cam=None,
+                bev_mask_count=None,
+                bev_valid_indices=None,
+                bev_valid_indices_count=None,
+                shift_xy=None,
+                can_bus=None,
                 **kwargs):
         """Forward function for `Detr3DTransformer`.
         Args:
@@ -261,6 +300,13 @@ class PerceptionTransformer(BaseModule):
             grid_length=grid_length,
             bev_pos=bev_pos,
             prev_bev=prev_bev,
+            rotation_grid=rotation_grid,
+            reference_points_cam=reference_points_cam,
+            bev_mask_count=bev_mask_count,
+            bev_valid_indices=bev_valid_indices,
+            bev_valid_indices_count=bev_valid_indices_count,
+            shift_xy=shift_xy,
+            can_bus=can_bus,
             **kwargs)  # bev_embed shape: bs, bev_h*bev_w, embed_dims
 
         bs = mlvl_feats[0].size(0)

@@ -328,7 +328,7 @@ param_scheduler = [
     )
 ]
 
-train_cfg = dict(max_epochs=num_epochs, val_interval=num_epochs/2)
+train_cfg = dict(max_epochs=num_epochs, val_interval=num_epochs)
 #checkpoint_config = dict(interval=1, max_keep_ckpts=3)
 
 default_hooks = dict(

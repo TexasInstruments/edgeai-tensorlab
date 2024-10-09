@@ -80,6 +80,9 @@ class SpatialCrossAttention(BaseModule):
                 spatial_shapes=None,
                 reference_points_cam=None,
                 bev_mask=None,
+                bev_mask_count=None,
+                bev_valid_indices=None,
+                bev_valid_indices_count=None,
                 level_start_index=None,
                 flag='encoder',
                 **kwargs):
@@ -128,25 +131,74 @@ class SpatialCrossAttention(BaseModule):
             query = query + query_pos
 
         bs, num_query, _ = query.size()
-
         D = reference_points_cam.size(3)
-        indexes = []
-        for i, mask_per_img in enumerate(bev_mask):
-            index_query_per_img = mask_per_img[0].sum(-1).nonzero().squeeze(-1)
-            indexes.append(index_query_per_img)
+
+        # Add zero query
+        query = torch.cat((query, query.new_zeros(bs, 1, self.embed_dims)), dim=1)
+        reference_points_cam = torch.cat((reference_points_cam, reference_points_cam.new_zeros(self.num_cams, bs, 1, D, 2)), dim=2)
+
+        if bev_valid_indices is None:
+            indexes = []
+            indexes_count = []
+            for i, mask_per_img in enumerate(bev_mask):
+                #index_query_per_img = mask_per_img[0].sum(-1).nonzero().squeeze(-1)
+                nzindex = mask_per_img[0].sum(-1).nonzero().squeeze(-1)
+                index_query_per_img = nzindex.new_ones(num_query)*num_query
+                index_query_per_img[:len(nzindex)] = nzindex
+
+                indexes.append(index_query_per_img)
+                indexes_count.append(len(nzindex))
+        else:
+            indexes = list(bev_valid_indices)
+            indexes_count = bev_valid_indices_count
         max_len = max([len(each) for each in indexes])
 
         # each camera only interacts with its corresponding BEV queries. This step can  greatly save GPU memory.
-        queries_rebatch = query.new_zeros(
-            [bs, self.num_cams, max_len, self.embed_dims])
-        reference_points_rebatch = reference_points_cam.new_zeros(
-            [bs, self.num_cams, max_len, D, 2])
         
-        for j in range(bs):
-            for i, reference_points_per_img in enumerate(reference_points_cam):   
-                index_query_per_img = indexes[i]
-                queries_rebatch[j, i, :len(index_query_per_img)] = query[j, index_query_per_img]
-                reference_points_rebatch[j, i, :len(index_query_per_img)] = reference_points_per_img[j, index_query_per_img]
+        # Notes: bs == 1 is for batch size = 1 in order to simpliy the exported ONNX model
+        if bs == 1:
+            #queries_rebatch = query.new_zeros(
+            #    [self.num_cams, max_len, self.embed_dims])
+            #reference_points_rebatch = reference_points_cam.new_zeros(
+            #    [self.num_cams, max_len, D, 2])
+            query = query.squeeze(0)
+
+            if False:
+                queries_rebatch = query.new_zeros(
+                    [self.num_cams*max_len, self.embed_dims])
+                reference_points_rebatch = reference_points_cam.new_zeros(
+                    [self.num_cams*max_len, D, 2])
+
+                for i, reference_points_per_img in enumerate(reference_points_cam):
+                    index_query_per_img = indexes[i]
+                    #queries_rebatch[i, :len(index_query_per_img)] = query[index_query_per_img]
+                    #reference_points_rebatch[i, :len(index_query_per_img)] = reference_points_per_img.squeeze(0)[index_query_per_img]
+                    queries_rebatch[i*max_len:i*max_len + max_len] = query[index_query_per_img]
+                    reference_points_rebatch[i*max_len:i*max_len + max_len] = reference_points_per_img.squeeze(0)[index_query_per_img]
+            else:
+                # Replace ScatterND with Concat
+                for i, reference_points_per_img in enumerate(reference_points_cam):
+                    index_query_per_img = indexes[i]
+                    if i == 0:
+                        queries_rebatch = query[index_query_per_img]
+                        reference_points_rebatch = reference_points_per_img.squeeze(0)[index_query_per_img]
+                    else:
+                        queries_rebatch = torch.cat((queries_rebatch, query[index_query_per_img]), dim=0)
+                        reference_points_rebatch = torch.cat((reference_points_rebatch, reference_points_per_img.squeeze(0)[index_query_per_img]), dim=0)
+
+            queries_rebatch = queries_rebatch.reshape(self.num_cams, max_len, self.embed_dims)
+            reference_points_rebatch = reference_points_rebatch.reshape(self.num_cams,max_len, D, 2)
+        else:
+            queries_rebatch = query.new_zeros(
+                [bs, self.num_cams, max_len, self.embed_dims])
+            reference_points_rebatch = reference_points_cam.new_zeros(
+                [bs, self.num_cams, max_len, D, 2])
+
+            for j in range(bs):
+                for i, reference_points_per_img in enumerate(reference_points_cam):
+                    index_query_per_img = indexes[i]
+                    queries_rebatch[j, i, :len(index_query_per_img)] = query[j, index_query_per_img]
+                    reference_points_rebatch[j, i, :len(index_query_per_img)] = reference_points_per_img[j, index_query_per_img]
 
         num_cams, l, bs, embed_dims = key.shape
 
@@ -155,18 +207,46 @@ class SpatialCrossAttention(BaseModule):
         value = value.permute(2, 0, 1, 3).reshape(
             bs * self.num_cams, l, self.embed_dims)
 
-        queries = self.deformable_attention(query=queries_rebatch.view(bs*self.num_cams, max_len, self.embed_dims), key=key, value=value,
-                                            reference_points=reference_points_rebatch.view(bs*self.num_cams, max_len, D, 2), spatial_shapes=spatial_shapes,
-                                            level_start_index=level_start_index).view(bs, self.num_cams, max_len, self.embed_dims)
+        if bs == 1:
+            queries = self.deformable_attention(query=queries_rebatch, key=key, value=value,
+                                                reference_points=reference_points_rebatch, spatial_shapes=spatial_shapes,
+                                                level_start_index=level_start_index).view(bs, self.num_cams, max_len, self.embed_dims)
 
-        for j in range(bs):
+            # Note: The following codes could result in the different outcome when compared to original code
+            #       since there are redundant query indices (i.e. 0), and the last query is picked up
+            #       Because it is finally averaged using count, the difference could be negligible
+            slots = slots.squeeze(0)
+            queries = queries.squeeze(0)
             for i, index_query_per_img in enumerate(indexes):
-                slots[j, index_query_per_img] += queries[j, i, :len(index_query_per_img)]
+                # Note: When len(index_query_per_img) == 2500 (i.e. max query num),
+                #       we don't need slicing like  queries[i, :len(index_query_per_img)]
+                #slots[index_query_per_img] += queries[i, :len(index_query_per_img)]
+                if i == 0:
+                    all_indices = index_query_per_img[:indexes_count[i]]
+                    all_queries = queries[i, :indexes_count[i]]
+                else:
+                    all_indices = torch.cat((all_indices, index_query_per_img[:indexes_count[i]]), dim = 0)
+                    all_queries = torch.cat((all_queries, queries[i, :indexes_count[i]]), dim = 0)
 
-        count = bev_mask.sum(-1) > 0
-        count = count.permute(1, 2, 0).sum(-1)
-        count = torch.clamp(count, min=1.0)
-        slots = slots / count[..., None]
+            slots.index_put_(tuple([all_indices]), all_queries, accumulate=True)
+            
+            slots = slots.unsqueeze(0)
+        else:
+            queries = self.deformable_attention(query=queries_rebatch.view(bs*self.num_cams, max_len, self.embed_dims), key=key, value=value,
+                                                reference_points=reference_points_rebatch.view(bs*self.num_cams, max_len, D, 2), spatial_shapes=spatial_shapes,
+                                                level_start_index=level_start_index).view(bs, self.num_cams, max_len, self.embed_dims)
+
+            for j in range(bs):
+                for i, index_query_per_img in enumerate(indexes):
+                    slots[j, index_query_per_img[:indexes_count[i]]] += queries[j, i, :indexes_count[i]]
+
+        if bev_mask_count is None:
+            count = bev_mask.sum(-1) > 0
+            count = count.permute(1, 2, 0).sum(-1)
+            count = torch.clamp(count, min=1.0)
+            slots = slots / count[..., None]
+        else:
+            slots = slots / bev_mask_count
         slots = self.output_proj(slots)
 
         return self.dropout(slots) + inp_residual

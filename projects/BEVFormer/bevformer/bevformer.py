@@ -51,7 +51,7 @@ class BEVFormer(MVXTwoStageDetector):
         super(BEVFormer,
               self).__init__(img_backbone=img_backbone,
                              img_neck=img_neck,
-                             pts_bbox_head=pts_bbox_head,  
+                             pts_bbox_head=pts_bbox_head,
                              train_cfg=train_cfg,
                              test_cfg=test_cfg,
                              data_preprocessor=data_preprocessor)
@@ -249,15 +249,14 @@ class BEVFormer(MVXTwoStageDetector):
             batch_input_metas[0]['can_bus'][-1] = 0
             batch_input_metas[0]['can_bus'][:3] = 0
 
-
         img_feats = self.extract_feat(batch_inputs_dict, batch_input_metas)
+
+        if self.prev_frame_info['prev_bev'] is None:
+            self.prev_frame_info['prev_bev'] = torch.zeros([2500, 1, 256]).to(img_feats[0].device)
 
         #bbox_list = [dict() for i in range(len(batch_input_metas))]
         new_prev_bev, bbox_pts = self.simple_test_pts(
             img_feats, batch_input_metas, prev_bev=self.prev_frame_info['prev_bev'], **kwargs)
-
-        #for result_dict, pts_bbox in zip(bbox_list, bbox_pts):
-        #    result_dict['pts_bbox'] = pts_bbox
 
         ret_list = []
         for i in range(len(bbox_pts)):
@@ -266,13 +265,13 @@ class BEVFormer(MVXTwoStageDetector):
             results.bboxes_3d = preds['bboxes_3d']
             results.scores_3d = preds['scores_3d']
             results.labels_3d = preds['labels_3d']
+            # change box dim and yaw
+            #    nus_box_dims = box_dims[:, [0, 1, 2]]
+            #    box_yaw = -box_yaw - np.pi/2
+            # It coulde be removed with bevFormer code changes
+            results.bboxes_3d.tensor = results.bboxes_3d.tensor[:, [0,1, 2, 4, 3, 5, 6, 7, 8]]
+            results.bboxes_3d.tensor[:, 6] = -results.bboxes_3d.tensor[:, 6] - np.pi/2
             ret_list.append(results)
-
-        #print("==========================")
-        #print(bbox_pts[0]['scores_3d'][0:10])
-        #print(bbox_pts[0]['bboxes_3d'][0])
-        #print(bbox_pts[0]['labels_3d'][0:10])
-        #print("==========================")
 
 
         # During inference, we save the BEV features and ego motion of each timestamp.

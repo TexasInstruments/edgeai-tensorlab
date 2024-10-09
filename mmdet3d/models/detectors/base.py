@@ -11,6 +11,7 @@ from mmdet3d.utils.typing_utils import (OptConfigType, OptInstanceList,
                                         OptMultiConfig)
 
 from .onnx_export import export_PETR, export_DETR3D, export_BEVFormer, export_BEVDet
+from .onnx_export import create_onnx_BEVFormer
 
 EXPORT_ONNX = False
 MODEL_TO_EXPORT = 'BEVDet' # 'PETR', 'BEVDet' 'BEVFormer', 'DETR3D'
@@ -33,6 +34,8 @@ class Base3DDetector(BaseDetector):
                  init_cfg: OptMultiConfig = None) -> None:
         super().__init__(
             data_preprocessor=data_preprocessor, init_cfg=init_cfg)
+
+        self.onnxModel = None
 
     def forward(self,
                 inputs: Union[dict, List[dict]],
@@ -94,7 +97,9 @@ class Base3DDetector(BaseDetector):
                     elif MODEL_TO_EXPORT == 'BEVDet':
                         export_BEVDet(self, inputs, data_samples, **kwargs)
                     elif MODEL_TO_EXPORT == 'BEVFormer':
-                        export_BEVFormer(self, inputs, data_samples, **kwargs)
+                        if self.onnxModel is None:
+                            self.onnxModel = create_onnx_BEVFormer(self)
+                        export_BEVFormer(self.onnxModel, inputs, data_samples, **kwargs)
                     elif MODEL_TO_EXPORT == 'DETR3D':
                         export_DETR3D(self, inputs, data_samples, **kwargs)
                     else:

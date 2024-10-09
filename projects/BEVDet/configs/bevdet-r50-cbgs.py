@@ -21,8 +21,7 @@
 # traffic_cone	0.499	0.547	0.347	nan	nan	nan
 # barrier	0.404	0.599	0.297	0.153	nan	nan
 
-_base_ = ['../../../configs/_base_/datasets/nus-3d.py',
-          '../../../configs/_base_/default_runtime.py']
+_base_ = ['../../../configs/_base_/default_runtime.py']
 
 custom_imports = dict(imports=['projects.BEVDet.bevdet'])
 
@@ -244,32 +243,36 @@ test_pipeline = [
 
 train_dataloader = dict(
     batch_size=4,
-    num_workers=1,
+    num_workers=4,
     sampler=dict(type='DefaultSampler', shuffle=True),
     dataset=dict(
-        type=dataset_type,
-        ann_file='bevdetv3-nuscenes_infos_train.pkl',
-        data_prefix=dict(
-            #pts='samples/LIDAR_TOP',
-            CAM_FRONT='samples/CAM_FRONT',
-            CAM_FRONT_LEFT='samples/CAM_FRONT_LEFT',
-            CAM_FRONT_RIGHT='samples/CAM_FRONT_RIGHT',
-            CAM_BACK='samples/CAM_BACK',
-            CAM_BACK_RIGHT='samples/CAM_BACK_RIGHT',
-            CAM_BACK_LEFT='samples/CAM_BACK_LEFT'),
-        pipeline=train_pipeline,
-        box_type_3d='LiDAR',
-        metainfo=metainfo,
-        test_mode=False,
-        modality=input_modality,
-        use_valid_flag=True,
-        backend_args=backend_args))
+        type='CBGSDataset',
+        dataset=dict(
+            type=dataset_type,
+            data_root=data_root,
+            ann_file='bevdetv3-nuscenes_infos_train.pkl',
+            data_prefix=dict(
+                #pts='samples/LIDAR_TOP',
+                CAM_FRONT='samples/CAM_FRONT',
+                CAM_FRONT_LEFT='samples/CAM_FRONT_LEFT',
+                CAM_FRONT_RIGHT='samples/CAM_FRONT_RIGHT',
+                CAM_BACK='samples/CAM_BACK',
+                CAM_BACK_RIGHT='samples/CAM_BACK_RIGHT',
+                CAM_BACK_LEFT='samples/CAM_BACK_LEFT'),
+            pipeline=train_pipeline,
+            box_type_3d='LiDAR',
+            metainfo=metainfo,
+            test_mode=False,
+            modality=input_modality,
+            use_valid_flag=True,
+            backend_args=backend_args)))
 
 
 
 val_dataloader = dict(
     dataset=dict(
         type=dataset_type,
+        data_root=data_root,
         ann_file='bevdetv3-nuscenes_infos_val.pkl',
         data_prefix=dict(
             pts='samples/LIDAR_TOP',
@@ -302,7 +305,7 @@ test_evaluator = val_evaluator
 
 # Optimizer
 optim_wrapper = dict(
-    optimizer=dict(type='AdamW', lr=2e-4, weight_decay=1e-07),
+    optimizer=dict(type='AdamW', lr=2e-4, weight_decay=1e-2),
     #paramwise_cfg=dict(custom_keys={
     #    'img_backbone': dict(lr_mult=0.1),
     #}),
@@ -326,8 +329,8 @@ param_scheduler = [
         eta_min=1e-6)
 ]
 
-#runner = dict(type='EpochBasedRunner', max_epochs=24)
-train_cfg = dict(by_epoch=True, max_epochs=24, val_interval=12)
+
+train_cfg = dict(by_epoch=True, max_epochs=20, val_interval=20)
 val_cfg = dict(type='ValLoop')
 test_cfg = dict(type='TestLoop')
 
@@ -343,6 +346,6 @@ custom_hooks = [
     ),
 ]
 
-#load_from='checkpoints/BEVDet/epoch_1.pth'
+#load_from='checkpoints/BEVDet/epoch_18_mmdet3d.pth'
 
 # fp16 = dict(loss_scale='dynamic')
