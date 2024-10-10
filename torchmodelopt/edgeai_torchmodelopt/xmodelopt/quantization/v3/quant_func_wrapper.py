@@ -28,16 +28,17 @@ def insert_all_hooks(*args, **kwargs):
     return wrapped_transformation_fn(quant_func.insert_all_hooks, *args, **kwargs)
 
 
-def export(self, *args, transformation_dict = None, is_converted = False, device='cpu', make_copy=True, **kwargs):
+def export(self, *args, transformation_dict = None, is_converted = False, device = 'cpu', make_copy = True, **kwargs):
     if is_converted:
         model = self
     else:
-        model = convert(self, transformation_dict=transformation_dict, device=device, make_copy=make_copy)
-    return quant_func.export(model, *args, device=device, make_copy=make_copy, is_converted=True, **kwargs)
+        model = convert(self, transformation_dict = transformation_dict, device = device, make_copy = make_copy)
+    quant_func.export(model, *args, device = device, make_copy = make_copy, is_converted = True, **kwargs)
+    return
 
 
 def calibrate(*args, **kwargs):
-    return quant_func.calibrate(*args, freeze_bn= freeze, **kwargs)
+    return quant_func.calibrate(*args, freeze_bn = freeze, **kwargs)
 
 
 def remove_hooks(*args, **kwargs):

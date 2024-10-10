@@ -40,7 +40,7 @@ class OptimizationBaseModule(nn.Module):
         super().__init__()
         self.module = model
         self.transformation_dict = transformation_dict
-        self._add_attrs(copy_attrs, self.module)
+        add_attrs(self, copy_attrs, self.module)
 
     def prepare(self, *args, **kwargs):
         raise NotImplementedError('prepare method needs to be implemented')
@@ -105,7 +105,7 @@ class ModelOptimizationBaseModule(OptimizationBaseModule):
 
     def convert(self, *args, **kwargs):
         if self.quantization_kwargs:
-            self.quantization_module_cls.convert(self, *args, **kwargs)
+            return self.quantization_module_cls.convert(self, *args, **kwargs)
         return self
 
     def export(self, *args, **kwargs):

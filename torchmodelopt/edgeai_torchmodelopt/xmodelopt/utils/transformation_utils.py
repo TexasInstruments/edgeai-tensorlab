@@ -14,7 +14,7 @@ def apply_tranformation_to_submodules(model:nn.Module, transformation_dict: dict
         parent_module, sub_module_name = splits
         parent_module = model if parent_module == '' else module_dict[parent_module]
         module = wrapper_fn(module, *args, **kwargs)
-        setattr(parent_module,sub_module_name,module)
+        setattr(parent_module, sub_module_name, module)
     return model
 
 

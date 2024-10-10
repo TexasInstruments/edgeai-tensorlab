@@ -75,23 +75,21 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
     example_inputs = example_inputs[0] if isinstance(example_inputs, (list, tuple)) else example_inputs
     
     if kwargs.get('convert_to_cuda', False):
-        if isinstance(example_inputs, dict):
-            for key, value in example_inputs.items():
-                example_inputs[key] = value.to(device='cuda:0')
-        else:
-            example_inputs = example_inputs.to(device='cuda:0')
-                
+        example_inputs = example_inputs.to(device='cuda:0')
+        for key, value in example_kwargs.items():
+            if isinstance(value, torch.Tensor):
+                example_kwargs[key] = value.to(device='cuda:0')
         model = model.to(device='cuda:0')
 
     orig_model = copy.deepcopy(model)
         
     decomposition_table = {torch.ops.aten.layer_norm.default: quant_utils.native_layer_norm}
     
-    if isinstance(example_inputs, dict):
-        m, guards = torchdynamo.export(orig_model, **example_inputs, aten_graph=True, assume_static_by_default=True, pre_dispatch=True, decomposition_table=decomposition_table)
-        print("Dynamo Export Completed ! \n\n")
-    else:
-        m, guards = torchdynamo.export(orig_model, example_inputs, aten_graph=True, assume_static_by_default=True, pre_dispatch=True, decomposition_table=decomposition_table)
+    # if isinstance(example_inputs, dict):
+    m, guards = torchdynamo.export(orig_model, aten_graph=True, assume_static_by_default=True, pre_dispatch=True, decomposition_table=decomposition_table)(example_inputs, **example_kwargs)
+    print("Dynamo Export Completed ! \n\n")
+    # else:
+    #     m, guards = torchdynamo.export(orig_model, example_inputs, aten_graph=True, assume_static_by_default=True, pre_dispatch=True, decomposition_table=decomposition_table)
 
     qconfig_type = qconfig_type or qconfig_types.QConfigType.DEFAULT
     qconfig_mode = qconfig_types.get_qconfig(qconfig_type, is_qat=is_qat, fast_mode=fast_mode)
@@ -131,13 +129,13 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
 
     if add_methods:
         # add a wrapper for model.train()
-        def train_quant(self, mode=True):
-            if mode:
-                torch.ao.quantization.move_exported_model_to_train(self)
-            else:
-                torch.ao.quantization.move_exported_model_to_eval(self)
+        # def train_quant(self, mode=True):
+        #     if mode:
+        #         torch.ao.quantization.move_exported_model_to_train(self)
+        #     else:
+        #         torch.ao.quantization.move_exported_model_to_eval(self)
                 
-        model.__quant_train_backup__ = types.MethodType(train_quant if is_qat else model.train.__func__, model)
+        # model.__quant_train_backup__ = types.MethodType(train_quant if is_qat else model.train.__func__, model)
         model.train = types.MethodType(train, model)
         model.eval = types.MethodType(train, model)
         # other methods
@@ -206,7 +204,7 @@ def forward(self, *input, **kwargs):
     return self(*input, **kwargs)
 
 
-def convert(self,*args, device="cpu", make_copy=False,**kwargs):
+def convert(self, *args, device="cpu", make_copy=True, **kwargs):
     if hasattr(self, '__quant_params__'):
         orig_quant_params = copy.deepcopy(self.__quant_params__)
     else:
@@ -215,6 +213,7 @@ def convert(self,*args, device="cpu", make_copy=False,**kwargs):
 
     model = copy.deepcopy(self).eval() if make_copy else self.eval()
     model = model.to(device=device)
+    model = quant_utils.move_node_kwargs_to_device(model, device=device)
     model = convert_pt2e(model, use_reference_representation=False, fold_quantize= False)
     model.eval = types.MethodType(train, model)
     torch.ao.quantization.move_exported_model_to_eval(model)
@@ -303,8 +302,7 @@ def export(self, example_inputs, filename='model.onnx', opset_version=17, model_
     else:
         model = self
         warnings.warn("model has already been converted before calling export. make sure it is done correctly.")
-        
-    # model, example_input = create_batch1_model(model, example_input)
+
     model = quant_utils.remove_loss_branch(model)
     quant_utils.register_onnx_symbolics()
 
@@ -323,12 +321,14 @@ def export(self, example_inputs, filename='model.onnx', opset_version=17, model_
         #
     else:
         if isinstance(example_inputs, dict):
-            example_inputs = ()
+            input_to_export = ()
             for val in example_inputs.values():
-                example_inputs += tuple([val.to(device=device)])
+                if isinstance(val, list):
+                    continue
+                input_to_export += tuple([val.to(device=device)])
         else:
-            example_inputs = example_inputs.to(device=device)
-        torch.onnx.export(model, example_inputs, filename, opset_version=opset_version, training=torch._C._onnx.TrainingMode.PRESERVE, **export_kwargs)
+            input_to_export = example_inputs.to(device=device)
+        torch.onnx.export(model, input_to_export, filename, opset_version=opset_version, training=torch._C._onnx.TrainingMode.PRESERVE, **export_kwargs)
 
     if simplify:
         import onnx
@@ -345,37 +345,3 @@ def export(self, example_inputs, filename='model.onnx', opset_version=17, model_
         meta.key = "model_source"
         meta.value = f"edgeai_torchmodelopt_{__version__}"
         onnx.save(onnx_model, filename)
-        
-    
-def create_batch1_model(orig_quantized_model, example_inputs):
-    
-    # # modifying the batch size of the input
-    if isinstance(example_inputs, dict):
-        for key, value in example_inputs.items():
-            new_val = value[-1:]
-            example_inputs[key] = new_val
-    else:
-        example_inputs = example_inputs[-1:]
-    
-    trained_state_dict = orig_quantized_model.state_dict()                        
-    
-    if hasattr(orig_quantized_model, "__quant_params__") and hasattr(orig_quantized_model.__quant_params__, 'original_model'):
-        orig_model = orig_quantized_model.__quant_params__.original_model
-        decomposition_table = {torch.ops.aten.layer_norm.default: torch._decomp.decompositions.native_layer_norm_backward_out}
-        if isinstance(example_inputs, dict):
-            m, guards = torchdynamo.export(orig_model, **example_inputs, aten_graph=True, assume_static_by_default=True, pre_dispatch=True, decomposition_table=decomposition_table)
-            print("Dynamo export completed again")
-        else:
-            m, guards = torchdynamo.export(orig_model, example_inputs, aten_graph=True, assume_static_by_default=True, pre_dispatch=True, decomposition_table=decomposition_table)
-    
-        quantizer = orig_quantized_model.__quant_params__.quantizer
-        model = prepare_pt2e(m, quantizer)
-        if isinstance(example_inputs, dict):
-            y = model(**example_inputs)
-        else:
-            y = model(example_inputs)
-        model = convert_pt2e(model)
-        
-        model.load_state_dict(trained_state_dict)
-
-    return model, example_inputs

@@ -282,7 +282,7 @@ def remove_loss_branch(model):
 
 def move_node_kwargs_to_device(model, device='cpu'):
     for node in model.graph.nodes:
-        if "device" in node.kwargs:
+        if "device" in node.kwargs and node.kwargs['device'] != torch.device(device):
             with model.graph.inserting_before(node):
                 new_kwargs = dict(node.kwargs)
                 new_kwargs['device'] = torch.device(device)

@@ -29,10 +29,9 @@
 #
 #################################################################################
 
-import types
-import torch
 from . import quant_func_wrapper
-from ...utils.optimization_base import OptimizationBaseModule, add_attrs
+from ...utils.optimization_base import OptimizationBaseModule
+import copy
 
 class QuantPT2EBaseModule(OptimizationBaseModule):
     def __init__(self, model, *args, transformation_dict:dict=None, copy_attrs:list[str]=None, add_methods=True, **kwargs):
@@ -44,16 +43,16 @@ class QuantPT2EBaseModule(OptimizationBaseModule):
         '''
         # self.module = quant_func.init(model, *args, add_methods=add_methods, **kwargs)
         copy_attrs= copy_attrs or []
-        super().__init__(model,*args, transformation_dict=transformation_dict, copy_attrs=copy_attrs, **kwargs)
+        super().__init__(model, *args, transformation_dict=transformation_dict, copy_attrs=copy_attrs, **kwargs)
         self.prepare(self.module, *args, transformation_dict=self.transformation_dict, add_methods=add_methods, **kwargs)
     
     def prepare(self, model, *args, transformation_dict=None, add_methods=True, **kwargs):
-        self.module =quant_func_wrapper.init(model, *args, transformation_dict=transformation_dict, add_methods=add_methods, **kwargs)
+        self.module = quant_func_wrapper.init(model, *args, transformation_dict=transformation_dict, add_methods=add_methods, **kwargs)
 
     @classmethod
     def _add_attrs_to(cls, obj, attr_names=None):
         attr_names = attr_names or ['load_weights', 'calibrate', 'freeze', 'unfreeze']
-        OptimizationBaseModule._add_attrs_to(obj, attr_names)
+        OptimizationBaseModule._add_attrs(obj, attr_names)
 
     def load_weights(self, *args, **kwargs):
         quant_func_wrapper.load_weights(self.module, *args, **kwargs)
@@ -83,13 +82,18 @@ class QuantPT2EBaseModule(OptimizationBaseModule):
         return self.module(*args, **kwargs)
 
     def convert(self, *args, **kwargs):
-        # self.module = quant_func.convert(self.module, *args, **kwargs)
-        self.module = quant_func_wrapper.convert(self.module, *args, transformation_dict=self.transformation_dict, **kwargs)
-        return self
+        self_copy = copy.deepcopy(self)
+        self_copy.module = quant_func_wrapper.convert(self_copy.module, *args, transformation_dict=self.transformation_dict, **kwargs)
+        if kwargs.get('make_copy', True):
+            return self_copy
+        else:
+            self = self_copy
+            return self
     
     
     def export(self, *args, **kwargs):
-        self = self.convert(*args, **kwargs)
-        return quant_func_wrapper.export(self, *args, transformation_dict=self.transformation_dict, **kwargs)
+        converted_model = self.convert(*args, **kwargs)
+        quant_func_wrapper.export(converted_model, *args, transformation_dict=self.transformation_dict, is_converted=True, **kwargs)
+        return self
 
 
