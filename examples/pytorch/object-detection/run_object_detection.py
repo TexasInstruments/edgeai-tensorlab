@@ -569,9 +569,17 @@ def main():
     validation_transform_batch = partial(
         augment_and_transform_batch, transform=validation_transform, image_processor=image_processor, return_pixel_mask=True
     )
+    
+    if data_args.max_train_samples is None and model_optimization_args.quantization and model_optimization_args.quantize_type in ["PTQ","PTC"]:
+        data_args.max_train_samples = model_optimization_args.quantize_calib_images * training_args.per_device_eval_batch_size * training_args.n_gpu
 
-    dataset["train"] = dataset["train"].with_transform(train_transform_batch)
-    dataset["validation"] = dataset["validation"].with_transform(validation_transform_batch)
+    assert (model_optimization_args.quantization==0 or model_optimization_args.quantization==3), \
+        print("Only pt2e (args.quantization=3) based quantization is currently supported for hf-transformers ")
+
+    dataset["train"] = dataset["train"].with_transform(train_transform_batch) if data_args.max_train_samples is None else \
+        dataset["train"].with_transform(train_transform_batch).select(range(data_args.max_train_samples))
+    dataset["validation"] = dataset["validation"].with_transform(validation_transform_batch) if data_args.max_eval_samples is None else \
+        dataset["validation"].with_transform(validation_transform_batch).select(range(data_args.max_eval_samples))
     # dataset["test"] = dataset["test"].with_transform(validation_transform_batch)
 
     # ------------------------------------------------------------------------------------------------
@@ -589,29 +597,37 @@ def main():
     if model_optimization_args.quantization == 3:
         assert training_args.per_device_train_batch_size == training_args.per_device_eval_batch_size, \
             print("only fixed batch size across train and eval is currently supported, (args.per_device_train_batch_size and args.per_device_eval_batch_size should be same)")  
-        example_input = next(iter(dataset["validation"]))
-        # example_input['labels'] = torch.tensor(example_input.pop('labels')).unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1)
-        example_input['pixel_values'] = example_input['pixel_values'].unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1, 1, 1)
-        example_input['pixel_mask'] = example_input['pixel_mask'].repeat(training_args.per_device_train_batch_size, 1, 1)
-        example_input['labels'] = example_input.pop('labels')
-        # labels = example_input.pop('labels')
+        example_kwargs = next(iter(dataset["validation"]))
+        example_kwargs['pixel_values'] = example_input['pixel_values'].unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1, 1, 1)
+        example_kwargs['pixel_mask'] = example_input['pixel_mask'].repeat(training_args.per_device_train_batch_size, 1, 1)
+        example_kwargs['labels'] = [example_input.pop('labels')]*training_args.per_device_train_batch_size
         convert_to_cuda = False if training_args.use_cpu else True
+        
+        transformation_dict = dict(model=None, class_labels_classifier=None, bbox_predictor=None)
+        copy_attrs = []
+        example_inputs = []
         
         if model_optimization_args.quantize_type == "QAT":
             num_observer_update_epochs = int(len(dataset["train"]) * ((training_args.num_train_epochs//2)+1) / (training_args.n_gpu*training_args.per_device_train_batch_size))
             num_batch_norm_update_epochs = int(len(dataset["train"]) * ((training_args.num_train_epochs//2)-1) / (training_args.n_gpu*training_args.per_device_train_batch_size))
-            model = xmodelopt.quantization.v3.QATPT2EModule(model, total_epochs=training_args.num_train_epochs, is_qat=True, 
-                qconfig_type="DEFAULT", example_inputs=example_input, convert_to_cuda=convert_to_cuda, 
-                bias_calibration_factor=model_optimization_args.bias_calibration_factor,
-                num_observer_update_epochs = num_observer_update_epochs,
-                num_batch_norm_update_epochs = num_batch_norm_update_epochs)
+            quantization_kwargs = dict(quantization_method='QAT', total_epochs=training_args.num_train_epochs, qconfig_type="DEFAULT", convert_to_cuda=convert_to_cuda, 
+                                bias_calibration_factor=model_optimization_args.bias_calibration_factor, num_observer_update_epochs = num_observer_update_epochs,
+                                num_batch_norm_update_epochs = num_batch_norm_update_epochs )
+            
+            model = xmodelopt.apply_model_optimization(model, example_inputs, example_kwargs, model_surgery_version=0, \
+                                quantization_version=model_optimization_args.quantization, model_surgery_kwargs=None, \
+                                quantization_kwargs=quantization_kwargs, transformation_dict=transformation_dict, copy_attrs=copy_attrs)
+            
         else:
             data_args.max_train_samples = model_optimization_args.quantize_calib_images * training_args.per_device_eval_batch_size * training_args.n_gpu
             training_args.num_train_epochs = 2 # bias calibration in the second epoch
-            model = xmodelopt.quantization.v3.QATPT2EModule(model, total_epochs=training_args.num_train_epochs, is_qat=False, 
-                qconfig_type="DEFAULT", example_inputs=example_input, convert_to_cuda=convert_to_cuda, 
-                bias_calibration_factor=model_optimization_args.bias_calibration_factor, 
-                num_observer_update_epochs=model_optimization_args.quantize_calib_images)
+            quantization_kwargs = dict(quantization_method='PTC', total_epochs=training_args.num_train_epochs, qconfig_type="DEFAULT", convert_to_cuda=convert_to_cuda, 
+                                bias_calibration_factor=model_optimization_args.bias_calibration_factor, num_observer_update_epochs = model_optimization_args.quantize_calib_images )
+            
+            model = xmodelopt.apply_model_optimization(model, example_inputs, example_kwargs, model_surgery_version=0, \
+                                quantization_version=model_optimization_args.quantization, model_surgery_kwargs=None, \
+                                quantization_kwargs=quantization_kwargs, transformation_dict=transformation_dict, copy_attrs=copy_attrs)
+            
             # need to turn the parameter update off during PTQ/PTC
             training_args.dont_update_parameters = True
     
@@ -623,25 +639,25 @@ def main():
         eval_dataset=dataset["validation"] if training_args.do_eval else None,
         processing_class=image_processor,
         data_collator=collate_fn,
-        compute_metrics=eval_compute_metrics_fn,
+        compute_metrics=eval_compute_metrics_fn
     )
 
     # Training
     if training_args.do_train:
         train_result = trainer.train(resume_from_checkpoint=checkpoint)
-        trainer.save_model()
+        # trainer.save_model()
         trainer.log_metrics("train", train_result.metrics)
         trainer.save_metrics("train", train_result.metrics)
         trainer.save_state()
 
     # Model ONNX Export
     if model_optimization_args.do_onnx_export:
-        export_device = 'cpu' if training_args.use_cpu else 'cuda:0'
+        export_device = 'cpu'
         file_name = model_args.model_name_or_path.split("/")[-1]
         file_name = training_args.output_dir + '/' + file_name + '_quantized.onnx' if model_optimization_args.quantization else \
             training_args.output_dir + '/' + file_name + '.onnx'
         if hasattr(trainer.model, 'export'):
-            trainer.model.export(example_input, filename=file_name, simplify=True, device=export_device)
+            trainer.model.export(example_input, filename=file_name, simplify=True, device=export_device, make_copy=True)
         else:
             trainer.model.eval()
             example_input = next(iter(dataset["validation"]))

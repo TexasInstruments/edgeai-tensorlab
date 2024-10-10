@@ -538,9 +538,9 @@ def main():
     if model_optimization_args.quantization == 3:
         assert training_args.per_device_train_batch_size == training_args.per_device_eval_batch_size, \
             print("only fixed batch size across train and eval is currently supported, (args.per_device_train_batch_size and args.per_device_eval_batch_size should be same)")  
-        example_input = next(iter(dataset["validation"]))
-        example_input['labels'] = torch.tensor(example_input.pop('label')).unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1)
-        example_input['pixel_values'] = example_input['pixel_values'].unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1, 1, 1)
+        example_kwargs = next(iter(dataset["validation"]))
+        example_kwargs['labels'] = torch.tensor(example_kwargs.pop('label')).unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1)
+        example_input= example_kwargs.pop('pixel_values').unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1, 1, 1)
         convert_to_cuda = False if training_args.use_cpu else True
         
         if model_optimization_args.quantize_type == "QAT":
@@ -548,18 +548,16 @@ def main():
             num_observer_update_epochs = int(len(dataset["train"]) * ((training_args.num_train_epochs//2)+1) / (training_args.n_gpu*training_args.per_device_train_batch_size))
             num_batch_norm_update_epochs = int(len(dataset["train"]) * ((training_args.num_train_epochs//2)-1) / (training_args.n_gpu*training_args.per_device_train_batch_size))
             model = xmodelopt.quantization.v3.QATPT2EModule(model, total_epochs=training_args.num_train_epochs, is_qat=True, fast_mode=False,
-                qconfig_type=model_optimization_args.qconfig_type, example_inputs=example_input, convert_to_cuda=convert_to_cuda, 
-                bias_calibration_factor=model_optimization_args.bias_calibration_factor,
-                num_observer_update_epochs = num_observer_update_epochs,
+                qconfig_type=model_optimization_args.qconfig_type, example_inputs=example_input, example_kwargs=example_kwargs, convert_to_cuda=convert_to_cuda, 
+                bias_calibration_factor=model_optimization_args.bias_calibration_factor, num_observer_update_epochs = num_observer_update_epochs,
                 num_batch_norm_update_epochs = num_batch_norm_update_epochs)
         #
         
         else: 
             # training_args.num_train_epochs = 2 # bias calibration in the second epoch
             model = xmodelopt.quantization.v3.QATPT2EModule(model, total_epochs=training_args.num_train_epochs, is_qat=True, fast_mode=False,
-                qconfig_type=model_optimization_args.qconfig_type, example_inputs=example_input, convert_to_cuda=convert_to_cuda, 
-                bias_calibration_factor=model_optimization_args.bias_calibration_factor, 
-                num_observer_update_epochs=model_optimization_args.quantize_calib_images,)
+                qconfig_type=model_optimization_args.qconfig_type, example_inputs=example_input, example_kwargs=example_kwargs, convert_to_cuda=convert_to_cuda, 
+                bias_calibration_factor=model_optimization_args.bias_calibration_factor, num_observer_update_epochs=model_optimization_args.quantize_calib_images,)
             # need to turn the parameter update off during PTQ/PTC
             training_args.dont_update_parameters = True
         #
@@ -596,11 +594,10 @@ def main():
         file_name = training_args.output_dir + '/' + file_name + '_quantized.onnx' if model_optimization_args.quantization else \
             training_args.output_dir + '/' + file_name + '.onnx'
         if hasattr(trainer.model, 'export'):
-            try:
-                trainer.model.export(example_input, filename=file_name, simplify=True, device='cpu')
-            except:
-                print("The onnx export in cpu device failed, trying in cuda.")
-                trainer.model.export(example_input, filename=file_name, simplify=True, device='cuda')
+            example_input = next(iter(dataset["validation"]))
+            example_input['labels'] = torch.tensor(example_input.pop('label')).unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1)
+            example_input['pixel_values'] = example_input['pixel_values'].unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1, 1, 1)
+            trainer.model.export(example_input, filename=file_name, simplify=True, device=export_device)
         else:
             export_model = copy.deepcopy(trainer.model.eval()).to(device=export_device)
             example_input = next(iter(dataset["validation"]))
