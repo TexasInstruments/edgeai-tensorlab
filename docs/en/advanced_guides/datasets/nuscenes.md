@@ -4,7 +4,13 @@ This page provides specific tutorials about the usage of MMDetection3D for nuSce
 
 ## Before Preparation
 
-You can download nuScenes 3D detection `Full dataset (v1.0)` [HERE](https://www.nuscenes.org/download) and unzip all zip files.
+You can download nuScenes 3D detection `Full dataset (v1.0)` [HERE](https://www.nuscenes.org/download) and unzip all zip files. You have to ownload CAN bus expansion data as well and move it to data directory.
+
+```
+# Download 'can_bus.zip'
+unzip can_bus.zip
+# Move can_bus to data dir
+```
 
 If you want to implement 3D semantic segmentation task, you need to additionally download the `nuScenes-lidarseg` data annotation and place the extracted files in the nuScenes corresponding folder.
 
@@ -20,6 +26,7 @@ mmdetection3d
 ├── tools
 ├── configs
 ├── data
+│   ├── can_bus
 │   ├── nuscenes
 │   │   ├── maps
 │   │   ├── samples
@@ -35,7 +42,13 @@ We typically need to organize the useful data information with a `.pkl` file in 
 To prepare these files for nuScenes, run the following command:
 
 ```bash
-python tools/create_data.py nuscenes --root-path ./data/nuscenes --out-dir ./data/nuscenes --extra-tag nuscenes
+python tools/create_data.py nuscenes --root-path ./data/nuscenes --out-dir ./data/nuscenes --extra-tag nuscenes --canbus ./data
+```
+
+This command creates `.pkl` files for PETR, BEVFormer and FCOS3D. To include additional data fields for BEVDet and PETRv2, we should add `--bevdet` and `--petrv2`, respectively, to the command. For example,
+
+```bash
+python tools/create_data.py nuscenes --root-path ./data/nuscenes --out-dir ./data/nuscenes --extra-tag nuscenes --canbus ./data --bevdet --petrv2
 ```
 
 The folder structure after processing should be as below.
@@ -46,6 +59,7 @@ mmdetection3d
 ├── tools
 ├── configs
 ├── data
+│   ├── can_bus
 │   ├── nuscenes
 │   │   ├── maps
 │   │   ├── samples

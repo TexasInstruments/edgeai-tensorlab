@@ -21,7 +21,8 @@
 # traffic_cone	0.499	0.547	0.347	nan	nan	nan
 # barrier	0.404	0.599	0.297	0.153	nan	nan
 
-_base_ = ['../../../configs/_base_/default_runtime.py']
+_base_ = ['../../../configs/_base_/datasets/nus-3d.py',
+          '../../../configs/_base_/default_runtime.py']
 
 custom_imports = dict(imports=['projects.BEVDet.bevdet'])
 
@@ -75,8 +76,6 @@ model = dict(
         type='Det3DDataPreprocessor',
         mean=[123.675,  116.280, 103.530],
         std=[58.395, 57.120, 57.375],
-        #mean=[0.0,  0.0, 0.0],
-        #std=[1.0, 1.0, 1.0],
         bgr_to_rgb=False,
         pad_size_divisor=32),
     img_backbone=dict(
@@ -203,9 +202,6 @@ train_pipeline = [
         classes=class_names),
     dict(type='ObjectRangeFilter', point_cloud_range=point_cloud_range),
     dict(type='ObjectNameFilter', classes=class_names),
-    #dict(type='DefaultFormatBundle3D', class_names=class_names),
-    #dict(
-    #    type='Collect3D', keys=['img_inputs', 'gt_bboxes_3d', 'gt_labels_3d'])
     dict(type='CustomPack3DDetInputs', keys=['img', 'gt_bboxes_3d', 'gt_labels_3d'])
 ]
 
@@ -223,12 +219,6 @@ test_pipeline = [
          bda_aug_conf=bda_aug_conf,
          classes=class_names,
          is_train=False),
-    #dict(
-    #    type='LoadPointsFromFile',
-    #    coord_type='LIDAR',
-    #    load_dim=5,
-    #    use_dim=5,
-    #    backend_args=backend_args),
     dict(
         type='CustomMultiScaleFlipAug3D',
         img_scale=(1333, 800),
@@ -237,11 +227,11 @@ test_pipeline = [
         transforms=[
             dict(type='CustomPack3DDetInputs', keys=['points', 'img'])
         ])
-    #dict(type='Pack3DDetInputs', keys=['points', 'img_input'])
 ]
 
 
 train_dataloader = dict(
+     _delete_=True,
     batch_size=4,
     num_workers=4,
     sampler=dict(type='DefaultSampler', shuffle=True),
@@ -250,9 +240,8 @@ train_dataloader = dict(
         dataset=dict(
             type=dataset_type,
             data_root=data_root,
-            ann_file='bevdetv3-nuscenes_infos_train.pkl',
+            ann_file='nuscenes_infos_train.pkl',
             data_prefix=dict(
-                #pts='samples/LIDAR_TOP',
                 CAM_FRONT='samples/CAM_FRONT',
                 CAM_FRONT_LEFT='samples/CAM_FRONT_LEFT',
                 CAM_FRONT_RIGHT='samples/CAM_FRONT_RIGHT',
@@ -273,7 +262,7 @@ val_dataloader = dict(
     dataset=dict(
         type=dataset_type,
         data_root=data_root,
-        ann_file='bevdetv3-nuscenes_infos_val.pkl',
+        ann_file='nuscenes_infos_val.pkl',
         data_prefix=dict(
             pts='samples/LIDAR_TOP',
             CAM_FRONT='samples/CAM_FRONT',
@@ -297,7 +286,7 @@ test_dataloader = val_dataloader
 val_evaluator = dict(
     type='CustomNuScenesMetric',
     data_root=data_root,
-    ann_file=data_root + 'bevdetv3-nuscenes_infos_val.pkl',
+    ann_file=data_root + 'nuscenes_infos_val.pkl',
     metric='mAP',
     backend_args=backend_args)
 test_evaluator = val_evaluator
@@ -346,6 +335,6 @@ custom_hooks = [
     ),
 ]
 
-#load_from='checkpoints/BEVDet/epoch_18_mmdet3d.pth'
 
-# fp16 = dict(loss_scale='dynamic')
+#load_from='checkpoints/BEVDet/epoch_18_mmdet3d.pth'
+#fp16 = dict(loss_scale='dynamic')
