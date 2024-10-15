@@ -90,6 +90,18 @@ There are a couple of issues that are encounterd most frequently.
 
 PointPillars has been trained and validated with egdgeai-mmdetection3d. Data preparation, training and testing of PointPillars can be found in [PointPillars](./projects/PointPillars/README.md).
 
+## BEVDet
+
+BEVDet has been trained and validated with egdgeai-mmdetection3d. Data preparation, training and testing of BEVDet can be found in [BEVDet](./projects/BEVDet/README.md).
+
+## BEVFormer
+
+BEVFormer has been trained and validated with egdgeai-mmdetection3d. Data preparation, training and testing of BEVFormer can be found in [BEVFormer](./projects/BEVFormer/README.md).
+
+## PETR / PETRv2
+
+PETR and PETRv2 have been trained and validated with egdgeai-mmdetection3d. Data preparation, training and testing of them can be found in [PETR/PETRv2](./projects/PETR/README.md).
+
 <hr>
 
 ## Advanced documentation
@@ -137,10 +149,7 @@ This package/toolbox is an extension of [MMDetection3D](https://github.com/open-
 ## References
 [1] MMDetection3D: https://github.com/open-mmlab/mmdetection3d
 
-[2] PointPillars: https://arxiv.org/abs/1812.05784
-
-[3] PointPainting: https://arxiv.org/abs/1911.10150
-
+<hr>
 
 # Original mmdetection documentation
 

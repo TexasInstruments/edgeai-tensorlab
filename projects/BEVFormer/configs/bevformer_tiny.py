@@ -21,14 +21,9 @@ custom_imports = dict(imports=['projects.BEVFormer.bevformer'])
 point_cloud_range = [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0]
 voxel_size = [0.2, 0.2, 8]
 
-
-# for data_preprocessor 
+# for data_preprocessor
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], bgr_to_rgb=True)
-# for normailization in data pipeline
-#img_norm_cfg = dict(
-#    mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
-
 
 # For nuScenes we usually do 10-class detection
 class_names = [
@@ -203,25 +198,8 @@ train_pipeline = [
 
 test_pipeline = [
     dict(type='LoadMultiViewImageFromFiles', to_float32=True, num_views=6),
-    #dict(type='NormalizeMultiviewImage', **img_norm_cfg),
     dict(type='RandomScaleImageMultiViewImage', scales=[0.5]),
-    #dict(type='CustomMultiViewWrapper', transforms=test_transforms),
-    #dict(type='PadMultiViewImage', size_divisor=32),
     dict(type='CustomPack3DDetInputs', keys=['img'])
-    #dict(
-    #    type='MultiScaleFlipAug3D',
-    #    img_scale=(1600, 900),
-    #    pts_scale_ratio=1,
-    #    flip=False,
-    #    transforms=[
-    #        dict(type='RandomScaleImageMultiViewImage', scales=[0.5]),
-    #        dict(type='PadMultiViewImage', size_divisor=32),
-    #        #dict(
-    #        #    type='DefaultFormatBundle3D',
-    #        #    class_names=class_names,
-    #        #    with_label=False),
-    #        dict(type='CustomCollect3D', keys=['img'])
-    #    ])
 ]
 
 metainfo = dict(classes=class_names)
@@ -310,20 +288,8 @@ param_scheduler = [
 
 total_epochs = 24
 
-#train_cfg = dict(
-#    type='EpochBasedTrainLoop', max_epochs=total_epochs, val_interval=2)
 train_cfg = dict(max_epochs=total_epochs, val_interval=2)
 val_cfg = dict(type='ValLoop')
 test_cfg = dict(type='TestLoop')
 
 #load_from = 'checkpoints/BEVFormer/bevformer_tiny_epoch_24.pth'
-
-
-#log_config = dict(
-#    interval=50,
-#    hooks=[
-#        dict(type='TextLoggerHook'),
-#        dict(type='TensorboardLoggerHook')
-#    ])
-
-#checkpoint_config = dict(interval=1)

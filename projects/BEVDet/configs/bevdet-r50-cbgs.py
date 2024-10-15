@@ -336,6 +336,5 @@ custom_hooks = [
     ),
 ]
 
-
 #load_from='checkpoints/BEVDet/epoch_18_mmdet3d.pth'
 #fp16 = dict(loss_scale='dynamic')

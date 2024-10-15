@@ -21,7 +21,7 @@ Like the general way to prepare dataset, it is recommended to symlink the datase
 The folder structure should be organized as follows before our processing.
 
 ```
-mmdetection3d
+edgeai-mmdetection3d
 ├── mmdet3d
 ├── tools
 ├── configs
@@ -54,7 +54,7 @@ python tools/create_data.py nuscenes --root-path ./data/nuscenes --out-dir ./dat
 The folder structure after processing should be as below.
 
 ```
-mmdetection3d
+edgeai-mmdetection3d
 ├── mmdet3d
 ├── tools
 ├── configs

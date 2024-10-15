@@ -80,8 +80,6 @@ model = dict(
         type='Det3DDataPreprocessor',
         mean=[123.675,  116.280, 103.530],
         std=[58.395, 57.120, 57.375],
-        #mean=[0.0,  0.0, 0.0],
-        #std=[1.0, 1.0, 1.0],
         bgr_to_rgb=False,
         pad_size_divisor=32),
     img_backbone=dict(
@@ -233,7 +231,6 @@ test_pipeline = [
         transforms=[
             dict(type='CustomPack3DDetInputs', keys=['points', 'img'])
         ])
-    #dict(type='Pack3DDetInputs', keys=['points', 'img_input'])
 ]
 
 

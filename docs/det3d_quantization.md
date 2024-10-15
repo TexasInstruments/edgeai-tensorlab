@@ -52,6 +52,6 @@ All this has been taken care already in the code and the description in this sec
 ## References
 [1] [PyTorch-Jacinto-AI-DevKit](https://git.ti.com/cgit/jacinto-ai/pytorch-jacinto-ai-devkit/about/) and its [Quantization documentation](https://git.ti.com/cgit/jacinto-ai/pytorch-jacinto-ai-devkit/about/docs/Quantization.md). 
 
-[2] PointPillars: Fast Encoders for Object Detection from Point Clouds, https://arxiv.org/abs/1812.05784, Alex H. Lang, Sourabh Vora, Holger Caesar, Lubing Zhou, Jiong Yang, Oscar Beijbom
+[2] PointPillars: Fast Encoders for Object Detection from Point Clouds, A. H. Lang, S. Vora, H. Caesar, L. Zhou, J. Yang, O. Beijbom, https://arxiv.org/abs/1812.05784
 
-[3] PointPainting: https://arxiv.org/abs/1911.10150
+[3] PointPainting: Sequential Fusion for 3D Object Detection, S. Vora, A. H. Lang, B. Helou, O. Beijbom, https://arxiv.org/abs/1911.10150

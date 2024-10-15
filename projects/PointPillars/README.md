@@ -108,3 +108,9 @@ This tutorial explains more about quantization and how to do [Quantization Aware
 The export of meta information is now supported for **PointPillars** detectors. 
 
 For more information please see [Usage](../../docs/det3d_usage.md).
+
+## References
+
+[1] PointPillars: Fast Encoders for Object Detection from Point Clouds, A. H. Lang, S. Vora, H. Caesar, L. Zhou, J. Yang, O. Beijbom, https://arxiv.org/abs/1812.05784
+
+[2] PointPainting: Sequential Fusion for 3D Object Detection, S. Vora, A. H. Lang, B. Helou, O. Beijbom, https://arxiv.org/abs/1911.10150
