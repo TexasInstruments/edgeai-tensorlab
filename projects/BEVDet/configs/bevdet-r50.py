@@ -75,6 +75,7 @@ numC_Trans = 64
 
 model = dict(
     type='BEVDet',
+    save_onnx_model=False,
     data_preprocessor=dict(
         type='Det3DDataPreprocessor',
         mean=[123.675,  116.280, 103.530],

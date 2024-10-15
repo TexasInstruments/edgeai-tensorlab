@@ -44,6 +44,7 @@ class FCOSMono3D(SingleStageMono3DDetector):
                  backbone: ConfigType,
                  neck: ConfigType,
                  bbox_head: ConfigType,
+                 save_onnx_model: bool = False,
                  train_cfg: OptConfigType = None,
                  test_cfg: OptConfigType = None,
                  data_preprocessor: OptConfigType = None,
@@ -56,6 +57,9 @@ class FCOSMono3D(SingleStageMono3DDetector):
             test_cfg=test_cfg,
             data_preprocessor=data_preprocessor,
             init_cfg=init_cfg)
+
+        # for onnx model export
+        self.save_onnx_model = save_onnx_model
 
 
     def forward(self,
@@ -94,8 +98,10 @@ class FCOSMono3D(SingleStageMono3DDetector):
         if mode == 'loss':
             return self.loss(inputs, data_samples)
         elif mode == 'predict':
-            if EXPORT_ONNX == True:
+            if self.save_onnx_model is True:
                 export_FCOS3D(self, inputs, data_samples)
+                # Export onnx only once
+                self.save_onnx_model = False
 
             return self.predict(inputs, data_samples)
         elif mode == 'tensor':

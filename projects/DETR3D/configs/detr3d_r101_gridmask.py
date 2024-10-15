@@ -27,6 +27,7 @@ input_modality = dict(
 default_scope = 'mmdet3d'
 model = dict(
     type='DETR3D',
+    save_onnx_model=False,
     use_grid_mask=True,
     data_preprocessor=dict(
         type='Det3DDataPreprocessor', **img_norm_cfg, pad_size_divisor=32),

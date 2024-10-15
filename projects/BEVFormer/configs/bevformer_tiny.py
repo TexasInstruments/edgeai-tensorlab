@@ -54,7 +54,7 @@ queue_length = 3 # each sequence contains `queue_length` frames.
 model = dict(
     type='BEVFormer',
     use_grid_mask=True,
-    #data_preprocessor=None,
+    save_onnx_model=False,
     data_preprocessor=dict(
         type='BEVFormer3DDataPreprocessor', **img_norm_cfg, pad_size_divisor=32),
     video_test_mode=True,

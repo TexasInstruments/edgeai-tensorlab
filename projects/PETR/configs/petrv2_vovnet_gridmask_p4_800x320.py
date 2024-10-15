@@ -30,6 +30,7 @@ metainfo = dict(classes=class_names)
 input_modality = dict(use_camera=True)
 model = dict(
     type='PETR',
+    save_onnx_model=False,
     data_preprocessor=dict(
         type='Det3DDataPreprocessor',
         mean=[103.530, 116.280, 123.675],
