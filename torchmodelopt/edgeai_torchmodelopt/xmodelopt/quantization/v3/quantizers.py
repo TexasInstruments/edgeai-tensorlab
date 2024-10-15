@@ -153,12 +153,13 @@ def _derived_bias_quant_spec(weight_node, input_act_node, curr_node) -> DerivedQ
 
 class TIDLRTQuantizer(Quantizer):
 
-    def __init__(self, is_qat, fast_mode=False):
+    def __init__(self, is_qat, fast_mode=False, is_fake_quantize=True):
         super().__init__()
         self.global_config: QuantizationConfig = None  # type: ignore[assignment]
         self.operator_type_config: Dict[str, Optional[QuantizationConfig]] = {}
         self.is_qat = is_qat 
         self.fast_mode = fast_mode
+        self.is_fake_quantize = is_fake_quantize
         self.single_input_single_output_shared_nodes = [torch.ops.aten.max_pool2d.default, 
                                                         torch.ops.aten.flatten.using_ints, 
                                                         torch.ops.aten.slice.Tensor,
@@ -377,7 +378,7 @@ class TIDLRTQuantizer(Quantizer):
                     power2_scale=observer.__init__._partialmethod.keywords['power2_scale'], 
                     range_shrink_percentile=observer.__init__._partialmethod.keywords['range_shrink_percentile']
                 ),
-                is_qat=self.is_qat,
+                is_fake_quantize=self.is_fake_quantize,
                 fast_mode=self.fast_mode
             )
 
