@@ -32,6 +32,9 @@ def disable_pre_hook_for_optimization(self: nn.Module):
 
 
 def add_example_args_kwargs(module, example_inputs, example_kwargs=None, transformation_dict=None):
+    if (example_inputs is None or example_inputs in ([], [None], (), (None,))) and (example_kwargs is None or example_kwargs == {}):
+        return
+
     example_kwargs = example_kwargs or {}
     if not isinstance(example_inputs, (tuple, list)):
         example_inputs = (example_inputs,)

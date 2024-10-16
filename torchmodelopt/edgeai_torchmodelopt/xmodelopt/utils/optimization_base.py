@@ -46,7 +46,7 @@ class OptimizationBaseModule(nn.Module):
         raise NotImplementedError('prepare method needs to be implemented')
 
     @classmethod
-    def _add_attrs(cls, obj, attr_names=None):
+    def _add_attrs_to(cls, obj, attr_names=None):
         attr_names = attr_names or []
         assert isinstance(obj, OptimizationBaseModule), 'This only works if self is an OptimizationBaseModule object'
         add_attrs(obj, attr_names, cls)
@@ -101,7 +101,7 @@ class ModelOptimizationBaseModule(OptimizationBaseModule):
     @classmethod
     def _add_attrs_to(cls, obj, attr_names=None):
         attr_names = attr_names or ['convert', 'export']
-        super()._add_attrs(obj, attr_names)
+        super()._add_attrs_to(obj, attr_names)
 
     def convert(self, *args, **kwargs):
         if self.quantization_kwargs:
