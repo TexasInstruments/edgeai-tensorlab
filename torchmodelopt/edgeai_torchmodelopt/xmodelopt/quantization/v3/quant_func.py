@@ -50,8 +50,8 @@ import types
 
 
 def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None, example_kwargs=None, qconfig_type=None,
-        qconfig_mode=qconfig_types.QConfigMode.DEFAULT,num_batch_norm_update_epochs=None, 
-        num_observer_update_epochs=None, add_methods=True, fast_mode=False, **kwargs ):
+        qconfig_mode=qconfig_types.QConfigMode.DEFAULT,num_batch_norm_update_epochs=None, num_observer_update_epochs=None, 
+        add_methods=True, fast_mode=False, is_fake_quantize=True, **kwargs ):
     
     example_kwargs = example_kwargs or {} 
     if hasattr(model, '_example_inputs') and hasattr(model, '_example_kwargs'):
@@ -90,14 +90,14 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
     print("Dynamo Export Completed ! \n\n")
     # else:
     #     m, guards = torchdynamo.export(orig_model, example_inputs, aten_graph=True, assume_static_by_default=True, pre_dispatch=True, decomposition_table=decomposition_table)
-
+    is_fake_quantize = True if is_qat else is_fake_quantize
     qconfig_type = qconfig_type or qconfig_types.QConfigType.DEFAULT
-    qconfig_mode = qconfig_types.get_qconfig(qconfig_type, is_qat=is_qat, fast_mode=fast_mode)
+    qconfig_mode = qconfig_types.get_qconfig(qconfig_type, is_fake_quantize=is_fake_quantize, fast_mode=fast_mode)
     
     # qconfig_mode = get_symmetric_quantization_config(is_qat=False)
     
     # methods to quantize individual layers/modules types are in quantizer
-    quantizer = quantizer or TIDLRTQuantizer(is_qat=is_qat, fast_mode=fast_mode)
+    quantizer = quantizer or TIDLRTQuantizer(is_qat=is_qat, fast_mode=fast_mode, is_fake_quantize=is_fake_quantize)
     quantizer.set_global(qconfig_mode)
     
     # for copy_arg in copy_args:
