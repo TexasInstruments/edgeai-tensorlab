@@ -93,6 +93,13 @@ def adjust_meta(new_node:fx.Node, old_node:fx.Node, replace_node:fx.Node,partiti
                     break
                 index += 1 
             replace_meta_val = list(replace_node.meta[meta_name].items())
+            if index != 0:
+                module_name, details_tuple = old_meta_val[index-1]
+                module_fetch_str , cls =details_tuple
+                temp_replace_meta_val = []
+                for name,tup in replace_meta_val:
+                    temp_replace_meta_val.append((module_name+'__'+name,(module_fetch_str+'.'+tup[0],tup[1])))
+                replace_meta_val = temp_replace_meta_val
             new_node.meta[meta_name] = dict(old_meta_val[:index]+replace_meta_val)
 
 
@@ -207,13 +214,13 @@ def _replace_pattern(main_module:GraphModule, partition:SourcePartition, replace
 
 
 # replaces all matches with call_module node
-def _replace_all_matches(main_module:GraphModule, pattern_partitions:list[SourcePartition], replacements:list[tuple[nn.Module|type|types.FunctionType,types.FunctionType|types.NoneType]],aten_graph = False):
+def _replace_all_matches(main_module:GraphModule, pattern_partitions:list[SourcePartition], replacements:list[tuple[nn.Module|type|types.FunctionType,types.FunctionType|types.NoneType]],aten_graph = True):
     '''
     replace all pattern partitions from the graph with a copy of replacement module
     if it gets None it will not replace that partition
     '''
     
-    def default_module_gen_func(partiion:SourcePartition, main_model:GraphModule, aten_graph:bool = False):
+    def default_module_gen_func(partiion:SourcePartition, main_model:GraphModule, aten_graph:bool = True):
         # assert isinstance(replace_module,nn.Module)
         return copy.deepcopy(replace_module)
 
@@ -240,7 +247,7 @@ def _replace_all_matches(main_module:GraphModule, pattern_partitions:list[Source
         temp_net_module_replaced = 0
         for replacement in replacements[(i+1):]:
             replace_module, input_adjustment_func =replacement
-            temp_partitions = utils.get_source_partition(replace_module_copy.module.graph,[source])[source]
+            temp_partitions = utils.get_source_partitions(replace_module_copy.module.graph,[source])[source]
             for temp_partition in temp_partitions:
                 temp_partition_string = _get_partition_string(replace_module_copy.module, temp_partition)
                 is_temp_new = temp_partition_string not in temp_partition_module_map
@@ -270,7 +277,7 @@ def _replace_all_matches(main_module:GraphModule, pattern_partitions:list[Source
 
 
 # replace nodes if they don't need any change with their keyword arguments and arguements
-def graph_pattern_replacer(main_module:GraphModule, pattern_partions:list[SourcePartition], replacement:tuple[nn.Module|type|types.FunctionType,types.FunctionType|types.NoneType], aten_graph = False, verbose_mode=False):
+def graph_pattern_replacer(main_module:GraphModule, pattern_partions:list[SourcePartition], replacement:tuple[nn.Module|type|types.FunctionType,types.FunctionType|types.NoneType], aten_graph = True, verbose_mode=False):
     '''
     replaces all matched partitions in the graph  with replacement module (wrapper call)
     '''

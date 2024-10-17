@@ -66,6 +66,17 @@ def quantized_matmul(g: jit_utils.GraphContext, x, y, op_scale, op_zero_point):
     output = g.op("MatMul", x, y)
     return symbolic_helper.quantize_helper(g, output, op_scale, op_zero_point)
 
+def aten_quantize_channel(g, x, op_scale, op_zero_point, axis, dtype, *args):
+    # Tensor input, Tensor scales, Tensor zero_points, int axis, int quant_min, int quant_max, ScalarType dtype, *, Tensor(a!) out) -> Tensor(a!)
+    # x, _, _, _ = symbolic_helper.dequantize_helper(g, x)
+    # return x
+    
+    dtype = symbolic_helper._get_const(dtype, "i", "dtype")
+    op_zero_point = g.op("Cast", op_zero_point, to_i=symbolic_helper.scalar_type_to_onnx[dtype])
+    op_scale = g.op("Cast", op_scale, to_i=torch.onnx.TensorProtoDataType.FLOAT)
+    
+    return symbolic_helper.quantize_helper(g, x, op_scale, op_zero_point, axis)
+    
 
 @torch.fx.wrap
 def _get_rel_pos_bias(relative_position_bias_table, relative_position_index, window_area) -> torch.Tensor:

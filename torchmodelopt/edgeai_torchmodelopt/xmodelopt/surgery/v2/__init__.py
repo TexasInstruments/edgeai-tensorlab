@@ -38,7 +38,9 @@ import warnings
 
 from . import custom_modules, custom_surgery_functions
 from .surgery import _replace_unsupported_layers
-
+from ...utils.optimization_base import OptimizationBaseModule, add_attrs
+from ...utils.transformation_utils import wrapped_transformation_fn
+from ...utils.hooks import add_example_args_kwargs 
 try:
     from torchvision.ops.misc import SqueezeExcitation
     tv_se_module = SqueezeExcitation(48, 16)
@@ -52,15 +54,15 @@ except:
     timm_se_module = None
 
 
-def convert_to_lite_fx(model:torch.nn.Module, replacement_dict:Dict[Any,Union[torch.nn.Module,callable]]=None, example_input:list=[], example_kwargs:dict={}, verbose_mode:bool=False, **kwargs):
+def convert_to_lite_fx(model:torch.nn.Module, replacement_dict:Dict[Any,Union[torch.nn.Module,callable]]=None, example_inputs:list=None, example_kwargs:dict=None, verbose_mode:bool=False, **kwargs):
     '''
     converts model into lite model using replacement dict
     if no replacement dict is provided it does the default replacement
     '''
-    if example_input is None:
-        # "example_input optional and used only in models using LayerNorm. Using a default value since it was not provided.
-        example_input = torch.rand(1,3,224,224) # Default input shape
-    return replace_unsupported_layers(model, example_input=example_input, example_kwargs=example_kwargs, replacement_dict=replacement_dict, verbose_mode=verbose_mode, **kwargs)
+    # "example_inputs optional and used only in models using LayerNorm. Using a default value since it was not provided.
+    example_inputs = example_inputs if example_inputs is not None else  torch.rand(1,3,224,224) # Default input shape
+    example_kwargs = example_kwargs or {}
+    return replace_unsupported_layers(model, example_inputs=example_inputs, example_kwargs=example_kwargs, replacement_dict=replacement_dict, verbose_mode=verbose_mode, **kwargs)
 
 
 #Default Flags for replacement dict
@@ -179,7 +181,7 @@ def get_replacement_dict(
     return replacement_dict
 
 
-def replace_unsupported_layers(model:nn.Module, example_input:list=[], example_kwargs:dict={}, replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, copy_args:list=[],  can_retrain=True, verbose_mode:bool=False, **kwargs):
+def replace_unsupported_layers(model:nn.Module, example_inputs:list=None, example_kwargs:dict=None, replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, copy_args:list=[],  can_retrain=True, verbose_mode:bool=False, **kwargs):
     #TODO write appropiate documentation for this function
     
     '''
@@ -202,7 +204,8 @@ def replace_unsupported_layers(model:nn.Module, example_input:list=[], example_k
     nn.Module       ->  nn.Module/type      : any nn.Module pattern to replace with another nn.Module
     type            ->  type/nn.Module      : replaces sub-module of same type as patttern using traditional python approach 
     '''
-    
+    example_inputs = example_inputs if example_inputs is not None else []
+    example_kwargs = example_kwargs or {}
     #TODO Check for functions    
     if model.training:
         RuntimeWarning("The model is in train mode, converting to eval mode. This might change the network behaviour.")
@@ -215,7 +218,7 @@ def replace_unsupported_layers(model:nn.Module, example_input:list=[], example_k
     
     model = deepcopy(model)
     
-    final_model = _replace_unsupported_layers(model,  example_input, example_kwargs, replacement_dict, copy_args, verbose_mode, **kwargs)
+    final_model = _replace_unsupported_layers(model,  example_inputs, example_kwargs, replacement_dict, copy_args, verbose_mode, **kwargs)
     
     if is_train_mode:
         final_model.train()
@@ -223,7 +226,7 @@ def replace_unsupported_layers(model:nn.Module, example_input:list=[], example_k
     return final_model
 
 
-class SurgeryModule(torch.nn.Module):
+class SurgeryModule(OptimizationBaseModule):
     '''
     wrapper module  for performing surgery on module
 
@@ -231,12 +234,29 @@ class SurgeryModule(torch.nn.Module):
     while initializing.
     '''
     
-    def __init__(self, model, replacement_dict=None) -> None:
+    def __init__(self, model, *args, replacement_dict=None, example_inputs:list=None, example_kwargs:dict=None, transformation_dict=None, copy_attrs=None, **kwargs) -> None:
         '''perform surgery on the model and creates a new model'''
-        super().__init__()
-        self.replacement_dict=replacement_dict or get_replacement_flag_dict_default()
-        self.module = replace_unsupported_layers(model, self.replacement_dict)
+        copy_attrs= copy_attrs or []
+        super().__init__(model,*args, transformation_dict=transformation_dict, copy_attrs=copy_attrs, **kwargs)
+        self.prepare(self.module, *args, replacement_dict=replacement_dict, example_inputs=example_inputs, example_kwargs=example_kwargs, transformation_dict=self.transformation_dict, **kwargs)
 
+    def prepare(self, model, *args, replacement_dict=None, example_inputs:list=None, example_kwargs:dict=None, transformation_dict=None, **kwargs):
+        assert isinstance(self, OptimizationBaseModule), 'This only works if self is OptimizationBaseModule object'
+        example_inputs = example_inputs if example_inputs is not None else []
+        example_kwargs = example_kwargs or {}
+        if hasattr(model, '_example_inputs') and hasattr(model, '_example_kwargs'):
+            example_inputs= model._example_inputs
+            example_kwargs= model._example_kwargs
+        else:
+            add_example_args_kwargs(model, example_inputs=example_inputs, example_kwargs=example_kwargs, transformation_dict=transformation_dict)
+        self.replacement_dict=replacement_dict or get_replacement_flag_dict_default()
+        self.module = wrapped_transformation_fn(convert_to_lite_fx, model, replacement_dict=self.replacement_dict, example_inputs=example_inputs, example_kwargs=example_kwargs, transformation_dict=transformation_dict,**kwargs)
+    
+    @classmethod
+    def _add_attrs_to(cls, obj, attr_names=None):
+        attr_names = attr_names or ['get_replacement_dict']
+        OptimizationBaseModule._add_attrs_to(obj, attr_names)
+    
     def forward(self,x,*args,**kwargs):
         '''
         atleast one input required 

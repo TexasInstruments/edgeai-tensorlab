@@ -67,15 +67,18 @@ def load_weights(model, pretrained, change_names_dict=None, keep_original_names=
         data = pretrained
     #
 
-    load_error = False
-    state_dict_names = state_dict_name if isinstance(state_dict_name, (list,tuple)) else [state_dict_name]
-    for s_name in state_dict_names:
-        data = data[s_name] if ((data is not None) and s_name in data) else data
+    if data is not None:
+        state_dict_names = state_dict_name if isinstance(state_dict_name, (list,tuple)) else [state_dict_name]
+        for s_name in state_dict_names:
+            if s_name in data:
+                data = data[s_name]
+                break
 
     if width_mult != 1.0:
         data = widen_model_data(data, factor=width_mult)
     #
-    
+
+    load_error = False
     try:
         model.load_state_dict(data, strict=True)
     except:

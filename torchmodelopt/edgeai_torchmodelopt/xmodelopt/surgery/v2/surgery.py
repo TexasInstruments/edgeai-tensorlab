@@ -52,7 +52,7 @@ def _is_replacable(pattern:Union[GraphModule, nn.Module, callable]):
     return True
 
 
-def _replace_unsupported_layers(model:nn.Module, example_input:list=[], example_kwargs:dict={}, replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, copy_args:list=[], verbose_mode:bool=False, **kwargs) -> GraphModule | nn.Module:
+def _replace_unsupported_layers(model:nn.Module, example_inputs:list=None, example_kwargs:dict=None, replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, copy_args:list=[], verbose_mode:bool=False, **kwargs) -> GraphModule | nn.Module:
     '''
     main function that does the surgery
 
@@ -66,6 +66,8 @@ def _replace_unsupported_layers(model:nn.Module, example_input:list=[], example_
     type            ->  type/nn.Module      : replaces sub-module of same type as patttern using traditional python approach 
     '''
 
+    example_inputs = example_inputs if example_inputs is not None else []
+    example_kwargs = example_kwargs or {}
     for pattern, replacement in replacement_dict.items():
         if pattern is None:
             continue
@@ -80,7 +82,7 @@ def _replace_unsupported_layers(model:nn.Module, example_input:list=[], example_
             model = replace_function_nodes(model, pattern, replacement, verbose_mode=verbose_mode, **kwargs)
         elif isfunction(replacement) or ismethod(replacement):
             # for self-made surgery function 
-            model = replacement(model, pattern = pattern, example_input = example_input, verbose_mode=verbose_mode)
+            model = replacement(model, pattern = pattern, example_inputs = example_inputs, verbose_mode=verbose_mode)
         else:
             # class of MOdule of
             if isinstance(pattern, type):

@@ -122,7 +122,7 @@ class ResizeScaleFactorOnly(nn.Module):
 
 # Wrapper module all replaced module 
 class ReplacedModule(nn.Module):
-    def __init__(self, main_model:GraphModule, partition:SourcePartition, gen_func:FunctionType, input_adjustment_func:FunctionType, trace_through:bool = True, aten_graph = False, verbose= False, *args, **kwargs) -> None:
+    def __init__(self, main_model:GraphModule, partition:SourcePartition, gen_func:FunctionType, input_adjustment_func:FunctionType, trace_through:bool = True, aten_graph = True, verbose= False, *args, **kwargs) -> None:
         '''
         gen_func: a function that takes main_model and partition as arguments and returns a nn.Module or None
             -> module: that will replace the partition
@@ -133,16 +133,17 @@ class ReplacedModule(nn.Module):
         self.gen_func = gen_func
         self.input_adjustment_func = input_adjustment_func
         self.inputs = {}
+        pre_dispatch = aten_graph
         for node in partition.input_nodes:
             if 'val' in node.meta:
                 self.inputs[node] = node.meta['val']
             elif 'example_value' in node.meta:
                 self.inputs[node] = node.meta['example_value']
         self.module = self.gen_func(main_model,partition,aten_graph)
-        example_args,example_kwargs =self.input_adjustment_func(partition,self.inputs)
+        example_inputs,example_kwargs =self.input_adjustment_func(partition,self.inputs)
         if self.module is not None:
             x = None
-            arg_tensors = [x for x in example_args if isinstance(x, torch.Tensor)]
+            arg_tensors = [x for x in example_inputs if isinstance(x, torch.Tensor)]
             kwarg_tensors = [x for x in example_kwargs.values() if isinstance(x, torch.Tensor)]
             if (param := next(main_model.parameters(),None)) is not None:
                 x = param
@@ -159,7 +160,7 @@ class ReplacedModule(nn.Module):
             
         if trace_through and self.module is not None:
             try:
-                self.module, _ = torch_dynamo.export(self.module,aten_graph=aten_graph,assume_static_by_default=True)(*example_args,**example_kwargs)
+                self.module, _ = torch_dynamo.export(self.module,aten_graph=aten_graph, pre_dispatch=pre_dispatch, assume_static_by_default=True)(*example_inputs,**example_kwargs)
                 num_inputs = len([node for node in self.module.graph.nodes if node.op == 'placeholder'])
                 out_nodes = [node for node in self.module.graph.nodes if node.op == 'output']
                 num_outputs = len(out_nodes[0].args[0])

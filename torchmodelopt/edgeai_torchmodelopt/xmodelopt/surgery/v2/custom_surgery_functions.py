@@ -89,8 +89,13 @@ def _replace_pool_size_ge_5(model:nn.Module,  pool_class=nn.MaxPool2d,pool_funct
             #for call module pool
             module=modules[node.target]
             if isinstance(module,pool_class):
-                if module.kernel_size > 4:
-                    k_size=module.kernel_size 
+                if isinstance(module.kernel_size, tuple) and len(module.kernel_size)==2:
+                    assert module.kernel_size[0] == module.kernel_size[1], "In Focus module, kernel_size must be a square" 
+                    kernel_size = module.kernel_size[0]
+                else:
+                    kernel_size = module.kernel_size
+                if kernel_size > 4:
+                    k_size=kernel_size 
                     stride=module.stride
                     padding=module.padding
                     replacement= nn.Sequential()
@@ -109,6 +114,11 @@ def _replace_pool_size_ge_5(model:nn.Module,  pool_class=nn.MaxPool2d,pool_funct
         if node.target == pool_function:
             #for functional pool
             k_size=node.args[1]
+            if isinstance(k_size, tuple) and len(k_size)==2:
+                assert k_size[0] == k_size[1], "In Focus module, kernel_size must be a square" 
+                k_size = k_size[0]
+            else:
+                k_size = k_size
             stride=node.kwargs['stride']
             padding=node.kwargs['padding']
             replacement= nn.Sequential()
@@ -162,10 +172,15 @@ def replace_conv2d_kernel_size_gt_7(model:nn.Module, verbose_mode=False, **kwarg
             #for call module conv
             module=modules[node.target]
             if isinstance(module,nn.Conv2d):
-                if module.kernel_size[0] > 7:
+                if isinstance(module.kernel_size, tuple) and len(module.kernel_size)==2:
+                    assert module.kernel_size[0] == module.kernel_size[1], "In Focus module, kernel_size must be a square" 
+                    kernel_size = module.kernel_size[0]
+                else:
+                    kernel_size = module.kernel_size
+                if kernel_size > 7:
                     in_channels=module.in_channels
                     out_channels=module.out_channels
-                    k_size=module.kernel_size[0]
+                    k_size=kernel_size
                     stride=module.stride[0]
                     padding=module.padding[0]
                     replacement= nn.Sequential()
@@ -230,10 +245,15 @@ def replace_conv2d_kernel_size_6(model:nn.Module, verbose_mode=False,**kwargs):
             #for call module conv
             module=modules[node.target]
             if isinstance(module,nn.Conv2d):
-                if module.kernel_size[0] == 6:
+                if isinstance(module.kernel_size, tuple) and len(module.kernel_size)==2:
+                    assert module.kernel_size[0] == module.kernel_size[1], "In Focus module, kernel_size must be a square" 
+                    kernel_size = module.kernel_size[0]
+                else:
+                    kernel_size = module.kernel_size
+                if kernel_size == 6:
                     in_channels=module.in_channels
                     out_channels=module.out_channels
-                    k_size=module.kernel_size[0]
+                    k_size=kernel_size
                     stride=module.stride[0]
                     padding=module.padding[0]
                     replacement= nn.Sequential()
@@ -301,12 +321,12 @@ def replace_cnblock(model:nn.Module, verbose_mode=False,**kwargs):
     return traced_model
 
 
-def replace_layer_norm(model:nn.Module, example_input:torch.Tensor = None, verbose_mode=False, **kwargs):
+def replace_layer_norm(model:nn.Module, example_inputs:torch.Tensor = None, verbose_mode=False, **kwargs):
     traced_model=remove_identiy(model)
     no_of_layer_norm=0
     t_modules= dict(traced_model.named_modules())
-    assert example_input is not None, f'The parameter \'example_input\' is required but got {example_input}, as the replacement layer depends on it'
-    assert isinstance(example_input,torch.Tensor),f'The parmeter must be a tensor but got {example_input.__class__.__name__}'
+    assert example_inputs is not None, f'The parameter \'example_inputs\' is required but got {example_inputs}, as the replacement layer depends on it'
+    assert isinstance(example_inputs,torch.Tensor),f'The parmeter must be a tensor but got {example_inputs.__class__.__name__}'
     for node in traced_model.graph.nodes:
         module=None
         prev = None
@@ -434,12 +454,12 @@ def replace_layer_norm(model:nn.Module, example_input:torch.Tensor = None, verbo
     if verbose_mode:
         print('layernorm',no_of_layer_norm)
     # to initialize correct batchnorm layer depending upon input shape
-    traced_model(example_input)
+    traced_model(example_inputs)
     return traced_model
 
 
 #not effective so not implemented
-def replace_se_layer(model:nn.Module, pattern= None, example_input = None, verbose_mode=False):
+def replace_se_layer(model:nn.Module, pattern= None, example_inputs = None, verbose_mode=False):
     traced_model=remove_identiy(model)
     modules=dict(traced_model.named_modules())
     

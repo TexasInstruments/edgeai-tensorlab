@@ -40,3 +40,8 @@ from .xmodelopt import quantization
 from .xmodelopt.surgery import SyrgeryVersion
 from .xmodelopt.pruning import PruningVersion
 from .xmodelopt.quantization import QuantizationVersion
+
+try:
+    from .version import __version__  # noqa: F401
+except ImportError:
+    pass
