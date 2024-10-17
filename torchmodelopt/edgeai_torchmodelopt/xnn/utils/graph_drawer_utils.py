@@ -1,12 +1,11 @@
 import torch
 import os
 from itertools import chain
-from torch.fx.passes.graph_drawer import FxGraphDrawer,_WEIGHT_TEMPLATE
 from torch.fx.node import _format_arg
 from torch.fx.graph import _parse_stack_trace
 import pydot 
 from torch import fx
-from typing import Iterable
+from torch.fx.passes.graph_drawer import FxGraphDrawer, _WEIGHT_TEMPLATE
 
 
 class CustomFxGraphDrawer(FxGraphDrawer):
@@ -57,11 +56,11 @@ class CustomFxGraphDrawer(FxGraphDrawer):
             label += extra + r"\n"
         else:
             label += f"|target={self._typename(node.target)}" + r"\n"
-            if len(node.args) > 0:
-                label += _get_str_for_args_kwargs(node.args)
-            if len(node.kwargs) > 0:
-                label += _get_str_for_args_kwargs(node.kwargs)
-            label += f"|num_users={len(node.users)}" + r"\n"
+        if len(node.args) > 0:
+            label += _get_str_for_args_kwargs(node.args)
+        if len(node.kwargs) > 0:
+            label += _get_str_for_args_kwargs(node.kwargs)
+        label += f"|num_users={len(node.users)}" + r"\n"
 
         tensor_meta = node.meta.get('tensor_meta')
         label += self._tensor_meta_to_label(tensor_meta)
@@ -223,11 +222,11 @@ class CustomPT2EGraphDrawer(FxGraphDrawer):
             label += extra + r"\n"
         else:
             label += f"|target={self._typename(node.target)}" + r"\n"
-            if len(node.args) > 0:
-                label += _get_str_for_args_kwargs(node.args)
-            if len(node.kwargs) > 0:
-                label += _get_str_for_args_kwargs(node.kwargs)
-            label += f"|num_users={len(node.users)}" + r"\n"
+        if len(node.args) > 0:
+            label += _get_str_for_args_kwargs(node.args)
+        if len(node.kwargs) > 0:
+            label += _get_str_for_args_kwargs(node.kwargs)
+        label += f"|num_users={len(node.users)}" + r"\n"
 
         tensor_meta = node.meta.get('tensor_meta')
         label += self._tensor_meta_to_label(tensor_meta)

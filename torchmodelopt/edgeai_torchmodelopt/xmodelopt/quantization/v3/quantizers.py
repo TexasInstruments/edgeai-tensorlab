@@ -60,6 +60,8 @@ from torch.fx.passes.utils.source_matcher_utils import get_source_partitions
 
 from . import qconfig_types
 
+import warnings
+
 def _mark_nodes_as_annotated(nodes: List[Node]):
     for node in nodes:
         if node is not None:
@@ -151,15 +153,18 @@ def _derived_bias_quant_spec(weight_node, input_act_node, curr_node) -> DerivedQ
 
 class TIDLRTQuantizer(Quantizer):
 
-    def __init__(self, is_qat, fast_mode=False):
+    def __init__(self, is_qat, fast_mode=False, is_fake_quantize=True):
         super().__init__()
         self.global_config: QuantizationConfig = None  # type: ignore[assignment]
         self.operator_type_config: Dict[str, Optional[QuantizationConfig]] = {}
         self.is_qat = is_qat 
         self.fast_mode = fast_mode
+        self.is_fake_quantize = is_fake_quantize
         self.single_input_single_output_shared_nodes = [torch.ops.aten.max_pool2d.default, 
                                                         torch.ops.aten.flatten.using_ints, 
-                                                        torch.ops.aten.slice.Tensor]
+                                                        torch.ops.aten.slice.Tensor,
+                                                        torch.ops.aten.dropout.default,
+                                                        torch.ops.aten.reshape.default]
         self.single_input_single_output_different_nodes = [ torch.ops.aten.leaky_relu.default, 
                                                             torch.ops.aten.gelu.default,
                                                             torch.ops.aten.relu.default,
@@ -264,9 +269,9 @@ class TIDLRTQuantizer(Quantizer):
             assert isinstance(weight, Node)
             input_qspec_map[weight] = get_weight_qspec(quantization_config)
 
-            bias = conv_node.args[2]
-            if isinstance(bias, Node):
-                input_qspec_map[bias] = _derived_bias_quant_spec(weight, input_act, conv_node)
+            if len(conv_node.args) >= 3 and (bias := conv_node.args[2]) is not None:
+                if isinstance(bias, Node):
+                    input_qspec_map[bias] = _derived_bias_quant_spec(weight, input_act, conv_node)
 
             conv_node.meta["quantization_annotation"] = QuantizationAnnotation(
                 input_qspec_map=input_qspec_map,
@@ -282,7 +287,6 @@ class TIDLRTQuantizer(Quantizer):
         )
         act_qspec = get_input_act_qspec(quantization_config)
         weight_qspec = get_weight_qspec(quantization_config)
-        bias_qspec = get_bias_qspec(quantization_config)
         for module_or_fn_type, partitions in module_partitions.items():
             if module_or_fn_type == torch.nn.Linear:
                 for p in partitions:
@@ -319,7 +323,11 @@ class TIDLRTQuantizer(Quantizer):
                     if _is_annotated([output_node]) is False:
                         _annotate_output_qspec(output_node, act_qspec)
                     if bias_node and _is_annotated([bias_node]) is False:
-                        bias_qspec = _derived_bias_quant_spec(weight_node, act_node, None)
+                        if _is_annotated([act_node]):
+                            bias_qspec = _derived_bias_quant_spec(weight_node, act_node, None)
+                        else:
+                            warnings.warn("The bias for the node {} would not be quantized, it might not give correct results !".format(act_use_node.name))
+                            bias_qspec = get_bias_qspec(quantization_config)
                         _annotate_output_qspec(bias_node, bias_qspec)
                     nodes_to_mark_annotated = list(p.nodes)
                     _mark_nodes_as_annotated(nodes_to_mark_annotated)
@@ -352,7 +360,7 @@ class TIDLRTQuantizer(Quantizer):
             output_node = matmul_partition.output_nodes[0]
             matmul_node = None
             for n in matmul_partition.nodes:
-                if n.target == torch.ops.aten.matmul.default:
+                if n.target in (torch.ops.aten.matmul.default, torch.ops.aten.bmm.default):
                     matmul_node = n
             if _is_annotated([output_node, matmul_node]):  # type: ignore[list-item]
                 continue
@@ -370,7 +378,7 @@ class TIDLRTQuantizer(Quantizer):
                     power2_scale=observer.__init__._partialmethod.keywords['power2_scale'], 
                     range_shrink_percentile=observer.__init__._partialmethod.keywords['range_shrink_percentile']
                 ),
-                is_qat=self.is_qat,
+                is_fake_quantize=self.is_fake_quantize,
                 fast_mode=self.fast_mode
             )
 

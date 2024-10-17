@@ -116,7 +116,7 @@ def _get_proper_input_args(curr_partition:fx.Node|SourcePartition, fx_model:fx.G
 
 # Note: The source code is copied from pytorch github (https://github.com/pytorch/pytorch/blob/main/torch/fx/passes/utils/source_matcher_utils.py#L51)
 # and modified as per requirement 
-def get_source_partition(graph:fx.Graph, wanted_sources:list, filter_fn = None):
+def get_source_partitions(graph:fx.Graph, wanted_sources:list, filter_fn = None):
     '''
     a custom made get_source_partitions that can handle any type of modules and functions that are wrapped for fx
     
@@ -246,7 +246,7 @@ def get_pruning_partitions(module:fx.GraphModule):
             hfmodels.swin.modeling_swin.SwinAttention,
         ])
     
-    return get_source_partition(module.graph,wanted_sources)
+    return get_source_partitions(module.graph,wanted_sources)
 
 def get_parameter_indices(fx_model:fx.GraphModule, source:type, partition:SourcePartition):
     if source == nn.Conv2d:

@@ -54,7 +54,7 @@ def main():
     model = torchvision.models.vit_b_16(num_classes =num_classes)
     # model = torchvision.models.resnet50()
     dummy_input = torch.randn(10, 3, 224, 224)
-    m,_ = torch_dynamo.export(model,aten_graph=True)(dummy_input)
+    m,_ = torch_dynamo.export(model,aten_graph=True,pre_dispatch=True,assume_static_by_default=True)(dummy_input)
 
     current_model_dict = m.state_dict()
     model_path = '/home/a0507161/Kunal/transformer_sparsity/outputs/vit_b_16/2024_06_12_16_52_07/last_checkpoint.pth'

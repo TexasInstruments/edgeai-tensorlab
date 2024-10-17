@@ -46,6 +46,9 @@ except:
 
 from . import custom_modules, custom_surgery_functions,surgery
 from .surgery import _replace_unsupported_layers
+from ...utils.optimization_base import OptimizationBaseModule, add_attrs
+from ...utils.transformation_utils import wrapped_transformation_fn
+from ...utils.hooks import add_example_args_kwargs
 
 # for repo specific modules 
 try:
@@ -55,12 +58,19 @@ except:
     SEModule = None
 
 
-def convert_to_lite_pt2e(model:torch.nn.Module, replacement_dict:Dict[Any,Union[torch.nn.Module,callable]]=None, example_input:list=[], example_kwargs:dict={}, aten_graph:bool = False, verbose_mode:bool=False, *args, **kwargs):
+def convert_to_lite_pt2e(model:torch.nn.Module, replacement_dict:Dict[Any,Union[torch.nn.Module,callable]]=None, example_inputs:list=None, example_kwargs:dict=None, aten_graph:bool = True, verbose_mode:bool=False, *args, **kwargs):
     '''
     converts model into lite model using replacement dict
     if no replacement dict is provided it does the default replacement
     '''
-    return replace_unsupported_layers(model, example_input= example_input, example_kwargs=example_kwargs, replacement_dict=replacement_dict, aten_graph=aten_graph, verbose_mode=verbose_mode, **kwargs)
+    example_inputs = example_inputs if example_inputs is not None else []
+    example_kwargs = example_kwargs or {}
+    if hasattr(model, '_example_inputs') and hasattr(model, '_example_kwargs'):
+        example_inputs= model._example_inputs
+        example_kwargs= model._example_kwargs
+    else:
+        add_example_args_kwargs(model,example_inputs=example_inputs, example_kwargs=example_kwargs)
+    return replace_unsupported_layers(model, example_inputs= example_inputs, example_kwargs=example_kwargs, replacement_dict=replacement_dict, aten_graph=aten_graph, verbose_mode=verbose_mode, **kwargs)
 
 
 #Default Flags for replacement dict
@@ -207,7 +217,7 @@ def get_replacement_dict(
     return replacement_dict
 
 
-def replace_unsupported_layers(model:nn.Module, example_input:list=[], example_kwargs:dict={}, replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, aten_graph:bool = False, copy_args:list=[],  can_retrain=True, verbose_mode:bool=False,**kwargs):
+def replace_unsupported_layers(model:nn.Module, example_inputs:list=None, example_kwargs:dict=None, replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, aten_graph:bool = True, copy_args:list=[],  can_retrain=True, verbose_mode:bool=False,**kwargs):
     #TODO write appropiate documentation for this function
     
     '''
@@ -241,6 +251,8 @@ def replace_unsupported_layers(model:nn.Module, example_input:list=[], example_k
     '''
     
     #TODO Check for functions    
+    example_inputs = example_inputs if example_inputs is not None else []
+    example_kwargs = example_kwargs or {}
     if model.training:
         RuntimeWarning("The model is in train mode, converting to eval mode. This might change the network behaviour.")
         model.eval()
@@ -252,7 +264,7 @@ def replace_unsupported_layers(model:nn.Module, example_input:list=[], example_k
     
     model = deepcopy(model)
     
-    final_model = _replace_unsupported_layers(model,example_input,example_kwargs,replacement_dict,aten_graph,copy_args,verbose_mode)
+    final_model = _replace_unsupported_layers(model,example_inputs,example_kwargs,replacement_dict,aten_graph,copy_args,verbose_mode)
     
     if is_train_mode:
         final_model.train()
@@ -260,7 +272,7 @@ def replace_unsupported_layers(model:nn.Module, example_input:list=[], example_k
     return final_model
 
 
-class SurgeryModule(torch.nn.Module):
+class SurgeryModule(OptimizationBaseModule):
     '''
     wrapper module  for performing surgery on module
 
@@ -268,12 +280,28 @@ class SurgeryModule(torch.nn.Module):
     while initializing.
     '''
     
-    def __init__(self, model, replacement_dict=None) -> None:
+    def __init__(self, model, *args, replacement_dict=None, example_inputs: list=None, example_kwargs: dict=None, transformation_dict=None, copy_attrs=None, **kwargs) -> None:
         '''perform surgery on the model and creates a new model'''
-        super().__init__()
+        copy_attrs= copy_attrs or []
+        super().__init__(model,*args, transformation_dict=transformation_dict, copy_attrs=copy_attrs, **kwargs)
+        self.prepare(self.module,example_inputs=example_inputs, example_kwargs=example_kwargs, replacement_dict=replacement_dict,  )
+        
+    def prepare(self, model, *args, example_inputs: list=None, example_kwargs: dict=None, replacement_dict=None, transformation_dict=None, **kwargs):
+        example_inputs = example_inputs if example_inputs is not None else []
+        example_kwargs = example_kwargs or {}
+        if hasattr(model, '_example_inputs') and hasattr(model, '_example_kwargs'):
+            example_inputs= model._example_inputs
+            example_kwargs= model._example_kwargs
+        else:
+            add_example_args_kwargs(model,example_inputs=example_inputs, example_kwargs=example_kwargs, transformation_dict=transformation_dict)
         self.replacement_dict=replacement_dict or get_replacement_flag_dict_default()
-        self.module = replace_unsupported_layers(model, self.replacement_dict)
+        self.module = wrapped_transformation_fn(convert_to_lite_pt2e, model, replacement_dict=replacement_dict, example_inputs= example_inputs, example_kwargs=example_kwargs, transformation_dict=transformation_dict,)
 
+    @classmethod
+    def _add_attrs_to(cls, obj, attr_names=None):
+        attr_names = attr_names or ['get_replacement_dict']
+        OptimizationBaseModule._add_attrs_to(obj, attr_names)
+        
     def forward(self,x,*args,**kwargs):
         '''
         atleast one input required 

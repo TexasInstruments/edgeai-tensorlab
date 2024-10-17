@@ -40,7 +40,7 @@ import warnings
 from functools import partial
 
 
-from .utils import get_source_partition
+from .utils import get_source_partitions
 
 # for repo specific modules 
 try:
@@ -58,13 +58,14 @@ from . import replacer
 __all__ = ['_replace_unsupported_layers',]
 
 
-def _replace_unsupported_layers(model:nn.Module, example_input:list=[], example_kwargs:dict={}, replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, aten_graph:bool = False, copy_args:list=[], verbose_mode:bool=False):
-    
-    
+def _replace_unsupported_layers(model:nn.Module, example_inputs:list=None, example_kwargs:dict=None, replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, aten_graph:bool = True, copy_args:list=[], verbose_mode:bool=False):
     # assuming if it is a graph module it is generated through dynamo export 
     # TODO make symbolic trace generated module is goes through dynamo export
-    model(*example_input, **example_kwargs)
-    traced_model,_ =(model,None) if isinstance(model,GraphModule) else torch_dynamo.export(model,aten_graph=aten_graph,assume_static_by_default=True)(*example_input,**example_kwargs) 
+    example_inputs = example_inputs if example_inputs is not None else []
+    example_kwargs = example_kwargs or {}
+    model(*example_inputs, **example_kwargs)
+    pre_dispatch = aten_graph
+    traced_model,_ =(model,None) if isinstance(model,GraphModule) else torch_dynamo.export(model, aten_graph=aten_graph, pre_dispatch=pre_dispatch, assume_static_by_default=True)(*example_inputs,**example_kwargs) 
     
     replacer.__net_module_replaced = 0
     
@@ -75,14 +76,14 @@ def _replace_unsupported_layers(model:nn.Module, example_input:list=[], example_
         # class of Module of
         if isinstance(pattern, nn.Module):
             pattern = type(pattern)
-        source_partiions = get_source_partition(traced_model.graph,[pattern])
+        source_partiions = get_source_partitions(traced_model.graph,[pattern])
 
         if pattern not in source_partiions:
             continue
         
         # calls the main surgery function
         traced_model = graph_pattern_replacer(traced_model, source_partiions[pattern], replacement,aten_graph= aten_graph, verbose_mode=verbose_mode)
-        traced_model(*example_input,**example_kwargs)
+        traced_model(*example_inputs,**example_kwargs)
         # print(traced_model.graph)
         
     _remove_hanging_nodes(traced_model) 

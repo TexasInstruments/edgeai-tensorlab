@@ -38,6 +38,9 @@ class QATFxModule(QuantFxBaseModule):
     def __init__(self, *args, backend='qnnpack', is_qat=True, **kwargs):
         warnings.warn("Fx based quantization wrapper will be depercated in the future after pt2e quantization wrapper is completed.")
         super().__init__(*args, is_qat=is_qat, backend=backend, **kwargs)
+    
+    def prepare(self, model, *args, transformation_dict=None, backend='qnnpack', is_qat=True, add_methods=True, **kwargs):
+        return QuantFxBaseModule.prepare(self, model, *args, transformation_dict=transformation_dict, backend = backend, is_qat=is_qat, add_methods=add_methods, **kwargs)
 
 
 class PTCFxModule(QuantFxBaseModule):
@@ -50,3 +53,6 @@ class PTCFxModule(QuantFxBaseModule):
         warnings.warn("Fx based quantization wrapper will be depercated in the future after pt2e quantization wrapper is completed.")
         super().__init__(*args, is_qat=is_qat, backend=backend, bias_calibration_factor=bias_calibration_factor, \
             num_batch_norm_update_epochs=num_batch_norm_update_epochs, num_observer_update_epochs=num_observer_update_epochs, **kwargs)
+        
+    def prepare(self, model, *args, transformation_dict=None,  backend='qnnpack', is_qat=False, bias_calibration_factor=0.01, num_batch_norm_update_epochs=0, num_observer_update_epochs=1, add_methods=True, **kwargs):
+        return QuantFxBaseModule.prepare(self, model, *args, transformation_dict=transformation_dict,  backend=backend, is_qat=is_qat, bias_calibration_factor=bias_calibration_factor, num_batch_norm_update_epochs=num_batch_norm_update_epochs, num_observer_update_epochs=num_observer_update_epochs, add_methods=add_methods, **kwargs)

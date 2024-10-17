@@ -44,7 +44,7 @@ from . import replacer
 from . import custom_modules
 
 
-def gen_func_for_conv2d_kernel_gt_7(main_model:GraphModule, partition:SourcePartition, aten_graph:bool = False,):
+def gen_func_for_conv2d_kernel_gt_7(main_model:GraphModule, partition:SourcePartition, aten_graph:bool = True,):
     '''
     replacement module generator function, this should generate replacement module 
     for all possible nn.conv2d modules if it is passed to the dictionary
@@ -56,71 +56,73 @@ def gen_func_for_conv2d_kernel_gt_7(main_model:GraphModule, partition:SourcePart
     if partition.source != nn.Conv2d:
         return None
     
-    nodes = partition.nodes
+    conv_node = partition.output_nodes[0]
     if aten_graph:
         params = dict(main_model.named_parameters())
-        weight_name = nodes[0].target
-        weight = params[weight_name]
-        bias_name = nodes[1].target if len(partition.nodes) > 2 else None
-        bias = params[bias_name] if bias_name is not None else None
-        
+        weight = params[conv_node.args[1].target]
+        num_args = len(conv_node.args)
         assert len(weight.shape) == 4
-        out_channels,in_channels,k_size,_ = list(weight.shape) 
-        stride,_ = partition.output_nodes[0].kwargs.get('stride', partition.output_nodes[0].args[3])
-        padding = partition.output_nodes[0].kwargs.get('padding',partition.output_nodes[0].args[4])
-        padding_mode = partition.output_nodes[0].kwargs.get('padding_mode',partition.output_nodes[0].args[7])
+        out_channels, in_channels, *k_size = list(weight.shape) 
+        bias_node = conv_node.args[2] if num_args >= 3 else None
+        bias = params[bias_node.target] if bias_node is not None else None
+        stride = conv_node.args[3] if num_args >= 4 else [1, 1]
+        padding = conv_node.args[4] if num_args >= 5 else [0, 0]
+
     else:
         modules = dict(main_model.named_modules())
-        module = modules[partition.output_nodes[0].target]
+        module = modules[conv_node.target]
         assert isinstance(module, nn.Conv2d)
         weight = module.weight
         bias = module.bias
-        in_channels= module.in_channels
-        out_channels= module.out_channels
-        k_size= module.kernel_size[0]
-        stride = module.stride[0]
+        in_channels = module.in_channels
+        out_channels = module.out_channels
+        k_size = module.kernel_size    
+        stride = module.stride
         padding = module.padding
         padding_mode = module.padding_mode
     
-    if padding == 'valid' :
-        padding = 0
-    elif padding == 'same':
-        padding = padding
-    else:
+    if isinstance(k_size, (tuple, list)):
+        assert len(k_size) == 2 and k_size[0] == k_size[1]
+        k_size = k_size[0]
+    
+    if isinstance(stride, (tuple, list)):
+        assert len(stride) == 2 and stride[0] == stride[1]
+        stride = stride[0]
+    
+    if isinstance(padding, (tuple, list)):
+        assert len(padding) == 2 and padding[0] == padding[1]
         padding = padding[0]
     
-    kernel_size = k_size
-    
-    if k_size <= 7 :
+    if k_size <= 7:
         return None
     replacement = nn.Sequential()
-    max_padding = (k_size-1)/2 if k_size %2 == 1 else (k_size/2 -1)  
+    max_padding = (k_size - 1) / 2 if k_size % 2 == 1 else (k_size / 2 - 1)  
     
-    while k_size>7:
-        if  isinstance(padding,str):
+    while k_size > 7:
+        if isinstance(padding, str):
             t_padding = padding 
         else:
-            if padding > max_padding :
+            if padding > max_padding:
                 t_padding = 1
                 padding -= 1
             else:
                 t_padding = 0
-        temp_out_channels= out_channels
-        replacement.append(custom_modules.ConvBNRModule(in_channels,temp_out_channels, kernel_size=3,stride=1,padding=t_padding))
-        in_channels=temp_out_channels
-        k_size-=2
+        temp_out_channels = out_channels
+        replacement.append(custom_modules.ConvBNRModule(in_channels, temp_out_channels, kernel_size=3, stride=1, padding=t_padding))
+        in_channels = temp_out_channels
+        k_size -= 2
     
     if k_size % 2 == 1:
-        padding = padding if isinstance(padding, str) else min(3,padding)
-        replacement.append(nn.Conv2d(in_channels,out_channels,k_size,stride=stride,padding=padding))
+        padding = padding if isinstance(padding, str) else min(3, padding)
+        replacement.append(nn.Conv2d(in_channels, out_channels, k_size, stride=stride, padding=padding))
     else:
-        max_padding = min(2, (k_size/2 -1))
-        padding =  padding if isinstance(padding, str) else (min(max_padding,padding))
-        replacement.append(nn.Conv2d(in_channels,out_channels,kernel_size=k_size,stride=stride,padding=padding))
+        max_padding = min(2, (k_size / 2 - 1))
+        padding = padding if isinstance(padding, str) else min(max_padding, padding)
+        replacement.append(nn.Conv2d(in_channels, out_channels, kernel_size=k_size, stride=stride, padding=padding))
     
     return replacement
 
-def gen_func_for_conv2d_even_kernel_to_odd(main_model:GraphModule, partition:SourcePartition, aten_graph:bool = False,):
+def gen_func_for_conv2d_even_kernel_to_odd(main_model:GraphModule, partition:SourcePartition, aten_graph:bool = True,):
     '''
     replacement module generator function, this should generate replacement module 
     for all possible nn.conv2d modules if it is passed to the dictionary
@@ -132,56 +134,61 @@ def gen_func_for_conv2d_even_kernel_to_odd(main_model:GraphModule, partition:Sou
     if partition.source != nn.Conv2d:
         return None
     
-    nodes = partition.nodes
+    conv_node = partition.output_nodes[0]
     if aten_graph:
         params = dict(main_model.named_parameters())
-        weight_name = nodes[0].target
-        weight = params[weight_name]
-        bias_name = nodes[1].target if len(partition.nodes) > 2 else None
-        bias = params[bias_name] if bias_name is not None else None
-        
+        weight = params[conv_node.args[1].target]
+        num_args = len(conv_node.args)
         assert len(weight.shape) == 4
-        out_channels,in_channels,k_size,_ = list(weight.shape) 
-        stride,_ = partition.output_nodes[0].kwargs.get('stride', partition.output_nodes[0].args[3])
-        padding = partition.output_nodes[0].kwargs.get('padding',partition.output_nodes[0].args[4])
-        padding_mode = partition.output_nodes[0].kwargs.get('padding_mode',partition.output_nodes[0].args[7])
+        out_channels, in_channels, *k_size = list(weight.shape) 
+        if num_args >= 3:
+            bias_node = conv_node.args[2]
+            bias = params[bias_node.target] if bias_node is not None else None
+        stride = conv_node.args[3] if num_args >= 4 else [1, 1]
+        padding = conv_node.args[4] if num_args >= 5 else [0, 0]
+
     else:
         modules = dict(main_model.named_modules())
-        module = modules[partition.output_nodes[0].target]
+        module = modules[conv_node.target]
         assert isinstance(module, nn.Conv2d)
         weight = module.weight
-        bias = getattr(module,'bias',None) 
-        in_channels= module.in_channels
-        out_channels= module.out_channels
-        k_size= module.kernel_size[0]
-        stride = module.stride[0]
+        bias = module.bias
+        in_channels = module.in_channels
+        out_channels = module.out_channels
+        k_size = module.kernel_size    
+        stride = module.stride
         padding = module.padding
         padding_mode = module.padding_mode
     
-    if padding == 'valid' :
-        padding = 0
-    elif padding == 'same':
-        padding = padding
-    else:
+    if isinstance(k_size,(tuple, list)):
+        assert len(k_size) == 2 and k_size[0] == k_size[1]
+        k_size = k_size[0]
+    
+    if isinstance(stride,(tuple, list)):
+        assert len(stride) == 2 and stride[0] == stride[1]
+        stride = stride[0]
+    
+    if isinstance(padding,(tuple, list)):
+        assert len(padding) == 2 and padding[0] == padding[1]
         padding = padding[0]
 
-    if k_size%2 == 1:
+    if k_size % 2 == 1:
         return None
     replacement = nn.Sequential()
 
-    replacement.append(custom_modules.Padding((1,0,1,0),padding_mode,))
-    last_conv = nn.Conv2d(in_channels,out_channels,kernel_size=k_size+1,stride=stride,padding=padding)
+    replacement.append(custom_modules.Padding((1, 0, 1, 0), padding_mode))
+    last_conv = nn.Conv2d(in_channels, out_channels, kernel_size=k_size + 1, stride=stride, padding=padding)
     
     last_conv.bias = deepcopy(bias) if bias is not None else nn.Parameter(torch.zeros_like(last_conv.bias))
     new_weight = torch.ones_like(last_conv.weight)
-    new_weight[:,:,1:,1:] = weight.data
+    new_weight[:, :, 1:, 1:] = weight.data
     last_conv.weight = nn.Parameter(new_weight)
     replacement.append(last_conv)
     
     return replacement
     
 
-def gen_func_for_upsample(main_model:GraphModule, partition:SourcePartition, aten_graph:bool = False):
+def gen_func_for_upsample(main_model:GraphModule, partition:SourcePartition, aten_graph:bool = True):
     '''
     replacement module generator function, this should generate replacement module 
     for all possible nn.Upsample modules if it is passed to the dictionary
@@ -192,7 +199,29 @@ def gen_func_for_upsample(main_model:GraphModule, partition:SourcePartition, ate
         return None
     if aten_graph:
         #TODO make  replacement for upsample
-        return None
+        mode_to_func_map = {
+            'nearest': (torch.ops.aten.upsample_nearest1d.vec, torch.ops.aten.upsample_nearest2d.vec,torch.ops.aten.upsample_nearest3d.vec,),
+            'linear': (torch.ops.aten.upsample_linear1d.vec,),
+            'linear': (torch.ops.aten.upsample_bilinear2d.vec,),
+            'linear': (torch.ops.aten.upsample_trilinear3d.vec,),
+            'linear': (torch.ops.aten.upsample_bicubic2d.vec,),
+        }
+        upsample_node = partition.output_nodes[0]
+        mode = None
+        for k, v in mode_to_func_map.items():
+            if upsample_node.target in v:
+                mode = k
+        if mode is None:
+            return None
+        if mode == 'nearest':
+            size= upsample_node.args[1]
+            align_corners = False
+            scale_factor= upsample_node.args[2]
+        else:
+            size= upsample_node.args[1]
+            align_corners = upsample_node.args[2]
+            scale_factor= upsample_node.args[3]
+    
     else:
         modules = dict(main_model.named_modules())
         module = modules[partition.output_nodes[0].target]
@@ -201,7 +230,9 @@ def gen_func_for_upsample(main_model:GraphModule, partition:SourcePartition, ate
         scale_factor = module.scale_factor
         mode = module.mode
         align_corners = module.align_corners
-        recompute_scale_factor = module.recompute_scale_factor
+        recompute_scale_factor = module.recompute_scale_factor 
+    
+    recompute_scale_factor = False # if left True causes Upsample with size not scale
     
     if size is None:
         return None
@@ -211,101 +242,62 @@ def gen_func_for_upsample(main_model:GraphModule, partition:SourcePartition, ate
     return replacement
 
 
-def gen_func_for_pool(main_model:GraphModule, partition:SourcePartition, aten_graph:bool = False):
+def gen_func_for_pool(main_model:GraphModule, partition:SourcePartition, aten_graph:bool = True):
     '''
     replacement module generator function, this should generate replacement module 
     for all possible nn.MaxPool2s or nn.AvgPool2d modules if it is passed to the dictionary
     if kernel size >= 5 :   returns a series of pool with kernel size 3 or 2 
                 else    :   returns None means no need to replace
     '''
-    if  partition.source not in (nn.MaxPool2d, nn.AvgPool2d) :
+    if partition.source not in (nn.MaxPool2d, nn.AvgPool2d):
         return None
+    
+    pool_node = partition.output_nodes[0]
+    
     if aten_graph:
-        #TODO make replacement for nn.MaxPool2d, nn.AvgPool2d
-        return None
+        num_args = len(pool_node.args)
+        kernel_size = pool_node.args[1]
+        stride = pool_node.args[2] if num_args >= 3 else kernel_size
+        padding = pool_node.args[3] if num_args >= 4 else 0
     else:
         modules = dict(main_model.named_modules())
-        module = modules[partition.output_nodes[0].target]
+        module = modules[pool_node.target]
         assert isinstance(module, (nn.MaxPool2d, nn.AvgPool2d))
-        k_size = module.kernel_size
+        kernel_size = module.kernel_size
         stride = module.stride
         padding = module.padding
     
-    if k_size < 5 : 
+    if isinstance(kernel_size, (tuple,list)) and len(kernel_size) == 2:
+        assert kernel_size[0] == kernel_size[1], "In Pooling, kernel_size must be a square" 
+        k_size = kernel_size[0]
+    else:
+        k_size = kernel_size        
+    
+    if isinstance(stride, (tuple,list)) and len(stride) == 2:
+        assert stride[0] == stride[1], "In Pooling, kernel_size must be a square" 
+        stride = stride[0]
+    else:
+        stride = stride  
+    
+    if isinstance(padding, (tuple,list)) and len(padding) == 2:
+        assert padding[0] == padding[1], "In Pooling, kernel_size must be a square" 
+        padding = padding[0]
+    else:
+        padding = padding    
+    
+    if k_size < 5: 
         return None
 
     replacement = nn.Sequential()
-    while k_size > 4 :
+    
+    while k_size > 4:
         if k_size % 2 == 0:
-            replacement.append(partition.source(kernel_size=2, stride=1, padding=(1,1)))
-        else: replacement.append(partition.source(kernel_size=3,stride=1,padding=1))
-        k_size-=2
-    replacement.append(partition.source(kernel_size=k_size, stride=stride, padding=1 if padding % 2 != 0 else (1,1)))
+            replacement.append(partition.source(kernel_size=2, stride=1, padding=(1, 1)))
+        else:
+            replacement.append(partition.source(kernel_size=3, stride=1, padding=1))
+        k_size -= 2
+    
+    replacement.append(partition.source(kernel_size=k_size, stride=stride, padding=1 if padding % 2 != 0 else (1, 1)))
 
     return replacement
 
-# TODO change the approach for pt2e or not?
-def remove_identiy(model:nn.Module, verbose_mode=False, **kwargs):
-    model=deepcopy(model)
-    traced_model=symbolic_trace(model) if not isinstance(model, torch.fx.GraphModule) else model
-    modules= dict(traced_model.named_modules())
-    n=0
-    nodes=[]
-    for node in traced_model.graph.nodes:
-        if (node.op == 'call_module') and isinstance(modules[node.target],nn.Identity):
-                nodes.append(node)
-    for node in nodes:
-        try:
-            node.replace_all_uses_with(node.args[0])
-            copy_found=False
-            for node_1 in nodes:
-                if node!=node_1 and node.target==node_1.target:
-                    copy_found=True
-                    break
-            if not copy_found:
-                parent_name,name=replacer._get_parent_name(node.target)           
-                modules[parent_name].__delattr__(name)
-                modules.pop(node.target)
-            traced_model.graph.erase_node(node)
-            n+=1
-        except Exception as e:
-            if verbose_mode:
-                print(n,e)
-    traced_model.graph.lint()
-    traced_model.recompile()
-    if verbose_mode:
-        print('Identity removed',n)
-    return traced_model
-
-
-def replace_permute_layer(model:nn.Module, pattern=None, verbose_mode=False):
-    model = torch.fx.symbolic_trace(model)
-    i = 0
-    for node in model.graph.nodes:
-        if node.op == 'call_method' and node.target=='permute':
-            replacement = custom_modules.ReplacementPermute(node.args[1:])
-            prepared_replacement = torch.fx.symbolic_trace(replacement)
-            with model.graph.inserting_before(node):
-                new_node_name = type(replacement).__name__+str(i)
-                model.add_submodule(new_node_name, deepcopy(prepared_replacement))
-                new_args = []
-                for arg in node.args:
-                    if type(arg) == Node:
-                        if arg.op != "get_attr":
-                            new_args.append(arg)
-                        #
-                    #
-                #
-                new_node = model.graph.call_module(new_node_name, tuple(new_args), {})
-                node.replace_all_uses_with(new_node)
-                model.graph.erase_node(node)
-            #
-            i+=1    
-        #
-    #
-    model.graph.lint()
-    model.recompile()
-    if verbose_mode:
-        print('reshape/permute : ', i)
-        
-    return model

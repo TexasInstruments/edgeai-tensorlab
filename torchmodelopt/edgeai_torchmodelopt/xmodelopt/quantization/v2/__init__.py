@@ -34,6 +34,6 @@
 from .qconfig_types import *
 
 
-from . import quant_func
+from . import quant_func_wrapper
 
 from .quant_module import QATFxModule, PTCFxModule
