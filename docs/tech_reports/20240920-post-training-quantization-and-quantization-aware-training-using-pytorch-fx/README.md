@@ -21,7 +21,7 @@ The quantization in deep learning aspect refer to reducing the numerical precisi
 
 Mapping function maps the floating-point values to integer space. The most common mapping function is a linear transformation given by $Q(r) = round(r/S + Z)$, where r is the input and S, Z are the quantization parameters, scale factor and zero point which can be calculated as :
 
-$$S = \frac{\beta - \alpha}{{\beta}_q - {\alpha}_q}   \;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\; Z = -(\frac{\alpha}{S} - \alpha_q)$$
+$$S = \frac{\beta - \alpha}{{\beta}_q - {\alpha}_q}   ;  Z = -(\frac{\alpha}{S} - \alpha_q)$$
 
 where,
 $[\alpha, \beta]$ is the clipping range of the input and $[\alpha_q, \beta_q]$ is the quantized range. For example, for 8-bit quantization, $\beta_q - \alpha_q <= (2^8 -1)$.
