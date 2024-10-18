@@ -1,19 +1,20 @@
 
 ## Release 10.0 (10_00_00)
 - Git branch: **r10.0**
-- Date: September 2024
-- **What is new**: 
+### Important Notes
+- edgeai-hf-transformers (fork of https://github.com/huggingface/transformers) repository added, enabling training of Transformer based Image Classification, Segmentation and Object Detection Models. 
+- Improvements for Model Surgery and Quantization in edgeai-modeloptimization
+- Several additional models added in edgeai-modelzoo and edgeai-benchmark
+### Updates
+#### Date: 18 October 2024
+- tidl_tools update - bug fixes: edgeai-benchmark setup_pc.sh has been updated to install tidl_tools version 10_00_08_00. See [release notes of edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools/releases) to understand the bug fixes that it has.
+#### Date: September 2024
 - Tech Reports added(**Object detection, PyTorch FX based Quantization**) - see this [link](./tech_reports/README.md)
 - edgeai-mmpose(fork of open-mmlab/mmpose for efficient keypoint detection), edgeai-hf-transformers(fork of huggingface/transformers)
 - Tools: [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) version used: **10_00_06_00**
 - [Source code](https://github.com/TexasInstruments/edgeai-tensorlab/tree/r10.0)
 - [Model Zoo](https://github.com/TexasInstruments/edgeai-tensorlab/tree/r10.0/edgeai-modelzoo)
 - [Release Manifest](https://software-dl.ti.com/jacinto7/esd/modelzoo/10_00_00/)
-
-### Important Updates
-- edgeai-hf-transformers (fork of https://github.com/huggingface/transformers) repository added, enabling training of Transformer based Image Classification, Segmentation and Object Detection Models. 
-- Improvements for Model Surgery and Quantization in edgeai-modeloptimization
-- Several additional models added in edgeai-modelzoo and edgeai-benchmark
 
 <hr>
 
