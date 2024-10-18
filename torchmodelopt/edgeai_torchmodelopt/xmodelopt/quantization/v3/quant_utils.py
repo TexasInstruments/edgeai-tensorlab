@@ -293,6 +293,15 @@ def move_node_kwargs_to_device(model, device='cpu'):
     model.recompile()
     return model
 
+def remove_to_device_node(model):
+    for node in model.graph.nodes:
+        if node.target == torch.ops.aten.to.device:
+            node.replace_all_uses_with(node.args[0])
+            model.graph.erase_node(node)
+    model.graph.lint()
+    model.recompile()
+    return model      
+
 def _bias_calibration_hook(m, x, y, calibration_factor, bias_module):
     bias_error = 0
     if isinstance(x, tuple):

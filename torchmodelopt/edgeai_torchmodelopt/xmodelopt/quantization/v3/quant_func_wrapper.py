@@ -1,4 +1,4 @@
-from . import quant_func
+from . import quant_func, quant_utils
 from ...utils.transformation_utils import wrapped_transformation_fn
 from ...utils.hooks import add_example_args_kwargs
 
@@ -27,12 +27,15 @@ def convert(*args, **kwargs):
 def insert_all_hooks(*args, **kwargs):
     return wrapped_transformation_fn(quant_func.insert_all_hooks, *args, **kwargs)
 
+def remove_loss_branch(*args, **kwargs):
+    return wrapped_transformation_fn(quant_utils.remove_loss_branch, *args, **kwargs)
 
 def export(self, *args, transformation_dict = None, is_converted = False, device = 'cpu', make_copy = True, **kwargs):
     if is_converted:
         model = self
     else:
         model = convert(self, transformation_dict = transformation_dict, device = device, make_copy = make_copy)
+    model = remove_loss_branch(self, transformation_dict = transformation_dict)
     quant_func.export(model, *args, device = device, make_copy = make_copy, is_converted = True, **kwargs)
     return
 
