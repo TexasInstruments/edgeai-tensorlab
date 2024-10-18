@@ -3,3 +3,5 @@
 .idea/
 .vscode/
 edgeai-benchmark/tools/*
+edgeai-benchmark/work_dirs/modelartifcats/*
+edgeai-modelmaker/data/projects/*
