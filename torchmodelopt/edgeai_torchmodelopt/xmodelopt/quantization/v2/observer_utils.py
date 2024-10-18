@@ -69,10 +69,11 @@ def _adjust_qparams_power2_scale(min_val, max_val, quant_min, quant_max, scale, 
     # make scale a power of 2 value
     scale = _ceil2_tensor(scale)
     scale = torch.max(scale, eps)
-    # adjust the zero_point based on new scale
-    min_val_neg = torch.min(min_val, torch.zeros_like(min_val))
-    zero_point = quant_min - torch.round(min_val_neg / scale).to(torch.int)
-    zero_point = torch.clamp(zero_point, quant_min, quant_max)
+    if len(torch.unique(zero_point))>1 or torch.unique(zero_point) not in (0,127):
+        # adjust the zero_point based on new scale
+        min_val_neg = torch.min(min_val, torch.zeros_like(min_val))
+        zero_point = quant_min - torch.round(min_val_neg / scale).to(torch.int)
+        zero_point = torch.clamp(zero_point, quant_min, quant_max)
     return scale, zero_point
 
 

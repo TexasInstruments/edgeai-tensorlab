@@ -34,9 +34,6 @@ import torch
 import torch._dynamo as torchdynamo
 import torch.ao.quantization
 from torch.ao.quantization.quantize_pt2e import prepare_pt2e, prepare_qat_pt2e, convert_pt2e 
-from torch._export import capture_pre_autograd_graph
-
-from torch.ao.quantization.quantizer.xnnpack_quantizer import XNNPACKQuantizer, get_symmetric_quantization_config
 
 from .... import xnn
 from ...utils.hooks import add_example_args_kwargs
@@ -72,10 +69,13 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
 
     example_inputs = example_inputs if example_inputs is not None else \
         torch.ones(1,3,224,224).to(next(model.parameters()).device)
-    example_inputs = example_inputs[0] if isinstance(example_inputs, (list, tuple)) else example_inputs
     
     if kwargs.get('convert_to_cuda', False):
-        example_inputs = example_inputs.to(device='cuda:0')
+        if isinstance(example_inputs, (list, tuple)):
+            for i, inp in enumerate(example_inputs):
+                example_inputs[i] = example_inputs[i].to(device='cuda:0')
+        else:
+            example_inputs = [example_inputs.to(device='cuda:0')]
         for key, value in example_kwargs.items():
             if isinstance(value, torch.Tensor):
                 example_kwargs[key] = value.to(device='cuda:0')
@@ -85,16 +85,12 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
         
     decomposition_table = {torch.ops.aten.layer_norm.default: quant_utils.native_layer_norm}
     
-    # if isinstance(example_inputs, dict):
-    m, guards = torchdynamo.export(orig_model, aten_graph=True, assume_static_by_default=True, pre_dispatch=True, decomposition_table=decomposition_table)(example_inputs, **example_kwargs)
+    m, guards = torchdynamo.export(orig_model, aten_graph=True, assume_static_by_default=True, pre_dispatch=True, decomposition_table=decomposition_table)(*example_inputs, **example_kwargs)
     print("Dynamo Export Completed ! \n\n")
-    # else:
-    #     m, guards = torchdynamo.export(orig_model, example_inputs, aten_graph=True, assume_static_by_default=True, pre_dispatch=True, decomposition_table=decomposition_table)
+    
     is_fake_quantize = True if is_qat else is_fake_quantize
     qconfig_type = qconfig_type or qconfig_types.QConfigType.DEFAULT
     qconfig_mode = qconfig_types.get_qconfig(qconfig_type, is_fake_quantize=is_fake_quantize, fast_mode=fast_mode)
-    
-    # qconfig_mode = get_symmetric_quantization_config(is_qat=False)
     
     # methods to quantize individual layers/modules types are in quantizer
     quantizer = quantizer or TIDLRTQuantizer(is_qat=is_qat, fast_mode=fast_mode, is_fake_quantize=is_fake_quantize)
@@ -129,6 +125,7 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
 
     if add_methods:
         # add a wrapper for model.train()
+        # the accuracy for deit was going down due to this wrapper, needs to be implemented properly or debugged #TODO
         # def train_quant(self, mode=True):
         #     if mode:
         #         torch.ao.quantization.move_exported_model_to_train(self)
@@ -214,6 +211,7 @@ def convert(self, *args, device="cpu", make_copy=True, **kwargs):
     model = copy.deepcopy(self).eval() if make_copy else self.eval()
     model = model.to(device=device)
     model = quant_utils.move_node_kwargs_to_device(model, device=device)
+    model = quant_utils.remove_to_device_node(model)
     model = convert_pt2e(model, use_reference_representation=False, fold_quantize= False)
     model.eval = types.MethodType(train, model)
     torch.ao.quantization.move_exported_model_to_eval(model)
@@ -303,7 +301,7 @@ def export(self, example_inputs, filename='model.onnx', opset_version=17, model_
         model = self
         warnings.warn("model has already been converted before calling export. make sure it is done correctly.")
 
-    model = quant_utils.remove_loss_branch(model)
+    model.module = quant_utils.remove_loss_branch(model.module)
     quant_utils.register_onnx_symbolics()
 
     if model_qconfig_format == qconfig_types.QConfigFormat.INT_MODEL:

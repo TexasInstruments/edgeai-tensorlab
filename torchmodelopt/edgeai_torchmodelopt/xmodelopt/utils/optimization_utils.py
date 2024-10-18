@@ -6,9 +6,12 @@ import types
 
 from . import model_optimzation_v1, model_optimzation_v2, model_optimzation_v3
 
-__all__ = ['apply_model_optimization', 'apply_model_surgery', 'apply_pruning', 'apply_quantization', 'prepare_model_for_onnx', 'apply_tranformation_to_submodules', 'TransformationWrapper']
+__all__ = ['apply_model_optimization', 'apply_model_surgery', 'apply_pruning', 'apply_quantization', 
+           'prepare_model_for_onnx', 'apply_tranformation_to_submodules', 'TransformationWrapper']
 
-def apply_model_optimization(model: nn.Module, example_inputs: list=None, example_kwargs: dict=None, model_surgery_version=None, pruning_version=None, quantization_version=None, model_surgery_kwargs: dict[str,Any]=None, pruning_kwargs: dict[str,Any]=None, quantization_kwargs: dict[str,Any]=None, transformation_dict=None, copy_attrs=None):
+def apply_model_optimization(model: nn.Module, example_inputs: list=None, example_kwargs: dict=None, model_surgery_version=None, 
+                             pruning_version=None, quantization_version=None, model_surgery_kwargs: dict[str,Any]=None, 
+                             pruning_kwargs: dict[str,Any]=None, quantization_kwargs: dict[str,Any]=None, transformation_dict=None, copy_attrs=None):
     '''
     A wrapper function to apply surgery, pruning, and quantization
     
@@ -84,14 +87,17 @@ def apply_model_optimization(model: nn.Module, example_inputs: list=None, exampl
     if main_model_optimization_version == 1:
         pass
     elif main_model_optimization_version == 2:
-        model = model_optimzation_v2.ModelOptimizationWrapperV2(model,example_inputs=example_inputs,example_kwargs=example_kwargs, **main_kwargs)
+        model = model_optimzation_v2.ModelOptimizationWrapperV2(model, example_inputs=example_inputs, example_kwargs=example_kwargs, **main_kwargs)
     elif main_model_optimization_version == 3:
-        model = model_optimzation_v3.ModelOptimizationWrapperV3(model,example_inputs=example_inputs,example_kwargs=example_kwargs, **main_kwargs)
+        model = model_optimzation_v3.ModelOptimizationWrapperV3(model, example_inputs=example_inputs, example_kwargs=example_kwargs, **main_kwargs)
             
     return model
 
 
-def prepare_model_for_onnx(orig_model: nn.Module, trained_model: nn.Module, example_inputs: list=None, example_kwargs: dict=None, model_surgery_version=None, pruning_version=None, quantization_version=None, model_surgery_kwargs: dict[str,Any]=None, pruning_kwargs: dict[str,Any]=None, quantization_kwargs: dict[str,Any]=None, transformation_dict=None, copy_attrs=None):
+def prepare_model_for_onnx(orig_model: nn.Module, trained_model: nn.Module, example_inputs: list=None, example_kwargs: dict=None, model_surgery_version=None, 
+                           pruning_version=None, quantization_version=None, model_surgery_kwargs: dict[str,Any]=None, pruning_kwargs: dict[str,Any]=None, 
+                           quantization_kwargs: dict[str,Any]=None, transformation_dict=None, copy_attrs=None):
+    
     example_inputs = example_inputs or []
     example_kwargs = example_kwargs or {}
     model_surgery_version = model_surgery_version or (0 if model_surgery_kwargs is None else 2)
@@ -102,7 +108,9 @@ def prepare_model_for_onnx(orig_model: nn.Module, trained_model: nn.Module, exam
     example_inputs = [input_tensor.to('cpu') if isinstance(input_tensor, torch.Tensor) else input_tensor for input_tensor in example_inputs]
     example_kwargs = {key: value.to('cpu') if isinstance(value, torch.Tensor) else value for key, value in example_kwargs.items()}
     
-    final_model = apply_model_optimization(orig_model, example_inputs, example_kwargs, model_surgery_version=model_surgery_version, pruning_version=pruning_version, quantization_version=quantization_version, model_surgery_kwargs=model_surgery_kwargs, pruning_kwargs=pruning_kwargs, quantization_kwargs=quantization_kwargs, transformation_dict=transformation_dict, copy_attrs=copy_attrs)
+    final_model = apply_model_optimization(orig_model, example_inputs, example_kwargs, model_surgery_version=model_surgery_version, pruning_version=pruning_version, 
+                                           quantization_version=quantization_version, model_surgery_kwargs=model_surgery_kwargs, pruning_kwargs=pruning_kwargs, 
+                                           quantization_kwargs=quantization_kwargs, transformation_dict=transformation_dict, copy_attrs=copy_attrs)
     
     state_dict = trained_model.state_dict()
     final_model.load_state_dict(state_dict)
@@ -111,6 +119,7 @@ def prepare_model_for_onnx(orig_model: nn.Module, trained_model: nn.Module, exam
 
 
 def apply_model_surgery(model: nn.Module, example_inputs: list=None, example_kwargs: dict=None, version: int=3, model_surgery_kwargs: dict[str,Any]=None, *args, **kwargs):
+    
     from .. import surgery
     example_inputs = example_inputs if example_inputs is not None else []
     example_kwargs = example_kwargs or {}
@@ -132,6 +141,7 @@ def apply_model_surgery(model: nn.Module, example_inputs: list=None, example_kwa
 
 
 def apply_pruning(model: nn.Module, example_inputs: list=None, example_kwargs: dict=None, version: int=3, pruning_kwargs: dict[str,Any]=None, *args, **kwargs):
+    
     from .. import pruning
     example_inputs = example_inputs if example_inputs is not None else []
     example_kwargs = example_kwargs or {}
@@ -151,6 +161,7 @@ def apply_pruning(model: nn.Module, example_inputs: list=None, example_kwargs: d
 
 
 def apply_quantization(model: nn.Module, example_inputs: list=None, example_kwargs: dict=None, version: int=2, quantization_kwargs: dict[str,Any]=None, *args, **kwargs):
+    
     from .. import quantization
     example_inputs = example_inputs if example_inputs is not None else []
     example_kwargs = example_kwargs or {}
