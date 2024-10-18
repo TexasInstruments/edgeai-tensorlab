@@ -29,20 +29,22 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ######################################################################
-# change default tidl_tools version if needed - examples: latest stable r9.1 r9.0
+# change default tidl_tools version if needed - examples: latest stable r10.0 r9.2 r9.1 r9.0
 TIDL_TOOLS_RELEASE_NAME="${1:-r10.0}"
-echo "tidl_tools version ${TIDL_TOOLS_RELEASE_NAME}"
 
+echo "--------------------------------------------------------------------------------------------------------------"
+echo "Installing tidl_tools version: ${TIDL_TOOLS_RELEASE_NAME}"
+echo "--------------------------------------------------------------------------------------------------------------"
 
 #######################################################################
 # TIDL_TOOLS_TYPE_SUFFIX can be "" or "_gpu" from r9.2 onwards
-# TIDL_TOOLS_TYPE_SUFFIX="_gpu" to use tidl-tools compiled with CUDA support
+# TIDL_TOOLS_TYPE_SUFFIX="_gpu" (while running this setup) to install tidl-tools compiled with CUDA support
 # requires nvidia-hpc-sdk to be insalled for it to work: https://developer.nvidia.com/nvidia-hpc-sdk-237-downloads
 TIDL_TOOLS_TYPE_SUFFIX=${TIDL_TOOLS_TYPE_SUFFIX:-""}
+echo "TIDL_TOOLS_TYPE_SUFFIX=${TIDL_TOOLS_TYPE_SUFFIX}"
 
 #######################################################################
-echo 'Installing system dependencies'
-
+echo 'Installing system dependencies...'
 
 # Dependencies for cmake, onnx, pillow-simd, tidl-graph-visualization
 sudo apt-get install -y cmake \
@@ -50,36 +52,21 @@ sudo apt-get install -y cmake \
                         libjpeg-dev zlib1g-dev \
                         graphviz graphviz-dev protobuf-compiler
 
-#################################################################################
 # upgrade pip
 pip3 install --no-input --upgrade pip==24.2 setuptools==73.0.0
 pip3 install --no-input cython wheel numpy==1.23.0
 
 ######################################################################
-echo 'Installing python packages...'
-echo 'Installing python packages...'
-# there as issue with installing pillow-simd through requirements - force it here
-pip3 uninstall --yes pillow
-pip3 install --no-input -U --force-reinstall pillow-simd
-
-echo "installing requirements"
-pip3 install --no-input -r ./requirements_pc.txt
-
-######################################################################
-#NOTE: THIS STEP INSTALLS THE EDITABLE LOCAL MODULE pytidl
-echo 'Installing as a local module using setup.py'
-python3 setup.py develop
-
-######################################################################
 CURRENT_WORK_DIR=$(pwd)
 TOOLS_BASE_PATH=${CURRENT_WORK_DIR}/tools
 
-######################################################################
+echo "--------------------------------------------------------------------------------------------------------------"
+echo "Installing gcc arm required for tvm..."
+echo "--------------------------------------------------------------------------------------------------------------"
 GCC_ARM_AARCH64_NAME="gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu"
 GCC_ARM_AARCH64_FILE="${GCC_ARM_AARCH64_NAME}.tar.xz"
 GCC_ARM_AARCH64_PATH="https://developer.arm.com/-/media/Files/downloads/gnu-a/9.2-2019.12/binrel/${GCC_ARM_AARCH64_FILE}"
 
-# needed for TVM compilation
 echo "Installing ${GCC_ARM_AARCH64_NAME}"
 if [ ! -d ${TOOLS_BASE_PATH}/${GCC_ARM_AARCH64_NAME} ]; then
     if [ ! -f ${TOOLS_BASE_PATH}/${GCC_ARM_AARCH64_FILE} ]; then
@@ -90,30 +77,29 @@ if [ ! -d ${TOOLS_BASE_PATH}/${GCC_ARM_AARCH64_NAME} ]; then
 fi
 
 ######################################################################
-echo 'Cleaning up previous tidl_tools...'
-rm -rf tidl_tools.tar.gz tidl_tools
-
-######################################################################
-echo "Installing tidl_tools verion: ${TIDL_TOOLS_RELEASE_NAME} ..."
-
 # an array to keep download links
 declare -a TIDL_TOOLS_DOWNLOAD_LINKS
 
-if [[ $TIDL_TOOLS_RELEASE_NAME == "latest" || $TIDL_TOOLS_RELEASE_NAME == "r10.0" ]]; then
+if [[ $TIDL_TOOLS_RELEASE_NAME == "latest" || $TIDL_TOOLS_RELEASE_NAME == "stable" || $TIDL_TOOLS_RELEASE_NAME == "r10.0" ]]; then
   # python version check = 3.10
   version_match=`python3 -c 'import sys;r=0 if sys.version_info >= (3,10) and sys.version_info < (3,11) else 1;print(r)'`
   if [ $version_match -ne 0 ]; then
       echo "python version must be == 3.10 for $TIDL_TOOLS_RELEASE_NAME"
       exit 1
   fi
-  # installers for internal release
-  echo "--------------------------------------------------------------------------------------------------------------"
-  echo "Important note: The release name provided is: ${TIDL_TOOLS_RELEASE_NAME}"
-  echo "--------------------------------------------------------------------------------------------------------------"
 
-  # onnx - override the onnx version installed by onnxsim
+  echo "--------------------------------------------------------------------------------------------------------------"
+  echo "installing requirements..."
+  echo "--------------------------------------------------------------------------------------------------------------"
+  # there as issue with installing pillow-simd through requirements - force it here
+  pip3 uninstall --yes pillow
+  pip3 install --no-input -U --force-reinstall pillow-simd
   pip3 install --no-input protobuf==3.20.2 onnx==1.13.0
+  pip3 install --no-input -r ./requirements_pc.txt
 
+  echo "--------------------------------------------------------------------------------------------------------------"
+  echo "installing tidl_tools..."
+  echo "--------------------------------------------------------------------------------------------------------------"
   TARGET_SOCS=(TDA4VM AM68A AM69A AM62A AM67A)
   TIDL_TOOLS_RELEASE_ID=10_00_06_00
   TIDL_TOOLS_VERSION_NAME="10.0"
@@ -129,21 +115,25 @@ if [[ $TIDL_TOOLS_RELEASE_NAME == "latest" || $TIDL_TOOLS_RELEASE_NAME == "r10.0
     echo "$TARGET_SOC $TIDL_TOOLS_DOWNLOAD_LINK"
   done
 
-elif [[ $TIDL_TOOLS_RELEASE_NAME == "stable" || $TIDL_TOOLS_RELEASE_NAME == "r9.2" ]]; then
+elif [[ $TIDL_TOOLS_RELEASE_NAME == "r9.2" ]]; then
   # python version check = 3.10
   version_match=`python3 -c 'import sys;r=0 if sys.version_info >= (3,10) and sys.version_info < (3,11) else 1;print(r)'`
   if [ $version_match -ne 0 ]; then
       echo "python version must be == 3.10 for $TIDL_TOOLS_RELEASE_NAME"
       exit 1
   fi
-  # installers for internal release
   echo "--------------------------------------------------------------------------------------------------------------"
-  echo "Important note: The release name provided is: ${TIDL_TOOLS_RELEASE_NAME}"
+  echo "installing requirements..."
   echo "--------------------------------------------------------------------------------------------------------------"
-
-  # onnx - override the onnx version installed by onnxsim
+  # there as issue with installing pillow-simd through requirements - force it here
+  pip3 uninstall --yes pillow
+  pip3 install --no-input -U --force-reinstall pillow-simd
   pip3 install --no-input protobuf==3.20.2 onnx==1.13.0
+  pip3 install --no-input -r ./requirements_pc.txt
 
+  echo "--------------------------------------------------------------------------------------------------------------"
+  echo "installing tidl_tools..."
+  echo "--------------------------------------------------------------------------------------------------------------"
   TARGET_SOCS=(TDA4VM AM68A AM69A AM62A AM67A)
   TIDL_TOOLS_RELEASE_ID=09_02_09_00
   TIDL_TOOLS_VERSION_NAME="9.2"
@@ -166,14 +156,19 @@ elif [[ $TIDL_TOOLS_RELEASE_NAME == "r9.1" ]]; then
       echo "python version must be == 3.10 for $TIDL_TOOLS_RELEASE_NAME"
       exit 1
   fi
-  # installers for internal release
-  echo "--------------------------------------------------------------------------------------------------------------"
-  echo "Important note: The release name provided is: ${TIDL_TOOLS_RELEASE_NAME}"
-  echo "--------------------------------------------------------------------------------------------------------------"
   
-  # onnx - override the onnx version installed by onnxsim
+  echo "--------------------------------------------------------------------------------------------------------------"
+  echo "installing requirements..."
+  echo "--------------------------------------------------------------------------------------------------------------"
+  # there as issue with installing pillow-simd through requirements - force it here
+  pip3 uninstall --yes pillow
+  pip3 install --no-input -U --force-reinstall pillow-simd
   pip3 install --no-input protobuf==3.20.2 onnx==1.13.0
+  pip3 install --no-input -r ./requirements_pc.txt
 
+  echo "--------------------------------------------------------------------------------------------------------------"
+  echo "installing tidl_tools..."
+  echo "--------------------------------------------------------------------------------------------------------------"
   TARGET_SOCS=(TDA4VM AM68A AM69A AM62A)
   TIDL_TOOLS_RELEASE_ID=09_01_00_00
   TIDL_TOOLS_VERSION_NAME="9.1"
@@ -197,6 +192,9 @@ elif  [[ $TIDL_TOOLS_RELEASE_NAME == "test9.0.1" ]]; then
       exit 1
   fi
 
+  echo "--------------------------------------------------------------------------------------------------------------"
+  echo "installing requirements..."
+  echo "--------------------------------------------------------------------------------------------------------------"
   # onnx - override the onnx version installed by onnxsim
   # building onnx from soure requires carefull steps
   # make sure that we are using system cmake
@@ -206,10 +204,14 @@ elif  [[ $TIDL_TOOLS_RELEASE_NAME == "test9.0.1" ]]; then
   pip3 install --no-input pybind11[global] protobuf==3.19.4
   pybind11_DIR=$(pybind11-config --cmakedir) pip3 install --no-input https://github.com/TexasInstruments/onnx/archive/tidl-j7.zip
 
+  # there as issue with installing pillow-simd through requirements - force it here
+  pip3 uninstall --yes pillow
+  pip3 install --no-input -U --force-reinstall pillow-simd
+  pip3 install --no-input -r ./requirements_pc.txt
+
   # installers for internal release
   echo "--------------------------------------------------------------------------------------------------------------"
-  echo "Important note: The release name provided is not a a known version. Assuming that it is an internal release tag: ${TIDL_TOOLS_RELEASE_NAME}"
-  echo "If instead a release version is required, then use the appropriate name. eg: r9.0"
+  echo "installing tidl_tools..."
   echo "--------------------------------------------------------------------------------------------------------------"
   TARGET_SOCS=(TDA4VM AM68A AM69A AM62A)
   TIDL_TOOLS_RELEASE_ID=09_00_00_01
@@ -235,9 +237,8 @@ elif [[ $TIDL_TOOLS_RELEASE_NAME == "r9.0" ]]; then
   fi
 
   echo "--------------------------------------------------------------------------------------------------------------"
-  echo "Important note: The release name provided is: ${TIDL_TOOLS_RELEASE_NAME}"
+  echo "installing requirements..."
   echo "--------------------------------------------------------------------------------------------------------------"
-
   # onnx - override the onnx version installed by onnxsim
   # building onnx from soure requires carefull steps
   # make sure that we are using system cmake
@@ -247,8 +248,15 @@ elif [[ $TIDL_TOOLS_RELEASE_NAME == "r9.0" ]]; then
   pip3 install --no-input pybind11[global] protobuf==3.19.4
   pybind11_DIR=$(pybind11-config --cmakedir) pip3 install --no-input https://github.com/TexasInstruments/onnx/archive/tidl-j7.zip
 
+  # there as issue with installing pillow-simd through requirements - force it here
+  pip3 uninstall --yes pillow
+  pip3 install --no-input -U --force-reinstall pillow-simd
+  pip3 install --no-input -r ./requirements_pc.txt
+
   # installers for 9.0 release
-  echo 'tidl_tools version 9.0'
+  echo "--------------------------------------------------------------------------------------------------------------"
+  echo "installing tidl_tools..."
+  echo "--------------------------------------------------------------------------------------------------------------"
   TARGET_SOCS=(TDA4VM AM68A AM69A AM62A)
   TIDL_TOOLS_RELEASE_ID=09_00_00_01
   TIDL_TOOLS_VERSION_NAME="9.0"
@@ -300,13 +308,25 @@ for (( soc_idx=0; soc_idx<"${#TARGET_SOCS[@]}"; soc_idx++ )); do
   echo "release_name: ${TIDL_TOOLS_RELEASE_NAME}" >> ${TIDL_TOOLS_PATH}/version.yaml
 done
 
+echo "Completed installation of tidl_tools."
+echo "Short version name:${TIDL_TOOLS_VERSION_NAME}  Git branch:${TIDL_TOOLS_RELEASE_NAME}  Tools version:${TIDL_TOOLS_RELEASE_ID}"
+
+######################################################################
 if [ -d "${CURRENT_WORK_DIR}/../edgeai-tidl-tools" ]; then
-  echo "found edgeai-tidl-tools, installing osrt_model_tools in develop mode"
+  echo "--------------------------------------------------------------------------------------------------------------"
+  echo "Found local edgeai-tidl-tools, installing osrt_model_tools in develop mode"
+  echo "--------------------------------------------------------------------------------------------------------------"
   pip3 uninstall -y osrt_model_tools
   cd ${CURRENT_WORK_DIR}/../edgeai-tidl-tools/scripts
   python3 setup.py develop
   cd ${CURRENT_WORK_DIR}
 fi
+
+######################################################################
+echo "--------------------------------------------------------------------------------------------------------------"
+echo 'Installing local module using setup.py...'
+echo "--------------------------------------------------------------------------------------------------------------"
+python3 setup.py develop
 
 ######################################################################
 # PYTHONPATH
