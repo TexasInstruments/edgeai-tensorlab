@@ -243,6 +243,8 @@ class ConfigSettings(config_dict.ConfigDict):
             'advanced_options:params_16bit_names_list':'',
             # optimize data conversion options by moving them from arm to c7x
             'advanced_options:add_data_convert_ops': 3,
+            # use a specific firmware version
+            #'advanced_options:c7x_firmware_version': '10_00_06_00',
             ##################################
             # additional options (internal / performance estimation)
             #################################
