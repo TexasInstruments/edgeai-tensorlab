@@ -1,0 +1,170 @@
+task_type: detection
+dataset_category: coco
+calibration_dataset: coco
+input_dataset: coco
+preprocess:
+  resize:
+  - 300
+  - 300
+  crop:
+  - 300
+  - 300
+  data_layout: NHWC
+  reverse_channels: false
+  backend: cv2
+  interpolation: null
+  resize_with_pad: false
+  pad_color: 0
+session:
+  session_name: tflitert
+  target_device: null
+  input_optimization: false
+  input_data_layout: NHWC
+  input_mean:
+  - 128.0
+  - 128.0
+  - 128.0
+  input_scale:
+  - 0.007812
+  - 0.007812
+  - 0.007812
+  runtime_options:
+    tensor_bits: 8
+    accuracy_level: 1
+    advanced_options:high_resolution_optimization: 0
+    advanced_options:pre_batchnorm_fold: 1
+    advanced_options:calibration_frames: 1
+    advanced_options:calibration_iterations: 1
+    advanced_options:quantization_scale_type: 4
+    advanced_options:activation_clipping: 1
+    advanced_options:weight_clipping: 1
+    advanced_options:bias_calibration: 1
+    advanced_options:output_feature_16bit_names_list: ''
+    advanced_options:params_16bit_names_list: ''
+    advanced_options:add_data_convert_ops: 3
+    info:
+      prequantized_model_type: 0
+  model_path: ssd_mobilenet_v2_320x320_coco17_tpu-8.tflite
+  model_id: od-2130
+  input_details: null
+  output_details: null
+  num_inputs: 1
+postprocess:
+  detection_threshold: 0.3
+  save_output: false
+  formatter:
+    src_indices:
+    - 1
+    - 0
+    - 3
+    - 2
+    dst_indices:
+    - 0
+    - 1
+    - 2
+    - 3
+    name: DetectionYXYX2XYXY
+  resize_with_pad: false
+  normalized_detections: true
+  shuffle_indices: null
+  squeeze_axis: 0
+  ignore_index: null
+  logits_bbox_to_bbox_ls: false
+metric:
+  label_offset_pred:
+    0: 1
+    1: 2
+    2: 3
+    3: 4
+    4: 5
+    5: 6
+    6: 7
+    7: 8
+    8: 9
+    9: 10
+    10: 11
+    11: 12
+    12: 13
+    13: 14
+    14: 15
+    15: 16
+    16: 17
+    17: 18
+    18: 19
+    19: 20
+    20: 21
+    21: 22
+    22: 23
+    23: 24
+    24: 25
+    25: 26
+    26: 27
+    27: 28
+    28: 29
+    29: 30
+    30: 31
+    31: 32
+    32: 33
+    33: 34
+    34: 35
+    35: 36
+    36: 37
+    37: 38
+    38: 39
+    39: 40
+    40: 41
+    41: 42
+    42: 43
+    43: 44
+    44: 45
+    45: 46
+    46: 47
+    47: 48
+    48: 49
+    49: 50
+    50: 51
+    51: 52
+    52: 53
+    53: 54
+    54: 55
+    55: 56
+    56: 57
+    57: 58
+    58: 59
+    59: 60
+    60: 61
+    61: 62
+    62: 63
+    63: 64
+    64: 65
+    65: 66
+    66: 67
+    67: 68
+    68: 69
+    69: 70
+    70: 71
+    71: 72
+    72: 73
+    73: 74
+    74: 75
+    75: 76
+    76: 77
+    77: 78
+    78: 79
+    79: 80
+    80: 81
+    81: 82
+    82: 83
+    83: 84
+    84: 85
+    85: 86
+    86: 87
+    87: 88
+    88: 89
+    89: 90
+    -1: 0
+    90: 91
+model_info:
+  metric_reference:
+    accuracy_ap[.5:.95]%: 20.2
+  model_shortlist: null

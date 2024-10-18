@@ -1,0 +1,150 @@
+task_type: detection
+dataset_category: coco
+calibration_dataset: coco
+input_dataset: coco
+preprocess:
+  resize:
+  - 1200
+  - 1200
+  crop:
+  - 1200
+  - 1200
+  data_layout: NCHW
+  reverse_channels: false
+  backend: cv2
+  interpolation: null
+  resize_with_pad: false
+  pad_color: 0
+session:
+  session_name: onnxrt
+  target_device: null
+  input_optimization: false
+  input_data_layout: NCHW
+  input_mean:
+  - 123.675
+  - 116.28
+  - 103.53
+  input_scale:
+  - 0.017125
+  - 0.017507
+  - 0.017429
+  runtime_options:
+    tensor_bits: 8
+    accuracy_level: 1
+    advanced_options:high_resolution_optimization: 0
+    advanced_options:pre_batchnorm_fold: 1
+    advanced_options:calibration_frames: 3
+    advanced_options:calibration_iterations: 3
+    advanced_options:quantization_scale_type: 4
+    advanced_options:activation_clipping: 1
+    advanced_options:weight_clipping: 1
+    advanced_options:bias_calibration: 1
+    advanced_options:output_feature_16bit_names_list: ''
+    advanced_options:params_16bit_names_list: ''
+    advanced_options:add_data_convert_ops: 3
+    info:
+      prequantized_model_type: 0
+    object_detection:meta_arch_type: 3
+    object_detection:meta_layers_names_list: ssd_resnet34-ssd1200.prototxt
+  model_path: ssd_resnet34-ssd1200.onnx
+  model_id: od-8000
+  input_details: null
+  output_details: null
+  num_inputs: 1
+postprocess:
+  detection_threshold: 0.3
+  save_output: false
+  formatter: null
+  resize_with_pad: false
+  normalized_detections: true
+  shuffle_indices: null
+  squeeze_axis: null
+  ignore_index: null
+  logits_bbox_to_bbox_ls: false
+metric:
+  label_offset_pred:
+    1: 1
+    2: 2
+    3: 3
+    4: 4
+    5: 5
+    6: 6
+    7: 7
+    8: 8
+    9: 9
+    10: 10
+    11: 11
+    12: 13
+    13: 14
+    14: 15
+    15: 16
+    16: 17
+    17: 18
+    18: 19
+    19: 20
+    20: 21
+    21: 22
+    22: 23
+    23: 24
+    24: 25
+    25: 27
+    26: 28
+    27: 31
+    28: 32
+    29: 33
+    30: 34
+    31: 35
+    32: 36
+    33: 37
+    34: 38
+    35: 39
+    36: 40
+    37: 41
+    38: 42
+    39: 43
+    40: 44
+    41: 46
+    42: 47
+    43: 48
+    44: 49
+    45: 50
+    46: 51
+    47: 52
+    48: 53
+    49: 54
+    50: 55
+    51: 56
+    52: 57
+    53: 58
+    54: 59
+    55: 60
+    56: 61
+    57: 62
+    58: 63
+    59: 64
+    60: 65
+    61: 67
+    62: 70
+    63: 72
+    64: 73
+    65: 74
+    66: 75
+    67: 76
+    68: 77
+    69: 78
+    70: 79
+    71: 80
+    72: 81
+    73: 82
+    74: 84
+    75: 85
+    76: 86
+    77: 87
+    78: 88
+    79: 89
+    80: 90
+    0: 0
+model_info:
+  metric_reference:
+    accuracy_ap[.5:.95]%: 20.0
+  model_shortlist: null
