@@ -54,7 +54,7 @@ import itertools
 import operator
 from typing import Dict, List, Optional, Any
 
-from torch.fx import Node
+from torch.fx import Node, GraphModule
 
 from torch.fx.passes.utils.source_matcher_utils import get_source_partitions
 
@@ -168,9 +168,12 @@ class TIDLRTQuantizer(Quantizer):
         self.single_input_single_output_different_nodes = [ torch.ops.aten.leaky_relu.default, 
                                                             torch.ops.aten.gelu.default,
                                                             torch.ops.aten.relu.default,
-                                                            torch.ops.aten.softmax.int,
-                                                            torch.ops.aten.mul.Tensor, 
-                                                            torch.ops.aten.div.Tensor]
+                                                            torch.ops.aten.softmax.int]
+        self.two_inputs_single_output_nodes = [torch.ops.aten.mul.Tensor, 
+                                                torch.ops.aten.div.Tensor,
+                                                torch.ops.aten.add.Tensor,
+                                                torch.ops.aten.sub.Tensor,]
+        # self.two_inputs_single_output_nodes = [torch.ops.aten.div.Tensor]
 
     def set_global(self, quantization_config: QuantizationConfig):
         """set global QuantizationConfig used for the backend.
@@ -195,11 +198,11 @@ class TIDLRTQuantizer(Quantizer):
         # quantize the weight of that layer as well as the output to 16 bit, however, input is still 8 bit quantized
         # further, the quantization also flows, which means, if the input is 16 bit, then weights will also be in 16 bit
         # but the output will be in 8 bit
+        self._annotate_layernorm(model, config) # the weights and bias also need to be quantized, first so not to quantize nodes internally which might happen later on
         self._annotate_single_input_single_output_different(model, config)
         self._annotate_single_input_single_output_shared(model, config)
-        self._annotate_layernorm(model, config) # the weights and bias also need to be quantized
+        self._annotate_two_inputs_single_output(model, config)
         self._annotate_cat(model, config)
-        self._annotate_add(model, config)
         self._annotate_view(model, config) # view possible in loss which creates issues, mostly it needs to be quantized to support bias quantization.
         self._annotate_matmul(model, config)
         self._annotate_conv2d(model, config, allow_16bit_node_list)
@@ -450,34 +453,47 @@ class TIDLRTQuantizer(Quantizer):
                 _annotated=True,
             )
             
-
-    def _annotate_add(
-        self, gm: torch.fx.GraphModule, quantization_config: QuantizationConfig
-    ) -> None:
-        module_partitions = get_source_partitions(
-            gm.graph, [operator.add, torch.add]
-        )
-        add_partitions = list(itertools.chain(*module_partitions.values()))
-        for add_partition in add_partitions:
-            output_node = add_partition.output_nodes[0]
-            add_node = None
-            for n in add_partition.nodes:
-                if n.target == torch.ops.aten.add.Tensor:
-                    add_node = n
-            if _is_annotated([output_node, add_node]):  # type: ignore[list-item]
+            remaining_nodes = [node for node in layernorm_partition.nodes if (node.op!='get_attr' and _is_annotated([node]) is False)]
+            for node in remaining_nodes:
+                node.meta["quantization_annotation"] = QuantizationAnnotation(  # type: ignore[union-attr]
+                    _annotated=True,
+                )
+    
+    def _annotate_two_inputs_single_output(
+        self, gm: GraphModule, quantization_config: QuantizationConfig
+    ):
+        device = next(iter(gm.named_parameters()))[1].device
+        for node in gm.graph.nodes:
+            if _is_annotated([node]):
                 continue
-            
-            act_qspec = get_input_act_qspec(quantization_config)
-            
-            input_qspec_map = {}
-            input_qspec_map[add_node.args[0]] = act_qspec
-            input_qspec_map[add_node.args[1]] = act_qspec
-            
-            add_node.meta["quantization_annotation"] = QuantizationAnnotation(  # type: ignore[union-attr]
-                input_qspec_map=input_qspec_map,
-                output_qspec=get_output_act_qspec(quantization_config),
-                _annotated=True,
-            )
+            if node.target in self.two_inputs_single_output_nodes:
+                with gm.graph.inserting_before(node):
+                    args = list(node.args)
+                    for i, a in enumerate(args):
+                        if isinstance(a, (int, float)):
+                            t = torch.tensor(a,device=device)
+                            t_name = f'{node.name}_inp_{i}'
+                            gm.register_buffer(t_name,t, persistent=True)
+                            args[i] = gm.graph.get_attr(t_name)
+                node.args = tuple(args)
+        gm.graph.lint()
+        gm.recompile()
+        
+        for node in gm.graph.nodes:
+            # skip annotation if it is already annotated
+            if _is_annotated([node]):
+                continue
+            if node.target in self.two_inputs_single_output_nodes:
+                input_act1 = node.args[0]
+                input_act2 = node.args[1]
+                node.meta["quantization_annotation"] = QuantizationAnnotation(  # type: ignore[union-attr]
+                    input_qspec_map={
+                        input_act1: get_input_act_qspec(quantization_config),
+                        input_act2: get_input_act_qspec(quantization_config),
+                    },
+                    output_qspec=get_output_act_qspec(quantization_config),
+                    _annotated=True,
+                )
             
     def _annotate_cat(
         self, gm: torch.fx.GraphModule, quantization_config: Optional[QuantizationConfig]

@@ -37,7 +37,7 @@ def wrapped_transformation_fn(fn, model, *args, transformation_dict=None, **kwar
                 transformation_dict[key] = fn
             elif isinstance(value, TransformationWrapper) and value.fn is None:
                 value.fn = fn
-        return apply_tranformation_to_submodules(model,transformation_dict, *args, **kwargs)
+        return apply_tranformation_to_submodules(model, transformation_dict, *args, **kwargs)
     else:
         return fn(model, *args, **kwargs)
     
