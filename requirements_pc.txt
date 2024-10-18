@@ -2,7 +2,7 @@
 onnxsim==0.4.35
 numpy==1.23.0
 git+https://github.com/NVIDIA/TensorRT@release/8.5#subdirectory=tools/onnx-graphsurgeon
-git+https://github.com/TexasInstruments/edgeai-tidl-tools.git@10_00_06_00#subdirectory=scripts
+git+https://github.com/TexasInstruments/edgeai-tidl-tools.git@10_00_08_00#subdirectory=scripts
 tflite
 flatbuffers==1.12.0
 requests

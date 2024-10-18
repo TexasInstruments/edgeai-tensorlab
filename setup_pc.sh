@@ -89,7 +89,7 @@ if [[ $TIDL_TOOLS_RELEASE_NAME == "latest" || $TIDL_TOOLS_RELEASE_NAME == "stabl
   fi
 
   echo "--------------------------------------------------------------------------------------------------------------"
-  echo "installing requirements..."
+  echo "Installing requirements..."
   echo "--------------------------------------------------------------------------------------------------------------"
   # there as issue with installing pillow-simd through requirements - force it here
   pip3 uninstall --yes pillow
@@ -98,10 +98,10 @@ if [[ $TIDL_TOOLS_RELEASE_NAME == "latest" || $TIDL_TOOLS_RELEASE_NAME == "stabl
   pip3 install --no-input -r ./requirements_pc.txt
 
   echo "--------------------------------------------------------------------------------------------------------------"
-  echo "installing tidl_tools..."
+  echo "Installing tidl_tools..."
   echo "--------------------------------------------------------------------------------------------------------------"
   TARGET_SOCS=(TDA4VM AM68A AM69A AM62A AM67A)
-  TIDL_TOOLS_RELEASE_ID=10_00_06_00
+  TIDL_TOOLS_RELEASE_ID=10_00_08_00
   TIDL_TOOLS_VERSION_NAME="10.0"
   pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/dlr-1.13.0-py3-none-any.whl
   pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/tvm-0.12.0-cp310-cp310-linux_x86_64.whl
@@ -123,7 +123,7 @@ elif [[ $TIDL_TOOLS_RELEASE_NAME == "r9.2" ]]; then
       exit 1
   fi
   echo "--------------------------------------------------------------------------------------------------------------"
-  echo "installing requirements..."
+  echo "Installing requirements..."
   echo "--------------------------------------------------------------------------------------------------------------"
   # there as issue with installing pillow-simd through requirements - force it here
   pip3 uninstall --yes pillow
@@ -132,7 +132,7 @@ elif [[ $TIDL_TOOLS_RELEASE_NAME == "r9.2" ]]; then
   pip3 install --no-input -r ./requirements_pc.txt
 
   echo "--------------------------------------------------------------------------------------------------------------"
-  echo "installing tidl_tools..."
+  echo "Installing tidl_tools..."
   echo "--------------------------------------------------------------------------------------------------------------"
   TARGET_SOCS=(TDA4VM AM68A AM69A AM62A AM67A)
   TIDL_TOOLS_RELEASE_ID=09_02_09_00
@@ -158,7 +158,7 @@ elif [[ $TIDL_TOOLS_RELEASE_NAME == "r9.1" ]]; then
   fi
   
   echo "--------------------------------------------------------------------------------------------------------------"
-  echo "installing requirements..."
+  echo "Installing requirements..."
   echo "--------------------------------------------------------------------------------------------------------------"
   # there as issue with installing pillow-simd through requirements - force it here
   pip3 uninstall --yes pillow
@@ -167,7 +167,7 @@ elif [[ $TIDL_TOOLS_RELEASE_NAME == "r9.1" ]]; then
   pip3 install --no-input -r ./requirements_pc.txt
 
   echo "--------------------------------------------------------------------------------------------------------------"
-  echo "installing tidl_tools..."
+  echo "Installing tidl_tools..."
   echo "--------------------------------------------------------------------------------------------------------------"
   TARGET_SOCS=(TDA4VM AM68A AM69A AM62A)
   TIDL_TOOLS_RELEASE_ID=09_01_00_00
@@ -193,7 +193,7 @@ elif  [[ $TIDL_TOOLS_RELEASE_NAME == "test9.0.1" ]]; then
   fi
 
   echo "--------------------------------------------------------------------------------------------------------------"
-  echo "installing requirements..."
+  echo "Installing requirements..."
   echo "--------------------------------------------------------------------------------------------------------------"
   # onnx - override the onnx version installed by onnxsim
   # building onnx from soure requires carefull steps
@@ -211,7 +211,7 @@ elif  [[ $TIDL_TOOLS_RELEASE_NAME == "test9.0.1" ]]; then
 
   # installers for internal release
   echo "--------------------------------------------------------------------------------------------------------------"
-  echo "installing tidl_tools..."
+  echo "Installing tidl_tools..."
   echo "--------------------------------------------------------------------------------------------------------------"
   TARGET_SOCS=(TDA4VM AM68A AM69A AM62A)
   TIDL_TOOLS_RELEASE_ID=09_00_00_01
@@ -237,7 +237,7 @@ elif [[ $TIDL_TOOLS_RELEASE_NAME == "r9.0" ]]; then
   fi
 
   echo "--------------------------------------------------------------------------------------------------------------"
-  echo "installing requirements..."
+  echo "Installing requirements..."
   echo "--------------------------------------------------------------------------------------------------------------"
   # onnx - override the onnx version installed by onnxsim
   # building onnx from soure requires carefull steps
@@ -255,7 +255,7 @@ elif [[ $TIDL_TOOLS_RELEASE_NAME == "r9.0" ]]; then
 
   # installers for 9.0 release
   echo "--------------------------------------------------------------------------------------------------------------"
-  echo "installing tidl_tools..."
+  echo "Installing tidl_tools..."
   echo "--------------------------------------------------------------------------------------------------------------"
   TARGET_SOCS=(TDA4VM AM68A AM69A AM62A)
   TIDL_TOOLS_RELEASE_ID=09_00_00_01
