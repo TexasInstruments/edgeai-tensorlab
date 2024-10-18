@@ -1,0 +1,1 @@
+protoc tidl_meta_arch_yolox.proto --python_out=./
