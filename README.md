@@ -3,14 +3,22 @@ Edge AI model training, quantization, compilation/benchmark & Model Zoo
 
 <hr>
 
-## Release Notes
-- Release version: **10.0** (10_00_00)
+## Release 10.0 (10_00)
 - Git branch: **r10.0**
-- Date: September 2024
-- **What is new**: Tech Reports added(**Object detection, PyTorch FX based Quantization**) - see link below, edgeai-mmpose(fork of open-mmlab/mmpose for efficient keypoint detection), edgeai-hf-transformers(fork of huggingface/transformers)
+### Updates
+#### Date: 18 October 2024
+- git tag: v10.0.2
+- tidl_tools update - bug fixes: edgeai-benchmark setup_pc.sh has been updated to install tidl_tools version **10_00_08_00**. See [release notes of edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools/releases) to understand the bug fixes that it has.
+#### Date: September 2024
+- git tag: v10.0.1
+- Tech Reports added(**Object detection, PyTorch FX based Quantization**) - see this [link](./docs/tech_reports/README.md)
+- edgeai-hf-transformers (fork of https://github.com/huggingface/transformers) repository added, enabling training of Transformer based Image Classification, Segmentation and Object Detection Models. 
+- Improvements for Model Surgery and Quantization in edgeai-modeloptimization
+- Several additional models added in edgeai-modelzoo and edgeai-benchmark
+- edgeai-mmpose(fork of open-mmlab/mmpose for efficient keypoint detection), edgeai-hf-transformers(fork of huggingface/transformers)
 - Tools: [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) version used: **10_00_06_00**
 
-More details and information about previous releases are available in [**Release Notes**](docs/release_notes.md)
+More details and information about previous releases are available in [**Release Notes**](./docs/release_notes.md)
 
 **It is important to use the correct git branch if you are going to use the compiled models on a device/SDK.**
 
