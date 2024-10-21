@@ -1,0 +1,9 @@
+breathe
+h5py
+mmcv
+mmengine
+onnx>=1.8.0
+opencv-python==4.5.4.60
+sphinxcontrib-mermaid
+torch
+urllib3<2.0.0
