@@ -4,11 +4,8 @@ This package provides Pre-Compiled Model Artifacts for several Deep Neural Netwo
 - URLs of Pre-compiled model artifacts can be obtained [in this folder](../modelartifacts/)
 
 ## These artifacts can be used for inference in multiple ways: 
-
-#### For inference/benchmark in [edgeai-benchmark](https://github.com/TexasInstruments/edgeai-benchmark)
-
-#### In EdgeAI SDKs of the supported SoCs **[PROCESSOR-SDK-LINUX-SK-TDA4VM](https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM)**
-
+- For inference/benchmark using [edgeai-benchmark](https://github.com/TexasInstruments/edgeai-benchmark) in PC or EVM
+- In EdgeAI SDKs of the [supported SoCs](https://github.com/TexasInstruments/edgeai/blob/main/readme_sdk.md)
 
 
 Note: The tasks performed by the pre-compiled model artifacts can be identified using the following fields in their names:

@@ -14,14 +14,17 @@ If you have not visited the following landing pages, please do so before attempt
 
 <hr>
 
-## Components
-- [Pretrained Models](models)
-- [Compiled Model Artifacts](modelartifacts) - The pre-compiled model artifacts that we provide with this repository. See additional notes [for precompiled model artifacts](./docs/precompiled_modelartifacts.md) 
+## Model Selection Tool
+
+[Edge AI Studio: Model Selection Tool](https://www.ti.com/tool/EDGE-AI-STUDIO) - Understand the performance statistics such as FPS, Latency, Accuracy & DDR bandwidth of models in the Model Zoo. Find a model that best meets your performance and accuracy goals on TI Processor from TI Model Zoo.
+
 
 <hr>
 
-## ModelZoo / pre-trained models collection & documentation
+## Pre-trained models collection & documentation
 
+Pretrained models are located in the **[models](models)** folder. Following are the broad categories  of models included. Go through each section to understand details of the models and how they are trained. 
+ 
 #### Image classification
 - [Image Classification Models](./models/vision/classification/) includes CNN models and **Transformer models**
 
@@ -46,8 +49,15 @@ If you have not visited the following landing pages, please do so before attempt
 
 <hr>
 
+## Compiled Model Artifacts
+
+Pre-compiled model artifacts that are provided with this repository is in [Compiled Model Artifacts](modelartifacts). See additional notes [for precompiled model artifacts](./docs/precompiled_modelartifacts.md) 
+
+
+<hr>
+
 ## Supported SoCs
-List of supported SoCs are in [edgeai-benchmark](https://github.com/TexasInstruments/edgeai-tensorlab/tree/main/edgeai-benchmark) 
+List of supported SoCs are in listed in the edgeai landing page [here](https://github.com/TexasInstruments/edgeai/blob/main/readme_sdk.md) and also in [edgeai-benchmark](https://github.com/TexasInstruments/edgeai-tensorlab/tree/main/edgeai-benchmark) documentation.
 
 <hr>
 
