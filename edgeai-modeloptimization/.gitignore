@@ -1,0 +1,6 @@
+.idea/
+*.pyc
+*.egg-info/
+data/
+!data/readme.txt
+*.onnx
