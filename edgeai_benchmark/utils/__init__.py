@@ -30,6 +30,7 @@ from ..common.misc_utils import *
 from ..common.attr_dict import *
 from ..common.params_base import *
 from ..common.postprocess_utils import *
+from ..common.image_utils import *
 
 from .download_utils import *
 from .file_utils import *
@@ -44,5 +45,4 @@ from .transforms_utils import *
 from .onnx_utils import *
 from .model_utils import *
 from .import_utils import *
-from .image_utils import *
 from .artifacts_id_to_model_name import *

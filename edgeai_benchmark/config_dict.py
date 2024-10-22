@@ -29,6 +29,7 @@
 import os
 import yaml
 import re
+import copy
 
 from . import utils
 
@@ -51,23 +52,31 @@ class ConfigDict(utils.AttrDict):
             #
             settings_file = input
         elif isinstance(input, dict):
-            input_dict = input
+            input_dict = copy.copy(input)
         elif input is not None:
             assert False, 'got invalid input'
         #
-        # override the entries with kwargs
+
+        # override the default entries with kwargs
         for k, v in kwargs.items():
             input_dict[k] = v
         #
+
+        # parse include files
+        parsed_dict = dict()
         for key, value in input_dict.items():
             if key == 'include_files' and input_dict['include_files'] is not None:
                 include_base_path = os.path.dirname(settings_file) if settings_file is not None else './'
                 idict = self._parse_include_files(value, include_base_path)
-                self.update(idict)
+                parsed_dict.update(idict)
             else:
-                self.__setattr__(key, value)
+                parsed_dict[key] = value
             #
         #
+
+        # set values in self
+        self.update(parsed_dict)
+
         # format keys - replace special {} keywords
         self.format_keywords()
 
