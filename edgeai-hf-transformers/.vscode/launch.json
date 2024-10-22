@@ -1,0 +1,54 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python image_classification",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "/data/ssd/files/a0393608/work/code/ti/edgeai-algo/edgeai-hf-transformers",
+            "program": "examples/pytorch/image-classification/run_image_classification.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--trust_remote_code", "True",                
+                "--dataset_name", "data/datasets/imagenet2012",
+                "--output_dir", "outputs",
+                "--remove_unused_columns", "False",
+                "--do_train", "True",
+                "--do_eval", "True",
+                "--per_device_train_batch_size", "128",
+                "--per_device_eval_batch_size", "128",
+                "--overwrite_output_dir",
+                "--model_name_or_path", "facebook/deit-tiny-patch16-224", // "facebook/convnext-tiny-224", "microsoft/swin-tiny-patch4-window7-224",
+                "--size", "256",
+                "--crop_size", "224",
+                // method 1 of specifying mean, std: (img/255 - mean)/std
+                //"--image_mean", "0.485 0.456 0.406",      
+                //"--image_std", "0.229 0.224 0.225",   
+                // method 2 of specifying mean, scale: (img*rescale_factor - mean)*scale
+                "--rescale_factor", "1.0",
+                "--image_mean", "123.675 116.28 103.53",      
+                "--image_scale", "0.017125 0.017507 0.017429",  
+                "--label_names", "labels",
+                "--ignore_mismatched_sizes", "True",
+                "--quantization", "3", // "0", 
+                "--quantize_type", "PTQ",
+                "--quantize_calib_images", "5",
+                "--dataloader_drop_last", "True",
+                "--save_strategy", "no",
+                "--do_onnx_export", "True",
+                "--dataloader_num_workers", "12",
+                //"--quantize_calib_images", "100",
+                // "--use_cpu", "True"
+                // "--max_eval_samples", "1000",
+                // "--max_train_samples", "1000",
+            ],
+            "justMyCode": false,
+            "env": {
+                "CUDA_VISIBLE_DEVICES": "0"
+            }
+        }
+    ]
+}
