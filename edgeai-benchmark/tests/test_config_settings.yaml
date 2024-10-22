@@ -1,0 +1,31 @@
+# Quick-Sanity - Will do validation on selected models with limited frames and iterations
+# Regression   - Will do validation on all supported models with limited frames and iterations
+# Sanity - Will do validation on selected models with all supported frames and iterations
+# Full - Will do validation on all models with all supported frames and iterations
+
+Quick-Sanity:
+	num_frames_cl_model : 1000
+	num_frames_od_ss_model : 100
+	calibration_frames : 10
+	calibration_iterations : 10
+
+Regression:
+	num_frames_cl_model : 1000
+	num_frames_od_ss_model : 100
+	calibration_frames : 10
+	calibration_iterations : 10
+
+Sanity:
+	num_frames_cl_model : 50000
+	num_frames_od_ss_model : 500
+	calibration_frames : 50
+	calibration_iterations : 50
+
+Full:
+	num_frames_cl_model : 50000
+	num_frames_od_ss_model : 500
+	calibration_frames : 50
+	calibration_iterations : 50
+
+
+

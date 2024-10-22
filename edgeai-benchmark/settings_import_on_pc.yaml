@@ -1,0 +1,22 @@
+# include_files is a special keyword - other files that need to be merged with this dict
+include_files : ['settings_base.yaml']
+
+# important parameter. set this to 'pc' to do import and inference in pc
+# set this to 'evm' to run inference in device. for inference on device run_import
+# below should be switched off and it is assumed that the artifacts are already created.
+# supported values: 'evm' 'pc'
+target_machine : 'pc'
+
+# run import of the model - only to be used in pc - set this to False for evm
+# for pc this can be True or False
+run_import : True
+
+# run inference - for inference in evm, it is assumed that the artifacts folders are already available
+run_inference : True
+
+# for parallel execution on pc only (cpu or gpu).
+# number of parallel processes to run.
+# for example 8 will mean 8 models will run in parallel
+# for example 1 will mean one model will run (but in a separae processs from that of the main process)
+# null will mean one process will run, in the same process as the main
+parallel_processes : 1 #null
