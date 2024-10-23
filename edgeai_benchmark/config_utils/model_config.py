@@ -1,4 +1,4 @@
-# Copyright (c) 2018-2021, Texas Instruments
+# Copyright (c) 2018-2024, Texas Instruments
 # All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,25 +27,18 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-from ..config_utils.params_base import *
+import warnings
 
 
-class TransformsCompose(ParamsBase):
-    def __init__(self, transforms, **kwargs):
-        self.transforms = transforms
-        self.kwargs = kwargs
-        super().__init__()
-        self.initialize()
+_EXPECTED_MODEL_CONFIG_KEYS = ('task_type', 'source', 'preprocess', 'session', 'postprocess',
+                 'metric', 'optional_options', 'extra_info')
 
-    def __call__(self, tensor, info_dict):
-        for t in self.transforms:
-            tensor, info_dict = t(tensor, info_dict)
-        #
-        return tensor, info_dict
+def create_model_config(**kwargs):
+    unexpected_keys = []
+    for key in kwargs:
+        if key not in _EXPECTED_MODEL_CONFIG_KEYS:
+            unexpected_keys.append(key)
+    if unexpected_keys:
+        warnings.warn(f'Unexpected keys found in the model config: {kwargs}. \nThe unexpected keys are: {unexpected_keys}')
 
-    def append(self, t):
-        self.transforms.append(t)
-
-
-
-
+    return kwargs

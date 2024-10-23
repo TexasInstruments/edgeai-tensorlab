@@ -26,12 +26,9 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from ..common.misc_utils import *
-from ..common.attr_dict import *
-from ..common.params_base import *
-from ..common.postprocess_utils import *
-from ..common.image_utils import *
+from ..config_utils import *
 
+from .attr_dict import *
 from .download_utils import *
 from .file_utils import *
 from .logger_utils import *

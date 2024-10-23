@@ -26,10 +26,51 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import numpy as np
 
-from .misc_utils import *
-from .attr_dict import *
-from .params_base import *
-from .postprocess_utils import *
-from .dataset_utils import *
-from .image_utils import *
+
+# Author: Manu Mathew
+# Date: 2021 March
+def get_color_palette_generic(num_classes):
+    num_classes_3 = np.power(num_classes, 1.0/3)
+    delta_color = int(256/num_classes_3)
+    colors = [(r, g, b) for r in range(0,256,delta_color)
+                        for g in range(0,256,delta_color)
+                        for b in range(0,256,delta_color)]
+    # spread the colors list to num_classes
+    color_step = len(colors) / num_classes
+    colors_list = []
+    to_idx = 0
+    while len(colors_list) < num_classes:
+        from_idx = round(color_step * to_idx)
+        if from_idx < len(colors):
+            colors_list.append(colors[from_idx])
+        else:
+            break
+        #
+        to_idx = to_idx + 1
+    #
+    shortage = num_classes-len(colors_list)
+    if shortage > 0:
+        colors_list += colors[-shortage:]
+    #
+    if len(colors_list) < 256:
+        colors_list += [(255,255,255)] * (256-len(colors_list))
+    #
+    assert len(colors_list) == 256, f'incorrect length for color palette {len(colors_list)}'
+    return colors_list
+
+    
+def get_color_palette(num_classes):
+    if num_classes < 8:
+        color_step = 255
+    elif num_classes < 27:
+        color_step = 127
+    elif num_classes < 64:
+        color_step = 63        
+    else:
+        color_step  = 31
+    #
+    color_map = [(r, g, b) for r in range(0, 256, color_step) for g in range(0, 256, color_step) for b in range(0, 256, color_step)]
+    return color_map
+
