@@ -89,7 +89,7 @@ def apply_model_optimization(model: nn.Module, example_inputs: list=None, exampl
     quantization_kwargs = copy.deepcopy(quantization_kwargs)
     main_model_optimization_version = None
     main_kwargs = dict(transformation_dict=transformation_dict, copy_attrs=copy_attrs)
-    
+
     if model_surgery_version != 0 and model_surgery_kwargs is not None:
         assert model_surgery_version in (1, 2, 3)
         main_model_optimization_version = model_surgery_version
@@ -135,6 +135,40 @@ def apply_model_optimization(model: nn.Module, example_inputs: list=None, exampl
     else:
         model = model_without_ddp
     
+    # TODO: check this later
+    # if main_model_optimization_version == 1:
+    #     pass
+    # elif main_model_optimization_version == 2:
+    #     if isinstance(model, nn.parallel.DistributedDataParallel):
+    #         device = next(iter(model.module.named_parameters()))[1].device
+    #         for i, example_input in enumerate(example_inputs):
+    #             example_inputs[i] = example_input.to(device=device)
+    #         for key, val in example_kwargs.items():
+    #             if isinstance(val, list):
+    #                 for i, v in enumerate(val):
+    #                     val[i] = v.to(device=device)
+    #             else:
+    #                 val = val.to(device=device)
+    #             example_kwargs[key] = val
+    #         model.module = model_optimzation_v2.ModelOptimizationWrapperV2(model.module, example_inputs=example_inputs, example_kwargs=example_kwargs, **main_kwargs)
+    #     else:
+    #         model = model_optimzation_v2.ModelOptimizationWrapperV2(model, example_inputs=example_inputs, example_kwargs=example_kwargs, **main_kwargs)
+    # elif main_model_optimization_version == 3:
+    #     if isinstance(model, nn.parallel.DistributedDataParallel):
+    #         device = next(iter(model.module.named_parameters()))[1].device
+    #         for i, example_input in enumerate(example_inputs):
+    #             example_inputs[i] = example_input.to(device=device)
+    #         for key, val in example_kwargs.items():
+    #             if isinstance(val, list):
+    #                 for i, v in enumerate(val):
+    #                     val[i] = v.to(device=device)
+    #             else:
+    #                 val = val.to(device=device)
+    #             example_kwargs[key] = val
+    #         model.module = model_optimzation_v3.ModelOptimizationWrapperV3(model.module, example_inputs=example_inputs, example_kwargs=example_kwargs, **main_kwargs)
+    #     else:
+    #         model = model_optimzation_v3.ModelOptimizationWrapperV3(model, example_inputs=example_inputs, example_kwargs=example_kwargs, **main_kwargs)
+
     return model
 
 
