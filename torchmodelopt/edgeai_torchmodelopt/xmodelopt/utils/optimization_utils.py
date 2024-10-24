@@ -10,8 +10,8 @@ __all__ = ['apply_model_optimization', 'apply_model_surgery', 'apply_pruning', '
            'prepare_model_for_onnx', 'apply_tranformation_to_submodules', 'TransformationWrapper']
 
 def apply_model_optimization(model: nn.Module, example_inputs: list=None, example_kwargs: dict=None, model_surgery_version=None, 
-                             pruning_version=None, quantization_version=None, model_surgery_kwargs: dict[str,Any]=None, 
-                             pruning_kwargs: dict[str,Any]=None, quantization_kwargs: dict[str,Any]=None, transformation_dict=None, copy_attrs=None):
+                             pruning_version=None, quantization_version=None, model_surgery_kwargs: dict[str, Any]=None, 
+                             pruning_kwargs: dict[str, Any]=None, quantization_kwargs: dict[str, Any]=None, transformation_dict=None, copy_attrs=None):
     '''
     A wrapper function to apply surgery, pruning, and quantization
     
@@ -50,21 +50,21 @@ def apply_model_optimization(model: nn.Module, example_inputs: list=None, exampl
     pruning_version = pruning_version or (0 if pruning_kwargs is None else 2)
     quantization_version = quantization_version or (0 if quantization_kwargs is None else 2)
     copy_attrs= copy_attrs or []
-    model(*example_inputs,**example_kwargs)
+    model(*example_inputs, **example_kwargs)
     model_surgery_kwargs = copy.deepcopy(model_surgery_kwargs)
     pruning_kwargs = copy.deepcopy(pruning_kwargs)
     quantization_kwargs = copy.deepcopy(quantization_kwargs)
     main_model_optimization_version = None
-    main_kwargs = dict(transformation_dict=transformation_dict,copy_attrs=copy_attrs)
+    main_kwargs = dict(transformation_dict=transformation_dict, copy_attrs=copy_attrs)
     
-    if model_surgery_version !=0 :
-        assert model_surgery_version in (1,2,3)
+    if model_surgery_version != 0:
+        assert model_surgery_version in (1, 2, 3)
         main_model_optimization_version = model_surgery_version
         main_kwargs.update(model_surgery_kwargs=model_surgery_kwargs)
 
     if pruning_version != 0:
         if main_model_optimization_version is None:
-            assert pruning_version in (1,2,3)
+            assert pruning_version in (1, 2, 3)
             main_model_optimization_version = pruning_version
         else:
             assert pruning_version == main_model_optimization_version, f'''
@@ -75,7 +75,7 @@ def apply_model_optimization(model: nn.Module, example_inputs: list=None, exampl
 
     if quantization_version != 0:
         if main_model_optimization_version is None:
-            assert quantization_version in (1,2,3)
+            assert quantization_version in (1, 2, 3)
             main_model_optimization_version = quantization_version
         else:
             assert quantization_version == main_model_optimization_version, f'''
@@ -87,9 +87,35 @@ def apply_model_optimization(model: nn.Module, example_inputs: list=None, exampl
     if main_model_optimization_version == 1:
         pass
     elif main_model_optimization_version == 2:
-        model = model_optimzation_v2.ModelOptimizationWrapperV2(model, example_inputs=example_inputs, example_kwargs=example_kwargs, **main_kwargs)
+        if isinstance(model, nn.parallel.DistributedDataParallel):
+            device = next(iter(model.module.named_parameters()))[1].device
+            for i, example_input in enumerate(example_inputs):
+                example_inputs[i] = example_input.to(device=device)
+            for key, val in example_kwargs.items():
+                if isinstance(val, list):
+                    for i, v in enumerate(val):
+                        val[i] = v.to(device=device)
+                else:
+                    val = val.to(device=device)
+                example_kwargs[key] = val
+            model.module = model_optimzation_v2.ModelOptimizationWrapperV2(model.module, example_inputs=example_inputs, example_kwargs=example_kwargs, **main_kwargs)
+        else:
+            model = model_optimzation_v2.ModelOptimizationWrapperV2(model, example_inputs=example_inputs, example_kwargs=example_kwargs, **main_kwargs)
     elif main_model_optimization_version == 3:
-        model = model_optimzation_v3.ModelOptimizationWrapperV3(model, example_inputs=example_inputs, example_kwargs=example_kwargs, **main_kwargs)
+        if isinstance(model, nn.parallel.DistributedDataParallel):
+            device = next(iter(model.module.named_parameters()))[1].device
+            for i, example_input in enumerate(example_inputs):
+                example_inputs[i] = example_input.to(device=device)
+            for key, val in example_kwargs.items():
+                if isinstance(val, list):
+                    for i, v in enumerate(val):
+                        val[i] = v.to(device=device)
+                else:
+                    val = val.to(device=device)
+                example_kwargs[key] = val
+            model.module = model_optimzation_v3.ModelOptimizationWrapperV3(model.module, example_inputs=example_inputs, example_kwargs=example_kwargs, **main_kwargs)
+        else:
+            model = model_optimzation_v3.ModelOptimizationWrapperV3(model, example_inputs=example_inputs, example_kwargs=example_kwargs, **main_kwargs)
             
     return model
 

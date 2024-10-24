@@ -4,3 +4,4 @@ from .optimization_base import OptimizationBaseModule
 from .model_optimzation_v1 import ModelOptimizationWrapperV1
 from .model_optimzation_v2 import ModelOptimizationWrapperV2
 from .model_optimzation_v3 import ModelOptimizationWrapperV3
+from .transformation_dict import get_transformation_for_model

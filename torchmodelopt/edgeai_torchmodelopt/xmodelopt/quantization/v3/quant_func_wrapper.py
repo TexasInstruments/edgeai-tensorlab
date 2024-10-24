@@ -4,8 +4,9 @@ from ...utils.hooks import add_example_args_kwargs
 
 
 def init(module, *args, example_inputs=None, example_kwargs=None, transformation_dict=None, **kwargs):
-    add_example_args_kwargs(module,example_inputs=example_inputs, example_kwargs=example_kwargs,transformation_dict=transformation_dict)
-    return wrapped_transformation_fn(quant_func.init, module, *args, example_inputs=example_inputs, example_kwargs=example_kwargs, transformation_dict=transformation_dict,**kwargs)
+    add_example_args_kwargs(module, example_inputs=example_inputs, example_kwargs=example_kwargs, transformation_dict=transformation_dict)
+    return wrapped_transformation_fn(quant_func.init, module, *args, example_inputs=example_inputs, example_kwargs=example_kwargs, 
+                                     transformation_dict=transformation_dict, **kwargs)
 
 
 def train(*args, **kwargs):
@@ -35,6 +36,7 @@ def export(self, *args, transformation_dict = None, is_converted = False, device
         model = self
     else:
         model = convert(self, transformation_dict = transformation_dict, device = device, make_copy = make_copy)
+    model = model.to(device=device)
     model = remove_loss_branch(self, transformation_dict = transformation_dict)
     quant_func.export(model, *args, device = device, make_copy = make_copy, is_converted = True, **kwargs)
     return

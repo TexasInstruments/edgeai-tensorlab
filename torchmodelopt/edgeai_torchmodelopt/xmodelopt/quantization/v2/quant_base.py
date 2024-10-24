@@ -33,7 +33,7 @@ import types
 import torch
 from . import quant_func_wrapper
 from ...utils.optimization_base import OptimizationBaseModule, add_attrs
-
+import copy
 
 class QuantFxBaseModule(OptimizationBaseModule):
     def __init__(self, model, *args, transformation_dict:dict=None, copy_attrs:list[str]=None, add_methods=True, **kwargs):
@@ -86,12 +86,20 @@ class QuantFxBaseModule(OptimizationBaseModule):
         return self.module(*args, **kwargs)
 
     def convert(self, *args, **kwargs):
-        # self.module = quant_func.convert(self.module, *args, **kwargs)
-        self.module = quant_func_wrapper.convert(self.module, *args, transformation_dict=self.transformation_dict, **kwargs)
-        return self
-    
+        if kwargs.pop('make_copy', True):
+            model = copy.deepcopy(self) 
+            for name, sub_module in self.module.named_modules():
+                if hasattr(sub_module,'__quant_params__'):
+                    if (sub_module1 := dict(model.module.named_modules()).get(name, None)):
+                        if not hasattr(sub_module1,'__quant_params__'):
+                            setattr(sub_module1,'__quant_params__',sub_module.__quant_params__)
+        else:
+            model = self      
+        
+        model.module = quant_func_wrapper.convert(model.module, *args, transformation_dict=self.transformation_dict, make_copy=False, **kwargs)
+        return model
     
     def export(self, *args, **kwargs):
-        self = self.convert(*args, **kwargs)
-        return quant_func_wrapper.export(self, *args, transformation_dict=self.transformation_dict, is_converted=True, **kwargs)
-
+        converted_model = self.convert(*args, **kwargs)
+        quant_func_wrapper.export(converted_model, *args, transformation_dict=self.transformation_dict, is_converted=True, **kwargs)
+        return self

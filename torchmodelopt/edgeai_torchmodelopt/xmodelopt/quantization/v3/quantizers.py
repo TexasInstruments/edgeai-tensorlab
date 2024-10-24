@@ -461,8 +461,7 @@ class TIDLRTQuantizer(Quantizer):
     
     def _annotate_two_inputs_single_output(
         self, gm: GraphModule, quantization_config: QuantizationConfig
-    ):
-        device = next(iter(gm.named_parameters()))[1].device
+    ) -> None: 
         for node in gm.graph.nodes:
             if _is_annotated([node]):
                 continue
@@ -471,7 +470,7 @@ class TIDLRTQuantizer(Quantizer):
                     args = list(node.args)
                     for i, a in enumerate(args):
                         if isinstance(a, (int, float)):
-                            t = torch.tensor(a,device=device)
+                            t = torch.tensor(a)
                             t_name = f'{node.name}_inp_{i}'
                             gm.register_buffer(t_name,t, persistent=True)
                             args[i] = gm.graph.get_attr(t_name)

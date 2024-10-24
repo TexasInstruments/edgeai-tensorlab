@@ -55,7 +55,7 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
         example_inputs= model._example_inputs
         example_kwargs= model._example_kwargs
     else:
-        add_example_args_kwargs(model,example_inputs=example_inputs, example_kwargs=example_kwargs)
+        add_example_args_kwargs(model, example_inputs=example_inputs, example_kwargs=example_kwargs)
     
     if hasattr(model, '__quant_params__'):
         print('IGNORED: quant init called on a model that was already quantized')
@@ -237,7 +237,7 @@ def train(self, mode: bool = True):
         num_observer_update_epochs = self.__quant_params__.num_observer_update_epochs or ((self.__quant_params__.total_epochs//2)+1)
         freeze_bn = (self.__quant_params__.num_epochs_tracked >= num_batch_norm_update_epochs)
         freeze_observers = (self.__quant_params__.num_epochs_tracked >= num_observer_update_epochs)
-        freeze_bn = freeze_observers = False
+        # freeze_bn = freeze_observers = False      ####TODO WHY turned off?? FIXME
         if freeze_bn:
             xnn.utils.print_once('Freezing BN for subsequent epochs')
         #
