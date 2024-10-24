@@ -35,6 +35,23 @@ import torchvision
 import torch.nn.functional as F
 
 
+# Set test params
+IN_HEIGHT      = 58
+IN_WIDTH       = 100
+OUT_HEIGHT     = IN_HEIGHT
+OUT_WIDTH      = IN_WIDTH
+
+IN_CHANNEL     = 256
+OUT_CHANNEL    = 256
+KERNEL_SIZE    = 3
+STRIDE         = 1
+PADDING        = 1
+DILATION       = 1
+BIAS           = False
+DEFORM_GROUPS  = 1
+INTP_MODE      = 'bilinear'
+
+
 class DeformConvLayer2d(torchvision.ops.DeformConv2d):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -130,22 +147,6 @@ class DeformConvWithOps2d(torchvision.ops.DeformConv2d):
 
 if __name__ == "__main__":
 
-    # Set params
-    IN_HEIGHT      = 58
-    IN_WIDTH       = 100
-    OUT_HEIGHT     = IN_HEIGHT
-    OUT_WIDTH      = IN_WIDTH
-
-    IN_CHANNEL     = 256
-    OUT_CHANNEL    = 256
-    KERNEL_SIZE    = 3
-    STRIDE         = 1
-    PADDING        = 1
-    DILATION       = 1
-    BIAS           = False
-    DEFORM_GROUPS  = 1
-    INTP_MODE      = 'bilinear'
-
     deform_layer = DeformConvLayer2d(IN_CHANNEL,
                                      OUT_CHANNEL,
                                      kernel_size=KERNEL_SIZE,
@@ -155,7 +156,7 @@ if __name__ == "__main__":
                                      bias=BIAS,
                                      groups=DEFORM_GROUPS)
 
-    deform_op = DeformConvWithOps2d( IN_CHANNEL,
+    deform_op  = DeformConvWithOps2d(IN_CHANNEL,
                                      OUT_CHANNEL,
                                      mode=INTP_MODE,
                                      kernel_size=KERNEL_SIZE,
@@ -170,7 +171,7 @@ if __name__ == "__main__":
     if deform_op.bias is not None:
         deform_op.bias   = deform_layer.bias
 
-    # Input to the model: feature map. offset_y, offste_x, mask
+    # Input to the model: feature map, offset_y, offste_x, mask
     feat = torch.randn(1, IN_CHANNEL, IN_HEIGHT, IN_WIDTH) * 10
     offset_y = torch.randn(1, KERNEL_SIZE*KERNEL_SIZE, OUT_HEIGHT, OUT_WIDTH)
     offset_x = torch.randn(1, KERNEL_SIZE*KERNEL_SIZE, OUT_HEIGHT, OUT_WIDTH)
@@ -190,7 +191,7 @@ if __name__ == "__main__":
     with torch.no_grad():
         out_deform_op = deform_op(feat, offset_y, offset_x, mask)
 
-    # compare difference
+    # Check differences between deform_layer and deform_op
     diff = out_deform_op - out_deform_layer
     if torch.sum((abs(diff) > 1e-4) == True) > 0:
         warnings.warn('deform_layer and deform_op do not match!\n')
