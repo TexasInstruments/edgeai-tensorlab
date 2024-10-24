@@ -353,8 +353,9 @@ class DetrConvEncoder(nn.Module):
             backbone = load_backbone(config)
 
         # replace batch norm by frozen batch norm
-        with torch.no_grad():
-            replace_batch_norm(backbone)
+        # the quantization is messed up because of the new batchnorm, the operators are broken individually
+        # with torch.no_grad(): 
+        #     replace_batch_norm(backbone)
         self.model = backbone
         self.intermediate_channel_sizes = (
             self.model.feature_info.channels() if config.use_timm_backbone else self.model.channels
@@ -1485,9 +1486,27 @@ class DetrForObjectDetection(DetrPreTrainedModel):
                 intermediate = outputs.intermediate_hidden_states if return_dict else outputs[4]
                 outputs_class = self.class_labels_classifier(intermediate)
                 outputs_coord = self.bbox_predictor(intermediate).sigmoid()
-            loss, loss_dict, auxiliary_outputs = self.loss_function(
-                logits, labels, self.device, pred_boxes, self.config, outputs_class, outputs_coord
-            )
+                auxiliary_outputs = self._set_aux_loss(outputs_class, outputs_coord)
+                outputs_loss["auxiliary_outputs"] = auxiliary_outputs
+                
+            # the labels are not getting transferred in distributed data parallel (some issue in torch api), fix for that 
+            for i, label in enumerate(labels):
+                labels[i] = label.to(outputs_loss["logits"].device)
+                
+            loss_dict = criterion(outputs_loss, labels)
+            # Fourth: compute total loss, as a weighted sum of the various losses
+            weight_dict = {"loss_ce": 1, "loss_bbox": self.config.bbox_loss_coefficient}
+            weight_dict["loss_giou"] = self.config.giou_loss_coefficient
+            if self.config.auxiliary_loss:
+                aux_weight_dict = {}
+                for i in range(self.config.decoder_layers - 1):
+                    aux_weight_dict.update({k + f"_{i}": v for k, v in weight_dict.items()})
+                weight_dict.update(aux_weight_dict)
+            loss = sum(loss_dict[k] * weight_dict[k] for k in loss_dict.keys() if k in weight_dict)
+            # below present in transformers - see if works #TODO 
+            # loss, loss_dict, auxiliary_outputs = self.loss_function(
+            #     logits, labels, self.device, pred_boxes, self.config, outputs_class, outputs_coord
+            # )
 
         if not return_dict:
             if auxiliary_outputs is not None:

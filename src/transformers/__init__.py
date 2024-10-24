@@ -45,6 +45,7 @@ from .utils import (
     is_torchaudio_available,
     is_torchvision_available,
     is_vision_available,
+    is_edgeai_torchmodelopt_available,
     logging,
 )
 
@@ -1010,6 +1011,12 @@ _import_structure = {
         "VptqConfig",
     ],
 }
+
+try:
+    if not is_edgeai_torchmodelopt_available():
+        raise OptionalDependencyNotAvailable()
+except OptionalDependencyNotAvailable:
+    from .get_transformation_dict import transformation_dict_detr 
 
 # sentencepiece-backed objects
 try:

@@ -238,6 +238,7 @@ from .import_utils import (
     is_vptq_available,
     requires_backends,
     torch_only_method,
+    is_edgeai_torchmodelopt_available
 )
 from .peft_utils import (
     ADAPTER_CONFIG_NAME,

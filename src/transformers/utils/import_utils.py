@@ -196,6 +196,8 @@ _tiktoken_available = _is_package_available("tiktoken")
 _blobfile_available = _is_package_available("blobfile")
 _liger_kernel_available = _is_package_available("liger_kernel")
 _triton_available = _is_package_available("triton")
+_edgeai_torchmodelopt_available = _is_package_available("edgeai_torchmodelopt")
+
 
 _torch_version = "N/A"
 _torch_available = False
@@ -304,6 +306,8 @@ if USE_TORCH_XLA in ENV_VARS_TRUE_VALUES:
     if _torch_xla_available:
         logger.info(f"Torch XLA version {_torch_xla_version} available.")
 
+def is_edgeai_torchmodelopt_available():
+    return _edgeai_torchmodelopt_available
 
 def is_kenlm_available():
     return _kenlm_available

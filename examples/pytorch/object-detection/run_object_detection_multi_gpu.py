@@ -25,6 +25,8 @@ from typing import Any, List, Mapping, Optional, Tuple, Union
 import albumentations as A
 import numpy as np
 import torch
+import accelerate
+from accelerate import Accelerator
 from datasets import load_dataset
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
 
@@ -35,7 +37,8 @@ from transformers import (
     AutoModelForObjectDetection,
     HfArgumentParser,
     Trainer,
-    TrainingArguments
+    TrainingArguments,
+    DetrImageProcessor
 )
 from transformers.image_processing_utils import BatchFeature
 from transformers.image_transforms import center_to_corners_format
@@ -52,7 +55,7 @@ torch.backends.cuda.enable_mem_efficient_sdp(False) # disabling the efficient at
 logger = logging.getLogger(__name__)
 
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
-check_min_version("4.48.0.dev0")
+check_min_version("4.44.0.dev0")
 
 require_version("datasets>=2.0.0", "To fix: pip install -r examples/pytorch/object-detection/requirements.txt")
 
@@ -207,15 +210,20 @@ def compute_metrics(
     # Collect predictions in the required format for metric computation,
     # model produce boxes in YOLO format, then image_processor convert them to Pascal VOC format
     for batch, target_sizes in zip(predictions, image_sizes):
-        batch_logits, batch_boxes = batch[1], batch[2]
-        output = ModelOutput(logits=torch.tensor(batch_logits), pred_boxes=torch.tensor(batch_boxes))
+        batch_size = batch[1].shape[0]
+        num_devices = len(target_sizes) // batch_size
+        nested_integer = len(batch) // num_devices
+        batch_logits, batch_boxes = torch.tensor(batch[1::nested_integer]), torch.tensor(batch[2::nested_integer])
+        output = ModelOutput(
+            logits=batch_logits.view(1, -1, *(batch_logits.size()[2:])).squeeze(0), pred_boxes=batch_boxes.view(1, -1, *(batch_boxes.size()[2:])).squeeze(0)
+        )
         post_processed_output = image_processor.post_process_object_detection(
             output, threshold=threshold, target_sizes=target_sizes
         )
         post_processed_predictions.extend(post_processed_output)
 
     # Compute metrics
-    metric = MeanAveragePrecision(box_format="xyxy", class_metrics=True)
+    metric = MeanAveragePrecision(box_format="xyxy", class_metrics=True, compute_on_cpu=False, sync_on_compute=False, dist_sync_on_step=True)
     metric.update(post_processed_predictions, post_processed_targets)
     metrics = metric.compute()
 
@@ -427,6 +435,21 @@ def main():
     # # Sending telemetry. Tracking the example usage helps us better allocate resources to maintain them. The
     # # information sent is the one passed as arguments along with your Python/PyTorch versions.
     send_example_telemetry("run_object_detection", model_args, data_args)
+    
+    # Initialize the accelerator. We will let the accelerator handle device placement for us in this example.
+    # If we're using training_args.report_to, we also need to initialize it here and it will by default pick up all supported trackers
+    # in the environment
+    accelerator_log_kwargs = {}
+
+    if training_args.report_to:
+        accelerator_log_kwargs["log_with"] = training_args.report_to
+        accelerator_log_kwargs["project_dir"] = training_args.output_dir
+        accelerator_log_kwargs["kwargs_handlers"] = [accelerate.utils.DistributedDataParallelKwargs(find_unused_parameters=True)]
+        
+
+    accelerator = Accelerator(
+        gradient_accumulation_steps=training_args.gradient_accumulation_steps, **accelerator_log_kwargs
+    )
 
     # Setup logging
     logging.basicConfig(
@@ -587,11 +610,21 @@ def main():
     if data_args.max_eval_samples is not None and data_args.max_eval_samples < 1:
         data_args.max_eval_samples = len(dataset["validation"])*data_args.max_eval_samples
 
-    dataset["train"] = dataset["train"].with_transform(train_transform_batch) if data_args.max_train_samples is None else \
-        dataset["train"].with_transform(train_transform_batch).select(range(int(data_args.max_train_samples)))
-    dataset["validation"] = dataset["validation"].with_transform(validation_transform_batch) if data_args.max_eval_samples is None else \
-        dataset["validation"].with_transform(validation_transform_batch).select(range(int(data_args.max_eval_samples)))
-    # dataset["test"] = dataset["test"].with_transform(validation_transform_batch)
+    with accelerator.main_process_first():
+        dataset["train"] = dataset["train"].with_transform(train_transform_batch) if data_args.max_train_samples is None else \
+            dataset["train"].with_transform(train_transform_batch).select(range(int(data_args.max_train_samples)))
+        dataset["validation"] = dataset["validation"].with_transform(validation_transform_batch) if data_args.max_eval_samples is None else \
+            dataset["validation"].with_transform(validation_transform_batch).select(range(int(data_args.max_eval_samples)))
+        # dataset["test"] = dataset["test"].with_transform(validation_transform_batch)
+        
+    # ------------------------------------------------------------------------------------------------
+    # Prepare everything with the accelerator
+    # ------------------------------------------------------------------------------------------------
+
+    # Prepare everything with our `accelerator`.
+    model, dataset["train"], dataset["validation"] = accelerator.prepare(
+        model, dataset["train"], dataset["validation"]
+    )
 
     # ------------------------------------------------------------------------------------------------
     # Model training and evaluation with Trainer API
@@ -650,7 +683,7 @@ def main():
         args=training_args,
         train_dataset=dataset["train"] if training_args.do_train else None,
         eval_dataset=dataset["validation"] if training_args.do_eval else None,
-        processing_class=image_processor,
+        tokenizer=image_processor,
         data_collator=collate_fn,
         compute_metrics=eval_compute_metrics_fn
     )
@@ -669,13 +702,13 @@ def main():
         file_name = model_args.model_name_or_path.split("/")[-1]
         file_name = training_args.output_dir + '/' + file_name + '_quantized.onnx' if model_optimization_args.quantization else \
             training_args.output_dir + '/' + file_name + '.onnx'
-        if hasattr(trainer.model, 'export'):               
+        if hasattr(trainer.model.module, 'export'):               
             example_kwargs = next(iter(dataset["validation"]))
             example_kwargs['pixel_values'] = example_kwargs['pixel_values'].unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1, 1, 1)
             # example_kwargs['pixel_mask'] = example_kwargs['pixel_mask'].repeat(training_args.per_device_train_batch_size, 1, 1)
             pixel_mask = example_kwargs.pop('pixel_mask')
             example_kwargs['labels'] = [example_kwargs.pop('labels')]*training_args.per_device_train_batch_size
-            trainer.model.export(example_kwargs, filename=file_name, simplify=True, device=export_device, make_copy=True)
+            trainer.model.module.export(example_kwargs, filename=file_name, simplify=True, device=export_device, make_copy=True)
         else:
             trainer.model.eval()
             example_input = next(iter(dataset["validation"]))
