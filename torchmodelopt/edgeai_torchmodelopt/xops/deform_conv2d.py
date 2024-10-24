@@ -35,6 +35,23 @@ import torchvision
 import torch.nn.functional as F
 
 
+# Set test params
+IN_HEIGHT      = 58
+IN_WIDTH       = 100
+OUT_HEIGHT     = IN_HEIGHT
+OUT_WIDTH      = IN_WIDTH
+
+IN_CHANNEL     = 256
+OUT_CHANNEL    = 256
+KERNEL_SIZE    = 3
+STRIDE         = 1
+PADDING        = 1
+DILATION       = 1
+BIAS           = False
+DEFORM_GROUPS  = 1
+INTP_MODE      = 'bilinear'
+
+
 ###########################################################################################
 # Core DeformConv that takes feature, offset  & mask
 ###########################################################################################
