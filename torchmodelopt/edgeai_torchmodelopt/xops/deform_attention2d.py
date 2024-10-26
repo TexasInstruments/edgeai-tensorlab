@@ -174,7 +174,7 @@ def run_test_deform_attn():
     deform_attn = MultiScaleDeformAttn(mode=INTP_MODE)
     deform_attn.eval()
     with torch.no_grad():
-        out_deform_attn = deform_attn(value, value_spatial_shapes,
+        out_deform_attn_ms = deform_attn_ms(value, value_spatial_shapes,
             sampling_locations, attention_weights)
 
     # Run deform_attn_fs, which is for model export
