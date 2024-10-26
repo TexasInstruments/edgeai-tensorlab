@@ -55,7 +55,12 @@ class DeformConvWithGS2d(torchvision.ops.DeformConv2d):
 
         self.mode = mode
 
-    def forward(self, feat, offset_y, offset_x, mask):
+    def forward(self, feat, offset, mask):
+
+        # [1,18,W,H] => 2 x [1,9,W,H]
+        offset_y = offset[:,0::2,...]
+        offset_x = offset[:,1::2,...]
+
         # 0. sigmod of mask
         mask = torch.sigmoid(mask)
 
@@ -193,12 +198,12 @@ if __name__ == "__main__":
     # Run deform_with_gs
     deform_with_gs.eval()
     with torch.no_grad():
-        out_deform_with_gs = deform_with_gs(feat, offset_y, offset_x, mask)
+        out_deform_with_gs = deform_with_gs(feat, offset, mask)
 
     # Check differences between deform_op and deform_with_gs
     diff = out_deform_with_gs - out_deform_op
     if torch.sum((abs(diff) > 1e-4) == True) > 0:
-        warnings.warn('deform_op and deform_with_gs do not match!\n')
+        print('deform_op and deform_with_gs do not match!\n')
     else:
         print('deform_op and deform_with_gs matches\n')
 
@@ -207,8 +212,7 @@ if __name__ == "__main__":
     output_names = ["output"]
     modelInput = (
         feat,
-        offset_y,
-        offset_x,
+        offset,
         mask)
     torch.onnx.export(deform_with_gs,
                       modelInput,

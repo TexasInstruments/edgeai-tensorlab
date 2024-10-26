@@ -184,7 +184,7 @@ if __name__ == "__main__":
     # Check differences between deform_attn and deform_attn_fs
     diff = out_deform_attn - out_deform_attn_fs
     if torch.sum((abs(diff) > 1e-4) == True) > 0:
-        warnings.warn('out_deform_attn and out_deform_attn_fs do not match!\n')
+        print('out_deform_attn and out_deform_attn_fs do not match!\n')
     else:
         print('out_deform_attn and out_deform_attn_fs matches\n')
 
