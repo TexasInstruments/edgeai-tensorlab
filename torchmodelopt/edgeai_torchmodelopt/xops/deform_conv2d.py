@@ -64,9 +64,6 @@ class DeformConvWithGS2d(torchvision.ops.DeformConv2d):
         offset_y = offset[:,0::2,...]
         offset_x = offset[:,1::2,...]
 
-        # 0. sigmod of mask
-        mask = torch.sigmoid(mask)
-
         # 1. input feature padding
         _, _, fr, fc = self.weight.shape
 
@@ -167,26 +164,32 @@ class DCNv2(torch.nn.Module):
 
         ks = (kernel_size,kernel_size) if isinstance(kernel_size, int) else kernel_size
         self.mask_out_channels = deform_groups * ks[0] * ks[1]
-        self.offset_out_channels = self.mask_out_channels*2
+        self.offset_out_channels = self.mask_out_channels * 2
 
-        self.conv_offset = torch.nn.Conv2d(in_channels, (self.offset_out_channels+self.mask_out_channels),
-                kernel_size, stride, padding, dilation, groups, bias)
+        self.conv_offset = torch.nn.Conv2d(in_channels=in_channels,
+                out_channels=(self.offset_out_channels+self.mask_out_channels),
+                kernel_size=kernel_size, stride=stride, padding=padding,
+                dilation=dilation, groups=groups, bias=bias)
 
-        self.conv_deform = deform_layer_type(in_channels, out_channels,
-                kernel_size, stride, padding, dilation, groups, bias, mode=mode)
+        self.conv_deform = deform_layer_type(in_channels=in_channels,
+                out_channels=out_channels,
+                kernel_size=kernel_size, stride=stride, padding=padding,
+                dilation=dilation, groups=groups, bias=bias, mode=mode)
 
     def forward(self, feat):
         offset_mask = self.conv_offset(feat)
         offset_yx = offset_mask[:,:self.offset_out_channels,...]
         mask = offset_mask[:,self.offset_out_channels:,...]
-        return self.conv_deform(feat, offset_yx, mask)
+        mask = torch.sigmoid(mask)
+        output = self.conv_deform(feat, offset_yx, mask)
+        return output
 
 
 ###########################################################################################
 # unit tests
 ###########################################################################################
 
-def test_deform_op():
+def run_test_deform_op():
     # Set test params
     IN_HEIGHT = 58
     IN_WIDTH = 100
@@ -199,6 +202,7 @@ def test_deform_op():
     STRIDE = 1
     PADDING = 1
     DILATION = 1
+    GROUPS = 1
     BIAS = True
     DEFORM_GROUPS = 1
     INTP_MODE = 'bilinear'
@@ -209,8 +213,8 @@ def test_deform_op():
                                      stride=STRIDE,
                                      padding=PADDING,
                                      dilation=DILATION,
-                                     bias=BIAS,
-                                     groups=DEFORM_GROUPS)
+                                     groups=GROUPS,
+                                     bias=BIAS)
 
     deform_with_gs  = DeformConvWithGS2d(IN_CHANNEL,
                                      OUT_CHANNEL,
@@ -219,8 +223,8 @@ def test_deform_op():
                                      stride=STRIDE,
                                      padding=PADDING,
                                      dilation=DILATION,
-                                     bias=BIAS,
-                                     groups=DEFORM_GROUPS)
+                                     groups=GROUPS,
+                                     bias=BIAS)
 
     # For evaluation, make weigth and bias of two models the same
     deform_with_gs.weight = deform_op.weight
@@ -245,7 +249,7 @@ def test_deform_op():
     # Run deform_with_gs
     deform_with_gs.eval()
     with torch.no_grad():
-        out_deform_with_gs = deform_with_gs(feat, offset, mask)
+        out_deform_with_gs = deform_with_gs(feat, offset, torch.sigmoid(mask))
 
     # Check differences between deform_op and deform_with_gs
     diff = out_deform_with_gs - out_deform_op
@@ -257,12 +261,12 @@ def test_deform_op():
     # Export deform_with_gs model
     input_names  = ["feat", "offset", "mask"]
     output_names = ["output"]
-    modelInput = (
+    model_input = (
         feat,
         offset,
         mask)
     torch.onnx.export(deform_with_gs,
-                      modelInput,
+                      model_input,
                       "deform_conv_pytorch.onnx",
                       input_names=input_names,
                       output_names=output_names,
@@ -282,7 +286,7 @@ def test_deform_op():
         assert test_output, "DeformConv Op: Test FAILED"
 
 
-def test_dcnv2():
+def run_test_dcnv2():
     # Set test params
     IN_HEIGHT = 58
     IN_WIDTH = 100
@@ -323,11 +327,11 @@ def test_dcnv2():
                      deform_groups=DEFORM_GROUPS,
                      deform_layer_type=DeformConvWithGS2d)
 
-    # For evaluation, make weigth and bias of two models the same
+    # For evaluation, make weight and bias of two models the same
     deform_with_gs.conv_offset.weight = deform_op.conv_offset.weight
-    deform_with_gs.conv_deform.weight = deform_op.conv_deform.weight
     if deform_with_gs.conv_offset.bias is not None:
         deform_with_gs.conv_offset.bias   = deform_op.conv_offset.bias
+    deform_with_gs.conv_deform.weight = deform_op.conv_deform.weight
     if deform_with_gs.conv_deform.bias is not None:
         deform_with_gs.conv_deform.bias   = deform_op.conv_deform.bias
 
@@ -376,5 +380,5 @@ def test_dcnv2():
 
 
 if __name__ == "__main__":
-    test_deform_op()
-    test_dcnv2()
+    run_test_deform_op()
+    run_test_dcnv2()
