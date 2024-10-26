@@ -203,4 +203,8 @@ if __name__ == "__main__":
                       output_names=output_names,
                       opset_version=16)
 
-
+    # simplify the onnx model
+    from onnxsim import simplify
+    import onnx
+    onnx_model, simplify_ok = simplify("deform_attn_fs_pytorch.onnx")
+    onnx.save(onnx_model, "deform_attn_fs_pytorch.onnx")

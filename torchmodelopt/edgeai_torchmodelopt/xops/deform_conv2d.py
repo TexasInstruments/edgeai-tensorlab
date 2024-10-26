@@ -220,3 +220,9 @@ if __name__ == "__main__":
                       input_names=input_names,
                       output_names=output_names,
                       opset_version=16)
+
+    # simplify the onnx model
+    from onnxsim import simplify
+    import onnx
+    onnx_model, simplify_ok = simplify("deform_conv_pytorch.onnx")
+    onnx.save(onnx_model, "deform_conv_pytorch.onnx")
