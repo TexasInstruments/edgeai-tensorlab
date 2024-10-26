@@ -554,6 +554,7 @@ def run_test_dcnv2():
     # simplify the onnx model
     from onnxsim import simplify
     import onnx
+
     onnx_model, simplify_ok = simplify("dcnv2_with_gs.onnx")
     onnx.save(onnx_model, "dcnv2_with_gs.onnx")
 
