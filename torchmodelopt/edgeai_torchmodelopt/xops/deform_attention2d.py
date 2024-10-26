@@ -36,9 +36,18 @@ import torch.nn.functional as F
 
 
 class MultiScaleDeformAttn(nn.Module):
-    def __init__(self, mode='bilinear'):
+    def __init__(self, value_spatial_shapes_list=None, mode='bilinear', verbose=True):
+        '''
+        If value_spatial_shapes_list here in the constructor,
+        value_spatial_shapes provided in the forward call will be ignored.
+        Providing here is recommended for ONNX export only.
+        '''
         super().__init__()
         self.mode = mode
+        self.value_spatial_shapes_list = value_spatial_shapes_list
+        if verbose and value_spatial_shapes_list is not None:
+            print('value_spatial_shapes_list has been provided in constructor. '
+                  '\nThe value provided in forward call will be ignored')
 
     def forward(self,
                 value,
@@ -75,14 +84,17 @@ class MultiScaleDeformAttn(nn.Module):
             torch.Tensor: has shape (bs, num_queries, embed_dims)
         """
 
+        _value_spatial_shapes = self.value_spatial_shapes_list if self.value_spatial_shapes_list is not None \
+            else value_spatial_shapes
+
         bs, _, num_heads, embed_dims = value.shape
         _, num_queries, num_heads, num_levels, num_points, _ =\
             sampling_locations.shape
-        value_list = value.split([H_ * W_ for H_, W_ in value_spatial_shapes],
+        value_list = value.split([H_ * W_ for H_, W_ in _value_spatial_shapes],
                                  dim=1)
         sampling_grids = 2 * sampling_locations - 1
         sampling_value_list = []
-        for level, (H_, W_) in enumerate(value_spatial_shapes):
+        for level, (H_, W_) in enumerate(_value_spatial_shapes):
             # bs, H_*W_, num_heads, embed_dims ->
             # bs, H_*W_, num_heads*embed_dims ->
             # bs, num_heads*embed_dims, H_*W_ ->
@@ -113,86 +125,16 @@ class MultiScaleDeformAttn(nn.Module):
         return output.transpose(1, 2).contiguous()
 
 
-class SingleScaleDeformAttn(nn.Module):
-    """This is a single-layer version of MultiScaleDeformAttn, mainly for ONNX export.
+class FixedSizeDeformAttn(MultiScaleDeformAttn):
+    """This is a fixed size version of Deformable Attention, mainly for ONNX export.
 
-       Assuming single layer can export a clean onnx model
+       Assuming fixed size can export a clean onnx model
     """
-    def __init__(self, mode='bilinear'):
-        super().__init__()
+    def __init__(self, value_spatial_shapes_list=None, mode='bilinear'):
+        super().__init__(value_spatial_shapes_list, mode, verbose=False)
         self.mode = mode
-
-    # Based on mmcv.ops.mutli_scale_deformable_attn_pytorch
-    def deformable_attn_pytorch(self,
-                                value,
-                                value_spatial_shapes,
-                                sampling_locations,
-                                attention_weights):
-        """CPU version of multi-scale deformable attention.
-
-        Args:
-            value (torch.Tensor): The value has shape
-                (bs, num_keys, num_heads, embed_dims//num_heads)
-            value_spatial_shapes (torch.Tensor): Spatial shape of
-                each feature map, has shape (num_levels, 2),
-                last dimension 2 represent (h, w)
-            sampling_locations (torch.Tensor): The location of sampling points,
-                has shape
-                (bs ,num_queries, num_heads, num_levels, num_points, 2),
-                the last dimension 2 represent (x, y).
-            attention_weights (torch.Tensor): The weight of sampling points used
-                when calculate the attention, has shape
-                (bs ,num_queries, num_heads, num_levels, num_points),
-
-        Returns:
-            torch.Tensor: has shape (bs, num_queries, embed_dims)
-        """
-
-        bs, _, num_heads, embed_dims = value.shape
-        _, num_queries, num_heads, num_levels, num_points, _ =\
-            sampling_locations.shape
-
-        sampling_grids = 2 * sampling_locations - 1
-        sampling_value_list = []
-
-        # bs, H_*W_, num_heads, embed_dims ->
-        # bs, H_*W_, num_heads*embed_dims ->
-        # bs, num_heads*embed_dims, H_*W_ ->
-        # bs*num_heads, embed_dims, H_, W_
-        value_l_ = value.flatten(2).transpose(1, 2).reshape(
-            bs * num_heads, embed_dims, value_spatial_shapes[0], value_spatial_shapes[1])
-        # bs, num_queries, num_heads, num_points, 2 ->
-        # bs, num_heads, num_queries, num_points, 2 ->
-        # bs*num_heads, num_queries, num_points, 2
-        sampling_grid_l_ = sampling_grids[:, :, :,
-                                          0].transpose(1, 2).flatten(0, 1)
-        # bs*num_heads, embed_dims, num_queries, num_points
-        sampling_value_l_ = F.grid_sample(
-            value_l_,
-            sampling_grid_l_,
-            mode=self.mode,
-            padding_mode='zeros',
-            align_corners=False)
-        sampling_value_list.append(sampling_value_l_)
-
-        # (bs, num_queries, num_heads, num_levels, num_points) ->
-        # (bs, num_heads, num_queries, num_levels, num_points) ->
-        # (bs, num_heads, 1, num_queries, num_levels*num_points)
-        attention_weights = attention_weights.transpose(1, 2).reshape(
-            bs * num_heads, 1, num_queries, num_levels * num_points)
-        output = (torch.stack(sampling_value_list, dim=-2).flatten(-2) *
-                  attention_weights).sum(-1).view(bs, num_heads * embed_dims,
-                                                  num_queries)
-        return output.transpose(1, 2).contiguous()
-
-    def forward(self,
-                value,
-                value_spatial_shapes,
-                sampling_locations,
-                attention_weights):
-        output = self.deformable_attn_pytorch(
-                    value, value_spatial_shapes, sampling_locations, attention_weights)
-        return output
+        if value_spatial_shapes_list is None:
+            raise RuntimeError('value_spatial_shapes_list must be provided')
 
 
 if __name__ == "__main__":
@@ -211,9 +153,11 @@ if __name__ == "__main__":
     # value, value_spatial_shape, sampling_location, attention_weight
     value = torch.randn(2*B, NUM_QUERIES, NUM_HEADS, EMBED_DIMS // NUM_HEADS)
 
-    value_spatial_shapes = torch.zeros(1,2).to(torch.int64)
-    value_spatial_shapes[:, 0] = FEATURE_HEIGHT
-    value_spatial_shapes[:, 1] = FEATURE_WIDTH
+    # value_spatial_shapes = torch.zeros(1,2).to(torch.int64)
+    # value_spatial_shapes[:, 0] = FEATURE_HEIGHT
+    # value_spatial_shapes[:, 1] = FEATURE_WIDTH
+    value_spatial_shapes_list = [[FEATURE_HEIGHT, FEATURE_WIDTH]]
+    value_spatial_shapes = torch.tensor(value_spatial_shapes_list).to(torch.int64)
 
     sampling_locations = torch.rand(
         2*B, NUM_QUERIES, NUM_HEADS, NUM_LEVELS, NUM_POINTS, 2)
@@ -222,41 +166,39 @@ if __name__ == "__main__":
         2*B, NUM_QUERIES, NUM_HEADS, NUM_LEVELS, NUM_POINTS)
     attention_weights = attention_weights.softmax(-1)
 
-    # Run deform_attn_ms
-    deform_attn_ms = MultiScaleDeformAttn(mode=INTP_MODE)
-    deform_attn_ms.eval()
+    # Run deform_attn
+    deform_attn = MultiScaleDeformAttn(mode=INTP_MODE)
+    deform_attn.eval()
     with torch.no_grad():
-        out_deform_attn_ms = deform_attn_ms(value, value_spatial_shapes,
+        out_deform_attn = deform_attn(value, value_spatial_shapes,
             sampling_locations, attention_weights)
 
-    # Run deform_attn_ss, which is for model export
-    value_spatial_shapes_ss = torch.zeros(2).to(torch.int64)
-    value_spatial_shapes_ss[0] = FEATURE_HEIGHT
-    value_spatial_shapes_ss[1] = FEATURE_WIDTH
-    deform_attn_ss = SingleScaleDeformAttn(mode=INTP_MODE)
-    deform_attn_ss.eval()
+    # Run deform_attn_fs, which is for model export
+    deform_attn_fs = FixedSizeDeformAttn(value_spatial_shapes_list, mode=INTP_MODE)
+    deform_attn_fs.eval()
     with torch.no_grad():
-        out_deform_attn_ss = deform_attn_ss(value, value_spatial_shapes_ss,
+        out_deform_attn_fs = deform_attn_fs(value,
+            value_spatial_shapes, # this will be ignored, since shape was provided through constructor
             sampling_locations, attention_weights)
 
-    # Check differences between deform_attn_ms and deform_attn_ss
-    diff = out_deform_attn_ms - out_deform_attn_ss
+    # Check differences between deform_attn and deform_attn_fs
+    diff = out_deform_attn - out_deform_attn_fs
     if torch.sum((abs(diff) > 1e-4) == True) > 0:
-        warnings.warn('out_deform_attn_ms and out_deform_attn_ss do not match!\n')
+        warnings.warn('out_deform_attn and out_deform_attn_fs do not match!\n')
     else:
-        print('out_deform_attn_ms and out_deform_attn_ss matches\n')
+        print('out_deform_attn and out_deform_attn_fs matches\n')
 
-    # Export deform_attn_ss
+    # Export deform_attn_fs
     input_names  = ["value", "value_shape", "samp_loc", "attn_weight"]
     output_names = ["output"]
     model_input = (
         value,
-        value_spatial_shapes_ss,
+        value_spatial_shapes,  # this will be ignored, since shape was provided through constructor
         sampling_locations,
         attention_weights)
-    torch.onnx.export(deform_attn_ss,
+    torch.onnx.export(deform_attn_fs,
                       model_input,
-                      "deform_attn_ss_pytorch.onnx",
+                      "deform_attn_fs_pytorch.onnx",
                       input_names=input_names,
                       output_names=output_names,
                       opset_version=16)
