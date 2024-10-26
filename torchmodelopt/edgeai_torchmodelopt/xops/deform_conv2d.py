@@ -35,31 +35,20 @@ import torchvision
 import torch.nn.functional as F
 
 
-# Set test params
-IN_HEIGHT      = 58
-IN_WIDTH       = 100
-OUT_HEIGHT     = IN_HEIGHT
-OUT_WIDTH      = IN_WIDTH
-
-IN_CHANNEL     = 256
-OUT_CHANNEL    = 256
-KERNEL_SIZE    = 3
-STRIDE         = 1
-PADDING        = 1
-DILATION       = 1
-BIAS           = False
-DEFORM_GROUPS  = 1
-INTP_MODE      = 'bilinear'
-
-
-class DeformConvLayer2d(torchvision.ops.DeformConv2d):
+class DeformConvOp2d(torchvision.ops.DeformConv2d):
     def __init__(self, *args, **kwargs):
+        '''
+        Deformable convolution operator (derived from torchvision.ops.DeformConv2d)
+        '''
         super().__init__(*args, **kwargs)
-        warnings.warn('DeformConvLayer2d or torchvision.ops.DeformConv2d is not our recommended '
-            'Deformable Convolution implementation. Please use DeformConvWithOps2d instead.')
+        warnings.warn('DeformConvOp2d or torchvision.ops.DeformConv2d is not our recommended '
+            'Deformable Convolution implementation. Please use DeformConvWithGS2d instead.')
 
 
-class DeformConvWithOps2d(torchvision.ops.DeformConv2d):
+class DeformConvWithGS2d(torchvision.ops.DeformConv2d):
+    '''
+    Deformable convolution with Grid Sample
+    '''
     def __init__(self, *args, mode='bilinear', **kwargs):
         super().__init__(*args, **kwargs)
         assert mode in ('bilinear', 'nearest'), 'mode should be one of: bilinear, nearest'
@@ -146,8 +135,23 @@ class DeformConvWithOps2d(torchvision.ops.DeformConv2d):
 
 
 if __name__ == "__main__":
+    # Set test params
+    IN_HEIGHT = 58
+    IN_WIDTH = 100
+    OUT_HEIGHT = IN_HEIGHT
+    OUT_WIDTH = IN_WIDTH
 
-    deform_layer = DeformConvLayer2d(IN_CHANNEL,
+    IN_CHANNEL = 256
+    OUT_CHANNEL = 256
+    KERNEL_SIZE = 3
+    STRIDE = 1
+    PADDING = 1
+    DILATION = 1
+    BIAS = False
+    DEFORM_GROUPS = 1
+    INTP_MODE = 'bilinear'
+
+    deform_op = DeformConvOp2d(IN_CHANNEL,
                                      OUT_CHANNEL,
                                      kernel_size=KERNEL_SIZE,
                                      stride=STRIDE,
@@ -156,7 +160,7 @@ if __name__ == "__main__":
                                      bias=BIAS,
                                      groups=DEFORM_GROUPS)
 
-    deform_op  = DeformConvWithOps2d(IN_CHANNEL,
+    deform_with_gs  = DeformConvWithGS2d(IN_CHANNEL,
                                      OUT_CHANNEL,
                                      mode=INTP_MODE,
                                      kernel_size=KERNEL_SIZE,
@@ -167,9 +171,9 @@ if __name__ == "__main__":
                                      groups=DEFORM_GROUPS)
 
     # For evaluation, make weigth and bias of two models the same
-    deform_op.weight = deform_layer.weight
-    if deform_op.bias is not None:
-        deform_op.bias   = deform_layer.bias
+    deform_with_gs.weight = deform_op.weight
+    if deform_with_gs.bias is not None:
+        deform_with_gs.bias   = deform_op.bias
 
     # Input to the model: feature map, offset_y, offste_x, mask
     feat = torch.randn(1, IN_CHANNEL, IN_HEIGHT, IN_WIDTH) * 10
@@ -177,26 +181,28 @@ if __name__ == "__main__":
     offset_x = torch.randn(1, KERNEL_SIZE*KERNEL_SIZE, OUT_HEIGHT, OUT_WIDTH)
     mask = torch.randn(1, KERNEL_SIZE*KERNEL_SIZE, OUT_HEIGHT, OUT_WIDTH)
 
-    # Run deform_layer
+    # Run deform_op
     perm_offset_y = offset_y.permute(1, 0, 2, 3)
     perm_offset_x = offset_x.permute(1, 0, 2, 3)
     offset = torch.cat((perm_offset_y, perm_offset_x), dim=1)
     offset = torch.reshape(offset, (1, 2*KERNEL_SIZE*KERNEL_SIZE, OUT_HEIGHT, OUT_WIDTH))
-    deform_layer.eval()
-    with torch.no_grad():
-        out_deform_layer = deform_layer(feat, offset, torch.sigmoid(mask))
-
-    # Run deform_op
     deform_op.eval()
     with torch.no_grad():
-        out_deform_op = deform_op(feat, offset_y, offset_x, mask)
+        out_deform_op = deform_op(feat, offset, torch.sigmoid(mask))
 
-    # Check differences between deform_layer and deform_op
-    diff = out_deform_op - out_deform_layer
+    # Run deform_with_gs
+    deform_with_gs.eval()
+    with torch.no_grad():
+        out_deform_with_gs = deform_with_gs(feat, offset_y, offset_x, mask)
+
+    # Check differences between deform_op and deform_with_gs
+    diff = out_deform_with_gs - out_deform_op
     if torch.sum((abs(diff) > 1e-4) == True) > 0:
-        warnings.warn('deform_layer and deform_op do not match!\n')
+        warnings.warn('deform_op and deform_with_gs do not match!\n')
+    else:
+        print('deform_op and deform_with_gs matches\n')
 
-    # Export deform_op model
+    # Export deform_with_gs model
     input_names  = ["feat", "offset_y", "offset_x", "mask"]
     output_names = ["output"]
     modelInput = (
@@ -204,7 +210,7 @@ if __name__ == "__main__":
         offset_y,
         offset_x,
         mask)
-    torch.onnx.export(deform_op,
+    torch.onnx.export(deform_with_gs,
                       modelInput,
                       "deform_conv_pytorch.onnx",
                       input_names=input_names,
