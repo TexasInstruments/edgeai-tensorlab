@@ -35,16 +35,16 @@ import torchvision
 import torch.nn.functional as F
 
 
-class DeformConvOp2d(torchvision.ops.DeformConv2d):
+class DeformConvOP2d(torchvision.ops.DeformConv2d):
     def __init__(self, *args, **kwargs):
         '''
         Deformable convolution operator (derived from torchvision.ops.DeformConv2d)
         '''
         mode = kwargs.pop('mode', 'bilinear')
-        assert mode in ('bilinear',), 'mode should be one of: bilinear, nearest'
+        assert mode in ('bilinear',), 'mode should be: bilinear'
         super().__init__(*args, **kwargs)
         self.mode = mode
-        warnings.warn('DeformConvOp2d or torchvision.ops.DeformConv2d is not our recommended '
+        warnings.warn('DeformConvOP2d or torchvision.ops.DeformConv2d is not our recommended '
             'Deformable Convolution implementation. Please use DeformConvWithGS2d instead.')
 
 
@@ -138,51 +138,59 @@ class DeformConvWithGS2d(torchvision.ops.DeformConv2d):
         return out
 
 
-class DCNv2(torch.nn.Module):
+def make_new_dcn_type(base_class, cls_name):
     """
-    DCNv2 - Deformable Convolution Layer
+    Create a new DCN type from the given base class.
 
-    Includes a regular convolution that generates the offset, mask
-    and also the deformable convolution that uses it
+    This should be ideally done by overloading the __new__, but for now this is quick workaround.
     """
-    def __init__(self,
-        in_channels: int,
-        out_channels: int,
-        kernel_size: int,
-        stride: int = 1,
-        padding: int = 0,
-        dilation: int = 1,
-        groups: int = 1,
-        bias: bool = True,
-        mode: str = 'bilinear',
-        deform_groups: int = 1,
-        deform_layer_type = None):
 
-        super().__init__()
+    class _FactoryDCNv2(base_class):
+        """
+        DCNv2 - Deformable Convolution Layer
 
-        deform_layer_type = deform_layer_type or DeformConvWithGS2d
+        Includes a regular convolution that generates the offset, mask
+        and also the deformable convolution that uses it
+        """
+        def __init__(self,
+            in_channels: int,
+            out_channels: int,
+            kernel_size: int,
+            stride: int = 1,
+            padding: int = 0,
+            dilation: int = 1,
+            groups: int = 1,
+            bias: bool = True,
+            mode: str = 'bilinear',
+            deform_groups: int = 1):
 
-        ks = (kernel_size,kernel_size) if isinstance(kernel_size, int) else kernel_size
-        self.mask_out_channels = deform_groups * ks[0] * ks[1]
-        self.offset_out_channels = self.mask_out_channels * 2
+            super().__init__(in_channels=in_channels,
+                    out_channels=out_channels,
+                    kernel_size=kernel_size, stride=stride, padding=padding,
+                    dilation=dilation, groups=groups, bias=bias, mode=mode)
 
-        self.conv_offset = torch.nn.Conv2d(in_channels=in_channels,
-                out_channels=(self.offset_out_channels+self.mask_out_channels),
-                kernel_size=kernel_size, stride=stride, padding=padding,
-                dilation=dilation, groups=groups, bias=bias)
+            ks = (kernel_size,kernel_size) if isinstance(kernel_size, int) else kernel_size
+            self.mask_out_channels = deform_groups * ks[0] * ks[1]
+            self.offset_out_channels = self.mask_out_channels * 2
 
-        self.conv_deform = deform_layer_type(in_channels=in_channels,
-                out_channels=out_channels,
-                kernel_size=kernel_size, stride=stride, padding=padding,
-                dilation=dilation, groups=groups, bias=bias, mode=mode)
+            self.conv_offset = torch.nn.Conv2d(in_channels=in_channels,
+                    out_channels=(self.offset_out_channels+self.mask_out_channels),
+                    kernel_size=kernel_size, stride=stride, padding=padding,
+                    dilation=dilation, groups=groups, bias=bias)
 
-    def forward(self, feat):
-        offset_mask = self.conv_offset(feat)
-        offset_yx = offset_mask[:,:self.offset_out_channels,...]
-        mask = offset_mask[:,self.offset_out_channels:,...]
-        mask = torch.sigmoid(mask)
-        output = self.conv_deform(feat, offset_yx, mask)
-        return output
+        def forward(self, feat):
+            offset_mask = self.conv_offset(feat)
+            offset_yx = offset_mask[:,:self.offset_out_channels,...]
+            mask = offset_mask[:,self.offset_out_channels:,...]
+            mask = torch.sigmoid(mask)
+            output = super().forward(feat, offset_yx, mask)
+            return output
+
+    return type(cls_name, (_FactoryDCNv2, base_class), {})
+
+
+DCNOPv2 = make_new_dcn_type(DeformConvOP2d, 'DCNOPv2')
+DCNWithGSv2 = make_new_dcn_type(DeformConvWithGS2d, 'DCNWithGSv2')
 
 
 ###########################################################################################
@@ -207,7 +215,7 @@ def run_test_deform_op():
     DEFORM_GROUPS = 1
     INTP_MODE = 'bilinear'
 
-    deform_op = DeformConvOp2d(IN_CHANNEL,
+    deform_op = DeformConvOP2d(IN_CHANNEL,
                                      OUT_CHANNEL,
                                      kernel_size=KERNEL_SIZE,
                                      stride=STRIDE,
@@ -304,7 +312,7 @@ def run_test_dcnv2():
     DEFORM_GROUPS = 1
     INTP_MODE = 'bilinear'
 
-    deform_op = DCNv2(IN_CHANNEL,
+    deform_op = DCNOPv2(IN_CHANNEL,
                      OUT_CHANNEL,
                      kernel_size=KERNEL_SIZE,
                      stride=STRIDE,
@@ -312,10 +320,9 @@ def run_test_dcnv2():
                      dilation=DILATION,
                      groups=GROUPS,
                      bias=BIAS,
-                     deform_groups=DEFORM_GROUPS,
-                     deform_layer_type=DeformConvOp2d)
+                     deform_groups=DEFORM_GROUPS)
 
-    deform_with_gs  = DCNv2(IN_CHANNEL,
+    deform_with_gs  = DCNWithGSv2(IN_CHANNEL,
                      OUT_CHANNEL,
                      kernel_size=KERNEL_SIZE,
                      stride=STRIDE,
@@ -324,16 +331,15 @@ def run_test_dcnv2():
                      groups=GROUPS,
                      bias=BIAS,
                      mode=INTP_MODE,
-                     deform_groups=DEFORM_GROUPS,
-                     deform_layer_type=DeformConvWithGS2d)
+                     deform_groups=DEFORM_GROUPS)
 
     # For evaluation, make weight and bias of two models the same
     deform_with_gs.conv_offset.weight = deform_op.conv_offset.weight
     if deform_with_gs.conv_offset.bias is not None:
         deform_with_gs.conv_offset.bias   = deform_op.conv_offset.bias
-    deform_with_gs.conv_deform.weight = deform_op.conv_deform.weight
-    if deform_with_gs.conv_deform.bias is not None:
-        deform_with_gs.conv_deform.bias   = deform_op.conv_deform.bias
+    deform_with_gs.weight = deform_op.weight
+    if deform_with_gs.bias is not None:
+        deform_with_gs.bias   = deform_op.bias
 
     # Input to the model: feature map, offset_y, offste_x, mask
     feat = torch.randn(1, IN_CHANNEL, IN_HEIGHT, IN_WIDTH) * 10
