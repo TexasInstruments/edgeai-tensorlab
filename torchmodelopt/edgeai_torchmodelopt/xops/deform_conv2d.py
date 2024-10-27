@@ -35,6 +35,10 @@ import torchvision
 import torch.nn.functional as F
 
 
+###########################################################################################
+# Core DeformConv that takes feature, offset  & mask
+###########################################################################################
+
 class DeformConvOP2d(torchvision.ops.DeformConv2d):
     def __init__(self, *args, **kwargs):
         '''
@@ -138,6 +142,21 @@ class DeformConvWithGS2d(torchvision.ops.DeformConv2d):
         return out
 
 
+# There is an DeformConv implementation in mmcv - see if it is installed
+# https://mmcv.readthedocs.io/en/latest/
+# https://github.com/open-mmlab/mmcv
+try:
+    import mmcv.ops
+    MMCVDeformConv = mmcv.ops.ModulatedDeformConv2d
+except:
+    MMCVDeformConv = None
+
+
+###########################################################################################
+# The complete DCNv2 types with the Convolution that generates the offfset and the DeformConv
+# These can be used as a drop in replacement for regular convolution.
+###########################################################################################
+
 def make_new_dcn_type(base_class, cls_name):
     """
     Create a new DCN type from the given base class.
@@ -188,9 +207,23 @@ def make_new_dcn_type(base_class, cls_name):
 
     return type(cls_name, (_FactoryDCNv2, base_class), {})
 
-
+# DCNv2 with torchvision DeformConv Operator - this doesn't support onnx export yet
+# This supports only bilinear mode of interpolation
+# This may consume less memory and may be faster for training as the DeformConv is implemented as a single operator.
 DCNOPv2 = make_new_dcn_type(DeformConvOP2d, 'DCNOPv2')
+
+# DCNv2 with torch operators - ths is preferred for onnx export.
+# Also, this supports bilinear and nearest modes of interpolation - nearest mode may be faster for inference.
 DCNWithGSv2 = make_new_dcn_type(DeformConvWithGS2d, 'DCNWithGSv2')
+
+# There is an DCNv2 implementation in mmcv - see if it is installed
+# https://mmcv.readthedocs.io/en/latest/
+# https://github.com/open-mmlab/mmcv
+try:
+    import mmcv.ops
+    MMCVDCNv2 = mmcv.ops.ModulatedDeformConv2dPack
+except:
+    MMCVDCNv2 = None
 
 
 ###########################################################################################
@@ -275,7 +308,7 @@ def run_test_deform_op():
         mask)
     torch.onnx.export(deform_with_gs,
                       model_input,
-                      "deform_conv_pytorch.onnx",
+                      "deform_conv_with_gs.onnx",
                       input_names=input_names,
                       output_names=output_names,
                       opset_version=16)
@@ -283,15 +316,15 @@ def run_test_deform_op():
     # simplify the onnx model
     from onnxsim import simplify
     import onnx
-    onnx_model, simplify_ok = simplify("deform_conv_pytorch.onnx")
-    onnx.save(onnx_model, "deform_conv_pytorch.onnx")
+    onnx_model, simplify_ok = simplify("deform_conv_with_gs.onnx")
+    onnx.save(onnx_model, "deform_conv_with_gs.onnx")
 
     if test_output:
-        print('\n\ndeform_op and deform_with_gs matches')
-        print("DeformConv Op: Test PASSED")
+        print('\n\ntorhcvision based DeformConvOP2d and DeformConvWithGS2d matches')
+        print("DeformConv: Test PASSED")
     else:
-        print('\n\ndeform_op and deform_with_gs do not match!')
-        assert test_output, "DeformConv Op: Test FAILED"
+        print('\n\ntorhcvision based DeformConvOP2d and DeformConvWithGS2d do not match!')
+        assert test_output, "DeformConv: Test FAILED"
 
 
 def run_test_dcnv2():
@@ -312,7 +345,9 @@ def run_test_dcnv2():
     DEFORM_GROUPS = 1
     INTP_MODE = 'bilinear'
 
-    deform_op = DCNOPv2(IN_CHANNEL,
+    # DCNv2 / ModulatedDeformConv2dPack
+    # from https://github.com/open-mmlab/mmcv/blob/main/mmcv/ops/modulated_deform_conv.py
+    dcnv2_op = MMCVDCNv2(IN_CHANNEL,
                      OUT_CHANNEL,
                      kernel_size=KERNEL_SIZE,
                      stride=STRIDE,
@@ -322,7 +357,7 @@ def run_test_dcnv2():
                      bias=BIAS,
                      deform_groups=DEFORM_GROUPS)
 
-    deform_with_gs  = DCNWithGSv2(IN_CHANNEL,
+    dcnv2_with_gs  = DCNWithGSv2(IN_CHANNEL,
                      OUT_CHANNEL,
                      kernel_size=KERNEL_SIZE,
                      stride=STRIDE,
@@ -334,39 +369,39 @@ def run_test_dcnv2():
                      deform_groups=DEFORM_GROUPS)
 
     # For evaluation, make weight and bias of two models the same
-    deform_with_gs.conv_offset.weight = deform_op.conv_offset.weight
-    if deform_with_gs.conv_offset.bias is not None:
-        deform_with_gs.conv_offset.bias   = deform_op.conv_offset.bias
-    deform_with_gs.weight = deform_op.weight
-    if deform_with_gs.bias is not None:
-        deform_with_gs.bias   = deform_op.bias
+    dcnv2_with_gs.conv_offset.weight = dcnv2_op.conv_offset.weight
+    if dcnv2_with_gs.conv_offset.bias is not None:
+        dcnv2_with_gs.conv_offset.bias   = dcnv2_op.conv_offset.bias
+    dcnv2_with_gs.weight = dcnv2_op.weight
+    if dcnv2_with_gs.bias is not None:
+        dcnv2_with_gs.bias   = dcnv2_op.bias
 
     # Input to the model: feature map, offset_y, offste_x, mask
     feat = torch.randn(1, IN_CHANNEL, IN_HEIGHT, IN_WIDTH) * 10
 
-    deform_op.eval()
+    dcnv2_op.eval()
     with torch.no_grad():
-        out_deform_op = deform_op(feat)
+        out_deform_op = dcnv2_op(feat)
 
-    # Run deform_with_gs
-    deform_with_gs.eval()
+    # Run dcnv2_with_gs
+    dcnv2_with_gs.eval()
     with torch.no_grad():
-        out_deform_with_gs = deform_with_gs(feat)
+        out_deform_with_gs = dcnv2_with_gs(feat)
 
-    # Check differences between deform_op and deform_with_gs
+    # Check differences between dcnv2_op and dcnv2_with_gs
     diff = out_deform_with_gs - out_deform_op
     if torch.sum((abs(diff) > 1e-4) == True) > 0:
         test_output = False
     else:
         test_output = True
 
-    # Export deform_with_gs model
+    # Export dcnv2_with_gs model
     input_names  = ["feat"]
     output_names = ["output"]
     model_input = (feat,)
-    torch.onnx.export(deform_with_gs,
+    torch.onnx.export(dcnv2_with_gs,
                       model_input,
-                      "dcnv2_pytorch.onnx",
+                      "dcnv2_with_gs.onnx",
                       input_names=input_names,
                       output_names=output_names,
                       opset_version=16)
@@ -374,14 +409,14 @@ def run_test_dcnv2():
     # simplify the onnx model
     from onnxsim import simplify
     import onnx
-    onnx_model, simplify_ok = simplify("dcnv2_pytorch.onnx")
-    onnx.save(onnx_model, "dcnv2_pytorch.onnx")
+    onnx_model, simplify_ok = simplify("dcnv2_with_gs.onnx")
+    onnx.save(onnx_model, "dcnv2_with_gs.onnx")
 
     if test_output:
-        print('\n\nDCNv2 with deform_op and and DCNv2 deform_with_gs matches')
+        print('\n\nmmcv.ops.ModulatedDeformConv2dPack and and DCNWithGSv2 matches')
         print("DCNv2: Test PASSED")
     else:
-        print('\n\nDCNv2 with deform_op and and DCNv2 deform_with_gs do not match!')
+        print('\n\nmmcv.ops.ModulatedDeformConv2dPack and DCNWithGSv2 do not match!')
         assert test_output, "DCNv2: Test FAILED"
 
 
