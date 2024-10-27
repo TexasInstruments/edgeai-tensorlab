@@ -181,7 +181,8 @@ def make_new_dcn_type(base_class, cls_name):
             groups: int = 1,
             bias: bool = True,
             mode: str = 'bilinear',
-            deform_groups: int = 1):
+            deform_groups: int = 1,
+            clip_offset = None):
 
             super().__init__(in_channels=in_channels,
                     out_channels=out_channels,
@@ -197,11 +198,22 @@ def make_new_dcn_type(base_class, cls_name):
                     kernel_size=kernel_size, stride=stride, padding=padding,
                     dilation=dilation, groups=groups, bias=bias)
 
+            if clip_offset is not None:
+                clip_offset = (-clip_offset, clip_offset) if isinstance(clip_offset, (int,float)) else clip_offset
+                self.clip_offset = torch.nn.Hardtanh(min_val=clip_offset[0], max_val=clip_offset[1])
+            else:
+                self.clip_offset = None
+
         def forward(self, feat):
             offset_mask = self.conv_offset(feat)
+
             offset_yx = offset_mask[:,:self.offset_out_channels,...]
+            if self.clip_offset is not None:
+                offset_yx = self.clip_offset(offset_yx)
+
             mask = offset_mask[:,self.offset_out_channels:,...]
             mask = torch.sigmoid(mask)
+
             output = super().forward(feat, offset_yx, mask)
             return output
 
@@ -366,7 +378,8 @@ def run_test_dcnv2():
                      groups=GROUPS,
                      bias=BIAS,
                      mode=INTP_MODE,
-                     deform_groups=DEFORM_GROUPS)
+                     deform_groups=DEFORM_GROUPS,
+                     clip_offset=32)
 
     # For evaluation, make weight and bias of two models the same
     dcnv2_with_gs.conv_offset.weight = dcnv2_op.conv_offset.weight
@@ -417,7 +430,7 @@ def run_test_dcnv2():
         print("DCNv2: Test PASSED")
     else:
         print('\n\nmmcv.ops.ModulatedDeformConv2dPack and DCNWithGSv2 do not match!')
-        assert test_output, "DCNv2: Test FAILED"
+        assert test_output, "DCNv2: Test FAILED - one reason for failure could be clip_offset passed to DCNWithGSv2. Use None to check if the test passes"
 
 
 if __name__ == "__main__":
