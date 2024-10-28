@@ -54,16 +54,16 @@ class MultiScaleDeformAttn(nn.Module):
                 value_spatial_shapes,
                 sampling_locations,
                 attention_weights):
-        output = self.multi_scale_deformable_attn_pytorch(
+        output = self.multi_scale_deformable_attn(
                     value, value_spatial_shapes, sampling_locations, attention_weights, self.mode)
         return output
 
     # Based on mmcv.ops.mutli_scale_deformable_attn_pytorch
-    def multi_scale_deformable_attn_pytorch(self, value,
-                                            value_spatial_shapes,
-                                            sampling_locations,
-                                            attention_weights,
-                                            mode):
+    def multi_scale_deformable_attn(self, value,
+                                    value_spatial_shapes,
+                                    sampling_locations,
+                                    attention_weights,
+                                    mode):
         """CPU version of multi-scale deformable attention.
 
         Args:
@@ -137,7 +137,11 @@ class FixedSizeDeformAttn(MultiScaleDeformAttn):
             raise RuntimeError('value_spatial_shapes_list must be provided')
 
 
-if __name__ == "__main__":
+###########################################################################################
+# unit tests
+###########################################################################################
+
+def run_test_deform_attn():
     # Set test params
     B = 1
     NUM_LEVELS = 1
@@ -213,3 +217,7 @@ if __name__ == "__main__":
     import onnx
     onnx_model, simplify_ok = simplify("deform_attn_fs.onnx")
     onnx.save(onnx_model, "deform_attn_fs.onnx")
+
+
+if __name__ == "__main__":
+    run_test_deform_attn()
