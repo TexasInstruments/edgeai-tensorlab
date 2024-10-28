@@ -182,21 +182,33 @@ def make_new_dcn_type(base_class, cls_name):
             bias: bool = True,
             mode: str = 'bilinear',
             deform_groups: int = 1,
-            clip_offset = None):
+            clip_offset = None,
+            split_conv_offset = True):
 
             super().__init__(in_channels=in_channels,
                     out_channels=out_channels,
                     kernel_size=kernel_size, stride=stride, padding=padding,
                     dilation=dilation, groups=groups, bias=bias, mode=mode)
 
+            self.split_conv_offset = split_conv_offset
             ks = (kernel_size,kernel_size) if isinstance(kernel_size, int) else kernel_size
             self.mask_out_channels = deform_groups * ks[0] * ks[1]
             self.offset_out_channels = self.mask_out_channels * 2
 
-            self.conv_offset = torch.nn.Conv2d(in_channels=in_channels,
-                    out_channels=(self.offset_out_channels+self.mask_out_channels),
-                    kernel_size=kernel_size, stride=stride, padding=padding,
-                    dilation=dilation, groups=groups, bias=bias)
+            if self.split_conv_offset:
+                self.conv_offset = torch.nn.Conv2d(in_channels=in_channels,
+                        out_channels=self.offset_out_channels,
+                        kernel_size=kernel_size, stride=stride, padding=padding,
+                        dilation=dilation, groups=groups, bias=bias)
+                self.conv_mask = torch.nn.Conv2d(in_channels=in_channels,
+                        out_channels=self.mask_out_channels,
+                        kernel_size=kernel_size, stride=stride, padding=padding,
+                        dilation=dilation, groups=groups, bias=bias)
+            else:
+                self.conv_offset = torch.nn.Conv2d(in_channels=in_channels,
+                        out_channels=(self.offset_out_channels+self.mask_out_channels),
+                        kernel_size=kernel_size, stride=stride, padding=padding,
+                        dilation=dilation, groups=groups, bias=bias)
 
             if clip_offset is not None:
                 clip_offset = (-clip_offset, clip_offset) if isinstance(clip_offset, (int,float)) else clip_offset
@@ -204,18 +216,62 @@ def make_new_dcn_type(base_class, cls_name):
             else:
                 self.clip_offset = None
 
-        def forward(self, feat):
-            offset_mask = self.conv_offset(feat)
+            self._initialize_weights()
 
-            offset_yx = offset_mask[:,:self.offset_out_channels,...]
+        def forward(self, feat):
+            if self.split_conv_offset:
+                offset_yx = self.conv_offset(feat)
+                mask = self.conv_mask(feat)
+            else:
+                offset_mask = self.conv_offset(feat)
+                offset_yx = offset_mask[:,:self.offset_out_channels,...]
+                mask = offset_mask[:,self.offset_out_channels:,...]
+
             if self.clip_offset is not None:
                 offset_yx = self.clip_offset(offset_yx)
 
-            mask = offset_mask[:,self.offset_out_channels:,...]
             mask = torch.sigmoid(mask)
 
             output = super().forward(feat, offset_yx, mask)
             return output
+
+        def _initialize_weights(self):
+            for name, module in self.named_modules():
+                if hasattr(module, 'weight'):
+                    torch.nn.init.kaiming_normal_(module.weight)
+                if hasattr(module, 'bias') and module.bias is not None:
+                    torch.nn.init.zeros_(module.bias)
+
+        def copy_weights(self, other):
+            if not isinstance(other , _FactoryDCNv2):
+                print(f"This function copy_weights can only be used to copy weights/bias from a module of similar types. "
+                    f"Got {self.__class__.__name__} and {other.__class__.__name__}")
+
+            other_split_conv_offset = other.split_conv_offset if hasattr(other, "split_conv_offset") else False
+            if self.split_conv_offset and other_split_conv_offset:
+                self.conv_offset.weight.detach().copy_(other.conv_offset.weight)
+                if self.conv_offset.bias is not None and other.conv_offset.bias is not None:
+                    self.conv_offset.bias.detach().copy_(other.conv_offset.bias)
+            elif self.split_conv_offset:
+                self.conv_offset.weight.detach().copy_(other.conv_offset.weight[:18, ...])
+                self.conv_mask.weight.detach().copy_(other.conv_offset.weight[18:, ...])
+                if self.conv_offset.bias is not None and other.conv_offset.bias is not None:
+                    self.conv_offset.bias.detach().copy_(other.conv_offset.bias[:18])
+                    self.conv_mask.bias.detach().copy_(other.conv_offset.bias[18:])
+            elif other_split_conv_offset:
+                self.conv_offset.weight[:18, ...].detach().copy_(other.conv_offset.weight)
+                self.conv_mask.weight[18:, ...].detach().copy_(other.conv_offset.weight)
+                if self.conv_offset.bias is not None and other.conv_offset.bias is not None:
+                    self.conv_offset.bias[:18].detach().copy_(other.conv_offset.bias)
+                    self.conv_mask.bias[18:].detach().copy_(other.conv_offset.bias)
+            else:
+                self.conv_offset.weight.detach().copy_(other.conv_offset.weight)
+                if self.conv_offset.bias is not None and other.conv_offset.bias is not None:
+                    self.conv_offset.bias.detach().copy_(other.conv_offset.bias)
+
+            self.weight.detach().copy_(other.weight)
+            if self.bias is not None and other.bias is not None:
+                self.bias.detach().copy_(other.bias)
 
     return type(cls_name, (_FactoryDCNv2, base_class), {})
 
@@ -389,13 +445,8 @@ def run_test_dcnv2():
 
     # For evaluation, make weight and bias of two models the same
     torch.nn.init.normal_(dcnv2_op.conv_offset.weight)
-    dcnv2_with_gs.conv_offset.weight = dcnv2_op.conv_offset.weight
-    if dcnv2_with_gs.conv_offset.bias is not None:
-        dcnv2_with_gs.conv_offset.bias   = dcnv2_op.conv_offset.bias
     torch.nn.init.normal_(dcnv2_op.weight)
-    dcnv2_with_gs.weight = dcnv2_op.weight
-    if dcnv2_with_gs.bias is not None:
-        dcnv2_with_gs.bias   = dcnv2_op.bias
+    dcnv2_with_gs.copy_weights(dcnv2_op)
 
     # Input to the model: feature map, offset_y, offste_x, mask
     feat = torch.randn(1, IN_CHANNEL, IN_HEIGHT, IN_WIDTH) * 10
