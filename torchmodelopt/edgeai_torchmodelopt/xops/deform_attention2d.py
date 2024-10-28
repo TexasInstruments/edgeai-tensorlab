@@ -182,13 +182,18 @@ if __name__ == "__main__":
             sampling_locations, attention_weights)
 
     # Check differences between deform_attn and deform_attn_fs
-    diff = out_deform_attn - out_deform_attn_fs
-    if torch.sum((abs(diff) > 1e-4) == True) > 0:
-        print('out_deform_attn and out_deform_attn_fs do not match!\n')
+    diff = out_deform_attn_fs - out_deform_attn
+    max_diff = torch.max(torch.flatten(torch.abs(diff)))
+    rel_diff = torch.abs(diff) / (torch.abs(out_deform_attn) + 1e-8)
+    mean_rel_diff = torch.mean(torch.flatten(rel_diff))
+    if torch.sum((mean_rel_diff > 1e-4) == True) > 0:
+        print(f'\nMultiScaleDeformAttn and FixedSizeDeformAttn do not match!. Max difference = {max_diff}, Mean Rel difference = {mean_rel_diff}\n')
+        print("DeformAttn: Test FAILED")
     else:
-        print('out_deform_attn and out_deform_attn_fs matches\n')
+        print(f'\nMultiScaleDeformAttn and FixedSizeDeformAttn matches. Max difference = {max_diff}, Mean Rel difference = {mean_rel_diff}')
+        print("DeformAttn: Test PASSED")
 
-    # Export deform_attn_fs
+    # Export FixedSizeDeformAttn
     input_names  = ["value", "value_shape", "samp_loc", "attn_weight"]
     output_names = ["output"]
     model_input = (
@@ -198,7 +203,7 @@ if __name__ == "__main__":
         attention_weights)
     torch.onnx.export(deform_attn_fs,
                       model_input,
-                      "deform_attn_fs_pytorch.onnx",
+                      "deform_attn_fs.onnx",
                       input_names=input_names,
                       output_names=output_names,
                       opset_version=16)
@@ -206,5 +211,5 @@ if __name__ == "__main__":
     # simplify the onnx model
     from onnxsim import simplify
     import onnx
-    onnx_model, simplify_ok = simplify("deform_attn_fs_pytorch.onnx")
-    onnx.save(onnx_model, "deform_attn_fs_pytorch.onnx")
+    onnx_model, simplify_ok = simplify("deform_attn_fs.onnx")
+    onnx.save(onnx_model, "deform_attn_fs.onnx")

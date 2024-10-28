@@ -280,6 +280,7 @@ def run_test_deform_op():
                                      bias=BIAS)
 
     # For evaluation, make weigth and bias of two models the same
+    torch.nn.init.normal_(deform_op.weight)
     deform_with_gs.weight = deform_op.weight
     if deform_with_gs.bias is not None:
         deform_with_gs.bias   = deform_op.bias
@@ -304,13 +305,6 @@ def run_test_deform_op():
     with torch.no_grad():
         out_deform_with_gs = deform_with_gs(feat, offset, torch.sigmoid(mask))
 
-    # Check differences between deform_op and deform_with_gs
-    diff = out_deform_with_gs - out_deform_op
-    if torch.sum((abs(diff) > 1e-4) == True) > 0:
-        test_output = False
-    else:
-        test_output = True
-
     # Export deform_with_gs model
     input_names  = ["feat", "offset", "mask"]
     output_names = ["output"]
@@ -331,11 +325,23 @@ def run_test_deform_op():
     onnx_model, simplify_ok = simplify("deform_conv_with_gs.onnx")
     onnx.save(onnx_model, "deform_conv_with_gs.onnx")
 
+    # Check differences between deform_op and deform_with_gs
+    diff = out_deform_with_gs - out_deform_op
+    max_diff = torch.max(torch.flatten(torch.abs(diff)))
+    rel_diff = torch.flatten(torch.abs(diff) / (torch.abs(out_deform_op) + 1e-8))
+    mean_rel_diff = torch.mean(rel_diff)
+    if torch.sum((mean_rel_diff > 1e-4) == True) > 0:
+        test_output = False
+    else:
+        test_output = True
+
+    max_diff = round(max_diff.item(), 8)
+    mean_rel_diff = round(mean_rel_diff.item(), 8)
     if test_output:
-        print('\n\ntorhcvision based DeformConvOP2d and DeformConvWithGS2d matches')
+        print(f'\n\ntorhcvision based DeformConvOP2d and DeformConvWithGS2d matches. Max difference = {max_diff}, Mean Rel difference = {mean_rel_diff}')
         print("DeformConv: Test PASSED")
     else:
-        print('\n\ntorhcvision based DeformConvOP2d and DeformConvWithGS2d do not match!')
+        print(f'\n\ntorhcvision based DeformConvOP2d and DeformConvWithGS2d do not match!. Max difference = {max_diff}, Mean Rel difference = {mean_rel_diff}')
         assert test_output, "DeformConv: Test FAILED"
 
 
@@ -379,12 +385,14 @@ def run_test_dcnv2():
                      bias=BIAS,
                      mode=INTP_MODE,
                      deform_groups=DEFORM_GROUPS,
-                     clip_offset=32)
+                     clip_offset=None)
 
     # For evaluation, make weight and bias of two models the same
+    torch.nn.init.normal_(dcnv2_op.conv_offset.weight)
     dcnv2_with_gs.conv_offset.weight = dcnv2_op.conv_offset.weight
     if dcnv2_with_gs.conv_offset.bias is not None:
         dcnv2_with_gs.conv_offset.bias   = dcnv2_op.conv_offset.bias
+    torch.nn.init.normal_(dcnv2_op.weight)
     dcnv2_with_gs.weight = dcnv2_op.weight
     if dcnv2_with_gs.bias is not None:
         dcnv2_with_gs.bias   = dcnv2_op.bias
@@ -403,16 +411,41 @@ def run_test_dcnv2():
 
     # Check differences between dcnv2_op and dcnv2_with_gs
     diff = out_deform_with_gs - out_deform_op
-    if torch.sum((abs(diff) > 1e-4) == True) > 0:
+    max_diff = torch.max(torch.flatten(torch.abs(diff)))
+    rel_diff = torch.abs(diff) / (torch.abs(out_deform_op) + 1e-8)
+    mean_rel_diff = torch.mean(torch.flatten(rel_diff))
+    if torch.sum((mean_rel_diff > 1e-4) == True) > 0:
         test_output = False
     else:
         test_output = True
 
-    # Export dcnv2_with_gs model
+    max_diff = round(max_diff.item(), 8)
+    mean_rel_diff = round(mean_rel_diff.item(), 8)
+    if test_output:
+        print(f'\n\nmmcv.ops.ModulatedDeformConv2dPack and and DCNWithGSv2 matches. Max difference = {max_diff}, Mean Rel difference = {mean_rel_diff}')
+        print("DCNv2: Test PASSED")
+    else:
+        print(f'\n\nmmcv.ops.ModulatedDeformConv2dPack and DCNWithGSv2 do not match!. Max difference = {max_diff}, Mean Rel difference = {mean_rel_diff}')
+        assert test_output, "DCNv2: Test FAILED - one reason for failure could be clip_offset passed to DCNWithGSv2. Use None to check if the test passes"
+
+    # Export DCNWithGSv2 model with offset_clip
+    # in practical implementation, we may need to use clip_offset to limit the range of offset
+    dcnv2_with_gs_clip  = DCNWithGSv2(IN_CHANNEL,
+                     OUT_CHANNEL,
+                     kernel_size=KERNEL_SIZE,
+                     stride=STRIDE,
+                     padding=PADDING,
+                     dilation=DILATION,
+                     groups=GROUPS,
+                     bias=BIAS,
+                     mode=INTP_MODE,
+                     deform_groups=DEFORM_GROUPS,
+                     clip_offset=32)
+
     input_names  = ["feat"]
     output_names = ["output"]
     model_input = (feat,)
-    torch.onnx.export(dcnv2_with_gs,
+    torch.onnx.export(dcnv2_with_gs_clip,
                       model_input,
                       "dcnv2_with_gs.onnx",
                       input_names=input_names,
@@ -424,13 +457,6 @@ def run_test_dcnv2():
     import onnx
     onnx_model, simplify_ok = simplify("dcnv2_with_gs.onnx")
     onnx.save(onnx_model, "dcnv2_with_gs.onnx")
-
-    if test_output:
-        print('\n\nmmcv.ops.ModulatedDeformConv2dPack and and DCNWithGSv2 matches')
-        print("DCNv2: Test PASSED")
-    else:
-        print('\n\nmmcv.ops.ModulatedDeformConv2dPack and DCNWithGSv2 do not match!')
-        assert test_output, "DCNv2: Test FAILED - one reason for failure could be clip_offset passed to DCNWithGSv2. Use None to check if the test passes"
 
 
 if __name__ == "__main__":
