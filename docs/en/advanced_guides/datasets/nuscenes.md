@@ -4,7 +4,7 @@ This page provides specific tutorials about the usage of MMDetection3D for nuSce
 
 ## Before Preparation
 
-You can download nuScenes 3D detection `Full dataset (v1.0)` [HERE](https://www.nuscenes.org/download) and unzip all zip files. You have to ownload CAN bus expansion data as well and move it to data directory.
+You can download nuScenes 3D detection `Full dataset (v1.0)` [HERE](https://www.nuscenes.org/download) and unzip all zip files. You have to download CAN bus expansion data as well and move it to data directory.
 
 ```
 # Download 'can_bus.zip'

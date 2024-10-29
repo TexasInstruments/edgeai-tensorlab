@@ -68,7 +68,14 @@ In case any issues happen during setup due to compatibility issues between mmdet
 
 There are a couple of issues that are encounterd most frequently.
 
-- ModuleNotFoundError: No module named 'mmcv._ext'
+- To use mmdet==3.3.0 along with MMCV==2.2.0, line #17 of `~/.pyenv/versions/mmdet3d/lib/python3.10/site-packages/mmdet/__init__.py` should be modifed to
+
+    ```
+    assert (mmcv_version >= digit_version(mmcv_minimum_version)
+            and mmcv_version <= digit_version(mmcv_maximum_version)), \
+    ```
+
+- ModuleNotFoundError: No module named `mmcv._ext`
 
     It can be resolved by reinstalling mmcv depending ont the type of systtem, CUDA version, PyTorch version. Refer to [MMCV Installation Instruction](https://mmcv.readthedocs.io/en/latest/get_started/installation.html). For example, to install mmcv 2.1.0 for cuda 12.1 and torch 2.1,
 
@@ -79,7 +86,8 @@ There are a couple of issues that are encounterd most frequently.
 
 - You should set `PYTHONPATH` to make `sys.path` include the directory which contains your custom module
 
-    PYTHONPATH should be set to the edgeai-mmdetecion3d directory
+    `PYTHONPATH` should be set to the edgeai-mmdetecion3d directory
+
     ```
     export PYTHONPATH=/path/to/edgeai-mmdetection3d
     ```

@@ -1,6 +1,6 @@
 lyft_dataset_sdk
 networkx>=2.5
-numba # you should install numba==0.53.0 if your environment is cuda-9.0
+numba
 numpy==1.26.1
 nuscenes-devkit
 open3d
@@ -9,4 +9,4 @@ scikit-image
 # by default we also use tensorboard to log results
 tensorboard
 trimesh
-eniops==0.7.0
+einops==0.7.0

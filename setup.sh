@@ -39,21 +39,21 @@ pip3 install --no-input --upgrade pip==23.0.1 setuptools==60.2.0
 
 ######################################################################
 echo "installing torch, torchvision"
-pip3 install torch==2.1.2 torchvision==0.16.2
+pip3 install torch==2.4.0 torchvision==0.19.0
 
 echo "installing requirements"
 pip3 install --no-input -r requirements.txt
 
 pip install -U openmim
-pip install mmengine==0.10.2
-pip install mmcv==2.1.0
+pip install mmengine==0.10.4
+pip install mmcv==2.2.0
 pip install mmdet==3.3.0
-pip install mmsegmentation==1.2.2
+#pip install mmsegmentation==1.2.2
 
 
 ######################################################################
-# can we move this inside the requirements file is used.
-pip3 install --no-input protobuf==3.20.2 onnx==1.13.0
+# can we move this inside the requirements
+pip3 install --no-input protobuf==3.20.2 onnx==1.14.0
 
 # error when moving this inside requirements file
 pip3 install --no-input git+https://github.com/TexasInstruments/edgeai-modeloptimization.git@r9.1#subdirectory=torchmodelopt

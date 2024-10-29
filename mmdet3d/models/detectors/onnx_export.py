@@ -195,8 +195,6 @@ def export_BEVFormer(onnxModel, inputs=None, data_samples=None, **kwargs):
 
         modelInput = []
         modelInput.append(img)
-        #modelInput.append(ref_3d)
-        #modelInput.append(ref_2d)
         modelInput.append(shift_xy)
         modelInput.append(rotation_grid)
         modelInput.append(reference_points_cam)
@@ -206,9 +204,16 @@ def export_BEVFormer(onnxModel, inputs=None, data_samples=None, **kwargs):
         modelInput.append(can_bus)
         modelInput.append(onnxModel.prev_frame_info['prev_bev'])
 
+        input_names  = ["inputs", "shift_xy", "rotation_grid", "reference_points_cam",
+                        "bev_mask_count", "bev_valid_indices", "bev_valid_indices_count",
+                        "can_bus", "prev_bev"]
+        output_names = ["bboxes", "scores", "labels", "bev_feature"]
+
         torch.onnx.export(onnxModel,
                           tuple(modelInput),
                          'bevFormer.onnx',
+                          input_names=input_names,
+                          output_names=output_names,
                           opset_version=16,
                           verbose=False)
 
@@ -251,9 +256,16 @@ def export_FCOS3D(model, inputs=None, data_samples=None):
     #    for j in range(len(out[i])):
     #        out[i][j].to('cpu').numpy().tofile(f"fcos3d_out_{i}_{j}.dat")
 
+    input_names  = ["inputs", "pad_cam2img", "inv_pad_cam2img"]
+    output_names = ["mlvl_bboxes", "mlvl_bboxes_for_nms", "mlvl_nms_scores", 
+                    "mlvl_dir_scores", "mlvl_attr_scores"]
+
+
     torch.onnx.export(onnxModel,
                       tuple(modelInput),
                      'fcos3d.onnx',
+                      input_names=input_names,
+                      output_names=output_names,
                       opset_version=16,
                       verbose=False)
 
