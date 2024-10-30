@@ -103,6 +103,10 @@ def export_modules(model, example_input, filename, module_names, opset_version, 
 
     example_inputs = tuple(example_input) if isinstance(example_input, (list,tuple)) else (example_input,)
 
+    if module_names is None:
+        named_childern = dict(model.named_children())
+        module_names = list(named_childern.keys())
+
     transformation_dict = {m:None for m in module_names}
     add_example_args_kwargs(model, example_inputs, transformation_dict=transformation_dict)
 
