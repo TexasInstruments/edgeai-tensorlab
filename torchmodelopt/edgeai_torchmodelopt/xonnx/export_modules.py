@@ -29,6 +29,7 @@
 #
 #################################################################################
 import os.path
+import types
 
 import torch
 import torchvision
@@ -36,27 +37,51 @@ import onnx
 import onnxscript # needed for dynamo export
 import onnxsim
 
+
 from edgeai_torchmodelopt.xmodelopt.utils.hooks import add_example_args_kwargs
 
 # in the named modules, the whole model is stored with the key empty string
 # so if the whole model is to be exported, use this key
 WHOLE_MODEL_KEY_IN_NAMED_MODULES = ''
 
-def export_named_module(named_modules, module_name, exported_filename, opset_version, dynamo):
+
+def _add_forward_with_kwargs(module, *args, **kwargs):
+    """
+    make a wrapper to store the args and kwargs inside and use it during the forward call
+    """
+    module.__forward_backup = module.forward
+    __forward_func_new = lambda *module_args, **module_kwargs: module.__forward_backup(*args, **kwargs)
+    module.forward = types.MethodType(__forward_func_new, module)
+
+
+def _remove_forward_with_kwargs(module):
+    module.forward = module.__forward_backup
+    del module.__forward_backup
+
+
+def _export_named_module(named_modules, module_name, exported_filename, opset_version, dynamo):
         module = named_modules[module_name]
-        module_inputs = tuple(module._example_inputs) if isinstance(module._example_inputs, (list,tuple)) else (module._example_inputs,)
+        module_args = tuple(module._example_inputs) if isinstance(module._example_inputs, (list,tuple)) \
+                        else (module._example_inputs,)
+        module_kwargs = module._example_kwargs
+
+        # torch.onnx.export accepts only args, it doesn't accept kwargs
+        # make a wrapper to store the kwargs inside and use it during the forward call
+        _add_forward_with_kwargs(module, *module_args, **module_kwargs)
 
         # test if the forward works
-        module_outputs = module(*module_inputs)
+        module_outputs = module(*module_args, **module_kwargs)
 
         # onnx export
         if dynamo:
             # export_options = torch.onnx.ExportOptions(dynamic_shapes=False)
             # onnx_program = torch.onnx.dynamo_export(module, module_inputs, export_options=export_options)
             # onnx_program.save(exported_filename)
-            torch.onnx.export(module, module_inputs, exported_filename, dynamo=dynamo)
+            torch.onnx.export(module, module_args, exported_filename, dynamo=dynamo)
         else:
-            torch.onnx.export(module, module_inputs, exported_filename, opset_version=opset_version)
+            torch.onnx.export(module, module_args, exported_filename, opset_version=opset_version)
+
+        _remove_forward_with_kwargs(module)
 
         # simplify
         onnx_model = onnx.load(exported_filename)
@@ -88,7 +113,7 @@ def export_modules(model, example_input, filename, module_names, opset_version, 
         exported_filename = f"{filename_base}_{module_name}.onnx"
         try:
             print(f"Exporting - {module_name}")
-            export_named_module(named_modules, module_name, exported_filename, opset_version=opset_version, dynamo=dynamo)
+            _export_named_module(named_modules, module_name, exported_filename, opset_version=opset_version, dynamo=dynamo)
             print(f"Export - {module_name}: COMPLETED")
         except Exception as e:
             print(f"Export - {module_name}: FAILED, {e}")
