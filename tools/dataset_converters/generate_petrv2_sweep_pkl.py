@@ -10,6 +10,15 @@ import numpy as np
 import os
 import mmengine
 import tqdm
+
+"""
+This script add previous key frame and sweep frames between two key frames 
+for the current key frame info. Added info is consumed by PETR2.
+
+This script has been integrated into create_data.py with --petrv2 option. 
+So, if the pickle files are generated with --petrv2, no need to run this script
+"""
+
 sensors = ['CAM_FRONT', 'CAM_FRONT_RIGHT', 'CAM_BACK_RIGHT', 'CAM_BACK', 'CAM_BACK_LEFT', 'CAM_FRONT_LEFT']
 #info_prefix = 'train'
 info_prefix = 'val'
@@ -83,7 +92,7 @@ def add_frame(sample_data, l2e_RT, e2g_RT):
     sweep_cam['sensor2lidar_translation'] = T
     '''
 
-    sweep_cam['sensor2lidar_rotation'] = RT_p_c[0:3, 0:3]  
+    sweep_cam['sensor2lidar_rotation'] = RT_p_c[0:3, 0:3]
     sweep_cam['sensor2lidar_translation'] = RT_p_c[0:3, 3]
 
     lidar2cam_r = np.linalg.inv(sweep_cam['sensor2lidar_rotation'])

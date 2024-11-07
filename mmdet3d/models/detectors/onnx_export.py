@@ -1,8 +1,10 @@
 import torch
 import copy
 
-from .onnx_network import PETR_export_model, DETR3D_export_model, BEVFormer_export_model, \
-                          BEVDet_export_model, FCOS3D_export_model
+from .onnx_network import PETR_export_model, DETR3D_export_model, \
+                          BEVFormer_export_model, \
+                          BEVDet_export_model, FCOS3D_export_model, \
+                          FastBEV_export_model
 
 
 def export_PETR(model, inputs=None, data_samples=None, **kwargs):
@@ -270,3 +272,35 @@ def export_FCOS3D(model, inputs=None, data_samples=None):
                       verbose=False)
 
     print("!! ONNX model has been exported for FCOS3D! !!\n\n")
+
+
+def export_FastBEV(model, inputs=None,  data_samples=None):
+    onnxModel = FastBEV_export_model(model)
+    onnxModel.eval()
+
+    img = inputs['imgs'].clone()
+    batch_img_metas = [ds.metainfo for ds in data_samples]
+
+    onnxModel.prepare_data(batch_img_metas)
+
+    xy_coors = onnxModel.precompute_proj_info(img, batch_img_metas)
+    #mlvl_anchors = onnxModel.create_anchor_grid()
+
+    model_input = []
+    model_input.append(img)
+    model_input.append(xy_coors)
+    #model_input.append(mlvl_anchors)
+
+    input_names  = ["imgs", "xy_coor"]
+    output_names = ["bboxes", "scores", "dir_scores"]
+
+    torch.onnx.export(onnxModel,
+                      tuple(model_input),
+                      'fastBEV.onnx',
+                      input_names=input_names,
+                      output_names=output_names,
+                      opset_version=16,
+                      verbose=False)
+
+    print("\n!! ONNX model has been exported for FastBEV!!!\n\n")
+
