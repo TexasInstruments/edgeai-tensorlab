@@ -37,48 +37,6 @@ from torch.fx import GraphModule
 from torch.fx.passes.utils.source_matcher_utils import SourcePartition
 
 
-def wrap_optimize_func(fn):
-    def wrapped(model, example_inputs, example_kwargs, *fn_args, **fn_kwargs):
-        out = None
-        if hasattr(model,'backbone'):
-            model.backbone = fn(model.backbone, example_inputs, example_kwargs, *fn_args, **fn_kwargs)
-            out= model.backbone(*example_inputs, **example_kwargs)
-        if hasattr(model,'neck')  and model.with_neck:
-            inputs = [out] if out else example_inputs
-            kwargs = {} if out else example_kwargs
-            model.neck = fn(model.neck, inputs, kwargs, *fn_args, **fn_kwargs)
-            out = model.neck(*inputs, **kwargs)
-        if hasattr(model,'bbox_head'):
-            inputs = [out] if out else example_inputs
-            kwargs = {} if out else example_kwargs
-            if hasattr(model.bbox_head,'new_bbox_head'):
-                model.bbox_head.new_bbox_head = fn(model.bbox_head.new_bbox_head, inputs, kwargs,  *fn_args, **fn_kwargs)
-            else:
-                new_bbox_head = fn(model.bbox_head, inputs, kwargs, *fn_args, **fn_kwargs)
-                if new_bbox_head is not model.bbox_head:    
-                    model.bbox_head.add_module('new_bbox_head',new_bbox_head)
-                    def new_forward(self, x: tuple[torch.Tensor]) -> tuple[list]:
-                        return self.new_bbox_head(x)
-                    model.bbox_head.forward = types.MethodType(new_forward, model.bbox_head)
-                    if isinstance(new_bbox_head,GraphModule):
-                        params = dict(model.bbox_head.named_parameters())
-                        for key in params:
-                            if key.startswith("new_bbox_head."):
-                                continue
-                            split = key.rsplit('.',1)
-                            if len(split) == 1:
-                                param_name = split[0]
-                                delattr(model.bbox_head,param_name)
-                            else:
-                                parent_module, param_name = split
-                                main_module = parent_module.split('.',1)[0]
-                                if hasattr(model.bbox_head, main_module):
-                                    delattr(model.bbox_head,main_module)
-            out = model.bbox_head(*inputs, **kwargs)
-        return model
-    return wrapped
-
-
 def wrap_fn_for_bbox_head(fn, module:nn.Module, *args, **kwargs):
     if hasattr(module,'new_bbox_head'):
         module.new_bbox_head = fn(module.new_bbox_head,  *args, **kwargs)
@@ -110,23 +68,23 @@ def wrap_fn_for_bbox_head(fn, module:nn.Module, *args, **kwargs):
 
 def get_input(model, cfg, batch_size=None, to_export=False):
     image_size = None
-    if hasattr(cfg,'image_size'):
+    if hasattr(cfg, 'image_size'):
         image_size = cfg.image_size
-    elif hasattr(cfg,'img_scale'):
+    elif hasattr(cfg, 'img_scale'):
         image_size = cfg.img_scale
     elif hasattr(cfg, 'input_size'):
         image_size = cfg.input_size
     if image_size is None:
         image_size = 512
-    if not isinstance(image_size, tuple): 
+    if not isinstance(image_size, (list,tuple)):
         image_size = (image_size, image_size)
     
     batch_size = batch_size or cfg.train_dataloader.batch_size
     x = torch.rand(batch_size, 3, *image_size)
-    x = x.to(device= 'cpu' if to_export else next(model.parameters()).device)
+    x = x.to(device='cpu' if to_export else next(model.parameters()).device)
     example_inputs = [x]
     example_kwargs = {}
-    return example_inputs,example_kwargs
+    return example_inputs, example_kwargs
 
 def get_replacement_dict(model_surgery_version, cfg):
     from mmdet.models.backbones.csp_darknet import Focus, FocusLite
