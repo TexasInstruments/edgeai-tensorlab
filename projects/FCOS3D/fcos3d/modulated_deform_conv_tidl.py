@@ -92,15 +92,15 @@ class ModulatedDeformConv2dTIDL(ModulatedDeformConv2dPack):
         grid_y = grid_y + k_y
         grid_x = grid_x + k_x
 
-        # 5. Normalizing sampling location (o2/o1 is x/y)
-        grid_y = (o1 + grid_y) / h # 1x9xHxW
-        grid_x = (o2 + grid_x) / w # 1x9xHxW
+        # 5. Normalizing sampling location (o2/o1 is x/y) 
+        grid_y = (o1 + grid_y) / float(h) # 1x9xHxW # quantization does not su[pport double, making it quantization friendly
+        grid_x = (o2 + grid_x) / float(w) # 1x9xHxW
 
         # in (x, y) order
         offset_grid = torch.cat((grid_x.unsqueeze(-1), grid_y.unsqueeze(-1)), dim=-1) # 1x9xHxWx2
 
         # 6. Scale sampling location to [-1 to 1]
-        offset_grid = 2 * offset_grid - 1
+        offset_grid = float(2) * offset_grid - float(1)
         offset_grid = offset_grid.reshape(b, m*ho, wo, 2) # 1x(9*H)xWx2
 
         # 7. Sample features
