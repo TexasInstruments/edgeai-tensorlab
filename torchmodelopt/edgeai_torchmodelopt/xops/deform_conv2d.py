@@ -53,16 +53,45 @@ class DeformConvOP2d(torchvision.ops.DeformConv2d):
 
 
 class DeformConvWithGS2d(torchvision.ops.DeformConv2d):
-    '''
-    Deformable convolution with Grid Sample
-    '''
+    """A ModulatedDeformable Conv Encapsulation using GridSample, that acts as normal Conv layers.
+    """
+
+    _version = 2
     def __init__(self, *args, **kwargs):
+        """A ModulatedDeformable Conv Encapsulation using GridSample that acts as normal Conv
+        layers.
+
+        Args:
+            in_channels (int): Same as nn.Conv2d.
+            out_channels (int): Same as nn.Conv2d.
+            kernel_size (int or tuple[int]): Same as nn.Conv2d.
+            stride (int): Same as nn.Conv2d, while tuple is not supported.
+            padding (int): Same as nn.Conv2d, while tuple is not supported.
+            dilation (int): Same as nn.Conv2d, while tuple is not supported.
+            groups (int): Same as nn.Conv2d.
+            bias (bool or str): If specified as `auto`, it will be decided by the
+                norm_cfg. Bias will be set as True if norm_cfg is None, otherwise
+                False.
+            mode (str): Interpolation model, 'bilinear' (default) or 'nearest'
+        """
+
         mode = kwargs.pop('mode', 'bilinear')
         assert mode in ('bilinear', 'nearest'), 'mode should be one of: bilinear, nearest'
         super().__init__(*args, **kwargs)
         self.mode = mode
 
     def forward(self, feat, offset, mask):
+        """ Deformable Convolution using GridSample
+        x (1,Ni,H,W) --------------------> Pad (1, Ni, H+2, W+2) -------------------------> GridSample (1,Ni,Fr*Fc*H,W) -> Mul (1,Ni,9*H,W) ->  Reshape (1,Ni*9*H,W) -> Conv1x1 (1,No,H,W)
+                                                                                                 ^                          ^                                              ^
+        offset_x (1,Fr*Fc,H,W) -> Unsqueeze(-1) (1,Fr*Fc,H,W,1) --                               |                          |                                              |
+                                                                 |-> Concat (1,Fr*Fc,H,W,2) -> Reshape (1,Fr*Fc*H,W,2)      |                                              |
+        offset_y (1,Fr*Fc,H,W) -> Unsqueeze(-1) (1,Fr*Fc,H,W,1) --                                                          |                                              |
+                                                                                                                            |                                              |
+        mask (1,Fr*Fc,H,W) ------------------------------------------------------------------> Reshape (1, 1, 9*H, W) -------                                              |
+                                                                                                                                                                           |
+        weight (No,Ni,Fr,Fc) --------------------------------------------------------------------------------------------------------  -----> Reshape (No,Ni*Fr*Fc,1,1)-----
+        """
 
         # [1,18,W,H] => 2 x [1,9,W,H]
         offset_y = offset[:,0::2,...]
@@ -98,12 +127,8 @@ class DeformConvWithGS2d(torchvision.ops.DeformConv2d):
 
         # 4. 3x3 filter location without DCN
         k_y, k_x = torch.meshgrid(
-            torch.arange(-(dilation_h*(fr-1))//2,
-                          (dilation_h*(fr-1))//2 +1,
-                         1, device=offset_y.device, dtype=offset_y.dtype),
-            torch.arange(-(dilation_w*(fc-1))//2,
-                          (dilation_w*(fc-1))//2 +1,
-                         1, device=offset_y.device, dtype=offset_y.dtype))
+            torch.arange(-(dilation_h*(fr-1))//2, (dilation_h*(fr-1))//2 +1, 1, device=offset_y.device, dtype=offset_y.dtype),
+            torch.arange(-(dilation_w*(fc-1))//2, (dilation_w*(fc-1))//2 +1, 1, device=offset_y.device, dtype=offset_y.dtype))
 
         k_y = k_y.reshape(m, 1, 1)
         k_x = k_x.reshape(m, 1, 1)
@@ -111,15 +136,16 @@ class DeformConvWithGS2d(torchvision.ops.DeformConv2d):
         grid_y = grid_y + k_y
         grid_x = grid_x + k_x
 
-        # 5. Normalizing sampling location
-        grid_y = (offset_y + grid_y) / h # 1x9xHxW
-        grid_x = (offset_x + grid_x) / w # 1x9xHxW
+        # 5. Normalizing sampling location (o2/o1 is x/y) 
+        # quantization does not suppport double, float() is for making it quantization friendly
+        grid_y = (offset_y + grid_y) / float(h) # 1x9xHxW
+        grid_x = (offset_x + grid_x) / float(w) # 1x9xHxW
 
         # in (x, y) order
         offset_grid = torch.cat((grid_x.unsqueeze(-1), grid_y.unsqueeze(-1)), dim=-1) # 1x9xHxWx2
 
         # 6. Scale sampling location to [-1 to 1]
-        offset_grid = 2 * offset_grid - 1
+        offset_grid = float(2) * offset_grid - float(1)
         offset_grid = offset_grid.reshape(b, m*ho, wo, 2) # 1x(9*H)xWx2
 
         # 7. Sample features
@@ -182,20 +208,23 @@ def make_new_dcn_type(base_class, cls_name):
             bias: bool = True,
             mode: str = 'bilinear',
             deform_groups: int = 1,
-            clip_offset = None,
-            split_conv_offset = True):
+            offset_clip = None,
+            offset_conv_split = True):
 
-            super().__init__(in_channels=in_channels,
-                    out_channels=out_channels,
-                    kernel_size=kernel_size, stride=stride, padding=padding,
-                    dilation=dilation, groups=groups, bias=bias, mode=mode)
+            # restricting the deformable convolution configuration
+            super().__init__(in_channels=in_channels, out_channels=out_channels,
+                             kernel_size=3, stride=1, padding=1, dilation=1, groups=1,
+                             bias=bias, mode=mode)
 
-            self.split_conv_offset = split_conv_offset
+            if offset_clip is None:
+                warnings.warn("offset_clip is not set - recommend to set a reasonable value (eg. 32) to restrict the offsets")
+
+            self.offset_conv_split = offset_conv_split
             ks = (kernel_size,kernel_size) if isinstance(kernel_size, int) else kernel_size
             self.mask_out_channels = deform_groups * ks[0] * ks[1]
             self.offset_out_channels = self.mask_out_channels * 2
 
-            if self.split_conv_offset:
+            if self.offset_conv_split:
                 self.conv_offset = torch.nn.Conv2d(in_channels=in_channels,
                         out_channels=self.offset_out_channels,
                         kernel_size=kernel_size, stride=stride, padding=padding,
@@ -210,16 +239,16 @@ def make_new_dcn_type(base_class, cls_name):
                         kernel_size=kernel_size, stride=stride, padding=padding,
                         dilation=dilation, groups=groups, bias=bias)
 
-            if clip_offset is not None:
-                clip_offset = (-clip_offset, clip_offset) if isinstance(clip_offset, (int,float)) else clip_offset
-                self.clip_offset = torch.nn.Hardtanh(min_val=clip_offset[0], max_val=clip_offset[1])
+            if offset_clip is not None:
+                offset_clip = (-offset_clip, offset_clip) if isinstance(offset_clip, (int,float)) else offset_clip
+                self.offset_clip = torch.nn.Hardtanh(min_val=offset_clip[0], max_val=offset_clip[1])
             else:
-                self.clip_offset = None
+                self.offset_clip = None
 
             self._initialize_weights()
 
         def forward(self, feat):
-            if self.split_conv_offset:
+            if self.offset_conv_split:
                 offset_yx = self.conv_offset(feat)
                 mask = self.conv_mask(feat)
             else:
@@ -227,8 +256,8 @@ def make_new_dcn_type(base_class, cls_name):
                 offset_yx = offset_mask[:,:self.offset_out_channels,...]
                 mask = offset_mask[:,self.offset_out_channels:,...]
 
-            if self.clip_offset is not None:
-                offset_yx = self.clip_offset(offset_yx)
+            if self.offset_clip is not None:
+                offset_yx = self.offset_clip(offset_yx)
 
             mask = torch.sigmoid(mask)
 
@@ -243,16 +272,15 @@ def make_new_dcn_type(base_class, cls_name):
                     torch.nn.init.zeros_(module.bias)
 
         def copy_weights(self, other):
-            if not isinstance(other , _FactoryDCNv2):
-                print(f"This function copy_weights can only be used to copy weights/bias from a module of similar types. "
-                    f"Got {self.__class__.__name__} and {other.__class__.__name__}")
+            if not isinstance(other , (_FactoryDCNv2, MMCVDeformConv)):
+                warnings.warn(f"{self.__class__.__name__}.copy_weights cannot copy weights from {other.__class__.__name__}")
 
-            other_split_conv_offset = other.split_conv_offset if hasattr(other, "split_conv_offset") else False
-            if self.split_conv_offset and other_split_conv_offset:
+            other_split_conv_offset = other.offset_conv_split if hasattr(other, "offset_conv_split") else False
+            if self.offset_conv_split and other_split_conv_offset:
                 self.conv_offset.weight.detach().copy_(other.conv_offset.weight)
                 if self.conv_offset.bias is not None and other.conv_offset.bias is not None:
                     self.conv_offset.bias.detach().copy_(other.conv_offset.bias)
-            elif self.split_conv_offset:
+            elif self.offset_conv_split:
                 self.conv_offset.weight.detach().copy_(other.conv_offset.weight[:18, ...])
                 self.conv_mask.weight.detach().copy_(other.conv_offset.weight[18:, ...])
                 if self.conv_offset.bias is not None and other.conv_offset.bias is not None:
@@ -441,7 +469,7 @@ def run_test_dcnv2():
                      bias=BIAS,
                      mode=INTP_MODE,
                      deform_groups=DEFORM_GROUPS,
-                     clip_offset=None)
+                     offset_clip=None)
 
     # For evaluation, make weight and bias of two models the same
     torch.nn.init.normal_(dcnv2_op.conv_offset.weight)
@@ -477,10 +505,10 @@ def run_test_dcnv2():
         print("DCNv2: Test PASSED")
     else:
         print(f'\n\nmmcv.ops.ModulatedDeformConv2dPack and DCNWithGSv2 do not match!. Max difference = {max_diff}, Mean Rel difference = {mean_rel_diff}')
-        assert test_output, "DCNv2: Test FAILED - one reason for failure could be clip_offset passed to DCNWithGSv2. Use None to check if the test passes"
+        assert test_output, "DCNv2: Test FAILED - one reason for failure could be offset_clip passed to DCNWithGSv2. Use None to check if the test passes"
 
     # Export DCNWithGSv2 model with offset_clip
-    # in practical implementation, we may need to use clip_offset to limit the range of offset
+    # in practical implementation, we may need to use offset_clip to limit the range of offset
     dcnv2_with_gs_clip  = DCNWithGSv2(IN_CHANNEL,
                      OUT_CHANNEL,
                      kernel_size=KERNEL_SIZE,
@@ -491,7 +519,7 @@ def run_test_dcnv2():
                      bias=BIAS,
                      mode=INTP_MODE,
                      deform_groups=DEFORM_GROUPS,
-                     clip_offset=32)
+                     offset_clip=32)
 
     input_names  = ["feat"]
     output_names = ["output"]
