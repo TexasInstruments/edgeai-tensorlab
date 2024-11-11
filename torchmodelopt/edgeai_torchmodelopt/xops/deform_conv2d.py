@@ -76,7 +76,7 @@ class DeformConvWithGS2d(torchvision.ops.DeformConv2d):
         """
 
         mode = kwargs.pop('mode', 'bilinear')
-        assert mode in ('bilinear', 'nearest'), 'mode should be one of: bilinear, nearest'
+        assert mode in ('bilinear', 'nearest'), 'mode should be one of: bilinear, nearest. nearest is recommended for speed'
         super().__init__(*args, **kwargs)
         self.mode = mode
 
@@ -208,7 +208,7 @@ def make_new_dcn_type(base_class, cls_name):
             bias: bool = True,
             mode: str = 'bilinear',
             deform_groups: int = 1,
-            offset_clip = None,
+            offset_clip = 32,
             offset_conv_split = True):
 
             # restricting the deformable convolution configuration
@@ -459,6 +459,9 @@ def run_test_dcnv2():
                      bias=BIAS,
                      deform_groups=DEFORM_GROUPS)
 
+    # offset_clip is set to None here so that the output matches with the above MMCVDCNv2 operator.
+    # but setting offset_clip to a suitable value (eg. 32) may be required due to speed considerations
+    # in memory constrained scenarios.
     dcnv2_with_gs  = DCNWithGSv2(IN_CHANNEL,
                      OUT_CHANNEL,
                      kernel_size=KERNEL_SIZE,
