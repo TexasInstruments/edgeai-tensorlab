@@ -153,7 +153,7 @@ def _derived_bias_quant_spec(weight_node, input_act_node, curr_node) -> DerivedQ
 
 class TIDLRTQuantizer(Quantizer):
 
-    def __init__(self, is_qat, fast_mode=False, is_fake_quantize=True):
+    def __init__(self, is_qat, fast_mode=False, is_fake_quantize=True, device = None):
         super().__init__()
         self.global_config: QuantizationConfig = None  # type: ignore[assignment]
         self.operator_type_config: Dict[str, Optional[QuantizationConfig]] = {}
@@ -173,6 +173,10 @@ class TIDLRTQuantizer(Quantizer):
                                                 torch.ops.aten.div.Tensor,
                                                 torch.ops.aten.add.Tensor,
                                                 torch.ops.aten.sub.Tensor,]
+        if device is not None:
+            self.device = device
+        else:
+            self.device = torch.device('cuda:0')
         # self.two_inputs_single_output_nodes = [torch.ops.aten.div.Tensor]
 
     def set_global(self, quantization_config: QuantizationConfig):
@@ -207,6 +211,7 @@ class TIDLRTQuantizer(Quantizer):
         self._annotate_matmul(model, config)
         self._annotate_conv2d(model, config, allow_16bit_node_list)
         self._annotate_linear(model, config, allow_16bit_node_list)
+        # self._transfer_model_to_device(model)
         return model
 
     def _annotate_single_input_single_output_shared(
@@ -470,9 +475,9 @@ class TIDLRTQuantizer(Quantizer):
                     args = list(node.args)
                     for i, a in enumerate(args):
                         if isinstance(a, (int, float)):
-                            t = torch.tensor(a)
+                            t = torch.tensor(a, device=self.device)
                             t_name = f'{node.name}_inp_{i}'
-                            gm.register_buffer(t_name,t, persistent=True)
+                            gm.register_buffer(t_name, t, persistent=True)
                             args[i] = gm.graph.get_attr(t_name)
                 node.args = tuple(args)
         gm.graph.lint()
@@ -502,7 +507,7 @@ class TIDLRTQuantizer(Quantizer):
         )
         cat_partitions = list(itertools.chain(*cat_partitions.values()))
         for cat_partition in cat_partitions:
-            cat_node = cat_partition.output_nodes[0]
+            cat_node = cat_partition.output_nodes[0] if len(cat_partition.output_nodes) > 0 else cat_partition.nodes[0]
             if cat_node.target != torch.ops.aten.cat.default:
                 # TODO: change this to AnnotationException
                 raise Exception(

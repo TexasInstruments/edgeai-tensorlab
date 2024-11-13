@@ -120,7 +120,7 @@ class ConvBNRModule(nn.Module):
 
 
 class Permute(torch.nn.Module):
-    def __init__(self,shape:list|tuple, *args, **kwargs) -> None:
+    def __init__(self, shape:list|tuple, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.shape = shape
     def forward(self,x):
@@ -128,7 +128,7 @@ class Permute(torch.nn.Module):
 
 
 class ReplaceBatchNorm(nn.Module):
-    def __init__(self,num_features ,*args, **kwargs) -> None:
+    def __init__(self, num_features, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.num_features = num_features
         self.layer = None
@@ -137,7 +137,7 @@ class ReplaceBatchNorm(nn.Module):
         self.module_list = None
     
     # 
-    def forward(self,x:torch.Tensor):
+    def forward(self, x:torch.Tensor):
         if self.module_list:
             return self.module_list(x)
         if len(x.shape) ==3:

@@ -68,62 +68,80 @@ def convert_to_lite_fx(model:torch.nn.Module, replacement_dict:Dict[Any,Union[to
 #Default Flags for replacement dict
 # for custom replacement add a custom flag name (any string not in default flag) as key and map it to a dict containing pattern and replacement
 # note if same key is used for two pattern the last replacement will be performed
-default_replacement_flag_dict: dict[str, bool|dict] ={
-    'squeeze_and_excite_to_identity' : True,
-    'all_activation_to_relu': False,
-    'relu_inplace_to_relu' : True,
-    'gelu_to_relu' : True,
-    'relu6_to_relu' : True,
-    'silu_to_relu' : True,
-    'hardswish_to_relu' : True,
-    'hardsigmoid_to_relu' : True,
-    'leakyrelu_to_relu' : True,
-    'dropout_inplace_to_dropout':True,
-    'replace_CNBlock':True,
-    'focus_to_optimized_focus':False,
-    'break_maxpool2d_with_kernel_size_greater_than_equalto_5':True,
-    'break_avgpool2d_with_kernel_size_greater_than_equalto_5':True,
-    'convert_resize_params_size_to_scale':True,
-    'replace_conv_k_size_6_to_k_size_5':True,
+default_replacement_flag_dict = {
+    'squeeze_and_excite_to_identity'       : True,
+    'all_activation_to_relu'               : False,
+    'relu_inplace_to_relu'                 : True,
+    'gelu_to_relu'                         : True,
+    'relu6_to_relu'                        : True,
+    'silu_to_relu'                         : True,
+    'hardswish_to_relu'                    : True,
+    'hardsigmoid_to_relu'                  : True,
+    'leakyrelu_to_relu'                    : True,
+    'dropout_inplace_to_dropout'           : True,
+    'replace_CNBlock'                      : True,
+    'focus_to_optimized_focus'             : False,
+    'break_maxpool2d_with_kernel_\
+        size_greater_than_equalto_5'       : True,
+    'break_avgpool2d_with_kernel_\
+        size_greater_than_equalto_5'       : True,
+    'convert_resize_params_size_to_scale'  : True,
+    'replace_conv_k_size_6_to_k_size_5'    : True,
     # 'promote_conv2d_with_even_kernel_to_larger_odd_kernel':False,
-    'break_conv2d_with_kernel_size_greater_than_7':False,
+    'break_conv2d_with_kernel_size_\
+        greater_than_7'                    : False,
     # 'custom_surgery_flag':{},
 }
 
 #Default Flags for replacement dict with no training required as subset of default flags
 # for custom replacement add a custom flag name (any string not in default flag) as key and map it to a dict containing pattern and replacement
 # note if same key is used for two pattern the last replacement will be performed
-default_replacement_flag_dict_no_training:dict[str,bool|dict] ={
+default_replacement_flag_dict_no_training = {
     # 'relu6_to_relu' : True,
-    'dropout_inplace_to_dropout':True,
+    'dropout_inplace_to_dropout'           : True,
     # 'focus_to_optimized_focus':True,
-    'break_maxpool2d_with_kernel_size_greater_than_equalto_5':True,
-    'break_avgpool2d_with_kernel_size_greater_than_equalto_5':True,
-    'convert_resize_params_size_to_scale':True,
+    'break_maxpool2d_with_kernel_size\
+        _greater_than_equalto_5'           : True,
+    'break_avgpool2d_with_kernel_size\
+        _greater_than_equalto_5'           : True,
+    'convert_resize_params_size_to_scale'  : True,
     # 'promote_conv2d_with_even_kernel_to_larger_odd_kernel':False,
     # 'custom_surgery_flag':{},
 }
 
 #Mapping between the flags and the actual replacements corresponding to them
 # This dictionary is used whenever a flag is enabled to fetch the corresponding replacement entries
-flag_to_dict_entries:dict [str:dict] ={
-    'squeeze_and_excite_to_identity' : {timm_se_module:nn.Identity,tv_se_module:nn.Identity,custom_modules.SEModule():nn.Identity(),custom_modules.SEModule1():nn.Identity(),'se_layer':custom_surgery_functions.replace_se_layer},
-    'all_activation_to_relu': {nn.ReLU:nn.ReLU, nn.ReLU6:nn.ReLU, nn.GELU:nn.ReLU, nn.SiLU:nn.ReLU, nn.Hardswish:nn.ReLU, nn.Hardsigmoid:nn.ReLU, nn.LeakyReLU:nn.ReLU,},
-    'relu_inplace_to_relu' : {nn.ReLU: nn.ReLU},
-    'gelu_to_relu' : {nn.GELU: nn.ReLU},
-    'relu6_to_relu' : {nn.ReLU6: nn.ReLU},
-    'silu_to_relu' : {nn.SiLU: nn.ReLU},
-    'hardswish_to_relu' : {nn.Hardswish: nn.ReLU},
-    'hardsigmoid_to_relu' : {nn.Hardsigmoid: nn.ReLU},
-    'leakyrelu_to_relu' : {nn.LeakyReLU: nn.ReLU},
-    'dropout_inplace_to_dropout':{nn.Dropout: nn.Dropout},
-    'replace_CNBlock':{'CNBlock':custom_surgery_functions.replace_cnblock},
-    'focus_to_optimized_focus':{custom_modules.Focus():custom_modules.OptimizedFocus()},
-    'replace_conv_k_size_6_to_k_size_5':{'conv_6':custom_surgery_functions.replace_conv2d_kernel_size_6},
-    'break_conv2d_with_kernel_size_greater_than_7':{'conv_ge_7':custom_surgery_functions.replace_conv2d_kernel_size_gt_7},
-    'break_maxpool2d_with_kernel_size_greater_than_equalto_5':{'maxpool_ge_5':custom_surgery_functions.replace_maxpool2d_kernel_size_ge_5},
-    'break_avgpool2d_with_kernel_size_greater_than_equalto_5':{'avgpool_ge_5':custom_surgery_functions.replace_avgpool2d_kernel_size_ge_5},
-    'convert_resize_params_size_to_scale':{'upsample':custom_surgery_functions.replace_resize_with_scale_factor},
+flag_to_dict_entries = {
+    'squeeze_and_excite_to_identity'        : {timm_se_module : nn.Identity,
+                                                tv_se_module : nn.Identity,
+                                                custom_modules.SEModule() : nn.Identity(),
+                                                custom_modules.SEModule1() : nn.Identity(),
+                                                'se_layer' : custom_surgery_functions.replace_se_layer},
+    'all_activation_to_relu'                : {nn.ReLU : nn.ReLU, 
+                                                nn.ReLU6 : nn.ReLU, 
+                                                nn.GELU : nn.ReLU, 
+                                                nn.SiLU:nn.ReLU, 
+                                                nn.Hardswish:nn.ReLU, 
+                                                nn.Hardsigmoid:nn.ReLU,
+                                                nn.LeakyReLU:nn.ReLU,},
+    'relu_inplace_to_relu'                  : {nn.ReLU: nn.ReLU},
+    'gelu_to_relu'                          : {nn.GELU: nn.ReLU},
+    'relu6_to_relu'                         : {nn.ReLU6 : nn.ReLU},
+    'silu_to_relu'                          : {nn.SiLU : nn.ReLU},
+    'hardswish_to_relu'                     : {nn.Hardswish : nn.ReLU},
+    'hardsigmoid_to_relu'                   : {nn.Hardsigmoid : nn.ReLU},
+    'leakyrelu_to_relu'                     : {nn.LeakyReLU : nn.ReLU},
+    'dropout_inplace_to_dropout'            : {nn.Dropout: nn.Dropout},
+    'replace_CNBlock'                       : {'CNBlock': custom_surgery_functions.replace_cnblock},
+    'focus_to_optimized_focus'              : {custom_modules.Focus(): custom_modules.OptimizedFocus()},
+    'replace_conv_k_size_6_to_k_size_5'     : {'conv_6': custom_surgery_functions.replace_conv2d_kernel_size_6},
+    'break_conv2d_with_kernel_\
+        size_greater_than_7'                : {'conv_ge_7': custom_surgery_functions.replace_conv2d_kernel_size_gt_7},
+    'break_maxpool2d_with_kernel_size\
+        _greater_than_equalto_5'            : {'maxpool_ge_5': custom_surgery_functions.replace_maxpool2d_kernel_size_ge_5},
+    'break_avgpool2d_with_kernel_size\
+        _greater_than_equalto_5'            : {'avgpool_ge_5': custom_surgery_functions.replace_avgpool2d_kernel_size_ge_5},
+    'convert_resize_params_size_to_scale'   : {'upsample': custom_surgery_functions.replace_resize_with_scale_factor},
 }
 
 
@@ -150,7 +168,7 @@ def get_replacement_flag_dict_default(return_flags = True, can_retrain = True):
 
 
 def get_replacement_dict(
-    replacement_flag_dict: dict[str|nn.Module|FunctionType|type,bool|nn.Module|FunctionType|type|tuple[FunctionType,FunctionType]]=None,
+    replacement_flag_dict: dict[str | nn.Module | FunctionType | type, bool | nn.Module | FunctionType | type | tuple[FunctionType, FunctionType]] = None,
     can_retrain:bool = True,
     ):
     '''
@@ -181,7 +199,8 @@ def get_replacement_dict(
     return replacement_dict
 
 
-def replace_unsupported_layers(model:nn.Module, example_inputs:list=None, example_kwargs:dict=None, replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, copy_args:list=[],  can_retrain=True, verbose_mode:bool=False, **kwargs):
+def replace_unsupported_layers(model:nn.Module, example_inputs:list=None, example_kwargs:dict=None, replacement_dict:Dict[Any, Union[nn.Module, callable]]=None, 
+                               copy_args:list=[],  can_retrain=True, verbose_mode:bool=False, **kwargs):
     #TODO write appropiate documentation for this function
     
     '''
@@ -250,7 +269,8 @@ class SurgeryModule(OptimizationBaseModule):
         else:
             add_example_args_kwargs(model, example_inputs=example_inputs, example_kwargs=example_kwargs, transformation_dict=transformation_dict)
         self.replacement_dict=replacement_dict or get_replacement_flag_dict_default()
-        self.module = wrapped_transformation_fn(convert_to_lite_fx, model, replacement_dict=self.replacement_dict, example_inputs=example_inputs, example_kwargs=example_kwargs, transformation_dict=transformation_dict,**kwargs)
+        self.module = wrapped_transformation_fn(convert_to_lite_fx, model, replacement_dict=self.replacement_dict, example_inputs=example_inputs, example_kwargs=example_kwargs, 
+                                                transformation_dict=transformation_dict,**kwargs)
     
     @classmethod
     def _add_attrs_to(cls, obj, attr_names=None):

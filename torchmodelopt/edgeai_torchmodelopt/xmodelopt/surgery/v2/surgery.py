@@ -52,12 +52,13 @@ def _is_replacable(pattern:Union[GraphModule, nn.Module, callable]):
     return True
 
 
-def _replace_unsupported_layers(model:nn.Module, example_inputs:list=None, example_kwargs:dict=None, replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, copy_args:list=[], verbose_mode:bool=False, **kwargs) -> GraphModule | nn.Module:
+def _replace_unsupported_layers(model:nn.Module, example_inputs:list=None, example_kwargs:dict=None, replacement_dict:Dict[Any, Union[nn.Module, callable]]=None, 
+                                copy_args:list=[], verbose_mode:bool=False, **kwargs) -> GraphModule | nn.Module:
     '''
     main function that does the surgery
 
     it does default surgery if no replacement dictionry is given
-    replacement dictionry may contain
+    replacement dictionary may contain
     keys                value
     callable        ->  callable            : any call function to call_function if they take same argument partial agument may -                                         be used 
     callable        ->  nn.Module           : any call function to call_function if they take same argument partial agument may -                                         be used 

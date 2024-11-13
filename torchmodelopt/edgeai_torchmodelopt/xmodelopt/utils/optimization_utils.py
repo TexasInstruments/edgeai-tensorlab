@@ -49,8 +49,15 @@ def apply_model_optimization(model: nn.Module, example_inputs: list=None, exampl
     model_surgery_version = model_surgery_version or (0 if model_surgery_kwargs is None else 2)
     pruning_version = pruning_version or (0 if pruning_kwargs is None else 2)
     quantization_version = quantization_version or (0 if quantization_kwargs is None else 2)
-    copy_attrs= copy_attrs or []
-    model(*example_inputs, **example_kwargs)
+    copy_attrs = copy_attrs or []
+    if not(pruning_version or model_surgery_version or quantization_version):
+        return model
+
+    if isinstance(example_inputs, dict):
+        model(example_inputs, **example_kwargs)
+    else:
+        model(*example_inputs, **example_kwargs)
+
     model_surgery_kwargs = copy.deepcopy(model_surgery_kwargs)
     pruning_kwargs = copy.deepcopy(pruning_kwargs)
     quantization_kwargs = copy.deepcopy(quantization_kwargs)

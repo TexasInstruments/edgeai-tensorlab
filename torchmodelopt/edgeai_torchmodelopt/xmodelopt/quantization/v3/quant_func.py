@@ -32,6 +32,7 @@
 import warnings
 import torch
 import torch._dynamo as torchdynamo
+from torch.fx import GraphModule
 import torch.ao.quantization
 from torch.ao.quantization.quantize_pt2e import prepare_pt2e, prepare_qat_pt2e, convert_pt2e 
 
@@ -52,8 +53,8 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
     
     example_kwargs = example_kwargs or {} 
     if hasattr(model, '_example_inputs') and hasattr(model, '_example_kwargs'):
-        example_inputs= model._example_inputs
-        example_kwargs= model._example_kwargs
+        example_inputs = model._example_inputs
+        example_kwargs = model._example_kwargs
     else:
         add_example_args_kwargs(model, example_inputs=example_inputs, example_kwargs=example_kwargs)
     
@@ -93,7 +94,7 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
     qconfig_mode = qconfig_types.get_qconfig(qconfig_type, is_fake_quantize=is_fake_quantize, fast_mode=fast_mode)
     
     # methods to quantize individual layers/modules types are in quantizer
-    quantizer = quantizer or TIDLRTQuantizer(is_qat=is_qat, fast_mode=fast_mode, is_fake_quantize=is_fake_quantize)
+    quantizer = quantizer or TIDLRTQuantizer(is_qat=is_qat, fast_mode=fast_mode, is_fake_quantize=is_fake_quantize, device=next(iter(m.named_parameters()))[1].device)
     quantizer.set_global(qconfig_mode)
     
     # for copy_arg in copy_args:
@@ -140,6 +141,7 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
         model.unfreeze = types.MethodType(unfreeze, model)
         model.convert = types.MethodType(convert, model)
         model.export = types.MethodType(export, model)
+        model.__deepcopy__ = types.MethodType(deepcopy_graphmodule, model)
     #
     print("Model Preparation is now complete! ")
     
@@ -201,6 +203,48 @@ def forward(self, *input, **kwargs):
     return self(*input, **kwargs)
 
 
+def deepcopy_graphmodule(gm, memo=None):
+    """Deep copies a GraphModule."""
+
+    # Create a new GraphModule
+    fake_mod = torch.nn.Module()
+    for key in fake_mod.__dict__.keys():
+        try:
+            k_val = copy.deepcopy(gm.__dict__[key]) 
+        except:
+            k_val = {}
+            for k_item in gm.__dict__[key].keys():
+                try:
+                    f = copy.deepcopy(gm.__dict__[key][k_item])
+                except:
+                    f = torch.tensor(gm.__dict__[key][k_item].item(), device=gm.__dict__[key][k_item].device)
+                k_val[k_item] = f
+        fake_mod.__dict__[key] = k_val
+    new_gm = GraphModule(fake_mod, copy.deepcopy(gm.graph), gm.__class__.__name__)
+
+    # Deep copy the parameters and buffers
+    for name, param in gm.named_parameters():
+        new_gm.register_parameter(name, copy.deepcopy(param))
+
+    for name, buffer in gm.named_buffers():
+        try:
+            buf = copy.deepcopy(buffer)
+        except:
+            buf = torch.tensor(buffer.item(), device=buffer.device)
+        if "." in name:
+            mod_list = name.split(".")[:-1]
+            mod_name = name.split(".")[-1]
+            module = new_gm
+            for mod in mod_list:
+                module = getattr(module, mod)
+            module.register_buffer(mod_name, buf)
+        else:
+            new_gm.register_buffer(name, buf)
+
+    new_gm.meta = copy.deepcopy(gm.meta)
+    return new_gm
+
+
 def convert(self, *args, device="cpu", make_copy=True, **kwargs):
     if hasattr(self, '__quant_params__'):
         orig_quant_params = copy.deepcopy(self.__quant_params__)
@@ -208,7 +252,7 @@ def convert(self, *args, device="cpu", make_copy=True, **kwargs):
         warnings.warn("__quant_params__ is missing in quant_func module. it may be due to a deepcopy.")
         orig_quant_params = None
 
-    model = copy.deepcopy(self).eval() if make_copy else self.eval()
+    model = copy.deepcopy(self).eval() if make_copy else self.eval() # calls the deepcopy_graphmodule module
     model = model.to(device=device)
     model = quant_utils.move_node_kwargs_to_device(model, device=device)
     model = quant_utils.remove_to_device_node(model)
