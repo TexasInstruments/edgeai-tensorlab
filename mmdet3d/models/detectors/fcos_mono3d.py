@@ -45,6 +45,7 @@ class FCOSMono3D(SingleStageMono3DDetector):
                  neck: ConfigType,
                  bbox_head: ConfigType,
                  save_onnx_model: bool = False,
+                 quantized_model: bool = False,
                  train_cfg: OptConfigType = None,
                  test_cfg: OptConfigType = None,
                  data_preprocessor: OptConfigType = None,
@@ -60,6 +61,7 @@ class FCOSMono3D(SingleStageMono3DDetector):
 
         # for onnx model export
         self.save_onnx_model = save_onnx_model
+        self.quantized_model = quantized_model
 
 
     def forward(self,
@@ -99,7 +101,7 @@ class FCOSMono3D(SingleStageMono3DDetector):
             return self.loss(inputs, data_samples)
         elif mode == 'predict':
             if self.save_onnx_model is True:
-                export_FCOS3D(self, inputs, data_samples)
+                export_FCOS3D(self, inputs, data_samples, quantized_model=self.quantized_model)
                 # Export onnx only once
                 self.save_onnx_model = False
 
