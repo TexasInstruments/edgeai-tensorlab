@@ -15,6 +15,9 @@ model = dict(
     type='FastBEV',
     style="v1",
     save_onnx_model=False,
+    num_temporal_feats=n_times-1,
+    # Image feat map size after backbone and neck (FPN)
+    feats_size = [6, 64, 64, 176],
     data_preprocessor=dict(
         type='Det3DDataPreprocessor',
         **img_norm_cfg,
@@ -196,22 +199,20 @@ train_pipeline = [
     dict(type='Collect3D', keys=['img', 'gt_bboxes', 'gt_labels',
                                  'gt_bboxes_3d', 'gt_labels_3d',
                                  'gt_bev_seg'])]
+
+
 test_pipeline = [
-    dict(type='MultiViewPipeline', sequential=True, n_images=6, n_times=n_times, transforms=[
+    # n_times should be 1 for validation and test
+    dict(type='MultiViewPipeline', sequential=True, n_images=6, n_times=1, transforms=[
         dict(
             type='LoadImageFromFile',
             file_client_args=file_client_args)]),
     dict(type='RandomAugImageMultiViewImage', data_config=data_config, is_train=False),
     dict(type='ResetPointOrigin', point_cloud_range=point_cloud_range),
-    #dict(type='NormalizeMultiviewImage', **img_norm_cfg),
-    #dict(type='CustomPack3DDetInputs', keys=['img'])
-    dict(type='Pack3DDetInputs', keys=['img'])
-    #dict(type='DefaultFormatBundle3D', class_names=class_names, with_label=False),
-    #dict(type='Collect3D', keys=['img'])
+    dict(type='CustomPack3DDetInputs', keys=['img'])
     ]
 
-
-metainfo = dict(classes=class_names, version='v1.0-mini')
+metainfo = dict(classes=class_names)
 data_prefix = dict(
     pts='',
     CAM_FRONT='samples/CAM_FRONT',
@@ -265,16 +266,18 @@ val_dataloader = dict(
         test_mode=True,
         with_box2d=True,
         box_type_3d='LiDAR',
-        ann_file='nuscenes_mini_infos_val_fastbev.pkl',
+        ann_file='nuscenes_infos_val.pkl',
         sequential=True,
-        n_times=n_times,
-        train_adj_ids=[1, 3, 5],
+        # n_times shoudl be 1 for test and validation dataloader
+        n_times=1,
+        train_adj_ids=[1, 3, 5], # not needed
         speed_mode='abs_velo',
         max_interval=10,
         min_interval=0,
         fix_direction=True,
+        prev_only=True,
         test_adj='prev',
-        test_adj_ids=[1, 3, 5],
+        test_adj_ids=[1, 3, 5], # not needed
         test_time_id=None,
     ))
 
@@ -283,7 +286,7 @@ test_dataloader = val_dataloader
 val_evaluator = dict(
     type='CustomNuScenesMetric',
     data_root=data_root,
-    ann_file=data_root + 'nuscenes_mini_infos_val_fastbev.pkl',
+    ann_file=data_root + 'nuscenes_infos_val.pkl',
     metric='mAP',
     backend_args=None)
 test_evaluator = val_evaluator

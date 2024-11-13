@@ -7,7 +7,7 @@ from mmdet3d.registry import TRANSFORMS
 
 @TRANSFORMS.register_module()
 class MultiViewPipeline(BaseTransform):
-    def __init__(self, transforms, n_images, n_times=2, sequential=False):
+    def __init__(self, transforms, n_images, n_times=1, sequential=False):
         self.transforms = Compose(transforms)
         self.n_images = n_images
         self.n_times = n_times

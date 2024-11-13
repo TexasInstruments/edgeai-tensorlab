@@ -4,6 +4,7 @@ from typing import Dict, List, Union, Optional
 import math
 import os
 import numpy as np
+import queue
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -24,8 +25,11 @@ from mmdet3d.utils.typing_utils import OptInstanceList
 
 import copy
 
-from mmdet3d.models.detectors.onnx_export import export_FastBEV
+from mmdet3d.models.detectors.onnx_export import create_onnx_FastBEV, export_FastBEV
 from mmdet3d.models.detectors.onnx_network import backproject_tidl
+
+from .utils import get_rot, rts2proj, get_augmented_img_params, scale_augmented_img_params
+
 
 @torch.no_grad()
 def get_points(n_voxels, voxel_size, origin):
@@ -106,6 +110,8 @@ class FastBEV(BaseDetector):
         with_cp=False,
         backproject='inplace',
         style='v4',
+        num_temporal_feats = 0,
+        feats_size = [6, 64, 64, 176],
         save_onnx_model=False
     ):
         super().__init__(data_preprocessor=data_preprocessor, init_cfg=init_cfg)
@@ -168,8 +174,15 @@ class FastBEV(BaseDetector):
         self.with_cp = with_cp
 
         # for onnx model export
+        self.onnx_model = None
         self.save_onnx_model = save_onnx_model
-        self.model_exported = False
+        #self.model_exported = False
+        self.num_temporal_feats = num_temporal_feats
+        self.feats_size     = feats_size
+
+        # for inference with batch_size = 1
+        self.memory = dict()
+        self.queue = queue.Queue(maxsize=num_temporal_feats)
 
 
     def forward(self,
@@ -226,10 +239,15 @@ class FastBEV(BaseDetector):
                                                   'time augmentation.'
                 return self.aug_test(inputs, data_samples, **kwargs)
             else:
-                if self.save_onnx_model is True and self.model_exported is False:
-                    export_FastBEV(self, inputs, data_samples, **kwargs)
+                if self.save_onnx_model is True: # and self.model_exported is False:
+                    if self.onnx_model is None:
+                        self.onnx_model = create_onnx_FastBEV(self)
+                    
+                    export_FastBEV(self.onnx_model, inputs, data_samples, **kwargs)
+                    
                     # Export onnx only once
-                    self.model_exported = True
+                    self.save_onnx_model = False
+                    #self.model_exported = True
 
                 return self.predict(inputs, data_samples, **kwargs)
         elif mode == 'tensor':
@@ -252,8 +270,165 @@ class FastBEV(BaseDetector):
                 projection.append(intrinsic @ extrinsic[:3])
         return torch.stack(projection)
 
-    def extract_feat(self, img, img_metas, mode, xy_coors=None):
-        batch_size = img.shape[0]
+
+    def get_temporal_feats(self, queue, memory, img, img_metas, feats_size, num_prevs):
+
+        # Support only batch_size = 1
+        for batch_id, img_meta in enumerate(img_metas):
+            prev_img_meta = img_meta
+            prev_feats = []
+            prev_img_metas = []
+            
+            for i in range(1, num_prevs+1):
+                cur_sample_idx = img_meta['sample_idx']
+
+                if i > queue.qsize() or \
+                    img_meta['scene_token'] != memory[cur_sample_idx - i]['img_meta']['scene_token']:
+
+                    prev_feats.append(torch.zeros(feats_size, dtype=img.dtype, device=img.device))
+                    prev_img_metas.append(prev_img_meta)
+                else:
+                    prev_feat = memory[cur_sample_idx - i]['feature_map']
+                    prev_img_meta = memory[cur_sample_idx - i]['img_meta']
+                    prev_feats.append(prev_feat)
+                    prev_img_metas.append(prev_img_meta)
+
+        return torch.cat(prev_feats, dim=0), prev_img_metas
+
+
+    def precompute_proj_info(self, img, img_metas):
+        xy_coor_list   = []
+
+        n_times = self.num_temporal_feats + 1 
+        stride_i = math.ceil(img.shape[-1] / self.feats_size[-1])
+
+        for seq_id in range(n_times):
+            for batch_id, seq_img_meta in enumerate(img_metas):
+                img_meta = copy.deepcopy(seq_img_meta)
+                img_meta["lidar2img"]["extrinsic"] = img_meta["lidar2img"]["extrinsic"][seq_id*6:(seq_id+1)*6]
+                if isinstance(img_meta["img_shape"], list):
+                    img_meta["img_shape"] = img_meta["img_shape"][seq_id*6:(seq_id+1)*6]
+                    img_meta["img_shape"] = img_meta["img_shape"][0]
+
+                projection = self._compute_projection(
+                    img_meta, stride_i, noise=self.extrinsic_noise).to(img.device)
+
+                if self.style in ['v1', 'v2']:
+                    # wo/ bev ms
+                    n_voxels, voxel_size = self.n_voxels[0], self.voxel_size[0]
+                else:
+                    # v3/v4 bev ms
+                    n_voxels, voxel_size = self.n_voxels[0], self.voxel_size[0]
+
+                points = get_points(  # [3, vx, vy, vz]
+                    n_voxels=torch.tensor(n_voxels),
+                    voxel_size=torch.tensor(voxel_size),
+                    origin=torch.tensor(img_meta["lidar2img"]["origin"]),
+                ).to(img.device)
+
+                xy_coor = self.precompute_volume_info(points, projection)
+                xy_coor_list.append(xy_coor)
+
+        return torch.stack(xy_coor_list)
+
+
+    def precompute_proj_info_for_inference(self, img, img_metas, prev_img_metas=None):
+        xy_coor_list   = []
+
+        n_times = self.num_temporal_feats + 1
+        stride_i = math.ceil(img.shape[-1] / self.feats_size[-1])
+
+        for batch_id, seq_img_meta in enumerate(img_metas):
+            img_meta_list = []
+            img_meta = copy.deepcopy(seq_img_meta)
+
+            if isinstance(img_meta["img_shape"], list):
+                img_meta["img_shape"] = img_meta["img_shape"][0]
+            # add to img_meta_list
+            img_meta_list.append(img_meta)
+
+            # update adjacent img_metas:
+            #  refer to get_adj_data_info() and refine_data_info()
+            #  in projects/FastBEV/fast_bev/nuscenes_dataset.py
+            for i in range(n_times - 1):
+                prev_img_meta = copy.deepcopy(prev_img_metas[i])
+
+                egocurr2global = np.array(img_meta['ego2global'])
+                egoadj2global = prev_img_meta['ego2global']
+                lidar2ego = np.array(img_meta['lidar2ego'])
+                lidaradj2lidarcurr = np.linalg.inv(lidar2ego) @ np.linalg.inv(egocurr2global) \
+                    @ egoadj2global @ lidar2ego
+
+                lidar2img_augs = []
+                lidar2img_rts = []
+                for cam_id in range(len(img_meta['lidar2img']['lidar2img_aug'])):
+                    lidar2img_aug = img_meta['lidar2img']['lidar2img_aug'][cam_id].copy()
+
+                    mat = lidaradj2lidarcurr @ lidar2img_aug['cam2lidar']
+                    lidar2img_aug['cam2lidar'] = mat
+                    lidar2img_aug['lidar2cam'] = np.linalg.inv(mat)
+                    lidar2img_augs.append(lidar2img_aug)
+
+                    # obtain lidar to image transformation matrix
+                    intrin = lidar2img_aug['intrin']
+                    viewpad = np.eye(4)
+                    viewpad[:intrin.shape[0], :intrin.shape[1]] = lidar2img_aug['intrin']
+                    lidar2img_rt = (viewpad @ lidar2img_aug['lidar2cam'])
+                    lidar2img_rts.append(lidar2img_rt)
+
+                prev_img_meta['lidar2img']['lidar2img_aug'] = lidar2img_augs
+                prev_img_meta['lidar2img']['extrinsic'] = lidar2img_rts
+
+                # Scale extrinsic params:
+                # Get augmented (scaled) extrinsic params
+                # based on RandomAugImageMultiViewImage::sample_augmentation
+                resize_r, resize_dims, crop = get_augmented_img_params(prev_img_meta)
+                post_rot, post_tran = scale_augmented_img_params(
+                    torch.eye(2), torch.zeros(2),
+                    resize_r=resize_r,
+                    resize_dims=resize_dims,
+                    crop=crop
+                )
+
+                aug_extrinsics = []
+                for cam_id, lida2img_aug in enumerate(prev_img_meta['lidar2img']['lidar2img_aug']):
+                    aug_extrinsics.append(
+                        rts2proj(lida2img_aug, post_rot, post_tran)
+                    )
+                prev_img_meta['lidar2img']['extrinsic'] = aug_extrinsics
+
+                if isinstance(prev_img_meta["img_shape"], list):
+                    prev_img_meta["img_shape"] = prev_img_meta["img_shape"][0]
+                # add to img_meta_list
+                img_meta_list.append(prev_img_meta)
+
+            # precompute projection
+            for seq_id in range(n_times):
+                img_meta = img_meta_list[seq_id]
+
+                projection = self._compute_projection(
+                    img_meta, stride_i, noise=self.extrinsic_noise).to(img.device)
+
+                if self.style in ['v1', 'v2']:
+                    # wo/ bev ms
+                    n_voxels, voxel_size = self.n_voxels[0], self.voxel_size[0]
+                else:
+                    # v3/v4 bev ms
+                    n_voxels, voxel_size = self.n_voxels[0], self.voxel_size[0]
+
+                points = get_points(  # [3, vx, vy, vz]
+                    n_voxels=torch.tensor(n_voxels),
+                    voxel_size=torch.tensor(voxel_size),
+                    origin=torch.tensor(img_meta["lidar2img"]["origin"]),
+                ).to(img.device)
+
+                xy_coor = self.precompute_volume_info(points, projection).to(torch.int32)
+                xy_coor_list.append(xy_coor)
+
+        return torch.stack(xy_coor_list)
+
+
+    def extract_feat(self, img, img_metas, mode):
         img = img.reshape(
             [-1] + list(img.shape)[2:]
         )  # [1, 6, 3, 928, 1600] -> [6, 3, 928, 1600]
@@ -291,8 +466,8 @@ class FastBEV(BaseDetector):
                     fuse_feats = [mlvl_feats[msid]]
                     for i in range(msid + 1, len(mlvl_feats)):
                         resized_feat = resize(
-                            mlvl_feats[i], 
-                            size=mlvl_feats[msid].size()[2:], 
+                            mlvl_feats[i],
+                            size=mlvl_feats[msid].size()[2:],
                             mode="bilinear", 
                             align_corners=False)
                         fuse_feats.append(resized_feat)
@@ -306,12 +481,19 @@ class FastBEV(BaseDetector):
                 else:
                     mlvl_feats_.append(mlvl_feats[msid])
             mlvl_feats = mlvl_feats_
+
         # v3 bev ms
         if isinstance(self.n_voxels, list) and len(mlvl_feats) < len(self.n_voxels):
             pad_feats = len(self.n_voxels) - len(mlvl_feats)
             for _ in range(pad_feats):
                 mlvl_feats.append(mlvl_feats[0])
 
+        return mlvl_feats, features_2d
+
+
+    def extract_feat_neck3d(self, img, img_metas, mlvl_feats, xy_coors=None):
+
+        batch_size = img.shape[0]
         mlvl_volumes = []
         for lvl, mlvl_feat in enumerate(mlvl_feats):
             stride_i = math.ceil(img.shape[-1] / mlvl_feat.shape[-1])  # P4 880 / 32 = 27.5
@@ -332,7 +514,6 @@ class FastBEV(BaseDetector):
                     else:
                         feat_i = mlvl_feat_i[batch_id]  # [nv, c, h, w]
 
-                    #if vol_coors is None:
                     if xy_coors is None:
                         img_meta = copy.deepcopy(seq_img_meta)
                         img_meta["lidar2img"]["extrinsic"] = img_meta["lidar2img"]["extrinsic"][seq_id*6:(seq_id+1)*6]
@@ -421,7 +602,8 @@ class FastBEV(BaseDetector):
         else:
             x = _inner_forward(x)
 
-        return x, None, features_2d
+        return x
+
 
     #@auto_fp16(apply_to=('img', ))
     def predict(self, batch_inputs_dict: Dict[str, Optional[Tensor]],
@@ -455,9 +637,36 @@ class FastBEV(BaseDetector):
         img = batch_inputs_dict['imgs']
         batch_input_metas = [item.metainfo for item in batch_data_samples]
         xy_coors=None
-        if self.save_onnx_model is True:
+
+        # get previous temporal infos
+        prev_feats_map = None
+        prev_input_metas = None
+        
+        if 1:
+            if self.num_temporal_feats > 0:
+                prev_feats_map, prev_input_metas = self.get_temporal_feats(
+                    self.queue, self.memory, img, batch_input_metas,
+                    self.feats_size, self.num_temporal_feats)
+
+            xy_coors = self.precompute_proj_info_for_inference(img, batch_input_metas, prev_img_metas=prev_input_metas)
+        else:
             xy_coors = self.precompute_proj_info(img, batch_input_metas)
-        bbox_pts = self.simple_test(img, batch_input_metas, xy_coors=xy_coors)
+
+
+        feature_map, bbox_pts = \
+            self.simple_test(img, batch_input_metas, xy_coors=xy_coors, prev_feats_map=prev_feats_map)
+
+        # remove an element if queue is full
+        if self.queue.full():
+            pop_key = self.queue.get()
+            self.memory.pop(pop_key)
+
+        # add the current feature map
+        # For inference, it should be batch_size = 1
+        for batch_id, img_meta in enumerate(batch_input_metas):
+            self.memory[img_meta['sample_idx']] = \
+                dict(feature_map=feature_map, img_meta=img_meta)
+            self.queue.put(img_meta['sample_idx'])
 
         ret_list = []
         for _, preds in enumerate(bbox_pts):
@@ -478,15 +687,18 @@ class FastBEV(BaseDetector):
                                                  ret_list)
         return detsamples
 
-
-
     #def forward_train(
     #    self, img, img_metas, gt_bboxes_3d, gt_labels_3d, gt_bev_seg=None, **kwargs
     #):
-    def loss(
-        self, input=None, data_samples=None, gt_bboxes_3d=None, gt_labels_3d=None, gt_bev_seg=None, **kwargs
-    ):
-        feature_bev, valids, features_2d = self.extract_feat(img, img_metas, "train")
+    def loss(self, batch_inputs_dict=None, batch_data_samples=None, 
+             gt_bboxes_3d=None, gt_labels_3d=None, gt_bev_seg=None, **kwargs):
+
+        img = batch_inputs_dict['imgs']
+        img_metas = [item.metainfo for item in batch_data_samples]
+
+        mlvl_feats, features_2d = self.extract_feat(img, img_metas, "train")
+        feature_bev = self.extract_feat_neck3d(img, img_metas, mlvl_feats)
+
         """
         feature_bev: [(1, 256, 100, 100)]
         valids: (1, 1, 200, 200, 12)
@@ -574,60 +786,19 @@ class FastBEV(BaseDetector):
         return coor[0]
 
 
-    def precompute_proj_info(self, img, img_metas):
-        xy_coor_list   = []
-
-        n_times = self.neck_3d.fuse.in_channels // 256
-        stride_i = 4
-        for seq_id in range(n_times):
-            for batch_id, seq_img_meta in enumerate(img_metas):
-                img_meta = copy.deepcopy(seq_img_meta)
-                img_meta["lidar2img"]["extrinsic"] = img_meta["lidar2img"]["extrinsic"][seq_id*6:(seq_id+1)*6]
-                if isinstance(img_meta["img_shape"], list):
-                    img_meta["img_shape"] = img_meta["img_shape"][seq_id*6:(seq_id+1)*6]
-                    img_meta["img_shape"] = img_meta["img_shape"][0]
-
-                projection = self._compute_projection(
-                    img_meta, stride_i, noise=self.extrinsic_noise).to(img.device)
-
-                if self.style in ['v1', 'v2']:
-                    # wo/ bev ms
-                    n_voxels, voxel_size = self.n_voxels[0], self.voxel_size[0]
-                else:
-                    # v3/v4 bev ms
-                    n_voxels, voxel_size = self.n_voxels[0], self.voxel_size[0]
-
-                points = get_points(  # [3, vx, vy, vz]
-                    n_voxels=torch.tensor(n_voxels),
-                    voxel_size=torch.tensor(voxel_size),
-                    origin=torch.tensor(img_meta["lidar2img"]["origin"]),
-                ).to(img.device)
-
-                xy_coor = self.precompute_volume_info(points, projection)
-                xy_coor_list.append(xy_coor)
-
-        return torch.stack(xy_coor_list)
-
-    """
-    def forward_test(self, img, img_metas, **kwargs):
-        if self.save_onnx_model:
-            export_FastBEV(self, img, img_metas)
-            self.save_onnx_model = False
-
-        if not self.test_cfg.get('use_tta', False):
-            xy_coors = self.precompute_proj_info(img, img_metas)
-            return self.simple_test(img, img_metas, xy_coors)
-        return self.aug_test(img, img_metas)
-    """
-
-    def simple_test(self, img, img_metas, xy_coors=None):
+    def simple_test(self, img, img_metas, xy_coors=None, prev_feats_map=None):
         bbox_results = []
 
-        if xy_coors is None:
-            feature_bev, _, features_2d = self.extract_feat(img, img_metas, "test")
+        mlvl_feats, _ = self.extract_feat(img, img_metas, "test")
+        if prev_feats_map is not None:
+            mlvl_feats_all = [torch.cat((mlvl_feats[0], prev_feats_map), dim=0)]
         else:
-            feature_bev, _, features_2d = self.extract_feat(img, img_metas, "test",
-                                                            xy_coors)
+            mlvl_feats_all = mlvl_feats
+
+        if xy_coors is None:
+            feature_bev = self.extract_feat_neck3d(img, img_metas, mlvl_feats_all)
+        else:
+            feature_bev = self.extract_feat_neck3d(img, img_metas, mlvl_feats_all, xy_coors)
 
         if self.bbox_head is not None:
             x = self.bbox_head(feature_bev)
@@ -644,7 +815,7 @@ class FastBEV(BaseDetector):
         #    x_bev = self.seg_head(feature_bev)
         #    bbox_results[0]['bev_seg'] = x_bev
 
-        return bbox_results
+        return mlvl_feats[0], bbox_results
 
     def add_pred_to_datasample(
         self,
@@ -720,7 +891,8 @@ class FastBEV(BaseDetector):
             img_metas[0]['lidar2img']['extrinsic'] = extrinsic_copy[24*tta_id:24*(tta_id+1)]
             img_metas_list.append(img_metas)
 
-            feature_bev, _, _ = self.extract_feat(imgs[:, 24*tta_id:24*(tta_id+1)], img_metas, "test")
+            mlvl_feats, _ = self.extract_feat(imgs[:, 24*tta_id:24*(tta_id+1)], img_metas, "test")
+            feature_bev   = self.extract_feat_neck3d(imgs[:, 24*tta_id:24*(tta_id+1)], img_metas, mlvl_feats)
             x = self.bbox_head(feature_bev)
             x_list.append(x)
 

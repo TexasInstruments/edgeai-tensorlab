@@ -23,7 +23,7 @@ class CustomNuScenesDataset(NuScenesDataset):
     def __init__(self,
                  with_box2d=False,
                  sequential=False,
-                 n_times=2,
+                 n_times=1,
                  speed_mode='relative_dis',
                  prev_only=False,
                  next_only=False,
@@ -181,7 +181,10 @@ class CustomNuScenesDataset(NuScenesDataset):
         input_dict = dict(
             sample_idx=data_info['sample_idx'],
             sample_token=data_info['token'],
+            scene_token=data_info['scene_token'],
             pts_filename=data_info['lidar_points']['lidar_path'],
+            lidar2ego=data_info['lidar_points']['lidar2ego'],
+            ego2global=data_info['ego2global'],
             #sweeps=data_info['sweeps'],
             timestamp=data_info['timestamp'],
         )
@@ -213,8 +216,6 @@ class CustomNuScenesDataset(NuScenesDataset):
                     'intrin': np.array(cam_info['cam2img']),
                     'lidar2cam': np.array(cam_info['lidar2cam']),
                     'cam2lidar': np.linalg.inv(cam_info['lidar2cam']),
-                    #'rot': cam_info['sensor2lidar_rotation'], # it is acutally cam2lidar
-                    #'tran': cam_info['sensor2lidar_translation'],
                     'post_rot': np.eye(3),
                     'post_tran': np.zeros(3),
                 }
@@ -225,6 +226,8 @@ class CustomNuScenesDataset(NuScenesDataset):
                 lidar2img_rt = (viewpad @ lidar2cam_rt)
                 lidar2img_rts.append(lidar2img_rt)
 
+
+            # extrinsic transfromation between the current and ajacent camera images
             if self.sequential:
                 adjacent_type_list = []
                 adjacent_id_list = []
@@ -289,6 +292,7 @@ class CustomNuScenesDataset(NuScenesDataset):
                     adjacent_type_list.append(adjacent)
                     adjacent_id_list.append(select_id)
 
+                    # current and ajacent
                     egocurr2global = np.array(data_info['ego2global'])
                     egoadj2global = info_adj['ego2global']
                     lidar2ego = np.array(data_info['lidar_points']['lidar2ego'])
@@ -302,35 +306,12 @@ class CustomNuScenesDataset(NuScenesDataset):
                         image_paths.append(cam_info['data_path'])
 
                         lidar2img_aug = lidar2img_augs[cam_id].copy()
-                        """
-                        mat = np.eye(4, dtype=np.float32)
-                        mat[:3, :3] = lidar2img_aug['rot']
-                        mat[:3, 3] = lidar2img_aug['tran']  # cam2lidar
-                        mat = lidaradj2lidarcurr @ mat  # cam2lidar -> liaradj2lidarcur = cam2lidarcur
-                        lidar2img_aug['rot'] = mat[:3, :3]
-                        lidar2img_aug['tran'] = mat[:3, 3]
-                        lidar2cam_r = lidar2img_aug['lidar2cam_r'] = np.linalg.inv(lidar2img_aug['rot']) # lidar2cam
-                        lidar2cam_t = lidar2img_aug['lidar2cam_t'] = lidar2img_aug['tran'] @ lidar2img_aug['lidar2cam_r'].T
-
                         # keep aug rts
                         lidar2img_augs.append(lidar2img_aug)
 
-                        # obtain lidar to image transformation matrix
-                        intrin = lidar2img_aug['intrin']
-                        lidar2cam_rt = np.eye(4)
-                        lidar2cam_rt[:3, :3] = lidar2cam_r.T
-                        lidar2cam_rt[3, :3] = -lidar2cam_t
-                        viewpad = np.eye(4)
-                        viewpad[:intrin.shape[0], :intrin.shape[1]] = intrin
-                        lidar2img_rt = (viewpad @ lidar2cam_rt.T)
-                        lidar2img_rts.append(lidar2img_rt)
-                        """
                         mat = lidaradj2lidarcurr @ lidar2img_aug['cam2lidar']
                         lidar2img_aug['cam2lidar'] = mat
                         lidar2img_aug['lidar2cam'] = np.linalg.inv(mat)
-
-                        # keep aug rts
-                        lidar2img_augs.append(lidar2img_aug)
 
                         # obtain lidar to image transformation matrix
                         intrin = lidar2img_aug['intrin']
@@ -400,6 +381,9 @@ class CustomNuScenesDataset(NuScenesDataset):
         new_info = dict(
             sample_idx=data_info['sample_idx'],
             sample_token=data_info['sample_token'],
+            scene_token=data_info['scene_token'],
+            lidar2ego=data_info['lidar2ego'],
+            ego2global=data_info['ego2global'],
             img_prefix=[None] * n_cameras,
             img_path=[x for x in data_info['img_filename']],
             lidar2img=dict(

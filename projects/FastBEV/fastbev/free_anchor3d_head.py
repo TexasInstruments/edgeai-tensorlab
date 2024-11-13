@@ -102,19 +102,11 @@ class CustomFreeAnchor3DHead(FreeAnchor3DHead):
             mlvl_anchors = self.prior_generator.grid_anchors(
                 featmap_sizes, device=device)
 
-        # Somehow, it causes shape inference error while simplifying onnx model.
-        # So use only data of it. It is doable since mlvl_anchors are constant anyway
-        if torch.onnx.is_in_onnx_export():
-            mlvl_anchors = [
-                anchor.reshape(-1, self.box_code_size).data for anchor in mlvl_anchors
-            ]
-        else:
-            mlvl_anchors = [
-                anchor.reshape(-1, self.box_code_size) for anchor in mlvl_anchors
-            ]
+        mlvl_anchors = [
+            anchor.reshape(-1, self.box_code_size) for anchor in mlvl_anchors
+        ]
 
         result_list = []
-        #for img_id in range(len(input_metas)):
         for img_id, input_meta in enumerate(input_metas):
             cls_score_list = [
                 cls_scores[i][img_id].detach() for i in range(num_levels)
@@ -126,7 +118,6 @@ class CustomFreeAnchor3DHead(FreeAnchor3DHead):
                 dir_cls_preds[i][img_id].detach() for i in range(num_levels)
             ]
 
-            #input_meta = input_metas[img_id]
             if torch.onnx.is_in_onnx_export():
                 proposals = self.get_bboxes_single_onnx(cls_score_list, bbox_pred_list,
                                                         dir_cls_pred_list, mlvl_anchors,
@@ -294,6 +285,8 @@ class CustomFreeAnchor3DHead(FreeAnchor3DHead):
                 else:
                     max_scores, _ = scores[:, :-1].max(dim=1)
                 _, topk_inds = max_scores.topk(nms_pre)
+                # convert to int32
+                topk_inds = topk_inds.to(torch.int32) 
                 anchors = anchors[topk_inds, :]
                 bbox_pred = bbox_pred[topk_inds, :]
                 scores = scores[topk_inds, :]

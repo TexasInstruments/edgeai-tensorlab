@@ -117,7 +117,7 @@ class M2BevNeck(nn.Module):
         else:
             # N, C*T, X, Y, Z -> N, X, Y, Z, C -> N, X, Y, Z*C*T -> N, Z*C*T, X, Y
             N, C, X, Y, Z = x.shape
-            x = x.permute(0, 2, 3, 4, 1).reshape(N, X, Y, Z*C).permute(0, 3, 1, 2)
+            x = x.permute(0, 4, 1, 2, 3).reshape(N, Z*C, X, Y)
 
         if self.fuse is not None:
             x = self.fuse(x)

@@ -14,6 +14,8 @@ model = dict(
     type='FastBEV',
     style="v1",
     save_onnx_model=False,
+    num_temporal_feats=n_times-1,
+    feats_size = [6, 64, 64, 176],
     data_preprocessor=dict(
         type='Det3DDataPreprocessor',
         **img_norm_cfg,
@@ -206,7 +208,7 @@ test_pipeline = [
     ]
 
 
-metainfo = dict(classes=class_names, version='v1.0-mini')
+metainfo = dict(classes=class_names)
 data_prefix = dict(
     pts='',
     CAM_FRONT='samples/CAM_FRONT',
@@ -260,16 +262,16 @@ val_dataloader = dict(
         test_mode=True,
         with_box2d=True,
         box_type_3d='LiDAR',
-        ann_file='nuscenes_mini_infos_val_fastbev.pkl',
+        ann_file='nuscenes_infos_val.pkl',
         sequential=True,
         n_times=n_times,
-        train_adj_ids=[1, 3, 5],
+        train_adj_ids=[1, 3, 5], # not needed
         speed_mode='abs_velo',
         max_interval=10,
         min_interval=0,
         fix_direction=True,
         test_adj='prev',
-        test_adj_ids=[1, 3, 5],
+        test_adj_ids=[1, 3, 5],  # not needed
         test_time_id=None,
     ))
 
@@ -278,7 +280,7 @@ test_dataloader = val_dataloader
 val_evaluator = dict(
     type='CustomNuScenesMetric',
     data_root=data_root,
-    ann_file=data_root + 'nuscenes_mini_infos_val_fastbev.pkl',
+    ann_file=data_root + 'nuscenes_infos_val.pkl',
     metric='mAP',
     backend_args=None)
 test_evaluator = val_evaluator

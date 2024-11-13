@@ -27,8 +27,8 @@ def add_adj_info(root_path, version):
     ]
 
     #sample_num = None
-    #for set in ['test', 'val', 'train']:
-    for set in ['val']:
+    # this script is needed only for training
+    for set in ['train']:
         if version == 'v1.0-mini':
             nuscenes_version = version
             dataset = pickle.load(open('./data/nuscenes/nuscenes_mini_infos_%s.pkl' % set, 'rb'))
@@ -67,11 +67,24 @@ def add_adj_info(root_path, version):
                     while count < max_adj:
                         if sample_data[adj] == '':
                             break
+
                         sd_adj = nuscenes.get('sample_data', sample_data[adj])
                         sample_data = sd_adj
+
+                        # add only key frames
+                        #if sd_adj['is_key_frame'] is False:
+                        #    continue
+                        # check if scene token are identical - add only frames with the scame scene token
+                        adj_sample = nuscenes.get('sample', sd_adj['sample_token'])
+                        if sample['scene_token'] != adj_sample['scene_token']:
+                            break
+
+                        # Use ego pos from LiDAR
+                        #lidar_rec = nuscenes.get('sample_data', adj_sample['data']['LIDAR_TOP'])
                         adj_list[cam].append(dict(data_path=os.path.join(dataroot, sd_adj['filename']),
                                                   timestamp=sd_adj['timestamp'],
                                                   ego_pose_token=sd_adj['ego_pose_token']))
+                                                  #ego_pose_token=lidar_rec['ego_pose_token']))
                         count += 1
 
                 for count in range(interval - 1, min(max_adj, len(adj_list['CAM_FRONT'])), interval):
@@ -79,7 +92,7 @@ def add_adj_info(root_path, version):
                     # get ego pose
                     pose_record = nuscenes.get('ego_pose', adj_list['CAM_FRONT'][count]['ego_pose_token'])
 
-                    # get cam infos
+                    # get cam infos (use timestamp to find cameras sampled at the same time with front cam)
                     cam_infos = dict(CAM_FRONT=dict(data_path=adj_list['CAM_FRONT'][count]['data_path']))
                     for cam in camera_types:
                         timestamp_curr_list = np.array([t['timestamp'] for t in adj_list[cam]], dtype=np.int64)
@@ -91,6 +104,7 @@ def add_adj_info(root_path, version):
                                        ego2global=convert_quaternion_to_matrix(
                                                   pose_record['rotation'],
                                                   pose_record['translation'])))
+
                 dataset['data_list'][id][adj] = sweeps if len(sweeps) > 0 else None
 
             # get ego speed and transfrom the targets velocity from global frame into ego-relative mode
@@ -105,18 +119,10 @@ def add_adj_info(root_path, version):
             time_pre = dataset['data_list'][previous_id]['timestamp']
             time_next = dataset['data_list'][next_id]['timestamp']
             time_diff = time_next - time_pre
-            #posi_pre = np.array(dataset['data_list'][previous_id]['ego2global_translation'], dtype=np.float32)
-            #posi_next = np.array(dataset['data_list'][next_id]['ego2global_translation'], dtype=np.float32)
             posi_pre = np.array(dataset['data_list'][previous_id]['ego2global'], dtype=np.float32)[0:3, 3]
             posi_next = np.array(dataset['data_list'][next_id]['ego2global'], dtype=np.float32)[0:3, 3]
             velocity_global = (posi_next - posi_pre) / time_diff
 
-            #l2e_r = info['lidar2ego_rotation']
-            #l2e_t = info['lidar2ego_translation']
-            #e2g_r = info['ego2global_rotation']
-            #e2g_t = info['ego2global_translation']
-            #l2e_r_mat = Quaternion(l2e_r).rotation_matrix
-            #e2g_r_mat = Quaternion(e2g_r).rotation_matrix
             l2e_r_mat = np.array(info['lidar_points']['lidar2ego'], dtype=np.float32)[0:3, 0:3]
             e2g_r_mat = np.array(info['ego2global'], dtype=np.float32)[0:3, 0:3]
 
@@ -127,7 +133,6 @@ def add_adj_info(root_path, version):
 
             dataset['data_list'][id]['velo'] = velocity_lidar
             if set in ['train', 'val']:
-                #dataset['data_list'][id]['gt_velocity'] = dataset['data_list'][id]['gt_velocity'] - velocity_lidar.reshape(1, 2)
                 gt_velocity = np.array([instance['velocity'] for instance in dataset['data_list'][id]['instances']])
                 if gt_velocity.size == 0:
                     dataset['data_list'][id]['gt_velocity'] = gt_velocity
