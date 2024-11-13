@@ -921,15 +921,20 @@ class FastBEV_export_model(nn.Module):
             volume_list = []
             for seq_id, mlvl_feat_i in enumerate(mlvl_feat_split):
                 volumes = []
-                
+
                 for batch_id, seq_img_meta in enumerate(img_metas):
                     if batch_size == 1:
                         feat_i = mlvl_feat_i
                     else:
                         feat_i = mlvl_feat_i[batch_id]  # [nv, c, h, w]
 
-                    volume = backproject_tidl(
-                        feat_i, xy_coors[seq_id], self.n_voxels[0])  # [c, vx, vy, vz]
+                    if len(mlvl_feat_split) > 1:
+                        volume = backproject_tidl(
+                            feat_i, xy_coors[seq_id], self.n_voxels[0])  # [c, vx, vy, vz]
+                    else:
+                        volume = backproject_tidl(
+                            feat_i, xy_coors, self.n_voxels[0])  # [c, vx, vy, vz]
+                    
                     if batch_size == 1:
                         volume = volume.view([1, feat_i.shape[1]] + self.n_voxels[0])
                     else:
@@ -955,13 +960,17 @@ class FastBEV_export_model(nn.Module):
                 prev_feats_map=None):
 
         mlvl_feats = self.extract_feat(img)
-        if prev_feats_map is not None:
-            mlvl_feats_all = [torch.cat((mlvl_feats[0], prev_feats_map), dim=0)]
-        else:
+        if prev_feats_map is None:
             mlvl_feats_all = mlvl_feats
+        else:
+            mlvl_feats_all = [torch.cat((mlvl_feats[0], prev_feats_map), dim=0)]
 
         feature_bev = self.extract_feat_neck3d(img, self.img_metas, mlvl_feats_all, xy_coors)
         x = self.bbox_head(feature_bev)
 
         bbox_list = self.bbox_head.get_bboxes(*x, self.img_metas, valid=None)
-        return mlvl_feats, bbox_list
+
+        if prev_feats_map is None:
+            return None, bbox_list
+        else:
+            return mlvl_feats, bbox_list

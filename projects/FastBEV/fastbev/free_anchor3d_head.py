@@ -102,31 +102,44 @@ class CustomFreeAnchor3DHead(FreeAnchor3DHead):
             mlvl_anchors = self.prior_generator.grid_anchors(
                 featmap_sizes, device=device)
 
-        mlvl_anchors = [
-            anchor.reshape(-1, self.box_code_size) for anchor in mlvl_anchors
-        ]
+            for i, mlvl_anchor in enumerate(mlvl_anchors):
+                mlvl_anchor = mlvl_anchor.to(torch.float32)
 
         result_list = []
-        for img_id, input_meta in enumerate(input_metas):
-            cls_score_list = [
-                cls_scores[i][img_id].detach() for i in range(num_levels)
-            ]
-            bbox_pred_list = [
-                bbox_preds[i][img_id].detach() for i in range(num_levels)
-            ]
-            dir_cls_pred_list = [
-                dir_cls_preds[i][img_id].detach() for i in range(num_levels)
+        
+        # For onnx export to make the exported model simpler
+        if torch.onnx.is_in_onnx_export() and num_levels == 1 and len(input_metas) == 1:
+            mlvl_anchors = mlvl_anchors[0].reshape(-1, self.box_code_size)
+
+            cls_score = cls_scores[0].detach() # 0 = level id
+            bbox_pred = bbox_preds[0].detach()
+            dir_cls_pred = dir_cls_preds[0].detach()
+
+            proposals = self.get_bboxes_single_onnx(cls_score, bbox_pred,
+                                                    dir_cls_pred, mlvl_anchors,
+                                                    input_metas[0], cfg, rescale)
+            result_list.append(proposals)
+        else:
+            mlvl_anchors = [
+                anchor.reshape(-1, self.box_code_size) for anchor in mlvl_anchors
             ]
 
-            if torch.onnx.is_in_onnx_export():
-                proposals = self.get_bboxes_single_onnx(cls_score_list, bbox_pred_list,
-                                                        dir_cls_pred_list, mlvl_anchors,
-                                                        input_meta, cfg, rescale)
-            else:
+            for img_id, input_meta in enumerate(input_metas):
+                cls_score_list = [
+                    cls_scores[i][img_id].detach() for i in range(num_levels)
+                ]
+                bbox_pred_list = [
+                    bbox_preds[i][img_id].detach() for i in range(num_levels)
+                ]
+                dir_cls_pred_list = [
+                    dir_cls_preds[i][img_id].detach() for i in range(num_levels)
+                ]
+
                 proposals = self.get_bboxes_single(cls_score_list, bbox_pred_list,
                                                    dir_cls_pred_list, mlvl_anchors,
                                                    input_meta, cfg, rescale)
-            result_list.append(proposals)
+                result_list.append(proposals)
+
         return result_list
 
     def get_bboxes_single(self,
@@ -227,11 +240,12 @@ class CustomFreeAnchor3DHead(FreeAnchor3DHead):
         bboxes = input_meta['box_type_3d'](bboxes, box_dim=self.box_code_size)
         return bboxes, scores, labels
 
+
     def get_bboxes_single_onnx(self,
-                               cls_scores,
-                               bbox_preds,
-                               dir_cls_preds,
-                               mlvl_anchors,
+                               cls_score,
+                               bbox_pred,
+                               dir_cls_pred,
+                               anchors,
                                input_meta,
                                cfg=None,
                                rescale=False):
@@ -256,48 +270,52 @@ class CustomFreeAnchor3DHead(FreeAnchor3DHead):
                 - labels (torch.Tensor): Label of each bbox.
         """
         cfg = self.test_cfg if cfg is None else cfg
-        assert len(cls_scores) == len(bbox_preds) == len(mlvl_anchors)
+        #assert len(cls_scores) == len(bbox_preds) == len(mlvl_anchors)
         mlvl_bboxes = []
         mlvl_scores = []
         mlvl_dir_scores = []
-        for cls_score, bbox_pred, dir_cls_pred, anchors in zip(
-                cls_scores, bbox_preds, dir_cls_preds, mlvl_anchors):
-            assert cls_score.size()[-2:] == bbox_pred.size()[-2:]
-            assert cls_score.size()[-2:] == dir_cls_pred.size()[-2:]
 
-            dir_cls_pred = dir_cls_pred.permute(1, 2, 0).reshape(-1, 2)
-            dir_cls_score = torch.max(dir_cls_pred, dim=-1)[1]
+        #for cls_score, bbox_pred, dir_cls_pred, anchors in zip(
+        #        cls_scores, bbox_preds, dir_cls_preds, mlvl_anchors):
+        assert cls_score.size()[-2:] == bbox_pred.size()[-2:]
+        assert cls_score.size()[-2:] == dir_cls_pred.size()[-2:]
 
-            cls_score = cls_score.permute(1, 2,
-                                          0).reshape(-1, self.num_classes)
+        #dir_cls_pred = dir_cls_pred.permute(1, 2, 0).reshape(-1, 2)
+        dir_cls_pred = dir_cls_pred.permute(0, 2, 3, 1).reshape(-1, 2)
+        dir_cls_score = torch.max(dir_cls_pred, dim=-1)[1]
+
+        #cls_score = cls_score.permute(1, 2,
+        #                              0).reshape(-1, self.num_classes)
+        cls_score = cls_score.permute(0, 2, 3,
+                                      1).reshape(-1, self.num_classes)
+        if self.use_sigmoid_cls:
+            scores = cls_score.sigmoid()
+        else:
+            scores = cls_score.softmax(-1)
+        #bbox_pred = bbox_pred.permute(1, 2,
+        #                              0).reshape(-1, self.box_code_size)
+        bbox_pred = bbox_pred.permute(0, 2, 3,
+                                      1).reshape(-1, self.box_code_size)
+
+        # scores.shape[0] is constant (e.g 80000) > nms_pre
+        nms_pre = cfg.get('nms_pre', -1)
+        if nms_pre > 0 and scores.shape[0] > nms_pre:
             if self.use_sigmoid_cls:
-                scores = cls_score.sigmoid()
+                max_scores, _ = scores.max(dim=1)
             else:
-                scores = cls_score.softmax(-1)
-            bbox_pred = bbox_pred.permute(1, 2,
-                                          0).reshape(-1, self.box_code_size)
+                max_scores, _ = scores[:, :-1].max(dim=1)
+            _, topk_inds = max_scores.topk(nms_pre)
+            # convert to int32
+            topk_inds = topk_inds.to(torch.int32)
+            anchors = anchors[topk_inds, :]
+            bbox_pred = bbox_pred[topk_inds, :]
+            scores = scores[topk_inds, :]
+            dir_cls_score = dir_cls_score[topk_inds]
 
-            # scores.shape[0] is constant (e.g 80000) > nms_pre
-            nms_pre = cfg.get('nms_pre', -1)
-            if nms_pre > 0 and scores.shape[0] > nms_pre:
-                if self.use_sigmoid_cls:
-                    max_scores, _ = scores.max(dim=1)
-                else:
-                    max_scores, _ = scores[:, :-1].max(dim=1)
-                _, topk_inds = max_scores.topk(nms_pre)
-                # convert to int32
-                topk_inds = topk_inds.to(torch.int32) 
-                anchors = anchors[topk_inds, :]
-                bbox_pred = bbox_pred[topk_inds, :]
-                scores = scores[topk_inds, :]
-                dir_cls_score = dir_cls_score[topk_inds]
-
-            # decode() has issue with split,
-            # output bbox_pred without calling decode()
-            bboxes = self.bbox_coder.decode(anchors, bbox_pred)
-            mlvl_bboxes.append(bboxes)
-            mlvl_scores.append(scores)
-            mlvl_dir_scores.append(dir_cls_score)
+        bboxes = self.bbox_coder.decode(anchors, bbox_pred)
+        mlvl_bboxes.append(bboxes)
+        mlvl_scores.append(scores)
+        mlvl_dir_scores.append(dir_cls_score)
 
         mlvl_bboxes = torch.cat(mlvl_bboxes)
         mlvl_scores = torch.cat(mlvl_scores)

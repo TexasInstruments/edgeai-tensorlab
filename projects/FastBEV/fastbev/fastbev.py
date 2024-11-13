@@ -275,18 +275,23 @@ class FastBEV(BaseDetector):
 
         # Support only batch_size = 1
         for batch_id, img_meta in enumerate(img_metas):
+            prev_feat = None
             prev_img_meta = img_meta
             prev_feats = []
             prev_img_metas = []
-            
+
             for i in range(1, num_prevs+1):
                 cur_sample_idx = img_meta['sample_idx']
 
                 if i > queue.qsize() or \
                     img_meta['scene_token'] != memory[cur_sample_idx - i]['img_meta']['scene_token']:
 
-                    prev_feats.append(torch.zeros(feats_size, dtype=img.dtype, device=img.device))
-                    prev_img_metas.append(prev_img_meta)
+                    if prev_feat is None:
+                        prev_feats.append(torch.zeros(feats_size, dtype=img.dtype, device=img.device))
+                        prev_img_metas.append(prev_img_meta)
+                    else:
+                        prev_feats.append(prev_feat)
+                        prev_img_metas.append(prev_img_meta)
                 else:
                     prev_feat = memory[cur_sample_idx - i]['feature_map']
                     prev_img_meta = memory[cur_sample_idx - i]['img_meta']
@@ -425,7 +430,10 @@ class FastBEV(BaseDetector):
                 xy_coor = self.precompute_volume_info(points, projection).to(torch.int32)
                 xy_coor_list.append(xy_coor)
 
-        return torch.stack(xy_coor_list)
+        if n_times > 1:
+            return torch.stack(xy_coor_list)
+        else:
+            return xy_coor_list[0]
 
 
     def extract_feat(self, img, img_metas, mode):
@@ -542,7 +550,10 @@ class FastBEV(BaseDetector):
                                 feat_i[:, :, :height, :width], points, projection)  # [c, vx, vy, vz]
                     else:
                         if self.style in ['v1', 'v2']:
-                            volume = backproject_tidl(feat_i, xy_coors[seq_id], self.n_voxels[0])
+                            if len(mlvl_feat_split) > 1:
+                                volume = backproject_tidl(feat_i, xy_coors[seq_id], self.n_voxels[0])
+                            else:
+                                volume = backproject_tidl(feat_i, xy_coors, self.n_voxels[0])
                         else:
                             volume = None
                             raise RuntimeError('TIDL implementation is NOT available ofr v3 and v4')
@@ -641,7 +652,7 @@ class FastBEV(BaseDetector):
         # get previous temporal infos
         prev_feats_map = None
         prev_input_metas = None
-        
+
         if 1:
             if self.num_temporal_feats > 0:
                 prev_feats_map, prev_input_metas = self.get_temporal_feats(
@@ -790,10 +801,10 @@ class FastBEV(BaseDetector):
         bbox_results = []
 
         mlvl_feats, _ = self.extract_feat(img, img_metas, "test")
-        if prev_feats_map is not None:
-            mlvl_feats_all = [torch.cat((mlvl_feats[0], prev_feats_map), dim=0)]
-        else:
+        if prev_feats_map is None:
             mlvl_feats_all = mlvl_feats
+        else:
+            mlvl_feats_all = [torch.cat((mlvl_feats[0], prev_feats_map), dim=0)]
 
         if xy_coors is None:
             feature_bev = self.extract_feat_neck3d(img, img_metas, mlvl_feats_all)
