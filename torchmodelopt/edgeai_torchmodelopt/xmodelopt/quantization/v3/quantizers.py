@@ -1,5 +1,5 @@
 #################################################################################
-# Copyright (c) 2018-2023, Texas Instruments Incorporated - http://www.ti.com
+# Copyright (c) 2018-2024, Texas Instruments Incorporated - http://www.ti.com
 # All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -153,7 +153,7 @@ def _derived_bias_quant_spec(weight_node, input_act_node, curr_node) -> DerivedQ
 
 class TIDLRTQuantizer(Quantizer):
 
-    def __init__(self, is_qat, fast_mode=False, is_fake_quantize=True, device = None):
+    def __init__(self, is_qat, fast_mode=False, is_fake_quantize=True, device=None):
         super().__init__()
         self.global_config: QuantizationConfig = None  # type: ignore[assignment]
         self.operator_type_config: Dict[str, Optional[QuantizationConfig]] = {}
@@ -168,6 +168,7 @@ class TIDLRTQuantizer(Quantizer):
         self.single_input_single_output_different_nodes = [ torch.ops.aten.leaky_relu.default, 
                                                             torch.ops.aten.gelu.default,
                                                             torch.ops.aten.relu.default,
+                                                            torch.ops.aten.sigmoid.default,
                                                             torch.ops.aten.softmax.int]
         self.two_inputs_single_output_nodes = [torch.ops.aten.mul.Tensor, 
                                                 torch.ops.aten.div.Tensor,
@@ -177,7 +178,6 @@ class TIDLRTQuantizer(Quantizer):
             self.device = device
         else:
             self.device = torch.device('cuda:0')
-        # self.two_inputs_single_output_nodes = [torch.ops.aten.div.Tensor]
 
     def set_global(self, quantization_config: QuantizationConfig):
         """set global QuantizationConfig used for the backend.

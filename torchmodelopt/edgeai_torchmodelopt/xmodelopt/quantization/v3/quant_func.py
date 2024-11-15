@@ -48,8 +48,8 @@ import types
 
 
 def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None, example_kwargs=None, qconfig_type=None,
-        qconfig_mode=qconfig_types.QConfigMode.DEFAULT,num_batch_norm_update_epochs=None, num_observer_update_epochs=None, 
-        add_methods=True, fast_mode=False, is_fake_quantize=True, **kwargs ):
+        qconfig_mode=qconfig_types.QConfigMode.DEFAULT, num_batch_norm_update_epochs=None, num_observer_update_epochs=None, 
+        add_methods=True, fast_mode=False, is_fake_quantize=True, **kwargs):
     
     example_kwargs = example_kwargs or {} 
     if hasattr(model, '_example_inputs') and hasattr(model, '_example_kwargs'):

@@ -86,6 +86,9 @@ class QConfigType():
     WC4_AT8 = "WC4_AT8"                         # 4-bits per-channel quantization for weights, 8-bit per-tensor quantization for activations
     WC4M4_AT8 = "WC4M4_AT8"                     # same as above with a maximum weight range
 
+    WC16_AT16 = "WC16_AT16"
+    WC32_AT32 = "WC32_AT32"
+
     @classmethod
     def choices(cls):
         return [value for value in dir(cls) if not value.startswith('__') and value != 'choices']
@@ -113,8 +116,9 @@ def get_repr_string_from_dict(input_dict):
 
 def get_weight_quantization_config(weight_qconfig, is_fake_quantize=True):
     observer_name = 'CustomAdaptiveWeightObserver' + '__' + get_repr_string_from_dict(weight_qconfig)
-    weight_bitwidth = weight_qconfig.get('bitwidth', 8)
+    weight_bitwidth = weight_qconfig.get('bitwidth', 8) # needed for 4-bit quantization simulation
     weight_qscheme = weight_qconfig.get('qscheme', torch.per_channel_symmetric)
+    weight_dtype = weight_qconfig.get('dtype', torch.int8)
 
     WeightObserverBaseToUse = observer_types.AdaptivePerChannelWeightObserver \
         if weight_qscheme == torch.per_channel_symmetric else observer_types.AdaptiveWeightObserver
@@ -122,7 +126,7 @@ def get_weight_quantization_config(weight_qconfig, is_fake_quantize=True):
     weight_observer = xnn.utils.partialclass(WeightObserverBaseToUse,
                                              quant_min=weight_qconfig.get('quant_min', -(2 ** (weight_bitwidth-1))),
                                              quant_max=weight_qconfig.get('quant_max', (2 ** (weight_bitwidth-1)) - 1),
-                                             dtype=weight_qconfig.get('dtype', torch.int8),
+                                             dtype=weight_dtype,
                                              qscheme=weight_qscheme,
                                              power2_scale=weight_qconfig.get('power2_scale', False),
                                              range_max=weight_qconfig.get('range_max', None),
@@ -130,12 +134,16 @@ def get_weight_quantization_config(weight_qconfig, is_fake_quantize=True):
                                              class_name=weight_qconfig.get('observer_name', observer_name)
                                              )
     
-    fake_quantized_weight_observer = fake_quantize_types.AdaptiveWeightFakeQuantize.with_args(observer=weight_observer) if is_fake_quantize else weight_observer
+    fake_quantized_weight_observer = fake_quantize_types.AdaptiveWeightFakeQuantize.with_args(
+        observer=weight_observer, 
+        quant_min=weight_qconfig.get('quant_min', -(2 ** (weight_bitwidth-1))),
+        quant_max=weight_qconfig.get('quant_max', (2 ** (weight_bitwidth-1)) - 1),
+        dtype=weight_dtype) if is_fake_quantize else weight_observer
         
     weight_quantization_spec = QuantizationSpec(
-        dtype=weight_qconfig.get('dtype', torch.int8),
+        dtype=weight_dtype,
         quant_min=weight_qconfig.get('quant_min', -(2 ** (weight_bitwidth-1))),  
-        quant_max=weight_qconfig.get('quant_max', ((2 ** (weight_bitwidth-1)) - 1)),
+        quant_max=weight_qconfig.get('quant_max', (2 ** (weight_bitwidth-1)) - 1),
         qscheme=weight_qscheme,
         ch_axis=weight_qconfig.get('ch_axis', 0),
         is_dynamic=weight_qconfig.get('is_dynamic', False),
@@ -147,13 +155,15 @@ def get_weight_quantization_config(weight_qconfig, is_fake_quantize=True):
 def get_act_quantization_config(activation_qconfig, is_fake_quantize=True, fast_mode=False):
     observer_name = 'CustomAdaptiveActivationObserver' + get_repr_string_from_dict(activation_qconfig)
     activation_bitwidth = activation_qconfig.get('bitwidth', 8)
+    activation_dtype = activation_qconfig.get('dtype', torch.uint8)
 
     AdaptiveActivationObserverToUse = observer_types.AdaptiveActivationObserverFast if fast_mode else observer_types.AdaptiveActivationObserver
+    # AdaptiveActivationObserverToUse = observer_types.AdaptiveMinMaxActivationObserver
     
     activation_observer = xnn.utils.partialclass(AdaptiveActivationObserverToUse,
-                                             quant_min=activation_qconfig.get('quant_min', 0),
-                                             quant_max=activation_qconfig.get('quant_max', (2 ** activation_bitwidth) - 1),
-                                             dtype=activation_qconfig.get('dtype', torch.uint8),
+                                             quant_min=activation_qconfig.get('quant_min', torch.iinfo(activation_dtype).min),
+                                             quant_max=activation_qconfig.get('quant_max', torch.iinfo(activation_dtype).max),
+                                             dtype=activation_dtype,
                                              qscheme=activation_qconfig.get('qscheme', torch.per_tensor_affine),
                                              power2_scale=activation_qconfig.get('power2_scale', False),
                                              range_max=activation_qconfig.get('range_max', None),
@@ -161,12 +171,16 @@ def get_act_quantization_config(activation_qconfig, is_fake_quantize=True, fast_
                                              class_name=activation_qconfig.get('observer_name', observer_name),
                                              range_shrink_percentile=activation_qconfig.get('range_shrink_percentile', 0.01))
                 
-    fake_quantized_activation_observer = fake_quantize_types.AdaptiveActivationFakeQuantize.with_args(observer=activation_observer) if is_fake_quantize else activation_observer
+    fake_quantized_activation_observer = fake_quantize_types.AdaptiveActivationFakeQuantize.with_args(
+        observer=activation_observer, 
+        quant_min=activation_qconfig.get('quant_min', torch.iinfo(activation_dtype).min),
+        quant_max=activation_qconfig.get('quant_max', torch.iinfo(activation_dtype).max),
+        dtype=activation_dtype) if is_fake_quantize else activation_observer
     
     act_quantization_spec = QuantizationSpec(
-        dtype=activation_qconfig.get('dtype', torch.uint8),
-        quant_min=activation_qconfig.get('quant_min', 0),
-        quant_max=activation_qconfig.get('quant_max', (2 ** (activation_bitwidth)) - 1),
+        dtype=activation_dtype,
+        quant_min=activation_qconfig.get('quant_min', torch.iinfo(activation_dtype).min),
+        quant_max=activation_qconfig.get('quant_max', torch.iinfo(activation_dtype).max),
         qscheme=activation_qconfig.get('qscheme', torch.per_tensor_affine),
         is_dynamic=activation_qconfig.get('is_dynamic', False),
         observer_or_fake_quant_ctr=fake_quantized_activation_observer
@@ -234,6 +248,14 @@ def get_quantization_config_default(qconfig_type, is_fake_quantize=True, fast_mo
         weight=dict(qscheme=torch.per_channel_symmetric, power2_scale=True),
         activation=dict(qscheme=torch.per_tensor_symmetric, power2_scale=True, rage_max=4, fixed_range=True)), is_fake_quantize=is_fake_quantize, fast_mode=fast_mode)
 
+    _QCONFIG_TYPE_TO_DICT[QConfigType.WC16_AT16] = get_quantization_config(dict(
+        weight=dict(bitwidth=16, qscheme=torch.per_channel_symmetric, dtype=torch.int16),
+        activation=dict(qscheme=torch.per_tensor_affine, bitwidth=16, dtype=torch.int16)), is_fake_quantize=is_fake_quantize, fast_mode=fast_mode)
+    
+    _QCONFIG_TYPE_TO_DICT[QConfigType.WC32_AT32] = get_quantization_config(dict(
+        weight=dict(bitwidth=32, qscheme=torch.per_channel_symmetric, dtype=torch.int32),
+        activation=dict(qscheme=torch.per_tensor_affine, bitwidth=32, dtype=torch.int32)), is_fake_quantize=is_fake_quantize, fast_mode=fast_mode)
+    
     # 4 bit weight
     _QCONFIG_TYPE_TO_DICT[QConfigType.WC4_AT8] = get_quantization_config(dict(
         weight=dict(bitwidth=4, qscheme=torch.per_channel_symmetric),
