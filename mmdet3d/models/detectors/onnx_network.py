@@ -778,8 +778,10 @@ class FCOS3D_export_model(nn.Module):
             self.bbox_head  = copy.deepcopy(bbox_head)
             #self.bbox_head.new_bbox_head loses the convert function after deepcopy so using the original
             setattr(self.bbox_head, "new_bbox_head", bbox_head.new_bbox_head.convert(make_copy=True))
+        elif hasattr(backbone, "convert"): # bbox_head is not quantized but rest of the network is quantized
+            self.bbox_head  = copy.deepcopy(bbox_head).cpu()
         else:
-            self.bbox_head  = bbox_head
+            self.bbox_head = bbox_head
         self.add_pred_to_datasample = add_pred_to_datasample
 
     def prepare_data(self, batch_img_metas):

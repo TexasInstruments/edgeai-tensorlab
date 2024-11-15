@@ -237,7 +237,7 @@ def export_BEVFormer(onnxModel, inputs=None, data_samples=None, **kwargs):
         print("!!ONNX model has been exported for BEVFormer!\n\n")
 
 
-def export_FCOS3D(model, inputs=None, data_samples=None, quantized_model=False):
+def export_FCOS3D(model, inputs=None, data_samples=None, quantized_model=False, opset_version=20):
     onnxModel = FCOS3D_export_model(model.backbone,
                                     model.neck,
                                     model.bbox_head,
@@ -265,7 +265,7 @@ def export_FCOS3D(model, inputs=None, data_samples=None, quantized_model=False):
         modelInput.append(inv_pad_cam2img.cpu())
 
         from edgeai_torchmodelopt import xmodelopt
-        xmodelopt.quantization.v3.quant_utils.register_onnx_symbolics()
+        xmodelopt.quantization.v3.quant_utils.register_onnx_symbolics(opset_version=opset_version)
 
         model_name = 'fcos3d_quantized.onnx'
         
@@ -295,12 +295,12 @@ def export_FCOS3D(model, inputs=None, data_samples=None, quantized_model=False):
                       model_name,
                       input_names=input_names,
                       output_names=output_names,
-                      opset_version=17,
-                      training=torch._C._onnx.TrainingMode.PRESERVE, 
+                      opset_version=opset_version,
+                      training=torch._C._onnx.TrainingMode.PRESERVE,
                       verbose=False)
 
-    onnx_model, _ = simplify('fcos3d.onnx')
-    onnx.save(onnx_model, 'fcos3d.onnx')
+    onnx_model, _ = simplify(model_name)
+    onnx.save(onnx_model, model_name)
 
     print("!! ONNX model has been exported for FCOS3D! !!\n\n")
 

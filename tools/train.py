@@ -281,7 +281,8 @@ def main():
 
     example_inputs, example_kwargs = get_input(runner.model, cfg,)
     
-    transformation_dict = dict(backbone=None, neck=None, bbox_head=xmodelopt.TransformationWrapper(wrap_fn_for_bbox_head))
+    transformation_dict = dict(backbone=None, neck=None)
+    # transformation_dict = dict(backbone=None, neck=None, bbox_head=xmodelopt.TransformationWrapper(wrap_fn_for_bbox_head))
     copy_attrs=['train_step', 'val_step', 'test_step', 'data_preprocessor', 'parse_losses', 'bbox_head', '_run_forward']
     if model_surgery:
         model_surgery_kwargs = dict(replacement_dict=get_replacement_dict(model_surgery, cfg))
@@ -289,7 +290,7 @@ def main():
         model_surgery_kwargs = None
     
     if args.quantization:
-        quantization_kwargs = dict(quantization_method=args.quantize_type, total_epochs=runner.max_epochs)
+        quantization_kwargs = dict(quantization_method=args.quantize_type, total_epochs=runner.max_epochs, qconfig_type="WC16_AT16")
     else:
         quantization_kwargs = None
     # if model_surgery_kwargs is not None and quantization_kwargs is None:
