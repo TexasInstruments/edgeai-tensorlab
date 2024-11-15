@@ -6,9 +6,12 @@ import warnings
 from PIL import Image
 import string
 
+from typing import List, Optional, Sequence, Tuple, Union
+
 from mmcv.transforms import BaseTransform
 from mmdet3d.registry import TRANSFORMS
 from mmdet3d.datasets.transforms.formating import Pack3DDetInputs
+from mmdet3d.datasets.transforms.transforms_3d import RandomFlip3D, GlobalRotScaleTrans
 
 @TRANSFORMS.register_module()
 class RandomAugImageMultiViewImage(BaseTransform):
@@ -215,3 +218,279 @@ class CustomPack3DDetInputs(Pack3DDetInputs):
     ) -> None:
         self.keys = keys
         self.meta_keys = meta_keys
+
+
+@TRANSFORMS.register_module()
+class CustomRandomFlip3D(RandomFlip3D):
+    """Flip the points & bbox.
+
+    If the input dict contains the key "flip", then the flag will be used,
+    otherwise it will be randomly decided by a ratio specified in the init
+    method.
+
+    Required Keys:
+
+    - points (np.float32)
+    - gt_bboxes_3d (np.float32)
+
+    Modified Keys:
+
+    - points (np.float32)
+    - gt_bboxes_3d (np.float32)
+
+    Added Keys:
+
+    - points (np.float32)
+    - pcd_trans (np.float32)
+    - pcd_rotation (np.float32)
+    - pcd_rotation_angle (np.float32)
+    - pcd_scale_factor (np.float32)
+
+    Args:
+        sync_2d (bool): Whether to apply flip according to the 2D
+            images. If True, it will apply the same flip as that to 2D images.
+            If False, it will decide whether to flip randomly and independently
+            to that of 2D images. Defaults to True.
+        flip_ratio_bev_horizontal (float): The flipping probability
+            in horizontal direction. Defaults to 0.0.
+        flip_ratio_bev_vertical (float): The flipping probability
+            in vertical direction. Defaults to 0.0.
+        flip_box3d (bool): Whether to flip bounding box. In most of the case,
+            the box should be fliped. In cam-based bev detection, this is set
+            to False, since the flip of 2D images does not influence the 3D
+            box. Defaults to True.
+    """
+
+    def __init__(self,
+                 flip_2d: bool = True,
+                 sync_2d: bool = True,
+                 flip_ratio_bev_horizontal: float = 0.0,
+                 flip_ratio_bev_vertical: float = 0.0,
+                 flip_box3d: bool = True,
+                 update_img2lidar = False,
+                 **kwargs) -> None:
+        super(CustomRandomFlip3D, self).__init__(
+            sync_2d, flip_ratio_bev_horizontal, flip_ratio_bev_vertical,
+            flip_box3d, **kwargs)
+
+        self.flip_2d = flip_2d
+        self.update_img2lidar = update_img2lidar
+
+    def update_transform(self, input_dict):
+        for _, cam_info in enumerate(input_dict['lidar2img']['lidar2img_aug']):
+            transform = cam_info['cam2lidar'].copy()
+
+            aug_transform = np.eye(4, dtype=np.float32)
+            if input_dict['pcd_horizontal_flip']:
+                aug_transform[1, 1] = -1
+            if input_dict['pcd_vertical_flip']:
+                aug_transform[0, 0] = -1
+            new_transform = aug_transform @ transform
+
+            cam_info['cam2_lidar'] = new_transform
+
+    def transform(self, input_dict: dict) -> dict:
+        """Call function to flip points, values in the ``bbox3d_fields`` and
+        also flip 2D image and its annotations.
+
+        Args:
+            input_dict (dict): Result dict from loading pipeline.
+
+        Returns:
+            dict: Flipped results, 'flip', 'flip_direction',
+            'pcd_horizontal_flip' and 'pcd_vertical_flip' keys are added
+            into result dict.
+        """
+        # flip 2D image and its annotations
+        if self.flip_2d and 'img' in input_dict:
+            super(RandomFlip3D, self).transform(input_dict)
+
+        if self.sync_2d and 'img' in input_dict:
+            input_dict['pcd_horizontal_flip'] = input_dict['flip']
+            input_dict['pcd_vertical_flip'] = False
+        else:
+            if 'pcd_horizontal_flip' not in input_dict:
+                flip_horizontal = True if np.random.rand(
+                ) < self.flip_ratio_bev_horizontal else False
+                input_dict['pcd_horizontal_flip'] = flip_horizontal
+            if 'pcd_vertical_flip' not in input_dict:
+                flip_vertical = True if np.random.rand(
+                ) < self.flip_ratio_bev_vertical else False
+                input_dict['pcd_vertical_flip'] = flip_vertical
+
+        if 'transformation_3d_flow' not in input_dict:
+            input_dict['transformation_3d_flow'] = []
+
+        if input_dict['pcd_horizontal_flip']:
+            self.random_flip_data_3d(input_dict, 'horizontal')
+            input_dict['transformation_3d_flow'].extend(['HF'])
+        if input_dict['pcd_vertical_flip']:
+            self.random_flip_data_3d(input_dict, 'vertical')
+            input_dict['transformation_3d_flow'].extend(['VF'])
+
+        if self.update_img2lidar:
+            self.update_transform(input_dict)
+
+        return input_dict
+
+    def __repr__(self) -> str:
+        """str: Return a string that describes the module."""
+        repr_str = self.__class__.__name__
+        repr_str += f'(sync_2d={self.sync_2d},'
+        repr_str += f'(flip_2d={self.flip_2d},'
+        repr_str += f' flip_ratio_bev_horizontal={self.flip_ratio_bev_horizontal})'
+        repr_str += f' flip_ratio_bev_vertical={self.flip_ratio_bev_vertical})'
+        return repr_str
+
+
+@TRANSFORMS.register_module()
+class CustomGlobalRotScaleTrans(GlobalRotScaleTrans):
+    """Apply global rotation, scaling and translation to a 3D scene.
+
+    Required Keys:
+
+    - points (np.float32)
+    - gt_bboxes_3d (np.float32)
+
+    Modified Keys:
+
+    - points (np.float32)
+    - gt_bboxes_3d (np.float32)
+
+    Added Keys:
+
+    - points (np.float32)
+    - pcd_trans (np.float32)
+    - pcd_rotation (np.float32)
+    - pcd_rotation_angle (np.float32)
+    - pcd_scale_factor (np.float32)
+
+    Args:
+        rot_range (list[float]): Range of rotation angle.
+            Defaults to [-0.78539816, 0.78539816] (close to [-pi/4, pi/4]).
+        scale_ratio_range (list[float]): Range of scale ratio.
+            Defaults to [0.95, 1.05].
+        translation_std (list[float]): The standard deviation of
+            translation noise applied to a scene, which
+            is sampled from a gaussian distribution whose standard deviation
+            is set by ``translation_std``. Defaults to [0, 0, 0].
+        shift_height (bool): Whether to shift height.
+            (the fourth dimension of indoor points) when scaling.
+            Defaults to False.
+    """
+
+    def __init__(self,
+                 rot_range: List[float] = [-0.78539816, 0.78539816],
+                 scale_ratio_range: List[float] = [0.95, 1.05],
+                 translation_std: List[int] = [0, 0, 0],
+                 shift_height: bool = False,
+                 update_img2lidar: bool = False) -> None:
+
+        super(CustomGlobalRotScaleTrans, self).__init__(
+            rot_range, scale_ratio_range, translation_std, shift_height)
+
+        self.update_img2lidar = update_img2lidar
+
+    def update_transform(self, input_dict):
+        for _, cam_info in enumerate(input_dict['lidar2img']['lidar2img_aug']):
+            transform = cam_info['cam2lidar'].copy()
+
+            aug_transform = np.zeros((4, 4), dtype=np.float32)
+            if 'pcd_rotation' in input_dict:
+                aug_transform[:3, :3] = input_dict['pcd_rotation'].T * input_dict['pcd_scale_factor']
+            else:
+                aug_transform[:3, :3] = np.eye(3) * input_dict['pcd_scale_factor']
+            aug_transform[:3, -1] = input_dict['pcd_trans']
+            aug_transform[-1, -1] = 1.0
+
+            new_transform = aug_transform @ transform
+            cam_info['cam2lidar'] = new_transform
+
+    def _rot_bbox_points(self, input_dict: dict) -> None:
+        """Private function to rotate bounding boxes and points.
+
+        Args:
+            input_dict (dict): Result dict from loading pipeline.
+
+        Returns:
+            dict: Results after rotation, 'points', 'pcd_rotation'
+            and `gt_bboxes_3d` is updated in the result dict.
+        """
+        if not 'point' in input_dict:
+            return
+
+        super()._rot_bbox_points(input_dict)
+
+
+    def _trans_bbox_points(self, input_dict: dict) -> None:
+        """Private function to translate bounding boxes and points.
+
+        Args:
+            input_dict (dict): Result dict from loading pipeline.
+
+        Returns:
+            dict: Results after translation, 'points', 'pcd_trans'
+            and `gt_bboxes_3d` is updated in the result dict.
+        """
+        translation_std = np.array(self.translation_std, dtype=np.float32)
+        trans_factor = np.random.normal(scale=translation_std, size=3).T
+
+        if 'points' in input_dict:
+            input_dict['points'].translate(trans_factor)
+        input_dict['pcd_trans'] = trans_factor
+        if 'gt_bboxes_3d' in input_dict:
+            input_dict['gt_bboxes_3d'].translate(trans_factor)
+
+    def _scale_bbox_points(self, input_dict: dict) -> None:
+        """Private function to scale bounding boxes and points.
+
+        Args:
+            input_dict (dict): Result dict from loading pipeline.
+
+        Returns:
+            dict: Results after scaling, 'points' and
+            `gt_bboxes_3d` is updated in the result dict.
+        """
+        scale = input_dict['pcd_scale_factor']
+        if 'points' in input_dict:
+            points = input_dict['points']
+            points.scale(scale)
+            if self.shift_height:
+                assert 'height' in points.attribute_dims.keys(), \
+                    'setting shift_height=True but points have no height attribute'
+                points.tensor[:, points.attribute_dims['height']] *= scale
+            input_dict['points'] = points
+
+        if 'gt_bboxes_3d' in input_dict and \
+                len(input_dict['gt_bboxes_3d'].tensor) != 0:
+            input_dict['gt_bboxes_3d'].scale(scale)
+
+
+    def transform(self, input_dict: dict) -> dict:
+        """Private function to rotate, scale and translate bounding boxes and
+        points.
+
+        Args:
+            input_dict (dict): Result dict from loading pipeline.
+
+        Returns:
+            dict: Results after scaling, 'points', 'pcd_rotation',
+            'pcd_scale_factor', 'pcd_trans' and `gt_bboxes_3d` are updated
+            in the result dict.
+        """
+        input_dict = super().transform(input_dict)
+
+        if self.update_img2lidar:
+            self.update_transform(input_dict)
+
+        return input_dict
+
+    def __repr__(self) -> str:
+        """str: Return a string that describes the module."""
+        repr_str = self.__class__.__name__
+        repr_str += f'(rot_range={self.rot_range},'
+        repr_str += f' scale_ratio_range={self.scale_ratio_range},'
+        repr_str += f' translation_std={self.translation_std},'
+        repr_str += f' shift_height={self.shift_height})'
+        repr_str += f' update_img2lidar={self.update_img2lidar})'
+        return repr_str

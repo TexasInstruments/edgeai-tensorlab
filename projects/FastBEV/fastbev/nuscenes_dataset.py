@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import torch
 import numpy as np
 from mmdet3d.registry import DATASETS
 from mmdet3d.datasets import NuScenesDataset
@@ -8,6 +9,7 @@ import cv2
 from nuscenes.nuscenes import NuScenes
 from nuscenes.map_expansion.map_api import NuScenesMap
 from pyquaternion import Quaternion
+from mmdet3d.structures import LiDARInstance3DBoxes
 try:
     from tools.dataset_converter.nuscenes_converter import get_2d_boxes
 except:
@@ -155,10 +157,9 @@ class CustomNuScenesDataset(NuScenesDataset):
                                 'data_sample')
             return data
 
-
         while True:
             # TBA
-            data = self.prepare_train_data(idx)
+            data = self.prepare_data(idx)
 
             # Broken images or random augmentations may cause the returned data
             # to be None
@@ -167,7 +168,7 @@ class CustomNuScenesDataset(NuScenesDataset):
                 continue
             return data
 
-    def get_adj_data_info(self, data_info):
+    def get_adj_data_info(self, data_info, index):
         """ Get adjacent data info. 
 
         Args:
@@ -346,8 +347,9 @@ class CustomNuScenesDataset(NuScenesDataset):
                 input_dict.update(dict(info=data_info))
 
         if not self.test_mode:
-            annos = self.get_ann_info(index)
-            input_dict['ann_info'] = annos
+            #annos = self.get_ann_info(index)
+            #input_dict['ann_info'] = annos
+            input_dict['ann_info'] = data_info['ann_info']
             if self.sequential:
                 bbox = input_dict['ann_info']['gt_bboxes_3d'].tensor
                 if 'abs' in self.speed_mode:
@@ -399,11 +401,11 @@ class CustomNuScenesDataset(NuScenesDataset):
             gt_labels_3d = data_info['ann_info']['gt_labels_3d'].copy()
             mask = gt_labels_3d >= 0
             gt_bboxes_3d = gt_bboxes_3d[mask]
-            gt_names = data_info['ann_info']['gt_names'][mask]
+            #gt_names = data_info['ann_info']['gt_names'][mask]
             gt_labels_3d = gt_labels_3d[mask]
             new_info['ann_info'] = dict(
                 gt_bboxes_3d=gt_bboxes_3d,
-                gt_names=gt_names,
+                #gt_names=gt_names,
                 gt_labels_3d=gt_labels_3d
             )
 
@@ -414,7 +416,7 @@ class CustomNuScenesDataset(NuScenesDataset):
         raw_data_info = super().get_data_info(index)
 
         # Get adjacent data info
-        data_info = self.get_adj_data_info(raw_data_info)
+        data_info = self.get_adj_data_info(raw_data_info, index)
 
         # Choose selected data info needed fro Fast BEV
         data_info = self.refine_data_info(data_info)
@@ -430,7 +432,7 @@ class CustomNuScenesDataset(NuScenesDataset):
 
             # get bbox2d for camera
             if self.with_box2d:
-                # Shoul change the camera order
+                # No need to change change the camera order?
                 camera_types = [
                     'CAM_FRONT', 'CAM_FRONT_RIGHT', 'CAM_FRONT_LEFT',
                     'CAM_BACK', 'CAM_BACK_LEFT', 'CAM_BACK_RIGHT']

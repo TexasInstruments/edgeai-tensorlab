@@ -7,6 +7,7 @@ _base_ = [
 custom_imports = dict(imports=['projects.FastBEV.fastbev'])
 
 n_times = 4
+sequential=True
 
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], bgr_to_rgb=True)
@@ -164,14 +165,15 @@ data_config = {
 file_client_args = dict(backend='disk')
 
 train_pipeline = [
-    dict(type='MultiViewPipeline', sequential=True, n_images=6, n_times=n_times, transforms=[
+    dict(type='MultiViewPipeline', sequential=sequential, n_images=6, n_times=n_times, transforms=[
         dict(
             type='LoadImageFromFile',
             file_client_args=file_client_args)]),
     dict(type='LoadAnnotations3D',
-         with_bbox=True,
-         with_label=True,
-         with_bev_seg=True),
+         with_bbox_3d=True,
+         with_label_3d=True,
+         #with_bev_seg=False
+         ),
     #dict(
     #    type='LoadPointsFromFile',
     #    dummy=True,
@@ -179,14 +181,15 @@ train_pipeline = [
     #    load_dim=5,
     #    use_dim=5),
     dict(
-        type='RandomFlip3D',
+        type='CustomRandomFlip3D',
         flip_2d=False,
         sync_2d=False,
         flip_ratio_bev_horizontal=0.5,
         flip_ratio_bev_vertical=0.5,
+        flip_box3d=True,
         update_img2lidar=True),
     dict(
-        type='GlobalRotScaleTrans',
+        type='CustomGlobalRotScaleTrans',
         rot_range=[-0.3925, 0.3925],
         scale_ratio_range=[0.95, 1.05],
         translation_std=[0.05, 0.05, 0.05],
@@ -194,16 +197,13 @@ train_pipeline = [
     dict(type='RandomAugImageMultiViewImage', data_config=data_config),
     dict(type='ObjectRangeFilter', point_cloud_range=point_cloud_range),
     dict(type='ResetPointOrigin', point_cloud_range=point_cloud_range),
-    dict(type='NormalizeMultiviewImage', **img_norm_cfg),
-    dict(type='DefaultFormatBundle3D', class_names=class_names),
-    dict(type='Collect3D', keys=['img', 'gt_bboxes', 'gt_labels',
-                                 'gt_bboxes_3d', 'gt_labels_3d',
-                                 'gt_bev_seg'])]
-
+    dict(type='Pack3DDetInputs', keys=['img',
+                                        #'gt_bboxes', 'gt_labels',
+                                       'gt_bboxes_3d', 'gt_labels_3d'])]
 
 test_pipeline = [
     # n_times should be 1 for validation and test
-    dict(type='MultiViewPipeline', sequential=True, n_images=6, n_times=1, transforms=[
+    dict(type='MultiViewPipeline', sequential=sequential, n_images=6, n_times=1, transforms=[
         dict(
             type='LoadImageFromFile',
             file_client_args=file_client_args)]),
@@ -223,6 +223,7 @@ data_prefix = dict(
     CAM_BACK_LEFT='samples/CAM_BACK_LEFT')
 
 train_dataloader = dict(
+    _delete_=True,
     batch_size=1,
     num_workers=1,
     sampler=dict(type='DefaultSampler', shuffle=True),
@@ -236,10 +237,10 @@ train_dataloader = dict(
             modality=input_modality,
             data_prefix=data_prefix,
             test_mode=False,
-            with_box2d=True,
+            with_box2d=False,
             box_type_3d='LiDAR',
             ann_file='nuscenes_infos_train_fastbev.pkl',
-            sequential=True,
+            sequential=sequential,
             n_times=n_times,
             train_adj_ids=[1, 3, 5],
             speed_mode='abs_velo',
@@ -264,10 +265,9 @@ val_dataloader = dict(
         modality=input_modality,
         data_prefix=data_prefix,
         test_mode=True,
-        with_box2d=True,
         box_type_3d='LiDAR',
         ann_file='nuscenes_infos_val.pkl',
-        sequential=True,
+        sequential=sequential,
         # n_times shoudl be 1 for test and validation dataloader
         n_times=1,
         train_adj_ids=[1, 3, 5], # not needed
@@ -275,7 +275,6 @@ val_dataloader = dict(
         max_interval=10,
         min_interval=0,
         fix_direction=True,
-        prev_only=True,
         test_adj='prev',
         test_adj_ids=[1, 3, 5], # not needed
         test_time_id=None,
@@ -302,9 +301,9 @@ optim_wrapper = dict(
     clip_grad=dict(max_norm=35, norm_type=2))
 
 
-total_epochs = 1
+total_epochs = 20
 
-train_cfg = dict(max_epochs=total_epochs, val_interval=total_epochs)
+train_cfg = dict(by_epoch=True, max_epochs=total_epochs, val_interval=total_epochs)
 val_cfg = dict(type='ValLoop')
 test_cfg = dict(type='TestLoop')
 

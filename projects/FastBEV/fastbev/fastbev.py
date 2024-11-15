@@ -181,8 +181,9 @@ class FastBEV(BaseDetector):
         self.feats_size     = feats_size
 
         # for inference with batch_size = 1
-        self.memory = dict()
-        self.queue = queue.Queue(maxsize=num_temporal_feats)
+        if num_temporal_feats > 0:
+            self.memory = dict()
+            self.queue = queue.Queue(maxsize=num_temporal_feats)
 
 
     def forward(self,
@@ -668,16 +669,16 @@ class FastBEV(BaseDetector):
             self.simple_test(img, batch_input_metas, xy_coors=xy_coors, prev_feats_map=prev_feats_map)
 
         # remove an element if queue is full
-        if self.queue.full():
+        if self.num_temporal_feats > 0 and self.queue.full():
             pop_key = self.queue.get()
             self.memory.pop(pop_key)
 
-        # add the current feature map
-        # For inference, it should be batch_size = 1
-        for batch_id, img_meta in enumerate(batch_input_metas):
-            self.memory[img_meta['sample_idx']] = \
-                dict(feature_map=feature_map, img_meta=img_meta)
-            self.queue.put(img_meta['sample_idx'])
+            # add the current feature map
+            # For inference, it should be batch_size = 1
+            for batch_id, img_meta in enumerate(batch_input_metas):
+                self.memory[img_meta['sample_idx']] = \
+                    dict(feature_map=feature_map, img_meta=img_meta)
+                self.queue.put(img_meta['sample_idx'])
 
         ret_list = []
         for _, preds in enumerate(bbox_pts):
@@ -698,11 +699,8 @@ class FastBEV(BaseDetector):
                                                  ret_list)
         return detsamples
 
-    #def forward_train(
-    #    self, img, img_metas, gt_bboxes_3d, gt_labels_3d, gt_bev_seg=None, **kwargs
-    #):
-    def loss(self, batch_inputs_dict=None, batch_data_samples=None, 
-             gt_bboxes_3d=None, gt_labels_3d=None, gt_bev_seg=None, **kwargs):
+
+    def loss(self, batch_inputs_dict=None, batch_data_samples=None, **kwargs):
 
         img = batch_inputs_dict['imgs']
         img_metas = [item.metainfo for item in batch_data_samples]
@@ -710,19 +708,20 @@ class FastBEV(BaseDetector):
         mlvl_feats, features_2d = self.extract_feat(img, img_metas, "train")
         feature_bev = self.extract_feat_neck3d(img, img_metas, mlvl_feats)
 
-        """
-        feature_bev: [(1, 256, 100, 100)]
-        valids: (1, 1, 200, 200, 12)
-        features_2d: [[6, 64, 232, 400], [6, 64, 116, 200], [6, 64, 58, 100], [6, 64, 29, 50]]
-        """
         assert self.bbox_head is not None or self.seg_head is not None
 
         losses = dict()
         if self.bbox_head is not None:
             x = self.bbox_head(feature_bev)
-            loss_det = self.bbox_head.loss(*x, gt_bboxes_3d, gt_labels_3d, img_metas)
+
+            batch_gt_instance_3d = []
+            for data_sample in batch_data_samples:
+                batch_gt_instance_3d.append(data_sample.gt_instances_3d)
+
+            loss_det = self.bbox_head.loss_by_feat(*x, batch_gt_instance_3d, img_metas)
             losses.update(loss_det)
 
+        """
         if self.seg_head is not None:
             assert len(gt_bev_seg) == 1
             x_bev = self.seg_head(feature_bev)
@@ -755,6 +754,7 @@ class FastBEV(BaseDetector):
                 features_2d, img_metas_2d, gt_bboxes, gt_labels
             )
             losses.update(loss_2d)
+        """
 
         return losses
 

@@ -314,6 +314,13 @@ def export_FastBEV(onnxModel, inputs=None,  data_samples=None):
 
     xy_coors = onnxModel.precompute_proj_info_for_inference(img, batch_img_metas, prev_img_metas=prev_input_metas)
 
+    # Passed the squeezed img
+    if img.dim() == 5 and img.size(0) == 1:
+        img.squeeze_()
+    elif img.dim() == 5 and img.size(0) > 1:
+        B, N, C, H, W = img.size()
+        img = img.view(B * N, C, H, W)
+
     model_input = []
     model_input.append(img)
     model_input.append(xy_coors)
