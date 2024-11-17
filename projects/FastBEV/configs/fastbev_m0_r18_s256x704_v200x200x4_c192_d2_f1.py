@@ -174,12 +174,12 @@ train_pipeline = [
          with_label_3d=True,
          #with_bev_seg=False
          ),
-    #dict(
-    #    type='LoadPointsFromFile',
-    #    dummy=True,
-    #    coord_type='LIDAR',
-    #    load_dim=5,
-    #    use_dim=5),
+    dict(
+        type='CustomLoadPointsFromFile',
+        dummy=True,
+        coord_type='LIDAR',
+        load_dim=5,
+        use_dim=5),
     dict(
         type='CustomRandomFlip3D',
         flip_2d=False,

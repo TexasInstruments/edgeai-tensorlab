@@ -767,8 +767,7 @@ class FastBEV(BaseDetector):
         """
         function: 2d feature + predefined point cloud -> 3d volume
         """
-        feat_shape = [6, 64, 64, 176]
-        n_images, n_channels, height, width = feat_shape
+        n_images, n_channels, height, width = self.feats_size
         n_x_voxels, n_y_voxels, n_z_voxels = points.shape[-3:]
         # [3, 200, 200, 4] -> [1, 3, 160000] -> [6, 3, 160000]
         points = points.view(1, 3, -1).expand(n_images, 3, -1)
