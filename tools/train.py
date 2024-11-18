@@ -230,22 +230,6 @@ def main():
                     
                 setattr(EpochBasedTrainLoop, "run_epoch", run_epoch)
 
-
-    # del EpochBasedTrainLoop.run_epoch
-                
-    # def run_epoch(self) -> None:
-    #     """Iterate one epoch."""
-    #     self.runner.call_hook('before_train_epoch')
-    #     self.runner.model.train()
-    #     for idx, data_batch in enumerate(self.dataloader):
-    #         self.run_iter(idx, data_batch)
-    #         if idx*len(data_batch) > 1:
-    #             break
-    #     self.runner.call_hook('after_train_epoch')
-    #     self._epoch = self.runner.max_epochs
-        
-    # setattr(EpochBasedTrainLoop, "run_epoch", run_epoch)
-
     # build the runner from config
     if 'runner_type' not in cfg:
         # build the default runner
@@ -279,7 +263,7 @@ def main():
         runner.model = runner.model.module
         is_wrapped = True
 
-    example_inputs, example_kwargs = get_input(runner.model, cfg,)
+    example_inputs, example_kwargs = get_input(runner, cfg)
     
     transformation_dict = dict(backbone=None, neck=None)
     # transformation_dict = dict(backbone=None, neck=None, bbox_head=xmodelopt.TransformationWrapper(wrap_fn_for_bbox_head))
@@ -290,7 +274,7 @@ def main():
         model_surgery_kwargs = None
     
     if args.quantization:
-        quantization_kwargs = dict(quantization_method=args.quantize_type, total_epochs=runner.max_epochs, qconfig_type="WC16_AT16")
+        quantization_kwargs = dict(quantization_method=args.quantize_type, total_epochs=runner.max_epochs, qconfig_type="WC8_AT8")
     else:
         quantization_kwargs = None
     # if model_surgery_kwargs is not None and quantization_kwargs is None:
@@ -311,50 +295,6 @@ def main():
 
     # start training
     runner.train()
-    
-    # if xnn.utils.distributed_utils.is_main_process() and (args.export_onnx_model or (hasattr(cfg, 'export_onnx_model') and cfg.export_onnx_model)):
-    #     # Exporting Model after Training : Uses custom mmdeploy
-    #     try:
-    #         from mmdeploy.apis import torch2onnx
-    #     except:
-    #         raise ModuleNotFoundError
-        
-    #     save_file = 'model.onnx'
-    #     save_file = osp.join(cfg.work_dir,save_file)
-    #     is_wrapped = False
-    #     if is_model_wrapper(runner.model):
-    #         runner.model = runner.model.module
-    #         is_wrapped = True
-    #     example_inputs, example_kwargs = get_input(runner.model, cfg, batch_size=1, to_export=True)
-    #     runner.model = xmodelopt.prepare_model_for_onnx(orig_model, runner.model, example_inputs, example_kwargs, model_surgery_version=model_surgery, 
-    #                                                     quantization_version=args.quantization, model_surgery_kwargs=model_surgery_kwargs, 
-    #                                                     quantization_kwargs=quantization_kwargs, transformation_dict=transformation_dict, copy_attrs=copy_attrs)
-        
-        
-    #     torch2onnx(img='../edgeai-mmdetection/demo/demo.jpg', work_dir=cfg.work_dir, save_file=save_file, model_cfg = cfg, \
-    #         deploy_cfg='../edgeai-mmdeploy/configs/mmdet/detection/detection_onnxruntime_static.py', torch_model = runner.model)
-        
-    #     xonnx.prune_layer_names(save_file, save_file, opset_version=17)
-    
-    #     onnx_model = onnx.load(save_file)
-    #     if args.simplify:
-    #         try:
-    #             import onnxsim
-    #             onnx_model, check = onnxsim.simplify(onnx_model)
-    #             assert check, 'assert check failed'
-    #         except Exception as e:
-    #             print_log(f'Simplify failure: {e}')
-    #     onnx.save(onnx_model, save_file)
-    #     print_log(f'ONNX export success, save into {save_file}')
-
-    #     output_names = ['dets', 'labels']
-    #     feature_names = [node.name for node in onnx_model.graph.output[2:]]
-    #     # write prototxt
-    #     input_shapes = [[d.dim_value for d in _input.type.tensor_type.shape.dim] for _input in onnx_model.graph.input]
-    #     fake_input = torch.randn(*input_shapes[0]).to('cpu')
-    #     save_model_proto(cfg, getattr(runner.model,'module',runner.model), onnx_model, fake_input, save_file, feature_names=feature_names, output_names=output_names)
-    # else:
-    #     return
 
 
 if __name__ == '__main__':

@@ -108,33 +108,18 @@ def wrap_fn_for_bbox_head(fn, module:nn.Module, *args, **kwargs):
     return module    
 
 
-def get_input(model, cfg, batch_size=None, to_export=False):
+def get_input(runner, cfg, batch_size=None, to_export=False):
 
-    # import numpy as np
-
-    # image_size = list(np.array(cfg['train_pipeline'][2]['scale']).T) 
-    image_size = cfg['train_pipeline'][2]['scale']
-
-    # image_size = None
-    # if hasattr(cfg, 'image_size'):
-    #     image_size = cfg.image_size
-    # elif hasattr(cfg, 'img_scale'):
-    #     image_size = cfg.img_scale
-    # elif hasattr(cfg, 'input_size'):
-    #     image_size = cfg.input_size
-    # if image_size is None:
-    #     image_size = 512
-    # if not isinstance(image_size, tuple): 
-    #     image_size = (image_size, image_size)
-    
     batch_size = batch_size or cfg.train_dataloader.batch_size
-    x = torch.rand(batch_size, 3, 928, 1600)
-    # x = torch.rand(batch_size, 3, image_size[1], image_size[0])
-    x = x.to(device = 'cpu' if to_export else next(model.parameters()).device)
-    example_inputs = {'imgs': x}
-    example_kwargs = {}
-    return example_inputs, example_kwargs
+    input_dict = runner.model.data_preprocessor(next(iter(runner.train_dataloader)))
+    data_samples = input_dict['data_samples'][0]
 
+    example_inputs = []
+    example_kwargs = {'inputs': {'imgs': input_dict['inputs']['imgs'].repeat(batch_size, 1, 1, 1)},
+                      'data_samples': data_samples}
+    return example_inputs, example_kwargs
+    
+    
 def get_replacement_dict(model_surgery_version, cfg):
     from mmdet.models.backbones.csp_darknet import Focus, FocusLite
     if hasattr(cfg,'convert_to_lite_model') : 
