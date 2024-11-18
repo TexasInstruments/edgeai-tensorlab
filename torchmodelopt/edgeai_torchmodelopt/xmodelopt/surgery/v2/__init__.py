@@ -40,7 +40,7 @@ from . import custom_modules, custom_surgery_functions
 from .surgery import _replace_unsupported_layers
 from ...utils.optimization_base import OptimizationBaseModule, add_attrs
 from ...utils.transformation_utils import wrapped_transformation_fn
-from ...utils.hooks import add_example_args_kwargs 
+from ... import utils 
 try:
     from torchvision.ops.misc import SqueezeExcitation
     tv_se_module = SqueezeExcitation(48, 16)
@@ -267,7 +267,7 @@ class SurgeryModule(OptimizationBaseModule):
             example_inputs= model._example_inputs
             example_kwargs= model._example_kwargs
         else:
-            add_example_args_kwargs(model, example_inputs=example_inputs, example_kwargs=example_kwargs, transformation_dict=transformation_dict)
+            utils.add_example_args_kwargs(model, example_inputs=example_inputs, example_kwargs=example_kwargs, transformation_dict=transformation_dict)
         self.replacement_dict=replacement_dict or get_replacement_flag_dict_default()
         self.module = wrapped_transformation_fn(convert_to_lite_fx, model, replacement_dict=self.replacement_dict, example_inputs=example_inputs, example_kwargs=example_kwargs, 
                                                 transformation_dict=transformation_dict,**kwargs)

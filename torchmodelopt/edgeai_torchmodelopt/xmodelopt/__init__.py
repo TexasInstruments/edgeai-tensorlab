@@ -29,7 +29,7 @@
 #
 #################################################################################
 
-from .utils import *
 from . import surgery
 from . import pruning
 from . import quantization
+from .utils import apply_model_optimization, prepare_model_for_onnx

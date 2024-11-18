@@ -66,7 +66,6 @@ class PrunerModule(OptimizationBaseModule):
     def prepare(self, module, *args, pruning_ratio=None, total_epochs=None, pruning_class='blend',p=2.0, pruning_global=False, copy_args=None,
                 pruning_type='channel', pruning_init_train_ep=5, pruning_m=None, add_methods=True, transformation_dict=None, **kwargs):
         copy_args = copy_args or []
-        copy_attrs = copy_attrs or []
         self.module = module
         
         self.epoch_count = 0

@@ -10,7 +10,7 @@ import types
 from .... import xnn
 from .utils import get_bn_adjusted_weight, create_bn_conv_mapping, create_next_conv_node_list, find_all_connected_nodes, get_net_weight_node_channel_prune, get_net_weights_all, get_pruning_partitions,get_num_heads_head_dims, get_parameter_indices
 from .parametrization import BlendPruningParametrization, SigmoidPruningParametrization, IncrementalPruningParametrization, ChannelOnlyBlendPruningParametrization, HeadChannelBlendPruningParametrization, HeadOnlyBlendPruningParametrization, PRUNING_CLASS_DICT
-from ...utils.hooks import add_example_args_kwargs
+from ... import utils
 
 def init(module, *args, example_inputs:list=None, example_kwargs:dict=None, pruning_ratio=None, total_epochs=None, pruning_class='blend',p=2.0, pruning_global=False, copy_args=None,
             pruning_type='channel', pruning_init_train_ep=5, pruning_m=None, add_methods=True, aten_graph=True, **kwargs):
@@ -23,7 +23,7 @@ def init(module, *args, example_inputs:list=None, example_kwargs:dict=None, prun
         example_inputs= module._example_inputs
         example_kwargs= module._example_kwargs
     else:
-        add_example_args_kwargs(module,example_inputs=example_inputs, example_kwargs=example_kwargs)
+        utils.add_example_args_kwargs(module,example_inputs=example_inputs, example_kwargs=example_kwargs)
     
     module.__prune_params__ =  xnn.utils.AttrDict()
     module.__prune_params__.aten_graph = module.__prune_params__.pre_dispatch = aten_graph
@@ -106,6 +106,7 @@ def init(module, *args, example_inputs:list=None, example_kwargs:dict=None, prun
     #
     if add_methods:
         # add a wrapper for model.train()
+        module._insert_and_remove_parametrization_during_training = types.MethodType(insert_and_remove_parametrization_during_training, module) 
         module.__pruning_train_backup__ = types.MethodType(module.train.__func__, module)
         module.train = types.MethodType(train, module)
         module.eval = types.MethodType(train, module)
@@ -210,9 +211,15 @@ def get_layer_pruning_ratio_channel(module, pruning_ratio=0.6): ################
     
     return module
     
+    
 def train(module, mode: bool = True): 
     if hasattr(module, "__pruning_train_backup__"):
         module.__pruning_train_backup__(mode=mode)
+        module = module._insert_and_remove_parametrization_during_training(mode)
+    return module
+
+
+def insert_and_remove_parametrization_during_training(module, mode: bool = True):
     if mode: #train mode
         remove_parametrization(module, leave_parameterized=False) # we do not want to keep the old mask, rest of the weights are adjusted according to this one
         module.__prune_params__.epoch_count += 1

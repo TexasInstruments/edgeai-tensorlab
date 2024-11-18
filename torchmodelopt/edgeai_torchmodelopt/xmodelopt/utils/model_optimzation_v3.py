@@ -1,7 +1,4 @@
 from .optimization_base import ModelOptimizationBaseModule
-from ..surgery.v3 import SurgeryModule 
-from ..pruning.v3 import PrunerModule 
-from ..quantization.v3.quant_module import QATPT2EModule, PTQPT2EModule
 from copy import deepcopy
 
 
@@ -9,6 +6,9 @@ class ModelOptimizationWrapperV3(ModelOptimizationBaseModule):
     def __init__(self, model, *args, example_inputs=None, example_kwargs=None, model_surgery_kwargs=None, pruning_kwargs=None,
                  quantization_kwargs=None, transformation_dict=None, copy_attrs=None, **kwargs):
         copy_attrs = copy_attrs or []
+        from ..surgery.v3 import SurgeryModule 
+        from ..pruning.v3 import PrunerModule 
+        from ..quantization.v3.quant_module import QATPT2EModule, PTQPT2EModule
         
         if quantization_kwargs:
             quantization_kwargs = deepcopy(quantization_kwargs)

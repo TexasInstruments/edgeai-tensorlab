@@ -37,7 +37,7 @@ import torch.ao.quantization
 from torch.ao.quantization.quantize_pt2e import prepare_pt2e, prepare_qat_pt2e, convert_pt2e 
 
 from .... import xnn
-from ...utils.hooks import add_example_args_kwargs
+from ... import utils
 from . import qconfig_types
 from . import quant_utils
 from .quantizers import TIDLRTQuantizer
@@ -59,7 +59,7 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
         example_inputs = model._example_inputs.pop(0)
         example_kwargs = model._example_kwargs.pop(0)
     else:
-        add_example_args_kwargs(model, example_inputs=example_inputs, example_kwargs=example_kwargs)
+        utils.add_example_args_kwargs(model, example_inputs=example_inputs, example_kwargs=example_kwargs)
     
     if not total_epochs:
         if not is_qat:
