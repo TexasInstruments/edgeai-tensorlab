@@ -39,6 +39,7 @@ def add_example_args_kwargs(module, example_inputs, example_kwargs=None, transfo
     if not isinstance(example_inputs, (tuple, list)):
         example_inputs = (example_inputs,)
     wrapped_transformation_fn(register_pre_hook_for_optimization, module, transformation_dict=transformation_dict)
+    module.eval()
     module(*example_inputs, **example_kwargs)
     wrapped_transformation_fn(disable_pre_hook_for_optimization, module, transformation_dict=transformation_dict)
     

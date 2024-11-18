@@ -56,7 +56,9 @@ class OptimizationBaseModule(nn.Module):
 
 
 class ModelOptimizationBaseModule(OptimizationBaseModule):
-    def __init__(self, model, surgery_module_cls, pruning_module_cls, quantization_module_cls, *args, example_inputs=None, example_kwargs=None, model_surgery_kwargs=None, pruning_kwargs=None, quantization_kwargs=None, transformation_dict=None, copy_attrs=None, **kwargs):
+    def __init__(self, model, surgery_module_cls, pruning_module_cls, quantization_module_cls, *args, 
+                 example_inputs=None, example_kwargs=None, model_surgery_kwargs=None, pruning_kwargs=None, 
+                 quantization_kwargs=None, transformation_dict=None, copy_attrs=None, **kwargs):
         copy_attrs = copy_attrs or []
         super().__init__(model, *args, transformation_dict=transformation_dict, copy_attrs=copy_attrs, **kwargs)
         self.model_surgery_kwargs = model_surgery_kwargs or {}
@@ -67,25 +69,31 @@ class ModelOptimizationBaseModule(OptimizationBaseModule):
         self.surgery_module_cls = surgery_module_cls
         self.pruning_module_cls = pruning_module_cls
         self.quantization_module_cls = quantization_module_cls
-        self.prepare(self.module, *args, example_inputs=self.example_inputs, example_kwargs=self.example_kwargs, model_surgery_kwargs=self.model_surgery_kwargs, pruning_kwargs=self.pruning_kwargs, quantization_kwargs=self.quantization_kwargs, transformation_dict=self.transformation_dict, copy_attrs=copy_attrs, **kwargs)
+        self.prepare(self.module, *args, example_inputs=self.example_inputs, example_kwargs=self.example_kwargs, 
+                     model_surgery_kwargs=self.model_surgery_kwargs, pruning_kwargs=self.pruning_kwargs, 
+                     quantization_kwargs=self.quantization_kwargs, transformation_dict=self.transformation_dict, copy_attrs=copy_attrs, **kwargs)
 
-    def prepare(self, model, *args, example_inputs=None, example_kwargs=None, model_surgery_kwargs=None, pruning_kwargs=None, quantization_kwargs=None, transformation_dict=None, copy_attrs=None, **kwargs):
+    def prepare(self, model, *args, example_inputs=None, example_kwargs=None, model_surgery_kwargs=None, pruning_kwargs=None, 
+                quantization_kwargs=None, transformation_dict=None, copy_attrs=None, **kwargs):
         assert isinstance(self, OptimizationBaseModule), 'This only works for OptimizationBaseModule objects'
         copy_attrs = copy_attrs or []
         self.module = model
 
         if model_surgery_kwargs:
             model_surgery_kwargs = deepcopy(model_surgery_kwargs)
-            self.surgery_module_cls.prepare(self, self.module, example_inputs=example_inputs, example_kwargs=example_kwargs, transformation_dict=transformation_dict, copy_attrs=copy_attrs, **model_surgery_kwargs, **kwargs)
+            self.surgery_module_cls.prepare(self, self.module, example_inputs=example_inputs, example_kwargs=example_kwargs, 
+                                            transformation_dict=transformation_dict, copy_attrs=copy_attrs, **model_surgery_kwargs, **kwargs)
             self.surgery_module_cls._add_attrs_to(self)
 
         if pruning_kwargs:
             pruning_kwargs = deepcopy(pruning_kwargs)
-            self.pruning_module_cls.prepare(self, self.module, example_inputs=example_inputs, example_kwargs=example_kwargs, transformation_dict=transformation_dict, copy_attrs=copy_attrs, **pruning_kwargs, **kwargs)
+            self.pruning_module_cls.prepare(self, self.module, example_inputs=example_inputs, example_kwargs=example_kwargs, 
+                                            transformation_dict=transformation_dict, copy_attrs=copy_attrs, **pruning_kwargs, **kwargs)
 
         if quantization_kwargs:
             quantization_kwargs = deepcopy(quantization_kwargs)
-            self.quantization_module_cls.prepare(self, self.module, example_inputs=example_inputs, example_kwargs=example_kwargs, transformation_dict=transformation_dict, copy_attrs=copy_attrs, **quantization_kwargs, **kwargs)
+            self.quantization_module_cls.prepare(self, self.module, example_inputs=example_inputs, example_kwargs=example_kwargs, 
+                                                 transformation_dict=transformation_dict, copy_attrs=copy_attrs, **quantization_kwargs, **kwargs)
             self.quantization_module_cls._add_attrs_to(self)
 
     def train(self, *args, **kwargs):

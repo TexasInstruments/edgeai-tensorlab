@@ -178,6 +178,12 @@ def freeze(self, freeze_bn=True, freeze_observers=True):
     else:
         self.apply(torch.ao.quantization.enable_observer)
     
+    # this does not work, neither causes any harm, just here for future
+    if freeze_bn is True:
+        self.apply(torch.nn.intrinsic.qat.freeze_bn_stats)
+    elif freeze_bn is False:
+        self.apply(torch.nn.intrinsic.qat.update_bn_stats)
+    
     # freezing the batchnorm update 
     for n in self.graph.nodes:
         # Args: input, weight, bias, running_mean, running_var, training, momentum, eps
@@ -304,7 +310,7 @@ def train(self, mode: bool = True):
     else:
         self.__quant_params__.bias_hooks = remove_hooks(self.__quant_params__.bias_hooks)                      
         self.__quant_params__.outlier_hooks = remove_hooks(self.__quant_params__.outlier_hooks)
-        # torch.ao.quantization.move_exported_model_to_eval(self)
+        # torch.ao.quantization.move_exported_model_to_eval(self) # causing accuracy degradation
         freeze(self)
     #
     return self

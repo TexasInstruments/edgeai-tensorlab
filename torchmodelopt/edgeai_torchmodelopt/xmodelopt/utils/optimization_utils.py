@@ -53,6 +53,7 @@ def apply_model_optimization(model: nn.Module, example_inputs: list=None, exampl
     if not(pruning_version or model_surgery_version or quantization_version):
         return model
 
+    model.eval()
     if isinstance(example_inputs, dict):
         model(example_inputs, **example_kwargs)
     else:
@@ -204,16 +205,16 @@ def apply_quantization(model: nn.Module, example_inputs: list=None, example_kwar
         # for common kwargs
         pass
     if version == 1:
-        model = quantization.v1.QuantTrainModule(model,*example_inputs,**quantization_kwargs)
+        model = quantization.v1.QuantTrainModule(model, *example_inputs, **quantization_kwargs)
     elif version == 2:
-        quantization_method = quantization_kwargs.pop('quantization_method',None)
+        quantization_method = quantization_kwargs.pop('quantization_method', None)
         if quantization_method == 'QAT':
-            model = quantization.v2.QATFxModule(model,**quantization_kwargs)
+            model = quantization.v2.QATFxModule(model, **quantization_kwargs)
         elif quantization_method in ('PTQ', 'PTC'):
-            model = quantization.v2.PTCFxModule(model,**quantization_kwargs)
+            model = quantization.v2.PTCFxModule(model, **quantization_kwargs)
     elif version == 3:
         # assert False, "Quantization is currently not supported in the PT2E based method"
-        quantization_method = quantization_kwargs.pop('quantization_method',None)
+        quantization_method = quantization_kwargs.pop('quantization_method', None)
         if quantization_method == 'QAT':
             model = quantization.v3.QATPT2EModule(model, example_inputs=example_inputs, **quantization_kwargs)
         elif quantization_method in ('PTQ', 'PTC'):
