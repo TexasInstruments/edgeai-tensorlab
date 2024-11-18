@@ -20,6 +20,8 @@ from .point_sample import (get_uncertain_point_coords_with_randomness,
                            get_uncertainty)
 from .vlfuse_helper import BertEncoderLayer, VLFuse, permute_and_flatten
 from .wbf import weighted_boxes_fusion
+from mmdet.models.utils.yolo_model_utils import (LossConfig, MatcherConfig, Vec2Box, AnchorConfig, BoxMatcher,
+                               auto_pad, create_activation_function, round_up, calculate_iou)
 
 __all__ = [
     'gaussian_radius', 'gen_gaussian_target', 'make_divisible',
@@ -33,5 +35,6 @@ __all__ = [
     'samplelist_boxtype2tensor', 'filter_gt_instances', 'rename_loss_dict',
     'reweight_loss_dict', 'relative_coordinate_maps', 'aligned_bilinear',
     'unfold_wo_center', 'imrenormalize', 'VLFuse', 'permute_and_flatten',
-    'BertEncoderLayer', 'align_tensor', 'weighted_boxes_fusion'
+    'BertEncoderLayer', 'align_tensor', 'weighted_boxes_fusion', 'LossConfig', 'MatcherConfig', 'Vec2Box',
+    'BoxMatcher', 'auto_pad', 'create_activation_function', 'round_up', 'calculate_iou'
 ]
