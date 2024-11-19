@@ -276,7 +276,6 @@ class FastBEV(BaseDetector):
 
         # Support only batch_size = 1
         for batch_id, img_meta in enumerate(img_metas):
-            prev_feat = None
             prev_img_meta = img_meta
             prev_feats = []
             prev_img_metas = []
@@ -287,12 +286,8 @@ class FastBEV(BaseDetector):
                 if i > queue.qsize() or \
                     img_meta['scene_token'] != memory[cur_sample_idx - i]['img_meta']['scene_token']:
 
-                    if prev_feat is None:
-                        prev_feats.append(torch.zeros(feats_size, dtype=img.dtype, device=img.device))
-                        prev_img_metas.append(prev_img_meta)
-                    else:
-                        prev_feats.append(prev_feat)
-                        prev_img_metas.append(prev_img_meta)
+                    prev_feats.append(torch.zeros(feats_size, dtype=img.dtype, device=img.device))
+                    prev_img_metas.append(prev_img_meta)
                 else:
                     prev_feat = memory[cur_sample_idx - i]['feature_map']
                     prev_img_meta = memory[cur_sample_idx - i]['img_meta']
@@ -664,14 +659,14 @@ class FastBEV(BaseDetector):
         else:
             xy_coors = self.precompute_proj_info(img, batch_input_metas)
 
-
         feature_map, bbox_pts = \
             self.simple_test(img, batch_input_metas, xy_coors=xy_coors, prev_feats_map=prev_feats_map)
 
         # remove an element if queue is full
-        if self.num_temporal_feats > 0 and self.queue.full():
-            pop_key = self.queue.get()
-            self.memory.pop(pop_key)
+        if self.num_temporal_feats > 0:
+            if self.queue.full():
+                pop_key = self.queue.get()
+                self.memory.pop(pop_key)
 
             # add the current feature map
             # For inference, it should be batch_size = 1

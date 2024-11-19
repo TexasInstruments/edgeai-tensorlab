@@ -853,8 +853,9 @@ class FastBEV_export_model(nn.Module):
         self.num_temporal_feats = model.num_temporal_feats
         self.feats_size         = model.feats_size
 
-        self.memory          = model.memory
-        self.queue           = model.queue
+        if self.num_temporal_feats > 0:
+            self.memory          = model.memory
+            self.queue           = model.queue
 
 
     def prepare_data(self, img_metas):
@@ -967,6 +968,6 @@ class FastBEV_export_model(nn.Module):
         bbox_list = self.bbox_head.get_bboxes(*x, self.img_metas, valid=None)
 
         if prev_feats_map is None:
-            return None, bbox_list
+            return bbox_list
         else:
-            return mlvl_feats, bbox_list
+            return bbox_list, mlvl_feats

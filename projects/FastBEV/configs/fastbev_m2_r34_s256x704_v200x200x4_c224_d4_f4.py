@@ -113,11 +113,11 @@ model = dict(
         use_scale_nms=True,
         # Normal-NMS
         nms_across_levels=False,
-        use_rotate_nms=True,
+        use_rotate_nms=False,
         nms_thr=0.2,
         # Scale-NMS
         nms_type_list=[
-            'rotate', 'rotate', 'rotate', 'rotate', 'rotate', 'rotate', 'rotate', 'rotate', 'rotate', 'circle'],
+            'circle', 'circle', 'circle', 'circle', 'circle', 'circle', 'circle', 'circle', 'circle', 'circle'],
         nms_thr_list=[0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.5, 0.5, 0.2],
         nms_radius_thr_list=[4, 12, 10, 10, 12, 0.85, 0.85, 0.175, 0.175, 1],
         nms_rescale_factor=[1.0, 0.7, 0.55, 0.4, 0.7, 1.0, 1.0, 4.5, 9.0, 1.0],

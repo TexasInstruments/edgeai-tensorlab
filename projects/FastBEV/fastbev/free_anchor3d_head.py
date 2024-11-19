@@ -326,18 +326,24 @@ class CustomFreeAnchor3DHead(FreeAnchor3DHead):
             padding = mlvl_scores.new_zeros(mlvl_scores.shape[0], 1)
             mlvl_scores = torch.cat([mlvl_scores, padding], dim=1)
 
-        return mlvl_bboxes, mlvl_scores, mlvl_dir_scores
+        if cfg.get('use_scale_nms', False):
+            mlvl_bboxes_for_nms = input_meta['box_type_3d'](mlvl_bboxes, box_dim=self.box_code_size).bev
+        else:
+            mlvl_bboxes_for_nms = xywhr2xyxyr(input_meta['box_type_3d'](
+                mlvl_bboxes, box_dim=self.box_code_size).bev)
+
+        return mlvl_bboxes, mlvl_bboxes_for_nms, mlvl_scores, mlvl_dir_scores
 
         """
         score_thr = cfg.get('score_thr', 0)
         if cfg.get('use_scale_nms', False):
-            mlvl_bboxes_for_nms = input_meta['box_type_3d'](mlvl_bboxes, box_dim=self.box_code_size).bev
+            #mlvl_bboxes_for_nms = input_meta['box_type_3d'](mlvl_bboxes, box_dim=self.box_code_size).bev
             results = box3d_multiclass_scale_nms(mlvl_bboxes, mlvl_bboxes_for_nms,
                                                  mlvl_scores, score_thr, cfg.max_num,
                                                  cfg, mlvl_dir_scores)
         else:
-            mlvl_bboxes_for_nms = xywhr2xyxyr(input_meta['box_type_3d'](
-                mlvl_bboxes, box_dim=self.box_code_size).bev)
+            #mlvl_bboxes_for_nms = xywhr2xyxyr(input_meta['box_type_3d'](
+            #    mlvl_bboxes, box_dim=self.box_code_size).bev)
             results = box3d_multiclass_nms(mlvl_bboxes, mlvl_bboxes_for_nms,
                                            mlvl_scores, score_thr, cfg.max_num,
                                            cfg, mlvl_dir_scores)

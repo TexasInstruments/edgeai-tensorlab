@@ -328,9 +328,9 @@ def export_FastBEV(onnxModel, inputs=None,  data_samples=None):
 
     input_names  = ["imgs", "xy_coor", "prev_img_feats"]
     if prev_feats_map is None:
-        output_names = ["bboxes", "scores", "dir_scores"]
+        output_names = ["bboxes", "bboxes_for_nms", "scores", "dir_scores", ]
     else:
-        output_names = ["img_feats", "bboxes", "scores", "dir_scores"]
+        output_names = ["bboxes", "bboxes_for_nms", "scores", "dir_scores", "img_feats"]
 
     torch.onnx.export(onnxModel,
                       tuple(model_input),
