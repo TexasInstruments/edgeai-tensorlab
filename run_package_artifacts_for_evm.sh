@@ -31,7 +31,7 @@
 ##################################################################
 # target_device - use one of: TDA4VM AM62A AM68A AM69A
 # (Note: until r8.5 only TDA4VM was supported)
-TARGET_SOC=TDA4VM
+TARGET_SOC=AM68A
 
 # leave this as evm - no change needed
 # after compilation, run_package_artifacts_evm.sh can be used to format and package the compiled artifacts for evm

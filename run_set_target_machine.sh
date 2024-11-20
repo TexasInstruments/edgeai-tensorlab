@@ -29,7 +29,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ##################################################################
-TARGET_SOC=${1:-TDA4VM}
+TARGET_SOC=${1:-AM68A}
 TARGET_MACHINE=${2:-pc}
 
 ##################################################################

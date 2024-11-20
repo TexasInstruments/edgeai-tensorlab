@@ -36,26 +36,25 @@ set -m
 ##################################################################
 # target_device - use one of: TDA4VM AM62A AM68A AM69A
 # (Note: until r8.5 only TDA4VM was supported)
-TARGET_SOC=TDA4VM
+TARGET_SOC=${1:-AM68A}
 
 # leave this as pc - no change needed
 # pc: for model compilation and inference on PC, evm: for model inference on EVM
 # after compilation, run_package_artifacts_evm.sh can be used to format and package the compiled artifacts for evm
-TARGET_MACHINE=pc
+TARGET_MACHINE=${TARGET_MACHINE:-pc}
 
 # for parallel execution on pc only (cpu or gpu).
 # number of parallel processes to run.
-NUM_PARALLEL_PROCESSES=16
+NUM_PARALLEL_PROCESSES=${NUM_PARALLEL_PROCESSES:-16}
 
 # for parallel execution on CUDA/GPU. if you don't have CUDA/gpu, these don't matter
 # important note: to use CUDA/GPU, CUDA compiled TIDL (tidl_tools) is required.
-NUM_PARALLEL_DEVICES=4
-
+NUM_PARALLEL_DEVICES=${NUM_PARALLEL_DEVICES:-4}
 
 ##################################################################
 # for arg in "$@"
 while(( "$#" ));
-do 
+do
     case "$1" in
         "TDA4VM"|"AM68A"|"AM69A"|"AM62A"|"AM67A"|"AM62")
             TARGET_SOC=$1
@@ -78,8 +77,8 @@ This script sets up the environment and runs benchmarking on x86 PC in parallel 
 
 Options:
 --parallel_processes=* Number of parallel processes to run. Defaults to 16.
-                (E.g., 8 means eight models will run in parallel, 
-                1 means one model will run in a separate processs, 
+                (E.g., 8 means eight models will run in parallel,
+                1 means one model will run in a separate processs,
                 and null means one process will run in the same process as the main).
 --devices=*     Number of parallel devices (CUDA/GPU) to run on. If you don't have CUDA/gpu, this does not apply. Defaults to 4.
                 If you have GPUs these wil be used for CUDA_VISIBLE_DEVICES. E.g., specifying 4 will use the gpus: 0,1,2,3.
@@ -105,6 +104,7 @@ EOF
     esac
 done
 
+##################################################################
 echo "TARGET_SOC:             ${TARGET_SOC}"
 echo "TARGET_MACHINE:         ${TARGET_MACHINE}"
 echo "NUM_PARALLEL_PROCESSES: ${NUM_PARALLEL_PROCESSES}"
@@ -143,7 +143,9 @@ proc_id=$$
 MODELARTIFACTS_DIR="./work_dirs/modelartifacts"
 MODELS_LIST="${MODELARTIFACTS_DIR}/benchmarks_models_list.txt"
 mkdir -p ${MODELARTIFACTS_DIR}
-python3 ./scripts/generate_models_list.py ${SETTINGS} --target_device ${TARGET_SOC} --models_list_file $MODELS_LIST --dataset_loading False ${@:2}
+GENERATE_MODELS_LIST_SCRIPT="python3 ./scripts/generate_models_list.py ${SETTINGS} --target_device ${TARGET_SOC} --models_list_file $MODELS_LIST --dataset_loading False ${@:2}"
+echo ${GENERATE_MODELS_LIST_SCRIPT}
+eval "${GENERATE_MODELS_LIST_SCRIPT}"
 num_lines=$(wc -l < ${MODELS_LIST})
 echo $num_lines
 
@@ -164,7 +166,9 @@ for model_id in $(cat ${MODELS_LIST}); do
   echo " proc_id:$proc_id timestamp:$timestamp num_running_jobs:$num_running_jobs running model_id:$model_id on parallel_device:$parallel_device"
   # --parallel_processes 0 is used becuase we don't want to create another process inside.
   # --parallel_devices null is used becuase CUDA_VISIBLE_DEVICES is set here itself - no need to be set inside again
-  CUDA_VISIBLE_DEVICES="$parallel_device" run_model "${SETTINGS}" --target_device "${TARGET_SOC}" --model_selection "${model_id}" --parallel_processes 0 --parallel_devices null ${@:2} &
+  RUN_MODEL_SCRIPT="CUDA_VISIBLE_DEVICES="$parallel_device" run_model "${SETTINGS}" --target_device "${TARGET_SOC}" --model_selection "${model_id}" --parallel_processes 0 --parallel_devices null ${@:2} &"
+  echo "${RUN_MODEL_SCRIPT}"
+  eval "${RUN_MODEL_SCRIPT}"
   sleep 1
   echo " ==============================================================="
 done
