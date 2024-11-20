@@ -52,6 +52,7 @@ NUM_PARALLEL_PROCESSES=${NUM_PARALLEL_PROCESSES:-16}
 NUM_PARALLEL_DEVICES=${NUM_PARALLEL_DEVICES:-4}
 
 ##################################################################
+CMD_ARGS=("$@")
 # for arg in "$@"
 while(( "$#" ));
 do
@@ -59,6 +60,7 @@ do
         "TDA4VM"|"AM68A"|"AM69A"|"AM62A"|"AM67A"|"AM62")
             TARGET_SOC=$1
             shift
+            CMD_ARGS=("$@")
             ;;
         "--parallel_processes")
             NUM_PARALLEL_PROCESSES=$2
@@ -98,9 +100,9 @@ $0 --devices=2 # choose number of parallel devices
 EOF
             exit 0
             ;;
-        #*) # Catch-all
-        #    shift
-        #    ;;
+        *) # Catch-all
+            shift
+            ;;
     esac
 done
 
@@ -143,7 +145,7 @@ proc_id=$$
 MODELARTIFACTS_DIR="./work_dirs/modelartifacts"
 MODELS_LIST="${MODELARTIFACTS_DIR}/benchmarks_models_list.txt"
 mkdir -p ${MODELARTIFACTS_DIR}
-GENERATE_MODELS_LIST_SCRIPT="python3 ./scripts/generate_models_list.py ${SETTINGS} --target_device ${TARGET_SOC} --models_list_file $MODELS_LIST --dataset_loading False ${@:2}"
+GENERATE_MODELS_LIST_SCRIPT="python3 ./scripts/generate_models_list.py ${SETTINGS} ${CMD_ARGS[@]} --target_device ${TARGET_SOC} --models_list_file $MODELS_LIST --dataset_loading False"
 echo ${GENERATE_MODELS_LIST_SCRIPT}
 eval "${GENERATE_MODELS_LIST_SCRIPT}"
 num_lines=$(wc -l < ${MODELS_LIST})
@@ -166,7 +168,7 @@ for model_id in $(cat ${MODELS_LIST}); do
   echo " proc_id:$proc_id timestamp:$timestamp num_running_jobs:$num_running_jobs running model_id:$model_id on parallel_device:$parallel_device"
   # --parallel_processes 0 is used becuase we don't want to create another process inside.
   # --parallel_devices null is used becuase CUDA_VISIBLE_DEVICES is set here itself - no need to be set inside again
-  RUN_MODEL_SCRIPT="CUDA_VISIBLE_DEVICES="$parallel_device" run_model "${SETTINGS}" --target_device "${TARGET_SOC}" --model_selection "${model_id}" --parallel_processes 0 --parallel_devices null ${@:2} &"
+  RUN_MODEL_SCRIPT="CUDA_VISIBLE_DEVICES=$parallel_device run_model ${SETTINGS} ${CMD_ARGS[@]} --target_device ${TARGET_SOC} --model_selection ${model_id} --parallel_processes 0 --parallel_devices null &"
   echo "${RUN_MODEL_SCRIPT}"
   eval "${RUN_MODEL_SCRIPT}"
   sleep 1
