@@ -59,6 +59,8 @@ def get_arg_parser():
     parser.add_argument('--parallel_processes', type=int)
     parser.add_argument('--fast_calibration_factor', type=utils.float_or_none)
     parser.add_argument('--experimental_models', type=utils.str_to_bool)
+    parser.add_argument('--additional_models', type=utils.str_to_bool)
+
     return parser
 
 if __name__ == '__main__':

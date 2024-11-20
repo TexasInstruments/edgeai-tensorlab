@@ -42,6 +42,7 @@ HOSTNAME=$(hostname)
 PORT=5678
 
 ##################################################################
+CMD_ARGS=()
 for arg in "$@"
 do 
     case "$arg" in
@@ -79,6 +80,9 @@ $0 [-d|--debug] AM62A # select device with debug
 EOF
             exit 0
             ;;
+        *) # Catch-all
+            CMD_ARGS+=("$arg")
+            ;;
     esac
 done
 
@@ -99,8 +103,8 @@ SETTINGS=settings_infer_on_evm.yaml
 MODELS_LIST=./work_dirs/modelartifacts/benchmarks_models_list.txt
 ##################################################################
 
-PYARGS1="./scripts/generate_models_list.py ${SETTINGS} --target_device ${TARGET_SOC} --models_list_file $MODELS_LIST --dataset_loading False"
-PYARGS2="./scripts/benchmark_modelzoo.py ${SETTINGS} --target_device ${TARGET_SOC} --run_import False"
+PYARGS1="./scripts/generate_models_list.py ${SETTINGS} ${CMD_ARGS[@]} --target_device ${TARGET_SOC} --models_list_file $MODELS_LIST --dataset_loading False"
+PYARGS2="./scripts/benchmark_modelzoo.py ${SETTINGS} ${CMD_ARGS[@]} --target_device ${TARGET_SOC} --run_import False"
 PYARGS3="./scripts/generate_report.py ${SETTINGS}"
 PYDEBUG="python3 -m debugpy --listen ${HOSTNAME}:${PORT} --wait-for-client"
 echo "==================================================================="

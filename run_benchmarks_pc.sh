@@ -44,6 +44,7 @@ HOSTNAME=$(hostname)
 PORT=5678
 
 ##################################################################
+CMD_ARGS=()
 for arg in "$@"
 do 
     case "$arg" in
@@ -80,6 +81,9 @@ $0 [-d|--debug] AM62A # select device with debug
 EOF
             exit 0
             ;;
+        *) # Catch-all
+            CMD_ARGS+=("$arg")
+            ;;
     esac
 done
 
@@ -100,8 +104,8 @@ source run_set_env.sh ${TARGET_SOC} ${TARGET_MACHINE}
 SETTINGS=settings_import_on_pc.yaml
 ##################################################################
 
-PYARGS1="./scripts/benchmark_modelzoo.py ${SETTINGS} --target_device ${TARGET_SOC} --run_inference False"
-PYARGS2="./scripts/benchmark_modelzoo.py ${SETTINGS} --target_device ${TARGET_SOC} --run_import False"
+PYARGS1="./scripts/benchmark_modelzoo.py ${SETTINGS} ${CMD_ARGS[@]} --target_device ${TARGET_SOC} --run_inference False"
+PYARGS2="./scripts/benchmark_modelzoo.py ${SETTINGS} ${CMD_ARGS[@]} --target_device ${TARGET_SOC} --run_import False"
 PYARGS3="./scripts/generate_report.py ${SETTINGS}"
 PYDEBUG="python3 -m debugpy --listen ${HOSTNAME}:${PORT} --wait-for-client"
 
