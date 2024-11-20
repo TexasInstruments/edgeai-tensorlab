@@ -98,9 +98,9 @@ $0 --devices=2 # choose number of parallel devices
 EOF
             exit 0
             ;;
-        *) # Catch-all
-            shift
-            ;;
+        #*) # Catch-all
+        #    shift
+        #    ;;
     esac
 done
 
