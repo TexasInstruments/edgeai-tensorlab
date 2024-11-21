@@ -88,6 +88,9 @@ if [[ $TIDL_TOOLS_RELEASE_NAME == "latest" || $TIDL_TOOLS_RELEASE_NAME == "r10.1
       exit 1
   fi
 
+  # for internal links, no proxy is required
+  WGET_PROXY_SETTINGS="--proxy=off"
+
   echo "--------------------------------------------------------------------------------------------------------------"
   echo "Installing requirements..."
   echo "--------------------------------------------------------------------------------------------------------------"
@@ -108,7 +111,7 @@ if [[ $TIDL_TOOLS_RELEASE_NAME == "latest" || $TIDL_TOOLS_RELEASE_NAME == "r10.1
   pip3 install --no-input http://tidl-ud-17.dhcp.ti.com/build/sdk_release/osrt/onnx/x86/onnxruntime_tidl-1.15.0-cp310-cp310-linux_x86_64.whl
   pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/tflite_runtime-2.12.0-cp310-cp310-linux_x86_64.whl
   # these are internal links for now
-  TIDL_TOOLS_DOWNLOAD_LINKS=("http://10.24.68.92/OSRT_TOOLS/10_01_00_01/am68pa/tidl_tools${TIDL_TOOLS_TYPE_SUFFIX}.tar.gz" "http://10.24.68.92/OSRT_TOOLS/10_01_00_01/am68a/tidl_tools.tar.gz" "http://10.24.68.92/OSRT_TOOLS/10_01_00_01/am69a/tidl_tools${TIDL_TOOLS_TYPE_SUFFIX}.tar.gz" "http://10.24.68.92/OSRT_TOOLS/10_01_00_01/am62a/tidl_tools${TIDL_TOOLS_TYPE_SUFFIX}.tar.gz" "http://10.24.68.92/OSRT_TOOLS/10_01_00_01/am67a/tidl_tools${TIDL_TOOLS_TYPE_SUFFIX}.tar.gz")
+  TIDL_TOOLS_DOWNLOAD_LINKS=("http://10.24.68.92/OSRT_TOOLS/10_01_00_01/am68pa/tidl_tools${TIDL_TOOLS_TYPE_SUFFIX}.tar.gz" "http://10.24.68.92/OSRT_TOOLS/10_01_00_01/am68a/tidl_tools${TIDL_TOOLS_TYPE_SUFFIX}.tar.gz" "http://10.24.68.92/OSRT_TOOLS/10_01_00_01/am69a/tidl_tools${TIDL_TOOLS_TYPE_SUFFIX}.tar.gz" "http://10.24.68.92/OSRT_TOOLS/10_01_00_01/am62a/tidl_tools${TIDL_TOOLS_TYPE_SUFFIX}.tar.gz" "http://10.24.68.92/OSRT_TOOLS/10_01_00_01/am67a/tidl_tools${TIDL_TOOLS_TYPE_SUFFIX}.tar.gz")
   for (( soc_idx=0; soc_idx<"${#TARGET_SOCS[@]}"; soc_idx++ )); do
     TARGET_SOC=${TARGET_SOCS[$soc_idx]}
     TIDL_TOOLS_DOWNLOAD_LINK=${TIDL_TOOLS_DOWNLOAD_LINKS[$soc_idx]}
@@ -321,7 +324,7 @@ for (( soc_idx=0; soc_idx<"${#TARGET_SOCS[@]}"; soc_idx++ )); do
   echo "Installing tidl_tools for SOC: ${TARGET_SOC} to: ${TIDL_TOOLS_SOC_PREFIX} from: ${TIDL_TOOLS_DOWNLOAD_LINK}"
   rm -rf ${TIDL_TOOLS_SOC_PREFIX}
   mkdir -p ${TIDL_TOOLS_SOC_PREFIX}
-  wget -O ${TIDL_TOOLS_SOC_PREFIX}/tidl_tools.tar.gz ${TIDL_TOOLS_DOWNLOAD_LINK}
+  wget ${WGET_PROXY_SETTINGS} -O ${TIDL_TOOLS_SOC_PREFIX}/tidl_tools.tar.gz ${TIDL_TOOLS_DOWNLOAD_LINK}
   tar -xzf ${TIDL_TOOLS_SOC_PREFIX}/tidl_tools.tar.gz -C ${TIDL_TOOLS_SOC_PREFIX}
 
   # note: this is just en example of setting TIDL_TOOLS_PATH and ARM64_GCC_PATH - this will be overwritten in this loop
