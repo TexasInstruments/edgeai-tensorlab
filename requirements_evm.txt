@@ -8,6 +8,6 @@
 #requests
 #pytest
 #graphviz
-#protobuf==3.20.2
-#onnx==1.13.0
+#protobuf
+#onnx==1.14.0
 #h5py

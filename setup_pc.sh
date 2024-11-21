@@ -94,7 +94,7 @@ if [[ $TIDL_TOOLS_RELEASE_NAME == "latest" || $TIDL_TOOLS_RELEASE_NAME == "r10.1
   # there as issue with installing pillow-simd through requirements - force it here
   pip3 uninstall --yes pillow
   pip3 install --no-input -U --force-reinstall pillow-simd
-  pip3 install --no-input protobuf==3.21.12 onnx==1.14.0
+  pip3 install --no-input onnx==1.14.0 protobuf
   pip3 install --no-input -r ./requirements_pc.txt
 
   echo "--------------------------------------------------------------------------------------------------------------"
