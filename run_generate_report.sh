@@ -51,7 +51,7 @@ do
         "-d"|"--debug")
             DEBUG=true
             ;;
-        "TDA4VM"|"AM68A"|"AM69A"|"AM62A"|"AM67A"|"AM62")
+        "TDA4VM"|"AM68A"|"AM69A"|"AM62A"|"AM67A"|"AM62"|"None")
             TARGET_SOC=$arg
             ;;
         "-h"|"--help")
@@ -103,11 +103,13 @@ echo "==================================================================="
 
 if $DEBUG
 then
-    echo "Waiting for attach @ ${HOSTNAME}:${PORT} to debug..." 
+    echo "Waiting for attach @ ${HOSTNAME}:${PORT} to debug..."
     echo "See --help for more info."
+    echo "${PYDEBUG} ${PYARGS}"
     ${PYDEBUG} ${PYARGS}
     echo "-------------------------------------------------------------------"
 else
+    echo "python3 ${PYARGS}"
     python3 ${PYARGS}
     echo "-------------------------------------------------------------------"
 fi

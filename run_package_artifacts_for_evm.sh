@@ -50,7 +50,7 @@ do
         "-d"|"--debug")
             DEBUG=true
             ;;
-        "TDA4VM"|"AM68A"|"AM69A"|"AM62A"|"AM67A"|"AM62")
+        "TDA4VM"|"AM68A"|"AM69A"|"AM62A"|"AM67A"|"AM62"|"None")
             TARGET_SOC=$arg
             ;;
         "-h"|"--help")

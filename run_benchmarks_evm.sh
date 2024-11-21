@@ -46,7 +46,7 @@ CMD_ARGS=()
 for arg in "$@"
 do 
     case "$arg" in
-        "TDA4VM"|"AM68A"|"AM69A"|"AM62A"|"AM67A"|"AM62")
+        "TDA4VM"|"AM68A"|"AM69A"|"AM62A"|"AM67A"|"AM62"|"None")
             TARGET_SOC=$arg
             ;;
         "-d"|"--debug")

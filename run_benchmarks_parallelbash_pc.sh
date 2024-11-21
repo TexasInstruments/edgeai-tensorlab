@@ -57,7 +57,7 @@ CMD_ARGS=()
 while(( "$#" ));
 do
     case "$1" in
-        "TDA4VM"|"AM68A"|"AM69A"|"AM62A"|"AM67A"|"AM62")
+        "TDA4VM"|"AM68A"|"AM69A"|"AM62A"|"AM67A"|"AM62"|"None")
             TARGET_SOC=$1
             shift
             ;;
