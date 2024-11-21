@@ -52,7 +52,7 @@ NUM_PARALLEL_PROCESSES=${NUM_PARALLEL_PROCESSES:-16}
 NUM_PARALLEL_DEVICES=${NUM_PARALLEL_DEVICES:-4}
 
 ##################################################################
-CMD_ARGS=("$@")
+CMD_ARGS=()
 # for arg in "$@"
 while(( "$#" ));
 do
@@ -60,7 +60,6 @@ do
         "TDA4VM"|"AM68A"|"AM69A"|"AM62A"|"AM67A"|"AM62")
             TARGET_SOC=$1
             shift
-            CMD_ARGS=("$@")
             ;;
         "--parallel_processes")
             NUM_PARALLEL_PROCESSES=$2
@@ -101,6 +100,7 @@ EOF
             exit 0
             ;;
         *) # Catch-all
+            CMD_ARGS+=("$1")
             shift
             ;;
     esac

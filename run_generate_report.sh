@@ -44,6 +44,7 @@ HOSTNAME=$(hostname)
 PORT=5678
 
 ##################################################################
+CMD_ARGS=()
 for arg in "$@"
 do 
     case "$arg" in
@@ -77,6 +78,9 @@ $0 [-d|--debug] AM62A # select device with debug
 EOF
             exit 0
             ;;
+        *) # Catch-all
+            CMD_ARGS+=("$arg")
+            ;;
     esac
 done
 ##################################################################
@@ -90,7 +94,7 @@ source run_set_env.sh ${TARGET_SOC} ${TARGET_MACHINE}
 SETTINGS=settings_import_on_pc.yaml
 ##################################################################
 
-PYARGS="./scripts/generate_report.py ${SETTINGS} --target_device ${TARGET_SOC}"
+PYARGS="./scripts/generate_report.py ${SETTINGS} ${CMD_ARGS[@]} --target_device ${TARGET_SOC}"
 # add the following to report perfsim results as well.
 #--report_perfsim True
 

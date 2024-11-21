@@ -43,6 +43,7 @@ HOSTNAME=$(hostname)
 PORT=5678
 
 ##################################################################
+CMD_ARGS=()
 for arg in "$@"
 do 
     case "$arg" in
@@ -76,6 +77,9 @@ $0 [-d|--debug] AM62A # select device with debug
 EOF
             exit 0
             ;;
+        *) # Catch-all
+            CMD_ARGS+=("$arg")
+            ;;
     esac
 done
 ##################################################################
@@ -89,7 +93,7 @@ source run_set_env.sh ${TARGET_SOC} ${TARGET_MACHINE}
 SETTINGS=settings_infer_on_evm.yaml
 ##################################################################
 
-PYARGS="./scripts/package_artifacts.py ${SETTINGS} --target_device ${TARGET_SOC}"
+PYARGS="./scripts/package_artifacts.py ${SETTINGS} ${CMD_ARGS[@]} --target_device ${TARGET_SOC}"
 PYDEBUG="python3 -m debugpy --listen ${HOSTNAME}:${PORT} --wait-for-client"
 echo "==================================================================="
 
