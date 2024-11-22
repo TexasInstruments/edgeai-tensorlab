@@ -3,12 +3,29 @@ import copy
 
 from onnxsim import simplify
 import onnx
+import torch.distributed
 
 from .onnx_network import PETR_export_model, StreamPETR_export_model, \
                           Far3D_export_model, Far3D_export_img_backbone, Far3D_export_img_roi, Far3D_export_pts_bbox, \
                           BEVFormer_export_model, \
                           BEVDet_export_model, FCOS3D_export_model, \
                           DETR3D_export_model
+from  mmengine.dist.utils import is_main_process, is_distributed
+
+def wrap_for_dist(fn):
+    def wrapped(*args, **kwargs):
+        if is_distributed():
+            if is_main_process():
+                print('main_process')
+                res = fn(*args, **kwargs)
+            else:
+                print('not main_process')
+                res = None
+            torch.distributed.barrier()
+            return res
+        else:
+            return fn(*args, **kwargs)
+    return wrapped
 
 
 def export_PETR(model, inputs=None, data_samples=None, 
@@ -533,8 +550,8 @@ def export_BEVFormer(onnxModel, inputs=None, data_samples=None, **kwargs):
 
     print("!!ONNX model has been exported for BEVFormer!\n\n")
 
-
-def export_FCOS3D(model, inputs=None, data_samples=None, quantized_model=False, opset_version=20):
+@wrap_for_dist
+def export_FCOS3D(model, inputs=None, data_samples=None, quantized_model=False, opset_version=17):
     onnxModel = FCOS3D_export_model(model.backbone,
                                     model.neck,
                                     model.bbox_head,
@@ -594,6 +611,7 @@ def export_FCOS3D(model, inputs=None, data_samples=None, quantized_model=False, 
                       output_names=output_names,
                       opset_version=opset_version,
                       training=torch._C._onnx.TrainingMode.PRESERVE,
+                      do_constant_folding=False, 
                       verbose=False)
 
     onnx_model, _ = simplify(model_name)
