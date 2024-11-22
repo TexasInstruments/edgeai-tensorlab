@@ -68,7 +68,7 @@ def parse_args(args = None):
     parser.add_argument('--local_rank', '--local-rank', type=int, default=0)
     parser.add_argument('--model-surgery', type=int, default=None)
     parser.add_argument('--quantization', type=int, default=0)
-    args = parser.parse_args(args) if parser else parser.parse_args()
+    args = parser.parse_args(args) if args else parser.parse_args()
     if 'LOCAL_RANK' not in os.environ:
         os.environ['LOCAL_RANK'] = str(args.local_rank)
     return args
