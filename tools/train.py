@@ -224,14 +224,14 @@ def parse_args(args=None):
     parser.add_argument('--export-onnx-model', action='store_true', default=False, help='whether to export the onnx network' )
     parser.add_argument('--simplify', action='store_true', default=False, help='whether to simplify the onnx model or not model' )   
     
-    args = parser.parse_args()
+    args = parser.parse_args() if args is None else parser.parse_args(args)
     if 'LOCAL_RANK' not in os.environ:
         os.environ['LOCAL_RANK'] = str(args.local_rank)
     return args
 
 
-def main():
-    args = parse_args()
+def main(args=None):
+    args = parse_args(args)
 
     # load config
     cfg = Config.fromfile(args.config)
