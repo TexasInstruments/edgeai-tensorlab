@@ -134,7 +134,7 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
                 
         # model.__quant_train_backup__ = types.MethodType(train_quant if is_qat else model.train.__func__, model)
         model.train = types.MethodType(train, model)
-        model.eval = types.MethodType(train, model)
+        model.eval = types.MethodType(eval, model)
         # other methods
         model.freeze = types.MethodType(freeze, model)
         model.unfreeze = types.MethodType(unfreeze, model)
@@ -263,9 +263,9 @@ def convert(self, *args, device="cpu", make_copy=True, **kwargs):
     model = quant_utils.move_node_kwargs_to_device(model, device=device)
     model = quant_utils.remove_to_device_node(model)
     model = convert_pt2e(model, use_reference_representation=False, fold_quantize= False)
-    model.eval = types.MethodType(train, model)
+    model.eval = types.MethodType(eval, model)
     torch.ao.quantization.move_exported_model_to_eval(model)
-    model.eval = types.MethodType(train, model)
+    model.eval = types.MethodType(eval, model)
 
     if orig_quant_params:
         setattr(model, "__quant_params__", orig_quant_params)
@@ -314,6 +314,10 @@ def train(self, mode: bool = True):
         freeze(self)
     #
     return self
+
+
+def eval(self, mode: bool = False):
+    return train(self, mode)
 
 
 def calibrate(self, freeze_bn=True, freeze_observers=False, freeze_fn=None):
