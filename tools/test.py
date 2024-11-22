@@ -18,7 +18,7 @@ from mmdet.evaluation import DumpDetResults
 from mmdet.registry import RUNNERS
 from mmdet.utils import setup_cache_size_limit_of_dynamo
 import mmdet.hooks
-from mmdet.utils.model_optimization import get_replacement_dict, wrap_optimize_func, get_input, wrap_fn_for_bbox_head
+from mmdet.utils.model_optimization import get_replacement_dict, wrap_fn_for_bbox_head, get_input, wrap_fn_for_bbox_head
 
 from edgeai_torchmodelopt import xmodelopt
 from edgeai_torchmodelopt import xnn
@@ -173,7 +173,7 @@ def main(args=None):
 
     example_inputs, example_kwargs = get_input(runner.model, cfg,)
     
-    transformation_dict = dict(backbone=None, neck=None, bbox_head=xmodelopt.TransformationWrapper(wrap_fn_for_bbox_head))
+    transformation_dict = dict(backbone=None, neck=None, bbox_head=xmodelopt.utils.TransformationWrapper(wrap_fn_for_bbox_head))
     copy_attrs=['train_step', 'val_step', 'test_step', 'data_preprocessor', 'parse_losses', 'bbox_head', '_run_forward']
     if model_surgery:
         model_surgery_kwargs = dict(replacement_dict=get_replacement_dict(model_surgery, cfg))

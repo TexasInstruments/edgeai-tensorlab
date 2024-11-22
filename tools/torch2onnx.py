@@ -111,7 +111,7 @@ def main():
 
     example_inputs, example_kwargs = get_input(torch_model, model_cfg,)
     
-    transformation_dict = dict(backbone=None, neck=None, bbox_head=xmodelopt.TransformationWrapper(wrap_fn_for_bbox_head))
+    transformation_dict = dict(backbone=None, neck=None, bbox_head=xmodelopt.utils.TransformationWrapper(wrap_fn_for_bbox_head))
     copy_attrs=['train_step', 'val_step', 'test_step', 'data_preprocessor', 'parse_losses', 'bbox_head', '_run_forward']
     if model_surgery:
         model_surgery_kwargs = dict(replacement_dict=get_replacement_dict(model_surgery, model_cfg))

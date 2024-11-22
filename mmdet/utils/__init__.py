@@ -15,7 +15,7 @@ from .split_batch import split_batch
 from .typing_utils import (ConfigType, InstanceList, MultiConfig,
                            OptConfigType, OptInstanceList, OptMultiConfig,
                            OptPixelList, PixelList, RangeType)
-from .model_optimization import wrap_optimize_func, get_replacement_dict, get_input
+from .model_optimization import wrap_fn_for_bbox_head, get_replacement_dict, get_input
 from .save_model import save_model_proto
 
 __all__ = [
@@ -23,7 +23,7 @@ __all__ = [
     'setup_multi_processes', 'get_caller_name', 'log_img_scale', 'compat_cfg',
     'split_batch', 'register_all_modules', 'replace_cfg_vals', 'AvoidOOM',
     'AvoidCUDAOOM', 'all_reduce_dict', 'allreduce_grads', 'reduce_mean',
-    'sync_random_seed', 'ConfigType', 'InstanceList', 'MultiConfig', 'wrap_optimize_func', 'get_replacement_dict', 'get_input',
+    'sync_random_seed', 'ConfigType', 'InstanceList', 'MultiConfig', 'wrap_fn_for_bbox_head', 'get_replacement_dict', 'get_input',
     'OptConfigType', 'OptInstanceList', 'OptMultiConfig', 'OptPixelList','save_model_proto',
     'PixelList', 'RangeType', 'get_test_pipeline_cfg',
     'setup_cache_size_limit_of_dynamo', 'imshow_mot_errors'
