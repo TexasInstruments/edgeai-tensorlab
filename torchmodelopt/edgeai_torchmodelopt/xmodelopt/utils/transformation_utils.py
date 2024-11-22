@@ -13,7 +13,29 @@ def apply_tranformation_to_submodules(model:nn.Module, transformation_dict: dict
             splits = '',splits[0]
         parent_module, sub_module_name = splits
         parent_module = model if parent_module == '' else module_dict[parent_module]
-        module = wrapper_fn(module, *args, **kwargs)
+        if isinstance(module, nn.ModuleList):  # not well tested, example inputs might not be passed in correct manner
+            for i, mod in enumerate(module):
+                if isinstance(mod, nn.ModuleList): # taken care of 2 nested modulelist, need to generalise over many #TODO
+                    for j, mo in enumerate(mod):
+                        if mo is not None:
+                            mo = wrapper_fn(mo, *args, **kwargs)
+                        mod[j] = mo
+                    #
+                #
+                else:
+                    if mod is not None:
+                        mod = wrapper_fn(mod, *args, **kwargs)
+                module[i] = mod
+                # example_inputs = kwargs.get("example_inputs", None)
+                # if example_inputs is not None: #or kwargs.get("example_kwargs", None): TODO deal with kwargs passed to modulelist
+                #     example_inputs = [mod(*example_inputs)]
+                # mod = wrapper_fn(mod, *args, **kwargs)
+                # if example_inputs is not None:
+                #     kwargs["example_inputs"] = example_inputs
+            #
+        #
+        else:
+            module = wrapper_fn(module, *args, **kwargs)
         setattr(parent_module, sub_module_name, module)
     return model
 

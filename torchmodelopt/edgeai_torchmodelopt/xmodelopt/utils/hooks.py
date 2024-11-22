@@ -14,8 +14,14 @@ def detach_all_tensors(vals):
 
 
 def record_inputs_pre_hook(self: nn.Module, args, kwargs):
-    self._example_inputs = detach_all_tensors(args)
-    self._example_kwargs = detach_all_tensors(kwargs)
+    if hasattr(self, "_example_inputs"):
+        self._example_inputs.append(detach_all_tensors(args))
+        self._example_kwargs.append(detach_all_tensors(kwargs))
+    else:
+        self._example_inputs = []
+        self._example_kwargs = []
+        self._example_inputs.append(detach_all_tensors(args))
+        self._example_kwargs.append(detach_all_tensors(kwargs))
 
 
 def register_pre_hook_for_optimization(self: nn.Module):
@@ -39,6 +45,7 @@ def add_example_args_kwargs(module, example_inputs, example_kwargs=None, transfo
     if not isinstance(example_inputs, (tuple, list)):
         example_inputs = (example_inputs,)
     wrapped_transformation_fn(register_pre_hook_for_optimization, module, transformation_dict=transformation_dict)
+    module.eval()
     module(*example_inputs, **example_kwargs)
     wrapped_transformation_fn(disable_pre_hook_for_optimization, module, transformation_dict=transformation_dict)
     

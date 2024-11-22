@@ -120,7 +120,7 @@ def native_layer_norm(input, normalized_shape, weight, bias, eps: float = 1e-5,)
     return y
 
     
-def register_onnx_symbolics():
+def register_onnx_symbolics(opset_version=17):
     
     def aten_softmax(g: jit_utils.GraphContext, input, dim, *args):
         output = g.op("Softmax", input) #FIXME need to pass dim as well, TIDL needs axis, default works though
@@ -188,49 +188,47 @@ def register_onnx_symbolics():
     register_custom_op_symbolic(
         symbolic_name='aten::lift_fresh_copy',
         symbolic_fn=aten_copy,
-        opset_version=17
-    )
+        opset_version=opset_version)
     
     register_custom_op_symbolic(
         symbolic_name='aten::_to_copy',
         symbolic_fn=aten_copy,
-        opset_version=17
-    )
+        opset_version=opset_version)
 
     register_custom_op_symbolic(
         symbolic_name='aten::_softmax', 
         symbolic_fn=aten_softmax, 
-        opset_version=17)
+        opset_version=opset_version)
     
     register_custom_op_symbolic(
         symbolic_name='aten::_unsafe_view', 
         symbolic_fn=aten_unsafe_view, 
-        opset_version=17)
+        opset_version=opset_version)
 
     register_custom_op_symbolic(
         symbolic_name='aten::_native_batch_norm_legit_no_training', 
         symbolic_fn=aten_batchnorm, 
-        opset_version=17)
+        opset_version=opset_version)
     
     register_custom_op_symbolic(
         symbolic_name='quantized_decomposed::quantize_per_tensor', 
         symbolic_fn=quantized_decomposed_quantize, 
-        opset_version=17)
+        opset_version=opset_version)
 
     register_custom_op_symbolic(
         symbolic_name='quantized_decomposed::dequantize_per_tensor', 
         symbolic_fn=quantized_decomposed_dequantize, 
-        opset_version=17)
+        opset_version=opset_version)
 
     register_custom_op_symbolic(
         symbolic_name='quantized_decomposed::quantize_per_channel', 
         symbolic_fn=quantized_decomposed_quantize_channel, 
-        opset_version=17)
+        opset_version=opset_version)
 
     register_custom_op_symbolic(
         symbolic_name='quantized_decomposed::dequantize_per_channel', 
         symbolic_fn=quantized_decomposed_dequantize_channel, 
-        opset_version=17)
+        opset_version=opset_version)
     
     
 def remove_loss_branch(model): 
@@ -361,6 +359,10 @@ def add_bias_calibration_hook(model, calibration_factor=0):
                 raise ValueError(
                     "Could not find an user of act node for conv within matched pattern."
                 )
+            
+            if not isinstance(output_node.next.target, str):
+                assert output_node.next.target in [torch.ops.aten.relu.default, torch.ops.aten.relu_.default]
+                output_node = output_node.next
             #
             fake_quantize_module = getattr(model, output_node.next.target)
             

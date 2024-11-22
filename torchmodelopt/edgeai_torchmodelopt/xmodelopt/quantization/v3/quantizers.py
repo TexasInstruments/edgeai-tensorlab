@@ -1,5 +1,5 @@
 #################################################################################
-# Copyright (c) 2018-2023, Texas Instruments Incorporated - http://www.ti.com
+# Copyright (c) 2018-2024, Texas Instruments Incorporated - http://www.ti.com
 # All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,9 @@ from torch.ao.quantization.quantizer.quantizer import (
     QuantizationSpec,
     DerivedQuantizationSpec
 )
+# might move to torch/ao/quantization/utils.py later on
+from torch.ao.quantization.pt2e.utils import _is_conv_or_conv_transpose_node
+from torch.nn.utils.fusion import fuse_conv_bn_weights
 import itertools
 import operator
 from typing import Dict, List, Optional, Any
@@ -153,7 +156,7 @@ def _derived_bias_quant_spec(weight_node, input_act_node, curr_node) -> DerivedQ
 
 class TIDLRTQuantizer(Quantizer):
 
-    def __init__(self, is_qat, fast_mode=False, is_fake_quantize=True):
+    def __init__(self, is_qat, fast_mode=False, is_fake_quantize=True, device=None):
         super().__init__()
         self.global_config: QuantizationConfig = None  # type: ignore[assignment]
         self.operator_type_config: Dict[str, Optional[QuantizationConfig]] = {}
@@ -164,16 +167,21 @@ class TIDLRTQuantizer(Quantizer):
                                                         torch.ops.aten.flatten.using_ints, 
                                                         torch.ops.aten.slice.Tensor,
                                                         torch.ops.aten.dropout.default,
-                                                        torch.ops.aten.reshape.default]
+                                                        torch.ops.aten.reshape.default,
+                                                        torch.ops.aten.pad.default] # dont want to requantize pad (just data movement)
         self.single_input_single_output_different_nodes = [ torch.ops.aten.leaky_relu.default, 
                                                             torch.ops.aten.gelu.default,
                                                             torch.ops.aten.relu.default,
+                                                            torch.ops.aten.sigmoid.default,
                                                             torch.ops.aten.softmax.int]
         self.two_inputs_single_output_nodes = [torch.ops.aten.mul.Tensor, 
                                                 torch.ops.aten.div.Tensor,
                                                 torch.ops.aten.add.Tensor,
                                                 torch.ops.aten.sub.Tensor,]
-        # self.two_inputs_single_output_nodes = [torch.ops.aten.div.Tensor]
+        if device is not None:
+            self.device = device
+        else:
+            self.device = torch.device('cuda:0')
 
     def set_global(self, quantization_config: QuantizationConfig):
         """set global QuantizationConfig used for the backend.
@@ -198,16 +206,35 @@ class TIDLRTQuantizer(Quantizer):
         # quantize the weight of that layer as well as the output to 16 bit, however, input is still 8 bit quantized
         # further, the quantization also flows, which means, if the input is 16 bit, then weights will also be in 16 bit
         # but the output will be in 8 bit
+        self._skip_annotation(model, config)
+        self._annotate_deformconv2d(model, config)
         self._annotate_layernorm(model, config) # the weights and bias also need to be quantized, first so not to quantize nodes internally which might happen later on
         self._annotate_single_input_single_output_different(model, config)
-        self._annotate_single_input_single_output_shared(model, config)
         self._annotate_two_inputs_single_output(model, config)
         self._annotate_cat(model, config)
         self._annotate_view(model, config) # view possible in loss which creates issues, mostly it needs to be quantized to support bias quantization.
         self._annotate_matmul(model, config)
         self._annotate_conv2d(model, config, allow_16bit_node_list)
         self._annotate_linear(model, config, allow_16bit_node_list)
+        self._annotate_single_input_single_output_shared(model, config) # reshape in weight of conv avoided quantization by moving this to last
+        # self._transfer_model_to_device(model)
         return model
+
+
+    def _skip_annotation(
+        self, gm: torch.fx.GraphModule, quantization_config: QuantizationConfig
+    ) -> None:
+        for node in gm.graph.nodes:
+            if 'stack_trace' in node.meta and 'bbox_coder' in node.meta['stack_trace']:  #skipping the annotation for bbox coder in fcos3d
+                node.meta["quantization_annotation"] = QuantizationAnnotation(  # type: ignore[union-attr]
+                    _annotated=True,
+                )
+
+    def _annotate_deformconv2d(
+        self, gm: torch.fx.GraphModule, quantization_config: QuantizationConfig
+    ) -> None:
+        print("Annotate DeformConv2d not yet set up. ")
+        pass
 
     def _annotate_single_input_single_output_shared(
         self, gm: torch.fx.GraphModule, quantization_config: QuantizationConfig
@@ -219,12 +246,15 @@ class TIDLRTQuantizer(Quantizer):
             if node.target in self.single_input_single_output_shared_nodes:
                 input_act = node.args[0]
                 node.meta["quantization_annotation"] = QuantizationAnnotation(  # type: ignore[union-attr]
-                input_qspec_map={
-                    input_act: get_input_act_qspec(quantization_config),
-                },
-                output_qspec=SharedQuantizationSpec((input_act, node)),
-                _annotated=True,
-            )
+                    input_qspec_map={
+                        input_act: get_input_act_qspec(quantization_config),
+                    },
+                    output_qspec=SharedQuantizationSpec((input_act, node)),
+                    _annotated=True,
+                )
+            #
+        #
+    #
                 
     def _annotate_single_input_single_output_different(
         self, gm: torch.fx.GraphModule, quantization_config: QuantizationConfig
@@ -241,7 +271,10 @@ class TIDLRTQuantizer(Quantizer):
                 },
                 output_qspec=get_output_act_qspec(quantization_config),
                 _annotated=True,
-            )
+                )
+            #
+        #
+    #
 
     def _annotate_conv2d(
         self, gm: torch.fx.GraphModule, quantization_config: QuantizationConfig, allow_16bit_node_list: list
@@ -272,15 +305,39 @@ class TIDLRTQuantizer(Quantizer):
             assert isinstance(weight, Node)
             input_qspec_map[weight] = get_weight_qspec(quantization_config)
 
+            # if reshape in weight node, add annotated flag to that node so other annototaion does not change it
+            if weight.target == torch.ops.aten.reshape.default:
+                weight.meta["quantization_annotation"] = QuantizationAnnotation(
+                    _annotated=True,
+                )
+
             if len(conv_node.args) >= 3 and (bias := conv_node.args[2]) is not None:
                 if isinstance(bias, Node):
                     input_qspec_map[bias] = _derived_bias_quant_spec(weight, input_act, conv_node)
 
-            conv_node.meta["quantization_annotation"] = QuantizationAnnotation(
-                input_qspec_map=input_qspec_map,
-                output_qspec=get_output_act_qspec(quantization_config),
-                _annotated=True,
-            )
+            output_node = conv_node
+            # if conv is followed by relu layer, shift the output node
+            for conv_key in conv_node.users.keys():
+                if conv_key.target in [torch.ops.aten.relu.default, torch.ops.aten.relu_.default]:
+                    output_node = conv_key
+
+            # if conv is followed by batchnorm/ batchnorm-relu in case of QAT, adjust the Q-DQ to move to the end #TODO
+
+            if output_node is conv_node:
+                output_node.meta["quantization_annotation"] = QuantizationAnnotation(
+                    input_qspec_map=input_qspec_map,
+                    output_qspec=get_output_act_qspec(quantization_config),
+                    _annotated=True,
+                )
+            else:
+                conv_node.meta["quantization_annotation"] = QuantizationAnnotation(
+                    input_qspec_map=input_qspec_map,
+                    _annotated=True,
+                )
+                output_node.meta["quantization_annotation"] = QuantizationAnnotation(
+                    output_qspec=get_output_act_qspec(quantization_config),
+                    _annotated=True,
+                )
         
     def _annotate_linear(
         self, gm: torch.fx.GraphModule, quantization_config: QuantizationConfig, allow_16bit_node_list: list
@@ -339,6 +396,9 @@ class TIDLRTQuantizer(Quantizer):
         self, gm: torch.fx.GraphModule, quantization_config: QuantizationConfig
     ) -> None:
         for node in gm.graph.nodes:
+            # skip annotation if it is already annotated
+            if _is_annotated([node]):
+                continue
             if node.target == torch.ops.aten.view.default and next(iter(node.users)).target == torch.ops.aten.linear.default:
                 # the nodes in loss are also getting quantized which is not desired
                 # TODO ignore the loss part of the network for the quantizer aspect
@@ -461,8 +521,7 @@ class TIDLRTQuantizer(Quantizer):
     
     def _annotate_two_inputs_single_output(
         self, gm: GraphModule, quantization_config: QuantizationConfig
-    ):
-        device = next(iter(gm.named_parameters()))[1].device
+    ) -> None: 
         for node in gm.graph.nodes:
             if _is_annotated([node]):
                 continue
@@ -471,9 +530,9 @@ class TIDLRTQuantizer(Quantizer):
                     args = list(node.args)
                     for i, a in enumerate(args):
                         if isinstance(a, (int, float)):
-                            t = torch.tensor(a,device=device)
+                            t = torch.tensor(a, device=self.device)
                             t_name = f'{node.name}_inp_{i}'
-                            gm.register_buffer(t_name,t, persistent=True)
+                            gm.register_buffer(t_name, t, persistent=True)
                             args[i] = gm.graph.get_attr(t_name)
                 node.args = tuple(args)
         gm.graph.lint()
@@ -503,7 +562,7 @@ class TIDLRTQuantizer(Quantizer):
         )
         cat_partitions = list(itertools.chain(*cat_partitions.values()))
         for cat_partition in cat_partitions:
-            cat_node = cat_partition.output_nodes[0]
+            cat_node = cat_partition.output_nodes[0] if len(cat_partition.output_nodes) > 0 else cat_partition.nodes[0]
             if cat_node.target != torch.ops.aten.cat.default:
                 # TODO: change this to AnnotationException
                 raise Exception(

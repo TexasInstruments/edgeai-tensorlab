@@ -75,46 +75,55 @@ def convert_to_lite_model(model, replacement_dict=None, inplace=True, **kwargs):
 #Default Flags for replacement dict 
 # for custom replacement add a custom flag name (any string not in default flag) as key and map it to a dict containing pattern and replacement
 # note if same key is used for two pattern the last replacement will be performed
-default_replacement_flag_dict: dict[str, bool|dict] ={
-    'squeeze_and_excite_to_identity' : True,
-    'all_activation_to_relu': False,
-    'relu_inplace_to_relu' : True,
-    'gelu_to_relu' : True,
-    'relu6_to_relu' : True,
-    'silu_to_relu' : True,
-    'hardswish_to_relu' : True,
-    'hardsigmoid_to_relu' : True,
-    'leakyrelu_to_relu' : True,
-    'dropout_inplace_to_dropout':True,
-    'conv2d_to_conv2d_dw_conv2d':True,
-    'break_maxpool2d_with_kernel_size_greater_than_equalto_5': False,
-    'instancenorm_to_batchnorm':False,
-    'groupnorm_to_batchnorm':False,
-    'remove_identity': True
+default_replacement_flag_dict = {
+    'squeeze_and_excite_to_identity': True,
+    'all_activation_to_relu'        : False,
+    'relu_inplace_to_relu'          : True,
+    'gelu_to_relu'                  : True,
+    'relu6_to_relu'                 : True,
+    'silu_to_relu'                  : True,
+    'hardswish_to_relu'             : True,
+    'hardsigmoid_to_relu'           : True,
+    'leakyrelu_to_relu'             : True,
+    'dropout_inplace_to_dropout'    : True,
+    'conv2d_to_conv2d_dw_conv2d'    : True,
+    'break_maxpool2d_with_kernel_\
+        size_greater_than_equalto_5': False,
+    'instancenorm_to_batchnorm'     : False,
+    'groupnorm_to_batchnorm'        : False,
+    'remove_identity'               : True
     # 'custom_surgery_flag':{},
 }
 
 #Mapping between the flags and the actual replacements corresponding to them
 # This dictionary is used whenever a flag is enabled to fetch the corresponding replacement entries
-flag_to_dict_entries:dict[str, dict] = {
-    'all_activation_to_relu': {nn.ReLU:nn.ReLU, nn.ReLU6:nn.ReLU, nn.GELU:nn.ReLU, nn.SiLU:nn.ReLU, nn.Hardswish:nn.ReLU, nn.Hardsigmoid:nn.ReLU, nn.LeakyReLU:nn.ReLU,},
-    'relu_inplace_to_relu':{torch.nn.ReLU: [torch.nn.ReLU]}, #'inplace' is not used
-    'dropout_inplace_to_dropout':{torch.nn.Dropout: [torch.nn.Dropout, 'p']}, #'inplace' is not used
-    'relu6_to_relu':{torch.nn.ReLU6: [torch.nn.ReLU]}, #'inplace' is not used
-    'hardswish_to_relu':{torch.nn.Hardswish: [torch.nn.ReLU]}, #'inplace' is not used
-    'hardsigmoid_to_relu':{torch.nn.Hardsigmoid: [torch.nn.ReLU]}, #'inplace' is not used
-    'gelu_to_relu':{torch.nn.GELU: [torch.nn.ReLU]}, #'inplace' is not used
-    'silu_to_relu':{torch.nn.SiLU: [torch.nn.ReLU]}, #'inplace' is not used
-    'leakyrelu_to_relu':{torch.nn.LeakyReLU: [torch.nn.ReLU]},  # 'inplace' is not used
-    'groupnorm_to_batchnorm':{torch.nn.GroupNorm: [convert_to_lite._replace_group_norm]},
-    'instancenorm_to_batchnorm':{torch.nn.InstanceNorm2d: [torch.nn.BatchNorm2d, 'num_features']},
+flag_to_dict_entries = {
+    'all_activation_to_relu'        : {nn.ReLU : nn.ReLU, 
+                                        nn.ReLU6 : nn.ReLU, 
+                                        nn.GELU : nn.ReLU,
+                                        nn.SiLU : nn.ReLU, 
+                                        nn.Hardswish : nn.ReLU, 
+                                        nn.Hardsigmoid : nn.ReLU, 
+                                        nn.LeakyReLU : nn.ReLU,},
+    'relu_inplace_to_relu'          : {torch.nn.ReLU : [torch.nn.ReLU]}, #'inplace' is not used
+    'dropout_inplace_to_dropout'    : {torch.nn.Dropout : [torch.nn.Dropout, 'p']}, #'inplace' is not used
+    'relu6_to_relu'                 : {torch.nn.ReLU6 : [torch.nn.ReLU]}, #'inplace' is not used
+    'hardswish_to_relu'             : {torch.nn.Hardswish: [torch.nn.ReLU]}, #'inplace' is not used
+    'hardsigmoid_to_relu'           : {torch.nn.Hardsigmoid: [torch.nn.ReLU]}, #'inplace' is not used
+    'gelu_to_relu'                  : {torch.nn.GELU: [torch.nn.ReLU]}, #'inplace' is not used
+    'silu_to_relu'                  : {torch.nn.SiLU: [torch.nn.ReLU]}, #'inplace' is not used
+    'leakyrelu_to_relu'             : {torch.nn.LeakyReLU: [torch.nn.ReLU]},  # 'inplace' is not used
+    'groupnorm_to_batchnorm'        : {torch.nn.GroupNorm: [convert_to_lite._replace_group_norm]},
+    'instancenorm_to_batchnorm'     : {torch.nn.InstanceNorm2d: [torch.nn.BatchNorm2d, 'num_features']},
     # with_normalization: whether to insert BN after replacing 3x3/5x5 conv etc. with dw-seperable conv
     # with_activation: whether to insert ReLU after replacing conv with dw-seperable conv
-    'conv2d_to_conv2d_dw_conv2d':{torch.nn.Conv2d: [convert_to_lite._replace_conv2d, dict(groups_dw=None, group_size_dw=None, with_normalization=(True,False), with_activation=(True,False))]},
-    'break_maxpool2d_with_kernel_size_greater_than_equalto_5': {torch.nn.MaxPool2d:[convert_to_lite.replace_maxpool2d]},
+    'conv2d_to_conv2d_dw_conv2d'    : {torch.nn.Conv2d: [convert_to_lite._replace_conv2d, \
+        dict(groups_dw=None, group_size_dw=None, with_normalization=(True,False), with_activation=(True,False))]},
+    'break_maxpool2d_with_kernel_\
+        size_greater_than_equalto_5': {torch.nn.MaxPool2d : [convert_to_lite.replace_maxpool2d]},
     # just a dummy entry to show that the key and value can be a functions
     # the key should return a boolean and the first entry of value(list) should return an instance of torch.nn.Module
-    'remove_identity':{convert_to_lite._check_dummy: [convert_to_lite._replace_dummy]}
+    'remove_identity'               : {convert_to_lite._check_dummy: [convert_to_lite._replace_dummy]}
 }
 flag_to_dict_entries.update(squeeze_and_excite_to_identity=({SqueezeExcitation: [torch.nn.Identity]} if has_tv else {}))
 

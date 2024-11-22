@@ -83,7 +83,8 @@ def _replace_with_new_module(parent, c_name, current_m, replacement_dict, **kwar
             #
             # now initialize the new module and replace it in the parent
             if new_m is not current_m:
-                _initialize_module(new_m)
+                if not hasattr(new_m, 'is_initialized') or new_m.is_initialized is False:
+                    _initialize_module(new_m)
                 new_m.train(current_m.training)
                 # requires_grad setting of the source is used for the newly created module
                 requires_grad = None

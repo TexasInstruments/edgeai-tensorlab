@@ -6,7 +6,8 @@ from copy import deepcopy
 
 
 class ModelOptimizationWrapperV3(ModelOptimizationBaseModule):
-    def __init__(self, model, *args, example_inputs=None, example_kwargs=None, model_surgery_kwargs=None, pruning_kwargs=None, quantization_kwargs=None, transformation_dict=None, copy_attrs=None, **kwargs):
+    def __init__(self, model, *args, example_inputs=None, example_kwargs=None, model_surgery_kwargs=None, pruning_kwargs=None,
+                 quantization_kwargs=None, transformation_dict=None, copy_attrs=None, **kwargs):
         copy_attrs = copy_attrs or []
         
         if quantization_kwargs:
