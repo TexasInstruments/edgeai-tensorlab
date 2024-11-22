@@ -89,27 +89,10 @@ def main():
     if args.model_surgery is None:
         if hasattr(model_cfg, 'convert_to_lite_model'):
             model_surgery = model_cfg.convert_to_lite_model.model_surgery
-    
-    if args.img_size :
-        img_size = args.img_size
-    elif hasattr(model_cfg, 'input_size'):
-        img_size = model_cfg.input_size
-    elif hasattr(model_cfg,'image_size'):
-        img_size = model_cfg.image_size
-    elif hasattr(model_cfg,'img_scale'):
-        img_size = model_cfg.img_scale
-    
-    
-    if not isinstance(img_size, tuple):
-        img_size = (img_size,img_size)
-    
-    example_inputs, example_kwargs = get_input(torch_model, model_cfg, batch_size=args.batch_size if img_size else 1)
-    
     # model surgery
-    
-    is_wrapped = False
+    img_size = args.img_size
 
-    example_inputs, example_kwargs = get_input(torch_model, model_cfg,)
+    example_inputs, example_kwargs = get_input(torch_model, model_cfg, batch_size=args.batch_size, img_size=img_size) 
     
     transformation_dict = dict(backbone=None, neck=None, bbox_head=xmodelopt.utils.TransformationWrapper(wrap_fn_for_bbox_head))
     copy_attrs=['train_step', 'val_step', 'test_step', 'data_preprocessor', 'parse_losses', 'bbox_head', '_run_forward']
@@ -117,17 +100,16 @@ def main():
         model_surgery_kwargs = dict(replacement_dict=get_replacement_dict(model_surgery, model_cfg))
     else:
         model_surgery_kwargs = None
-    
-    orig_model = deepcopy(torch_model)
+
     torch_model = xmodelopt.apply_model_optimization(torch_model,example_inputs,example_kwargs, model_surgery_version=model_surgery, quantization_version=args.quantization, model_surgery_kwargs=model_surgery_kwargs, transformation_dict=transformation_dict, copy_attrs=copy_attrs)
 
     print_log('model optimization done')
     
     load_checkpoint(torch_model, args.checkpoint, map_location='cpu')
 
+    fake_input = example_inputs[0]
     if img_size :
-        fake_input = torch.randn(args.batch_size, 3,
-                             *img_size).to(args.device)
+        fake_input = fake_input.to(args.device)
         torch2onnx(
             fake_input,
             args.work_dir,

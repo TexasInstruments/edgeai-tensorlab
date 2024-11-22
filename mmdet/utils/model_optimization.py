@@ -66,16 +66,19 @@ def wrap_fn_for_bbox_head(fn, module:nn.Module, *args, **kwargs):
     return module    
 
 
-def get_input(model, cfg, batch_size=None, to_export=False):
-    image_size = None
-    if hasattr(cfg, 'image_size'):
-        image_size = cfg.image_size
-    elif hasattr(cfg, 'img_scale'):
-        image_size = cfg.img_scale
-    elif hasattr(cfg, 'input_size'):
-        image_size = cfg.input_size
-    if image_size is None:
-        image_size = 512
+def get_input(model, cfg, batch_size=None, img_size = None, to_export=False):
+    if img_size is None:
+        image_size = None
+        if hasattr(cfg, 'image_size'):
+            image_size = cfg.image_size
+        elif hasattr(cfg, 'img_scale'):
+            image_size = cfg.img_scale
+        elif hasattr(cfg, 'input_size'):
+            image_size = cfg.input_size
+        if image_size is None:
+            image_size = 512
+    else:
+        image_size = img_size
     if not isinstance(image_size, (list,tuple)):
         image_size = (image_size, image_size)
     
