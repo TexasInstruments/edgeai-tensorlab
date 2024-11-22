@@ -1,10 +1,11 @@
 from . import quant_func
 from ...utils.transformation_utils import wrapped_transformation_fn
-from ...utils.hooks import add_example_args_kwargs
+from ... import utils
 
 
 def init(module, *args, example_inputs=None, example_kwargs=None, transformation_dict=None, **kwargs):
-    add_example_args_kwargs(module,example_inputs=example_inputs, example_kwargs=example_kwargs,transformation_dict=transformation_dict)
+    example_kwargs = example_kwargs or {}
+    utils.add_example_args_kwargs(module,example_inputs=example_inputs, example_kwargs=example_kwargs,transformation_dict=transformation_dict)
     return wrapped_transformation_fn(quant_func.init, module, *args, example_inputs=example_inputs, example_kwargs=example_kwargs, transformation_dict=transformation_dict,**kwargs)
 
 

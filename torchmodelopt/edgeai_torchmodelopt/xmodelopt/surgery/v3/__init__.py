@@ -48,7 +48,7 @@ from . import custom_modules, custom_surgery_functions,surgery
 from .surgery import _replace_unsupported_layers
 from ...utils.optimization_base import OptimizationBaseModule, add_attrs
 from ...utils.transformation_utils import wrapped_transformation_fn
-from ...utils.hooks import add_example_args_kwargs
+from ... import utils
 
 # for repo specific modules 
 try:
@@ -69,7 +69,7 @@ def convert_to_lite_pt2e(model:torch.nn.Module, replacement_dict:Dict[Any,Union[
         example_inputs= model._example_inputs
         example_kwargs= model._example_kwargs
     else:
-        add_example_args_kwargs(model,example_inputs=example_inputs, example_kwargs=example_kwargs)
+        utils.add_example_args_kwargs(model,example_inputs=example_inputs, example_kwargs=example_kwargs)
     return replace_unsupported_layers(model, example_inputs= example_inputs, example_kwargs=example_kwargs, replacement_dict=replacement_dict, aten_graph=aten_graph, verbose_mode=verbose_mode, **kwargs)
 
 
@@ -293,7 +293,7 @@ class SurgeryModule(OptimizationBaseModule):
             example_inputs= model._example_inputs
             example_kwargs= model._example_kwargs
         else:
-            add_example_args_kwargs(model,example_inputs=example_inputs, example_kwargs=example_kwargs, transformation_dict=transformation_dict)
+            utils.add_example_args_kwargs(model,example_inputs=example_inputs, example_kwargs=example_kwargs, transformation_dict=transformation_dict)
         self.replacement_dict=replacement_dict or get_replacement_flag_dict_default()
         self.module = wrapped_transformation_fn(convert_to_lite_pt2e, model, replacement_dict=replacement_dict, example_inputs= example_inputs, example_kwargs=example_kwargs, transformation_dict=transformation_dict,)
 

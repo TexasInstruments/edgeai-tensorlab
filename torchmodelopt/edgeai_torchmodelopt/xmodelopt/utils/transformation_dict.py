@@ -1,4 +1,6 @@
 import  types
+import torch
+from torch.fx import GraphModule
 from .hooks import register_pre_hook_for_optimization, disable_pre_hook_for_optimization
 from . import TransformationWrapper  
 

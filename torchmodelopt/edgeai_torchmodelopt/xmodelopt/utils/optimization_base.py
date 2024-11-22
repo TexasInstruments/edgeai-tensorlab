@@ -38,6 +38,7 @@ class OptimizationBaseModule(nn.Module):
     def __init__(self, model, *args, transformation_dict=None, copy_attrs=None, **kwargs):
         copy_attrs = copy_attrs or []
         super().__init__()
+        self._orig_module = deepcopy(model)
         self.module = model
         self.transformation_dict = transformation_dict
         add_attrs(self, copy_attrs, self.module)

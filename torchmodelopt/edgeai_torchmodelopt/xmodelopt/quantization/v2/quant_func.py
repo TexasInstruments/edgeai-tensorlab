@@ -47,8 +47,8 @@ import copy
 
 from .... import xnn
 
-from ...surgery.v2 import custom_surgery_functions, convert_to_lite_fx
-from ...utils.hooks import add_example_args_kwargs
+from ...surgery.v2 import custom_surgery_functions 
+from ... import utils
 
 from . import qconfig_types
 from . import quant_utils
@@ -64,12 +64,14 @@ def init(model, qconfig_type=None, example_inputs=None, example_kwargs=None, is_
             total_epochs=0, num_batch_norm_update_epochs=None, num_observer_update_epochs=None,
             qconfig_mode=qconfig_types.QConfigMode.DEFAULT, add_methods=True, dynamo_export=False, **kwargs):
     
+    from ...surgery.v2 import convert_to_lite_fx
+    
     example_kwargs = example_kwargs or {} 
     if hasattr(model, '_example_inputs') and hasattr(model, '_example_kwargs'):
         example_inputs= model._example_inputs
         example_kwargs= model._example_kwargs
     else:
-        add_example_args_kwargs(model,example_inputs=example_inputs, example_kwargs=example_kwargs)
+        utils.add_example_args_kwargs(model,example_inputs=example_inputs, example_kwargs=example_kwargs)
         
     if hasattr(model, '__quant_params__'):
         print('IGNORED: quant init called on a model that was already quantized')

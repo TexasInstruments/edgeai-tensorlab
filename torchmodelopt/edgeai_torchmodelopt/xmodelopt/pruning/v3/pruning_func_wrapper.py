@@ -1,11 +1,11 @@
 from ...utils.transformation_utils import wrapped_transformation_fn
-from ...utils.hooks import add_example_args_kwargs
+from ... import utils
 from . import pruning_func
 
 
 def init(module, *args, example_inputs, example_kwargs=None, transformation_dict=None, **kwargs):
     example_kwargs = example_kwargs or {}
-    add_example_args_kwargs(module, example_inputs=example_inputs, example_kwargs=example_kwargs, transformation_dict=transformation_dict)
+    utils.add_example_args_kwargs(module, example_inputs=example_inputs, example_kwargs=example_kwargs, transformation_dict=transformation_dict)
     return wrapped_transformation_fn(pruning_func.init, module, *args, example_inputs=example_inputs, example_kwargs=example_kwargs, transformation_dict=transformation_dict, **kwargs)
 
 
