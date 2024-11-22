@@ -203,11 +203,8 @@ def bbox_nms(cls_dist: Tensor, bbox: Tensor, nms_cfg: NMSConfig, confidence: Opt
     # filter class by confidence
     cls_val, cls_idx = cls_dist.max(dim=-1, keepdim=True)
     valid_mask = cls_val > nms_cfg.min_confidence
-
-    trues =  torch.count_nonzero(valid_mask)
-
-    valid_cls = cls_idx[valid_mask]
-    valid_con = cls_val[valid_mask].float()
+    valid_cls = cls_idx[valid_mask].float()
+    valid_con = cls_val[valid_mask].float() 
     valid_box = bbox[valid_mask.repeat(1, 1, 4)].view(-1, 4)    
 
     batch_idx, *_ = torch.where(valid_mask)
@@ -411,7 +408,7 @@ class PostProccess:
         prediction = self.converter(predict[0])
         pred_class, _, pred_bbox = prediction[:3]
         pred_conf = prediction[3] if len(prediction) == 4 else None
-        if rev_tensor is not None:
-            pred_bbox = (pred_bbox - rev_tensor[:, None, 1:]) / rev_tensor[:, 0:1, None]
-        pred_bbox = bbox_nms(pred_class, pred_bbox, self.nms, pred_conf)
-        return pred_bbox
+        # if rev_tensor is not None:
+        #     pred_bbox = (pred_bbox - rev_tensor[:, None, 1:]) / rev_tensor[:, 0:1, None]
+        # pred_bbox = bbox_nms(pred_class, pred_bbox, self.nms, pred_conf)
+        return pred_class, pred_bbox

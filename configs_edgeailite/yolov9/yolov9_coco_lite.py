@@ -1,10 +1,17 @@
 _base_ = ['../../configs/_base_/schedules/schedule_1x.py', '../../configs/_base_/default_runtime.py']
 # model settings
 
-load_from = '/data/files/a0508577/work/edgeai-algo/YOLO/backup/weights/yolov9-s/yolov9-s.pth'
+convert_to_lite_model = dict(model_surgery=1)
+# load_from = '/data/files/a0508577/work/edgeai-algo/YOLO/backup/weights/yolov9-s/yolov9-s.pth'
+load_from = 'work_dirs/onnx_exports/yolov9/checkpoint/yolov9_new_weights.pth'
+
+# training settings
+max_epochs = 300
+num_last_epochs = 15
+interval = 1
 
 img_scale = (640, 640)
-batch_size = 8
+batch_size = 16
 
 data_preprocessor = dict(
     type='DetDataPreprocessor',
@@ -51,11 +58,10 @@ model = dict(
                     )
                 )
         ),
-        # nms_cfg=dict(
-        #     min_confidence=0.5,
-        #     min_iou=0.9,
-        #     top_k=100
-        # )
+        nms_cfg=dict(
+            min_confidence=0.05,
+            min_iou=0.9,
+        )
         ),
         aux_head=dict(
         type='YOLOV9AuxHead',
@@ -71,12 +77,7 @@ model = dict(
             pos_iou_thr=0.5,
             neg_iou_thr=0.5,
             min_pos_iou=0)),
-    test_cfg=dict(
-        nms_cfg=dict(
-            min_confidence=0.05,
-            min_iou=0.9,
-            top_k=100
-        )
+    test_cfg=dict(score_thr=0.01, nms=dict(type='nms', iou_threshold=0.65)
         # nms_pre=1000,
         # min_bbox_size=0,
         # score_thr=0.05,
@@ -122,7 +123,7 @@ train_pipeline = [
     # 'mmdet/models/detectors/yolox.py'.
     # Resize and Pad are for the last 15 epochs when Mosaic,
     # RandomAffine, and MixUp are closed by YOLOXModeSwitchHook.
-    dict(type='Resize', scale=img_scale, keep_ratio=True),
+    # dict(type='Resize', scale=img_scale, keep_ratio=True),
     dict(
         type='Pad',
         pad_to_square=True,
@@ -191,16 +192,11 @@ val_evaluator = dict(
     backend_args=backend_args)
 test_evaluator = val_evaluator
 
-# training settings
-max_epochs = 30
-num_last_epochs = 15
-interval = 1
-
 train_cfg = dict(max_epochs=max_epochs, val_interval=interval)
 
 # optimizer
 # default 8 gpu
-base_lr = 0.1
+base_lr = 0.001
 optim_wrapper = dict(
     type='OptimWrapper',
     optimizer=dict(
@@ -243,7 +239,7 @@ param_scheduler = [
 ]
 
 
-default_hooks = dict(checkpoint=dict(type='CheckpointHook', interval=1, max_keep_ckpts=20))
+default_hooks = dict(checkpoint=dict(type='CheckpointHook', interval=2, max_keep_ckpts=20))
 
 # NOTE: `auto_scale_lr` is for automatically scaling LR,
 # USER SHOULD NOT CHANGE ITS VALUES.

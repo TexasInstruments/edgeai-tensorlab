@@ -50,7 +50,7 @@ class YOLOV9(SingleStageDetector):
             data_preprocessor=data_preprocessor,
             init_cfg=init_cfg
             )
-        self.nms_cfg : NMSConfig = test_cfg['nms_cfg']
+        # self.nms_cfg : NMSConfig = test_cfg['nms_cfg']
         self.aux_head = MODELS.build(aux_head)
     
     
@@ -64,10 +64,12 @@ class YOLOV9(SingleStageDetector):
             tuple[Tensor]: Multi-level features that may have
             different resolutions.
         """
-        x = self.backbone(batch_inputs)
-        # if self.with_neck:
-        #     x = self.neck(x)
-        return x
+        bb = self.backbone(batch_inputs)
+        x = self.neck(bb)
+        if self.training:
+            return [x,bb]
+        else:
+            return x
     
 
     def loss(self, batch_inputs: Tensor,
@@ -91,11 +93,12 @@ class YOLOV9(SingleStageDetector):
         vec2box = Vec2Box(image_size, strides, device)
 
         #features from backbone only
-        backbone_feat = self.extract_feat(batch_inputs)
+        # backbone_feat = self.extract_feat(batch_inputs)
+        # x = self.neck(backbone_feat)
 
-        x = self.neck(backbone_feat)
+        x,bb = self.extract_feat(batch_inputs)
 
-        losses = self.bbox_head.loss(self.aux_head, x, backbone_feat, batch_data_samples, vec2box)
+        losses = self.bbox_head.loss(self.aux_head, x, bb, batch_data_samples, vec2box)
         return losses
     
     def predict(self,
@@ -141,12 +144,15 @@ class YOLOV9(SingleStageDetector):
 
 
         x = self.extract_feat(batch_inputs)
-        x = self.neck(x)
+        # x = self.neck(x)
 
         results_list = self.bbox_head.predict(
-            x, batch_data_samples, vec2box, self.nms_cfg, rescale=rescale)
+            x, batch_data_samples, rescale=rescale)
+
+        # results_list = self.bbox_head.predict(
+        #     x, batch_data_samples, vec2box, self.nms_cfg, rescale=rescale)
         
-        torch.save(results_list, 'work_dirs/onnx_exports/yolov9/tensors/predict.pt') ###
+        # torch.save(results_list, 'work_dirs/onnx_exports/yolov9/tensors/predict.pt') ###
 
         batch_data_samples = self.add_pred_to_datasample(
             batch_data_samples, results_list)
