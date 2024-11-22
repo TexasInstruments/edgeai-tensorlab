@@ -3,6 +3,7 @@ import argparse
 import logging
 import os
 import os.path as osp
+from copy import deepcopy
 
 import torch
 import onnx
@@ -15,10 +16,11 @@ from mmdeploy.utils import (get_ir_config, get_partition_config,
 from mmdeploy.utils import build_model_from_cfg
 from mmengine.logging import print_log
 from mmengine.runner import load_checkpoint
-from mmdet.utils import convert_to_lite_model
+from mmdet.utils.model_optimization import get_replacement_dict, wrap_fn_for_bbox_head, get_input
 
 from edgeai_torchmodelopt import xonnx
 from edgeai_torchmodelopt import xnn
+from edgeai_torchmodelopt import xmodelopt
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Export model to ONNX.')
@@ -87,26 +89,27 @@ def main():
     if args.model_surgery is None:
         if hasattr(model_cfg, 'convert_to_lite_model'):
             model_surgery = model_cfg.convert_to_lite_model.model_surgery
-    
-    if model_surgery:
-        if model_surgery == 1:
-            device = next(torch_model.parameters()).device
-            torch_model = convert_to_lite_model(torch_model, model_cfg)
-            torch_model = torch_model.to(torch.device(device))
-        elif model_surgery == 2: 
-            assert False, 'model surgery 2 is not supported currently'
-    load_checkpoint(torch_model, args.checkpoint, map_location='cpu')
-    
+    # model surgery
     img_size = args.img_size
-    if img_size is None and hasattr(model_cfg, 'input_size'):
-        if isinstance(model_cfg.input_size,tuple):
-            img_size = model_cfg.input_size
-        else:
-            img_size = (model_cfg.input_size,model_cfg.input_size)
 
+    example_inputs, example_kwargs = get_input(torch_model, model_cfg, batch_size=args.batch_size, img_size=img_size) 
+    
+    transformation_dict = dict(backbone=None, neck=None, bbox_head=xmodelopt.utils.TransformationWrapper(wrap_fn_for_bbox_head))
+    copy_attrs=['train_step', 'val_step', 'test_step', 'data_preprocessor', 'parse_losses', 'bbox_head', '_run_forward']
+    if model_surgery:
+        model_surgery_kwargs = dict(replacement_dict=get_replacement_dict(model_surgery, model_cfg))
+    else:
+        model_surgery_kwargs = None
+
+    torch_model = xmodelopt.apply_model_optimization(torch_model,example_inputs,example_kwargs, model_surgery_version=model_surgery, quantization_version=args.quantization, model_surgery_kwargs=model_surgery_kwargs, transformation_dict=transformation_dict, copy_attrs=copy_attrs)
+
+    print_log('model optimization done')
+    
+    load_checkpoint(torch_model, args.checkpoint, map_location='cpu')
+
+    fake_input = example_inputs[0]
     if img_size :
-        fake_input = torch.randn(args.batch_size, 3,
-                             *img_size).to(args.device)
+        fake_input = fake_input.to(args.device)
         torch2onnx(
             fake_input,
             args.work_dir,
