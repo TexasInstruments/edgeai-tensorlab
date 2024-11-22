@@ -228,11 +228,57 @@ class AdaptiveMinMaxActivationObserver(torch.ao.quantization.MinMaxObserver):
         return x_orig
 
 
+class AdaptiveMovingAverageMinMaxActivationObserver(torch.ao.quantization.MovingAverageMinMaxObserver):
+    def __init__(self, *args, quant_min=0, quant_max=255, dtype=torch.quint8, qscheme=torch.per_tensor_affine, power2_scale=False, range_max=None, fixed_range=False, range_shrink_percentile=0, **kwargs):
+        super().__init__(*args, quant_min=quant_min, quant_max=quant_max, dtype=dtype, qscheme=qscheme, **kwargs)
+		# activation quantization cannot use torch.per_channel_symmetric, it has to be torch.per_tensor_symmetric
+        self.symmetric = (qscheme in (torch.per_channel_symmetric, torch.per_tensor_symmetric))
+        self.power2_scale = power2_scale
+        self.range_max = range_max
+        self.fixed_range = fixed_range
+        self.freeze_observer = False
+
+    @torch.jit.export
+    def _calculate_qparams(self, min_val, max_val):
+        r"""Calculates the quantization parameters."""
+        if self.symmetric:
+            signed_range = torch.min(min_val.detach()).item() < 0.0
+            max_abs = torch.max(torch.abs(min_val), torch.abs(max_val))
+            min_val = -max_abs if signed_range else max_abs * 0.0
+            max_val = max_abs
+
+        scale, zero_point = super()._calculate_qparams(min_val, max_val)
+
+        if self.power2_scale:
+            scale, zero_point = observer_utils._adjust_qparams_power2_scale(
+                min_val, max_val, self.quant_min, self.quant_max, scale, zero_point, self.eps)
+
+        return scale, zero_point
+
+
+    def forward(self, x_orig):
+        if self.freeze_observer:
+            return x_orig
+        x_orig = super().forward(x_orig)
+        if self.range_max is not None:
+            signed_range = torch.min(self.min_val.detach()).item() < 0.0
+            min_val = (-self.range_max) if signed_range else 0.0
+            max_val = (+self.range_max) if signed_range else (+self.range_max)
+            if self.fixed_range:
+                self.min_val.fill_(min_val)
+                self.max_val.fill_(max_val)
+            else:
+                self.min_val = torch.clamp(self.min_val, min=min_val, max=0.0)
+                self.max_val = torch.clamp(self.max_val, min=0.0, max=max_val)
+            #
+        #
+        return x_orig
+
 ####################################################################
 ADAPTIVE_WEIGHT_OBSERVER_TYPES = (AdaptiveWeightObserver,
                                   AdaptivePerChannelWeightObserver)
 
-ADAPTIVE_ACTIVATION_OBSERVER_TYPES = (AdaptiveActivationObserver, AdaptiveActivationObserverFast, AdaptiveMinMaxActivationObserver)
+ADAPTIVE_ACTIVATION_OBSERVER_TYPES = (AdaptiveActivationObserver, AdaptiveActivationObserverFast, AdaptiveMinMaxActivationObserver, AdaptiveMovingAverageMinMaxActivationObserver)
 
 ADAPTIVE_OBSERVER_TYPES = tuple(list(ADAPTIVE_WEIGHT_OBSERVER_TYPES) + list(ADAPTIVE_ACTIVATION_OBSERVER_TYPES))
 

@@ -359,6 +359,10 @@ def add_bias_calibration_hook(model, calibration_factor=0):
                 raise ValueError(
                     "Could not find an user of act node for conv within matched pattern."
                 )
+            
+            if not isinstance(output_node.next.target, str):
+                assert output_node.next.target in [torch.ops.aten.relu.default, torch.ops.aten.relu_.default]
+                output_node = output_node.next
             #
             fake_quantize_module = getattr(model, output_node.next.target)
             

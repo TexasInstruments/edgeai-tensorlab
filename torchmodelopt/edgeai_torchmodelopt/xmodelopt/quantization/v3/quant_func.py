@@ -44,23 +44,22 @@ from .quantizers import TIDLRTQuantizer
 
 import copy
 import os
-import types
-
+import types 
 
 def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None, example_kwargs=None, qconfig_type=None,
         qconfig_mode=qconfig_types.QConfigMode.DEFAULT, num_batch_norm_update_epochs=None, num_observer_update_epochs=None, 
         add_methods=True, fast_mode=False, is_fake_quantize=True, **kwargs):
     
+    if hasattr(model, '__quant_params__'):
+        print('IGNORED: quant init called on a model that was already quantized \n\n\n')
+        return model
+    
     example_kwargs = example_kwargs or {} 
     if hasattr(model, '_example_inputs') and hasattr(model, '_example_kwargs'):
-        example_inputs = model._example_inputs
-        example_kwargs = model._example_kwargs
+        example_inputs = model._example_inputs.pop(0)
+        example_kwargs = model._example_kwargs.pop(0)
     else:
         add_example_args_kwargs(model, example_inputs=example_inputs, example_kwargs=example_kwargs)
-    
-    if hasattr(model, '__quant_params__'):
-        print('IGNORED: quant init called on a model that was already quantized')
-        return model
     
     if not total_epochs:
         if not is_qat:
@@ -191,6 +190,7 @@ def freeze(self, freeze_bn=True, freeze_observers=True):
         if n.target in [
             torch.ops.aten._native_batch_norm_legit.default,
             torch.ops.aten.cudnn_batch_norm.default,
+            torch.ops.aten.batch_norm.default,
         ]:
             new_args = list(n.args)
             new_args[5] = not(freeze_bn)
