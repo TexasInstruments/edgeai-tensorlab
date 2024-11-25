@@ -45,6 +45,8 @@ if __name__ == '__main__':
     parser.add_argument('--out_dir', type=str)
     parser.add_argument('--target_device', type=utils.str_or_none)
     parser.add_argument('--tensor_bits', type=utils.str_to_int)
+    parser.add_argument('--modelartifacts_path', type=str)
+    parser.add_argument('--modelpackage_path', type=str)
     parser.add_argument('--param_template_file', type=str, default='./examples/configs/yaml/param_template_package.yaml')
 
     cmds = parser.parse_args()
