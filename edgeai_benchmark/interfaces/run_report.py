@@ -73,7 +73,7 @@ def run_report(settings, rewrite_results=True, skip_pattern=None):
     report_perfsim = settings.report_perfsim
 
     if settings.target_device in (None, 'None'):
-        benchmark_dir = settings.modelartifacts_path
+        benchmark_dir = os.path.dirname(settings.modelartifacts_path)
         target_device_dirs = os.listdir(benchmark_dir)
     else:
         benchmark_dir = os.path.dirname(settings.modelartifacts_path)
