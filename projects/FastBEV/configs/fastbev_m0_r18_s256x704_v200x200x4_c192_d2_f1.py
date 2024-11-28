@@ -8,7 +8,7 @@ custom_imports = dict(imports=['projects.FastBEV.fastbev'])
 
 # sequential = False for n_times = 1
 n_times = 1
-sequential=False
+sequential=True
 
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], bgr_to_rgb=True)
@@ -66,9 +66,15 @@ model = dict(
             type='AlignedAnchor3DRangeGenerator',
             ranges=[[-50, -50, -1.8, 50, 50, -1.8]],
             # scales=[1, 2, 4],
+            #sizes=[
+            #    [0.8660, 2.5981, 1.],  # 1.5/sqrt(3)
+            #    [0.5774, 1.7321, 1.],  # 1/sqrt(3)
+            #    [1., 1., 1.],
+            #    [0.4, 0.4, 1],
+            #],
             sizes=[
-                [0.8660, 2.5981, 1.],  # 1.5/sqrt(3)
-                [0.5774, 1.7321, 1.],  # 1/sqrt(3)
+                [2.5981, 0.8660, 1.],  # 1.5/sqrt(3)
+                [1.7321, 0.5774, 1.],  # 1/sqrt(3)
                 [1., 1., 1.],
                 [0.4, 0.4, 1],
             ],
@@ -291,13 +297,28 @@ test_evaluator = val_evaluator
 
 # Optimizer
 optim_wrapper = dict(
-    #optimizer=dict(type='AdamW2', lr=0.0004, weight_decay=0.01),
-    optimizer=dict(type='AdamW', lr=0.0004, weight_decay=0.01),
-    #paramwise_cfg=dict(custom_keys={
-    #    'backbone': dict(lr_mult=0.1, decay_mult=1.0),
-    #}),
+    optimizer=dict(type='AdamW', lr=0.0002, weight_decay=0.01),
+    paramwise_cfg=dict(custom_keys={
+        'backbone': dict(lr_mult=0.1, decay_mult=1.0),
+    }),
     clip_grad=dict(max_norm=35, norm_type=2))
 
+# learning policy
+param_scheduler = [
+    dict(
+        type='LinearLR',
+        start_factor=1e-6,
+        by_epoch=False,
+        begin=0,
+        end=1000),
+    dict(
+        type='CosineAnnealingLR',
+        by_epoch=True,
+        begin=0,
+        end=24,
+        T_max=24,
+        eta_min_ratio=1e-3)
+]
 
 total_epochs = 20
 

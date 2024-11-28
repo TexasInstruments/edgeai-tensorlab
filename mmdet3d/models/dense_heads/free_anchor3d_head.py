@@ -212,7 +212,7 @@ class FreeAnchor3DHead(Anchor3DHead):
             # generate bbox weights
             if self.diff_rad_by_sin:
                 bbox_preds_clone = bbox_pred.clone()
-                bbox_preds_clone[matched], matched_object_targets = \
+                pos_preds, matched_object_targets = \
                     self.add_sin_difference(
                         bbox_preds_clone[matched], matched_object_targets)
             bbox_weights = matched_anchors.new_ones(matched_anchors.size())
@@ -222,7 +222,7 @@ class FreeAnchor3DHead(Anchor3DHead):
                 bbox_weights = bbox_weights * bbox_weights.new_tensor(
                     code_weight)
             loss_bbox = self.loss_bbox(
-                bbox_preds_clone[matched],
+                pos_preds,
                 matched_object_targets,
                 bbox_weights,
                 reduction_override='none').sum(-1)

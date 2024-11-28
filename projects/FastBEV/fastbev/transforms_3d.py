@@ -287,7 +287,8 @@ class CustomRandomFlip3D(RandomFlip3D):
                 aug_transform[0, 0] = -1
             new_transform = aug_transform @ transform
 
-            cam_info['cam2_lidar'] = new_transform
+            cam_info['cam2lidar'] = new_transform
+            cam_info['lidar2cam'] = np.linalg.inv(new_transform)
 
     def transform(self, input_dict: dict) -> dict:
         """Call function to flip points, values in the ``bbox3d_fields`` and
@@ -405,6 +406,7 @@ class CustomGlobalRotScaleTrans(GlobalRotScaleTrans):
 
             new_transform = aug_transform @ transform
             cam_info['cam2lidar'] = new_transform
+            cam_info['lidar2cam'] = np.linalg.inv(new_transform)
 
     def _rot_bbox_points(self, input_dict: dict) -> None:
         """Private function to rotate bounding boxes and points.
@@ -416,7 +418,7 @@ class CustomGlobalRotScaleTrans(GlobalRotScaleTrans):
             dict: Results after rotation, 'points', 'pcd_rotation'
             and `gt_bboxes_3d` is updated in the result dict.
         """
-        if not 'point' in input_dict:
+        if not 'points' in input_dict:
             return
 
         super()._rot_bbox_points(input_dict)

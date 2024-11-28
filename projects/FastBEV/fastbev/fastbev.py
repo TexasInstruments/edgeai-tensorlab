@@ -678,16 +678,9 @@ class FastBEV(BaseDetector):
         ret_list = []
         for _, preds in enumerate(bbox_pts):
             results = InstanceData()
-            #preds = bbox_pts[i]
             results.bboxes_3d = preds['bboxes_3d']
             results.scores_3d = preds['scores_3d']
             results.labels_3d = preds['labels_3d']
-            # change box dim and yaw
-            #    nus_box_dims = box_dims[:, [0, 1, 2]]
-            #    box_yaw = -box_yaw - np.pi/2
-            # It coulde be removed with a trained model using new picle file
-            results.bboxes_3d.tensor = results.bboxes_3d.tensor[:, [0, 1, 2, 4, 3, 5, 6, 7, 8]]
-            results.bboxes_3d.tensor[:, 6] = -results.bboxes_3d.tensor[:, 6] - np.pi/2
             ret_list.append(results)
 
         detsamples = self.add_pred_to_datasample(batch_data_samples,

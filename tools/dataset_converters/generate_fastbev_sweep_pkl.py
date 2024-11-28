@@ -123,21 +123,24 @@ def add_adj_info(root_path, version):
             posi_next = np.array(dataset['data_list'][next_id]['ego2global'], dtype=np.float32)[0:3, 3]
             velocity_global = (posi_next - posi_pre) / time_diff
 
-            l2e_r_mat = np.array(info['lidar_points']['lidar2ego'], dtype=np.float32)[0:3, 0:3]
-            e2g_r_mat = np.array(info['ego2global'], dtype=np.float32)[0:3, 0:3]
+            l2e_r_mat = np.array(info['lidar_points']['lidar2ego'])[0:3, 0:3]
+            e2g_r_mat = np.array(info['ego2global'])[0:3, 0:3]
 
             velocity_global = np.array([*velocity_global[:2], 0.0])
-            velocity_lidar = velocity_global @ np.linalg.inv(e2g_r_mat).T @ np.linalg.inv(
-                l2e_r_mat).T
+            #velocity_lidar = velocity_global @ np.linalg.inv(e2g_r_mat).T @ np.linalg.inv(
+            #    l2e_r_mat).T
+            velocity_lidar = velocity_global @ e2g_r_mat @ l2e_r_mat
             velocity_lidar = velocity_lidar[:2]
 
             dataset['data_list'][id]['velo'] = velocity_lidar
             if set in ['train', 'val']:
-                gt_velocity = np.array([instance['velocity'] for instance in dataset['data_list'][id]['instances']])
-                if gt_velocity.size == 0:
-                    dataset['data_list'][id]['gt_velocity'] = gt_velocity
-                else:
-                    dataset['data_list'][id]['gt_velocity'] = gt_velocity - velocity_lidar.reshape(1, 2)
+                #gt_velocity = np.array([instance['velocity'] for instance in dataset['data_list'][id]['instances']])
+                #if gt_velocity.size == 0:
+                #    dataset['data_list'][id]['gt_velocity'] = gt_velocity
+                #else:
+                #    dataset['data_list'][id]['gt_velocity'] = gt_velocity - velocity_lidar.reshape(1, 2)
+                for instance in dataset['data_list'][id]['instances']:
+                    instance['velocity'] = instance['velocity'] - velocity_lidar.reshape(2)
 
         #filename = './data/nuscenes/nuscenes_infos_%s_4d_interval%d_max%d.pkl' % (set, interval, max_adj)
         if version == 'v1.0-mini':

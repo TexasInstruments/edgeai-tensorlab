@@ -9,7 +9,7 @@ from .nuscenes_metric import CustomNuScenesMetric
 
 
 __all__ = [
-    'FastBEV', 'M2BevNeck', 'MultiViewPipeline', 'CustomLoadPointsFromFile'
+    'FastBEV', 'M2BevNeck', 'MultiViewPipeline', 'CustomLoadPointsFromFile',
     'RandomAugImageMultiViewImage', 'CustomFreeAnchor3DHead', 'CustomNuScenesMetric', 
     'CustomPack3DDetInputs', 'CustomRandomFlip3D', 'CustomGlobalRotScaleTrans'
 ]

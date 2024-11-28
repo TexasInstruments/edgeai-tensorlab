@@ -39,7 +39,8 @@ class CustomFreeAnchor3DHead(FreeAnchor3DHead):
                  init_cfg: dict = None,
                  is_transpose: bool = False,
                  **kwargs) -> None:
-        super().__init__(init_cfg=init_cfg, **kwargs)
+        super().__init__(pre_anchor_topk, bbox_thr, gamma, alpha, 
+                         init_cfg=init_cfg, **kwargs)
         self.is_transpose = is_transpose
 
 
