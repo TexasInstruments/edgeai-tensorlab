@@ -15,26 +15,28 @@ from torch import Tensor
 from mmdeploy.mmcv.ops import multiclass_nms
 
 from mmdet.registry import MODELS
+# from mmdet.structures.bbox import bbox2distance
 from mmdet.utils import (ConfigType, InstanceList, OptConfigType,
                          OptInstanceList, reduce_mean)
-from mmdet.models.layers.yolo_layers import Detection 
+from mmdet.models.layers.yolo_layers import DetectionV7
 from mmengine.model import BaseModule
-from .base_dense_head import BaseDenseHead
-from mmdet.models.utils.yolo_model_utils import LossConfig, MatcherConfig, Vec2Box, NMSConfig, PostProccess
+from mmdet.models.dense_heads.base_dense_head import BaseDenseHead
+from mmdet.models.utils.yolo_model_utils import LossConfig, MatcherConfig, Anc2Box, AnchorConfig, PostProccess
 
 @MODELS.register_module()
-class YOLOV9Head(BaseDenseHead):
+class YOLOV7Head(BaseDenseHead):
     def __init__(self, 
                 num_classes: int = 80, 
-                in_channels: Sequence[int] =[128, 192, 256],
-                strides: Sequence[int] = (8, 16, 32),
+                in_channels: Sequence[int] =[256, 512, 1024],
+                # strides: Sequence[int] = (8, 16, 32),
                 #  feat_channels: int = 256,
-                reg_max: int = 16,
+                anchor_num: int = 3,
                 use_group: bool = True,
                 norm_cfg: OptConfigType = dict(
                     type='GN', num_groups=32, requires_grad=True),
                 train_cfg: OptConfigType = None,
                 test_cfg: OptConfigType = None,
+                anchor_cfg: AnchorConfig = None,
                 loss_yolo: ConfigType = dict(
                     type='YOLOLoss',
                     loss_cfg = LossConfig(
@@ -66,17 +68,18 @@ class YOLOV9Head(BaseDenseHead):
                      distribution='uniform',
                      mode='fan_in',
                      nonlinearity='leaky_relu'),
-                **kwargs) -> None:
+                     **kwargs) -> None:
         super().__init__(init_cfg=init_cfg)
+        self.num_classes = num_classes
+        self.anchor_cfg = anchor_cfg
         self.loss_config = loss_yolo
         self.nms_cfg = nms_cfg
         self.in_channels = in_channels
-        self.strides = strides
         self.test_cfg = test_cfg
         self.postprocess_class = PostProccess
 
         self.heads = nn.ModuleList(
-            [Detection((in_channels[0], in_channel), num_classes, reg_max=reg_max) for in_channel in in_channels]
+            [DetectionV7((in_channels[0], in_channel), num_classes, anchor_num=anchor_num) for in_channel in in_channels]
         )
         
     def forward(self, x_lists: List[Tensor]|List[List[Tensor]]) -> List[Tensor]:
@@ -85,7 +88,7 @@ class YOLOV9Head(BaseDenseHead):
         
         return outs
 
-    def loss(self,aux_head, x: Tuple[Tensor], backbone_feat: Tuple[Tensor], batch_data_samples: SampleList) -> dict:
+    def loss(self,aux_head, x: Tuple[Tensor], backbone_feat: Tuple[Tensor], batch_data_samples: SampleList, anc2box: Anc2Box) -> dict:
         """Perform forward propagation and loss calculation of the detection
         head on the features of the upstream network.
 
@@ -100,14 +103,14 @@ class YOLOV9Head(BaseDenseHead):
             dict: A dictionary of loss components.
         """
         predicts = self(x)
-        predicts.extend(aux_head(backbone_feat))
+        # predicts.extend(aux_head(backbone_feat))
 
         image_size = batch_data_samples[0].batch_input_shape
-        strides = self.strides
         device = x[0].device
-        vec2box = Vec2Box(image_size, strides, device)
+        anc2box = Anc2Box(num_classes=self.num_classes, anchor_cfg=self.anchor_cfg,
+                          image_size=image_size, device=device)
 
-        self.loss_config['vec2box'] = vec2box
+        self.loss_config['anc2box'] = anc2box
         self.loss_yolo: nn.Module = MODELS.build(self.loss_config)
 
         # TODO:load targets
@@ -125,32 +128,13 @@ class YOLOV9Head(BaseDenseHead):
             target = torch.cat([label,bbox], dim=-1)
             batch_targets[idx][:target_size] = target
 
-        aux_predicts = vec2box(predicts[1])
-        main_predicts = vec2box(predicts[0])
+        main_predicts = anc2box(predicts[0])
 
-        return self.loss_by_feat(aux_predicts, main_predicts, batch_targets)
-
-    def loss_by_feat(self, aux_predicts, main_predicts, batch_targets):
-
-        aux_rate = self.loss_config['loss_cfg']['aux']
-        iou_rate = self.loss_config['loss_cfg'].objective['BoxLoss']
-        dfl_rate = self.loss_config['loss_cfg'].objective['DFLoss']
-        cls_rate = self.loss_config['loss_cfg'].objective['BCELoss']
-
-        # aux_iou, aux_dfl, aux_cls = self.loss_yolo(aux_predicts, batch_targets)
-        # main_iou, main_dfl, main_cls = self.loss_yolo(main_predicts, batch_targets)
-
-        # loss_dict = {
-        #     "loss_box": iou_rate * (aux_iou * aux_rate + main_iou),
-        #     "loss_df": dfl_rate * (aux_dfl * aux_rate + main_dfl),
-        #     "loss_bce": cls_rate * (aux_cls * aux_rate + main_cls),
-        # }
-
-        return self.loss_by_feat(aux_predicts, main_predicts, batch_targets)
+        return self.loss_by_feat(main_predicts, batch_targets)
 
     def loss_by_feat(self, aux_predicts, main_predicts, batch_targets):
 
-        aux_rate = self.loss_config['loss_cfg']['aux']
+
         iou_rate = self.loss_config['loss_cfg'].objective['BoxLoss']
         dfl_rate = self.loss_config['loss_cfg'].objective['DFLoss']
         cls_rate = self.loss_config['loss_cfg'].objective['BCELoss']
@@ -159,9 +143,9 @@ class YOLOV9Head(BaseDenseHead):
         main_iou, main_dfl, main_cls = self.loss_yolo(main_predicts, batch_targets)
 
         loss_dict = {
-            "loss_box": iou_rate * (aux_iou * aux_rate + main_iou),
-            "loss_df": dfl_rate * (aux_dfl * aux_rate + main_dfl),
-            "loss_bce": cls_rate * (aux_cls * aux_rate + main_cls),
+            "loss_box": main_iou,
+            "loss_df": main_dfl,
+            "loss_bce": main_cls,
         }
 
         return loss_dict
@@ -189,21 +173,20 @@ class YOLOV9Head(BaseDenseHead):
         """
 
         image_size = batch_data_samples[0].batch_input_shape
-        strides = self.strides
         device = x[0].device
-        vec2box = Vec2Box(image_size, strides, device)
+        anc2box = Anc2Box(num_classes=self.num_classes, anchor_cfg=self.anchor_cfg,
+                          image_size=image_size, device=device)
 
         outs = self(x)
-        post_proccess = self.postprocess_class(vec2box, self.nms_cfg)
+        post_proccess = self.postprocess_class(anc2box, self.nms_cfg)
         # outs = post_proccess(outs)
-        cls_scores, preds = post_proccess(outs)
-        # cls_scores = cls_scores.sigmoid()
+        cls_scores, pred_bbox  = post_proccess(outs)
 
-        return self.predict_by_feat(cls_scores, preds, batch_data_samples, rescale=False)
+        return self.predict_by_feat(cls_scores, pred_bbox, batch_data_samples, rescale=False)
         # return self.predict_by_feat_mmdeploy(cls_scores, preds, batch_data_samples, rescale=False)
 
         # return self.predict_by_feat(
-        #     x, batch_data_samples, vec2box, self.nms_cfg, rescale=rescale)
+        #     x, batch_data_samples, anc2box, self.nms_cfg, rescale=rescale)
         
 
 
@@ -244,7 +227,7 @@ class YOLOV9Head(BaseDenseHead):
         result_list = []
         for img_id, img_meta in enumerate(batch_img_metas):
             max_scores, labels = torch.max(cls_scores[img_id], 1)
-            valid_mask = max_scores >= cfg.score_thr
+            valid_mask = max_scores >= 0.001 # cfg.score_thr
             results = InstanceData(
                 bboxes=preds[img_id][valid_mask],
                 scores=max_scores[valid_mask],
@@ -308,7 +291,7 @@ class YOLOV9Head(BaseDenseHead):
     # def predict_by_feat_mmdeploy(self,
     #             x: Tuple[Tensor],
     #             batch_data_samples: SampleList,
-    #             vec2box: Vec2Box,
+    #             anc2box: Anc2Box,
     #             nms_cfg: NMSConfig,
     #             rescale: bool = False):
     #     batch_img_metas = [
@@ -316,7 +299,7 @@ class YOLOV9Head(BaseDenseHead):
     #     ]
 
     #     outs = self(x)
-    #     post_proccess = self.postprocess_class(vec2box, nms_cfg)
+    #     post_proccess = self.postprocess_class(anc2box, nms_cfg)
     #     outs = post_proccess(outs)
 
     #     return outs
@@ -370,9 +353,9 @@ class YOLOV9Head(BaseDenseHead):
         if with_nms and results.bboxes.numel() > 0:
             det_bboxes, keep_idxs = batched_nms(results.bboxes, results.scores,
                                                 results.labels, cfg.nms)
-            results = results[keep_idxs]
+            results = results[keep_idxs][:cfg.max_bbox]
             # some nms would reweight the score, such as softnms
-            results.scores = det_bboxes[:, -1]
+            results.scores = det_bboxes[:, -1][:cfg.max_bbox]
         return results
 
 

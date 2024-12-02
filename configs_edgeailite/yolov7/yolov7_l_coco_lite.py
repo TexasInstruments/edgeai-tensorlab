@@ -2,13 +2,12 @@ _base_ = ['../../configs/_base_/schedules/schedule_1x.py', '../../configs/_base_
 # model settings
 
 # convert_to_lite_model = dict(model_surgery=1)
-# load_from = '/data/files/a0508577/work/edgeai-algo/YOLO/backup/weights/yolov9-s/yolov9-s.pth'
-load_from = 'work_dirs/onnx_exports/yolov9/checkpoint/yolov9_new_weights.pth'
-# load_from = 'work_dirs/yolov9_coco_lite24_epoch/epoch20/epoch_20.pth'
-# load_from = 'work_dirs/onnx_exports/yolov9/checkpoint/lite_e50_39.8/epoch_50.pth'
+# load_from = '/data/files/a0508577/work/edgeai-algo/YOLO/backup/weights/yolov7-s/yolov7-s.pth'
+# load_from = 'work_dirs/onnx_exports/yolov7/checkpoint/yolov7_new_weights.pth'
+load_from = 'work_dirs/onnx_exports/yolov7/checkpoint/yolov7_new_weights.pth'
 
 # training settings
-max_epochs = 30
+max_epochs = 100
 num_last_epochs = 15
 interval = 1
 
@@ -22,24 +21,31 @@ data_preprocessor = dict(
     bgr_to_rgb=True,
     pad_size_divisor=32)
 model = dict(
-    type='YOLOV9',
+    type='YOLOV7',
     data_preprocessor=data_preprocessor,
     backbone=dict(
-        type='YOLOV9Backbone',
-        init_cfg=dict(type='Pretrained', checkpoint='https://github.com/WongKinYiu/yolov9mit/releases/download/v1.0-alpha/v9-s.pt')
-        # init_cfg=dict(type='Pretrained', checkpoint='/data/files/a0508577/work/edgeai-algo/YOLO/backup/weights/yolov9-s/yolov9-s.pth')
+        type='YOLOV7Backbone',
+        # init_cfg=dict(type='Pretrained', checkpoint='work_dirs/onnx_exports/yolov7/checkpoint/yolov7_new_weights.pth')
         ),
     neck=dict(
-        type='YOLOV9Neck',
-        in_channels=[128, 192, 256],
-        csp_arg = {"repeat_num": 3}
+        type='YOLOV7Neck',
+        top_down_channels=[512, 256],
+        down_sample_channels=[256, 512],
+        output_channels=[256, 512, 1024],
         ),
     bbox_head=dict(
-        type='YOLOV9Head',
+        type='YOLOV7Head',
         num_classes=80,
-        in_channels=[128, 192, 256],
-        strides=(8, 16, 32),
-        reg_max=16,
+        in_channels=[256, 512, 1024],
+        anchor_num=3,
+        anchor_cfg = dict(
+            anchor = [
+                    [12,16, 19,36, 40,28],  # P5/8
+                    [36,75, 76,55, 72,146],  # P4/16
+                    [142,110, 192,243, 459,401]  # P5/32
+            ],
+            strides = [8, 16, 32]
+        ),
         # bbox_coder=dict(type='YOLOBBoxCoder'),
         loss_yolo=dict(
             type='YOLOLoss',
@@ -65,13 +71,6 @@ model = dict(
             min_iou=0.9,
         )
         ),
-        aux_head=dict(
-        type='YOLOV9AuxHead',
-        in_channels=[128, 192, 256],
-        csp_arg = {"repeat_num": 3},
-        num_classes=80,
-        reg_max=16,
-        ),
     # training and testing settings
     train_cfg=dict(
         assigner=dict(
@@ -79,7 +78,7 @@ model = dict(
             pos_iou_thr=0.5,
             neg_iou_thr=0.5,
             min_pos_iou=0)),
-    test_cfg=dict(score_thr=0.01, nms=dict(type='nms', iou_threshold=0.65)
+    test_cfg=dict(score_thr=0.0001, max_bbox=1000, nms=dict(type='nms', iou_threshold=0.65)
         # nms_pre=1000,
         # min_bbox_size=0,
         # score_thr=0.05,
@@ -154,6 +153,7 @@ train_dataset = dict(
 
 test_pipeline = [
     dict(type='LoadImageFromFile', backend_args=backend_args),
+    # dict(type='Resize', scale=img_scale, keep_ratio=True),
     dict(
         type='Pad',
         pad_to_square=True,
@@ -167,12 +167,12 @@ test_pipeline = [
 
 train_dataloader = dict(
     batch_size=batch_size,
-    num_workers=16,
+    num_workers=8,
     persistent_workers=True,
     sampler=dict(type='DefaultSampler', shuffle=True),
     dataset=train_dataset)
 val_dataloader = dict(
-    batch_size=16,
+    batch_size=4,
     num_workers=4,
     persistent_workers=True,
     drop_last=False,
