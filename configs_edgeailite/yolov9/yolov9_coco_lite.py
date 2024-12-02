@@ -1,12 +1,14 @@
 _base_ = ['../../configs/_base_/schedules/schedule_1x.py', '../../configs/_base_/default_runtime.py']
 # model settings
 
-convert_to_lite_model = dict(model_surgery=1)
+# convert_to_lite_model = dict(model_surgery=1)
 # load_from = '/data/files/a0508577/work/edgeai-algo/YOLO/backup/weights/yolov9-s/yolov9-s.pth'
 load_from = 'work_dirs/onnx_exports/yolov9/checkpoint/yolov9_new_weights.pth'
+# load_from = 'work_dirs/yolov9_coco_lite24_epoch/epoch20/epoch_20.pth'
+# load_from = 'work_dirs/onnx_exports/yolov9/checkpoint/lite_e50_39.8/epoch_50.pth'
 
 # training settings
-max_epochs = 300
+max_epochs = 30
 num_last_epochs = 15
 interval = 1
 
@@ -165,12 +167,12 @@ test_pipeline = [
 
 train_dataloader = dict(
     batch_size=batch_size,
-    num_workers=4,
+    num_workers=16,
     persistent_workers=True,
     sampler=dict(type='DefaultSampler', shuffle=True),
     dataset=train_dataset)
 val_dataloader = dict(
-    batch_size=8,
+    batch_size=16,
     num_workers=4,
     persistent_workers=True,
     drop_last=False,
@@ -196,7 +198,7 @@ train_cfg = dict(max_epochs=max_epochs, val_interval=interval)
 
 # optimizer
 # default 8 gpu
-base_lr = 0.001
+base_lr = 0.0001
 optim_wrapper = dict(
     type='OptimWrapper',
     optimizer=dict(
@@ -239,7 +241,7 @@ param_scheduler = [
 ]
 
 
-default_hooks = dict(checkpoint=dict(type='CheckpointHook', interval=2, max_keep_ckpts=20))
+default_hooks = dict(checkpoint=dict(type='CheckpointHook', interval=1, max_keep_ckpts=20))
 
 # NOTE: `auto_scale_lr` is for automatically scaling LR,
 # USER SHOULD NOT CHANGE ITS VALUES.

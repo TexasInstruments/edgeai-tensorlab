@@ -15,7 +15,6 @@ from torch import Tensor
 from mmdeploy.mmcv.ops import multiclass_nms
 
 from mmdet.registry import MODELS
-# from mmdet.structures.bbox import bbox2distance
 from mmdet.utils import (ConfigType, InstanceList, OptConfigType,
                          OptInstanceList, reduce_mean)
 from mmdet.models.layers.yolo_layers import Detection 
@@ -86,7 +85,7 @@ class YOLOV9Head(BaseDenseHead):
         
         return outs
 
-    def loss(self,aux_head, x: Tuple[Tensor], backbone_feat: Tuple[Tensor], batch_data_samples: SampleList, vec2box: Vec2Box) -> dict:
+    def loss(self,aux_head, x: Tuple[Tensor], backbone_feat: Tuple[Tensor], batch_data_samples: SampleList) -> dict:
         """Perform forward propagation and loss calculation of the detection
         head on the features of the upstream network.
 
@@ -103,13 +102,13 @@ class YOLOV9Head(BaseDenseHead):
         predicts = self(x)
         predicts.extend(aux_head(backbone_feat))
 
+        image_size = batch_data_samples[0].batch_input_shape
+        strides = self.strides
+        device = x[0].device
+        vec2box = Vec2Box(image_size, strides, device)
+
         self.loss_config['vec2box'] = vec2box
         self.loss_yolo: nn.Module = MODELS.build(self.loss_config)
-
-        # aux_rate = self.loss_config['loss_cfg']['aux']
-        # iou_rate = self.loss_config['loss_cfg'].objective['BoxLoss']
-        # dfl_rate = self.loss_config['loss_cfg'].objective['DFLoss']
-        # cls_rate = self.loss_config['loss_cfg'].objective['BCELoss']
 
         # TODO:load targets
         outputs = unpack_gt_instances(batch_data_samples)
@@ -128,16 +127,6 @@ class YOLOV9Head(BaseDenseHead):
 
         aux_predicts = vec2box(predicts[1])
         main_predicts = vec2box(predicts[0])
-
-
-        # aux_iou, aux_dfl, aux_cls = self.loss_yolo(aux_predicts, batch_targets)
-        # main_iou, main_dfl, main_cls = self.loss_yolo(main_predicts, batch_targets)
-
-        # loss_dict = {
-        #     "loss_box": iou_rate * (aux_iou * aux_rate + main_iou),
-        #     "loss_df": dfl_rate * (aux_dfl * aux_rate + main_dfl),
-        #     "loss_bce": cls_rate * (aux_cls * aux_rate + main_cls),
-        # }
 
         return self.loss_by_feat(aux_predicts, main_predicts, batch_targets)
 
@@ -186,13 +175,11 @@ class YOLOV9Head(BaseDenseHead):
         device = x[0].device
         vec2box = Vec2Box(image_size, strides, device)
 
-        # vec2box = Vec2Box(image_size, strides, device)
-
         outs = self(x)
         post_proccess = self.postprocess_class(vec2box, self.nms_cfg)
         # outs = post_proccess(outs)
         cls_scores, preds = post_proccess(outs)
-        cls_scores = cls_scores.sigmoid()
+        # cls_scores = cls_scores.sigmoid()
 
         return self.predict_by_feat(cls_scores, preds, batch_data_samples, rescale=False)
         # return self.predict_by_feat_mmdeploy(cls_scores, preds, batch_data_samples, rescale=False)

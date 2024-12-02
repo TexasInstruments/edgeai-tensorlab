@@ -1,5 +1,5 @@
 import math
-from typing import List
+from typing import List, Dict, Any
 
 import torch
 import torch.nn as nn
@@ -8,7 +8,7 @@ from mmengine.model import BaseModule
 from torch.nn.modules.batchnorm import _BatchNorm
 
 from mmdet.registry import MODELS
-from mmdet.models.layers.yolo_layers import *
+from mmdet.models.layers.yolo_layers import AConv, RepNCSPELAN, Conv, ELAN
 
 class Aconv_RepNCSPELAN(nn.Module):
     def __init__(self,

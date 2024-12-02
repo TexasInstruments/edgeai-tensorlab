@@ -4,7 +4,7 @@ import torch
 
 from typing import Tuple, Union, Dict, List, Optional
 from loguru import logger
-from torch import Tensor, nn
+from torch import Tensor, arange, tensor, nn
 import torch.nn.functional as F
 from torch.nn.common_types import _size_2_t
 from torchvision.ops import batched_nms
@@ -80,7 +80,7 @@ def create_activation_function(activation: str) -> nn.Module:
         if isinstance(obj, type) and issubclass(obj, nn.Module)
     }
     if activation.lower() in activation_map:
-        return activation_map[activation.lower()](inplace=True)
+        return activation_map[activation.lower()](inplace=False)
     else:
         raise ValueError(f"Activation function '{activation}' is not found in torch.nn")
 
@@ -197,37 +197,69 @@ def calculate_iou(bbox1, bbox2, metrics="iou") -> Tensor:
     ciou = diou - alpha * v
     return ciou.to(dtype)
 
-def bbox_nms(cls_dist: Tensor, bbox: Tensor, nms_cfg: NMSConfig, confidence: Optional[Tensor] = None):
-    cls_dist = cls_dist.sigmoid() * (1 if confidence is None else confidence)
+def transform_bbox(bbox: Tensor, indicator="xywh -> xyxy"):
+    data_type = bbox.dtype
+    in_type, out_type = indicator.replace(" ", "").split("->")
 
-    # filter class by confidence
-    cls_val, cls_idx = cls_dist.max(dim=-1, keepdim=True)
-    valid_mask = cls_val > nms_cfg.min_confidence
-    valid_cls = cls_idx[valid_mask].float()
-    valid_con = cls_val[valid_mask].float() 
-    valid_box = bbox[valid_mask.repeat(1, 1, 4)].view(-1, 4)    
+    if in_type not in ["xyxy", "xywh", "xycwh"] or out_type not in ["xyxy", "xywh", "xycwh"]:
+        raise ValueError("Invalid input or output format")
 
-    batch_idx, *_ = torch.where(valid_mask)
-    nms_idx = batched_nms(valid_box, valid_cls, batch_idx, nms_cfg.min_iou)
-    predicts_nms = []
-    predicts_bbox = []
-    predicts_scores = []
-    predicts_labels = []
-    for idx in range(cls_dist.size(0)):
-        instance_idx = nms_idx[idx == batch_idx[nms_idx]]
+    if in_type == "xywh":
+        x_min = bbox[..., 0]
+        y_min = bbox[..., 1]
+        x_max = bbox[..., 0] + bbox[..., 2]
+        y_max = bbox[..., 1] + bbox[..., 3]
+    elif in_type == "xyxy":
+        x_min = bbox[..., 0]
+        y_min = bbox[..., 1]
+        x_max = bbox[..., 2]
+        y_max = bbox[..., 3]
+    elif in_type == "xycwh":
+        x_min = bbox[..., 0] - bbox[..., 2] / 2
+        y_min = bbox[..., 1] - bbox[..., 3] / 2
+        x_max = bbox[..., 0] + bbox[..., 2] / 2
+        y_max = bbox[..., 1] + bbox[..., 3] / 2
 
-        predicts_bbox.append(valid_box[instance_idx])
-        predicts_scores.append(valid_con[instance_idx])
-        predicts_labels.append(valid_cls[instance_idx])
+    if out_type == "xywh":
+        bbox = torch.stack([x_min, y_min, x_max - x_min, y_max - y_min], dim=-1)
+    elif out_type == "xyxy":
+        bbox = torch.stack([x_min, y_min, x_max, y_max], dim=-1)
+    elif out_type == "xycwh":
+        bbox = torch.stack([(x_min + x_max) / 2, (y_min + y_max) / 2, x_max - x_min, y_max - y_min], dim=-1)
 
-        # predict_nms = torch.cat(
-        #     [valid_cls[instance_idx][:, None], valid_box[instance_idx], valid_con[instance_idx][:, None]], dim=-1
-        # )
+    return bbox.to(dtype=data_type)
 
-        # predicts_nms.append(predict_nms)
+# def bbox_nms(cls_dist: Tensor, bbox: Tensor, nms_cfg: NMSConfig, confidence: Optional[Tensor] = None):
+#     cls_dist = cls_dist.sigmoid() * (1 if confidence is None else confidence)
 
-    return [predicts_bbox, predicts_scores, predicts_labels]
-#
+#     # filter class by confidence
+#     cls_val, cls_idx = cls_dist.max(dim=-1, keepdim=True)
+#     valid_mask = cls_val > nms_cfg.min_confidence
+#     valid_cls = cls_idx[valid_mask].float()
+#     valid_con = cls_val[valid_mask].float() 
+#     valid_box = bbox[valid_mask.repeat(1, 1, 4)].view(-1, 4)    
+
+#     batch_idx, *_ = torch.where(valid_mask)
+#     nms_idx = batched_nms(valid_box, valid_cls, batch_idx, nms_cfg.min_iou)
+#     predicts_nms = []
+#     predicts_bbox = []
+#     predicts_scores = []
+#     predicts_labels = []
+#     for idx in range(cls_dist.size(0)):
+#         instance_idx = nms_idx[idx == batch_idx[nms_idx]]
+
+#         predicts_bbox.append(valid_box[instance_idx])
+#         predicts_scores.append(valid_con[instance_idx])
+#         predicts_labels.append(valid_cls[instance_idx])
+
+#         # predict_nms = torch.cat(
+#         #     [valid_cls[instance_idx][:, None], valid_box[instance_idx], valid_con[instance_idx][:, None]], dim=-1
+#         # )
+
+#         # predicts_nms.append(predict_nms)
+
+#     return [predicts_bbox, predicts_scores, predicts_labels]
+# #
 
 class BoxMatcher:
     def __init__(self, cfg: MatcherConfig, class_num: int, anchors: Tensor) -> None:
@@ -393,6 +425,58 @@ class Vec2Box:
         preds_box = torch.cat([self.anchor_grid - lt, self.anchor_grid + rb], dim=-1)
         return preds_cls, preds_anc, preds_box
     
+class Anc2Box:
+    def __init__(self, num_classes: int, anchor_cfg: AnchorConfig, image_size, device):
+        self.device = device
+        self.strides = anchor_cfg.strides
+        self.head_num = len(anchor_cfg.anchor)
+        self.anchor_grid = self.generate_anchors(image_size)
+        self.anchor_scale = tensor(anchor_cfg.anchor, device=device).view(self.head_num, 1, -1, 1, 1, 2)
+        self.anchor_num = self.anchor_scale.size(2)
+        self.class_num = num_classes
+
+    # def create_auto_anchor(self, model: YOLO, image_size):
+    #     dummy_input = torch.zeros(1, 3, *image_size).to(self.device)
+    #     dummy_output = model(dummy_input)
+    #     strides = []
+    #     for predict_head in dummy_output["Main"]:
+    #         _, _, *anchor_num = predict_head.shape
+    #         strides.append(image_size[1] // anchor_num[1])
+    #     return strides
+
+    def generate_anchors(self, image_size: List[int]):
+        anchor_grids = []
+        for stride in self.strides:
+            W, H = image_size[0] // stride, image_size[1] // stride
+            anchor_h, anchor_w = torch.meshgrid([torch.arange(H), torch.arange(W)], indexing="ij")
+            anchor_grid = torch.stack((anchor_w, anchor_h), 2).view((1, 1, H, W, 2)).float().to(self.device)
+            anchor_grids.append(anchor_grid)
+        return anchor_grids
+
+    def update(self, image_size):
+        self.anchor_grid = self.generate_anchors(image_size)
+
+    def __call__(self, predicts: List[Tensor]):
+        preds_box, preds_cls, preds_cnf = [], [], []
+        for layer_idx, predict in enumerate(predicts):
+            predict = rearrange(predict, "B (L C) h w -> B L h w C", L=self.anchor_num)
+            pred_box, pred_cnf, pred_cls = predict.split((4, 1, self.class_num), dim=-1)
+            pred_box = pred_box.sigmoid()
+            pred_box[..., 0:2] = (pred_box[..., 0:2] * 2.0 - 0.5 + self.anchor_grid[layer_idx]) * self.strides[
+                layer_idx
+            ]
+            pred_box[..., 2:4] = (pred_box[..., 2:4] * 2) ** 2 * self.anchor_scale[layer_idx]
+            preds_box.append(rearrange(pred_box, "B L h w A -> B (L h w) A"))
+            preds_cls.append(rearrange(pred_cls, "B L h w C -> B (L h w) C"))
+            preds_cnf.append(rearrange(pred_cnf, "B L h w C -> B (L h w) C"))
+
+        preds_box = torch.concat(preds_box, dim=1)
+        preds_cls = torch.concat(preds_cls, dim=1)
+        preds_cnf = torch.concat(preds_cnf, dim=1)
+
+        preds_box = transform_bbox(preds_box, "xycwh -> xyxy")
+        return preds_cls, None, preds_box, preds_cnf.sigmoid()
+    
 class PostProccess:
     """
     TODO: function document
@@ -411,4 +495,9 @@ class PostProccess:
         # if rev_tensor is not None:
         #     pred_bbox = (pred_bbox - rev_tensor[:, None, 1:]) / rev_tensor[:, 0:1, None]
         # pred_bbox = bbox_nms(pred_class, pred_bbox, self.nms, pred_conf)
+        pred_class = pred_class.sigmoid() * (1 if pred_conf is None else pred_conf)
+        # if pred_conf:
+        #     return pred_class, pred_bbox, pred_conf
+        # else:
+        #     return pred_class, pred_bbox
         return pred_class, pred_bbox

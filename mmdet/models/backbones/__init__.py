@@ -19,6 +19,7 @@ from .swin import SwinTransformer
 from .trident_resnet import TridentResNet
 from .mobilenetv2_lite import MobileNetV2Lite, MobileNetV2P5Lite
 from .yolov9_backbone import YOLOV9Backbone
+from .yolov7_backbone import YOLOV7Backbone
 
 
 __all__ = [
@@ -26,5 +27,6 @@ __all__ = [
     'MobileNetV2', 'Res2Net', 'HourglassNet', 'DetectoRS_ResNet',
     'DetectoRS_ResNeXt', 'Darknet', 'ResNeSt', 'TridentResNet', 'CSPDarknet',
     'SwinTransformer', 'PyramidVisionTransformer',
-    'PyramidVisionTransformerV2', 'EfficientNet', 'CSPNeXt', 'YOLOV9Backbone'
+    'PyramidVisionTransformerV2', 'EfficientNet', 'CSPNeXt', 'YOLOV9Backbone',
+    'YOLOV7Backbone'
 ]

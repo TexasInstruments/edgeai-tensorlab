@@ -89,16 +89,10 @@ class YOLOV9(SingleStageDetector):
         image_size = batch_inputs.shape[-2:]
         strides = self.bbox_head.strides
         device = batch_inputs.device
-
         vec2box = Vec2Box(image_size, strides, device)
 
-        #features from backbone only
-        # backbone_feat = self.extract_feat(batch_inputs)
-        # x = self.neck(backbone_feat)
-
         x,bb = self.extract_feat(batch_inputs)
-
-        losses = self.bbox_head.loss(self.aux_head, x, bb, batch_data_samples, vec2box)
+        losses = self.bbox_head.loss(self.aux_head, x, bb, batch_data_samples)
         return losses
     
     def predict(self,
@@ -130,29 +124,14 @@ class YOLOV9(SingleStageDetector):
                     the last dimension 4 arrange as (x1, y1, x2, y2).
         """
 
-
         image_size = batch_inputs.shape[-2:]
         strides = self.bbox_head.strides
         device = batch_inputs.device
-
         vec2box = Vec2Box(image_size, strides, device)
 
-        # fake_input = torch.ones(1,3,640,640).to(batch_inputs.device)  ###
-        # test_predicts = self.extract_feat(fake_input)  ###
-        # test_predicts = self.neck(test_predicts) ###
-        # x = test_predicts    ####
-
-
         x = self.extract_feat(batch_inputs)
-        # x = self.neck(x)
-
         results_list = self.bbox_head.predict(
             x, batch_data_samples, rescale=rescale)
-
-        # results_list = self.bbox_head.predict(
-        #     x, batch_data_samples, vec2box, self.nms_cfg, rescale=rescale)
-        
-        # torch.save(results_list, 'work_dirs/onnx_exports/yolov9/tensors/predict.pt') ###
 
         batch_data_samples = self.add_pred_to_datasample(
             batch_data_samples, results_list)

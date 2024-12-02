@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Sequence
 import math
 
 import torch
@@ -16,7 +16,7 @@ from mmdet.models.layers.yolo_layers import Detection
 @MODELS.register_module()
 class YOLOV9AuxHead(BaseModule):
     def __init__(self,
-                 in_channels=[128, 192, 256],
+                 in_channels: Sequence[int] =[128, 192, 256],
                  upsample_cfg=dict(scale_factor=2, mode='nearest'),
                  csp_arg = {"repeat_num": 3},
                  num_classes: int = 80,

@@ -1,12 +1,9 @@
-from typing import List, Tuple
+from typing import Sequence
 import math
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from mmcv.cnn import ConvModule
 from mmengine.model import BaseModule
-from torch import Tensor
 
 from mmdet.registry import MODELS
 from mmdet.models.layers.yolo_layers import SPPELAN,UpSample,RepNCSPELAN, AConv
@@ -15,7 +12,7 @@ from mmdet.models.layers.yolo_layers import SPPELAN,UpSample,RepNCSPELAN, AConv
 @MODELS.register_module()
 class YOLOV9Neck(BaseModule):
     def __init__(self,
-                 in_channels=[128, 192, 256],
+                 in_channels:Sequence[int] =[128, 192, 256],
                  upsample_cfg=dict(scale_factor=2, mode='nearest'),
                  csp_arg = {"repeat_num": 3},
                  init_cfg=dict(

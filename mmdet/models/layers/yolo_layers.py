@@ -1,5 +1,5 @@
 from typing import Any, Dict, List, Optional, Tuple
-
+import copy
 import torch
 import torch.nn.functional as F
 from einops import rearrange
@@ -7,7 +7,31 @@ from loguru import logger
 from torch import Tensor, nn
 from torch.nn.common_types import _size_2_t
 
+from torch.nn import Identity, ReLU
+
 from mmdet.models.utils.yolo_model_utils import auto_pad, create_activation_function, round_up
+
+class ChangeActivationToReLU(torch.nn.ReLU):
+    def __init__(self, start_act='silu', change_epochs=10, inplace=False):
+        super().__init__(inplace=inplace)
+        self.epoch = -1
+        self.change_epochs = change_epochs
+        self.training_saved = False
+        self.start_func = create_activation_function(start_act)
+        
+    def forward(self, x):
+        y = super().forward(x)
+        alpha = min(self.epoch / self.change_epochs, 1)
+        if self.training:
+            if alpha < 1:
+                silu_x = self.start_func(x)
+                y = y * alpha + silu_x * (1-alpha)
+
+            if self.training != self.training_saved:
+                self.epoch += 1
+        self.training_saved = self.training
+        return y
+
 
 
 # ----------- Basic Class ----------- #
@@ -28,7 +52,11 @@ class   Conv(nn.Module):
         kwargs.setdefault("padding", auto_pad(kernel_size, **kwargs))
         self.conv = nn.Conv2d(in_channels, out_channels, kernel_size, bias=False, **kwargs)
         self.bn = nn.BatchNorm2d(out_channels, eps=1e-3, momentum=3e-2)
-        self.act = create_activation_function(activation)
+        # self.act = create_activation_function(activation)
+        if activation:
+            self.act = ChangeActivationToReLU()
+        else:
+            self.act = Identity()
 
     def forward(self, x: Tensor) -> Tensor:
         x = self.conv(x)
@@ -96,7 +124,7 @@ class Detection(nn.Module):
         # return class_x, vector_x
 
 
-class IDetection(nn.Module):
+class DetectionV7(nn.Module):
     def __init__(self, in_channels: Tuple[int], num_classes: int, *args, anchor_num: int = 3, **kwargs):
         super().__init__()
 
@@ -106,9 +134,11 @@ class IDetection(nn.Module):
         out_channel = num_classes + 5
         out_channels = out_channel * anchor_num
         self.head_conv = nn.Conv2d(in_channels, out_channels, 1)
-
         self.implicit_a = ImplicitA(in_channels)
         self.implicit_m = ImplicitM(out_channels)
+        # self.implicit_a = ImplicitA(in_channels)
+        # self.head_conv = nn.Conv2d(in_channels, out_channels, 1)
+        # self.implicit_m = ImplicitM(out_channels)
 
     def forward(self, x):
         x = self.implicit_a(x)
@@ -118,22 +148,22 @@ class IDetection(nn.Module):
         return x
 
 
-class MultiheadDetection(nn.Module):
-    """Mutlihead Detection module for Dual detect or Triple detect"""
+# class MultiheadDetection(nn.Module):
+#     """Mutlihead Detection module for Dual detect or Triple detect"""
 
-    def __init__(self, in_channels: List[int], num_classes: int, **head_kwargs):
-        super().__init__()
-        DetectionHead = Detection
+#     def __init__(self, in_channels: List[int], num_classes: int, **head_kwargs):
+#         super().__init__()
+#         DetectionHead = Detection
 
-        if head_kwargs.pop("version", None) == "v7":
-            DetectionHead = IDetection
+#         if head_kwargs.pop("version", None) == "v7":
+#             DetectionHead = IDetection
 
-        self.heads = nn.ModuleList(
-            [DetectionHead((in_channels[0], in_channel), num_classes, **head_kwargs) for in_channel in in_channels]
-        )
+#         self.heads = nn.ModuleList(
+#             [DetectionHead((in_channels[0], in_channel), num_classes, **head_kwargs) for in_channel in in_channels]
+#         )
 
-    def forward(self, x_list: List[torch.Tensor]) -> List[torch.Tensor]:
-        return [head(x) for x, head in zip(x_list, self.heads)]
+#     def forward(self, x_list: List[torch.Tensor]) -> List[torch.Tensor]:
+#         return [head(x) for x, head in zip(x_list, self.heads)]
 
 
 class Segmentation(nn.Module):
@@ -151,21 +181,21 @@ class Segmentation(nn.Module):
         return x
 
 
-class MultiheadSegmentation(nn.Module):
-    """Mutlihead Segmentation module for Dual segment or Triple segment"""
+# class MultiheadSegmentation(nn.Module):
+#     """Mutlihead Segmentation module for Dual segment or Triple segment"""
 
-    def __init__(self, in_channels: List[int], num_classes: int, num_maskes: int, **head_kwargs):
-        super().__init__()
-        mask_channels, proto_channels = in_channels[:-1], in_channels[-1]
+#     def __init__(self, in_channels: List[int], num_classes: int, num_maskes: int, **head_kwargs):
+#         super().__init__()
+#         mask_channels, proto_channels = in_channels[:-1], in_channels[-1]
 
-        self.detect = MultiheadDetection(mask_channels, num_classes, **head_kwargs)
-        self.heads = nn.ModuleList(
-            [Segmentation((in_channels[0], in_channel), num_maskes) for in_channel in mask_channels]
-        )
-        self.heads.append(Conv(proto_channels, num_maskes, 1))
+#         self.detect = MultiheadDetection(mask_channels, num_classes, **head_kwargs)
+#         self.heads = nn.ModuleList(
+#             [Segmentation((in_channels[0], in_channel), num_maskes) for in_channel in mask_channels]
+#         )
+#         self.heads.append(Conv(proto_channels, num_maskes, 1))
 
-    def forward(self, x_list: List[torch.Tensor]) -> List[torch.Tensor]:
-        return [head(x) for x, head in zip(x_list, self.heads)]
+#     def forward(self, x_list: List[torch.Tensor]) -> List[torch.Tensor]:
+#         return [head(x) for x, head in zip(x_list, self.heads)]
 
 
 class Anchor2Vec(nn.Module):
@@ -197,7 +227,8 @@ class RepConv(nn.Module):
         **kwargs,
     ):
         super().__init__()
-        self.act = create_activation_function(activation)
+        # self.act = create_activation_function(activation)
+        self.act = ChangeActivationToReLU()
         self.conv1 = Conv(in_channels, out_channels, kernel_size, activation=False, **kwargs)
         self.conv2 = Conv(in_channels, out_channels, 1, activation=False, **kwargs)
 
