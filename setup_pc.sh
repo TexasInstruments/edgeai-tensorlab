@@ -106,10 +106,10 @@ if [[ $TIDL_TOOLS_RELEASE_NAME == "latest" || $TIDL_TOOLS_RELEASE_NAME == "r10.1
   TARGET_SOCS=(TDA4VM AM68A AM69A AM62A AM67A)
   TIDL_TOOLS_RELEASE_ID=10_01_00_02
   TIDL_TOOLS_VERSION_NAME="10.1"
-  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/dlr-1.13.0-py3-none-any.whl
-  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/tvm-0.12.0-cp310-cp310-linux_x86_64.whl
+  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/10_00_08_00/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/dlr-1.13.0-py3-none-any.whl
+  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/10_00_08_00/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/tvm-0.12.0-cp310-cp310-linux_x86_64.whl
   pip3 install --no-input http://tidl-ud-17.dhcp.ti.com/build/sdk_release/osrt/onnx/x86/onnxruntime_tidl-1.15.0-cp310-cp310-linux_x86_64.whl
-  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/tflite_runtime-2.12.0-cp310-cp310-linux_x86_64.whl
+  pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/10_00_08_00/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/tflite_runtime-2.12.0-cp310-cp310-linux_x86_64.whl
   # these are internal links for now
   TIDL_TOOLS_DOWNLOAD_LINKS=("http://10.24.68.92/OSRT_TOOLS/10_01_00_02/am68pa/tidl_tools${TIDL_TOOLS_TYPE_SUFFIX}.tar.gz" "http://10.24.68.92/OSRT_TOOLS/10_01_00_02/am68a/tidl_tools${TIDL_TOOLS_TYPE_SUFFIX}.tar.gz" "http://10.24.68.92/OSRT_TOOLS/10_01_00_02/am69a/tidl_tools${TIDL_TOOLS_TYPE_SUFFIX}.tar.gz" "http://10.24.68.92/OSRT_TOOLS/10_01_00_02/am62a/tidl_tools${TIDL_TOOLS_TYPE_SUFFIX}.tar.gz" "http://10.24.68.92/OSRT_TOOLS/10_01_00_02/am67a/tidl_tools${TIDL_TOOLS_TYPE_SUFFIX}.tar.gz")
   for (( soc_idx=0; soc_idx<"${#TARGET_SOCS[@]}"; soc_idx++ )); do
