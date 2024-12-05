@@ -345,7 +345,7 @@ class BEVFormer(MVXTwoStageDetector):
             # change box dim and yaw
             #    nus_box_dims = box_dims[:, [0, 1, 2]]
             #    box_yaw = -box_yaw - np.pi/2
-            # It coulde be removed with a trained model using new picle file
+            # It could be removed with a trained model using new pickle file
             results.bboxes_3d.tensor = results.bboxes_3d.tensor[:, [0, 1, 2, 4, 3, 5, 6, 7, 8]]
             results.bboxes_3d.tensor[:, 6] = -results.bboxes_3d.tensor[:, 6] - np.pi/2
             ret_list.append(results)

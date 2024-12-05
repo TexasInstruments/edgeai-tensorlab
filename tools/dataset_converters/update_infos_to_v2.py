@@ -363,7 +363,7 @@ def generate_camera_sweeps(info, nusc, out_dir):
                 if current_cams[cam]['prev'] == '':
                     sweep_cams = sweep_lists[-1]
                     break
-                sample_data = nusc.get('sample_data', current_cams[cam]['prev']) ##{'token': '8e25cfcd8f724bb7bbce69bff042a56f', 'sample_token': '02fd302178dd44568ae305320ea24054', 'ego_pose_token': '8e25cfcd8f724bb7bbce69bff042a56f', 'calibrated_sensor_token': '2fde3d3376ea42a8a561df595e001cc7', 'timestamp': 1533153859904816, 'fileformat': 'jpg', 'is_key_frame': True, 'height': 900, 'width': 1600, 'filename': 'samples/CAM_FRONT_LEFT/n008-2018-08-01-16-03-27-0400__CAM_FRONT_LEFT__1533153859904816.jpg', 'prev': '5d82f148ba8947579a6d7647ac73a9d6', 'next': 'cb0a1671873647faba28916a88b14574', 'sensor_modality': 'camera', 'channel': 'CAM_FRONT_LEFT'}
+                sample_data = nusc.get('sample_data', current_cams[cam]['prev'])
                 sweep_cam = add_frame(sample_data, nusc, l2e_p, e2g_p, out_dir)
                 current_cams[cam] = sample_data
                 sweep_cams[cam] = sweep_cam

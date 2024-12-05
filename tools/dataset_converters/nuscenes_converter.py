@@ -388,7 +388,7 @@ def _fill_trainval_infos(nusc,
                     nusc.get('lidarseg', lidar_token)['filename'])
 
             # For BEVDet, add ann_infos
-            # It is the similar to codes above, but coornidate system seems different
+            # It is similar to codes above, but coordinate system seems different
             # Note that BEVDet creates image frustum in ego CS, not LiDAR CS.
             if enable_bevdet is True:
                 ann_infos = list()
