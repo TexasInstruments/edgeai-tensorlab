@@ -307,7 +307,7 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_top1%':None}, model_shortlist=110, compact_name='convNext-tiny-hf-224', shortlisted=False)
         ),
         #FAST-VIT
-        'cl-6851':utils.dict_update(common_cfg,
+        'cl-6860':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(256,256),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True),
                 runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL,
@@ -315,7 +315,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/timm/fastvit_s12.apple_in1k_reparam_simp.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':0078.59}, model_shortlist=None, compact_name='FastViT-s12-transformer-256', shortlisted=False)
         ),
-        'cl-6852':utils.dict_update(common_cfg,
+        'cl-6870':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(256,256),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True),
                 runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL,
