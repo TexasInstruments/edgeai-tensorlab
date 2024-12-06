@@ -155,6 +155,7 @@ def get_configs(settings, work_dir):
                    det_options=True, ext_options={
                     'object_detection:meta_arch_type': 3,
                     'object_detection:meta_layers_names_list': f'../edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/efficientdet_effb0_bifpn_lite_512x512_20240612_model.prototxt',
+                    'advanced_options:output_feature_16bit_names_list': '/bbox_head/reg_header/pointwise_conv/Conv_output_0, /bbox_head/cls_header/pointwise_conv/Conv_output_0, /bbox_head/reg_header/pointwise_conv_1/Conv_output_0 /bbox_head/cls_header/pointwise_conv_1/Conv_output_0 /bbox_head/reg_header/pointwise_conv_2/Conv_output_0 /bbox_head/cls_header/pointwise_conv_2/Conv_output_0 /bbox_head/reg_header/pointwise_conv_3/Conv_output_0 /bbox_head/cls_header/pointwise_conv_3/Conv_output_0 /bbox_head/reg_header/pointwise_conv_4/Conv_output_0 /bbox_head/cls_header/pointwise_conv_4/Conv_output_0', #/backbone/layers.0/activate/Relu_output_0
                     }),
                 model_path=f'../edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/efficientdet_effb0_bifpn_lite_512x512_20240612_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
