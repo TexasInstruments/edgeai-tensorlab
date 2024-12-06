@@ -74,7 +74,8 @@ def get_configs(settings, work_dir):
                 ),
                 runtime_options=settings.runtime_options_onnx_np2(
                     det_options=True, ext_options={
-                     'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL 
+                     'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL,
+                     'advanced_options:output_feature_16bit_names_list': '/class_labels_classifier/MatMul_output_0 4041 /bbox_predictor/layers.1/MatMul_output_0 /bbox_predictor/layers.1/Add_output_0 /bbox_predictor/Relu_1_output_0 /bbox_predictor/layers.2/MatMul_output_0 /bbox_predictor/layers.2/Add_output_0 4053',
                      }, fast_calibration=True),
                 model_path=f'{settings.models_path}/vision/detection/coco/hf-transformers/detr_fb_resnet50_800x800_simp.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, reshape_list=[(-1,4),(-1,1),(-1,1)],logits_bbox_to_bbox_ls=True,formatter=postprocess.DetectionXYWH2XYXYCenterXY()),
