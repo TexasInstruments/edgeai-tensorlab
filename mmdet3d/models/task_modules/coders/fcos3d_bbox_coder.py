@@ -72,22 +72,22 @@ class FCOS3DBBoxCoder(BaseBBoxCoder):
         #bbox[:, 3:6] = scale_size(clone_bbox[:, 3:6]).float()
         if self.base_depths is None:
             if self.norm_on_bbox and not training:
-                bbox[:, :6] = torch.cat((scale_offset(clone_bbox[:, :2])*stride,
+                bbox = torch.cat((scale_offset(clone_bbox[:, :2])*stride,
                                          scale_depth(clone_bbox[:, 2]).exp().unsqueeze(1),
-                                         scale_size(clone_bbox[:, 3:6]).exp()), dim=1).float()
+                                         scale_size(clone_bbox[:, 3:6]).exp(), clone_bbox[:, 6:]), dim=1).float()
             else:
-                bbox[:, :6] = torch.cat((scale_offset(clone_bbox[:, :2]),
+                bbox= torch.cat((scale_offset(clone_bbox[:, :2]),
                                          scale_depth(clone_bbox[:, 2]).exp().unsqueeze(1),
-                                         scale_size(clone_bbox[:, 3:6]).exp()), dim=1).float()
+                                         scale_size(clone_bbox[:, 3:6]).exp(), clone_bbox[:, 6:]), dim=1).float()
         else:
             if self.norm_on_bbox and not training:
-                bbox[:, :6] = torch.cat((scale_offset(clone_bbox[:, :2])*stride,
+                bbox = torch.cat((scale_offset(clone_bbox[:, :2])*stride,
                                          scale_depth(clone_bbox[:, 2]).unsqueeze(1),
-                                         scale_size(clone_bbox[:, 3:6]).exp()), dim=1).float()
+                                         scale_size(clone_bbox[:, 3:6]).exp(), clone_bbox[:, 6:]), dim=1).float()
             else:
-                bbox[:, :6] = torch.cat((scale_offset(clone_bbox[:, :2]),
+                bbox = torch.cat((scale_offset(clone_bbox[:, :2]),
                                          scale_depth(clone_bbox[:, 2]).unsqueeze(1),
-                                         scale_size(clone_bbox[:, 3:6]).exp()), dim=1).float()
+                                         scale_size(clone_bbox[:, 3:6]).exp(), clone_bbox[:, 6:]), dim=1).float()
 
         #if self.base_depths is None:
         #    bbox[:, 2] = bbox[:, 2].exp()

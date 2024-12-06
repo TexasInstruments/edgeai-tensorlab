@@ -68,7 +68,7 @@ optim_wrapper = dict(
 
 
 default_hooks = dict(
-    logger=dict(type='LoggerHook', interval=2),
+    logger=dict(type='LoggerHook', interval=50),
     checkpoint=dict(
         type='CheckpointHook', interval=1, max_keep_ckpts=4, save_last=True))
 

@@ -35,6 +35,8 @@ import types
 import edgeai_torchmodelopt
 from torch.fx import GraphModule
 from torch.fx.passes.utils.source_matcher_utils import SourcePartition
+from edgeai_torchmodelopt import xmodelopt, xops
+from projects.FCOS3D.fcos3d.modulated_deform_conv_tidl import ModulatedDeformConv2dTIDL
 
 
 def wrap_optimize_func(fn):
@@ -97,12 +99,12 @@ def wrap_fn_for_bbox_head(fn, module:nn.Module, *args, **kwargs):
                     split = key.rsplit('.',1)
                     if len(split) == 1:
                         param_name = split[0]
-                        delattr(module,param_name)
+                        delattr(module, param_name)
                     else:
                         parent_module, param_name = split
                         main_module = parent_module.split('.',1)[0]
                         if hasattr(module, main_module):
-                            delattr(module,main_module)
+                            delattr(module, main_module)
         else:
             module = new_bbox_head
     return module    
@@ -334,3 +336,31 @@ def replace_maxpool2d_k_size_gt_3(model:nn.Module, verbose_mode=False, **kwargs)
     if verbose_mode:
         print(f'maxpool2d',no_of_pool)
     return traced_model
+
+
+def replace_dform_conv_with_split_offset_mask(model):
+    replacement_dict = {
+            'split_conv_in_deform_to_offset_mask': {ModulatedDeformConv2dTIDL: [replace_dform_conv_tidl]}
+        }
+    model = xmodelopt.surgery.v1.convert_to_lite_model(model, replacement_dict)
+    return model
+
+
+def replace_dform_conv_tidl(m):
+    
+    in_channels = m.in_channels
+    out_channels = m.out_channels
+    kernel_size = m.kernel_size
+    stride = m.stride
+    padding = m.padding
+    dilation = m.dilation
+    groups = m.groups
+    output_padding = m.output_padding
+    
+    
+    replaced_model = xops.DCNWithGSv2(in_channels, out_channels, kernel_size, stride, padding, dilation, groups, offset_clip=None, mode='bilinear')
+    replaced_model.is_initialized = True
+    setattr(replaced_model, 'orig', m.forward)
+    replaced_model.copy_weights(m)
+    replaced_model = replaced_model.to(m.weight.device)
+    return replaced_model

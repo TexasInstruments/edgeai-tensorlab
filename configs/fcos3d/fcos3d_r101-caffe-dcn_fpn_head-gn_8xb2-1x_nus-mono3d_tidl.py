@@ -10,7 +10,7 @@ custom_imports = dict(imports=['projects.FCOS3D.fcos3d'])
 
 # model settings
 model = dict(
-    save_onnx_model=False,
+    save_onnx_model=True,
     data_preprocessor=dict(
         type='Det3DDataPreprocessor',
         mean=[103.530, 116.280, 123.675],
