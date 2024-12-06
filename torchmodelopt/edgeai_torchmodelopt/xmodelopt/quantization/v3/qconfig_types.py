@@ -157,8 +157,10 @@ def get_act_quantization_config(activation_qconfig, is_fake_quantize=True, fast_
     activation_bitwidth = activation_qconfig.get('bitwidth', 8)
     activation_dtype = activation_qconfig.get('dtype', torch.uint8)
 
-    AdaptiveActivationObserverToUse = observer_types.AdaptiveActivationObserverFast if fast_mode else observer_types.AdaptiveActivationObserver
-    # AdaptiveActivationObserverToUse = observer_types.AdaptiveMovingAverageMinMaxActivationObserver
+    # TODO - create a more optimized observer involving both histogram and min-max observer
+    # transformers required histogram, bev requires min max - merge them somehow
+    # AdaptiveActivationObserverToUse = observer_types.AdaptiveActivationObserverFast if fast_mode else observer_types.AdaptiveActivationObserver
+    AdaptiveActivationObserverToUse = observer_types.AdaptiveMovingAverageMinMaxActivationObserver
     
     activation_observer = xnn.utils.partialclass(AdaptiveActivationObserverToUse,
                                              quant_min=activation_qconfig.get('quant_min', torch.iinfo(activation_dtype).min),

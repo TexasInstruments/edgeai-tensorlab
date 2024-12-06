@@ -32,6 +32,7 @@
 from . import xnn
 from . import xmodelopt
 from . import xonnx
+from . import xops
 
 # add shortcuts directly here for ease of use
 from .xmodelopt import surgery
