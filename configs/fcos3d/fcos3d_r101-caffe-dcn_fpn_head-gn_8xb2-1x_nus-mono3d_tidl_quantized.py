@@ -11,6 +11,7 @@ custom_imports = dict(imports=['projects.FCOS3D.fcos3d'])
 # model settings
 model = dict(
     save_onnx_model=True,
+    quantized_model=True,
     data_preprocessor=dict(
         type='Det3DDataPreprocessor',
         mean=[103.530, 116.280, 123.675],
@@ -54,9 +55,10 @@ test_pipeline = [
 ]
 
 train_dataloader = dict(
-    batch_size=2, num_workers=2, dataset=dict(pipeline=train_pipeline))
+    batch_size=1, num_workers=2, dataset=dict(pipeline=train_pipeline))
 test_dataloader = dict(dataset=dict(pipeline=test_pipeline))
-val_dataloader = dict(dataset=dict(pipeline=test_pipeline))
+val_dataloader = dict(
+    batch_size=1, num_workers=2, dataset=dict(pipeline=test_pipeline))
 
 # optimizer
 optim_wrapper = dict(
@@ -66,6 +68,7 @@ optim_wrapper = dict(
 
 
 default_hooks = dict(
+    logger=dict(type='LoggerHook', interval=50),
     checkpoint=dict(
         type='CheckpointHook', interval=1, max_keep_ckpts=4, save_last=True))
 
@@ -86,3 +89,5 @@ param_scheduler = [
         milestones=[8, 11],
         gamma=0.1)
 ]
+
+load_from = "/home/a0491009/quantization/edgeai-mmdetection3d/ckpts/fcos3d_r101_caffe_fpn_gn-head_dcn_2x8_1x_nus-mono3d_finetune_20210717_095645-8d806dc2.pth"

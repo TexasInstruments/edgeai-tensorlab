@@ -26,3 +26,5 @@ optim_wrapper = dict(
 #       or not by default.
 #   - `base_batch_size` = (8 GPUs) x (2 samples per GPU).
 auto_scale_lr = dict(enable=False, base_batch_size=16)
+
+find_unused_parameters = True

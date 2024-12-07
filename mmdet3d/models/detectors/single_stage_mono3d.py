@@ -2,6 +2,7 @@
 from typing import Tuple
 
 from mmdet.models.detectors.single_stage import SingleStageDetector
+from .single_stage import SingleStage3DDetector
 from mmengine.structures import InstanceData
 from torch import Tensor
 
@@ -11,6 +12,7 @@ from mmdet3d.utils import OptInstanceList
 
 
 @MODELS.register_module()
+# class SingleStageMono3DDetector(SingleStage3DDetector):
 class SingleStageMono3DDetector(SingleStageDetector):
     """Base class for monocular 3D single-stage detectors.
 

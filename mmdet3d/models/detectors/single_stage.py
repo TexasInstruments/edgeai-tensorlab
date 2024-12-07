@@ -134,7 +134,8 @@ class SingleStage3DDetector(Base3DDetector):
             tuple[list]: A tuple of features from ``bbox_head`` forward.
         """
         x = self.extract_feat(batch_inputs_dict)
-        results = self.bbox_head.forward(x)
+        # results = self.bbox_head.forward(x)
+        results = self.bbox_head(x)
         return results
 
     def extract_feat(
