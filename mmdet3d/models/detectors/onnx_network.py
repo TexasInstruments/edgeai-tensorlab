@@ -220,7 +220,7 @@ class BEVDet_export_model(nn.Module):
         self.pts_bbox_head             = pts_bbox_head
 
         # Batch to multiple branches
-        self.enable_multi_branch = True
+        self.enable_multi_branch = False
 
 
     def prepare_sensor_transform(self, img, img_metas):
@@ -390,9 +390,7 @@ class BEVDet_export_model(nn.Module):
             x = x.reshape(N*self.D*H*W, self.C)
             x = self.view_transform_branch_TIDL([x, lidar_coor_1d, bev_feat])
         else:
-            _, N, C, imH, imW = imgs.shape
-
-            imgs = imgs.view(B * N, C, imH, imW)
+            N, C, H, W = imgs.size()
             x = self.img_backbone(imgs)
             x = self.img_neck(x)
 

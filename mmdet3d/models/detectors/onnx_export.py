@@ -79,23 +79,26 @@ def export_BEVDet(model, inputs=None, data_samples=None, **kwargs):
     bev_feat_np.tofile('bevdet_feat.dat')
     lidar_coor_1d_np.tofile('bevdet_lidar_coor_1d.dat')
 
-    # Batch image to multiple branches
-    N, C, H, W = img[0].shape
-    img_list = [img[0][0].view(1, C, H, W),
-                img[0][1].view(1, C, H, W),
-                img[0][2].view(1, C, H, W),
-                img[0][3].view(1, C, H, W),
-                img[0][4].view(1, C, H, W),
-                img[0][5].view(1, C, H, W)]
+    # Passed the squeezed img
+    if img.dim() == 5 and img.size(0) == 1:
+        img.squeeze_()
+    elif img.dim() == 5 and img.size(0) > 1:
+        B, N, C, H, W = img.size()
+        img = img.view(B * N, C, H, W)
 
     modelInput = []
-    modelInput.append(img_list)
+    modelInput.append(img)
     modelInput.append(bev_feat)
     modelInput.append(lidar_coor_1d)
+
+    input_names  = ["inputs", "bev_feat", "lidar_coor_1d"]
+    output_names = ["bboxes", "scores", "labels"]
 
     torch.onnx.export(onnxModel,
                       tuple(modelInput),
                      'bevDet.onnx',
+                      input_names=input_names,
+                      output_names=output_names,
                       opset_version=16,
                       verbose=False)
 
