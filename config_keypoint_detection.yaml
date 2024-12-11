@@ -44,14 +44,17 @@ dataset:
     # This simple dataset can be constucted by taking images in val2017 and putting in images folder
     # and then taking person_keypoints_val2017.json and renaming it at annotations/instances.json
     dataset_name: coco_keypoints_val2017
-    input_data_path: "./data/downloads/datasets/coco_keypoints_val2017"
+    input_data_path: data/downloads/datasets/coco_keypoints_val2017.zip
+    input_annotation_path : 
+        - data/projects/coco_keypoints_val2017/dataset/annotations/instances_train.json
+        - data/projects/coco_keypoints_val2017/dataset/annotations/instances_val.json
 
 training:
     # enable/disable training
     enable: True #False
     # Keypoint Detection model chosen can be changed here if needed
     # Available models: yolox_s_keypoint
-    model_name: 'yolox_s_keypoint'
+    model_name: 'yoloxpose_tiny_lite'
     # training_epochs: 15
     # batch_size: 16 #16
     # learning_rate: 0.001

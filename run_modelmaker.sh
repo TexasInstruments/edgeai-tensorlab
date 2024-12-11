@@ -62,6 +62,10 @@ export LD_LIBRARY_PATH=${TIDL_TOOLS_PATH}
 #export PYTHONPATH=../edgeai-mmpose/projects/yolox-pose:$PYTHONPATH
 
 #################################################################################
+# environement variable to help shape exchange between TIDL and onnxruntime
+export TIDL_RT_ONNX_VARDIM="1"
+
+#################################################################################
 # print some settings
 echo "Number of AVX cores detected in PC: ${CPUINFO_NUM_AVX_CORES}"
 echo "AVX compilation speedup in PC     : ${TIDL_RT_AVX_REF}"
