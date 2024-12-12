@@ -243,6 +243,8 @@ class ConfigSettings(config_dict.ConfigDict):
             'advanced_options:params_16bit_names_list':'',
             # optimize data conversion options by moving them from arm to c7x
             'advanced_options:add_data_convert_ops': 3,
+            # max number of nodes in a subgraph (default is 750)
+            #'advanced_options:max_num_subgraph_nodes': 2000,
             # use a specific firmware version
             #'advanced_options:c7x_firmware_version': '10_00_06_00',
             ##################################
