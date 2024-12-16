@@ -96,7 +96,6 @@ val_dataloader = dict(
             CAM_BACK_RIGHT='samples/CAM_BACK_RIGHT',
             CAM_BACK_LEFT='samples/CAM_BACK_LEFT'),
         ann_file='nuscenes_infos_val.pkl',
-        # ann_file='nuscenes_mini_infos_val.pkl',
         load_type='mv_image_based',
         pipeline=test_pipeline,
         modality=input_modality,
@@ -111,7 +110,6 @@ val_evaluator = dict(
     type='NuScenesMetric',
     data_root=data_root,
     ann_file=data_root + 'nuscenes_infos_val.pkl',
-    # ann_file=data_root + 'nuscenes_mini_infos_val.pkl',
     metric='bbox',
     backend_args=backend_args)
 

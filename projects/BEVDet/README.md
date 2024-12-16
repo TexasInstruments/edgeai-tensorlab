@@ -45,7 +45,7 @@ mmdetection3d
 │   │   ├── lidarseg (optional)
 │   │   ├── v1.0-test
 |   |   ├── v1.0-trainval
-│   │   ├── nuscenes_database
+│   │   ├── nuscenes_gt_database
 │   │   ├── nuscenes_infos_train.pkl
 │   │   ├── nuscenes_infos_val.pkl
 │   │   ├── nuscenes_infos_test.pkl
@@ -83,7 +83,7 @@ This Result is trained by bevdet-r50.py.
 
 |                    Model                      | Mem (GB) | Inf time (fps) | mAP    | NDS   |
 | :-------------------------------------------: | :------: | :------------: | :---:  | :--:  |
-| bevdet-r50                                    |   TBA    |       TBA      | 28.45  | 35.01 | 
+| bevdet-r50                                    |   0.58   |       TBA      | 28.45  | 35.01 | 
 
 <!--
 ## 3D Object Detection Model Zoo
@@ -102,7 +102,7 @@ Export of ONNX model (.onnx) is supported by setting the field `save_onnx_model`
 ```bash
 model = dict(
     type='BEVDet',
-    save_onnx_model=False,
+    save_onnx_model=True,
     data_preprocessor=dict(
         type='Det3DDataPreprocessor',
         mean=[123.675,  116.280, 103.530],

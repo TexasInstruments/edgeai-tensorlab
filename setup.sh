@@ -46,9 +46,9 @@ pip3 install --no-input -r requirements.txt
 
 pip install -U openmim
 pip install mmengine==0.10.4
-pip install mmcv==2.2.0
+pip install mmcv==2.2.0 -f https://download.openmmlab.com/mmcv/dist/cu121/torch2.4/index.html
 pip install mmdet==3.3.0
-#pip install mmsegmentation==1.2.2
+pip install mmsegmentation==1.2.2
 
 
 ######################################################################
@@ -56,7 +56,8 @@ pip install mmdet==3.3.0
 pip3 install --no-input protobuf==3.20.2 onnx==1.14.0
 
 # error when moving this inside requirements file
-pip3 install --no-input git+https://github.com/TexasInstruments/edgeai-modeloptimization.git@r9.1#subdirectory=torchmodelopt
+pip3 install --no-input git+https://github.com/TexasInstruments/edgeai-modeloptimization.git@r10.1#subdirectory=torchmodelopt
+# pip install -e ../edgeai-modeloptimization/torchmodelopt
 
 ######################################################################
 echo "Installing mmdetection"

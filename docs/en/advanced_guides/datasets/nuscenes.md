@@ -51,6 +51,13 @@ This command creates `.pkl` files for PETR, BEVFormer and FCOS3D. To include add
 python tools/create_data.py nuscenes --root-path ./data/nuscenes --out-dir ./data/nuscenes --extra-tag nuscenes --canbus ./data --bevdet --petrv2
 ```
 
+FastBEV uses multiple temporal frames and therefore need to organize neighboring frames's information as well in a `.pkl` file for training. For this purpose, we should run the following script, which will create `nuscenes_infos_train_fastbev.pkl` from `nuscenes_infos_train.pkl`.
+
+```bash
+python tools/dataset_converters/generate_fastbev_sweep_pkl.py n --root-path ./data/nuscenes --version 'v1.0-trainval'
+```
+
+
 The folder structure after processing should be as below.
 
 ```
@@ -67,14 +74,15 @@ edgeai-mmdetection3d
 │   │   ├── lidarseg (optional)
 │   │   ├── v1.0-test
 |   |   ├── v1.0-trainval
-│   │   ├── nuscenes_database
+│   │   ├── nuscenes_gt_database
 │   │   ├── nuscenes_infos_train.pkl
+│   │   ├── nuscenes_infos_train_fastbev.pkl
 │   │   ├── nuscenes_infos_val.pkl
 │   │   ├── nuscenes_infos_test.pkl
 │   │   ├── nuscenes_dbinfos_train.pkl
 ```
 
-- `nuscenes_database/xxxxx.bin`: point cloud data included in each 3D bounding box of the training dataset
+- `nuscenes_gt_database/xxxxx.bin`: point cloud data included in each 3D bounding box of the training dataset
 - `nuscenes_infos_train.pkl`: training dataset, a dict contains two keys: `metainfo` and `data_list`.
   `metainfo` contains the basic information for the dataset itself, such as `categories`, `dataset` and `info_version`, while `data_list` is a list of dict, each dict (hereinafter referred to as `info`) contains all the detailed information of single sample as follows:
   - info\['sample_idx'\]: The index of this sample in the whole dataset.
