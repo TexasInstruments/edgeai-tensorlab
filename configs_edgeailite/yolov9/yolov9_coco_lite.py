@@ -2,18 +2,15 @@ _base_ = ['../../configs/_base_/schedules/schedule_1x.py', '../../configs/_base_
 # model settings
 
 # convert_to_lite_model = dict(model_surgery=1)
-# load_from = '/data/files/a0508577/work/edgeai-algo/YOLO/backup/weights/yolov9-s/yolov9-s.pth'
-load_from = 'work_dirs/onnx_exports/yolov9/checkpoint/yolov9_new_weights.pth'
-# load_from = 'work_dirs/yolov9_coco_lite24_epoch/epoch20/epoch_20.pth'
-# load_from = 'work_dirs/onnx_exports/yolov9/checkpoint/lite_e50_39.8/epoch_50.pth'
+load_from = 'work_dirs/checkpoint/yolov9/yolov9_new_weights.pth'
 
 # training settings
-max_epochs = 30
+max_epochs = 60
 num_last_epochs = 15
 interval = 1
 
 img_scale = (640, 640)
-batch_size = 16
+batch_size = 8
 
 data_preprocessor = dict(
     type='DetDataPreprocessor',
@@ -40,7 +37,6 @@ model = dict(
         in_channels=[128, 192, 256],
         strides=(8, 16, 32),
         reg_max=16,
-        # bbox_coder=dict(type='YOLOBBoxCoder'),
         loss_yolo=dict(
             type='YOLOLoss',
                 loss_cfg = dict(
@@ -80,12 +76,6 @@ model = dict(
             neg_iou_thr=0.5,
             min_pos_iou=0)),
     test_cfg=dict(score_thr=0.01, nms=dict(type='nms', iou_threshold=0.65)
-        # nms_pre=1000,
-        # min_bbox_size=0,
-        # score_thr=0.05,
-        # conf_thr=0.005,
-        # nms=dict(type='nms', iou_threshold=0.45),
-        # max_per_img=100
         ))
 # dataset settings
 dataset_type = 'CocoDataset'

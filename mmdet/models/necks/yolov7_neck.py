@@ -64,8 +64,8 @@ class Elan_Neck(nn.Module):
         x2 = self.conv2(x)
         x3 = self.conv3(x2)
         x4 = self.conv4(x3)
-        x5 = self.conv4(x4)
-        x6 = self.conv4(x5)
+        x5 = self.conv5(x4)
+        x6 = self.conv6(x5)
 
         return self.conv_out(torch.cat([x6, x5, x4, x3, x2, x1], dim=1))
         

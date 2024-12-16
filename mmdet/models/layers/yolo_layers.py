@@ -12,7 +12,7 @@ from torch.nn import Identity, ReLU
 from mmdet.models.utils.yolo_model_utils import auto_pad, create_activation_function, round_up
 
 class ChangeActivationToReLU(torch.nn.ReLU):
-    def __init__(self, start_act='silu', change_epochs=10, inplace=False):
+    def __init__(self, start_act='silu', change_epochs=30, inplace=False):
         super().__init__(inplace=inplace)
         self.epoch = -1
         self.change_epochs = change_epochs
@@ -52,11 +52,12 @@ class   Conv(nn.Module):
         kwargs.setdefault("padding", auto_pad(kernel_size, **kwargs))
         self.conv = nn.Conv2d(in_channels, out_channels, kernel_size, bias=False, **kwargs)
         self.bn = nn.BatchNorm2d(out_channels, eps=1e-3, momentum=3e-2)
-        # self.act = create_activation_function(activation)
-        if activation:
-            self.act = ChangeActivationToReLU()
-        else:
-            self.act = Identity()
+        self.act = create_activation_function(activation)
+        # if activation:
+        #     self.act = ChangeActivationToReLU()
+        #     # self.act = ChangeActivationToReLU_2()
+        # else:
+        #     self.act = Identity()
 
     def forward(self, x: Tensor) -> Tensor:
         x = self.conv(x)
@@ -227,8 +228,9 @@ class RepConv(nn.Module):
         **kwargs,
     ):
         super().__init__()
-        # self.act = create_activation_function(activation)
-        self.act = ChangeActivationToReLU()
+        self.act = create_activation_function(activation)
+        # self.act = ChangeActivationToReLU()
+        # self.act = ChangeActivationToReLU_2()
         self.conv1 = Conv(in_channels, out_channels, kernel_size, activation=False, **kwargs)
         self.conv2 = Conv(in_channels, out_channels, 1, activation=False, **kwargs)
 

@@ -1,10 +1,8 @@
 _base_ = ['../../configs/_base_/schedules/schedule_1x.py', '../../configs/_base_/default_runtime.py']
 # model settings
 
-# convert_to_lite_model = dict(model_surgery=1)
-# load_from = '/data/files/a0508577/work/edgeai-algo/YOLO/backup/weights/yolov7-s/yolov7-s.pth'
-# load_from = 'work_dirs/onnx_exports/yolov7/checkpoint/yolov7_new_weights.pth'
-load_from = 'work_dirs/onnx_exports/yolov7/checkpoint/yolov7_new_weights.pth'
+convert_to_lite_model = dict(model_surgery=1)
+load_from = 'work_dirs/checkpoint/yolov7/yolov7_new_weights.pth'
 
 # training settings
 max_epochs = 100
@@ -48,12 +46,12 @@ model = dict(
         ),
         # bbox_coder=dict(type='YOLOBBoxCoder'),
         loss_yolo=dict(
-            type='YOLOLoss',
+            type='YOLOV7Loss2',
                 loss_cfg = dict(
                     objective=dict(
-                        BCELoss=0.5,
-                        BoxLoss=7.5,
-                        DFLoss=1.5
+                        ClassLoss=0.3,
+                        BoxLoss=0.05,
+                        ObjLoss=0.7
                     ),
                     aux=0.25,
                     matcher=dict(
@@ -78,7 +76,7 @@ model = dict(
             pos_iou_thr=0.5,
             neg_iou_thr=0.5,
             min_pos_iou=0)),
-    test_cfg=dict(score_thr=0.0001, max_bbox=1000, nms=dict(type='nms', iou_threshold=0.65)
+    test_cfg=dict(score_thr=0.0001, max_bbox=5000, nms=dict(type='nms', iou_threshold=0.65)
         # nms_pre=1000,
         # min_bbox_size=0,
         # score_thr=0.05,
@@ -172,7 +170,7 @@ train_dataloader = dict(
     sampler=dict(type='DefaultSampler', shuffle=True),
     dataset=train_dataset)
 val_dataloader = dict(
-    batch_size=4,
+    batch_size=8,
     num_workers=4,
     persistent_workers=True,
     drop_last=False,
@@ -198,7 +196,7 @@ train_cfg = dict(max_epochs=max_epochs, val_interval=interval)
 
 # optimizer
 # default 8 gpu
-base_lr = 0.001
+base_lr = 0.0001
 optim_wrapper = dict(
     type='OptimWrapper',
     optimizer=dict(

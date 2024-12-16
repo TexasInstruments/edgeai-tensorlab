@@ -88,15 +88,8 @@ class YOLOV7Backbone(BaseModule):
                 expand_list:Sequence[int] = [128, 256, 512, 1024, 1024],
                 elan_list:Sequence[int] = [64, 128, 256, 256],
                 num_out_stages:int = 3,
-                init_cfg=dict(
-                    type='Kaiming',
-                    layer='Conv2d',
-                    a=math.sqrt(5),
-                    distribution='uniform',
-                    mode='fan_in',
-                    nonlinearity='ReLU')
                     ):
-        super().__init__(init_cfg)
+        super().__init__()
         self.num_out_stages = num_out_stages
         self.stem = Stem(*stem_channels)
         # self.conv1 = Conv(in_channels=stem_channels[-1],
@@ -139,17 +132,3 @@ class YOLOV7Backbone(BaseModule):
         for idx in range(self.num_out_stages):
             outs.append(self.out_stages[idx](outs[-1]))
         return outs[1:]
-
-
-
-##test
-        
-# def test():
-#     model = YOLOV7Backbone()
-#     input = torch.rand(1,3,640,640)
-#     output = model(input)
-#     # print(model)
-#     for out in output:
-#         print(out.shape)
-
-# test()

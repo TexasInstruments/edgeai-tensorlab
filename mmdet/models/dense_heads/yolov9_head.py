@@ -12,7 +12,7 @@ from mmdet.structures import OptSampleList, SampleList
 from mmdet.models.utils import (filter_scores_and_topk, select_single_mlvl,
                      unpack_gt_instances)
 from torch import Tensor
-from mmdeploy.mmcv.ops import multiclass_nms
+# from mmdeploy.mmcv.ops import multiclass_nms
 
 from mmdet.registry import MODELS
 from mmdet.utils import (ConfigType, InstanceList, OptConfigType,
@@ -130,23 +130,23 @@ class YOLOV9Head(BaseDenseHead):
 
         return self.loss_by_feat(aux_predicts, main_predicts, batch_targets)
 
-    def loss_by_feat(self, aux_predicts, main_predicts, batch_targets):
+    # def loss_by_feat(self, aux_predicts, main_predicts, batch_targets):
 
-        aux_rate = self.loss_config['loss_cfg']['aux']
-        iou_rate = self.loss_config['loss_cfg'].objective['BoxLoss']
-        dfl_rate = self.loss_config['loss_cfg'].objective['DFLoss']
-        cls_rate = self.loss_config['loss_cfg'].objective['BCELoss']
+    #     aux_rate = self.loss_config['loss_cfg']['aux']
+    #     iou_rate = self.loss_config['loss_cfg'].objective['BoxLoss']
+    #     dfl_rate = self.loss_config['loss_cfg'].objective['DFLoss']
+    #     cls_rate = self.loss_config['loss_cfg'].objective['BCELoss']
 
-        # aux_iou, aux_dfl, aux_cls = self.loss_yolo(aux_predicts, batch_targets)
-        # main_iou, main_dfl, main_cls = self.loss_yolo(main_predicts, batch_targets)
+    #     # aux_iou, aux_dfl, aux_cls = self.loss_yolo(aux_predicts, batch_targets)
+    #     # main_iou, main_dfl, main_cls = self.loss_yolo(main_predicts, batch_targets)
 
-        # loss_dict = {
-        #     "loss_box": iou_rate * (aux_iou * aux_rate + main_iou),
-        #     "loss_df": dfl_rate * (aux_dfl * aux_rate + main_dfl),
-        #     "loss_bce": cls_rate * (aux_cls * aux_rate + main_cls),
-        # }
+    #     # loss_dict = {
+    #     #     "loss_box": iou_rate * (aux_iou * aux_rate + main_iou),
+    #     #     "loss_df": dfl_rate * (aux_dfl * aux_rate + main_dfl),
+    #     #     "loss_bce": cls_rate * (aux_cls * aux_rate + main_cls),
+    #     # }
 
-        return self.loss_by_feat(aux_predicts, main_predicts, batch_targets)
+    #     return self.loss_by_feat(aux_predicts, main_predicts, batch_targets)
 
     def loss_by_feat(self, aux_predicts, main_predicts, batch_targets):
 
@@ -269,63 +269,6 @@ class YOLOV9Head(BaseDenseHead):
         #     result_list.append(result)
 
         return result_list
-    
-
-    def predict_by_feat_mmdeploy(self,
-                cls_scores: Tensor,
-                preds: Tensor,
-                batch_data_samples: SampleList,
-                cfg: Optional[ConfigDict] = None,
-                rescale: bool = False,
-                with_nms: bool = True) -> InstanceList:
-        
-        cfg = self.test_cfg if cfg is None else cfg
-
-        # deploy_cfg = ctx.cfg
-        # post_params = get_post_processing_params(deploy_cfg)
-        max_output_boxes_per_class = 1000 # post_params.max_output_boxes_per_class
-        iou_threshold = cfg.nms.get('iou_threshold')
-        score_threshold = cfg.get('score_thr')
-        pre_top_k = 5000 # post_params.pre_top_k
-        keep_top_k = 100 # cfg.get('max_per_img', post_params.keep_top)
-
-        nms_type = cfg.nms.get('type')
-        dets = multiclass_nms(
-            preds,
-            cls_scores,
-            max_output_boxes_per_class,
-            nms_type=nms_type,
-            iou_threshold=iou_threshold,
-            score_threshold=score_threshold,
-            pre_top_k=pre_top_k,
-            keep_top_k=keep_top_k)
-    
-        det_data = dets[0].data
-        return dets
-
-
-    ######mmdeploy
-    # def predict_by_feat_mmdeploy(self,
-    #             x: Tuple[Tensor],
-    #             batch_data_samples: SampleList,
-    #             vec2box: Vec2Box,
-    #             nms_cfg: NMSConfig,
-    #             rescale: bool = False):
-    #     batch_img_metas = [
-    #         data_samples.metainfo for data_samples in batch_data_samples
-    #     ]
-
-    #     outs = self(x)
-    #     post_proccess = self.postprocess_class(vec2box, nms_cfg)
-    #     outs = post_proccess(outs)
-
-    #     return outs
-
-
-
-
-
-
 
     def _bbox_post_process(self,
                            results: InstanceData,

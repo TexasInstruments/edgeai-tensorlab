@@ -12,7 +12,7 @@ from mmdet.structures import OptSampleList, SampleList
 from mmdet.models.utils import (filter_scores_and_topk, select_single_mlvl,
                      unpack_gt_instances)
 from torch import Tensor
-from mmdeploy.mmcv.ops import multiclass_nms
+# from mmdeploy.mmcv.ops import multiclass_nms
 
 from mmdet.registry import MODELS
 # from mmdet.structures.bbox import bbox2distance
@@ -38,12 +38,12 @@ class YOLOV7Head(BaseDenseHead):
                 test_cfg: OptConfigType = None,
                 anchor_cfg: AnchorConfig = None,
                 loss_yolo: ConfigType = dict(
-                    type='YOLOLoss',
+                    type='YOLOV7Loss',
                     loss_cfg = LossConfig(
                         objective=dict(
-                            BCELoss=0.5,
-                            BoxLoss=7.5,
-                            DFLoss=1.5
+                            ClassLoss=0.3,
+                            BoxLoss=0.05,
+                            ObjLoss=0.7
                         ),
                         aux=0.25,
                         matcher=MatcherConfig(
@@ -88,7 +88,7 @@ class YOLOV7Head(BaseDenseHead):
         
         return outs
 
-    def loss(self,aux_head, x: Tuple[Tensor], backbone_feat: Tuple[Tensor], batch_data_samples: SampleList, anc2box: Anc2Box) -> dict:
+    def loss(self, x: Tuple[Tensor], batch_data_samples: SampleList) -> dict:
         """Perform forward propagation and loss calculation of the detection
         head on the features of the upstream network.
 
@@ -132,20 +132,19 @@ class YOLOV7Head(BaseDenseHead):
 
         return self.loss_by_feat(main_predicts, batch_targets)
 
-    def loss_by_feat(self, aux_predicts, main_predicts, batch_targets):
+    def loss_by_feat(self, main_predicts, batch_targets):
 
 
         iou_rate = self.loss_config['loss_cfg'].objective['BoxLoss']
-        dfl_rate = self.loss_config['loss_cfg'].objective['DFLoss']
-        cls_rate = self.loss_config['loss_cfg'].objective['BCELoss']
+        obj_rate = self.loss_config['loss_cfg'].objective['ObjLoss']
+        cls_rate = self.loss_config['loss_cfg'].objective['ClassLoss']
 
-        aux_iou, aux_dfl, aux_cls = self.loss_yolo(aux_predicts, batch_targets)
-        main_iou, main_dfl, main_cls = self.loss_yolo(main_predicts, batch_targets)
+        iou_loss, obj_loss, cls_loss  = self.loss_yolo(main_predicts, batch_targets)
 
         loss_dict = {
-            "loss_box": main_iou,
-            "loss_df": main_dfl,
-            "loss_bce": main_cls,
+            "loss_iou": iou_rate * iou_loss,
+            "loss_obj": obj_rate * obj_loss,
+            "loss_cls": cls_rate * cls_loss,
         }
 
         return loss_dict
@@ -252,63 +251,6 @@ class YOLOV7Head(BaseDenseHead):
         #     result_list.append(result)
 
         return result_list
-    
-
-    def predict_by_feat_mmdeploy(self,
-                cls_scores: Tensor,
-                preds: Tensor,
-                batch_data_samples: SampleList,
-                cfg: Optional[ConfigDict] = None,
-                rescale: bool = False,
-                with_nms: bool = True) -> InstanceList:
-        
-        cfg = self.test_cfg if cfg is None else cfg
-
-        # deploy_cfg = ctx.cfg
-        # post_params = get_post_processing_params(deploy_cfg)
-        max_output_boxes_per_class = 1000 # post_params.max_output_boxes_per_class
-        iou_threshold = cfg.nms.get('iou_threshold')
-        score_threshold = cfg.get('score_thr')
-        pre_top_k = 5000 # post_params.pre_top_k
-        keep_top_k = 100 # cfg.get('max_per_img', post_params.keep_top)
-
-        nms_type = cfg.nms.get('type')
-        dets = multiclass_nms(
-            preds,
-            cls_scores,
-            max_output_boxes_per_class,
-            nms_type=nms_type,
-            iou_threshold=iou_threshold,
-            score_threshold=score_threshold,
-            pre_top_k=pre_top_k,
-            keep_top_k=keep_top_k)
-    
-        det_data = dets[0].data
-        return dets
-
-
-    ######mmdeploy
-    # def predict_by_feat_mmdeploy(self,
-    #             x: Tuple[Tensor],
-    #             batch_data_samples: SampleList,
-    #             anc2box: Anc2Box,
-    #             nms_cfg: NMSConfig,
-    #             rescale: bool = False):
-    #     batch_img_metas = [
-    #         data_samples.metainfo for data_samples in batch_data_samples
-    #     ]
-
-    #     outs = self(x)
-    #     post_proccess = self.postprocess_class(anc2box, nms_cfg)
-    #     outs = post_proccess(outs)
-
-    #     return outs
-
-
-
-
-
-
 
     def _bbox_post_process(self,
                            results: InstanceData,
