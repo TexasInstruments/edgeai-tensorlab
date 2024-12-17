@@ -385,59 +385,62 @@ def main():
     # log_file_link = osp.join(cfg.work_dir, f'run.log')
     # xnn.utils.make_symlink(log_file, log_file_link)
 
-    model_surgery = args.model_surgery
-    if args.model_surgery is None:
-        if hasattr(cfg, 'convert_to_lite_model'):
-            model_surgery = cfg.convert_to_lite_model.model_surgery
+    # Model optimization is applied only to FCOS3D
+    # Need to validate it for other models
+    if cfg.get("model")['type'] == 'FCOSMono3D':
+        model_surgery = args.model_surgery
+        if args.model_surgery is None:
+            if hasattr(cfg, 'convert_to_lite_model'):
+                model_surgery = cfg.convert_to_lite_model.model_surgery
+            else:
+                model_surgery = 0
+
+        # if hasattr(cfg, 'resize_with_scale_factor') and cfg.resize_with_scale_factor:
+        #     torch.nn.functional._interpolate_orig = torch.nn.functional.interpolate
+        #     torch.nn.functional.interpolate = xnn.layers.resize_with_scale_factor
+
+        # model surgery
+        runner.load_or_resume()
+        runner.model.eval()
+        runner.model = replace_dform_conv_with_split_offset_mask(runner.model)
+
+        is_wrapped = False
+        if is_model_wrapper(runner.model):
+            runner.model = runner.model.module
+            is_wrapped = True
+
+        example_inputs, example_kwargs = get_input(runner, cfg)
+
+        transformation_dict = dict(backbone=None, neck=None, bbox_head=xmodelopt.TransformationWrapper(wrap_fn_for_bbox_head))
+        copy_attrs=['train_step', 'val_step', 'test_step', 'data_preprocessor', 'parse_losses', 'bbox_head', '_run_forward']
+
+        if model_surgery:
+            model_surgery_kwargs = dict(replacement_dict=get_replacement_dict(model_surgery, cfg))
         else:
-            model_surgery = 0
-
-    # if hasattr(cfg, 'resize_with_scale_factor') and cfg.resize_with_scale_factor:
-    #     torch.nn.functional._interpolate_orig = torch.nn.functional.interpolate
-    #     torch.nn.functional.interpolate = xnn.layers.resize_with_scale_factor
-
-    # model surgery
-    runner.load_or_resume()
-    runner.model.eval()
-    runner.model = replace_dform_conv_with_split_offset_mask(runner.model)
+            model_surgery_kwargs = None
     
-    is_wrapped = False
-    if is_model_wrapper(runner.model):
-        runner.model = runner.model.module
-        is_wrapped = True
-
-    example_inputs, example_kwargs = get_input(runner, cfg)
-
-    transformation_dict = dict(backbone=None, neck=None, bbox_head=xmodelopt.TransformationWrapper(wrap_fn_for_bbox_head))
-    copy_attrs=['train_step', 'val_step', 'test_step', 'data_preprocessor', 'parse_losses', 'bbox_head', '_run_forward']
-
-    if model_surgery:
-        model_surgery_kwargs = dict(replacement_dict=get_replacement_dict(model_surgery, cfg))
-    else:
-        model_surgery_kwargs = None
-    
-    if args.quantization:
-        if args.quantize_type in ['PTQ', 'PTC']:
-            quantization_kwargs = dict(quantization_method=args.quantize_type, total_epochs=2, qconfig_type="WC8_AT8")
+        if args.quantization:
+            if args.quantize_type in ['PTQ', 'PTC']:
+                quantization_kwargs = dict(quantization_method=args.quantize_type, total_epochs=2, qconfig_type="WC8_AT8")
+            else:
+                quantization_kwargs = dict(quantization_method=args.quantize_type, total_epochs=runner.max_epochs, qconfig_type="WC8_AT8")
         else:
-            quantization_kwargs = dict(quantization_method=args.quantize_type, total_epochs=runner.max_epochs, qconfig_type="WC8_AT8")
-    else:
-        quantization_kwargs = None
-    # if model_surgery_kwargs is not None and quantization_kwargs is None:
-    runner.call_hook('before_run')
-    runner.load_or_resume()
-    runner.call_hook('after_run')
+            quantization_kwargs = None
+        # if model_surgery_kwargs is not None and quantization_kwargs is None:
+        runner.call_hook('before_run')
+        runner.load_or_resume()
+        runner.call_hook('after_run')
     
-    orig_model = deepcopy(runner.model)
-    runner.model = xmodelopt.apply_model_optimization(runner.model, example_inputs, example_kwargs, model_surgery_version=model_surgery, 
-                                                      quantization_version=args.quantization, model_surgery_kwargs=model_surgery_kwargs, 
-                                                      quantization_kwargs=quantization_kwargs, transformation_dict=transformation_dict, 
-                                                      copy_attrs=copy_attrs)
+        orig_model = deepcopy(runner.model)
+        runner.model = xmodelopt.apply_model_optimization(runner.model, example_inputs, example_kwargs, model_surgery_version=model_surgery, 
+                                                          quantization_version=args.quantization, model_surgery_kwargs=model_surgery_kwargs, 
+                                                          quantization_kwargs=quantization_kwargs, transformation_dict=transformation_dict, 
+                                                          copy_attrs=copy_attrs)
     
-    if is_wrapped:
-        runner.model = runner.wrap_model(
-            runner.cfg.get('model_wrapper_cfg'), runner.model)
-    print_log('model optimization done')
+        if is_wrapped:
+            runner.model = runner.wrap_model(
+                runner.cfg.get('model_wrapper_cfg'), runner.model)
+        print_log('model optimization done')
 
     # start training
     runner.train()
