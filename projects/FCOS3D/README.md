@@ -1,18 +1,21 @@
-# BEVFormer: Learning Bird’s-Eye-View Representation from Multi-Camera Images via Spatiotemporal Transformers
+# FCOS3D: Fully Convolutional One-Stage Monocular 3D Object Detection
 
-> [BEVFormer: Learning Bird’s-Eye-View Representation from Multi-Camera Images via Spatiotemporal Transformers](https://arxiv.org/pdf/2203.17270)
+> [FCOS3D: Fully Convolutional One-Stage Monocular 3D Object Detection](https://arxiv.org/abs/2104.10956)
 
 <!-- [ALGORITHM] -->
 
 ## Abstract
 
-3D visual perception tasks, including 3D detection and map segmentation based on multi-camera images, are essential for autonomous driving systems. In this work, we present a new framework termed BEVFormer, which learns unified BEV representations with spatiotemporal transformers to support multiple autonomous driving perception tasks. In a nutshell, BEVFormer exploits both spatial and temporal information by interacting with spatial and temporal space through predefined
-grid-shaped BEV queries. To aggregate spatial information, we design spatial cross-attention that each BEV query extracts the spatial features from the regions of interest across camera views. For temporal information, we propose temporal self-attention to recurrently fuse the history BEV information. Our approach achieves the new state-of-the-art 56.9% in terms of NDS metric on the nuScenes test set, which is 9.0 points higher than previous best arts and on par with the performance of LiDAR-based baselines. We further show that BEVFormer remarkably improves
-the accuracy of velocity estimation and recall of objects under low visibility conditions. The code is available at https://github.com/fundamentalvision/BEVFormer.
+Monocular 3D object detection is an important task for autonomous driving considering its advantage of low cost. It is much more challenging than conventional 2D cases due to its inherent ill-posed property, which is mainly reflected in the lack of depth information. Recent progress on 2D detection offers opportunities to better solving this problem. However, it is non-trivial to make a general adapted 2D detector work in this 3D task. In this paper, we study this problem with a practice built on a fully convolutional single-stage detector and propose a general framework FCOS3D. Specifically, we first transform the commonly defined 7-DoF 3D targets to the image domain and decouple them as 2D and 3D attributes. Then the objects are distributed to different feature levels with consideration of their 2D scales and assigned only according to the projected 3D-center for the training procedure. Furthermore, the center-ness is redefined with a 2D Gaussian distribution based on the 3D-center to fit the 3D target formulation. All of these make this framework simple yet effective, getting rid of any 2D detection or 2D-3D correspondence priors. Our solution achieves 1st place out of all the vision-only methods in the nuScenes 3D detection challenge of NeurIPS 2020.
+
+<div align=center>
+<img src="https://user-images.githubusercontent.com/30491025/143856739-93b7c4ff-e116-4824-8cc3-8cf1a433a84c.png" width="800"/>
+</div>
 
 ## Introduction
 
-We implement and provide the results and checkpoints on the NuScenes dataset. <!-- The result can be found in [Object Detection Zoo](../../docs/det3d_modelzoo.md) -->
+
+FCOS3D is a general anchor-free, one-stage monocular 3D object detector adapted from the original 2D version FCOS. We implement and provide the results and checkpoints on the NuScenes dataset. 
 
 ## Dataset Preperation
 
@@ -61,32 +64,32 @@ Refer the MMDetection3D documentation [Test and Train with Standard Datasets](..
 1. cd to installation directory <install_dir>/edgeai-mmdetection3d
 
 2. Do floating-model training using the command 
-    "./tools/dist_train.sh projects/BEVFormer/configs/bevformer_tiny.py <num_gpus>"
+    "./tools/dist_train.sh ./configs/fcos3d/fcos3d_r101-caffe-dcn_fpn_head-gn_8xb2-1x_nus-mono3d_tidl.py <num_gpus>"
 
     For example, to use 2 GPUs use the command
     ```bash
-    ./tools/dist_train.sh projects/BEVFormer/configs/bevformer_tiny.py 2
+    ./tools/dist_train.sh ./configs/fcos3d/fcos3d_r101-caffe-dcn_fpn_head-gn_8xb2-1x_nus-mono3d_tidl.py 2
     ```
 
 3.  Do evalution using the command 
 
-    "python ./tools/test.py projects/BEVFormer/configs/bevformer_tiny.py <latest.pth file generated from previous step #2>" 
+    "python ./tools/test.py  ./configs/fcos3d/fcos3d_r101-caffe-dcn_fpn_head-gn_8xb2-1x_nus-mono3d_tidl.py <latest.pth file generated from previous step #2>" 
 
     For example,
 
     ```bash
-    python ./tools/test.py projects/BEVFormer/configs/bevformer_tiny.py ./work_dirs/bevformer_tiny/epoch_24.pth
+    python ./tools/test.py projects/BEVFormer/configs/bevformer_tiny.py ./work_dirs/fcos3d_r101-caffe-dcn_fpn_head-gn_8xb2-1x_nus-mono3d_tidl/epoch_12.pth
     ```
     Note: This is single GPU evalution command. "./dist_test.sh" can be used for multiple GPU evalution process.
 
 
 ## Results
 
-This Result is trained by bevformer_tiny.py.
+This Result is trained with fcos3d_r101-caffe-dcn_fpn_head-gn_8xb2-1x_nus-mono3d_tidl.py.
 
 |                    Model                      | Mem (GB) | Inf time (fps) | mAP    | NDS   |
 | :-------------------------------------------: | :------: | :------------: | :---:  | :--:  |
-| bevformer_tiny                                |   0.63   |       TBA      | 27.10  | 38.19 | 
+| fcos3d_r101-caffe-dcn_fpn_head-gn_8xb2-1x_nus-mono3d_tidl |   0.77   |       TBA      | 29.81  | 37.74 | 
 
 <!-- 
 ## 3D Object Detection Model Zoo
@@ -104,13 +107,15 @@ Export of ONNX model (.onnx) is supported by setting the field `save_onnx_model`
 
 ```bash
 model = dict(
-    type='BEVFormer',
-    use_grid_mask=True,
     save_onnx_model=True,
     data_preprocessor=dict(
-        type='BEVFormer3DDataPreprocessor', **img_norm_cfg, pad_size_divisor=32),
-        ...
+        type='Det3DDataPreprocessor',
+        mean=[103.530, 116.280, 123.675],
+        std=[1.0, 1.0, 1.0],
+        bgr_to_rgb=False,
+        pad_size_divisor=32),
+    ...
 ```
 ## References
 
-[1] BEVFormer: Learning Bird’s-Eye-View Representation from Multi-Camera Images via Spatiotemporal Transformers, Z. Li, W. Wang, H. Li, E. Xie, C. Sima, T. Lu, Q. Yu, J. Dai, https://arxiv.org/pdf/2203.17270
+[1] FCOS3D: Fully Convolutional One-Stage Monocular 3D Object Detection, T. Want, X. Zhu, J. Pang and D. Lin, https://arxiv.org/abs/2104.10956

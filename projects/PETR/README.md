@@ -56,7 +56,7 @@ mmdetection3d
 │   │   ├── lidarseg (optional)
 │   │   ├── v1.0-test
 |   |   ├── v1.0-trainval
-│   │   ├── nuscenes_database
+│   │   ├── nuscenes_gt_database
 │   │   ├── nuscenes_infos_train.pkl
 │   │   ├── nuscenes_infos_val.pkl
 │   │   ├── nuscenes_infos_test.pkl
@@ -94,8 +94,8 @@ This Result is trained by petr_vovnet_gridmask_p4_800x320.py and petrv2_vovnet_g
 
 |                    Model                      | Mem (GB) | Inf time (fps) | mAP    | NDS   |
 | :-------------------------------------------: | :------: | :------------: | :---:  | :--:  |
-| petr_vovnet_gridmask_p4_800x320               |   TBA    |       TBA      | 38.37  | 42.88 | 
-| petrv2_vovnet_gridmask_p4_800x320             |   TBA    |       TBA      | 37.94  | 46.40 | 
+| petr_vovnet_gridmask_p4_800x320               |   1.09   |       TBA      | 38.37  | 42.88 | 
+| petrv2_vovnet_gridmask_p4_800x320             |   1.87   |       TBA      | 37.94  | 46.40 | 
 
 
 <!--
@@ -115,7 +115,7 @@ Export of ONNX model (.onnx) is supported by setting the field `save_onnx_model`
 ```bash
 model = dict(
     type='PETR',
-    save_onnx_model=False,
+    save_onnx_model=True,
     data_preprocessor=dict(
         type='Det3DDataPreprocessor',
         mean=[103.530, 116.280, 123.675],
