@@ -150,14 +150,6 @@ def create_onnx_BEVFormer(model):
 
 def export_BEVFormer(onnxModel, inputs=None, data_samples=None, **kwargs):
 
-        #onnxModel = BEVFormer_export_model(model.img_backbone,
-        #                                   model.img_neck,
-        #                                   model.pts_bbox_head,
-        #                                   model.add_pred_to_datasample,
-        #                                   model.video_test_mode)
-        #onnxModel = onnxModel.cpu()
-        #onnxModel.eval()
-
         # Should clone. Otherwise, when we run both export_model and self.predict,
         img = inputs['imgs'].clone()
         img = img.cpu()
@@ -237,6 +229,9 @@ def export_BEVFormer(onnxModel, inputs=None, data_samples=None, **kwargs):
         onnx_model, _ = simplify('bevFormer.onnx')
         onnx.save(onnx_model, 'bevFormer.onnx')
 
+        # move model back to gpu
+        onnxModel = onnxModel.cuda()
+
         print("!!ONNX model has been exported for BEVFormer!\n\n")
 
 
@@ -276,9 +271,9 @@ def export_FCOS3D(model, inputs=None, data_samples=None, quantized_model=False, 
         modelInput = []
         modelInput.append(img)
         modelInput.append(pad_cam2img)
-        modelInput.append(inv_pad_cam2img)         
+        modelInput.append(inv_pad_cam2img)
 
-        model_name = 'fcos3d.onnx'  
+        model_name = 'fcos3d.onnx'
 
     # Save input & output images
     #fcos3d_img_np  = img.to('cpu').numpy()
@@ -311,6 +306,7 @@ def export_FCOS3D(model, inputs=None, data_samples=None, quantized_model=False, 
 
 def create_onnx_FastBEV(model):
     onnxModel = FastBEV_export_model(model)
+    onnxModel = onnxModel.cpu()
     onnxModel.eval()
 
     return onnxModel
@@ -319,6 +315,7 @@ def create_onnx_FastBEV(model):
 def export_FastBEV(onnxModel, inputs=None,  data_samples=None):
 
     img = inputs['imgs'].clone()
+    img = img.cpu()
     batch_img_metas = [ds.metainfo for ds in data_samples]
 
     onnxModel.prepare_data(batch_img_metas)
@@ -357,10 +354,13 @@ def export_FastBEV(onnxModel, inputs=None,  data_samples=None):
                       input_names=input_names,
                       output_names=output_names,
                       opset_version=16,
-                      verbose=False)
+                      verbose=True)
 
     onnx_model, _ = simplify('fastBEV.onnx')
     onnx.save(onnx_model, 'fastBEV.onnx')
+
+    # move model back to gpu
+    onnxModel = onnxModel.cuda()
 
     print("\n!! ONNX model has been exported for FastBEV!!!\n\n")
 

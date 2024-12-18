@@ -518,9 +518,9 @@ class BEVFormer_export_model(nn.Module):
         # Somehow, the model and input should be loaded on cpu to export BEVFormer
         # To run the model again after exporing, this model should be on gpu.
         # So we deepcopy each sub network for model export
-        self.img_backbone           = copy.deepcopy(img_backbone)
-        self.img_neck               = copy.deepcopy(img_neck)
-        self.pts_bbox_head          = copy.deepcopy(pts_bbox_head)
+        self.img_backbone           = img_backbone
+        self.img_neck               = img_neck
+        self.pts_bbox_head          = pts_bbox_head
         self.add_pred_to_datasample = add_pred_to_datasample
         self.fp16_enabled           = False
         self.video_test_mode        = video_test_mode

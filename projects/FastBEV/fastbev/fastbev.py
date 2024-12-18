@@ -248,7 +248,6 @@ class FastBEV(BaseDetector):
                     
                     # Export onnx only once
                     self.save_onnx_model = False
-                    #self.model_exported = True
 
                 return self.predict(inputs, data_samples, **kwargs)
         elif mode == 'tensor':
