@@ -135,16 +135,17 @@ class YOLOV7Head(BaseDenseHead):
     def loss_by_feat(self, main_predicts, batch_targets):
 
 
-        iou_rate = self.loss_config['loss_cfg'].objective['BoxLoss']
-        obj_rate = self.loss_config['loss_cfg'].objective['ObjLoss']
-        cls_rate = self.loss_config['loss_cfg'].objective['ClassLoss']
+        # iou_rate = self.loss_config['loss_cfg'].objective['BoxLoss']
+        # obj_rate = self.loss_config['loss_cfg'].objective['ObjLoss']
+        # cls_rate = self.loss_config['loss_cfg'].objective['ClassLoss']
 
         iou_loss, obj_loss, cls_loss  = self.loss_yolo(main_predicts, batch_targets)
+        # total_loss, loss  = self.loss_yolo(main_predicts, batch_targets)
 
         loss_dict = {
-            "loss_iou": iou_rate * iou_loss,
-            "loss_obj": obj_rate * obj_loss,
-            "loss_cls": cls_rate * cls_loss,
+            "loss_iou":  iou_loss,
+            "loss_obj":  obj_loss,
+            "loss_cls":  cls_loss,
         }
 
         return loss_dict

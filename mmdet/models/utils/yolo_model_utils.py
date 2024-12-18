@@ -663,30 +663,39 @@ class Anc2Box:
         preds_box, preds_cls, preds_cnf = [], [], []
         for layer_idx, predict in enumerate(predicts):
             predict = rearrange(predict, "B (L C) h w -> B L h w C", L=self.anchor_num)
-            pred_box_, pred_cnf, pred_cls = predict.split((4, 1, self.class_num), dim=-1)
-            pred_box_ = pred_box_.sigmoid()
-            pred_box = torch.zeros_like(pred_box_)
-            pred_bbox_xy = pred_box_[..., 0:2]
-            pred_bbox_wh = pred_box_[..., 2:4]
-            pred_box[..., 0:2] = (pred_bbox_xy * 2.0 - 0.5 + self.anchor_grid[layer_idx]) * self.strides[
-                layer_idx
-            ]
-            pred_box[..., 2:4] = (pred_bbox_wh * 2) ** 2 * self.anchor_scale[layer_idx]
+            pred_box, pred_cnf, pred_cls = predict.split((4, 1, self.class_num), dim=-1)
+
+            # pred_box_ = pred_box_.sigmoid()
+            # pred_box = torch.zeros_like(pred_box_)
+            # pred_bbox_xy = pred_box_[..., 0:2]
+            # pred_bbox_wh = pred_box_[..., 2:4]
+            # pred_box[..., 0:2] = (pred_bbox_xy * 2.0 - 0.5 + self.anchor_grid[layer_idx]) * self.strides[
+            #     layer_idx
+            # ]
+            # pred_box[..., 2:4] = (pred_bbox_wh * 2) ** 2 * self.anchor_scale[layer_idx]
+
+
             # pred_box = pred_box.sigmoid()
             # pred_box[..., 0:2] = (pred_box[..., 0:2] * 2.0 - 0.5 + self.anchor_grid[layer_idx]) * self.strides[
             #     layer_idx
             # ]
             # pred_box[..., 2:4] = (pred_box[..., 2:4] * 2) ** 2 * self.anchor_scale[layer_idx]
-            preds_box.append(rearrange(pred_box, "B L h w A -> B (L h w) A"))
-            preds_cls.append(rearrange(pred_cls, "B L h w C -> B (L h w) C"))
-            preds_cnf.append(rearrange(pred_cnf, "B L h w C -> B (L h w) C"))
 
-        preds_box = torch.concat(preds_box, dim=1)
-        preds_cls = torch.concat(preds_cls, dim=1)
-        preds_cnf = torch.concat(preds_cnf, dim=1)
+            # preds_box.append(rearrange(pred_box, "B L h w A -> B (L h w) A"))
+            # preds_cls.append(rearrange(pred_cls, "B L h w C -> B (L h w) C"))
+            # preds_cnf.append(rearrange(pred_cnf, "B L h w C -> B (L h w) C"))
 
-        preds_box = transform_bbox(preds_box, "xycwh -> xyxy")
-        return preds_cls, None, preds_box, preds_cnf.sigmoid()
+            preds_box.append(pred_box)
+            preds_cls.append(pred_cls)
+            preds_cnf.append(pred_cnf)
+
+        # preds_box = torch.concat(preds_box, dim=1)
+        # preds_cls = torch.concat(preds_cls, dim=1)
+        # preds_cnf = torch.concat(preds_cnf, dim=1)
+
+        # preds_box = transform_bbox(preds_box, "xycwh -> xyxy")
+        # return preds_cls, None, preds_box, preds_cnf.sigmoid()
+        return preds_cls, None, preds_box, preds_cnf
     
 
 # class Anc2Box_old:
@@ -754,8 +763,34 @@ class PostProccess:
     def __call__(self, predict, rev_tensor: Optional[Tensor] = None) -> List[Tensor]:
         # prediction = self.converter(predict["Main"])
         prediction = self.converter(predict[0])
-        pred_class, _, pred_bbox = prediction[:3]
-        pred_conf = prediction[3] if len(prediction) == 4 else None
+        if isinstance(self.converter, Anc2Box):
+            pred_class, _, pred_bbox, pred_conf = prediction
+
+            
+            # pred_box = torch.zeros_like(pred_box_)
+            # pred_bbox_xy = pred_box_[..., 0:2]
+            # pred_bbox_wh = pred_box_[..., 2:4]
+            pred_box_list = []
+            
+            for idx,stride in enumerate(self.converter.strides):
+                pred_box = pred_bbox[idx].sigmoid()
+                pred_box[..., 0:2] = (pred_box[..., 0:2]  * 2.0 - 0.5 + self.converter.anchor_grid[idx]) * stride
+                pred_box[..., 2:4] = (pred_box[..., 2:4] * 2) ** 2 * self.converter.anchor_scale[idx]
+                pred_box_list.append(rearrange(pred_box, "B L h w A -> B (L h w) A"))
+                pred_class[idx] = rearrange(pred_class[idx], "B L h w C -> B (L h w) C")
+                pred_conf[idx] = rearrange(pred_conf[idx], "B L h w C -> B (L h w) C")
+
+
+            pred_bbox = torch.concat(pred_box_list, dim=1)
+            pred_class = torch.concat(pred_class, dim=1)
+            pred_conf = torch.concat(pred_conf, dim=1)
+            pred_bbox = transform_bbox(pred_bbox, "xycwh -> xyxy")
+            pred_conf = pred_conf.sigmoid()
+        else:
+            pred_class, _, pred_bbox = prediction
+            pred_conf = None
+            # pred_class, _, pred_bbox = prediction[:3]
+            # pred_conf = prediction[3] if len(prediction) == 4 else None
         # if rev_tensor is not None:
         #     pred_bbox = (pred_bbox - rev_tensor[:, None, 1:]) / rev_tensor[:, 0:1, None]
         # pred_bbox = bbox_nms(pred_class, pred_bbox, self.nms, pred_conf)
