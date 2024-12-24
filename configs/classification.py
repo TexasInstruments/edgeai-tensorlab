@@ -54,10 +54,13 @@ def get_configs(settings, work_dir):
         #       ONNX MODELS
         #################jai-devkit models###############################
         # mlperf model: classification ResNet50v1.5 (resnet50_v1.onnx) expected_metric: 76.456% top-1 accuracy
+        # convert_reducemean_to_matmul is supposed convert reducemean to matmul, so that tidl can handle it
+        # but there seems to be an issue in tidl after this optimizer is applied.
+        # disabling if for now - this will cause 2 subgraphs to be created and reducemean will run in onnxruntime
         'cl-6010':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=(123.675, 116.28, 103.53), input_scale=(1.0, 1.0, 1.0),
-                        tidl_onnx_model_optimizer={'convert_reducemean_to_matmul': True, 'apply_default_optimizers': False}
+                        #tidl_onnx_model_optimizer={'convert_reducemean_to_matmul': True, 'apply_default_optimizers': False}
                     ),
                 runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/mlperf/resnet50_v1_simp.onnx'),
