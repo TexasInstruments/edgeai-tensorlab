@@ -34,7 +34,7 @@
 # It will also write a configs.yaml at the location of settings.models_path
 # that lists all such config yaml files.
 # This configs.yaml file or individial config yaml files can be given to
-# run_benchmrks_pc.sh OR run_benchmarks_parallelbash_pc.sh OR directly to scripts/benchmark_modelzoo.py
+# run_benchmrks_pc.sh OR run_benchmarks_parallel_pc.sh OR directly to scripts/benchmark_modelzoo.py
 # to import or infer the the model using the parameters specified in that config file.
 
 ##################################################################

@@ -39,8 +39,11 @@ The `--debug` flag allows for the attaching of a debugpy debugger to the top lev
 * If you like to do the compilation of these models yourself, you can either rename the folder [work_dirs/modelartifacts](../work_dirs/modelartifacts) or change the value of *modelartifacts_path* in [settings_base.yaml](../settings_base.yaml). 
 * While running this script, compilation of models in the model zoo will be performed as the first step before the inference. But if the pre-compiled model artifacts are present, model compilation will be skipped. param.yaml file present in each model artifacts folder indicates that the model compilation is complete.
 * result.yaml file, if present in each model artifacts folder indicates that the model inference is complete. If result.yaml is present, inference is also skipped. Manually delete result.yaml if it is present (i.e. if you have done it once already) to do the inference - otherwise, the script will merely print the result information from result.yaml.
-* Multiple models can be compiled in parallel by setting the parameter parallel_processes in [settings_import_on_pc.yaml](../settings_import_on_pc.yaml) to a higher value (for example 4 or 8) 
-* As an even faster alternative to running `run_benchmarks_pc.sh` with parallel_processes, use `run_benchmarks_parallelbash_pc.sh` to get the highest throughput benchmarking.
+* Multiple models can be run in parallel in PC (only) by using run_benchmarks_parallel_pc.sh and also by setting parallel_processes option to a higher value (for example 4 or 8). parallel_processes can either be set in [settings_import_on_pc.yaml](../settings_import_on_pc.yaml) or passed as a commandline argument to the following script. For example:
+
+```commandline
+run_benchmarks_parallel_pc.sh AM68A --parallel_processes 8
+```
 
 ## Compiling with a custom model or custom configuration
 To compile a custom model or a custom pipeline configuration, first, compose a custom configuration in `/scripts/benchmark_custom.py`.

@@ -91,8 +91,9 @@ echo "TARGET_SOC:     ${TARGET_SOC}"
 echo "TARGET_MACHINE: ${TARGET_MACHINE}"
 echo "DEBUG MODE:     ${DEBUG} @ ${HOSTNAME}:${PORT}"
 
-echo "=> Recommend to use the alternate script run_benchmarks_parallelbash_pc.sh"
-echo "   for import and inference across models in parallel."
+echo "=> Recommend to use the alternate script run_benchmarks_parallel_pc.sh"
+echo "   to run multiple models in parallel in PC. For example:"
+echo "   run_benchmarks_parallel_pc.sh AM68A --parallel_process 8"
 ##################################################################
 
 # set environment variables
