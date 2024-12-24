@@ -590,11 +590,17 @@ class BaseRTSession(utils.ParamsBase):
                     from osrt_model_tools.onnx_tools.tidl_onnx_model_optimizer import optimize
                     optimizers = get_optimizers()
                     if isinstance(self.kwargs['tidl_onnx_model_optimizer'], dict):
+                        apply_default_optimizers = self.kwargs['tidl_onnx_model_optimizer'].get('apply_default_optimizers', True)
+                        for key, value in optimizers.items():
+                            optimizers[key] = (apply_default_optimizers and value)
+                        #
                         for key, value in self.kwargs['tidl_onnx_model_optimizer'].items():
                             if key in optimizers:
                                 optimizers[key] = value       
                             else:
                                 print(f"The given transformation {key} has not been implemented yet.")
+                            #
+                        #
                     #                    
                     optimize(model = model_file0, out_model = model_file0, custom_optimizers = optimizers)
                 #

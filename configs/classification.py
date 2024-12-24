@@ -26,6 +26,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+
 from edgeai_benchmark import constants, utils, datasets, preprocess, sessions, postprocess, metrics
 
 
@@ -52,6 +53,17 @@ def get_configs(settings, work_dir):
         #################################################################
         #       ONNX MODELS
         #################jai-devkit models###############################
+        # mlperf model: classification ResNet50v1.5 (resnet50_v1.onnx) expected_metric: 76.456% top-1 accuracy
+        'cl-6010':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=(123.675, 116.28, 103.53), input_scale=(1.0, 1.0, 1.0),
+                        tidl_onnx_model_optimizer={'convert_reducemean_to_matmul': True, 'apply_default_optimizers': False}
+                    ),
+                runtime_options=settings.runtime_options_onnx_np2(),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/mlperf/resnet50_v1_simp.onnx'),
+            metric=dict(label_offset_pred=-1),
+            model_info=dict(metric_reference={'accuracy_top1%':76.456}, model_shortlist=30, compact_name='resNet50V1p5-mlperf-onnx', shortlisted=True)
+        ),
         # jai-devkit: classification mobilenetv1_224x224 expected_metric: 71.82% top-1 accuracy
         'cl-6060':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
@@ -233,12 +245,12 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=-1),
             model_info=dict(metric_reference={'accuracy_top1%':75.6}, model_shortlist=40, compact_name='mobileNet-edgeTPU-mlperf', shortlisted=True)
         ),
-        # mlperf model: classification resnet50_v1.5 expected_metric: 76.456% top-1 accuracy
+        # mlperf model: classification ResNet50v1.5 (resnet50_v1.tflite) expected_metric: 76.456% top-1 accuracy
         'cl-0160':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite(),
             session=tflite_session_type(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir, input_mean=(123.675, 116.28, 103.53), input_scale=(1.0, 1.0, 1.0)),
                 runtime_options=settings.runtime_options_tflite_np2(),
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/mlperf/resnet50_v1.5.tflite'),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/mlperf/resnet50_v1.tflite'),
             metric=dict(label_offset_pred=-1),
             model_info=dict(metric_reference={'accuracy_top1%':76.456}, model_shortlist=30, compact_name='resNet50V1p5-mlperf', shortlisted=True)
         ),
