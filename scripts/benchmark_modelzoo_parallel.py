@@ -32,6 +32,7 @@ import argparse
 import warnings
 import subprocess
 import tqdm
+import time
 
 from edgeai_benchmark import *
 
@@ -85,33 +86,40 @@ def run_one_model(kwargs, model_selection, run_dir):
     #
     return proc
 
-def check_running_status(proc_dict):
-    completed = False
+
+def check_running_status(proc_dict, total=None, tqdm_obj=None):
+    if len(proc_dict) == 0:
+        return 0
+    #
+
     num_process = len(proc_dict)
-    num_completed = 0
-    tqdm_obj = tqdm.tqdm(total=num_process, desc='run status (R->Running, C->Completed): ')
-    while not completed:
-        status_dict = {proc_key: ("R" if proc else "C") for proc_key, proc in proc_dict.items()}
-        for proc_key, proc in proc_dict.items():
-            if proc is not None:
-                exit_code = proc.returncode
-                try:
-                    out_ret, err_ret = proc.communicate(timeout=1.0)
-                except subprocess.TimeoutExpired as ex:
-                    pass
-                else:
-                    proc_dict[proc_key] = None
-                    tqdm_obj.update()
-                    tqdm_obj.set_postfix(status_dict)
-                #
+    total = total or num_process
+    for proc_key, proc in proc_dict.items():
+        if proc is not None:
+            exit_code = proc.returncode
+            try:
+                out_ret, err_ret = proc.communicate(timeout=0.1)
+            except subprocess.TimeoutExpired as ex:
+                pass
+            else:
+                proc_dict[proc_key] = None
             #
         #
-        num_completed = sum([proc is None for proc in proc_dict.values()])
-        if num_completed >= num_process:
-            completed = True
-        #
     #
-    return completed
+
+    num_completed = sum([proc is None for proc in proc_dict.values()])
+    num_running = sum([proc is not None for proc in proc_dict.values()])
+    if tqdm_obj:
+        status_dict = status_dict = {proc_key: ("R" if proc else "C") for proc_key, proc in proc_dict.items()}
+        tqdm_obj.reset()
+        desc = f'run status: total={num_models}, running={num_running}, R->Running, C->Completed'
+        tqdm_obj.update(num_completed)
+        tqdm_obj.set_description(desc)
+        tqdm_obj.set_postfix(postfix=status_dict)
+    #
+
+    return num_running
+
 
 
 if __name__ == '__main__':
@@ -136,16 +144,31 @@ if __name__ == '__main__':
     print(f'work_dir: {work_dir}')
 
     with open(settings.models_list_file, 'rt') as list_fp:
-        proc_dict = dict()
-        for model_entry in list_fp:
-            model_entry = model_entry.rstrip()
-            model_entry = model_entry.split(' ')
-            model_selection = model_entry[0]
-            run_dir = model_entry[1]
-            proc = run_one_model(kwargs, model_selection, run_dir)
-            proc_dict.update({model_selection: proc})
+        model_entries = [model_entry.rstrip() for model_entry in list_fp]
+        num_models = len(model_entries)
+
+    proc_dict = dict()
+    num_completed = sum([proc is None for proc in proc_dict.values()])
+
+    tqdm_obj = tqdm.tqdm(total=num_models, position=0, desc=f'run status: total={num_models}, running=0, R->Running, C->Completed: ')
+
+    for model_entry in model_entries:
+        model_entry = model_entry.split(' ')
+        model_selection = model_entry[0]
+        run_dir = model_entry[1]
+        proc = run_one_model(kwargs, model_selection, run_dir)
+        proc_dict.update({model_selection: proc})
+
+        num_running = check_running_status(proc_dict, total=num_models, tqdm_obj=tqdm_obj)
+        while num_running >= settings.parallel_processes:
+            num_running = check_running_status(proc_dict, total=num_models, tqdm_obj=tqdm_obj)
+            time.sleep(1.0)
         #
     #
-    check_running_status(proc_dict)
+
+    while num_running > 0:
+        num_running = check_running_status(proc_dict, total=num_models, tqdm_obj=tqdm_obj)
+        time.sleep(1.0)
+    #
 
     print("benchmark modelzoo parallel - COMPLETED")
