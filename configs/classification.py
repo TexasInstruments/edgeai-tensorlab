@@ -63,7 +63,7 @@ def get_configs(settings, work_dir):
                         #tidl_onnx_model_optimizer={'convert_reducemean_to_matmul': True, 'apply_default_optimizers': False}
                     ),
                 runtime_options=settings.runtime_options_onnx_np2(),
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/mlperf/resnet50_v1_simp.onnx'),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/mlperf/resnet50_v1_shape.onnx'),
             metric=dict(label_offset_pred=-1),
             model_info=dict(metric_reference={'accuracy_top1%':76.456}, model_shortlist=30, compact_name='resNet50V1p5-mlperf-onnx', shortlisted=True)
         ),

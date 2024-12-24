@@ -60,45 +60,55 @@ class TeeLogger:
     def __init__(self, log_file, mode='w', buffering=-1, replace_stdout=False):
         super().__init__()
         self.replace_stdout = replace_stdout
-        if isinstance(log_file, str):
-            # buffering=1 implies line buffering - i.e. file will be written to after each line
-            # this may be slower than the default value, but will ensure more frequent file updates.
-            self.log_file = open(log_file, mode, buffering=buffering)
+        if log_file:
+            if isinstance(log_file, str):
+                # buffering=1 implies line buffering - i.e. file will be written to after each line
+                # this may be slower than the default value, but will ensure more frequent file updates.
+                self.log_file = open(log_file, mode, buffering=buffering)
+            else:
+                self.log_file = log_file
+            #
+            if self.replace_stdout:
+                self.log_stream = sys.stdout
+                sys.stdout = self
+            #
         else:
-            self.log_file = log_file
-        #
-        if self.replace_stdout:
-            self.log_stream = sys.stdout
-            sys.stdout = self
+            self.log_file = None
         #
 
     def __del__(self):
         self.close()
 
     def fileno(self):
-        return self.log_file.fileno()
+        if self.log_file:
+            return self.log_file.fileno()
+        else:
+            return sys.stdout.fileno()
 
     def write(self, message):
         sys.stdout.write(message)
-        if self.log_file is not None:
+        if self.log_file:
             self.log_file.write(message)
         #
         self.flush()
 
     def flush(self):
         sys.stdout.flush()
-        if self.log_file is not None:
+        if self.log_file:
             self.log_file.flush()
         #
 
     def isatty(self):
-        return sys.stdout.isatty()
+        if self.log_file:
+            return sys.stdout.isatty()
+        else:
+            return True
 
     def close(self):
         if self.replace_stdout:
             sys.stdout = self.log_stream
         #
-        if self.log_file is not None:
+        if self.log_file:
             self.log_file.close()
             self.log_file = None
         #

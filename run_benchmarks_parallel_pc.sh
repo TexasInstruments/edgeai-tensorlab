@@ -113,7 +113,7 @@ num_lines=$(wc -l < ${MODELS_LIST_FILE})
 echo "number of models to run: " $num_lines
 
 ##################################################################
-PYARGS1="./scripts/benchmark_modelzoo_parallel.py ${SETTINGS} ${CMD_ARGS[@]} --target_device ${TARGET_SOC} --models_list_file ${MODELS_LIST_FILE}"
+PYARGS1="./scripts/benchmark_modelzoo_parallel_pc.py ${SETTINGS} ${CMD_ARGS[@]} --target_device ${TARGET_SOC} --models_list_file ${MODELS_LIST_FILE}"
 PYARGS3="./scripts/generate_report.py ${SETTINGS}"
 PYDEBUG="python3 -m debugpy --listen ${HOSTNAME}:${PORT} --wait-for-client"
 

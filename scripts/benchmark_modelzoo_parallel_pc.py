@@ -60,8 +60,10 @@ def get_arg_parser():
     parser.add_argument('--modelartifacts_path', type=str)
     parser.add_argument('--modelpackage_path', type=str)
     parser.add_argument('--dataset_loading', type=utils.str_to_bool, default=True)
-    parser.add_argument('--parallel_devices', type=utils.int_or_none)
-    parser.add_argument('--parallel_processes', type=int)
+    parallel_devices_group = parser.add_mutually_exclusive_group(required=False)
+    parallel_devices_group.add_argument('--parallel_devices', type=utils.int_or_none)
+    parallel_devices_group.add_argument('--parallel_devices_list', type=int, nargs='*', default=None)
+    parser.add_argument('--parallel_processes', type=int, default=16)
     parser.add_argument('--fast_calibration_factor', type=utils.float_or_none)
     parser.add_argument('--experimental_models', type=utils.str_to_bool)
     parser.add_argument('--additional_models', type=utils.str_to_bool)
@@ -69,31 +71,62 @@ def get_arg_parser():
     return parser
 
 
-def run_one_model(kwargs, model_selection, run_dir):
+def run_one_model(settings, entry_idx, kwargs, model_selection, run_dir):
+    if kwargs['parallel_devices'] in (None, 0):
+        parallel_devices = [0]
+    else:
+        parallel_devices = range(kwargs['parallel_devices']) if isinstance(kwargs['parallel_devices'], int) \
+            else kwargs['parallel_devices']
+    #
+
     cmd_args = []
     for key, value in kwargs.items():
-        if key not in ('settings_file', 'models_list_file'):
+        if key not in ('settings_file', 'models_list_file', 'parallel_processes', 'parallel_devices'):
             cmd_args += [f'--{key}']
             cmd_args += [f'{value}']
         #
     #
 
+    num_devices = len(parallel_devices)
+    parallel_device = parallel_devices[entry_idx%num_devices]
+
     os.makedirs(run_dir, exist_ok=True)
     log_filename = os.path.join(run_dir, 'run.log')
+    if settings.enable_logging:
+        stdout_fp = open(log_filename, 'w')
+    else:
+        stdout_fp = subprocess.DEVNULL #subprocess.STDOUT
+    #
+
     with open(log_filename, 'w') as log_fp:
-        command = ['python3',  './scripts/benchmark_modelzoo.py', kwargs['settings_file'], '--model_selection', model_selection] + cmd_args
-        proc = subprocess.Popen(command, stdout=log_fp, stderr=subprocess.STDOUT)
+        # benchmark script
+        command = ['python3',  './scripts/benchmark_modelzoo.py', kwargs['settings_file'], '--model_selection', model_selection]
+        # add additional commanline arguments passed to this script
+        command += cmd_args
+        # additional process helps with stability - even if a model compilation crashes, it won't affect the main program.
+        # but, since we open a process with subprocess.Popen here, there is no need for the underlying python script to open a process inside
+        command += ['--parallel_processes', '0']
+        # which device should this be run on
+        # relevant if this is using the gpu/cuda tidl-tools and if there are multiple GPUs
+        command += ['--parallel_devices_list', str(parallel_device)]
+        # logging is done by capturing the stdout and stderr to a file here - no need to enable logging to file inside
+        command += ['--enable_logging', '0']
+        # now actually run the process
+        proc = subprocess.Popen(command, stdout=stdout_fp, stderr=log_fp)
+    #
+
+    if settings.enable_logging:
+        stdout_fp.close()
     #
     return proc
 
 
-def check_running_status(proc_dict, total=None, tqdm_obj=None):
+def check_running_status(settings, proc_dict, tqdm_obj=None):
     if len(proc_dict) == 0:
         return 0
     #
 
     num_process = len(proc_dict)
-    total = total or num_process
     for proc_key, proc in proc_dict.items():
         if proc is not None:
             exit_code = proc.returncode
@@ -109,17 +142,23 @@ def check_running_status(proc_dict, total=None, tqdm_obj=None):
 
     num_completed = sum([proc is None for proc in proc_dict.values()])
     num_running = sum([proc is not None for proc in proc_dict.values()])
-    if tqdm_obj:
-        status_dict = status_dict = {proc_key: ("R" if proc else "C") for proc_key, proc in proc_dict.items()}
-        tqdm_obj.reset()
-        desc = f'run status: total={num_models}, running={num_running}, R->Running, C->Completed'
-        tqdm_obj.update(num_completed)
-        tqdm_obj.set_description(desc)
-        tqdm_obj.set_postfix(postfix=status_dict)
-    #
+    # status_dict = {proc_key: ("R" if proc else "C") for proc_key, proc in proc_dict.items()}
+    running_list = [proc_key for proc_key, proc in proc_dict.items() if proc]
+    completed_list = [proc_key for proc_key, proc in proc_dict.items() if proc is None]
+
+    tqdm_obj.update(num_completed - tqdm_obj.n)
+    desc = f'STATUS - TOTAL={num_models}, NUM_RUNNING={num_running}'
+    tqdm_obj.set_description(desc)
+    tqdm_obj.set_postfix(postfix=dict(RUNNING=running_list, COMPLETED=completed_list))
 
     return num_running
 
+
+def wait_in_loop(settings, proc_dict, tqdm_obj, num_processes):
+    # wait in a loop until the number of running processes come down
+    while check_running_status(settings, proc_dict, tqdm_obj=tqdm_obj) >= num_processes:
+        time.sleep(1.0)
+    #
 
 
 if __name__ == '__main__':
@@ -130,13 +169,31 @@ if __name__ == '__main__':
     #
 
     parser = get_arg_parser()
-    cmds = parser.parse_args()
+    args = parser.parse_args()
 
-    kwargs = vars(cmds)
+    kwargs = vars(args)
     if 'session_type_dict' in kwargs:
         kwargs['session_type_dict'] = utils.str_to_dict(kwargs['session_type_dict'])
     #
-    settings = config_settings.ConfigSettings(cmds.settings_file, **kwargs)
+
+    parallel_devices_list = kwargs.pop('parallel_devices_list', None)
+    if parallel_devices_list is not None:
+        kwargs['parallel_devices'] = parallel_devices_list
+    elif 'parallel_devices' not in kwargs or kwargs['parallel_devices'] is None:
+        # getting the number of cuda compatible gpus
+        try:
+            nvidia_smi_command = 'nvidia-smi --list-gpus | wc -l'
+            proc = subprocess.Popen([nvidia_smi_command], stdout=subprocess.PIPE, shell=True)
+            out_ret, err_ret = proc.communicate()
+            num_cuda_gpus = int(out_ret)
+            print(f'setting the number of gpus returned by nvidia-simi: {num_cuda_gpus}')
+            kwargs['parallel_devices'] = num_cuda_gpus
+        except:
+            pass
+        #
+    #
+
+    settings = config_settings.ConfigSettings(args.settings_file, **kwargs)
     print(f'settings: {settings}')
     sys.stdout.flush()
 
@@ -150,25 +207,20 @@ if __name__ == '__main__':
     proc_dict = dict()
     num_completed = sum([proc is None for proc in proc_dict.values()])
 
-    tqdm_obj = tqdm.tqdm(total=num_models, position=0, desc=f'run status: total={num_models}, running=0, R->Running, C->Completed: ')
+    tqdm_obj = tqdm.tqdm(total=num_models, position=0, desc=f'STATUS - TOTAL={num_models}, NUM_RUNNING={0}')
 
-    for model_entry in model_entries:
+    for entry_idx, model_entry in enumerate(model_entries):
         model_entry = model_entry.split(' ')
         model_selection = model_entry[0]
         run_dir = model_entry[1]
-        proc = run_one_model(kwargs, model_selection, run_dir)
+        proc = run_one_model(settings, entry_idx, kwargs, model_selection, run_dir)
         proc_dict.update({model_selection: proc})
 
-        num_running = check_running_status(proc_dict, total=num_models, tqdm_obj=tqdm_obj)
-        while num_running >= settings.parallel_processes:
-            num_running = check_running_status(proc_dict, total=num_models, tqdm_obj=tqdm_obj)
-            time.sleep(1.0)
-        #
+        # wait in a loop until the number of running processes come down
+        wait_in_loop(settings, proc_dict, tqdm_obj, settings.parallel_processes)
     #
 
-    while num_running > 0:
-        num_running = check_running_status(proc_dict, total=num_models, tqdm_obj=tqdm_obj)
-        time.sleep(1.0)
-    #
+    # wait in a loop until the number of running processes come to 0
+    wait_in_loop(settings, proc_dict, tqdm_obj, 0)
 
     print("benchmark modelzoo parallel - COMPLETED")

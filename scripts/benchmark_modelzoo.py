@@ -55,12 +55,14 @@ def get_arg_parser():
     parser.add_argument('--modelartifacts_path', type=str)
     parser.add_argument('--modelpackage_path', type=str)
     parser.add_argument('--dataset_loading', type=utils.str_to_bool, default=True)
-    parser.add_argument('--parallel_devices', type=utils.int_or_none)
+    parallel_devices_group = parser.add_mutually_exclusive_group(required=False)
+    parallel_devices_group.add_argument('--parallel_devices', type=utils.int_or_none)
+    parallel_devices_group.add_argument('--parallel_devices_list', type=int, nargs='*', default=None)
     parser.add_argument('--parallel_processes', type=int)
     parser.add_argument('--fast_calibration_factor', type=utils.float_or_none)
     parser.add_argument('--experimental_models', type=utils.str_to_bool)
     parser.add_argument('--additional_models', type=utils.str_to_bool)
-
+    parser.add_argument('--enable_logging', type=utils.str_to_bool)
     return parser
 
 if __name__ == '__main__':
@@ -71,13 +73,18 @@ if __name__ == '__main__':
     #
 
     parser = get_arg_parser()
-    cmds = parser.parse_args()
+    args = parser.parse_args()
 
-    kwargs = vars(cmds)
+    kwargs = vars(args)
     if 'session_type_dict' in kwargs:
         kwargs['session_type_dict'] = utils.str_to_dict(kwargs['session_type_dict'])
     #
-    settings = config_settings.ConfigSettings(cmds.settings_file, **kwargs)
+
+    parallel_devices_list = kwargs.pop('parallel_devices_list', None)
+    if parallel_devices_list is not None:
+        kwargs['parallel_devices'] = parallel_devices_list
+
+    settings = config_settings.ConfigSettings(args.settings_file, **kwargs)
     print(f'settings: {settings}')
     sys.stdout.flush()
 

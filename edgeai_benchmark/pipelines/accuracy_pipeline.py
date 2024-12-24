@@ -48,7 +48,7 @@ class AccuracyPipeline(BasePipeline):
                 param_result = yaml.safe_load(fp)
                 result_dict = param_result['result'] if 'result' in param_result else {}
             #
-            if self.settings.rewrite_results and self.settings.enable_logging:
+            if self.settings.rewrite_results and self.settings.write_results:
                 param_dict = utils.pretty_object(self.pipeline_config)
                 with open(self.param_yaml, 'w') as fp:
                     yaml.safe_dump(param_dict, fp, sort_keys=False)
@@ -77,7 +77,7 @@ class AccuracyPipeline(BasePipeline):
         self.write_log(utils.log_color('\nINFO', 'pipeline_config', self.pipeline_config))
 
         # write the dataset_info file
-        if self.dataset_info is not None:
+        if self.settings.write_results and self.dataset_info is not None:
             with open(self.dataset_info_file, 'w') as fp:
                 yaml.safe_dump(self.dataset_info, fp, sort_keys=False)
             #
@@ -101,7 +101,7 @@ class AccuracyPipeline(BasePipeline):
             if self.settings.run_import else False
         if run_import:
             # dump the config params
-            if self.settings.enable_logging:
+            if self.settings.write_results:
                 param_dict = utils.pretty_object(self.pipeline_config)
                 with open(self.config_yaml, 'w') as fp:
                     yaml.safe_dump(param_dict, fp, sort_keys=False)
@@ -120,7 +120,7 @@ class AccuracyPipeline(BasePipeline):
             param_result = param_dict
 
             # dump the params after import
-            if self.settings.enable_logging:
+            if self.settings.write_results:
                 with open(self.param_yaml, 'w') as fp:
                     yaml.safe_dump(param_dict, fp, sort_keys=False)
                 #
@@ -146,7 +146,7 @@ class AccuracyPipeline(BasePipeline):
             param_dict = utils.pretty_object(self.pipeline_config)
             param_result = dict(result=result_dict, **param_dict)
             # dump the results
-            if self.settings.enable_logging:
+            if self.settings.write_results:
                 with open(self.result_yaml, 'w') as fp:
                     yaml.safe_dump(param_result, fp, sort_keys=False)
                 #

@@ -46,6 +46,13 @@ class PipelineRunner():
         self.settings = settings
         self.pipeline_configs = self.filter_pipeline_configs(pipeline_configs)
 
+        if self.settings.parallel_devices in (None, 0):
+            self.parallel_devices = [0]
+        else:
+            self.parallel_devices = range(self.settings.parallel_devices) if isinstance(self.settings.parallel_devices, int) \
+                else self.settings.parallel_devices
+        #
+
     def get_pipeline_configs(self):
         return self.pipeline_configs
 
@@ -146,43 +153,19 @@ class PipelineRunner():
         return pipelines_final
 
     def run(self):
-        if self.settings.parallel_processes in (None, 0):
-            return self._run_pipelines_sequential()
-        else:
-            return self._run_pipelines_parallel()
-        #
-
-    def _run_pipelines_sequential(self):
         # get the cwd so that we can continue even if exception occurs
         cwd = os.getcwd()
         results_list = []
         total = len(self.pipeline_configs)
-        for pipeline_idx, (model_id, pipeline_config) in enumerate(self.pipeline_configs.items()):
+        for pipeline_index, (model_id, pipeline_config) in enumerate(self.pipeline_configs.items()):
+            num_devices = len(self.parallel_devices)
+            parallel_device = self.parallel_devices[pipeline_index%num_devices]
+
             os.chdir(cwd)
-            description = f'{pipeline_idx+1}/{total}' if total > 1 else ''
-            result = self._run_pipeline(self.settings, pipeline_config, description=description)
+            description = f'{pipeline_index+1}/{total}' if total > 1 else ''
+            result = self._run_pipeline(self.settings, pipeline_config, parallel_device, description=description)
             results_list.append(result)
         #
-        return results_list
-
-    def _run_pipelines_parallel(self):
-        if self.settings.parallel_devices in (None, 0):
-            parallel_devices = [0]
-        else:
-            parallel_devices = range(self.settings.parallel_devices) if isinstance(self.settings.parallel_devices, int) \
-                else self.settings.parallel_devices
-        #
-        cwd = os.getcwd()
-        description = 'TASKS'
-        parallel_exec = utils.ParallelRun(parallel_processes=self.settings.parallel_processes, parallel_devices=parallel_devices,
-                                          desc=description)
-        for pipeline_index, pipeline_config in enumerate(self.pipeline_configs.values()):
-            os.chdir(cwd)
-            run_pipeline_bound_func = functools.partial(self._run_pipeline, self.settings, pipeline_config,
-                                                        description='')
-            parallel_exec.enqueue(run_pipeline_bound_func)
-        #
-        results_list = parallel_exec.run()
         return results_list
 
     # this function cannot be an instance method of PipelineRunner, as it causes an
@@ -209,15 +192,21 @@ class PipelineRunner():
         return result
 
     @classmethod
-    def _run_pipeline(cls, settings, pipeline_config, description=''):
-        # note that this basic_settings() copies only the basic settings.
-        # sometimes, there is no need to copy the entire settings which includes the dataset_cache
-        basic_settings = settings.basic_settings()
-
+    def _run_pipeline(cls, settings, pipeline_config, parallel_device, description=''):
         # capture cwd - to set it later
         cwd = os.getcwd()
         result = {}
+
         try:
+            if parallel_device is not None:
+                os.environ['CUDA_VISIBLE_DEVICES'] = str(parallel_device)
+                print(utils.log_color('\nINFO', 'starting process on parallel_device', parallel_device))
+            #
+
+            # note that this basic_settings() copies only the basic settings.
+            # sometimes, there is no need to copy the entire settings which includes the dataset_cache
+            basic_settings = settings.basic_settings()
+
             run_dir = pipeline_config['session'].get_param('run_dir')
             print(utils.log_color('\nINFO', 'starting', os.path.basename(run_dir)))
             result = cls._run_pipeline_impl(basic_settings, pipeline_config, description)

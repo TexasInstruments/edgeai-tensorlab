@@ -196,7 +196,9 @@ class ConfigDict(utils.AttrDict):
         self.dataset_loading = True
         # which configs to run from the default list. example [0,10] [10,null] etc.
         self.config_range = None
-        # logging of the import, infer and the accuracy. set to False to disable it.
+        # write results
+        self.write_results = True
+        # logging of the import, infer and the accuracy to a file. set to False to disable it.
         self.enable_logging = True
         # verbose mode - print out more information
         self.verbose = False
