@@ -17,7 +17,7 @@ dataset:
     # annotation_prefix: person_keypoints
     # specify split names (of th annotation file) if needed - default is ['train', 'val'].
     # split_names: ['train2017', 'val2017']
-    # specify max number of files to get splitted(of th annotation file) if needed - default is [750, 250].
+    # specify max number of files to get split (of th annotation file) if needed - default is [750, 250].
     # max_num_files: [750, 250] #None
     # -------------------------------------
     # Keypoint Detection Dataset Examples:
@@ -43,11 +43,9 @@ dataset:
     # -------------------------------------
     # This simple dataset can be constucted by taking images in val2017 and putting in images folder
     # and then taking person_keypoints_val2017.json and renaming it at annotations/instances.json
-    dataset_name: coco_keypoints_val2017
-    input_data_path: data/downloads/datasets/coco_keypoints_val2017.zip
-    input_annotation_path : 
-        - data/projects/coco_keypoints_val2017/dataset/annotations/instances_train.json
-        - data/projects/coco_keypoints_val2017/dataset/annotations/instances_val.json
+    dataset_name: coco2017_subset_ccby_x8
+    input_data_path: http://tensorlabdata2.dhcp.ti.com/pub/projects/edgeai-algo/data/datasets/modelmaker/public/coco2017_subset_ccby_x8.zip
+    input_annotation_path : data/projects/coco2017_subset_ccby_x8/dataset/annotations/person_keypoints.json
 
 training:
     # enable/disable training

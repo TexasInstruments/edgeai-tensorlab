@@ -123,12 +123,12 @@ class ModelRunner():
         #####################################################################
         # prepare for dataset handling (loading, splitting, limiting files etc).
         self.dataset_handling = datasets.DatasetHandling(self.params)
-        self.params.update(self.dataset_handling.get_params())
         # actual dataset handling
         if self.params.dataset.enable:
             self.dataset_handling.clear()
             ret_val = self.dataset_handling.run()
         #
+        self.params.update(self.dataset_handling.get_params())
 
         #####################################################################
         # prepare model training
