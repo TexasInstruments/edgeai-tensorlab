@@ -58,7 +58,7 @@ class BaseRTSession(utils.ParamsBase):
         self.input_normalizer = None
         self.force_gc = force_gc
 
-        self.kwargs['target_machine'] = self.kwargs.get('target_machine', 'pc')
+        self.kwargs['target_machine'] = self.kwargs.get('target_machine', constants.TARGET_MACHINE_PC_EMULATION)
         self.kwargs['target_device'] = self.kwargs.get('target_device', None)
 
         # set tidl_offload to False to disable offloading to TIDL

@@ -99,6 +99,12 @@ TARGET_DEVICE_AM69A = 'AM69A'
 TARGET_DEVICE_AM62 = 'AM62'
 
 
+# compilation can only be run in PC as of now, but inference can be run in both PC and EVM
+# whether running in PC/Host Emulation or really running in EVM/device:
+TARGET_MACHINE_PC_EMULATION = 'pc'
+TARGET_MACHINE_EVM = 'evm'
+
+
 class QUANTScaleType:
     QUANT_SCALE_TYPE_NP2 = 0
     QUANT_SCALE_TYPE_P2 = 1

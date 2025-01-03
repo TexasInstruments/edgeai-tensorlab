@@ -39,7 +39,7 @@ class TVMDLRSession(BaseRTSession):
     def __init__(self, session_name=constants.SESSION_NAME_TVMDLR, **kwargs):
         super().__init__(session_name=session_name, **kwargs)
         self.kwargs['input_data_layout'] = self.kwargs.get('input_data_layout', constants.NCHW)
-        self.supported_machines = ('pc', 'evm')
+        self.supported_machines = (constants.TARGET_MACHINE_PC_EMULATION, constants.TARGET_MACHINE_EVM)
         target_machine = self.kwargs['target_machine']
         assert target_machine in self.supported_machines, f'invalid target_machine {target_machine}'
 
@@ -104,10 +104,10 @@ class TVMDLRSession(BaseRTSession):
         deploy_params = 'deploy_params.params'
 
         for target_machine in self.supported_machines:
-            if target_machine == 'evm':
+            if target_machine == constants.TARGET_MACHINE_EVM:
                 build_target = 'llvm -device=arm_cpu -mtriple=aarch64-linux-gnu'
                 cross_cc_args = {'cc' : os.path.join(os.environ['ARM64_GCC_PATH'], 'bin', 'aarch64-none-linux-gnu-gcc')}
-            elif target_machine == 'pc':
+            elif target_machine == constants.TARGET_MACHINE_PC_EMULATION:
                 build_target = 'llvm'
                 cross_cc_args = {}
             else:
