@@ -213,7 +213,7 @@ data_prefix = dict(
     CAM_BACK_LEFT='samples/CAM_BACK_LEFT')
 
 train_dataloader = dict(
-    batch_size=1,
+    batch_size=2,
     num_workers=4,
     persistent_workers=True,
     drop_last=False,
@@ -236,7 +236,7 @@ train_dataloader = dict(
 
 val_dataloader = dict(
     batch_size=1,
-    num_workers=1,
+    num_workers=4,
     persistent_workers=True,
     drop_last=False,
     sampler=dict(type='DefaultSampler', shuffle=False),
@@ -288,8 +288,15 @@ param_scheduler = [
 
 total_epochs = 24
 
-train_cfg = dict(max_epochs=total_epochs, val_interval=2)
+train_cfg = dict(max_epochs=total_epochs, val_interval=total_epochs)
 val_cfg = dict(type='ValLoop')
 test_cfg = dict(type='TestLoop')
+
+find_unused_parameters=True
+
+default_hooks = dict(
+    checkpoint=dict(
+        type='CheckpointHook', interval=1, max_keep_ckpts=4, save_last=True))
+
 
 #load_from = 'checkpoints/BEVFormer/bevformer_tiny_epoch_24.pth'
