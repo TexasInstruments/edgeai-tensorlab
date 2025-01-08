@@ -40,7 +40,7 @@ from .progress_step import *
 from .logger_utils import *
 
 
-class ParallelRun:
+class ParallelProcess:
     def __init__(self, parallel_processes, parallel_devices=None, desc='tasks', blocking=True, verbose=True, maxinterval=60):
         self.desc = desc
         self.parallel_processes = parallel_processes

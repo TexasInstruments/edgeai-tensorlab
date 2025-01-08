@@ -33,6 +33,7 @@ import warnings
 import subprocess
 import tqdm
 import time
+import functools
 
 from edgeai_benchmark import *
 
@@ -71,7 +72,7 @@ def get_arg_parser():
     return parser
 
 
-def run_one_model(settings, entry_idx, kwargs, model_selection, run_dir):
+def run_one_model(entry_idx, kwargs, model_selection, run_dir, enable_logging, run_import, run_inference):
     if kwargs['parallel_devices'] in (None, 0):
         parallel_devices = [0]
     else:
@@ -92,73 +93,34 @@ def run_one_model(settings, entry_idx, kwargs, model_selection, run_dir):
 
     os.makedirs(run_dir, exist_ok=True)
     log_filename = os.path.join(run_dir, 'run.log')
-    if settings.enable_logging:
-        stdout_fp = open(log_filename, 'w')
+    if enable_logging:
+        log_fp = open(log_filename, 'w')
     else:
-        stdout_fp = subprocess.DEVNULL #subprocess.STDOUT
+        log_fp = subprocess.DEVNULL #subprocess.STDOUT
     #
 
-    with open(log_filename, 'w') as log_fp:
-        # benchmark script
-        command = ['python3',  './scripts/benchmark_modelzoo.py', kwargs['settings_file'], '--model_selection', model_selection]
-        # add additional commanline arguments passed to this script
-        command += cmd_args
-        # additional process helps with stability - even if a model compilation crashes, it won't affect the main program.
-        # but, since we open a process with subprocess.Popen here, there is no need for the underlying python script to open a process inside
-        command += ['--parallel_processes', '0']
-        # which device should this be run on
-        # relevant if this is using the gpu/cuda tidl-tools and if there are multiple GPUs
-        command += ['--parallel_devices_list', str(parallel_device)]
-        # logging is done by capturing the stdout and stderr to a file here - no need to enable logging to file inside
-        command += ['--enable_logging', '0']
-        # now actually run the process
-        proc = subprocess.Popen(command, stdout=stdout_fp, stderr=log_fp)
-    #
+    # benchmark script
+    command = ['python3',  './scripts/benchmark_modelzoo.py', kwargs['settings_file'], '--model_selection', model_selection]
+    # add additional commanline arguments passed to this script
+    command += cmd_args
+    # additional process helps with stability - even if a model compilation crashes, it won't affect the main program.
+    # but, since we open a process with subprocess.Popen here, there is no need for the underlying python script to open a process inside
+    command += ['--parallel_processes', '0']
+    # which device should this be run on
+    # relevant if this is using the gpu/cuda tidl-tools and if there are multiple GPUs
+    command += ['--parallel_devices_list', str(parallel_device)]
+    # logging is done by capturing the stdout and stderr to a file here - no need to enable logging to file inside
+    command += ['--enable_logging', '0']
+    # import and/or inference
+    command += ['--run_import', f'{run_import}']
+    command += ['--run_inference', f'{run_inference}']
+    # now actually run the process
+    proc = subprocess.Popen(command, stdout=log_fp, stderr=log_fp)
 
-    if settings.enable_logging:
-        stdout_fp.close()
+    if enable_logging:
+        log_fp.close()
     #
     return proc
-
-
-def check_running_status(settings, proc_dict, tqdm_obj=None):
-    if len(proc_dict) == 0:
-        return 0
-    #
-
-    num_process = len(proc_dict)
-    for proc_key, proc in proc_dict.items():
-        if proc is not None:
-            exit_code = proc.returncode
-            try:
-                out_ret, err_ret = proc.communicate(timeout=0.1)
-            except subprocess.TimeoutExpired as ex:
-                pass
-            else:
-                proc_dict[proc_key] = None
-            #
-        #
-    #
-
-    num_completed = sum([proc is None for proc in proc_dict.values()])
-    num_running = sum([proc is not None for proc in proc_dict.values()])
-    # status_dict = {proc_key: ("R" if proc else "C") for proc_key, proc in proc_dict.items()}
-    running_list = [proc_key for proc_key, proc in proc_dict.items() if proc]
-    completed_list = [proc_key for proc_key, proc in proc_dict.items() if proc is None]
-
-    tqdm_obj.update(num_completed - tqdm_obj.n)
-    desc = f'STATUS - TOTAL={num_models}, NUM_RUNNING={num_running}'
-    tqdm_obj.set_description(desc)
-    tqdm_obj.set_postfix(postfix=dict(RUNNING=running_list, COMPLETED=completed_list))
-
-    return num_running
-
-
-def wait_in_loop(settings, proc_dict, tqdm_obj, num_processes):
-    # wait in a loop until the number of running processes come down
-    while check_running_status(settings, proc_dict, tqdm_obj=tqdm_obj) >= num_processes:
-        time.sleep(1.0)
-    #
 
 
 if __name__ == '__main__':
@@ -204,23 +166,28 @@ if __name__ == '__main__':
         model_entries = [model_entry.rstrip() for model_entry in list_fp]
         num_models = len(model_entries)
 
-    proc_dict = dict()
-    num_completed = sum([proc is None for proc in proc_dict.values()])
-
-    tqdm_obj = tqdm.tqdm(total=num_models, position=0, desc=f'STATUS - TOTAL={num_models}, NUM_RUNNING={0}')
+    parallel_subprocess = utils.ParallelSubProcess(kwargs['parallel_processes'], kwargs['parallel_devices'])
 
     for entry_idx, model_entry in enumerate(model_entries):
         model_entry = model_entry.split(' ')
         model_selection = model_entry[0]
         run_dir = model_entry[1]
-        proc = run_one_model(settings, entry_idx, kwargs, model_selection, run_dir)
-        proc_dict.update({model_selection: proc})
-
-        # wait in a loop until the number of running processes come down
-        wait_in_loop(settings, proc_dict, tqdm_obj, settings.parallel_processes)
+        task_list_for_model = []
+        if settings.run_import:
+            proc_name = f'{model_selection}:import'
+            run_import_task = functools.partial(run_one_model,
+                entry_idx, kwargs, model_selection, run_dir, settings.enable_logging, True, False)
+            task_list_for_model.append({'proc_name': proc_name, 'proc_func':run_import_task})
+        #
+        if settings.run_inference:
+            proc_name = f'{model_selection}:infer'
+            run_inference_task = functools.partial(run_one_model,
+                entry_idx, kwargs, model_selection, run_dir, settings.enable_logging, False, True)
+            task_list_for_model.append({'proc_name': proc_name, 'proc_func':run_inference_task})
+        #
+        parallel_subprocess.enqueue(task_name=model_selection, task_list=task_list_for_model)
     #
 
-    # wait in a loop until the number of running processes come to 0
-    wait_in_loop(settings, proc_dict, tqdm_obj, 0)
+    parallel_subprocess.run()
 
-    print("benchmark modelzoo parallel - COMPLETED")
+    # print("benchmark modelzoo parallel - COMPLETED")
