@@ -68,6 +68,8 @@ class ParallelSubProcess:
         #
         num_completed, num_running = self._wait_in_loop(self.parallel_processes)
         while num_completed < self.num_queued_tasks:
+            # wait in a loop until the number of running processes comes down
+            num_completed, num_running = self._wait_in_loop(self.parallel_processes)
             proc_dict_to_start = self._find_proc_dict_to_start()
             # start the process
             if proc_dict_to_start:
@@ -81,8 +83,6 @@ class ParallelSubProcess:
 
     def _find_proc_dict_to_start(self):
         proc_dict_to_start = None
-        # wait in a loop until the number of running processes comes down
-        num_completed, num_running = self._wait_in_loop(self.parallel_processes)
         # now search through tasks and find a process to start
         for task_name, task_list in self.queued_tasks.items():
             completed_flag_in_task = []
@@ -123,8 +123,8 @@ class ParallelSubProcess:
         for task_name, task_list in self.queued_tasks.items():
             completed_proc_in_task = []
             running_proc_in_task = []
+            running_proc_name = None
             for proc_id, proc_dict in enumerate(task_list):
-                running_proc_name = None
                 proc = proc_dict.get('proc', None)
                 completed = (proc is not None) and proc_dict.get('completed', False)
                 running = (proc is not None) and proc_dict.get('running', False)
