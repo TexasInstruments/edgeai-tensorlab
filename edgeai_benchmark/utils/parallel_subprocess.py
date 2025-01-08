@@ -77,7 +77,7 @@ class ParallelSubProcess:
                 proc_dict_to_start['running'] = True
             #
         #
-        # wati for all remaining processes to finish
+        # wait for all remaining processes to finish
         self._wait_in_loop(0)
         return True
 
@@ -170,11 +170,11 @@ class ParallelSubProcess:
     def _worker(self, task):
         proc = None
         try:
-            if self.parallel_devices is not None:
-                num_devices = len(self.parallel_devices)
-                parallel_device = self.parallel_devices[self.task_index%num_devices]
-                os.environ['CUDA_VISIBLE_DEVICES'] = str(parallel_device)
-            #
+            # if self.parallel_devices is not None:
+            #     num_devices = len(self.parallel_devices)
+            #     parallel_device = self.parallel_devices[self.task_index%num_devices]
+            #     os.environ['CUDA_VISIBLE_DEVICES'] = str(parallel_device)
+            # #
             proc = task()
         except Exception as e:
             print(f"Exception occurred in worker process: {e}")

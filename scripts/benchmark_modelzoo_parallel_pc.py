@@ -69,6 +69,7 @@ def get_arg_parser():
     parser.add_argument('--experimental_models', type=utils.str_to_bool)
     parser.add_argument('--additional_models', type=utils.str_to_bool)
     parser.add_argument('--models_list_file', type=str, default=None)
+    parser.add_argument('--separate_import_inference', type=utils.str_to_bool, default=True)
     return parser
 
 
@@ -168,22 +169,31 @@ if __name__ == '__main__':
 
     parallel_subprocess = utils.ParallelSubProcess(kwargs['parallel_processes'], kwargs['parallel_devices'])
 
+    separate_import_inference = kwargs.pop('separate_import_inference')
+
     for entry_idx, model_entry in enumerate(model_entries):
         model_entry = model_entry.split(' ')
         model_selection = model_entry[0]
         run_dir = model_entry[1]
         task_list_for_model = []
-        if settings.run_import:
-            proc_name = f'{model_selection}:import'
-            run_import_task = functools.partial(run_one_model,
-                entry_idx, kwargs, model_selection, run_dir, settings.enable_logging, True, False)
-            task_list_for_model.append({'proc_name': proc_name, 'proc_func':run_import_task})
-        #
-        if settings.run_inference:
-            proc_name = f'{model_selection}:infer'
-            run_inference_task = functools.partial(run_one_model,
-                entry_idx, kwargs, model_selection, run_dir, settings.enable_logging, False, True)
-            task_list_for_model.append({'proc_name': proc_name, 'proc_func':run_inference_task})
+        if separate_import_inference:
+            if settings.run_import:
+                proc_name = f'{model_selection}:import'
+                run_import_task = functools.partial(run_one_model,
+                    entry_idx, kwargs, model_selection, run_dir, settings.enable_logging, True, False)
+                task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_import_task})
+            #
+            if settings.run_inference:
+                proc_name = f'{model_selection}:infer'
+                run_inference_task = functools.partial(run_one_model,
+                    entry_idx, kwargs, model_selection, run_dir, settings.enable_logging, False, True)
+                task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_inference_task})
+            #
+        else:
+            proc_name = f'{model_selection}'
+            run_task = functools.partial(run_one_model,
+                entry_idx, kwargs, model_selection, run_dir, settings.enable_logging, settings.run_import, settings.run_inference)
+            task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_task})
         #
         parallel_subprocess.enqueue(task_name=model_selection, task_list=task_list_for_model)
     #
