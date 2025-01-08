@@ -31,10 +31,10 @@ class YOLOV7Head(BaseDenseHead):
                 # strides: Sequence[int] = (8, 16, 32),
                 #  feat_channels: int = 256,
                 anchor_num: int = 3,
-                use_group: bool = True,
-                norm_cfg: OptConfigType = dict(
-                    type='GN', num_groups=32, requires_grad=True),
-                train_cfg: OptConfigType = None,
+                # use_group: bool = True,
+                # norm_cfg: OptConfigType = dict(
+                #     type='GN', num_groups=32, requires_grad=True),
+                # train_cfg: OptConfigType = None,
                 test_cfg: OptConfigType = None,
                 anchor_cfg: AnchorConfig = None,
                 loss_yolo: ConfigType = dict(
@@ -48,18 +48,10 @@ class YOLOV7Head(BaseDenseHead):
                         aux=0.25,
                         matcher=MatcherConfig(
                             iou='CIoU',
-                            topk=10,
-                            factor=dict(
-                                iou=6.0,
-                                cls=0.5
-                            )
+                            topk=4,
+                            factor=None,
                         )
                     )
-                    ),
-                    nms_cfg=dict(
-                    min_confidence=0.5,
-                    min_iou=0.9,
-                    top_k=100
                     ),
                     init_cfg=dict(
                      type='Kaiming',
@@ -73,7 +65,6 @@ class YOLOV7Head(BaseDenseHead):
         self.num_classes = num_classes
         self.anchor_cfg = anchor_cfg
         self.loss_config = loss_yolo
-        self.nms_cfg = nms_cfg
         self.in_channels = in_channels
         self.test_cfg = test_cfg
         self.postprocess_class = PostProccess
@@ -178,7 +169,7 @@ class YOLOV7Head(BaseDenseHead):
                           image_size=image_size, device=device)
 
         outs = self(x)
-        post_proccess = self.postprocess_class(anc2box, self.nms_cfg)
+        post_proccess = self.postprocess_class(anc2box)
         # outs = post_proccess(outs)
         cls_scores, pred_bbox  = post_proccess(outs)
 

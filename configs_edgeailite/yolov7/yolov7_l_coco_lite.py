@@ -44,9 +44,8 @@ model = dict(
             ],
             strides = [8, 16, 32]
         ),
-        # bbox_coder=dict(type='YOLOBBoxCoder'),
         loss_yolo=dict(
-            type='YOLOV7Loss2',
+            type='YOLOV7Loss',
                 loss_cfg = dict(
                     objective=dict(
                         ClassLoss=0.3,
@@ -56,33 +55,14 @@ model = dict(
                     aux=0.25,
                     matcher=dict(
                         iou='CIoU',
-                        topk=10,
-                        factor=dict(
-                            iou=6.0,
-                            cls=0.5
-                        )
+                        topk=4,
+                    factor=None,
                     )
                 )
         ),
-        nms_cfg=dict(
-            min_confidence=0.05,
-            min_iou=0.9,
-        )
         ),
     # training and testing settings
-    train_cfg=dict(
-        assigner=dict(
-            type='GridAssigner',
-            pos_iou_thr=0.5,
-            neg_iou_thr=0.5,
-            min_pos_iou=0)),
-    test_cfg=dict(score_thr=0.0001, max_bbox=5000, nms=dict(type='nms', iou_threshold=0.65)
-        # nms_pre=1000,
-        # min_bbox_size=0,
-        # score_thr=0.05,
-        # conf_thr=0.005,
-        # nms=dict(type='nms', iou_threshold=0.45),
-        # max_per_img=100
+    test_cfg=dict(score_thr=0.0001, max_bbox=1000, nms=dict(type='nms', iou_threshold=0.65)
         ))
 # dataset settings
 dataset_type = 'CocoDataset'
@@ -196,7 +176,7 @@ train_cfg = dict(max_epochs=max_epochs, val_interval=interval)
 
 # optimizer
 # default 8 gpu
-base_lr = 0.0001
+base_lr = 1e-4
 optim_wrapper = dict(
     type='OptimWrapper',
     optimizer=dict(
@@ -239,7 +219,7 @@ param_scheduler = [
 ]
 
 
-default_hooks = dict(checkpoint=dict(type='CheckpointHook', interval=2, max_keep_ckpts=20))
+default_hooks = dict(checkpoint=dict(type='CheckpointHook', interval=2, max_keep_ckpts=40))
 
 # NOTE: `auto_scale_lr` is for automatically scaling LR,
 # USER SHOULD NOT CHANGE ITS VALUES.

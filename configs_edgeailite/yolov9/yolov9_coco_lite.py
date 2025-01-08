@@ -56,10 +56,6 @@ model = dict(
                     )
                 )
         ),
-        nms_cfg=dict(
-            min_confidence=0.05,
-            min_iou=0.9,
-        )
         ),
         aux_head=dict(
         type='YOLOV9AuxHead',
@@ -69,12 +65,6 @@ model = dict(
         reg_max=16,
         ),
     # training and testing settings
-    train_cfg=dict(
-        assigner=dict(
-            type='GridAssigner',
-            pos_iou_thr=0.5,
-            neg_iou_thr=0.5,
-            min_pos_iou=0)),
     test_cfg=dict(score_thr=0.01, nms=dict(type='nms', iou_threshold=0.65)
         ))
 # dataset settings

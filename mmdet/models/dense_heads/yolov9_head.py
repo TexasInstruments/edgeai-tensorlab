@@ -30,10 +30,10 @@ class YOLOV9Head(BaseDenseHead):
                 strides: Sequence[int] = (8, 16, 32),
                 #  feat_channels: int = 256,
                 reg_max: int = 16,
-                use_group: bool = True,
-                norm_cfg: OptConfigType = dict(
-                    type='GN', num_groups=32, requires_grad=True),
-                train_cfg: OptConfigType = None,
+                # use_group: bool = True,
+                # norm_cfg: OptConfigType = dict(
+                #     type='GN', num_groups=32, requires_grad=True),
+                # train_cfg: OptConfigType = None,
                 test_cfg: OptConfigType = None,
                 loss_yolo: ConfigType = dict(
                     type='YOLOLoss',
@@ -54,11 +54,6 @@ class YOLOV9Head(BaseDenseHead):
                         )
                     )
                     ),
-                    nms_cfg=dict(
-                    min_confidence=0.5,
-                    min_iou=0.9,
-                    top_k=100
-                    ),
                     init_cfg=dict(
                      type='Kaiming',
                      layer='Conv2d',
@@ -69,7 +64,6 @@ class YOLOV9Head(BaseDenseHead):
                 **kwargs) -> None:
         super().__init__(init_cfg=init_cfg)
         self.loss_config = loss_yolo
-        self.nms_cfg = nms_cfg
         self.in_channels = in_channels
         self.strides = strides
         self.test_cfg = test_cfg
@@ -194,7 +188,7 @@ class YOLOV9Head(BaseDenseHead):
         vec2box = Vec2Box(image_size, strides, device)
 
         outs = self(x)
-        post_proccess = self.postprocess_class(vec2box, self.nms_cfg)
+        post_proccess = self.postprocess_class(vec2box)
         # outs = post_proccess(outs)
         cls_scores, preds = post_proccess(outs)
         # cls_scores = cls_scores.sigmoid()
