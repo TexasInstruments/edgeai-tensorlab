@@ -90,7 +90,7 @@ def get_configs(settings, work_dir):
                 model_path=f'../edgeai-modelzoo/models/vision/detection/coco/mmdet/fcos_r50-caffe_fpn_gn-head_ms-640-800-2x_coco.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, reshape_list=[(-1,5),(-1,1)], formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': None}, model_shortlist=100, compact_name='FCOS-r50-fpn-gn-head-coco-1216x800', shortlisted=False)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':38.7}, model_shortlist=100, compact_name='FCOS-r50-fpn-gn-head-coco-1216x800', shortlisted=False)
         ),
         'od-8940':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((800,1216), (800,1216), reverse_channels=True, resize_with_pad=False, backend='cv2'),
@@ -114,7 +114,7 @@ def get_configs(settings, work_dir):
                 model_path=f'../edgeai-modelzoo/models/vision/detection/coco/mmdet/centernet-update_r50-caffe_fpn_ms-1x.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, reshape_list=[(-1,5),(-1,1)], formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': None}, model_shortlist=100, compact_name='CenterNet-update-r50-fpn-coco-1216x800', shortlisted=False)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':40.2}, model_shortlist=100, compact_name='CenterNet-update-r50-fpn-coco-1216x800', shortlisted=False)
         ),
         'od-8950':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((448, 672), (448, 672), reverse_channels=False, resize_with_pad=False, backend='cv2'),
@@ -131,7 +131,7 @@ def get_configs(settings, work_dir):
                 model_path=f'../edgeai-modelzoo/models/vision/detection/coco/mmdet/centernet_r18_crop512.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, reshape_list=[(-1,5),(-1,1)], formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': None}, model_shortlist=100, compact_name='CenterNet-r18-coco-672x448', shortlisted=False)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':25.9}, model_shortlist=100, compact_name='CenterNet-r18-coco-672x448', shortlisted=False)
         ),     
         ################################# MMDetection Models ###########################
         #DETR mmdetection

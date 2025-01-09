@@ -249,7 +249,7 @@ def get_configs(settings, work_dir):
                      },
                     ),
                 model_path=f'../edgeai-modelzoo/models/vision/classification/imagenet1k/torchvision/efficientnet_b0.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':None}, model_shortlist=110, compact_name='efficientNet-b0-224', shortlisted=False)
+            model_info=dict(metric_reference={'accuracy_top1%':77.692}, model_shortlist=110, compact_name='efficientNet-b0-224', shortlisted=False)
         ),
         # torchvision: classification efficientnet_b1 expected_metric:  top-1 accuracy
         'cl-6820':utils.dict_update(common_cfg,
@@ -261,7 +261,7 @@ def get_configs(settings, work_dir):
                      },
                     ),
                 model_path=f'../edgeai-modelzoo/models/vision/classification/imagenet1k/torchvision/efficientnet_b1.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':None}, model_shortlist=110, compact_name='efficientNet-b1-224', shortlisted=False)
+            model_info=dict(metric_reference={'accuracy_top1%':79.838}, model_shortlist=110, compact_name='efficientNet-b1-224', shortlisted=False)
         ),
         # torchvision: classification mobilenet_v3_small expected_metric:  top-1 accuracy
         'cl-6830':utils.dict_update(common_cfg,
@@ -274,7 +274,7 @@ def get_configs(settings, work_dir):
                      },
                     ),
                 model_path=f'../edgeai-modelzoo/models/vision/classification/imagenet1k/torchvision/mobilenet_v3_small_simp.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':None}, model_shortlist=110, compact_name='mobilenetV3-small-224', shortlisted=False)
+            model_info=dict(metric_reference={'accuracy_top1%':67.668}, model_shortlist=110, compact_name='mobilenetV3-small-224', shortlisted=False)
         ),
         # torchvision: classification mobilenet_v3_large expected_metric:  top-1 accuracy
         'cl-6840':utils.dict_update(common_cfg,
@@ -286,7 +286,7 @@ def get_configs(settings, work_dir):
                      },
                     ),
                 model_path=f'../edgeai-modelzoo/models/vision/classification/imagenet1k/torchvision/mobilenet_v3_large.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':None}, model_shortlist=110, compact_name='mobilenetV3-large-224', shortlisted=False)
+            model_info=dict(metric_reference={'accuracy_top1%':75.274}, model_shortlist=110, compact_name='mobilenetV3-large-224', shortlisted=False)
         ),  
         # hf-transformers: classification convnext-tiny-224 expected_metric:  top-1 accuracy
         'cl-6850':utils.dict_update(common_cfg,
@@ -298,7 +298,7 @@ def get_configs(settings, work_dir):
                      'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL 
                      }, fast_calibration=True),
                 model_path=f'../edgeai-modelzoo/models/vision/classification/imagenet1k/hf-transformers/convnext-tiny-224_simp.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':None}, model_shortlist=110, compact_name='convNext-tiny-hf-224', shortlisted=False)
+            model_info=dict(metric_reference={'accuracy_top1%':82.1}, model_shortlist=110, compact_name='convNext-tiny-hf-224', shortlisted=False)
         ),
         #FAST-VIT
         'cl-6860':utils.dict_update(common_cfg,
@@ -307,7 +307,7 @@ def get_configs(settings, work_dir):
                 runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL,
                                                                                }, fast_calibration=True),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/timm/fastvit_s12.apple_in1k_reparam_simp.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':0078.59}, model_shortlist=110, compact_name='FastViT-s12-transformer-256', shortlisted=False)
+            model_info=dict(metric_reference={'accuracy_top1%':78.59}, model_shortlist=110, compact_name='FastViT-s12-transformer-256', shortlisted=False)
         ),
         'cl-6870':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(256,256),
@@ -315,7 +315,7 @@ def get_configs(settings, work_dir):
                 runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL,
                                                                                }, fast_calibration=True),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/timm/fastvit_sa12.apple_in1k_reparam_simp.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':0078.59}, model_shortlist=110, compact_name='FastViT-s12-transformer-256', shortlisted=False)
+            model_info=dict(metric_reference={'accuracy_top1%':78.59}, model_shortlist=110, compact_name='FastViT-s12-transformer-256', shortlisted=False)
         ),
     }
     return pipeline_configs
