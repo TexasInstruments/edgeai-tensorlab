@@ -173,8 +173,9 @@ def get_configs(settings, work_dir):
                 runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}, fast_calibration=True),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/hf-transformers/vit_tiny_patch16_224_simp.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':45.23}, model_shortlist=80, compact_name='ViT-tiny-patch16-transformer-224', shortlisted=False)
-        ),  
-        'cl-6710':utils.dict_update(common_cfg,
+        ),
+        # inference takes too much time - limit th number of frames for inference
+        'cl-6710':utils.dict_update(utils.dict_update(common_cfg, num_frames=min(settings.num_frames,1000)),
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
                 runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}, fast_calibration=True),
