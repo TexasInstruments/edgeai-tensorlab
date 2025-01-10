@@ -1,49 +1,48 @@
-# Usage
-
+## Introduction
 Compiling a DNN model is the process of quantizing and converting the model into a format that can be inferred with TIDL. TIDL (and its open source front ends) provides utilities to compile models. The imported artifacts can then be used to run inference.
 
 In addition to what is provided with TIDL, this repository provides igh level utilities for compiling DNN models. These tools include dataset loaders, pre-processing utilities, post-processing utilities and metric computation utilities.
 
 
-## Components of this repository
-This repository is generic and can be used with a variety of runtimes and models supported by TIDL. This repository contains the following parts:
+## Usage
+[run_benchmarks_parallel_pc.sh](../run_benchmarks_parallel_pc.shh) is the main script in this repository that does compilation of models and benchmark. Usage is:
+```
+run_benchmarks_parallel_pc.sh <SOC> [-d|--debug] [-h|--help]
+```
 
-- **edgeai_benchmark**: Core scritps for core model compilation, inference and accuracy benchmark scripts provided as a python package (that can be imported using: *import edgeai_benchmark* or using: *from edgeai_benchmark import*)
-- **scripts**: These are the top level python scripts - to compile models, to infer and do accuracy & performance benchmark, to collect accuracy report and to package the generated artifacts.
-- **configs**: These are the actual configurations of to run the models in the model zoo. These configurations define the Dataset parameters, pre-processing, inference session parameters and post-processing.
+For example, to run compilation for AM68A, this would be the command:
+```
+run_benchmarks_parallel_pc.sh AM68A
+```
 
-The top level python **scripts** are launched via bash scripts in the root of this repo. Each bash script has a `--help` flag to describe its purpose and usage. 
+The number of parallel processes used defaults to 16. To change it to a different values, use additional argument. For example:
+```
+run_benchmarks_parallel_pc.sh AM68A --parallel_processes 4
+```
 
+The `--debug` flag allows for the attaching of a debugpy debugger to the top level python script. Call the script with `--help` for more information.
 
-## Running inference / benchmark on *PC* using pre-compiled model artifacts
-[run_benchmarks_pc.sh](../run_benchmarks_pc.sh) is the main script in this repository that does compilation of models and benchmark. Usage is
+This is the main script in this repository that does compilation of models and benchmark. It uses parallel processing to compile multiple models in parallel and is especially useful while compiling several models, such as all the models in the Model Zoo. 
+
+However, for compiling one or a few models, parallel processing may not be required and for that a simpler script can be used:   
 ```
 run_benchmarks_pc.sh <SOC> [-d|--debug] [-h|--help]
 ```
 
-*modelartifacts_path* in the [settings_base.yaml](../settings_base.yaml) file indicates the location where the artifacts are generated or expected. It currently points to work_dirs/modelartifacts/<SOC>/
+**Model compilation can be run only on PC. The device does not support model compilation. However, the inference of a compiled model can be run on PC or on device.**
 
-We have a symbolic link in this repository that points to the corresponding folder in edgeai-modelzoo. 
+## Compiling models in the Model Zoo
+* modelartifacts_path* in the [settings_base.yaml](../settings_base.yaml) file indicates the location where the artifacts are generated or expected. It currently points to work_dirs/modelartifacts/<SOC>/
+* Each model needs a set of side information for compilation. The [configs module](../configs) in this repository by default to understand this information. 
+* But this script can also use a [configs.yaml](https://github.com/TexasInstruments/edgeai-tensorlab/blob/main/edgeai-modelzoo/models/configs.yaml) file (instead of the configs module) by specifying it in the argument --configs_path.
 
-If this is present, compilation will be skipped, those model artifacts will be downloaded automatically and inference/benchmark will be performed.
 
-The `--debug` flag allows for the attaching of a debugpy debugger to the top level python script. Call the script with `--help` for more information.
+## Running inference / benchmark on *PC* using pre-compiled model artifacts
+* For the models in the Model Zoo, we provide (links to) pre-compiled artifacts in edgeai-modelzoo/modelartifacts. If you would like to use these pre-compiled compiled artifacts and only do inference, then you can create a symbolic link called modelartifacts to edgeai-modelzoo/modelartifacts under ./work_dirs of this repository (remove the modelartifacts folder under ./work_dirs before that).
+* While running this script, compilation of models in the model zoo will be performed as the first step before the inference. But if the pre-compiled model artifacts are present, model compilation will be skipped. 
+* param.yaml file present in each model artifacts folder indicates that the model compilation is complete.
+* **result.yaml file, if present in each model artifacts folder indicates that the model inference is complete. If result.yaml is present, inference is also skipped. Manually delete result.yaml if it is present (i.e. if you have done it once already) to do the inference - otherwise, the script will merely print the result information from result.yaml.**
 
-
-## Compile models in the model zoo
-
-[run_benchmarks_pc.sh](../run_benchmarks_pc.sh) is the main script in this repository that does compilation of models and benchmark. However, there are a few things to note:
-* Model compilation can be run only on PC. The device does not support model compilation.
-* However, the inference of a compiled model can be run on PC or on device. 
-* For the models in the model zoo, we have provided (link to) pre-compiled artifacts in edgeai-modelzoo and this repository has a symbolic link to that. If you would like to use the latest compiled artifacts, then pull the edgeai-modelzoo repository.
-* If you like to do the compilation of these models yourself, you can either rename the folder [work_dirs/modelartifacts](../work_dirs/modelartifacts) or change the value of *modelartifacts_path* in [settings_base.yaml](../settings_base.yaml). 
-* While running this script, compilation of models in the model zoo will be performed as the first step before the inference. But if the pre-compiled model artifacts are present, model compilation will be skipped. param.yaml file present in each model artifacts folder indicates that the model compilation is complete.
-* result.yaml file, if present in each model artifacts folder indicates that the model inference is complete. If result.yaml is present, inference is also skipped. Manually delete result.yaml if it is present (i.e. if you have done it once already) to do the inference - otherwise, the script will merely print the result information from result.yaml.
-* Multiple models can be run in parallel in PC (only) by using run_benchmarks_parallel_pc.sh and also by setting parallel_processes option to a higher value (for example 4 or 8). parallel_processes can either be set in [settings_import_on_pc.yaml](../settings_import_on_pc.yaml) or passed as a commandline argument to the following script. For example:
-
-```commandline
-run_benchmarks_parallel_pc.sh AM68A --parallel_processes 8
-```
 
 ## Compiling with a custom model or custom configuration
 To compile a custom model or a custom pipeline configuration, first, compose a custom configuration in `/scripts/benchmark_custom.py`.
@@ -70,11 +69,24 @@ run_package_artifacts_for_evm.sh <SOC> [-d|--debug] [-h|--help]
 * These packaged artifacts can be copied to the device to run inference there.
 * Please note the above comment about result.yaml. These result files are removed while packaing the artifact to be used in EVM (as we actually want to run the inference in EVM). Instead of using the packaging script, you can use the compiled model artifact directory as well, but be sure to remove the result.yaml if you actually want the inference to run.
 * Change the modelartifacts_path in settings.yaml to point to the correct modelartifacts path. For example, after packaging, the packaged folder name will be <SOC>_package. To use this packaged artifacts, set modelartifacts_path accordingly.
+* As explained above, once the inference is run a result.yaml file is created inside the folder for the model. Any subsequent inference will not run the actual inference, but will just report the result in that file. Delete that result.yaml file if you wish to run the inference again.
 
 
-## Sharing files between PC and EVM
-* Copying datasets and compiled artifacts to EVM can be time consuming and can use significant disk space (which may not be available on the EVM).
-* To run on EVM, we recommend to share your the datasets and work_dirs folders in your PC to the EVM and using NFS. [exportfs](https://www.tutorialspoint.com/unix_commands/exportfs.htm) can be used for this NFS sharing.
+## Running inference on EVM or StarterKit board
+* Boot the EVM or StarterKit board using an SD card flashed with Edge AI SDK. Connect to the Linux OS in the EVM using ssh or using UART connection.
+* Mount or copy the edgeai-benchmark folder on to the EVM. Mount edgeai-modelzoo repository in EVM inside the same folder where edgeai-benchmark is present. Instead of munting these separately, you can also mount the parent folder of edgeai-benchmark as well.
+* Copying datasets and compiled artifacts to EVM can be time consuming and can use significant disk space (which may not be available on the EVM). To run on EVM, we recommend to share your the datasets and work_dirs folders in your PC to the EVM and using NFS. [exportfs](https://www.tutorialspoint.com/unix_commands/exportfs.htm) can be used for this NFS sharing.
+* Mount the datasets from your PC at the required location in EVM (edgeai-benchmark/dependencies/datasets)
+* **Remove result.yaml files from all the folders in the artifacts folders that we are interested in, i.e. in sub-directories inside workdirs/modelartifacts/<SOC>**
+* Now the benchmark script can be run on EVM:
+```
+run_benchmarks_evm.sh <SOC>
+```
+For example:
+```
+run_benchmarks_evm.sh AM68A
+```
+* run_generate_report.sh can be used to gather the results after running.
 
 ## Debugging
 To debug the python scripts in `/scripts/`, which are called from the top level bash scripts, use `debugpy`'s attach capability. 

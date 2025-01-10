@@ -102,16 +102,14 @@ verbose : False
 # save detection, segmentation, human pose estimation output
 save_output : False
 
-# it defines if we want to use udp postprocessing in human pose estimation.
-# Paper ref: Huang et al. The Devil is in the Details: Delving into Unbiased
-# Data Processing for Human Pose Estimation (CVPR 2020).
-with_udp : True
-
-# it will add horizontally flipped images in info_dict and run inference over the flipped image also
-flip_test : False
-
 # wehther to apply predifened presets based on target_device
 target_device_preset : True
+
+# logging of the import, infer and the accuracy to a file. set to False to disable it.
+enable_logging: True
+
+# writing of dataset.yaml, config.yaml, param.yaml and result.yaml depends on this flag
+write_results: True
 
 # enable use of additional models - the actual model files may be in a different modelzoo repo (for example edgeai-modelzoo-cl)
 additional_models : False
