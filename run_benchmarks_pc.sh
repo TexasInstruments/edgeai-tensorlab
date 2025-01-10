@@ -110,15 +110,6 @@ PYARGS2="./scripts/benchmark_modelzoo.py ${SETTINGS} ${CMD_ARGS[@]} --target_dev
 PYARGS3="./scripts/generate_report.py ${SETTINGS}"
 PYDEBUG="python3 -m debugpy --listen ${HOSTNAME}:${PORT} --wait-for-client"
 
-# EX: configure benchmarking with other alternative runtimes, besides ONNXRT
-# python3 ./scripts/benchmark_modelzoo.py ${settings_file}  --target_device ${TARGET_SOC} \
-#        --session_type_dict {'onnx': 'tvmdlr', 'tflite': 'tflitert', 'mxnet': 'tvmdlr'} \
-#        --model_selection onnx  --run_inference False
-
-# python3 ./scripts/benchmark_modelzoo.py ${settings_file}  --target_device ${TARGET_SOC} \
-#        --session_type_dict {'onnx': 'tvmdlr', 'tflite': 'tflitert', 'mxnet': 'tvmdlr'} \
-#        --model_selection onnx
-
 echo "==================================================================="
 if $DEBUG
 then

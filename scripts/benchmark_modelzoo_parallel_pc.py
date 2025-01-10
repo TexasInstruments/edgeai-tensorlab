@@ -68,6 +68,7 @@ def get_arg_parser():
     parser.add_argument('--fast_calibration_factor', type=utils.float_or_none)
     parser.add_argument('--experimental_models', type=utils.str_to_bool)
     parser.add_argument('--additional_models', type=utils.str_to_bool)
+    parser.add_argument('--enable_logging', type=utils.str_to_bool)
     parser.add_argument('--models_list_file', type=str, default=None)
     parser.add_argument('--separate_import_inference', type=utils.str_to_bool, default=True)
     return parser
@@ -92,18 +93,12 @@ def run_one_model(entry_idx, kwargs, model_selection, run_dir, enable_logging, r
     num_devices = len(parallel_devices)
     parallel_device = parallel_devices[entry_idx%num_devices]
 
-    os.makedirs(run_dir, exist_ok=True)
-    log_filename = os.path.join(run_dir, 'run.log')
-    if enable_logging:
-        log_fp = open(log_filename, 'w')
-    else:
-        log_fp = subprocess.DEVNULL #subprocess.STDOUT
-    #
-
     # benchmark script
-    command = ['python3',  './scripts/benchmark_modelzoo.py', kwargs['settings_file'], '--model_selection', model_selection]
+    command = ['python3',  './scripts/benchmark_modelzoo.py', kwargs['settings_file']]
     # add additional commanline arguments passed to this script
     command += cmd_args
+    # specify which model(s) to run
+    command += ['--model_selection', model_selection]
     # additional process helps with stability - even if a model compilation crashes, it won't affect the main program.
     # but, since we open a process with subprocess.Popen here, there is no need for the underlying python script to open a process inside
     command += ['--parallel_processes', '0']
@@ -115,12 +110,19 @@ def run_one_model(entry_idx, kwargs, model_selection, run_dir, enable_logging, r
     # import and/or inference
     command += ['--run_import', f'{run_import}']
     command += ['--run_inference', f'{run_inference}']
-    # now actually run the process
-    proc = subprocess.Popen(command, stdout=log_fp, stderr=log_fp)
 
+    os.makedirs(run_dir, exist_ok=True)
+
+    # now actually run the process
     if enable_logging:
-        log_fp.close()
+        log_filename = os.path.join(run_dir, 'run.log')
+        with open(log_filename, 'a') as log_fp:
+            proc = subprocess.Popen(command, stdout=log_fp, stderr=log_fp)
+        #
+    else:
+        proc = subprocess.Popen(command)
     #
+
     return proc
 
 
