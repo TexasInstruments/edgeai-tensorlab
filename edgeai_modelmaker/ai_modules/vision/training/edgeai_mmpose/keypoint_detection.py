@@ -43,22 +43,22 @@ this_dir_path = os.path.dirname(os.path.abspath(__file__))
 repo_parent_path = os.path.abspath(os.path.join(this_dir_path, '../../../../../../'))
 
 edgeai_modelzoo_path = os.path.join(repo_parent_path, 'edgeai-modelzoo')
-www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01'
-edgeai_yolox_path = os.path.join(repo_parent_path, 'edgeai-mmpose')
-edgeai_yoloxpose_tools_path = os.path.join(edgeai_yolox_path, 'tools')
+www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/10_01_00_01'
+edgeai_mmpose_path = os.path.join(repo_parent_path, 'edgeai-mmpose')
+edgeai_mmpose_tools_path = os.path.join(edgeai_mmpose_path, 'tools')
 
 # TODO: Need to change model urls with yolox_pose models
 model_urls = {
     'yoloxpose_tiny_lite': [
         {
-            'download_url': f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth',
+            'download_url': None, #f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmpose/yoloxpose_tiny_lite_416x416_20240808_checkpoint.pth',
             'download_path': os.path.join('{download_path}', 'pretrained', 'yoloxpose_tiny_lite')
         },
     ],
-    'yolox-pose_s_8xb32-300e_coco_lite': [
+    'yoloxpose_s_lite': [
         {
-            'download_url': f'/home/a0504871/work/ti/mmpose/projects/yolox-pose/work_dirs/yolox-pose_s_8xb32-300e_coco_lite/best_coco_AP_epoch_397.pth',
-            'download_path': os.path.join('{download_path}', 'pretrained', 'yolox-pose_s_8xb32-300e_coco_lite')
+            'download_url': None, #f'/home/a0504871/work/ti/mmpose/projects/yolox-pose/work_dirs/yolox-pose_s_8xb32-300e_coco_lite/best_coco_AP_epoch_397.pth',
+            'download_path': os.path.join('{download_path}', 'pretrained', 'yoloxpose_s_lite')
         },
     ]
 }
@@ -93,7 +93,7 @@ _model_descriptions = {
             }
         ),
         compilation=dict(
-            model_compilation_id='kd-7063',
+            model_compilation_id='kd-7070',
             input_optimization=False,
             runtime_options={
                 'advanced_options:output_feature_16bit_names_list': '3,201,224,177',
@@ -101,19 +101,19 @@ _model_descriptions = {
             metric=dict(label_offset_pred=1)
         )
     ),
-    'yolox-pose_s_8xb32-300e_coco_lite': dict(
+    'yoloxpose_s_lite': dict(
         common=dict(
             task_type=constants.TASK_TYPE_KEYPOINT_DETECTION,
         ),
-        download=model_urls['yolox-pose_s_8xb32-300e_coco_lite'],
+        download=model_urls['yoloxpose_s_lite'],
         training=dict(
             training_backend='edgeai_mmpose',
-            model_name='yolox-pose_s_8xb32-300e_coco_lite',
-            model_training_id='yolox-pose_s_8xb32-300e_coco_lite',
+            model_name='yoloxpose_s_lite',
+            model_training_id='yoloxpose_s_lite_coco-640',
             model_architecture='yolox',
             input_resize=640,
             input_cropsize=640,
-            pretrained_checkpoint_path=model_urls['yolox-pose_s_8xb32-300e_coco_lite'][0],
+            pretrained_checkpoint_path=model_urls['yoloxpose_s_lite'][0],
             batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_DETECTION],
             target_devices={
                 constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=None, performance_infer_time_ms=10.19,
@@ -129,7 +129,7 @@ _model_descriptions = {
             }
         ),
         compilation=dict(
-            model_compilation_id='od-8220',
+            model_compilation_id='kd-7080',
             runtime_options={
                 'advanced_options:output_feature_16bit_names_list': '1213, 1212, 1211, 1197, 1196, 1195, 1181, 1180, 1179'
             },
@@ -168,8 +168,8 @@ class ModelTraining:
         self.quit_event = quit_event
 
         # num_classes
-        self.train_ann_file = f'{self.params.dataset.dataset_path}/annotations/{self.params.dataset.annotation_prefix}_{self.params.dataset.split_names[0]}.json'
-        self.val_ann_file = f'{self.params.dataset.dataset_path}/annotations/{self.params.dataset.annotation_prefix}_{self.params.dataset.split_names[1]}.json'
+        self.train_ann_file = self.params.dataset.annotation_path_splits[0]
+        self.val_ann_file = self.params.dataset.annotation_path_splits[1]
         with open(self.train_ann_file) as train_ann_fp:
             train_anno = json.load(train_ann_fp)
             categories = train_anno['categories']
@@ -214,7 +214,7 @@ class ModelTraining:
         dataset_style = 'coco' #'voc' #'coco'
         input_size = self.params.training.input_cropsize if isinstance(self.params.training.input_cropsize, (list,tuple)) else \
             (self.params.training.input_cropsize,self.params.training.input_cropsize)
-        base_config_path = os.path.join(edgeai_yolox_path, 'configs_edgeailite','yoloxpose', self.params.training.model_training_id)
+        base_config_path = os.path.join(edgeai_mmpose_path, 'configs_edgeailite','yoloxpose', self.params.training.model_training_id)
 
         config_file = os.path.join(self.params.training.training_path, f'{self.params.training.model_name}.py')
         config_strs = []
@@ -292,9 +292,12 @@ class ModelTraining:
             config_fp.write('\n'.join(config_strs))
         #
 
+        cwd = os.getcwd()
+        os.chdir(edgeai_mmpose_path)
+
         # invoke the distributed training
         if self.params.training.distributed and self.params.training.num_gpus > 0:
-            train_module_path = f'{edgeai_yolox_path}/tools/train.py'
+            train_module_path = f'{edgeai_mmpose_path}/tools/train.py'
             sys.argv = [sys.argv[0],
                         f'--nproc_per_node={self.params.training.num_gpus}',
                         f'--nnodes=1',
@@ -304,7 +307,7 @@ class ModelTraining:
                         config_file
                         ]
 
-            sys.path.insert(0, edgeai_yolox_path)
+            sys.path.insert(0, edgeai_mmpose_path)
             # launch the training
             distributed_launch.main()
         else:
@@ -312,13 +315,15 @@ class ModelTraining:
             os.environ['CUDA_VISIBLE_DEVICES'] = "-1"
             # sys.argv = [sys.argv[0], f'--gpus={self.params.training.num_gpus}', '--no-validate', f'{config_file}']
             sys.argv = [sys.argv[0], f'{config_file}']
-            sys.path.insert(0, edgeai_yolox_path)
+            sys.path.insert(0, edgeai_mmpose_path)
             # import dynamically - force_import every time to avoid clashes with scripts in other repositories
-            train_module = utils.import_file_or_folder(os.path.join(edgeai_yoloxpose_tools_path,'train'),
+            train_module = utils.import_file_or_folder(os.path.join(edgeai_mmpose_tools_path,'train'),
                 __name__, force_import=True)
             args = train_module.parse_args()
             train_module.main(args)
         #
+
+        os.chdir(cwd)
         return self.params
 
     def stop(self):
