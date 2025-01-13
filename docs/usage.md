@@ -5,31 +5,21 @@ In addition to what is provided with TIDL, this repository provides igh level ut
 
 
 ## Usage
-[run_benchmarks_parallel_pc.sh](../run_benchmarks_parallel_pc.shh) is the main script in this repository that does compilation of models and benchmark. Usage is:
-```
-run_benchmarks_parallel_pc.sh <SOC> [-d|--debug] [-h|--help]
-```
-
-For example, to run compilation for AM68A, this would be the command:
-```
-run_benchmarks_parallel_pc.sh AM68A
-```
-
-The number of parallel processes used defaults to 16. To change it to a different values, use additional argument. For example:
-```
-run_benchmarks_parallel_pc.sh AM68A --parallel_processes 4
-```
-
-The `--debug` flag allows for the attaching of a debugpy debugger to the top level python script. Call the script with `--help` for more information.
-
-This is the main script in this repository that does compilation of models and benchmark. It uses parallel processing to compile multiple models in parallel and is especially useful while compiling several models, such as all the models in the Model Zoo. 
-
-However, for compiling one or a few models, parallel processing may not be required and for that a simpler script can be used:   
+[run_benchmarks_pc.sh](../run_benchmarks_pc.sh) is the main script in this repository that does compilation of models and benchmark. Usage is:
 ```
 run_benchmarks_pc.sh <SOC> [-d|--debug] [-h|--help]
 ```
 
-**Model compilation can be run only on PC. The device does not support model compilation. However, the inference of a compiled model can be run on PC or on device.**
+For example, to run compilation for AM68A, this would be the command:
+```
+run_benchmarks_pc.sh AM68A
+```
+
+It uses parallel processing to compile multiple models in parallel and is especially useful while compiling several models, such as all the models in the Model Zoo. The number of parallel processes used defaults to 16 and is set in [settings_import_on_pc.yaml](../settings_import_on_pc.yaml). Change it to a different value if needed. It can be done by either modifying this settings file or by using the --parallel_processes commandline argument.
+
+The `--debug` flag allows for the attaching of a debugpy debugger to the top level python script. Call the script with `--help` for more information.
+
+**Model compilation can be run only on PC. The EVM/device does not support model compilation. However, the inference of a compiled model can be run on PC or on device.**
 
 ## Compiling models in the Model Zoo
 * modelartifacts_path* in the [settings_base.yaml](../settings_base.yaml) file indicates the location where the artifacts are generated or expected. It currently points to work_dirs/modelartifacts/<SOC>/

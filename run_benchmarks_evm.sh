@@ -105,7 +105,7 @@ echo "creating models list..."
 MODELARTIFACTS_DIR="./work_dirs/modelartifacts"
 MODELS_LIST_FILE="${MODELARTIFACTS_DIR}/benchmarks_models_list.txt"
 mkdir -p ${MODELARTIFACTS_DIR}
-GENERATE_MODELS_LIST_SCRIPT="python3 ./scripts/generate_models_list.py ${SETTINGS} ${CMD_ARGS[@]} --target_device ${TARGET_SOC} --models_list_file ${MODELS_LIST_FILE} --get_run_dir True --dataset_loading False --parallel_devices 1"
+GENERATE_MODELS_LIST_SCRIPT="python3 ./scripts/generate_models_list.py ${SETTINGS} ${CMD_ARGS[@]} --target_device ${TARGET_SOC} --models_list_file ${MODELS_LIST_FILE} --get_run_dir True --dataset_loading False"
 echo ${GENERATE_MODELS_LIST_SCRIPT}
 eval "${GENERATE_MODELS_LIST_SCRIPT}"
 num_lines=$(wc -l < ${MODELS_LIST_FILE})
