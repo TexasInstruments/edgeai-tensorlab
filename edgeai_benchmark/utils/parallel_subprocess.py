@@ -36,7 +36,7 @@ import warnings
 
 
 class ParallelSubProcess:
-    def __init__(self, parallel_processes, parallel_devices=None, desc='TASKS', maxinterval=1.0, tqdm_obj=None, verbose=False):
+    def __init__(self, parallel_processes, parallel_devices=None, desc='TASKS', maxinterval=1.0, tqdm_obj=None, timeout=None, verbose=False):
         self.parallel_processes = parallel_processes
         self.parallel_devices = parallel_devices if isinstance(parallel_devices, (list,tuple)) else list(range(parallel_devices))
         self.desc = desc
@@ -44,6 +44,7 @@ class ParallelSubProcess:
         self.proc_dict = dict()
         self.tqdm_obj = tqdm_obj
         self.maxinterval = maxinterval
+        self.timeout = timeout
         self.num_queued_tasks = 0
         self.task_index = 0
         if verbose:
@@ -73,8 +74,9 @@ class ParallelSubProcess:
             proc_dict_to_start = self._find_proc_dict_to_start()
             # start the process
             if proc_dict_to_start:
-                proc_dict_to_start['proc'] = self._worker(proc_dict_to_start['proc_func'])
                 proc_dict_to_start['running'] = True
+                proc_dict_to_start['start_time'] = time.time()
+                proc_dict_to_start['proc'] = self._worker(proc_dict_to_start['proc_func'])
             #
         #
         # wait for all remaining processes to finish
@@ -135,6 +137,10 @@ class ParallelSubProcess:
                     proc_dict['completed'] = completed
                     proc_dict['running'] = running
                     running_proc_name = proc_dict['proc_name']
+                    running_time = time.time() - proc_dict['start_time']
+                    if self.timeout and running_time > self.timeout and proc is not None:
+                        proc.terminate()
+                    #
                 #
                 completed_proc_in_task.append(completed)
                 running_proc_in_task.append(running)
