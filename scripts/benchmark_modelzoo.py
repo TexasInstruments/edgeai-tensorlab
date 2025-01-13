@@ -69,7 +69,8 @@ def get_arg_parser():
     parser.add_argument('--enable_logging', type=utils.str_to_bool)
     parser.add_argument('--models_list_file', type=str, default=None)
     parser.add_argument('--separate_import_inference', type=utils.str_to_bool, default=True)
-    parser.add_argument('--timeout', type=utils.float_or_none)
+    parser.add_argument('--overall_timeout', type=utils.float_or_none)
+    parser.add_argument('--instance_timeout', type=utils.float_or_none)
     return parser
 
 
@@ -168,8 +169,10 @@ if __name__ == '__main__':
 
     parallel_processes = kwargs.pop('parallel_processes', 0) or settings.parallel_processes
     parallel_devices = kwargs['parallel_devices']
-    timeout = kwargs.pop('timeout', None)
-    parallel_subprocess = utils.ParallelSubProcess(parallel_processes=parallel_processes, parallel_devices=parallel_devices, timeout=timeout)
+    overall_timeout = kwargs.pop('overall_timeout', None)
+    instance_timeout = kwargs.pop('instance_timeout', None)
+    parallel_subprocess = utils.ParallelSubProcess(parallel_processes=parallel_processes, parallel_devices=parallel_devices,
+        overall_timeout=overall_timeout, instance_timeout=instance_timeout)
 
     separate_import_inference = kwargs.pop('separate_import_inference')
 

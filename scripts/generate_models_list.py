@@ -67,7 +67,8 @@ if __name__ == '__main__':
     parser.add_argument('--models_list_file', type=str, default=None)
     parser.add_argument('--get_run_dir', type=str_to_bool, default=False)
     # this is only for compatibility with benchmark_modelzoo.py
-    parser.add_argument('--timeout', type=utils.float_or_none)
+    parser.add_argument('--overall_timeout', type=utils.float_or_none)
+    parser.add_argument('--instance_timeout', type=utils.float_or_none)
     cmds = parser.parse_args()
 
     kwargs = vars(cmds)

@@ -36,7 +36,8 @@ import warnings
 
 
 class ParallelSubProcess:
-    def __init__(self, parallel_processes, parallel_devices=None, desc='TASKS', maxinterval=1.0, tqdm_obj=None, timeout=None, verbose=False):
+    def __init__(self, parallel_processes, parallel_devices=None, desc='TASKS', maxinterval=1.0, tqdm_obj=None,
+            overall_timeout=None, instance_timeout=None, verbose=False):
         self.parallel_processes = parallel_processes
         self.parallel_devices = parallel_devices if isinstance(parallel_devices, (list,tuple)) else list(range(parallel_devices))
         self.desc = desc
@@ -44,9 +45,11 @@ class ParallelSubProcess:
         self.proc_dict = dict()
         self.tqdm_obj = tqdm_obj
         self.maxinterval = maxinterval
-        self.timeout = timeout
+        self.overall_timeout = overall_timeout
+        self.instance_timeout = instance_timeout
         self.num_queued_tasks = 0
         self.task_index = 0
+        self.start_time = None
         if verbose:
             warnings.warn('''
             ParallelSubProcess is for tasks that are started with subprocess.Popen()
@@ -63,6 +66,7 @@ class ParallelSubProcess:
         self.num_queued_tasks += 1
 
     def run(self):
+        self.start_time = time.time()
         desc = self.desc + f' STATUS - TOTAL={self.num_queued_tasks}, NUM_RUNNING={0}'
         if self.tqdm_obj is None:
             self.tqdm_obj = tqdm.tqdm(total=self.num_queued_tasks, position=0, desc=desc)
@@ -138,7 +142,7 @@ class ParallelSubProcess:
                     proc_dict['running'] = running
                     running_proc_name = proc_dict['proc_name']
                     running_time = time.time() - proc_dict['start_time']
-                    if self.timeout and running_time > self.timeout and proc is not None:
+                    if self.instance_timeout and running_time > self.instance_timeout and proc is not None:
                         proc.terminate()
                     #
                 #
@@ -171,8 +175,25 @@ class ParallelSubProcess:
         while num_running > 0 and num_running >= num_processes:
             num_completed, num_running = self._check_running_status()
             time.sleep(self.maxinterval)
+
+            # check if this run has been too long; terminate if needed
+            running_time = time.time() - self.start_time
+            if self.overall_timeout and running_time > self.overall_timeout:
+                self._terminate_all()
+            #
         #
         return num_completed, num_running
+
+    def _terminate_all(self):
+        for task_name, task_list in self.queued_tasks.items():
+            for proc_id, proc_dict in enumerate(task_list):
+                proc = proc_dict.get('proc', None)
+                running = (proc is not None) and proc_dict.get('running', False)
+                if running:
+                    proc.terminate()
+                #
+            #
+        #
 
     def _worker(self, task):
         proc = None
