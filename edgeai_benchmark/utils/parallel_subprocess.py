@@ -159,6 +159,7 @@ class ParallelSubProcess:
         return num_completed, num_running
 
     def _wait_in_loop(self, num_processes):
+        num_processes = num_processes or 0
         # wait in a loop until the number of running processes come down
         num_completed, num_running = self._check_running_status()
         while num_running > 0 and num_running >= num_processes:
@@ -170,11 +171,6 @@ class ParallelSubProcess:
     def _worker(self, task):
         proc = None
         try:
-            # if self.parallel_devices is not None:
-            #     num_devices = len(self.parallel_devices)
-            #     parallel_device = self.parallel_devices[self.task_index%num_devices]
-            #     os.environ['CUDA_VISIBLE_DEVICES'] = str(parallel_device)
-            # #
             proc = task()
         except Exception as e:
             print(f"Exception occurred in worker process: {e}")

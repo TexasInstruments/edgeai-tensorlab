@@ -198,12 +198,7 @@ class PipelineRunner():
         result = {}
 
         try:
-            if parallel_device is not None:
-                os.environ['CUDA_VISIBLE_DEVICES'] = str(parallel_device)
-                print(utils.log_color('\nINFO', 'starting process on parallel_device', parallel_device))
-            #
-
-            # note that this basic_settings() copies only the basic settings.
+             # note that this basic_settings() copies only the basic settings.
             # sometimes, there is no need to copy the entire settings which includes the dataset_cache
             basic_settings = settings.basic_settings()
 

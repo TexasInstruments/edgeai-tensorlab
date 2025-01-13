@@ -150,12 +150,12 @@ class ParallelProcess:
         result = {}
         exception_e = None
         try:
-            # if self.parallel_devices is not None:
-            #     num_devices = len(self.parallel_devices)
-            #     parallel_device = self.parallel_devices[task_index%num_devices]
-            #     os.environ['CUDA_VISIBLE_DEVICES'] = str(parallel_device)
-            #     print(log_color('\nINFO', 'starting process on parallel_device', parallel_device))
-            # #
+            if self.parallel_devices is not None:
+                num_devices = len(self.parallel_devices)
+                parallel_device = self.parallel_devices[task_index%num_devices]
+                os.environ['CUDA_VISIBLE_DEVICES'] = str(parallel_device)
+                print(log_color('\nINFO', 'starting process on parallel_device', parallel_device))
+            #
             result = task()
         except Exception as e:
             print(f"Exception occurred in worker process: {e}")

@@ -58,6 +58,7 @@ do
             cat << EOF
 Usage: $0 [OPTIONS] [TARGET_SOC]
 This script sets up the environment and runs benchmarking on x86 PC for a specified target device by calling the following:
+    ./scripts/generate_models_list.py
     ./scripts/benchmark_modelzoo.py
     ./scripts/generate_report.py
 
@@ -91,22 +92,28 @@ echo "TARGET_SOC:     ${TARGET_SOC}"
 echo "TARGET_MACHINE: ${TARGET_MACHINE}"
 echo "DEBUG MODE:     ${DEBUG} @ ${HOSTNAME}:${PORT}"
 
-echo "=> Recommend to use the alternate script run_benchmarks_parallel_pc.sh"
-echo "   to run multiple models in parallel in PC. For example:"
-echo "   run_benchmarks_parallel_pc.sh AM68A --parallel_process 8"
 ##################################################################
-
 # set environment variables
 # also point to the right type of artifacts (pc or evm)
 source run_set_env.sh ${TARGET_SOC} ${TARGET_MACHINE}
 
-# specify one of the following - additional options can be changed inside the yaml
-# SETTINGS=settings_infer_on_evm.yaml
+# specify settings yaml file - additional options can be changed inside the yaml
 SETTINGS=settings_import_on_pc.yaml
-##################################################################
 
-PYARGS1="./scripts/benchmark_modelzoo.py ${SETTINGS} ${CMD_ARGS[@]} --target_device ${TARGET_SOC} --run_inference False"
-PYARGS2="./scripts/benchmark_modelzoo.py ${SETTINGS} ${CMD_ARGS[@]} --target_device ${TARGET_SOC} --run_import False"
+##################################################################
+echo "creating models list..."
+# run all the shortlisted models with these settings
+MODELARTIFACTS_DIR="./work_dirs/modelartifacts"
+MODELS_LIST_FILE="${MODELARTIFACTS_DIR}/benchmarks_models_list.txt"
+mkdir -p ${MODELARTIFACTS_DIR}
+GENERATE_MODELS_LIST_SCRIPT="python3 ./scripts/generate_models_list.py ${SETTINGS} ${CMD_ARGS[@]} --target_device ${TARGET_SOC} --models_list_file ${MODELS_LIST_FILE} --get_run_dir True --dataset_loading False"
+echo ${GENERATE_MODELS_LIST_SCRIPT}
+eval "${GENERATE_MODELS_LIST_SCRIPT}"
+num_lines=$(wc -l < ${MODELS_LIST_FILE})
+echo "number of models to run: " $num_lines
+
+##################################################################
+PYARGS1="./scripts/benchmark_modelzoo.py ${SETTINGS} ${CMD_ARGS[@]} --target_device ${TARGET_SOC} --models_list_file ${MODELS_LIST_FILE}"
 PYARGS3="./scripts/generate_report.py ${SETTINGS}"
 PYDEBUG="python3 -m debugpy --listen ${HOSTNAME}:${PORT} --wait-for-client"
 
@@ -121,14 +128,6 @@ then
     [ $? -ne 0 ] && exit # Continue only on prior success.
     echo "-------------------------------------------------------------------"
 
-    # Launch script 2, waiting for debugger attachment.
-    echo "Waiting for attach @ ${HOSTNAME}:${PORT} to debug the following:"
-    echo ${PYARGS2} 
-    echo "See --help for more info."
-    ${PYDEBUG} ${PYARGS2}            
-    [ $? -ne 0 ] && exit # Continue only on prior success.
-    echo "-------------------------------------------------------------------"
-
     # Launch script 3, waiting for debugger attachment.
     echo "Waiting for attach @ ${HOSTNAME}:${PORT} to debug the following:"
     echo ${PYARGS3} 
@@ -138,11 +137,6 @@ then
 else
     # Launch script 1.
     python3 ${PYARGS1}
-    [ $? -ne 0 ] && exit # Continue only on prior success.
-    echo "-------------------------------------------------------------------"
-
-    # Launch script 2.
-    python3 ${PYARGS2}
     [ $? -ne 0 ] && exit # Continue only on prior success.
     echo "-------------------------------------------------------------------"
 
