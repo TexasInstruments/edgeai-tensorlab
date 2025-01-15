@@ -188,6 +188,99 @@ class PETR_export_model(nn.Module):
 
         return bbox_list
 
+
+class StreamPETR_export_model(nn.Module):
+    def __init__(self,
+                 stride,
+                 use_grid_mask,
+                 grid_mask,
+                 img_backbone,
+                 img_neck,
+                 pts_bbox_head,
+                 prepare_location,
+                 forward_roi_head):
+        super().__init__()
+
+        self.stride           = stride
+        self.use_grid_mask    = use_grid_mask
+        self.img_backbone     = img_backbone
+        self.img_neck         = img_neck
+        self.pts_bbox_head    = pts_bbox_head
+        self.grid_mask        = grid_mask
+
+        self.aux_2d_only      = True
+        self.position_level   = 0
+        self.len_queue        = 1
+        self.prev_scene_token = None
+
+        # Image feature size after image backbone. 
+        # It may need update for different image backbone
+        self.B              = 1
+        self.N              = 6
+        self.C              = 256
+        self.H              = 16
+        self.W              = 44
+
+    def prepare_data(self, img, img_metas):
+        #input_shape = img.shape[-2:]
+        self.img_metas = img_metas
+
+        ## update real input shae of each single img
+        #for img_meta in self.img_metas:
+        #    img_meta.update(input_shape=input_shape)
+    
+    def prepare_location(self, img):
+        pad_h, pad_w = self.img_metas[0]['pad_shape']
+        bs, n, h, w = self.B, self.N, self.H, self.W
+
+        device = img.device
+
+        shifts_x = (torch.arange(
+            0, self.stride*w, step=self.stride,
+            dtype=torch.float32, device=device
+        ) + self.stride // 2 ) / pad_w
+        shifts_y = (torch.arange(
+            0, h * self.stride, step=self.stride,
+            dtype=torch.float32, device=device
+        ) + self.stride // 2) / pad_h
+
+        shift_y, shift_x = torch.meshgrid(shifts_y, shifts_x)
+        shift_x = shift_x.reshape(-1)
+        shift_y = shift_y.reshape(-1)
+
+        location = torch.stack((shift_x, shift_y), dim=1)
+        location = location.reshape(h, w, 2)[None].repeat(bs*n, 1, 1, 1)
+
+        return location
+
+
+    def forward(self, img, location,
+                memory_embedding, memory_reference_point,
+                memory_timestamp, memory_egopose, memory_velo):
+        B = 1
+        N, C, H, W = img.size()
+
+        if self.use_grid_mask:
+            img = self.grid_mask(img)
+
+        img_feats = self.img_backbone(img)
+        img_feats = self.img_neck(img_feats)
+
+        BN, C, H, W = img_feats[self.position_level].size()
+        img_feats_reshaped = img_feats[self.position_level].view(B, int(BN/B/self.len_queue), C, H, W)
+
+        #return img_feats_reshaped
+        topk_indexes = None
+        outs = self.pts_bbox_head(location, img_feats_reshaped, self.img_metas, topk_indexes,
+                                  memory_embedding, memory_reference_point, memory_timestamp, 
+                                  memory_egopose, memory_velo)
+
+        bbox_list = self.pts_bbox_head.get_bboxes(
+            outs, self.img_metas)
+
+        return bbox_list
+
+
 # BEVDet_R50 ONNX exporting model
 class BEVDet_export_model(nn.Module):
 

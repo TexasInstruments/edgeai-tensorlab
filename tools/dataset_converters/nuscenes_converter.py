@@ -57,7 +57,8 @@ def create_nuscenes_infos(root_path,
                           info_prefix,
                           version='v1.0-trainval',
                           max_sweeps=10,
-                          enable_bevdet=False):
+                          enable_bevdet=False,
+                          enable_strpetr=False):
     """Create info file of nuscene dataset.
 
     Given the raw data, generate its related info file in pkl format.
@@ -113,7 +114,7 @@ def create_nuscenes_infos(root_path,
 
     train_nusc_infos, val_nusc_infos = _fill_trainval_infos(
         nusc, nusc_can_bus, train_scenes, val_scenes, test, max_sweeps=max_sweeps,
-        enable_bevdet=enable_bevdet)
+        enable_bevdet=enable_bevdet, enable_strpetr=enable_strpetr)
 
     metadata = dict(version=version)
     if test:
@@ -244,13 +245,76 @@ def get_gt_bevdet(info):
     return gt_boxes, gt_labels
 
 
+def get_info_streampetr(nusc, info):
+    gt_2dbboxes_cams = []
+    gt_3dbboxes_cams = []
+    centers2d_cams = []
+    gt_2dbboxes_ignore_cams = []
+    gt_2dlabels_cams = []
+    depths_cams = []
+
+    for cam_type, cam_info in info['cams'].items():
+        gt_3dbboxes = []
+        gt_2dbboxes = []
+        centers2d = []
+        gt_2dbboxes_ignore = []
+        gt_2dlabels = []
+        depths = []
+
+        (height, width, _) = mmcv.imread(cam_info['data_path']).shape
+        annos_cam = get_2d_boxes(nusc, cam_info['sample_data_token'], visibilities= ['', '1', '2', '3', '4'], mono3d=True)
+        for i, ann in enumerate(annos_cam):
+            if ann is None:
+                continue
+            if ann.get('ignore', False):
+                continue
+            x1, y1, w, h = ann['bbox']
+            inter_w = max(0, min(x1 + w, width) - max(x1, 0))
+            inter_h = max(0, min(y1 + h, height) - max(y1, 0))
+            if inter_w * inter_h == 0:
+                continue
+            if ann['area'] <= 0 or w < 1 or h < 1:
+                continue
+            if ann['category_name'] not in nus_categories:
+                continue
+            bbox = [x1, y1, x1 + w, y1 + h]
+            if ann.get('iscrowd', False):
+                gt_2dbboxes_ignore.append(bbox)
+            else:
+                gt_2dbboxes.append(bbox)
+                gt_2dlabels.append(ann['category_id'])
+                center2d = ann['center2d'][:2]
+                depth = ann['center2d'][2]
+                centers2d.append(center2d)
+                depths.append(depth)
+                gt_3dbboxes.append(ann['bbox_cam3d'])
+
+        gt_2dbboxes = np.array(gt_2dbboxes, dtype=np.float32)
+        gt_3dbboxes_cam = np.array(gt_3dbboxes, dtype=np.float32)
+        gt_2dlabels = np.array(gt_2dlabels, dtype=np.int64)
+        centers2d = np.array(centers2d, dtype=np.float32)
+        depths = np.array(depths, dtype=np.float32)
+        gt_2dbboxes_ignore = np.array(gt_2dbboxes_ignore, dtype=np.float32)
+
+        gt_2dbboxes_cams.append(gt_2dbboxes)
+        gt_2dlabels_cams.append(gt_2dlabels)
+        centers2d_cams.append(centers2d)
+        gt_3dbboxes_cams.append(gt_3dbboxes_cam)
+        depths_cams.append(depths)
+        gt_2dbboxes_ignore_cams.append(gt_2dbboxes_ignore)
+
+    return gt_2dbboxes_cams, gt_3dbboxes_cams, gt_2dlabels_cams, centers2d_cams, \
+        depths_cams, gt_2dbboxes_ignore_cams
+
+
 def _fill_trainval_infos(nusc,
                          nusc_can_bus,
                          train_scenes,
                          val_scenes,
                          test=False,
                          max_sweeps=10,
-                         enable_bevdet=False):
+                         enable_bevdet=False,
+                         enable_strpetr=False):
     """Generate the train/val infos from the raw data.
 
     Args:
@@ -401,6 +465,18 @@ def _fill_trainval_infos(nusc,
                     ann_infos.append(ann_info)
                 info['ann_infos'] = ann_infos
                 info['ann_infos'] = get_gt_bevdet(info)
+
+            # For StreamPETR
+            if enable_strpetr is True:
+                gt_2dbboxes_cams, gt_3dbboxes_cams, gt_2dlabels_cams, \
+                    centers2d_cams, depths_cams, gt_2dbboxes_ignore_cams = get_info_streampetr(nusc, info)
+                info.update(dict(
+                    bboxes2d=gt_2dbboxes_cams,
+                    bboxes3d_cams=gt_3dbboxes_cams,
+                    labels2d=gt_2dlabels_cams,
+                    centers2d=centers2d_cams,
+                    depths=depths_cams,
+                    bboxes_ignore=gt_2dbboxes_ignore_cams))
 
         if sample['scene_token'] in train_scenes:
             train_nusc_infos.append(info)

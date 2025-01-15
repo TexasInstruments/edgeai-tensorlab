@@ -12,7 +12,7 @@ import torch.nn.functional as F
 from mmdet.models.task_modules import BaseBBoxCoder
 
 from mmdet3d.registry import TASK_UTILS
-from projects.PETR.petr.utils import denormalize_bbox
+from projects.PETR.petr.utils import denormalize_bbox, denormalize_bbox_streampetr
 
 
 @TASK_UTILS.register_module()
@@ -35,7 +35,8 @@ class NMSFreeCoder(BaseBBoxCoder):
                  post_center_range=None,
                  max_num=100,
                  score_threshold=None,
-                 num_classes=10):
+                 num_classes=10,
+                 model='PETR'):
 
         self.pc_range = pc_range
         self.voxel_size = voxel_size
@@ -43,6 +44,7 @@ class NMSFreeCoder(BaseBBoxCoder):
         self.max_num = max_num
         self.score_threshold = score_threshold
         self.num_classes = num_classes
+        self.model = model
 
     def encode(self):
         pass
@@ -69,7 +71,10 @@ class NMSFreeCoder(BaseBBoxCoder):
         bbox_index = indexes // self.num_classes
         bbox_preds = bbox_preds[bbox_index]
 
-        final_box_preds = denormalize_bbox(bbox_preds, self.pc_range)
+        if self.model == 'PETR3D':
+            final_box_preds = denormalize_bbox_streampetr(bbox_preds, self.pc_range)
+        else:
+            final_box_preds = denormalize_bbox(bbox_preds, self.pc_range)
         final_scores = scores
         final_preds = labels
 
