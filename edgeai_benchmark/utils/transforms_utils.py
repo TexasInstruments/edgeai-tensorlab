@@ -27,7 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-from ..config_utils.params_base import *
+from .config_utils.params_base import *
 
 
 class TransformsCompose(ParamsBase):

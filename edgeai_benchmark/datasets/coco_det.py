@@ -84,7 +84,7 @@ from colorama import Fore
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 
-from ..config_utils.dataset_utils import *
+from ..utils.config_utils.dataset_utils import *
 from .. import utils
 from .dataset_base import *
 

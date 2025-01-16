@@ -30,7 +30,7 @@ import os
 import sys
 import argparse
 from edgeai_benchmark import *
-from edgeai_benchmark.config_utils import str_to_bool
+from edgeai_benchmark.utils.config_utils import str_to_bool
 
 if __name__ == '__main__':
     print(f'argv: {sys.argv}')
