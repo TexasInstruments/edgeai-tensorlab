@@ -43,7 +43,7 @@ this_dir_path = os.path.dirname(os.path.abspath(__file__))
 repo_parent_path = os.path.abspath(os.path.join(this_dir_path, '../../../../../../'))
 
 edgeai_modelzoo_path = os.path.join(repo_parent_path, 'edgeai-modelzoo')
-www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/10_01_00_01'
+www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/10_01_00'
 edgeai_mmpose_path = os.path.join(repo_parent_path, 'edgeai-mmpose')
 edgeai_mmpose_tools_path = os.path.join(edgeai_mmpose_path, 'tools')
 
@@ -51,7 +51,7 @@ edgeai_mmpose_tools_path = os.path.join(edgeai_mmpose_path, 'tools')
 model_urls = {
     'yoloxpose_tiny_lite': [
         {
-            'download_url': None, #f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmpose/yoloxpose_tiny_lite_416x416_20240808_checkpoint.pth',
+            'download_url': f'{www_modelzoo_path}/models/vision/keypoint/coco/edgeai-mmpose/yoloxpose_tiny_lite_416x416_20240808_checkpoint.pth',
             'download_path': os.path.join('{download_path}', 'pretrained', 'yoloxpose_tiny_lite')
         },
     ],
@@ -283,8 +283,7 @@ class ModelTraining:
         #                 f'{yolox_lr_config_str}',
         #                 f')\n',
         #                 ]
-
-        # config_strs += [f'load_from   = "{self.params.training.pretrained_checkpoint_path}"']
+        config_strs += [f'load_from   = "{os.path.abspath(self.params.training.pretrained_checkpoint_path)}"']
 
 
         # write the config file
