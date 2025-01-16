@@ -35,9 +35,6 @@
 # internal or external repositories
 USE_INTERNAL_REPO=0
 
-# set to 1 to enable other extra models
-PLUGINS_ENABLE_EXTRA=0
-
 # clone git repositories
 CLONE_GIT_REPOS=0
 
@@ -61,28 +58,22 @@ echo "SOURCE_LOCATION="${SOURCE_LOCATION}
 if [[ ${CLONE_GIT_REPOS} -ne 0 ]]; then
     echo "cloning git repositories. this may take some time..."
     echo "if there is any issue, please remove these folders and try again ../edgeai-benchmark ../edgeai-mmdetection ../edgeai-torchvision ../edgeai-modelzoo ../edgeai-yolox"
-    if [[ ! -d ../edgeai-benchmark ]]; then git clone --branch r9.2 ${SOURCE_LOCATION}edgeai-benchmark.git ../edgeai-benchmark; fi
-    if [[ ! -d ../edgeai-mmdetection ]]; then git clone --branch r9.2 ${SOURCE_LOCATION}edgeai-mmdetection.git ../edgeai-mmdetection; fi
-    if [[ ! -d ../edgeai-mmpose ]]; then git clone --branch r9.2 ${SOURCE_LOCATION}edgeai-mmpose.git ../edgeai-mmpose; fi
-    if [[ ! -d ../edgeai-torchvision ]]; then git clone --branch r9.2 ${SOURCE_LOCATION}edgeai-torchvision.git ../edgeai-torchvision; fi
-    if [[ ! -d ../edgeai-modelzoo ]]; then git clone "--single-branch" --branch r9.2 ${SOURCE_LOCATION}edgeai-modelzoo.git ../edgeai-modelzoo; fi
-    if [[ ${PLUGINS_ENABLE_EXTRA} -ne 0 ]]; then
-      if [[ ! -d ../edgeai-yolox ]]; then git clone --branch r9.2 ${SOURCE_LOCATION}edgeai-yolox.git ../edgeai-yolox; fi
-    fi
+    if [[ ! -d ../edgeai-benchmark ]]; then git clone --branch r10.0 ${SOURCE_LOCATION}edgeai-benchmark.git ../edgeai-benchmark; fi
+    if [[ ! -d ../edgeai-mmdetection ]]; then git clone --branch r10.0 ${SOURCE_LOCATION}edgeai-mmdetection.git ../edgeai-mmdetection; fi
+    if [[ ! -d ../edgeai-mmpose ]]; then git clone --branch r10.0 ${SOURCE_LOCATION}edgeai-mmpose.git ../edgeai-mmpose; fi
+    if [[ ! -d ../edgeai-torchvision ]]; then git clone --branch r10.0 ${SOURCE_LOCATION}edgeai-torchvision.git ../edgeai-torchvision; fi
+    if [[ ! -d ../edgeai-modelzoo ]]; then git clone "--single-branch" --branch r10.0 ${SOURCE_LOCATION}edgeai-modelzoo.git ../edgeai-modelzoo; fi
     cd ../edgeai-modelmaker
     echo "git clone done."
 fi
 
 if [[ ${UPDATE_GIT_REPOS} -ne 0 ]]; then
     echo "pulling git repositories. this may take some time..."
-    cd ../edgeai-benchmark; git stash; git fetch origin r9.2; git checkout r9.2; git pull --rebase
-    cd ../edgeai-mmdetection; git stash; git fetch origin r9.2; git checkout r9.2; git pull --rebase
-    cd ../edgeai-mmpose; git stash; git fetch origin r9.2; git checkout r9.2; git pull --rebase
-    cd ../edgeai-torchvision; git stash; git fetch origin r9.2; git checkout r9.2; git pull --rebase
-    cd ../edgeai-modelzoo; git stash; git fetch origin r9.2; git checkout r9.2; git pull --rebase
-    if [[ ${PLUGINS_ENABLE_EXTRA} -ne 0 ]]; then
-        cd ../edgeai-yolox; git stash; git fetch origin r9.2; git checkout r9.2; git pull --rebase
-    fi
+    cd ../edgeai-benchmark; git stash; git fetch origin r10.0; git checkout r10.0; git pull --rebase
+    cd ../edgeai-mmdetection; git stash; git fetch origin r10.0; git checkout r10.0; git pull --rebase
+    cd ../edgeai-mmpose; git stash; git fetch origin r10.0; git checkout r10.0; git pull --rebase
+    cd ../edgeai-torchvision; git stash; git fetch origin r10.0; git checkout r10.0; git pull --rebase
+    cd ../edgeai-modelzoo; git stash; git fetch origin r10.0; git checkout r10.0; git pull --rebase
     cd ../edgeai-modelmaker
     echo "git pull done."
 fi
@@ -103,12 +94,6 @@ echo "installing: edgeai-torchvision"
 cd ../edgeai-torchvision
 ./setup_cpu.sh
 
-if [[ ${PLUGINS_ENABLE_EXTRA} -ne 0 ]]; then
-  echo "installing: edgeai-yolox"
-  cd ../edgeai-yolox
-  ./setup_cpu.sh
-fi
-
 echo "installing: edgeai-mmdetection"
 cd ../edgeai-mmdetection
 ./setup_cpu.sh
@@ -126,12 +111,17 @@ pip uninstall --yes onnxruntime
 
 echo "installing: edgeai-benchmark"
 cd ../edgeai-benchmark
-./setup_pc.sh r10.0
+./setup_pc.sh r10.1
 
 ######################################################################
 echo "installing edgeai-modelmaker"
 cd ../edgeai-modelmaker
-./setup.sh
+# Installing dependencies
+echo 'Installing python packages...'
+pip3 install --no-input -r ./requirements.txt
+
+echo 'Installing as a local module using setup.py'
+python3 setup.py develop
 
 ######################################################################
 # make sure that we are using pillow-simd (which is faster)
