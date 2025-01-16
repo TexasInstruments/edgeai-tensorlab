@@ -225,7 +225,7 @@ class PipelineRunner():
         return match_fully
 
     def _str_match_plus_any(self, keywords, search_list):
-        any_match_fully = any([self._str_match_plus(kw, search_list) for kw in keywords])
+        any_match_fully = any([self._str_match_plus(kw, search_list) if kw else True for kw in keywords])
         return any_match_fully
 
     def _check_model_selection(self, settings, pipeline_config):
