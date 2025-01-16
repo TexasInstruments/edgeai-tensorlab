@@ -135,9 +135,17 @@ cd /opt/code/edgeai-modelmaker
 This tool depends on several repositories that we have published at https://github.com/TexasInstruments
 
 The following setup script can take care of cloning the required repositories and running their setup scripts.
+
+Install without GPU support:
 ```
-./setup_all.sh
+./setup_cpu.sh
 ```
+
+If you have NVIDIA GPU(s), install with GPU support:
+```
+./setup_gpu.sh
+```
+Note: To actually use GPU for training, in the config yaml file that you are using in this repository to run modelmaker, set the num_gpus: 1 under the section training.
 
 If the script runs sucessfully, you should have this directory structure: 
 <pre>
@@ -146,6 +154,7 @@ parent_directory
     |--edgeai-modelzoo
     |--edgeai-torchvision
     |--edgeai-mmdetection
+    |--edgeai-mmpose
     |--edgeai-benchmark
     |--edgeai-modelmaker
 </pre>
@@ -159,13 +168,6 @@ Also, PyTorch and its related packages will be installed (This torchvision packa
 <pre>
 pip list | grep 'torch\|torchvision'
 </pre>
-
-
-### Enabling optional components
-
-In setup_all.sh, there are flags to enable additional models:
-
-PLUGINS_ENABLE_EXTRA: Setting this to 1 during setup enables additional models. 
 
 
 ### Step 3: Run the ready-made examples

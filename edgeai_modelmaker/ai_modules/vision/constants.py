@@ -27,10 +27,6 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-# plugins/additional models
-# see the setup_all.sh file to understand how to set this
-PLUGINS_ENABLE_EXTRA = False
-
 # task_type
 TASK_TYPE_CLASSIFICATION = 'classification'
 TASK_TYPE_DETECTION = 'detection'
@@ -90,8 +86,8 @@ TRAINING_BATCH_SIZE_DEFAULT = {
 }
 
 
-TARGET_SDK_VERSION = '10.0.0'
-TARGET_SDK_RELEASE = '10_00_00'
+TARGET_SDK_VERSION = '10.1.0'
+TARGET_SDK_RELEASE = '10_01_00'
 
 
 EDGEAI_TARGET_DEVICE_ADDITIONAL_INFORMATION = \

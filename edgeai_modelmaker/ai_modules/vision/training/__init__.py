@@ -58,13 +58,6 @@ _model_descriptions.update(edgeai_mmpose.keypoint_detection.get_model_descriptio
 _training_module_descriptions.update({'edgeai_mmpose':[constants.TASK_TYPE_KEYPOINT_DETECTION]})
 #
 
-# edgeai-yolox
-if constants.PLUGINS_ENABLE_EXTRA:
-    from . import edgeai_yolox
-    _model_descriptions.update(edgeai_yolox.keypoint_detection.get_model_descriptions())
-    _training_module_descriptions.update({'edgeai_yolox':[constants.TASK_TYPE_KEYPOINT_DETECTION]})
-#
-
 
 def get_training_module_descriptions(target_device=None, training_device=None):
     return _training_module_descriptions
