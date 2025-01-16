@@ -29,9 +29,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ##################################################################
-# target_device - use one of: TDA4VM AM62A AM68A AM69A
-# (Note: until r8.5 only TDA4VM was supported)
-TARGET_SOC=None
+# target_device - use one of: TDA4VM AM62A AM68A AM69A AM67A AM62
+TARGET_SOC=NONE
 
 # leave this as pc - no change needed
 # pc: for model compilation and inference on PC, evm: for model inference on EVM
@@ -51,7 +50,7 @@ do
         "-d"|"--debug")
             DEBUG=true
             ;;
-        "TDA4VM"|"AM68A"|"AM69A"|"AM62A"|"AM67A"|"AM62"|"None")
+        "TDA4VM"|"AM68A"|"AM69A"|"AM62A"|"AM67A"|"AM62"|"NONE")
             TARGET_SOC=$arg
             ;;
         "-h"|"--help")

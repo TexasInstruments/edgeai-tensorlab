@@ -29,8 +29,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ##################################################################
-# target_device - use one of: TDA4VM AM62A AM68A AM69A
-# (Note: until r8.5 only TDA4VM was supported)
+# target_device - use one of: TDA4VM AM62A AM68A AM69A AM67A AM62
 TARGET_SOC=AM68A
 
 # leave this as pc - no change needed
@@ -47,7 +46,7 @@ PORT=5678
 for arg in "$@"
 do 
     case "$arg" in
-        "TDA4VM"|"AM68A"|"AM69A"|"AM62A"|"AM67A"|"AM62"|"None")
+        "TDA4VM"|"AM68A"|"AM69A"|"AM62A"|"AM67A"|"AM62"|"NONE")
             TARGET_SOC=$arg
             ;;
         "-d"|"--debug")
