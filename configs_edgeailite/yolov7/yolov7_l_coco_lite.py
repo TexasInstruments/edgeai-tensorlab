@@ -62,7 +62,7 @@ model = dict(
         ),
         ),
     # training and testing settings
-    test_cfg=dict(score_thr=0.0001, max_bbox=1000, nms=dict(type='nms', iou_threshold=0.65)
+    test_cfg=dict(score_thr=0.001, max_bbox=1000, nms=dict(type='nms', iou_threshold=0.65)
         ))
 # dataset settings
 dataset_type = 'CocoDataset'

@@ -18,7 +18,7 @@ from .ssd_neck import SSDNeck
 from .ssh import SSH
 from .yolo_neck import YOLOV3Neck
 from .yolox_pafpn import YOLOXPAFPN
-from .yolov7_neck import YOLOV7Neck
+from .yolov7_neck import YOLOV7Neck, YOLOV7TinyNeck
 from .yolov9_neck import YOLOV9Neck
 
 __all__ = [

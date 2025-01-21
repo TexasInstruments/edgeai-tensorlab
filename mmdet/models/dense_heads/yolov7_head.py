@@ -53,13 +53,7 @@ class YOLOV7Head(BaseDenseHead):
                         )
                     )
                     ),
-                    init_cfg=dict(
-                     type='Kaiming',
-                     layer='Conv2d',
-                     a=math.sqrt(5),
-                     distribution='uniform',
-                     mode='fan_in',
-                     nonlinearity='leaky_relu'),
+                    init_cfg=None,
                      **kwargs) -> None:
         super().__init__(init_cfg=init_cfg)
         self.num_classes = num_classes

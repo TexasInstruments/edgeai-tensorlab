@@ -19,7 +19,7 @@ from .swin import SwinTransformer
 from .trident_resnet import TridentResNet
 from .mobilenetv2_lite import MobileNetV2Lite, MobileNetV2P5Lite
 from .yolov9_backbone import YOLOV9Backbone
-from .yolov7_backbone import YOLOV7Backbone
+from .yolov7_backbone import YOLOV7Backbone, YOLOV7TinyBackbone
 
 
 __all__ = [

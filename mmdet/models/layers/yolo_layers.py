@@ -442,6 +442,29 @@ class SPPCSPConv(nn.Module):
         y2 = self.short_conv(x)
         y = torch.cat((y1, y2), dim=1)
         return self.merge_conv(y)
+    
+class SPPCSPTinyConv(nn.Module):
+    # CSP https://github.com/WongKinYiu/CrossStagePartialNetworks
+    def __init__(self, in_channels: int, out_channels: int, expand: float = 0.5, kernel_sizes: Tuple[int] = (5, 9, 13)):
+        super().__init__()
+        neck_channels = int(2 * out_channels * expand)
+        self.pre_conv = nn.Sequential(
+            Conv(in_channels, neck_channels, 1),
+        )
+        self.short_conv = Conv(in_channels, neck_channels, 1)
+        self.pools = nn.ModuleList([Pool(kernel_size=kernel_size, stride=1) for kernel_size in kernel_sizes])
+        self.post_conv = Conv(4 * neck_channels, neck_channels, 1)
+        self.merge_conv = Conv(2 * neck_channels, out_channels, 1)
+
+    def forward(self, x):
+        features = [self.pre_conv(x)]
+        for pool in self.pools:
+            features.append(pool(features[-1]))
+        features = torch.cat(features, dim=1)
+        y1 = self.post_conv(features)
+        y2 = self.short_conv(x)
+        y = torch.cat((y1, y2), dim=1)
+        return self.merge_conv(y)
 
 
 class SPPELAN(nn.Module):
