@@ -49,21 +49,13 @@ class MultiScaleDeformAttn(nn.Module):
             print('value_spatial_shapes_list has been provided in constructor. '
                   '\nThe value provided in forward call will be ignored')
 
-    def forward(self,
-                value,
-                value_spatial_shapes,
-                sampling_locations,
-                attention_weights):
+    def forward(self, value, value_spatial_shapes, sampling_locations, attention_weights):
         output = self.multi_scale_deformable_attn(
                     value, value_spatial_shapes, sampling_locations, attention_weights, self.mode)
         return output
 
     # Based on mmcv.ops.mutli_scale_deformable_attn_pytorch
-    def multi_scale_deformable_attn(self, value,
-                                    value_spatial_shapes,
-                                    sampling_locations,
-                                    attention_weights,
-                                    mode):
+    def multi_scale_deformable_attn(self, value, value_spatial_shapes, sampling_locations, attention_weights, mode):
         """CPU version of multi-scale deformable attention.
 
         Args:
@@ -90,11 +82,12 @@ class MultiScaleDeformAttn(nn.Module):
         bs, _, num_heads, embed_dims = value.shape
         _, num_queries, num_heads, num_levels, num_points, _ =\
             sampling_locations.shape
-        value_list = value.split([H_ * W_ for H_, W_ in _value_spatial_shapes],
-                                 dim=1)
+        value_list = value.split([int(H_) * int(W_) for H_, W_ in _value_spatial_shapes], dim=1)
         sampling_grids = 2 * sampling_locations - 1
         sampling_value_list = []
         for level, (H_, W_) in enumerate(_value_spatial_shapes):
+            H_ = int(H_)
+            W_ = int(W_)
             # bs, H_*W_, num_heads, embed_dims ->
             # bs, H_*W_, num_heads*embed_dims ->
             # bs, num_heads*embed_dims, H_*W_ ->
@@ -125,16 +118,19 @@ class MultiScaleDeformAttn(nn.Module):
         return output.transpose(1, 2).contiguous()
 
 
-class FixedSizeDeformAttn(MultiScaleDeformAttn):
-    """This is a fixed size version of Deformable Attention, mainly for ONNX export.
+class SingleScaleDeformAttn(MultiScaleDeformAttn):
+    def __init__(self, value_spatial_shapes_list=None, mode='bilinear', verbose=False):
+        super().__init__(value_spatial_shapes_list, mode, verbose=verbose)
+        if value_spatial_shapes_list is not None:
+            if len(value_spatial_shapes_list) != 1:
+                raise RuntimeError('value_spatial_shapes_list if provided, must have only a single shape/scale')
 
-       Assuming fixed size can export a clean onnx model
-    """
-    def __init__(self, value_spatial_shapes_list=None, mode='bilinear'):
-        super().__init__(value_spatial_shapes_list, mode, verbose=False)
-        self.mode = mode
-        if value_spatial_shapes_list is None:
-            raise RuntimeError('value_spatial_shapes_list must be provided')
+    def forward(self, value, value_spatial_shapes, sampling_locations, attention_weights):
+        if value_spatial_shapes is not None:
+            if value_spatial_shapes.size(0) != 1:
+                raise RuntimeError('value_spatial_shapes_list if provided, must have only a single shape/scale')
+
+        return super().forward(value, value_spatial_shapes, sampling_locations, attention_weights)
 
 
 ###########################################################################################
@@ -171,31 +167,9 @@ def run_test_deform_attn():
     attention_weights = attention_weights.softmax(-1)
 
     # Run deform_attn
-    deform_attn = MultiScaleDeformAttn(mode=INTP_MODE)
-    deform_attn.eval()
-    with torch.no_grad():
-        out_deform_attn = deform_attn(value, value_spatial_shapes,
-            sampling_locations, attention_weights)
-
-    # Run deform_attn_fs, which is for model export
-    deform_attn_fs = FixedSizeDeformAttn(value_spatial_shapes_list, mode=INTP_MODE)
-    deform_attn_fs.eval()
-    with torch.no_grad():
-        out_deform_attn_fs = deform_attn_fs(value,
-            value_spatial_shapes, # this will be ignored, since shape was provided through constructor
-            sampling_locations, attention_weights)
-
-    # Check differences between deform_attn and deform_attn_fs
-    diff = out_deform_attn_fs - out_deform_attn
-    max_diff = torch.max(torch.flatten(torch.abs(diff)))
-    rel_diff = torch.abs(diff) / (torch.abs(out_deform_attn) + 1e-8)
-    mean_rel_diff = torch.mean(torch.flatten(rel_diff))
-    if torch.sum((mean_rel_diff > 1e-4) == True) > 0:
-        print(f'\nMultiScaleDeformAttn and FixedSizeDeformAttn do not match!. Max difference = {max_diff}, Mean Rel difference = {mean_rel_diff}\n')
-        print("DeformAttn: Test FAILED")
-    else:
-        print(f'\nMultiScaleDeformAttn and FixedSizeDeformAttn matches. Max difference = {max_diff}, Mean Rel difference = {mean_rel_diff}')
-        print("DeformAttn: Test PASSED")
+    deform_attn_ss = SingleScaleDeformAttn(mode=INTP_MODE)
+    deform_attn_ss.eval()
+    out_deform_attn = deform_attn_ss(value, value_spatial_shapes, sampling_locations, attention_weights)
 
     # Export FixedSizeDeformAttn
     input_names  = ["value", "value_shape", "samp_loc", "attn_weight"]
@@ -205,9 +179,9 @@ def run_test_deform_attn():
         value_spatial_shapes,  # this will be ignored, since shape was provided through constructor
         sampling_locations,
         attention_weights)
-    torch.onnx.export(deform_attn_fs,
+    torch.onnx.export(deform_attn_ss,
                       model_input,
-                      "deform_attn_fs.onnx",
+                      "deform_attn_ss.onnx",
                       input_names=input_names,
                       output_names=output_names,
                       opset_version=16)
@@ -215,8 +189,8 @@ def run_test_deform_attn():
     # simplify the onnx model
     from onnxsim import simplify
     import onnx
-    onnx_model, simplify_ok = simplify("deform_attn_fs.onnx")
-    onnx.save(onnx_model, "deform_attn_fs.onnx")
+    onnx_model, simplify_ok = simplify("deform_attn_ss.onnx")
+    onnx.save(onnx_model, "deform_attn_ss.onnx")
 
 
 if __name__ == "__main__":
