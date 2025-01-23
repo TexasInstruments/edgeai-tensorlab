@@ -163,5 +163,103 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 32.2}, model_shortlist=100, compact_name='efficientDet-b0-bifpn-lite-coco-512x512', shortlisted=False)
         ),
+        #yolov7_tiny_mmdet      
+        # TODO : Add yolov7_tiny_lite and yolov7_tiny_original
+        # 'od-9201':utils.dict_update(common_cfg,
+        #     preprocess=preproc_transforms.get_transform_onnx(640, 640, resize_with_pad=[True,'corner'], backend='cv2', pad_color=[114, 114, 114]),
+        #     session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, #tidl_onnx_model_optimizer=True,
+        #                                                               input_mean=(0.0, 0.0, 0.0),
+        #                                                               input_scale=(0.003921568627451, 0.003921568627451, 0.003921568627451),
+        #                                                                     ),
+        #         runtime_options=settings.runtime_options_onnx_np2(
+        #             det_options=True, ext_options={'object_detection:meta_arch_type': 6,
+        #              'object_detection:meta_layers_names_list':f'',
+        #             #  'advanced_options:output_feature_16bit_names_list':''
+        #                                            }),
+        #         model_path=f''),
+        #     postprocess=postproc_transforms.get_transform_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=[True,'corner'], formatter=postprocess.DetectionBoxSL2BoxLS()),
+        #     metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
+        #     model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':30.7}, model_shortlist=None, compact_name='yolov7_l_mmdet', shortlisted=False)
+        # ),
+        #yolov7_l_lite_mmdet
+        'od-9202':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(640, 640, resize_with_pad=[True,'corner'], backend='cv2', pad_color=[114, 114, 114]),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, #tidl_onnx_model_optimizer=True,
+                                                                      input_mean=(0.0, 0.0, 0.0),
+                                                                      input_scale=(0.003921568627451, 0.003921568627451, 0.003921568627451)
+                                                                            ),
+                runtime_options=settings.runtime_options_onnx_np2(
+                    det_options=True, ext_options={'object_detection:meta_arch_type': 6,
+                     'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolov7_l_coco_lite_640x640_20250109_model.prototxt',
+                    #  'advanced_options:output_feature_16bit_names_list':''
+                                                   }),
+                model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolov7_l_coco_lite_640x640_20250109_model.onnx'),
+            postprocess=postproc_transforms.get_transform_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=[True,'corner'], formatter=postprocess.DetectionBoxSL2BoxLS()),
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':45.9}, model_shortlist=None, compact_name='yolov7-l-lite-mmdet-coco-640x640', shortlisted=False)
+        ),
+        #yolov7_l_origin_mmdet
+        'od-9203':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(640, 640, resize_with_pad=[True,'corner'], backend='cv2', pad_color=[114, 114, 114]),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True,
+                                                                      input_mean=(0.0, 0.0, 0.0),
+                                                                      input_scale=(0.003921568627451, 0.003921568627451, 0.003921568627451)
+                                                                        ),
+                runtime_options=settings.runtime_options_onnx_np2(
+                    det_options=True, ext_options={'object_detection:meta_arch_type': 6,
+                     'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolov7_l_coco_origin_640x640_20250109_model.prototxt',
+                    #  'advanced_options:output_feature_16bit_names_list':''
+                                                   }),
+                model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolov7_l_coco_origin_640x640_20250109_model.onnx'),
+            postprocess=postproc_transforms.get_transform_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=[True,'corner'], formatter=postprocess.DetectionBoxSL2BoxLS()),
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':50.3}, model_shortlist=None, compact_name='yolov7-l-original-mmdet-coco-640x640', shortlisted=False)
+        ),
+        #yolov9_s_lite_mmdet
+        'od-9204':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True,'corner'], backend='cv2', pad_color=[114, 114, 114]),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False,
+                                                                      input_mean=(0.0, 0.0, 0.0),
+                                                                      input_scale=(0.003921568627451, 0.003921568627451, 0.003921568627451),
+                                                                      deny_list_from_start_end_node = {
+                                                                            '685':None,
+                                                                            '686':None,
+                                                                           }
+                                                                          ),
+                runtime_options=settings.runtime_options_onnx_np2(
+                   det_options=True, ext_options={'object_detection:meta_arch_type': 6,
+                    # 'object_detection:meta_layers_names_list':'',
+                    'advanced_options:output_feature_16bit_names_list': '3'
+                    },
+                    fast_calibration=True),
+                model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolov9_s_coco_lite_640x640_20250113_model.onnx'),
+                # model_path=f'/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/onnx_exports/yolov9/original/yolov9_coco_lite.onnx'),
+            postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=[True,'corner'], formatter=postprocess.DetectionBoxSL2BoxLS()),
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 39.5}, model_shortlist=None, compact_name='yolov9-s-lite-mmdet-coco-640x640', shortlisted=True, recommended=True)
+        ),
+        #yolov9_s_origin_mmdet
+        'od-9205':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True,'corner'], backend='cv2', pad_color=[114, 114, 114]),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False,
+                                                                      input_mean=(0.0, 0.0, 0.0),
+                                                                      input_scale=(0.003921568627451, 0.003921568627451, 0.003921568627451),
+                                                                      deny_list_from_start_end_node = {
+                                                                            '861':None,
+                                                                            '862':None,
+                                                                           }
+                                                                          ),
+                runtime_options=settings.runtime_options_onnx_np2(
+                   det_options=True, ext_options={
+                    'object_detection:meta_arch_type': 6,
+                    #'object_detection:meta_layers_names_list':'',
+                    'advanced_options:output_feature_16bit_names_list': '795,801,816,836,821,841'
+                    },
+                    fast_calibration=True),
+                model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolov9_s_coco_origin_640x640_20250113_model.onnx'),
+            postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=[True,'corner'], formatter=postprocess.DetectionBoxSL2BoxLS()),
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 45.3}, model_shortlist=None, compact_name='yolov9-s-original-mmdet-coco-640x640', shortlisted=True, recommended=True)
+        ),
     }
     return pipeline_configs
