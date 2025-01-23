@@ -188,10 +188,10 @@ def get_configs(settings, work_dir):
                                                                             ),
                 runtime_options=settings.runtime_options_onnx_np2(
                     det_options=True, ext_options={'object_detection:meta_arch_type': 6,
-                     'object_detection:meta_layers_names_list':f'../edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolov7_l_coco_lite_640x640_20250109_model.prototxt',
+                     'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolov7_l_coco_lite_640x640_20250109_model.prototxt',
                     #  'advanced_options:output_feature_16bit_names_list':''
                                                    }),
-                model_path=f'../edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolov7_l_coco_lite_640x640_20250109_model.onnx'),
+                model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolov7_l_coco_lite_640x640_20250109_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=[True,'corner'], formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':45.9}, model_shortlist=None, compact_name='yolov7-l-lite-mmdet-coco-640x640', shortlisted=False)
@@ -205,10 +205,10 @@ def get_configs(settings, work_dir):
                                                                         ),
                 runtime_options=settings.runtime_options_onnx_np2(
                     det_options=True, ext_options={'object_detection:meta_arch_type': 6,
-                     'object_detection:meta_layers_names_list':f'../edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolov7_l_coco_origin_640x640_20250109_model.prototxt',
+                     'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolov7_l_coco_origin_640x640_20250109_model.prototxt',
                     #  'advanced_options:output_feature_16bit_names_list':''
                                                    }),
-                model_path=f'../edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolov7_l_coco_origin_640x640_20250109_model.onnx'),
+                model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolov7_l_coco_origin_640x640_20250109_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=[True,'corner'], formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':50.3}, model_shortlist=None, compact_name='yolov7-l-original-mmdet-coco-640x640', shortlisted=False)
@@ -226,11 +226,11 @@ def get_configs(settings, work_dir):
                                                                           ),
                 runtime_options=settings.runtime_options_onnx_np2(
                    det_options=True, ext_options={'object_detection:meta_arch_type': 6,
-                    # 'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_model.prototxt',
+                    # 'object_detection:meta_layers_names_list':'',
                     'advanced_options:output_feature_16bit_names_list': '3'
                     },
                     fast_calibration=True),
-                model_path=f'../edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolov9_s_coco_lite_640x640_20250113_model.onnx'),
+                model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolov9_s_coco_lite_640x640_20250113_model.onnx'),
                 # model_path=f'/data/files/a0508577/work/edgeai-algo/edgeai-mmdetection/work_dirs/onnx_exports/yolov9/original/yolov9_coco_lite.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=[True,'corner'], formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
@@ -254,7 +254,7 @@ def get_configs(settings, work_dir):
                     'advanced_options:output_feature_16bit_names_list': '795,801,816,836,821,841'
                     },
                     fast_calibration=True),
-                model_path=f'../edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolov9_s_coco_origin_640x640_20250113_model.onnx'),
+                model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolov9_s_coco_origin_640x640_20250113_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=[True,'corner'], formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 45.3}, model_shortlist=None, compact_name='yolov9-s-original-mmdet-coco-640x640', shortlisted=True, recommended=True)
