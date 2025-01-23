@@ -111,8 +111,9 @@ class DFLoss(nn.Module):
 
 
 @MODELS.register_module()
-class YOLOV7Loss:
+class YOLOV7Loss(nn.Module):
     def __init__(self, loss_cfg: LossConfig, anc2box: Anc2Box, class_num: int = 80, reg_max: int = 16) -> None:
+        super().__init__()
         self.class_num = class_num
         self.anc2box = anc2box
         self.device = anc2box.device
@@ -123,7 +124,7 @@ class YOLOV7Loss:
         self.cls = nn.BCEWithLogitsLoss(pos_weight=torch.tensor(1, device=self.device))
         self.obj = nn.BCEWithLogitsLoss(pos_weight=torch.tensor(1, device=self.device))
 
-    def __call__(self, predicts: List[Tensor], targets: Tensor) -> Tuple[Tensor, Tensor, Tensor]:
+    def forward(self, predicts: List[Tensor], targets: Tensor) -> Tuple[Tensor, Tensor, Tensor]:
         predicts_cls, _, predicts_box, predicts_cnf = predicts
         # For each predicted targets, assign a best suitable ground truth box.
         batch_size = targets.shape[0]
@@ -163,7 +164,7 @@ class YOLOV7Loss:
                 predxy = pred[:, :2].sigmoid()
                 predwh = pred[:, 2:4].sigmoid()
                 predxy = predxy * 2 - 0.5
-                predwh = (predwh * 2) ** 2 * anchors[idx]
+                predwh = ((predwh * 2) ** 2) * anchors[idx]
                 pred_box = torch.cat((predxy, predwh), 1)  
 
                 iou = calculate_ciou(pred_box, target_box[idx])  
@@ -233,9 +234,10 @@ class YOLOV7Loss:
 
 
 @MODELS.register_module()
-class YOLOV9Loss:
+class YOLOV9Loss(nn.Module):
     # Implemented from https://github.com/WongKinYiu/yolo
     def __init__(self, loss_cfg: LossConfig, vec2box: Vec2Box, class_num: int = 80, reg_max: int = 16) -> None:
+        super().__init__()
         self.class_num = class_num
         self.vec2box = vec2box
 
@@ -253,7 +255,7 @@ class YOLOV9Loss:
         anchors_box = anchors_box / self.vec2box.scaler[None, :, None]
         return anchors_cls, anchors_box
 
-    def __call__(self, predicts: List[Tensor], targets: Tensor) -> Tuple[Tensor, Tensor, Tensor]:
+    def forward(self, predicts: List[Tensor], targets: Tensor) -> Tuple[Tensor, Tensor, Tensor]:
         predicts_cls, predicts_anc, predicts_box = predicts
         # For each predicted targets, assign a best suitable ground truth box.
         align_targets, valid_masks = self.matcher(targets, (predicts_cls.detach(), predicts_box.detach()))
