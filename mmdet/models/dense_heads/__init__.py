@@ -52,6 +52,9 @@ from .yolact_head import YOLACTHead, YOLACTProtonet
 from .yolo_head import YOLOV3Head
 from .yolof_head import YOLOFHead
 from .yolox_head import YOLOXHead
+from .yolov7_head import YOLOV7Head
+from .yolov9_head import YOLOV9Head
+from .yolov9_aux_head import YOLOV9AuxHead
 
 __all__ = [
     'AnchorFreeHead', 'AnchorHead', 'GuidedAnchorHead', 'FeatureAdaption',
@@ -68,5 +71,6 @@ __all__ = [
     'CenterNetUpdateHead', 'RTMDetHead', 'RTMDetSepBNHead', 'CondInstBboxHead',
     'CondInstMaskHead', 'RTMDetInsHead', 'RTMDetInsSepBNHead',
     'BoxInstBboxHead', 'BoxInstMaskHead', 'ConditionalDETRHead', 'DINOHead',
-    'ATSSVLFusionHead', 'DABDETRHead', 'DDQDETRHead', 'GroundingDINOHead'
+    'ATSSVLFusionHead', 'DABDETRHead', 'DDQDETRHead', 'GroundingDINOHead', 'YOLOV9Head',
+    'YOLOV9AuxHead', 'YOLOV7Head'
 ]
