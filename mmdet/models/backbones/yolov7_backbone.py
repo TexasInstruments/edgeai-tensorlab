@@ -3,7 +3,7 @@ from typing import List, Dict, Sequence
 import torch.nn as nn
 import torch
 
-from mmdet.models.layers.yolo_layers import Conv, Concat, Pool
+from mmdet.models.layers.yolo_layers import Conv, Pool
 from mmengine.model import BaseModule
 from mmdet.registry import MODELS
 
@@ -202,15 +202,3 @@ class YOLOV7TinyBackbone(BaseModule):
         for idx in range(self.num_out_stages):
             outs.append(self.out_stages[idx](outs[-1]))
         return outs[1:]
-
-
-
-# def test():
-#     model_bb = YOLOV7Backbone()
-#     input = torch.rand(1,3,640,640)
-#     output_bb = model_bb(input)
-#     print(model_bb)
-#     # print(output_bb.shape)
-#     print('dome')
-
-# test()

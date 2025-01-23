@@ -1,11 +1,8 @@
 import math
 from typing import List, Dict, Any
 
-import torch
 import torch.nn as nn
-from mmcv.cnn import ConvModule, DepthwiseSeparableConvModule
 from mmengine.model import BaseModule
-from torch.nn.modules.batchnorm import _BatchNorm
 
 from mmdet.registry import MODELS
 from mmdet.models.layers.yolo_layers import AConv, RepNCSPELAN, Conv, ELAN
@@ -34,7 +31,7 @@ class YOLOV9Backbone(BaseModule):
                      a=math.sqrt(5),
                      distribution='uniform',
                      mode='fan_in',
-                     nonlinearity='ReLU')
+                     nonlinearity='leaky_relu')
                      ):
         super().__init__(init_cfg)
         self.conv1 = Conv(in_channels=3, out_channels=32, kernel_size=3,stride=2)
@@ -49,7 +46,6 @@ class YOLOV9Backbone(BaseModule):
                                                    csp_arg={"repeat_num": 3})
         
     def forward(self, x):
-        outs = []
         x = self.conv1(x)
         x = self.conv2(x)
         x = self.elan(x)

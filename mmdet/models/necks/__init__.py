@@ -25,5 +25,5 @@ __all__ = [
     'FPN', 'BFP', 'ChannelMapper', 'HRFPN', 'NASFPN', 'FPN_CARAFE', 'PAFPN',
     'NASFCOS_FPN', 'RFP', 'YOLOV3Neck', 'FPG', 'DilatedEncoder',
     'CTResNetNeck', 'SSDNeck', 'YOLOXPAFPN', 'DyHead', 'CSPNeXtPAFPN', 'SSH',
-    'FPN_DropBlock', 'YOLOV9Neck', 'YOLOV7Neck'
+    'FPN_DropBlock', 'YOLOV9Neck', 'YOLOV7Neck', 'YOLOV7TinyNeck'
 ]

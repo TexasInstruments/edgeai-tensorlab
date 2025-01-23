@@ -50,7 +50,6 @@ class YOLOV9(SingleStageDetector):
             data_preprocessor=data_preprocessor,
             init_cfg=init_cfg
             )
-        # self.nms_cfg : NMSConfig = test_cfg['nms_cfg']
         self.aux_head = MODELS.build(aux_head)
     
     
@@ -86,10 +85,6 @@ class YOLOV9(SingleStageDetector):
         Returns:
             dict: A dictionary of loss components.
         """
-        image_size = batch_inputs.shape[-2:]
-        strides = self.bbox_head.strides
-        device = batch_inputs.device
-        vec2box = Vec2Box(image_size, strides, device)
 
         x,bb = self.extract_feat(batch_inputs)
         losses = self.bbox_head.loss(self.aux_head, x, bb, batch_data_samples)
@@ -123,11 +118,6 @@ class YOLOV9(SingleStageDetector):
                 - bboxes (Tensor): Has a shape (num_instances, 4),
                     the last dimension 4 arrange as (x1, y1, x2, y2).
         """
-
-        image_size = batch_inputs.shape[-2:]
-        strides = self.bbox_head.strides
-        device = batch_inputs.device
-        vec2box = Vec2Box(image_size, strides, device)
 
         x = self.extract_feat(batch_inputs)
         results_list = self.bbox_head.predict(

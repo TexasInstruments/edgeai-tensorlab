@@ -28,9 +28,7 @@ class YOLOV9Head(BaseDenseHead):
                 num_classes: int = 80, 
                 in_channels: Sequence[int] =[128, 192, 256],
                 strides: Sequence[int] = (8, 16, 32),
-                #  feat_channels: int = 256,
                 reg_max: int = 16,
-                # use_group: bool = True,
                 # norm_cfg: OptConfigType = dict(
                 #     type='GN', num_groups=32, requires_grad=True),
                 # train_cfg: OptConfigType = None,
@@ -124,24 +122,6 @@ class YOLOV9Head(BaseDenseHead):
 
         return self.loss_by_feat(aux_predicts, main_predicts, batch_targets)
 
-    # def loss_by_feat(self, aux_predicts, main_predicts, batch_targets):
-
-    #     aux_rate = self.loss_config['loss_cfg']['aux']
-    #     iou_rate = self.loss_config['loss_cfg'].objective['BoxLoss']
-    #     dfl_rate = self.loss_config['loss_cfg'].objective['DFLoss']
-    #     cls_rate = self.loss_config['loss_cfg'].objective['BCELoss']
-
-    #     # aux_iou, aux_dfl, aux_cls = self.loss_yolo(aux_predicts, batch_targets)
-    #     # main_iou, main_dfl, main_cls = self.loss_yolo(main_predicts, batch_targets)
-
-    #     # loss_dict = {
-    #     #     "loss_box": iou_rate * (aux_iou * aux_rate + main_iou),
-    #     #     "loss_df": dfl_rate * (aux_dfl * aux_rate + main_dfl),
-    #     #     "loss_bce": cls_rate * (aux_cls * aux_rate + main_cls),
-    #     # }
-
-    #     return self.loss_by_feat(aux_predicts, main_predicts, batch_targets)
-
     def loss_by_feat(self, aux_predicts, main_predicts, batch_targets):
 
         aux_rate = self.loss_config['loss_cfg']['aux']
@@ -189,17 +169,9 @@ class YOLOV9Head(BaseDenseHead):
 
         outs = self(x)
         post_proccess = self.postprocess_class(vec2box)
-        # outs = post_proccess(outs)
         cls_scores, preds = post_proccess(outs)
-        # cls_scores = cls_scores.sigmoid()
 
         return self.predict_by_feat(cls_scores, preds, batch_data_samples, rescale=False)
-        # return self.predict_by_feat_mmdeploy(cls_scores, preds, batch_data_samples, rescale=False)
-
-        # return self.predict_by_feat(
-        #     x, batch_data_samples, vec2box, self.nms_cfg, rescale=rescale)
-        
-
 
     def predict_by_feat(self,
                 cls_scores: Tensor,
@@ -233,8 +205,6 @@ class YOLOV9Head(BaseDenseHead):
             data_samples.metainfo for data_samples in batch_data_samples
         ]
 
-        # cls_scores = cls_scores.sigmoid()
-
         result_list = []
         for img_id, img_meta in enumerate(batch_img_metas):
             max_scores, labels = torch.max(cls_scores[img_id], 1)
@@ -251,16 +221,6 @@ class YOLOV9Head(BaseDenseHead):
                     rescale=rescale,
                     with_nms=with_nms,
                     img_meta=img_meta))
-
-
-        # result_list = []
-        # for img_id, img_meta in enumerate(batch_img_metas):
-        #     result = InstanceData(
-        #             bboxes=preds[0][img_id],
-        #             scores=preds[1][img_id],
-        #             labels=preds[2][img_id].int()
-        #             )
-        #     result_list.append(result)
 
         return result_list
 

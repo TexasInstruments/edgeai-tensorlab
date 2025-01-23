@@ -28,10 +28,7 @@ class YOLOV7Head(BaseDenseHead):
     def __init__(self, 
                 num_classes: int = 80, 
                 in_channels: Sequence[int] =[256, 512, 1024],
-                # strides: Sequence[int] = (8, 16, 32),
-                #  feat_channels: int = 256,
                 anchor_num: int = 3,
-                # use_group: bool = True,
                 # norm_cfg: OptConfigType = dict(
                 #     type='GN', num_groups=32, requires_grad=True),
                 # train_cfg: OptConfigType = None,
@@ -119,20 +116,13 @@ class YOLOV7Head(BaseDenseHead):
 
     def loss_by_feat(self, main_predicts, batch_targets):
 
-
-        # iou_rate = self.loss_config['loss_cfg'].objective['BoxLoss']
-        # obj_rate = self.loss_config['loss_cfg'].objective['ObjLoss']
-        # cls_rate = self.loss_config['loss_cfg'].objective['ClassLoss']
-
         iou_loss, obj_loss, cls_loss  = self.loss_yolo(main_predicts, batch_targets)
-        # total_loss, loss  = self.loss_yolo(main_predicts, batch_targets)
 
         loss_dict = {
             "loss_iou":  iou_loss,
             "loss_obj":  obj_loss,
             "loss_cls":  cls_loss,
         }
-
         return loss_dict
 
 
@@ -164,17 +154,10 @@ class YOLOV7Head(BaseDenseHead):
 
         outs = self(x)
         post_proccess = self.postprocess_class(anc2box)
-        # outs = post_proccess(outs)
         cls_scores, pred_bbox  = post_proccess(outs)
 
         return self.predict_by_feat(cls_scores, pred_bbox, batch_data_samples, rescale=False)
-        # return self.predict_by_feat_mmdeploy(cls_scores, preds, batch_data_samples, rescale=False)
-
-        # return self.predict_by_feat(
-        #     x, batch_data_samples, anc2box, self.nms_cfg, rescale=rescale)
         
-
-
     def predict_by_feat(self,
                 cls_scores: Tensor,
                 preds: Tensor,
@@ -207,8 +190,6 @@ class YOLOV7Head(BaseDenseHead):
             data_samples.metainfo for data_samples in batch_data_samples
         ]
 
-        # cls_scores = cls_scores.sigmoid()
-
         result_list = []
         for img_id, img_meta in enumerate(batch_img_metas):
             max_scores, labels = torch.max(cls_scores[img_id], 1)
@@ -225,16 +206,6 @@ class YOLOV7Head(BaseDenseHead):
                     rescale=rescale,
                     with_nms=with_nms,
                     img_meta=img_meta))
-
-
-        # result_list = []
-        # for img_id, img_meta in enumerate(batch_img_metas):
-        #     result = InstanceData(
-        #             bboxes=preds[0][img_id],
-        #             scores=preds[1][img_id],
-        #             labels=preds[2][img_id].int()
-        #             )
-        #     result_list.append(result)
 
         return result_list
 

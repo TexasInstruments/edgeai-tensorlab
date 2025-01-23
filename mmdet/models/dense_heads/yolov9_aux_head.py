@@ -45,7 +45,7 @@ class YOLOV9AuxHead(BaseModule):
                             csp_args=csp_arg
                             )
             )
-        
+
         #Head_aux
         self.heads_aux = nn.ModuleList(
             [Detection((in_channels[0], in_channel), num_classes, reg_max=reg_max) for in_channel in in_channels]
@@ -53,13 +53,12 @@ class YOLOV9AuxHead(BaseModule):
 
     def forward(self, inputs):
         #auxiliary
-        # if True: #self.training:
         aux_outs = [None] * 3
         aux_outs[-1] = self.sppelan_aux(inputs[-1])
         for idx in range(len(self.in_channels) - 1, 0, -1):
             x = torch.cat([self.upsample_aux(aux_outs[idx]),inputs[idx-1]],1)
             aux_outs[idx-1] = self.repncspelan_layers_aux[len(self.in_channels) - 1 - idx](x)
-        
+            
         head_outs = []
         head_outs.append([head_aux(x) for x, head_aux in zip(aux_outs, self.heads_aux)])
         

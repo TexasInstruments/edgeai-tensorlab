@@ -83,7 +83,6 @@ class Elan_Neck(nn.Module):
         x4 = self.conv4(x3)
         x5 = self.conv5(x4)
         x6 = self.conv6(x5)
-
         return self.conv_out(torch.cat([x6, x5, x4, x3, x2, x1], dim=1))
     
 class TinyDownSampleNeck(nn.Module):
@@ -178,22 +177,6 @@ class YOLOV7Neck(BaseModule):
                 )
             )
 
-
-        # for i in range(len(top_down_channels)):
-        #     self.top_down_layers.append(
-        #         nn.Sequential(
-        #             Conv_Upsample(top_down_channels[i]),
-        #             Elan_Neck(in_channel=top_down_channels[i])
-        #         )
-        #     )
-
-        # self.upsample1 = Conv_Upsample(top_down_channels[0])
-        # self.elan1 = Elan_Neck(in_channel=top_down_channels[0]*2,
-        #                        out_channel=top_down_channels[0])
-        # self.upsample2 = Conv_Upsample(top_down_channels[1])
-        # self.elan2 = Elan_Neck(in_channel=top_down_channels[1]*2,
-        #                        out_channel=top_down_channels[1])
-
         #down_sample_layers
         self.down_sample_layers = nn.ModuleList()
         for i in range(len(down_sample_channels)):
@@ -204,13 +187,6 @@ class YOLOV7Neck(BaseModule):
                 )
             )
 
-        # self.pool_conv1 = Pool_Conv_Neck(down_sample_channels[0])
-        # self.elan3 = Elan_Neck(down_sample_channels[0],
-        #                        down_sample_channels[0])
-        # self.pool_conv2 = Pool_Conv_Neck(down_sample_channels[1])
-        # self.elan4 = Elan_Neck(down_sample_channels[1],
-        #                        down_sample_channels[1])
-        
         #out_layers
         self.out_layers = nn.ModuleList()
         for i in range(len(output_channels)):
@@ -223,7 +199,6 @@ class YOLOV7Neck(BaseModule):
         outs = []
 
         top_down_outs.append(self.sppcspconv(inputs[-1]))
-
         for idx in range(len(self.down_sample_channels), 0, -1):
             top_down_outs.append(
                 self.top_down_layers[len(self.down_sample_channels)-idx](
@@ -231,7 +206,6 @@ class YOLOV7Neck(BaseModule):
                      inputs[idx-1]]
                 )
             )
-        
         down_sample_outs.append(top_down_outs[-1])
         for idx in range(len(self.down_sample_channels)):
             down_sample_outs.append(
@@ -253,13 +227,6 @@ class YOLOV7TinyNeck(BaseModule):
                  output_channels:Sequence[int] =[128, 256, 512],
                 #  upsample_cfg=dict(scale_factor=2, mode='nearest'),
                 #  csp_arg = {"repeat_num": 3},
-                #  init_cfg=dict(
-                #      type='Kaiming',
-                #      layer='Conv2d',
-                #      a=math.sqrt(5),
-                #      distribution='uniform',
-                #      mode='fan_in',
-                #      nonlinearity='relu'),
                 init_cfg=None
                      ):
         super().__init__(init_cfg)
@@ -284,10 +251,6 @@ class YOLOV7TinyNeck(BaseModule):
         for i in range(len(down_sample_channels)):
             self.down_sample_layers.append(
                 nn.Sequential(
-                    # Conv(in_channels=down_sample_channels[i]//4,
-                    #       out_channels=down_sample_channels[i]//2,
-                    #       kernel_size=3,
-                    #       stride=2),
                     Conv_Downsample_Tiny(out_channel=down_sample_channels[i]//2),
                     TinyDownSampleNeck(in_ch=down_sample_channels[i])
                 )
@@ -309,7 +272,6 @@ class YOLOV7TinyNeck(BaseModule):
         outs = []
 
         top_down_outs.append(self.sppcspconv(inputs[-1]))
-
         for idx in range(len(self.top_down_channels)):
             top_down_outs.append(
                 self.top_down_layers[idx](
@@ -317,8 +279,6 @@ class YOLOV7TinyNeck(BaseModule):
                      inputs[1-idx]]
                 )
             )
-
-        
         down_sample_outs.append(top_down_outs[-1])
         for idx in range(len(self.down_sample_channels)):
             down_sample_outs.append(
@@ -330,31 +290,3 @@ class YOLOV7TinyNeck(BaseModule):
             outs.append(self.out_layers[idx](down_sample_outs[idx]))
 
         return outs
-
-
-
-# def test():
-#     from mmdet.models.backbones.yolov7_backbone import YOLOV7TinyBackbone
-#     model_bb = YOLOV7TinyBackbone()
-#     model_neck = YOLOV7TinyNeck()
-#     input = torch.rand(1,3,640,640)
-#     output_bb = model_bb(input)
-#     output = model_neck(output_bb)
-#     # print(model)
-#     for out in output:
-#         print(out.shape)
-
-# test()
-
-# def test():
-#     from mmdet.models.backbones.yolov7_backbone import YOLOV7Backbone
-#     model_bb = YOLOV7Backbone()
-#     model_neck = YOLOV7Neck()
-#     input = torch.rand(1,3,640,640)
-#     output_bb = model_bb(input)
-#     output = model_neck(output_bb)
-#     # print(model)
-#     for out in output:
-#         print(out.shape)
-
-# test()

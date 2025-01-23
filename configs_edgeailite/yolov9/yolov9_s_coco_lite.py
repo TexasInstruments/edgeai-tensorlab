@@ -2,7 +2,7 @@ _base_ = ['../../configs/_base_/schedules/schedule_1x.py', '../../configs/_base_
 # model settings
 
 convert_to_lite_model = dict(model_surgery=1)
-load_from = 'work_dirs/checkpoint/yolov9/yolov9_new_weights.pth'
+load_from = '../edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolov9_s_coco_origin_640x640_20250113_checkpoint.pth'
 
 # training settings
 max_epochs = 300
@@ -24,7 +24,6 @@ model = dict(
     backbone=dict(
         type='YOLOV9Backbone',
         init_cfg=dict(type='Pretrained', checkpoint='https://github.com/WongKinYiu/yolov9mit/releases/download/v1.0-alpha/v9-s.pt')
-        # init_cfg=dict(type='Pretrained', checkpoint='/data/files/a0508577/work/edgeai-algo/YOLO/backup/weights/yolov9-s/yolov9-s.pth')
         ),
     neck=dict(
         type='YOLOV9Neck',

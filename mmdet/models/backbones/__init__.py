@@ -28,5 +28,5 @@ __all__ = [
     'DetectoRS_ResNeXt', 'Darknet', 'ResNeSt', 'TridentResNet', 'CSPDarknet',
     'SwinTransformer', 'PyramidVisionTransformer',
     'PyramidVisionTransformerV2', 'EfficientNet', 'CSPNeXt', 'YOLOV9Backbone',
-    'YOLOV7Backbone'
+    'YOLOV7Backbone', 'YOLOV7TinyBackbone'
 ]

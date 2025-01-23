@@ -59,12 +59,11 @@ def calculate_ciou(bbox1, bbox2):
 class BCELoss(nn.Module):
     def __init__(self) -> None:
         super().__init__()
-        # TODO: Refactor the device, should be assign by config
-        # TODO: origin v9 assing pos_weight == 1?
         self.bce = BCEWithLogitsLoss(reduction="none")
 
     def forward(self, predicts_cls: Tensor, targets_cls: Tensor, cls_norm: Tensor) -> Any:
         return self.bce(predicts_cls, targets_cls).sum() / cls_norm
+
 
 class BoxLoss(nn.Module):
     def __init__(self) -> None:
@@ -109,6 +108,7 @@ class DFLoss(nn.Module):
         loss_dfl = loss_dfl.view(-1, 4).mean(-1)
         loss_dfl = (loss_dfl * box_norm).sum() / cls_norm
         return loss_dfl
+
 
 @MODELS.register_module()
 class YOLOV7Loss:
@@ -209,7 +209,6 @@ class YOLOV7Loss:
             anchor_filter = torch.max(ratio, 1. / ratio).max(2)[0] < self.anch_topk
             target_norm = target_norm[anchor_filter]
 
-            # Offsets
             gridxy = target_norm[:, 2:4] 
             gridx_inv = torch.tensor(grid_size).to(device=self.device) - gridxy
             grid_a, grid_b = ((gridxy % 1. < 0.5) & (gridxy > 1.)).T
@@ -218,14 +217,12 @@ class YOLOV7Loss:
             target_norm = target_norm.repeat((5, 1, 1))[j]
             offsets = (torch.zeros_like(gridxy)[None] + pre_off[:, None])[j]
 
-            # Define
             batch, label = target_norm[:, :2].long().T
             grid_xy = target_norm[:, 2:4]
             grid_wh = target_norm[:, 4:6]
             grid_index = (grid_xy - offsets).long()
             grid_i, grid_j = grid_index.T
 
-            # Append
             anchor_index = target_norm[:, 6].long() 
             target_indices.append((batch, anchor_index, grid_j.clamp_(0, grid_size[1] - 1), grid_i.clamp_(0, grid_size[0] - 1))) 
             target_box.append(torch.cat((grid_xy - grid_index, grid_wh), 1)) 
@@ -234,8 +231,10 @@ class YOLOV7Loss:
 
         return target_cls, target_box, target_indices, anch
 
+
 @MODELS.register_module()
 class YOLOLoss:
+    # Implemented from https://github.com/WongKinYiu/yolo
     def __init__(self, loss_cfg: LossConfig, vec2box: Vec2Box, class_num: int = 80, reg_max: int = 16) -> None:
         self.class_num = class_num
         self.vec2box = vec2box
@@ -274,37 +273,3 @@ class YOLOLoss:
 
         return loss_iou, loss_dfl, loss_cls
 
-
-#not required TODO:remove
-class DualLoss:
-    def __init__(self, cfg: LossConfig, vec2box) -> None:
-        loss_cfg = cfg.task.loss
-        self.loss = YOLOLoss(loss_cfg, vec2box, class_num=cfg.dataset.class_num, reg_max=cfg.model.anchor.reg_max)
-
-        self.aux_rate = loss_cfg.aux
-
-        self.iou_rate = loss_cfg.objective["BoxLoss"]
-        self.dfl_rate = loss_cfg.objective["DFLoss"]
-        self.cls_rate = loss_cfg.objective["BCELoss"]
-
-    def __call__(
-        self, aux_predicts: List[Tensor], main_predicts: List[Tensor], targets: Tensor
-    ) -> Tuple[Tensor, Dict[str, Tensor]]:
-        # TODO: Need Refactor this region, make it flexible!
-        aux_iou, aux_dfl, aux_cls = self.loss(aux_predicts, targets)
-        main_iou, main_dfl, main_cls = self.loss(main_predicts, targets)
-
-        loss_dict = {
-            "BoxLoss": self.iou_rate * (aux_iou * self.aux_rate + main_iou),
-            "DFLoss": self.dfl_rate * (aux_dfl * self.aux_rate + main_dfl),
-            "BCELoss": self.cls_rate * (aux_cls * self.aux_rate + main_cls),
-        }
-        loss_sum = sum(list(loss_dict.values())) / len(loss_dict)
-        return loss_sum, loss_dict
-
-
-def create_loss_function(cfg: LossConfig, vec2box) -> DualLoss:
-    # TODO: make it flexible, if cfg doesn't contain aux, only use SingleLoss
-    loss_function = DualLoss(cfg, vec2box)
-    logger.info("✅ Success load loss function")
-    return loss_function

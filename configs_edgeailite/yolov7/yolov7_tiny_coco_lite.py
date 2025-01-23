@@ -2,7 +2,6 @@ _base_ = ['../../configs/_base_/schedules/schedule_1x.py', '../../configs/_base_
 # model settings
 
 convert_to_lite_model = dict(model_surgery=1)
-load_from = 'work_dirs/checkpoint/yolov7/yolov7_new_weights.pth'
 
 # training settings
 max_epochs = 300
@@ -23,7 +22,6 @@ model = dict(
     data_preprocessor=data_preprocessor,
     backbone=dict(
         type='YOLOV7TinyBackbone',
-        # init_cfg=dict(type='Pretrained', checkpoint='work_dirs/onnx_exports/yolov7/checkpoint/yolov7_new_weights.pth')
         ),
     neck=dict(
         type='YOLOV7TinyNeck',

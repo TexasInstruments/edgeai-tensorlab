@@ -1,4 +1,6 @@
-import inspect
+#Implemented from https://github.com/WongKinYiu/yolo
+
+
 import math
 import torch
 
@@ -430,7 +432,6 @@ class Anc2Box:
             #     layer_idx
             # ]
             # pred_box[..., 2:4] = (pred_bbox_wh * 2) ** 2 * self.anchor_scale[layer_idx]
-
             # preds_box.append(rearrange(pred_box, "B L h w A -> B (L h w) A"))
             # preds_cls.append(rearrange(pred_cls, "B L h w C -> B (L h w) C"))
             # preds_cnf.append(rearrange(pred_cnf, "B L h w C -> B (L h w) C"))
@@ -442,7 +443,6 @@ class Anc2Box:
         # preds_box = torch.concat(preds_box, dim=1)
         # preds_cls = torch.concat(preds_cls, dim=1)
         # preds_cnf = torch.concat(preds_cnf, dim=1)
-
         # preds_box = transform_bbox(preds_box, "xycwh -> xyxy")
         # return preds_cls, None, preds_box, preds_cnf.sigmoid()
     

@@ -2,12 +2,12 @@ _base_ = ['../../configs/_base_/schedules/schedule_1x.py', '../../configs/_base_
 # model settings
 
 convert_to_lite_model = dict(model_surgery=1)
-load_from = 'work_dirs/checkpoint/yolov7/yolov7_new_weights.pth'
+load_from = '../edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolov7_l_coco_origin_640x640_20250109_checkpoint.pth'
 
 # training settings
 max_epochs = 100
 num_last_epochs = 15
-interval = 1
+interval = 5
 
 img_scale = (640, 640)
 batch_size = 16

@@ -50,8 +50,6 @@ class YOLOV7(SingleStageDetector):
             data_preprocessor=data_preprocessor,
             init_cfg=init_cfg
             )
-        # self.num_classes = bbox_head.num_classes
-        # self.anchor_cfg = anchor_cfg
     
     def extract_feat(self, batch_inputs: Tensor) -> Tuple[Tensor]:
         """Extract features.
@@ -80,11 +78,6 @@ class YOLOV7(SingleStageDetector):
         Returns:
             dict: A dictionary of loss components.
         """
-        
-
-        #features from backbone only
-        # backbone_feat = self.extract_feat(batch_inputs)
-        # x = self.neck(backbone_feat)
 
         x= self.extract_feat(batch_inputs)
 

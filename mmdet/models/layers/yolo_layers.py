@@ -1,5 +1,7 @@
+#Implemented from https://github.com/WongKinYiu/yolo
+
+
 from typing import Any, Dict, List, Optional, Tuple
-import copy
 import torch
 import torch.nn.functional as F
 from einops import rearrange
@@ -33,7 +35,6 @@ class ChangeActivationToReLU(torch.nn.ReLU):
         return y
 
 
-
 # ----------- Basic Class ----------- #
 class   Conv(nn.Module):
     """A basic convolutional block that includes convolution, batch normalization, and activation."""
@@ -55,7 +56,6 @@ class   Conv(nn.Module):
         self.act = create_activation_function(activation)
         # if activation:
         #     self.act = ChangeActivationToReLU()
-        #     # self.act = ChangeActivationToReLU_2()
         # else:
         #     self.act = Identity()
 
@@ -149,56 +149,6 @@ class DetectionV7(nn.Module):
         return x
 
 
-# class MultiheadDetection(nn.Module):
-#     """Mutlihead Detection module for Dual detect or Triple detect"""
-
-#     def __init__(self, in_channels: List[int], num_classes: int, **head_kwargs):
-#         super().__init__()
-#         DetectionHead = Detection
-
-#         if head_kwargs.pop("version", None) == "v7":
-#             DetectionHead = IDetection
-
-#         self.heads = nn.ModuleList(
-#             [DetectionHead((in_channels[0], in_channel), num_classes, **head_kwargs) for in_channel in in_channels]
-#         )
-
-#     def forward(self, x_list: List[torch.Tensor]) -> List[torch.Tensor]:
-#         return [head(x) for x, head in zip(x_list, self.heads)]
-
-
-class Segmentation(nn.Module):
-    def __init__(self, in_channels: Tuple[int], num_maskes: int):
-        super().__init__()
-        first_neck, in_channels = in_channels
-
-        mask_neck = max(first_neck // 4, num_maskes)
-        self.mask_conv = nn.Sequential(
-            Conv(in_channels, mask_neck, 3), Conv(mask_neck, mask_neck, 3), nn.Conv2d(mask_neck, num_maskes, 1)
-        )
-
-    def forward(self, x: Tensor) -> Tuple[Tensor]:
-        x = self.mask_conv(x)
-        return x
-
-
-# class MultiheadSegmentation(nn.Module):
-#     """Mutlihead Segmentation module for Dual segment or Triple segment"""
-
-#     def __init__(self, in_channels: List[int], num_classes: int, num_maskes: int, **head_kwargs):
-#         super().__init__()
-#         mask_channels, proto_channels = in_channels[:-1], in_channels[-1]
-
-#         self.detect = MultiheadDetection(mask_channels, num_classes, **head_kwargs)
-#         self.heads = nn.ModuleList(
-#             [Segmentation((in_channels[0], in_channel), num_maskes) for in_channel in mask_channels]
-#         )
-#         self.heads.append(Conv(proto_channels, num_maskes, 1))
-
-#     def forward(self, x_list: List[torch.Tensor]) -> List[torch.Tensor]:
-#         return [head(x) for x, head in zip(x_list, self.heads)]
-
-
 class Anchor2Vec(nn.Module):
     def __init__(self, reg_max: int = 16) -> None:
         super().__init__()
@@ -230,7 +180,6 @@ class RepConv(nn.Module):
         super().__init__()
         self.act = create_activation_function(activation)
         # self.act = ChangeActivationToReLU()
-        # self.act = ChangeActivationToReLU_2()
         self.conv1 = Conv(in_channels, out_channels, kernel_size, activation=False, **kwargs)
         self.conv2 = Conv(in_channels, out_channels, 1, activation=False, **kwargs)
 
@@ -442,7 +391,8 @@ class SPPCSPConv(nn.Module):
         y2 = self.short_conv(x)
         y = torch.cat((y1, y2), dim=1)
         return self.merge_conv(y)
-    
+
+
 class SPPCSPTinyConv(nn.Module):
     # CSP https://github.com/WongKinYiu/CrossStagePartialNetworks
     def __init__(self, in_channels: int, out_channels: int, expand: float = 0.5, kernel_sizes: Tuple[int] = (5, 9, 13)):
