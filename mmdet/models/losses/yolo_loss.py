@@ -233,7 +233,7 @@ class YOLOV7Loss:
 
 
 @MODELS.register_module()
-class YOLOLoss:
+class YOLOV9Loss:
     # Implemented from https://github.com/WongKinYiu/yolo
     def __init__(self, loss_cfg: LossConfig, vec2box: Vec2Box, class_num: int = 80, reg_max: int = 16) -> None:
         self.class_num = class_num
