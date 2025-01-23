@@ -108,6 +108,20 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':47.1}, model_shortlist=None)
         ),
+        #DETR mmdetection
+        'od-8960expt':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx((800, 800), (800, 800), resize_with_pad=False, backend='cv2'),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True),
+                runtime_options=settings.runtime_options_onnx_np2(
+                    det_options=True, ext_options={
+                     'object_detection:meta_arch_type': 6,
+                     'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL
+                     }, fast_calibration=True),
+                model_path=f'../edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/detr_r50_8xb2-150e_20240722_model.onnx'),
+            postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=False, formatter=postprocess.DetectionBoxSL2BoxLS()),
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 39.9}, model_shortlist=None, compact_name='DETR-r50-mmdet-transformer-coco-800x800', shortlisted=False)
+        ),
         # edgeai-yolox models
         'od-8140expt': utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
