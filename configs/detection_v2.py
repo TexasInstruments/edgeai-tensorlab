@@ -75,7 +75,7 @@ def get_configs(settings, work_dir):
                 runtime_options=settings.runtime_options_onnx_np2(
                     det_options=True, ext_options={
                      'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL,
-                     'advanced_options:output_feature_16bit_names_list': '/class_labels_classifier/MatMul_output_0 4041 /bbox_predictor/layers.2/MatMul_olutput_0 /bbox_predictor/layers.2/Add_olutput_0 4053',
+                     'advanced_options:output_feature_16bit_names_list': 'onnx::MatMul_4038_netFormat /box_predictor/Relu_output_0 /box_predictor/Relu_1_output_0 /bbox_predictor/layers.2/Add_output_0 4053_netFormat 4041_netFormat',
                      }, fast_calibration=True),
                 model_path=f'{settings.models_path}/vision/detection/coco/hf-transformers/detr_fb_resnet50_800x800_simp.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, reshape_list=[(-1,4),(-1,1),(-1,1)],logits_bbox_to_bbox_ls=True,formatter=postprocess.DetectionXYWH2XYXYCenterXY()),
@@ -146,7 +146,7 @@ def get_configs(settings, work_dir):
                 model_path=f'../edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/detr_r50_8xb2-150e_20240722_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=False, formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 39.9}, model_shortlist=80, compact_name='DETR-r50-mmdet-transformer-coco-800x800', shortlisted=False)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 39.9}, model_shortlist=None, compact_name='DETR-r50-mmdet-transformer-coco-800x800', shortlisted=False)
         ),
         #efficientDET-B0-Lite
         'od-8970':utils.dict_update(common_cfg,
