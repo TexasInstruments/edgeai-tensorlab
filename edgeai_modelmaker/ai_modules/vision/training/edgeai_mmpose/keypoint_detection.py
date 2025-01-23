@@ -57,10 +57,10 @@ model_urls = {
     ],
     'yoloxpose_s_lite': [
         {
-            'download_url': None, #f'/home/a0504871/work/ti/mmpose/projects/yolox-pose/work_dirs/yolox-pose_s_8xb32-300e_coco_lite/best_coco_AP_epoch_397.pth',
+            'download_url': f'../edgeai-modelzoo/models/vision/keypoint/coco/edgeai-mmpose/yoloxpose_s_lite_coco-640x640_20250119_checkpoint.pth',
             'download_path': os.path.join('{download_path}', 'pretrained', 'yoloxpose_s_lite')
         },
-    ]
+    ],
 }
 
 # TODO: Need to change model descriptions according to yolox_pose models
@@ -116,12 +116,12 @@ _model_descriptions = {
             pretrained_checkpoint_path=model_urls['yoloxpose_s_lite'][0],
             batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_KEYPOINT_DETECTION],
             target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=None, performance_infer_time_ms=10.19,
-                                                     accuracy_factor=56.9, accuracy_unit='AP50%', accuracy_factor2=38.3, accuracy_unit2='AP[.5:.95]%'),
-                constants.TARGET_DEVICE_AM62A: dict(performance_fps=None, performance_infer_time_ms=43.85,
-                                                     accuracy_factor=56.9, accuracy_unit='AP50%', accuracy_factor2=38.3, accuracy_unit2='AP[.5:.95]%'),
-                constants.TARGET_DEVICE_AM68A: dict(performance_fps=None, performance_infer_time_ms=10.19,
-                                                     accuracy_factor=56.9, accuracy_unit='AP50%', accuracy_factor2=38.3, accuracy_unit2='AP[.5:.95]%'), #TODO: this has to be corrected
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=None, performance_infer_time_ms=4.92,
+                                                     accuracy_factor=47.4, accuracy_unit='AP50%', accuracy_factor2=30.5, accuracy_unit2='AP[.5:.95]%'),
+                constants.TARGET_DEVICE_AM62A: dict(performance_fps=None, performance_infer_time_ms=15.32,
+                                                     accuracy_factor=47.4, accuracy_unit='AP50%', accuracy_factor2=30.5, accuracy_unit2='AP[.5:.95]%'),
+                constants.TARGET_DEVICE_AM68A: dict(performance_fps=None, performance_infer_time_ms=4.92,
+                                                     accuracy_factor=47.4, accuracy_unit='AP50%', accuracy_factor2=30.5, accuracy_unit2='AP[.5:.95]%')
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
@@ -130,10 +130,11 @@ _model_descriptions = {
         ),
         compilation=dict(
             model_compilation_id='kd-7080',
+            input_optimization=False,
             runtime_options={
-                'advanced_options:output_feature_16bit_names_list': '1213, 1212, 1211, 1197, 1196, 1195, 1181, 1180, 1179'
+                'advanced_options:output_feature_16bit_names_list': '3'
             },
-            metric=dict(label_offset_pred=0)
+            metric=dict(label_offset_pred=1)
         )
     ),
 }

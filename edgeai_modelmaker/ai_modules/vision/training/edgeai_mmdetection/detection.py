@@ -78,7 +78,13 @@ model_urls = {
             'download_url': f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth',
             'download_path': os.path.join('{download_path}', 'pretrained', 'yolox_s_lite')
         },
-    ]
+    ],
+    'yolov7_l_lite': [
+        {
+            'download_url': f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/yolov7_l_coco_lite_640x640_20250109_checkpoint.pth',
+            'download_path': os.path.join('{download_path}', 'pretrained', 'yolov7_l_lite')
+        },
+    ],
 }
 
 
@@ -271,6 +277,44 @@ _model_descriptions = {
                 'advanced_options:output_feature_16bit_names_list': '/multi_level_conv_obj.2/Conv_output_0, /multi_level_conv_reg.2/Conv_output_0, /multi_level_conv_cls.2/Conv_output_0, /multi_level_conv_obj.1/Conv_output_0, /multi_level_conv_reg.1/Conv_output_0, /multi_level_conv_cls.1/Conv_output_0, /multi_level_conv_obj.0/Conv_output_0, /multi_level_conv_reg.0/Conv_output_0, /multi_level_conv_cls.0/Conv_output_0'
             },
             metric=dict(label_offset_pred=0)
+        )
+    ),
+    'yolov7_l_lite': dict(
+        common=dict(
+            task_type=constants.TASK_TYPE_DETECTION,
+        ),
+        download=model_urls['yolov7_l_lite'],
+        training=dict(
+            training_backend='edgeai_mmdetection',
+            model_name='yolov7_l_lite',
+            model_training_id='yolov7_l_coco_lite',
+            model_architecture='yolov7',
+            input_resize=640,
+            input_cropsize=640,
+            pretrained_checkpoint_path=model_urls['yolov7_l_lite'][0],
+            batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_DETECTION],
+            target_devices={
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=None, performance_infer_time_ms=10.14,
+                                                     accuracy_factor=56.9, accuracy_unit='AP50%', accuracy_factor2=38.3, accuracy_unit2='AP[.5:.95]%'),
+                constants.TARGET_DEVICE_AM62A: dict(performance_fps=None, performance_infer_time_ms=43.94,
+                                                     accuracy_factor=56.9, accuracy_unit='AP50%', accuracy_factor2=38.3, accuracy_unit2='AP[.5:.95]%'),
+                constants.TARGET_DEVICE_AM67A: dict(performance_fps=None, performance_infer_time_ms='43.94 (with 1/2 device capability)',
+                                                    accuracy_factor=56.9, accuracy_unit='AP50%', accuracy_factor2=38.3,
+                                                    accuracy_unit2='AP[.5:.95]%'),
+                constants.TARGET_DEVICE_AM68A: dict(performance_fps=None, performance_infer_time_ms=10.22,
+                                                     accuracy_factor=56.9, accuracy_unit='AP50%', accuracy_factor2=38.3, accuracy_unit2='AP[.5:.95]%'), #TODO: this has to be corrected
+                constants.TARGET_DEVICE_AM69A: dict(performance_fps=None, performance_infer_time_ms='9.82 (with 1/4th device capability)',
+                                                     accuracy_factor=56.9, accuracy_unit='AP50%', accuracy_factor2=38.3, accuracy_unit2='AP[.5:.95]%'),
+            },
+            training_devices={
+                constants.TRAINING_DEVICE_CPU: True,
+                constants.TRAINING_DEVICE_CUDA: True,
+            }
+        ),
+        compilation=dict(
+            model_compilation_id='od-8905',
+            input_optimization=False,
+            metric=dict(label_offset_pred=1)
         )
     ),
 }
