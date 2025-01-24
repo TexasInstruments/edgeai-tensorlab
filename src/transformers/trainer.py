@@ -3708,18 +3708,19 @@ class Trainer:
         if self.args.n_gpu > 1:
             loss = loss.mean()  # mean() to average on multi-gpu parallel training
 
-        if not(self.args.dont_update_parameters):
-            if self.use_apex:
+        if self.use_apex:
+            if not(self.args.dont_update_parameters):            
                 with amp.scale_loss(loss, self.optimizer) as scaled_loss:
                     scaled_loss.backward()
-            else:
-                # Finally we need to normalize the loss for reporting
-                if num_items_in_batch is None:
-                    loss = loss / self.args.gradient_accumulation_steps
+        else:
+            # Finally we need to normalize the loss for reporting
+            if num_items_in_batch is None:
+                loss = loss / self.args.gradient_accumulation_steps
 
+            if not(self.args.dont_update_parameters):
                 self.accelerator.backward(loss, **kwargs)
 
-                return loss.detach()
+        return loss.detach()
 
     def compute_loss(self, model, inputs, return_outputs=False, num_items_in_batch=None):
         """
