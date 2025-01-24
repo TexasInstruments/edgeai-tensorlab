@@ -415,7 +415,8 @@ def main():
         revision=model_args.model_revision,
         token=model_args.token,
         trust_remote_code=model_args.trust_remote_code,
-        attn_implementation="eager" # the default is sdpa mode, need to use eager for proper quantization
+        attn_implementation="eager", # the default is sdpa mode, need to use eager for proper quantization
+        return_dict=None # for prepare_qat_pt2e() used in quantization
     )
     model = AutoModelForImageClassification.from_pretrained(
         model_args.model_name_or_path,
@@ -448,7 +449,7 @@ def main():
         if model_args.size is not None:
             size = model_args.size["shortest_edge"] if "shortest_edge" in model_args.size else model_args.size
         elif "shortest_edge" in image_processor.size:
-                size = image_processor.size["shortest_edge"]
+            size = image_processor.size["shortest_edge"]
         else:
             size = (image_processor.size["height"], image_processor.size["width"])
 
@@ -466,8 +467,8 @@ def main():
         # size if is a int, then it is supposed to be the shortest_edge
         # crop_size is a tuple of expected final dimension
     
-        image_std = model_args.image_std or (image_processor.image_std if hasattr(image_processor, "image_std") else None)  
-        image_mean = model_args.image_mean or (image_processor.image_mean if hasattr(image_processor, "image_mean") else None)
+        # image_std = model_args.image_std or (image_processor.image_std if hasattr(image_processor, "image_std") else None)  
+        # image_mean = model_args.image_mean or (image_processor.image_mean if hasattr(image_processor, "image_mean") else None)
 
         normalize = (
             Normalize(mean=image_processor.image_mean, std=image_processor.image_std)
@@ -541,23 +542,24 @@ def main():
         example_kwargs = next(iter(dataset["validation"]))
         example_kwargs['labels'] = torch.tensor(example_kwargs.pop('label')).unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1)
         example_input= example_kwargs.pop('pixel_values').unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1, 1, 1)
-        convert_to_cuda = False if training_args.use_cpu else True
+        convert_to_cuda = False #if training_args.use_cpu else True
         
+        model=model.to('cuda')
+        example_input=example_input.to('cuda')
+
+        # epochs update in the quantization with every model.train() call, thus using the observer and batchnorm update accordingly
+        # num_observer_update_epochs = int(len(dataset["train"]) * ((training_args.num_train_epochs//2)+1) / (training_args.n_gpu*training_args.per_device_train_batch_size))
+        # num_batch_norm_update_epochs = int(len(dataset["train"]) * ((training_args.num_train_epochs//2)-1) / (training_args.n_gpu*training_args.per_device_train_batch_size))
+        # in this code model.train() model.eval() is switched for every batch / iteration - we need to set the total_epochs passed to QAT/PTQ model accordingly
+        total_iterations = int(training_args.num_train_epochs * len(dataset["train"]) / (training_args.n_gpu*training_args.per_device_train_batch_size))
         if model_optimization_args.quantize_type == "QAT":
-            # epochs update in the quantization with every model.train() call, thus using the observer and batchnorm update accordingly
-            num_observer_update_epochs = int(len(dataset["train"]) * ((training_args.num_train_epochs//2)+1) / (training_args.n_gpu*training_args.per_device_train_batch_size))
-            num_batch_norm_update_epochs = int(len(dataset["train"]) * ((training_args.num_train_epochs//2)-1) / (training_args.n_gpu*training_args.per_device_train_batch_size))
-            model = xmodelopt.quantization.v3.QATPT2EModule(model, total_epochs=training_args.num_train_epochs, is_qat=True, fast_mode=False,
+            model = xmodelopt.quantization.v3.QATPT2EModule(model, total_epochs=total_iterations, is_qat=True, fast_mode=False,
                 qconfig_type=model_optimization_args.qconfig_type, example_inputs=example_input, example_kwargs=example_kwargs, convert_to_cuda=convert_to_cuda, 
-                bias_calibration_factor=model_optimization_args.bias_calibration_factor, num_observer_update_epochs = num_observer_update_epochs,
-                num_batch_norm_update_epochs = num_batch_norm_update_epochs)
-        #
-        
+                bias_calibration_factor=model_optimization_args.bias_calibration_factor)
         else: 
-            # training_args.num_train_epochs = 2 # bias calibration in the second epoch
-            model = xmodelopt.quantization.v3.QATPT2EModule(model, total_epochs=training_args.num_train_epochs, is_qat=True, fast_mode=False,
+            model = xmodelopt.quantization.v3.QATPT2EModule(model, total_epochs=total_iterations, is_qat=True, fast_mode=False,
                 qconfig_type=model_optimization_args.qconfig_type, example_inputs=example_input, example_kwargs=example_kwargs, convert_to_cuda=convert_to_cuda, 
-                bias_calibration_factor=model_optimization_args.bias_calibration_factor, num_observer_update_epochs=model_optimization_args.quantize_calib_images,)
+                bias_calibration_factor=model_optimization_args.bias_calibration_factor)
             # need to turn the parameter update off during PTQ/PTC
             training_args.dont_update_parameters = True
         #
