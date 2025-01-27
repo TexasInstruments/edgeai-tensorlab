@@ -542,10 +542,7 @@ def main():
         example_kwargs = next(iter(dataset["validation"]))
         example_kwargs['labels'] = torch.tensor(example_kwargs.pop('label')).unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1)
         example_input= example_kwargs.pop('pixel_values').unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1, 1, 1)
-        convert_to_cuda = False #if training_args.use_cpu else True
-        
-        model=model.to('cuda')
-        example_input=example_input.to('cuda')
+        prepare_device = None #'cuda'
 
         # epochs update in the quantization with every model.train() call, thus using the observer and batchnorm update accordingly
         # num_observer_update_epochs = int(len(dataset["train"]) * ((training_args.num_train_epochs//2)+1) / (training_args.n_gpu*training_args.per_device_train_batch_size))
@@ -554,12 +551,12 @@ def main():
         total_iterations = int(training_args.num_train_epochs * len(dataset["train"]) / (training_args.n_gpu*training_args.per_device_train_batch_size))
         if model_optimization_args.quantize_type == "QAT":
             model = xmodelopt.quantization.v3.QATPT2EModule(model, total_epochs=total_iterations, is_qat=True, fast_mode=False,
-                qconfig_type=model_optimization_args.qconfig_type, example_inputs=example_input, example_kwargs=example_kwargs, convert_to_cuda=convert_to_cuda, 
-                bias_calibration_factor=model_optimization_args.bias_calibration_factor)
+                qconfig_type=model_optimization_args.qconfig_type, example_inputs=example_input, example_kwargs=example_kwargs, 
+                bias_calibration_factor=model_optimization_args.bias_calibration_factor, device=prepare_device)
         else: 
             model = xmodelopt.quantization.v3.QATPT2EModule(model, total_epochs=total_iterations, is_qat=True, fast_mode=False,
-                qconfig_type=model_optimization_args.qconfig_type, example_inputs=example_input, example_kwargs=example_kwargs, convert_to_cuda=convert_to_cuda, 
-                bias_calibration_factor=model_optimization_args.bias_calibration_factor)
+                qconfig_type=model_optimization_args.qconfig_type, example_inputs=example_input, example_kwargs=example_kwargs, 
+                bias_calibration_factor=model_optimization_args.bias_calibration_factor, device=prepare_device)
             # need to turn the parameter update off during PTQ/PTC
             training_args.dont_update_parameters = True
         #

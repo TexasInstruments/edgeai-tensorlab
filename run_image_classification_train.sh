@@ -43,16 +43,15 @@
 #--image_scale 0.017125 0.017507 0.017429
 
 
-MODEL_NAME_OR_PATH="facebook/deit-tiny-patch16-224"
-# facebook/convnext-tiny-224
-# microsoft/swin-tiny-patch4-window7-224
-# facebook/deit-tiny-patch16-224
-# facebook/deit-small-patch16-224
-# microsoft/swin-tiny-patch4-window7-224
-# microsoft/swin-small-patch4-window7-224
-# facebook/convnext-tiny-224
-# facebook/convnext-small-224
-
+MODEL_NAME_OR_PATH="microsoft/swin-tiny-patch4-window7-224"
+# "facebook/deit-tiny-patch16-224"
+# "facebook/deit-small-patch16-224"
+# "microsoft/swin-tiny-patch4-window7-224"
+# "microsoft/swin-small-patch4-window7-224"
+# "facebook/convnext-tiny-224"
+# "facebook/convnext-small-224"
+# "WinKawaks/vit-tiny-patch16-224"
+# "google/vit-base-patch16-224"
 
 CUDA_VISIBLE_DEVICES="0" \
 python3 examples/pytorch/image-classification/run_image_classification.py \
@@ -78,9 +77,10 @@ python3 examples/pytorch/image-classification/run_image_classification.py \
                 --save_strategy no \
                 --do_onnx_export True \
                 --dataloader_num_workers 12
-                #--quantization 3 \           # 0 for no quantization, 3 for PT2E quantization 
-                #--quantize_type QAT \        # PTQ: Post Training Calibration, QAT: Quantization Aware Training            
-                #--quantize_calib_images 50 \
-                #--max_eval_samples 1000 \
-                #--max_train_samples 200 \
+                # --quantization 3 \           # 0 for no quantization, 3 for PT2E quantization
+                # --quantize_type PTQ \        # PTQ: Post Training Calibration, QAT: Quantization Aware Training
+                # --quantize_calib_images 1000 \
+                # --max_eval_samples 1000 \
+                # --max_train_samples 1000, \
+                # --num_train_epochs, 5
                 #--use_cpu True \
