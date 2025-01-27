@@ -542,12 +542,16 @@ def main():
         example_kwargs = next(iter(dataset["validation"]))
         example_kwargs['labels'] = torch.tensor(example_kwargs.pop('label')).unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1)
         example_input= example_kwargs.pop('pixel_values').unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1, 1, 1)
-        prepare_device = None #'cuda'
+        prepare_device = None
+
+        if not training_args.use_cpu:
+            prepare_device = 'cuda'
 
         # epochs update in the quantization with every model.train() call, thus using the observer and batchnorm update accordingly
+        # in this code model.train() model.eval() is switched for every batch / iteration - we need to set the total_epochs passed to QAT/PTQ model accordingly
+        # alternate way is to specify num_observer_update_epochs num_batch_norm_update_epochs to reflect the iterations instead of epochs:   
         # num_observer_update_epochs = int(len(dataset["train"]) * ((training_args.num_train_epochs//2)+1) / (training_args.n_gpu*training_args.per_device_train_batch_size))
         # num_batch_norm_update_epochs = int(len(dataset["train"]) * ((training_args.num_train_epochs//2)-1) / (training_args.n_gpu*training_args.per_device_train_batch_size))
-        # in this code model.train() model.eval() is switched for every batch / iteration - we need to set the total_epochs passed to QAT/PTQ model accordingly
         total_iterations = int(training_args.num_train_epochs * len(dataset["train"]) / (training_args.n_gpu*training_args.per_device_train_batch_size))
         if model_optimization_args.quantize_type == "QAT":
             model = xmodelopt.quantization.v3.QATPT2EModule(model, total_epochs=total_iterations, is_qat=True, fast_mode=False,
