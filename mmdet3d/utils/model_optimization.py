@@ -317,8 +317,7 @@ def replace_dform_conv_tidl(m):
     dilation = m.dilation
     groups = m.groups
     output_padding = m.output_padding
-    
-    replaced_model = xops.DCNWithGSv2MMCV(in_channels, out_channels, kernel_size, stride, padding, dilation, groups, offset_clip=None)#, mode='nearest')
+    replaced_model = xops.DCNWithGSv2MMCV(in_channels, out_channels, kernel_size, stride, padding, dilation, groups, offset_clip=None, mode='nearest')
     replaced_model.is_initialized = True
     setattr(replaced_model, 'orig', m.forward)
     replaced_model.copy_weights(m)

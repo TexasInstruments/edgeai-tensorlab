@@ -767,11 +767,11 @@ def nusc_box_to_cam_box3d(
         Tuple[:obj:`CameraInstance3DBoxes`, torch.Tensor, torch.Tensor]:
         Converted 3D bounding boxes, scores and labels.
     """
-    locs = torch.Tensor([b.center for b in boxes]).view(-1, 3)
-    dims = torch.Tensor([b.wlh for b in boxes]).view(-1, 3)
-    rots = torch.Tensor([b.orientation.yaw_pitch_roll[0]
-                         for b in boxes]).view(-1, 1)
-    velocity = torch.Tensor([b.velocity[0::2] for b in boxes]).view(-1, 2)
+    locs = torch.Tensor(np.array([b.center for b in boxes])).view(-1, 3)
+    dims = torch.Tensor(np.array([b.wlh for b in boxes])).view(-1, 3)
+    rots = torch.Tensor(np.array([b.orientation.yaw_pitch_roll[0]
+                         for b in boxes])).view(-1, 1)
+    velocity = torch.Tensor(np.array([b.velocity[0::2] for b in boxes])).view(-1, 2)
 
     # convert nusbox to cambox convention
     dims[:, [0, 1, 2]] = dims[:, [1, 2, 0]]
@@ -780,8 +780,8 @@ def nusc_box_to_cam_box3d(
     boxes_3d = torch.cat([locs, dims, rots, velocity], dim=1).cuda()
     cam_boxes3d = CameraInstance3DBoxes(
         boxes_3d, box_dim=9, origin=(0.5, 0.5, 0.5))
-    scores = torch.Tensor([b.score for b in boxes]).cuda()
-    labels = torch.LongTensor([b.label for b in boxes]).cuda()
+    scores = torch.Tensor(np.array([b.score for b in boxes])).cuda()
+    labels = torch.LongTensor(np.array([b.label for b in boxes])).cuda()
     nms_scores = scores.new_zeros(scores.shape[0], 10 + 1)
     indices = labels.new_tensor(list(range(scores.shape[0])))
     nms_scores[indices, labels] = scores

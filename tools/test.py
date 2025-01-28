@@ -192,7 +192,11 @@ def main(args=None):
             runner.model = runner.model.module
             is_wrapped = True
 
-        example_inputs, example_kwargs = get_input(runner, cfg, train=False)
+        # # can we one unified transfomration_dict for all models?
+        # if cfg.get("model")['type'] == 'FCOSMono3D':
+        #     transformation_dict = dict(backbone=None, neck=None, bbox_head=xmodelopt.utils.TransformationWrapper(wrap_fn_for_bbox_head))
+        # elif cfg.get("model")['type'] == 'FastBEV':
+        #     transformation_dict = dict(backbone=None, neck=None, neck_fuse_0=None, neck_3d=None, bbox_head=xmodelopt.utils.TransformationWrapper(wrap_fn_for_bbox_head))
 
         # can we one unified transfomration_dict for all models?
         if cfg.get("model")['type'] == 'FCOSMono3D':
@@ -203,7 +207,6 @@ def main(args=None):
             transformation_dict = dict(img_neck=None, img_backbone=None, grid_mask=None, pts_bbox_head=xmodelopt.utils.TransformationWrapper(wrap_fn_for_bbox_head))
         else:
             raise RuntimeError('Quantization is NOT supported for this model')
-
 
         copy_attrs=['train_step', 'val_step', 'test_step', 'data_preprocessor', 'parse_losses', 'bbox_head', '_run_forward']
 

@@ -4,6 +4,8 @@ import copy
 from onnxsim import simplify
 import onnx
 import torch.distributed
+import onnx
+from onnxsim import simplify
 
 from .onnx_network import PETR_export_model, StreamPETR_export_model, \
                           Far3D_export_model, Far3D_export_img_backbone, Far3D_export_img_roi, Far3D_export_pts_bbox, \
@@ -551,7 +553,7 @@ def export_BEVFormer(onnxModel, inputs=None, data_samples=None, **kwargs):
     print("!!ONNX model has been exported for BEVFormer!\n\n")
 
 @wrap_for_dist
-def export_FCOS3D(model, inputs=None, data_samples=None, quantized_model=False, opset_version=17):
+def     export_FCOS3D(model, inputs=None, data_samples=None, quantized_model=False, opset_version=17):
     onnxModel = FCOS3D_export_model(model.backbone,
                                     model.neck,
                                     model.bbox_head,

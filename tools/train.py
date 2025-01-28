@@ -402,17 +402,19 @@ def main(args=None):
         #     torch.nn.functional._interpolate_orig = torch.nn.functional.interpolate
         #     torch.nn.functional.interpolate = xnn.layers.resize_with_scale_factor
 
-        # model surgery
-        # runner._init_model_weights()
-        # del BaseModule.init_weights
-        # runner.load_or_resume()
-        # runner.model.eval()
-        # runner.model = replace_dform_conv_with_split_offset_mask(runner.model)
+    # model surgery
+    runner._init_model_weights()
+    del BaseModule.init_weights
+    runner.load_or_resume()
+    runner.model.eval()
+    runner.model = replace_dform_conv_with_split_offset_mask(runner.model)
+    
+    # is_wrapped = False
+    # if is_model_wrapper(runner.model):
+    #     runner.model = runner.model.module
+    #     is_wrapped = True
 
-        is_wrapped = False
-        if is_model_wrapper(runner.model):
-            runner.model = runner.model.module
-            is_wrapped = True
+    # example_inputs, example_kwargs = get_input(runner, cfg)
 
         example_inputs, example_kwargs = get_input(runner, cfg)
 

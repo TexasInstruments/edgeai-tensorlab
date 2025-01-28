@@ -1,11 +1,15 @@
-dataset_type = 'NuScenesDataset'
-data_root = 'data/nuscenes/'
+dataset_type = 'PandaSetDataset'
+data_root = 'data/pandaset/data/'
 class_names = [
-    'car', 'truck', 'trailer', 'bus', 'construction_vehicle', 'bicycle',
-    'motorcycle', 'pedestrian', 'traffic_cone', 'barrier'
-]
-# metainfo = dict(classes=class_names) # full
-metainfo = dict(classes=class_names, version='v1.0-mini') # mini
+            'Car', 'Semi-truck', 'Other Vehicle - Construction Vehicle', 'Pedestrian with Object', 
+            'Train', 'Animals - Bird', 'Bicycle', 'Rolling Containers', 'Pylons', 'Signs', 
+            'Emergency Vehicle', 'Towed Object', 'Personal Mobility Device', 'Motorcycle', 
+            'Tram / Subway', 'Other Vehicle - Uncommon', 'Other Vehicle - Pedicab', 
+            'Temporary Construction Barriers', 'Animals - Other', 'Bus', 'Motorized Scooter', 
+            'Pickup Truck', 'Road Barriers', 'Pedestrian', 'Construction Signs', 'Cones', 'Medium-sized Truck'
+        ]
+metainfo = dict(classes=class_names) # full
+# metainfo = dict(classes=class_names, version='v1.0-mini') # mini
 # Input modality for nuScenes dataset, this is consistent with the submission
 # format which requires the information in input_modality.
 input_modality = dict(use_lidar=False, use_camera=True)
@@ -60,14 +64,15 @@ train_dataloader = dict(
         type=dataset_type,
         data_root=data_root,
         data_prefix=dict(
-            pts='',
-            CAM_FRONT='samples/CAM_FRONT',
-            CAM_FRONT_LEFT='samples/CAM_FRONT_LEFT',
-            CAM_FRONT_RIGHT='samples/CAM_FRONT_RIGHT',
-            CAM_BACK='samples/CAM_BACK',
-            CAM_BACK_RIGHT='samples/CAM_BACK_RIGHT',
-            CAM_BACK_LEFT='samples/CAM_BACK_LEFT'),
-        ann_file='nuscenes_infos_train.pkl',
+            pts='lidar', 
+            back_camera='camera/back_camera', 
+            front_camera='camera/front_camera', 
+            front_left_camera='camera/front_left_camera', 
+            front_right_camera='camera/front_right_camera', 
+            left_camera='camera/left_camera', 
+            right_camera='camera/right_camera'
+            ),
+        ann_file='pandaset_infos_train.pkl',
         load_type='mv_image_based',
         pipeline=train_pipeline,
         metainfo=metainfo,
@@ -87,16 +92,18 @@ val_dataloader = dict(
     dataset=dict(
         type=dataset_type,
         data_root=data_root,
-        data_prefix=dict(
-            pts='',
-            CAM_FRONT='samples/CAM_FRONT',
-            CAM_FRONT_LEFT='samples/CAM_FRONT_LEFT',
-            CAM_FRONT_RIGHT='samples/CAM_FRONT_RIGHT',
-            CAM_BACK='samples/CAM_BACK',
-            CAM_BACK_RIGHT='samples/CAM_BACK_RIGHT',
-            CAM_BACK_LEFT='samples/CAM_BACK_LEFT'),
+        data_prefix = dict(
+            pts='lidar', 
+            back_camera='camera/back_camera', 
+            front_camera='camera/front_camera', 
+            front_left_camera='camera/front_left_camera', 
+            front_right_camera='camera/front_right_camera', 
+            left_camera='camera/left_camera', 
+            right_camera='camera/right_camera'
+            ),
+
         # ann_file='nuscenes_infos_val.pkl', #full
-        ann_file='nuscenes_mini_infos_val.pkl', #mini
+        ann_file='pandaset_infos_mini_val.pkl', #mini
         load_type='mv_image_based',
         pipeline=test_pipeline,
         modality=input_modality,
@@ -111,7 +118,7 @@ val_evaluator = dict(
     type='NuScenesMetric',
     data_root=data_root,
     # ann_file=data_root + 'nuscenes_infos_val.pkl', # full 
-    ann_file=data_root + 'nuscenes_mini_infos_val.pkl', # mini
+    ann_file=data_root + 'pandaset_infos_mini_val.pkl', # mini
     metric='bbox',
     backend_args=backend_args)
 
