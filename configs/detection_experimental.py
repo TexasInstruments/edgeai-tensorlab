@@ -28,7 +28,8 @@
 
 import numpy as np
 from edgeai_benchmark import constants, utils, datasets, preprocess, sessions, postprocess, metrics
-
+import onnxruntime
+ORT_DISABLE_ALL = onnxruntime.GraphOptimizationLevel.ORT_DISABLE_ALL
 
 def get_configs(settings, work_dir):
     # get the sessions types to use for each model type
