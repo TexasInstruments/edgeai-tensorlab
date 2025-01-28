@@ -270,7 +270,6 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, with_onnxsim=False, input_optimization=False, tidl_onnx_model_optimizer=True),
                 runtime_options=settings.runtime_options_onnx_np2(
                     ext_options={
-                        'deny_list:layer_type': 'HardSwish',
                         'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL 
                      },
                     ),
