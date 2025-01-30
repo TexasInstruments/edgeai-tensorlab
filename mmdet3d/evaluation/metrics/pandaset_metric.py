@@ -14,6 +14,10 @@ from mmdet3d.models.layers import box3d_multiclass_nms
 from mmdet3d.registry import METRICS
 from mmdet3d.structures import (CameraInstance3DBoxes, LiDARInstance3DBoxes,
                                 bbox3d2result, xywhr2xyxyr)
+from mmdet3d.datasets.convert_utils import (convert_bbox_to_corners_for_lidar, 
+                                            convert_bbox_to_corners_for_camera, 
+                                            convert_corners_to_bbox_for_cam_box, 
+                                            convert_corners_to_bbox_for_lidar_box)
 
 from mmdet3d.datasets.pandaset_dataset import UNIQUE_ATTRIBUTE_LABELS,CLASSES
 
@@ -87,7 +91,10 @@ class PandaSetMetric(NuScenesMetric):
         for i, det in enumerate(mmengine.track_iter_progress(results)):
             annos = []
             boxes = det['bboxes_3d']
-            attrs = det['attr_labels'].to('cpu').numpy().tolist()
+            if 'attr_labels' in det:
+                attrs = det['attr_labels'].to('cpu').numpy().tolist()
+            else:
+                attrs = None
             scores = det['scores_3d'].to('cpu').numpy().tolist()
             labels = det['labels_3d'].to('cpu').numpy().tolist()
             sample_idx = sample_idx_list[i]
@@ -95,7 +102,9 @@ class PandaSetMetric(NuScenesMetric):
             for i in range(boxes.tensor.shape[0]):
                 box = boxes.tensor[i]
                 name = classes[labels[i]]
-                if np.sqrt(np.sum(np.square(box[7:9]))) > 0.2:
+                if attrs:
+                    attr = self.get_attr_name(attrs[i], name)
+                elif np.sqrt(np.sum(np.square(box[7:9]))) > 0.2:
                     if name in [
                             'car',
                             'construction_vehicle',
@@ -179,33 +188,42 @@ class PandaSetMetric(NuScenesMetric):
 
             frame_sample_idx = sample_idx // CAM_NUM
             camera_type_id = sample_idx % CAM_NUM
+            camera_type = camera_types[camera_type_id]
 
             if camera_type_id == 0:
-                boxes_per_frame = []
+                corners_per_frame = []
+                velocities_per_frame = []
                 attrs_per_frame = []
                 labels_per_frame = []
                 scores_per_frame = []
 
             # need to merge results from images of the same sample
-            sample_token = self.data_infos[frame_sample_idx]['token']
+            info = self.data_infos[frame_sample_idx]
+            sample_token = info['token']
             annos = []
             boxes = det['bboxes_3d']
+            ego_corners, velocities = cam_bbox_to_ego_corners3d(boxes, info, camera_type)
             attrs = det['attr_labels'].to('cpu').numpy().tolist()
             scores = det['scores_3d'].to('cpu').numpy().tolist()
             labels = det['labels_3d'].to('cpu').numpy().tolist()
-            boxes_per_frame.extend(boxes)
+            corners_per_frame.extend(ego_corners.tolist())
+            velocities_per_frame.extend(velocities.tolist())
             attrs_per_frame.extend(attrs)
             labels_per_frame.extend(labels)
             scores_per_frame.extend(scores)
             # Remove redundant predictions caused by overlap of images
             if (sample_idx + 1) % CAM_NUM != 0:
                 continue
-            cam_boxes3d = get_cam3d_boxes_per_frame(boxes_per_frame)
+            assert len(corners_per_frame) == len(velocities_per_frame) == len(attrs_per_frame) == len(labels_per_frame) == len(scores_per_frame)
+            # cam_boxes3d = get_cam3d_boxes_per_frame(boxes_per_frame)
             scores= torch.Tensor(scores_per_frame).to('cuda')
-            nms_score = scores.new_zeros(scores.shape[0],NUM_CLASSES+1)
+            nms_scores = scores.new_zeros(scores.shape[0],NUM_CLASSES+1)
             labels = torch.LongTensor(labels_per_frame).to('cuda')
             indices = labels.new_tensor(list(range(scores.shape[0])))
-            nms_score[indices,labels] = scores
+            nms_scores[indices,labels] = scores
+            scores = nms_scores
+            cam_boxes3d = ego_corners3d_to_cam_bbox(ego_corners, velocities, info)
+            
             # box nms 3d over 6 images in a frame
             # TODO: move this global setting into config
             nms_cfg = dict(
@@ -231,20 +249,24 @@ class PandaSetMetric(NuScenesMetric):
                 mlvl_attr_scores=attrs)
             cam_boxes3d = CameraInstance3DBoxes(boxes3d, box_dim=9)
             det = bbox3d2result(cam_boxes3d, scores, labels, attrs)
+            
             boxes = det['bboxes_3d']
             attrs = det['attr_labels'].to('cpu').tolist()
             scores = det['scores_3d'].to('cpu').tolist()
             labels = det['labels_3d'].to('cpu').tolist()
-
+            ego_corners , velocities = cam_bbox_to_ego_corners3d(boxes)
+            boxes = ego_corners3d_to_ego_bbox(ego_corners, velocities, )
+            
             for i in range(boxes.tensor.shape[0]):
                 box = boxes.tensor[i]
+
                 name = classes[labels[i]]
                 attr = self.get_attr_name(attrs[i], name)
                 nusc_anno = dict(
                     sample_token=sample_token,
                     translation=box[0:3].tolist(),
                     size=box[3:6].tolist(),
-                    yaw=box[6:7].tolist(),
+                    yaw=box[6].tolist(),
                     velocity=box[7:9].tolist(),
                     detection_name=name,
                     detection_score=scores[i],
@@ -332,12 +354,38 @@ class PandaSetMetric(NuScenesMetric):
         return metrics
 
 
-def get_cam3d_boxes_per_frame (boxes:list[CameraInstance3DBoxes]):
-    locs = torch.tensor(np.concatenate([ b.gravity_center for b in boxes],axis=0))
-    dims = torch.tensor(np.concatenate([ b.dims for b in boxes],axis=0))
-    rots = torch.tensor(np.concatenate([ b.yaw for b in boxes],axis=0))
-    velocity = torch.tensor(np.concatenate([ b.tensor[7:9] for b in boxes],axis=0))
-    boxes_3d = torch.cat([locs, dims, rots, velocity], dim=1).cuda()
-    cam_boxes3d = CameraInstance3DBoxes(
-        boxes_3d, box_dim=9, origin=(0.5, 0.5, 0.5))
-    return cam_boxes3d
+def cam_bbox_to_ego_corners3d(boxes, info, camera_type):
+    if isinstance(boxes, CameraInstance3DBoxes):
+        curr_corners = convert_bbox_to_corners_for_camera(boxes)
+    else:
+        raise NotImplementedError(f'Not implemented for box type {type(boxes)} only for CameraInstance3DBoxes and LiDARInstance3DBoxes')
+    velocities = (boxes.tensor[:,-2:] if boxes.tensor.shape[1] > 7 else boxes.tensor.new_tensor(torch.zeros([boxes.tensor.shape[0],2]))).numpy()
+    availabe_camera_types = list(info['images'].keys())
+    assert camera_type not in availabe_camera_types, f'camera type {camera_type} not in available camera types \n\t{availabe_camera_types}' 
+    cam2ego = np.array(info['images'][camera_type]['cam2ego'])
+    ego_corners = curr_corners @ cam2ego[:3,:3].T + cam2ego[:3,3]
+    
+    velocities3d = np.zeros(velocities.shape[0],3)
+    velocities3d[:,[0,2]] = velocities
+    ego_velocities = velocities3d @ cam2ego[:3,:3].T
+    
+    return ego_corners, ego_velocities[:,:2]
+
+def ego_corners3d_to_cam_bbox(corners, velocities, info):
+    cam2ego =np.array( info['images']['front_camera']['cam2ego'])
+    ego2cam = np.linalg.inv(cam2ego)
+    corners = np.array(corners)
+    velocities = np.array(velocities)
+    velocities3d = np.zeros(velocities.shape[0],3)
+    velocities3d[:,[0,1]] = velocities
+    velocities = (velocities3d @ ego2cam[:3,:3].T)[:,::2].tolist()
+    corners = corners @ ego2cam[:3,:3].T + ego2cam[:3,3]
+    boxes = [convert_corners_to_bbox_for_cam_box(corner) for corner in corners]
+    bboxes = [bbox+velocities[i] for i,bbox in enumerate(boxes)]
+    return CameraInstance3DBoxes(tensor=bboxes, box_dim=9, origin=(0.5,0.5,0.5))
+
+def ego_corners3d_to_ego_bbox(corners, velocities,):
+    # corners = corners @ ego2cam[:3,:3].T + ego2cam[:3,3]
+    boxes = [convert_corners_to_bbox_for_lidar_box(corner) for corner in corners]
+    bboxes = [bbox+velocities[i] for i,bbox in enumerate(boxes)]
+    return LiDARInstance3DBoxes(tensor=torch.Tensor(bboxes), box_dim=9, origin=(0.5,0.5,0.5))

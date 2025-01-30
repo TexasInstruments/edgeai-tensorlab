@@ -10,6 +10,7 @@ import argparse
 import copy
 
 from mmdet3d.datasets.pandaset_dataset import CLASSES, ALL_ATTRIBUTES, CAMERA_NAMES, UNIQUE_ATTRIBUTE_LABELS, get_attribute_labels, get_original_label
+from mmdet3d.datasets.convert_utils import convert_corners_to_bbox_for_lidar_box, convert_corners_to_bbox_for_cam_box, convert_bbox_to_corners_for_lidar
 
 def delete_obj(obj):
     if isinstance(obj, (list, tuple)):
@@ -29,53 +30,6 @@ def intrinsic_to_mat(instrinsic:ps.sensors.Intrinsics):
     K[0, 2] = instrinsic.cx
     K[1, 2] = instrinsic.cy
     return K
-
-def convert_bbox_to_corners(bbox):
-    bbox = np.array(bbox)
-    x, y, z, width, length, height, yaw = bbox
-    # 3D corners of the bounding box in the local coordinate system
-    corners = np.array([
-        [width / 2, length / 2, height / 2],
-        [-width / 2, length / 2, height / 2],
-        [-width / 2, -length / 2, height / 2],
-        [width / 2, -length / 2, height / 2],
-        [width / 2, length / 2, -height / 2],
-        [-width / 2, length / 2, -height / 2],
-        [-width / 2, -length / 2, -height / 2],
-        [width / 2, -length / 2, -height / 2]
-    ])
-
-    # Rotation matrix around the z-axis
-    R = np.array([
-        [np.cos(yaw), -np.sin(yaw), 0],
-        [np.sin(yaw), np.cos(yaw), 0],
-        [0, 0, 1]
-    ])
-
-    # Rotate and translate the corners to the global coordinate system
-    rotated_corners = np.dot(R, corners.T).T
-    translated_corners = rotated_corners + np.array([x,y,z])
-    return translated_corners
-
-def convert_corners_to_bbox(corners):
-    corners = np.array(corners)
-    x,y,z = np.mean(corners, axis=0)
-    width = np.linalg.norm(corners[0] - corners[1])
-    length = np.linalg.norm(corners[0] - corners[3])
-    height = np.linalg.norm(corners[0] - corners[4])
-    vector = corners[0] - corners[1]
-    yaw = np.arctan2(vector[1], vector[0])
-    return [x, y, z, width, length, height, yaw]
-
-def convert_corners_to_bbox(corners):
-    corners = np.array(corners)
-    x,y,z = np.mean(corners, axis=0)
-    width = np.linalg.norm(corners[0] - corners[1])
-    length = np.linalg.norm(corners[0] - corners[3])
-    height = np.linalg.norm(corners[0] - corners[4])
-    vector = corners[0] - corners[1]
-    yaw = np.arctan2(vector[1], vector[0])
-    return [x, y, z, width, length, height, yaw]
 
 
 def get_bbox_2d(bbox_corners_image, image_size,):
@@ -146,7 +100,7 @@ def compute_camera_bboxes(cuboids, camera, frame_index):
     filtered_cuboids = []
     for value in cuboids:
         bbox = value[5:11] + [value[2]]
-        corners =convert_bbox_to_corners(bbox)
+        corners =convert_bbox_to_corners_for_lidar(bbox)
         corners = np.array(corners)
         projected_points2d, camera_points_3d, inner_indices = ps.projection(corners, data, camera_pose, cam_intrinsics,filter_outliers=False)
         # center = np.mean(camera_points_3d,axis=1)
@@ -302,10 +256,10 @@ def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img ):
     for cuboid in filtered_cuboids.tolist():
         bbox = cuboid[5:11] + [cuboid[2]]
         # print((cuboid),(bbox),sep='\n')
-        corners = convert_bbox_to_corners(bbox)
+        corners = convert_bbox_to_corners_for_lidar(bbox)
         # we have to store in lidar90 reference not in lidar refrence, of current frame
         lidar90_corners = ( lidar2lidar90 @ np.linalg.inv(lidar2global) @ np.hstack([corners, np.ones((corners.shape[0], 1))]).T).T[:,:3]
-        lidar90_bboxes.append(convert_corners_to_bbox(lidar90_corners))
+        lidar90_bboxes.append(convert_corners_to_bbox_for_lidar_box(lidar90_corners))
         
     available_attrs = [attr for attr in ALL_ATTRIBUTES if f'attributes.{attr}' in cuboids.columns]
     columns_names = list(cuboids.columns)
@@ -348,14 +302,14 @@ def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img ):
         image_size = camera[frame_idx].size
         for token, projected_points2d, camera_points_3d in camera_cuboids:
             bbox_2d, center = get_bbox_2d(projected_points2d, image_size,)
-            bbox3d = convert_corners_to_bbox(camera_points_3d.T)
+            bbox3d = convert_corners_to_bbox_for_cam_box(camera_points_3d.T)
             bboxes.append((token, bbox_2d, center, bbox3d))
         camera_bboxes[name] = bboxes
     
     cam_instances:dict[str,list] = {}
     for name, bboxes in camera_bboxes.items():
         cam_instances[name] = []
-        for token, bbox2d, center,bbox3d in bboxes:
+        for token, bbox2d, center, bbox3d in bboxes:
             label= cuboids_data[token][0]
             attr_label = get_attribute_labels(label, attribute_dicts[token])
             label = get_original_label(label)
@@ -442,7 +396,7 @@ def create_datalist_per_scene(scene_id, dataset, ):
 def create_pickle_file( dataset, scenes, output_dir=None, info_prefix=None, version=None, dataset_name=None,train_split=True):
     output_dir = output_dir or os.getcwd()
     version = version or 'v1.0'
-    dataset_name = dataset_name or 'PandaSet'
+    dataset_name = dataset_name or 'PandaSetDataset'
     info_prefix = info_prefix or ''
     metainfo = dict(
         dataset= dataset_name,
@@ -451,7 +405,7 @@ def create_pickle_file( dataset, scenes, output_dir=None, info_prefix=None, vers
         categories={name:get_original_label(name) for name in CLASSES}
     )
     
-    file_name = info_prefix + '_' if len(info_prefix) else '' + f'{dataset_name}_infos_{"train" if train_split else "val"}.pkl'
+    file_name = info_prefix + '_' if len(info_prefix) else '' + f'pandaset_infos_{"train" if train_split else "val"}.pkl'
     os.makedirs(output_dir, exist_ok=True)
     output_file = os.path.join(output_dir, file_name)
     data_list = []
@@ -497,10 +451,13 @@ def main(args=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset-path', type=str)
     parser.add_argument('--output-dir', type=str)
+    parser.add_argument('--info-prefix', type=str, default='')
+    parser.add_argument('--version', type=str, default='v1.0')
+    parser.add_argument('--dataset-name', type=str, default='PandaSetDataset')
     parser.add_argument('--with-semseg',  action='store_true')
     parser.add_argument('--train-split', type=float, default=0.75)
     args = parser.parse_args() if args is None else parser.parse_args(args)
-    create_pickle_files(args.dataset_path, args.output_dir, args.with_semseg, args.train_split)
+    create_pickle_files(args.dataset_path, args.output_dir, args.info_prefix, args.version, args.dataset_name, args.with_semseg, args.train_split)
 
 if __name__ == '__main__':
     main()
