@@ -322,7 +322,7 @@ def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img ):
                 depth=bbox3d[2],
                 bbox_3d_isvalid=True,
                 center_2d=center,
-                velocities=cam_velocities[name][token],
+                velocity=cam_velocities[name][token],
                 attr_label=attr_label,
             ))
     

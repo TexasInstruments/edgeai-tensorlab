@@ -115,7 +115,7 @@ val_dataloader = dict(
 test_dataloader = val_dataloader
 
 val_evaluator = dict(
-    type='NuScenesMetric',
+    type='PandaSetMetric',
     data_root=data_root,
     # ann_file=data_root + 'nuscenes_infos_val.pkl', # full 
     ann_file=data_root + 'pandaset_infos_mini_val.pkl', # mini

@@ -1,6 +1,7 @@
 import tempfile
 from os import path as osp
 from typing import Dict, List, Optional, Sequence, Tuple, Union
+import time
 
 import mmengine
 import numpy as np
@@ -319,40 +320,78 @@ class PandaSetMetric(NuScenesMetric):
         data = mmengine.load(result_path)
         results = data['results']
         meta = data['meta']
-        # load annotation json file
-        self.data_infos
-        # load classes
-        classes =self.dataset_meta['classes']
-        class_mapping = self.dataset_meta.get('class_mapping', list(range(len(self.dataset_meta['classes']))))
-        
         pred_boxes = {}
         for sample_token, boxes in results.items():
             if sample_token not in pred_boxes:
                 pred_boxes[sample_token] = boxes.copy()
             else:
                 pred_boxes[sample_token].extend(boxes)
+        classes =self.dataset_meta['classes']
+        class_mapping = self.dataset_meta.get('class_mapping', list(range(len(self.dataset_meta['classes']))))
+        gt_boxes = self.load_gt_bboxes(classes, class_mapping)
+        max_dist = 50 # None # for no filtering
+        gt_boxes = filter_eval_boxes(gt_boxes, max_dist)
+        pred_boxes = filter_eval_boxes(pred_boxes, max_dist)
+        sample_tokens = list(gt_boxes.keys())
+        dist_ths = [0.5, 1.0, 2.0, 4.0]
+        metrics = pandaset_evaluate_matrics(pred_boxes, gt_boxes, classes, dist_ths, 2.0)
+        return metrics
+
+    def load_gt_bboxes(self, classes, class_mapping):
+        def create_instance_list(instances, sample_token, info=None, cam_type=None):
+            res_instances = []
+            for instance in instances:
+                if not instance['bbox_3d_isvalid']:
+                    continue
+                box = instance['bbox3d']
+                label = class_mapping[instance['bbox_label_3d']]
+                attr = self.get_attr_name(instance['attr_label'], name)
+                name = classes[label]
+                velocity = instance['velocity'] 
+                if self.bbox_type_3d == LiDARInstance3DBoxes:
+                    velocity = velocity[:2]
+                elif self.bbox_type_3d == CameraInstance3DBoxes:
+                    assert info is not None and cam_type is not None, 'info and cam_type should be provided for CameraInstance3DBoxes'
+                    velocity = velocity[::2]
+                    corners = convert_bbox_to_corners_for_camera(box)
+                    cam2ego = np.array(info['images'][cam_type]['cam2ego'])
+                    ego_corners = corners @ cam2ego[:3,:3].T + cam2ego[:3,3]
+                    box = convert_corners_to_bbox_for_lidar_box(ego_corners)
+                res_instances.append(dict(
+                    sample_token=sample_token,
+                    translatoin=box[:3],
+                    size=box[3:6],
+                    yaw=box[6],
+                    velocity=velocity,
+                    detection_name=name,
+
+                    attribute_name=attr
+                ))
+            return res_instances
         
         gt_boxes = {}
         if self.bbox_type_3d == LiDARInstance3DBoxes:
             for info in self.data_infos:
                 sample_token = info['token']
                 if sample_token in gt_boxes:
-                    gt_boxes[sample_token].extend(info['instances'])
+                    gt_boxes[sample_token].extend(create_instance_list(info['instances'], sample_token, info,))
                 else:
-                    gt_boxes[sample_token] = info['instances'].copy()
+                    gt_boxes[sample_token] = create_instance_list(info['instances'], sample_token, info)
+                
         elif self.bbox_type_3d == CameraInstance3DBoxes:
             for info in self.data_infos:
                 sample_token = info['token']
+                
                 for name, instacnes in info['cam_instances'].items():
                     if sample_token in gt_boxes:
-                        gt_boxes[sample_token].extend(instacnes)
+                        gt_boxes[sample_token].extend(create_instance_list(instacnes, sample_token, info, name))
                     else:
-                        gt_boxes[sample_token] = instacnes.copy()
+                        gt_boxes[sample_token] = create_instance_list(instacnes, sample_token, info, name)
+                    
+        else:
+            raise NotImplementedError
         
-        
-        metrics = dict()
-        return metrics
-
+        return gt_boxes
 
 def cam_bbox_to_ego_corners3d(boxes, info, camera_type):
     if isinstance(boxes, CameraInstance3DBoxes):
@@ -389,3 +428,80 @@ def ego_corners3d_to_ego_bbox(corners, velocities,):
     boxes = [convert_corners_to_bbox_for_lidar_box(corner) for corner in corners]
     bboxes = [bbox+velocities[i] for i,bbox in enumerate(boxes)]
     return LiDARInstance3DBoxes(tensor=torch.Tensor(bboxes), box_dim=9, origin=(0.5,0.5,0.5))
+
+def filter_eval_boxes(boxes:dict[str,list], max_dist=None):
+    max_dist = max_dist or float('inf')
+    for sample_token, instances in boxes.items():
+        boxes[sample_token] = [instance for instance in instances if np.sqrt(np.sum(np.square(instance['translation']))) < max_dist]
+    return boxes
+
+def pandaset_evaluate_matrics(pred_boxes, gt_boxes, classes, dist_thrs, dist_thr_tp):
+    from mmdet3d.evaluation.metrics import pandaset_metric_utils
+    start_time = time.time()
+    MEAN_AP_WEIGHT = 5
+    MIN_PRECISION, MIN_RECALL = 0.1, 0.1
+    metric_data_lists = {}
+    TP_METRICS = ['trans_err', 'scale_err', 'orient_err', 'vel_err', 'attr_err']
+    mean_dist_aps = {}
+    for name in classes:
+        metric_data_list = metric_data_lists[name] = {}
+        for dist_th in dist_thrs:
+            metric_data_list[dist_th] = metric_data = pandaset_metric_utils.get_metrics(pred_boxes, gt_boxes, name, dist_th)
+            ap = pandaset_metric_utils.calc_ap(metric_data, MIN_RECALL, MIN_PRECISION)
+            metric_data['ap'] = ap
+        for metric_name in TP_METRICS:
+            metric_data = metric_data_list[dist_thr_tp]
+            metric_data[metric_name] = pandaset_metric_utils.calc_tp(metric_data, MIN_RECALL, metric_name)
+
+        mean_dist_aps[name] = np.mean(np.array([metric_data['ap'] for metric_data in metric_data_list.values()]))
+    
+    mean_ap = np.mean([ap for ap in mean_dist_aps.values()])
+    tp_errors = {}
+    for metric_name in TP_METRICS:
+        class_errors = []
+        for detection_name in classes:
+            class_errors.append(metric_data_lists[detection_name][metric_name])
+
+        tp_errors[metric_name] = float(np.nanmean(class_errors))
+    
+    tp_scores = {}
+    for metric_name in TP_METRICS:
+        # We convert the true positive errors to "scores" by 1-error.
+        score = 1.0 - tp_errors[metric_name]
+
+        # Some of the true positive errors are unbounded, so we bound the scores to min 0.
+        score = max(0.0, score)
+
+        tp_scores[metric_name] = score
+
+    total = float(MEAN_AP_WEIGHT * mean_ap + np.sum(list(tp_scores.values())))
+
+    # Normalize.
+    nd_score = total / float(MEAN_AP_WEIGHT + len(tp_scores.keys()))
+    err_name_mapping = {
+            'trans_err': 'mATE',
+            'scale_err': 'mASE',
+            'orient_err': 'mAOE',
+            'vel_err': 'mAVE',
+            'attr_err': 'mAAE'
+        }
+    for tp_name, tp_val in tp_errors.items():
+            print('%s: %.4f' % (err_name_mapping[tp_name], tp_val))
+    print('NDS: %.4f' % (nd_score))
+    eval_time = time.time()-start_time
+    print('Eval Time %.1fs' % (eval_time))
+    print()
+    print('Per-class results:')
+    print('%-20s\t%-6s\t%-6s\t%-6s\t%-6s\t%-6s\t%-6s' % ('Object Class', 'AP', 'ATE', 'ASE', 'AOE', 'AVE', 'AAE'))
+    class_aps = mean_dist_aps
+    class_tps = tp_errors
+    for class_name in class_aps.keys():
+        print('%-20s\t%-6.3f\t%-6.3f\t%-6.3f\t%-6.3f\t%-6.3f\t%-6.3f'
+            % (class_name, class_aps[class_name],
+                class_tps[class_name]['trans_err'],
+                class_tps[class_name]['scale_err'],
+                class_tps[class_name]['orient_err'],
+                class_tps[class_name]['vel_err'],
+                class_tps[class_name]['attr_err']))
+
+    return dict(mean_ap=mean_ap, mean_dist_aps=mean_dist_aps, tp_errors=tp_errors, tp_scores=tp_scores, nd_score=nd_score, metric_data_lists=metric_data_lists, eval_time = eval_time)
