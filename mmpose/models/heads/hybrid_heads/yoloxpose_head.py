@@ -17,6 +17,7 @@ from mmpose.structures import PoseDataSample
 from mmpose.utils import reduce_mean
 from mmpose.utils.typing import (ConfigType, Features, OptSampleList,
                                  Predictions, SampleList)
+from einops import rearrange
 
 
 class YOLOXPoseHeadModule(BaseModule):
@@ -155,6 +156,7 @@ class YOLOXPoseHeadModule(BaseModule):
         for _ in self.featmap_strides:
             stacked_convs = []
             for i in range(self.stacked_convs * 2):
+            # for i in range(self.stacked_convs):
                 in_chn = self.in_channels if i == 0 else self.feat_channels
                 stacked_convs.append(
                     ConvModule(
@@ -172,11 +174,14 @@ class YOLOXPoseHeadModule(BaseModule):
         # output layers
         self.out_kpt = nn.ModuleList()
         self.out_kpt_vis = nn.ModuleList()
+        # self.out_kpt_combined = nn.ModuleList()
         for _ in self.featmap_strides:
             self.out_kpt.append(
                 nn.Conv2d(self.feat_channels, self.num_keypoints * 2, 1))
             self.out_kpt_vis.append(
                 nn.Conv2d(self.feat_channels, self.num_keypoints, 1))
+            # self.out_kpt_combined.append(
+            #     nn.Conv2d(self.feat_channels, self.num_keypoints * 3, 1))
 
     def init_weights(self):
         """Initialize weights of the head."""
@@ -204,6 +209,7 @@ class YOLOXPoseHeadModule(BaseModule):
 
         cls_scores, bbox_preds, objectnesses = [], [], []
         kpt_offsets, kpt_vis = [], []
+        # kpt_offsets, kpt_vis, kpt_combined = [], [], []
 
         for i in range(len(x)):
 
@@ -214,6 +220,7 @@ class YOLOXPoseHeadModule(BaseModule):
             cls_scores.append(self.out_cls[i](cls_feat))
             objectnesses.append(self.out_obj[i](reg_feat))
             bbox_preds.append(self.out_bbox[i](reg_feat))
+
             kpt_offsets.append(self.out_kpt[i](pose_feat))
             kpt_vis.append(self.out_kpt_vis[i](pose_feat))
         
@@ -221,7 +228,16 @@ class YOLOXPoseHeadModule(BaseModule):
             shape_data = [bbox_preds[i].data.shape[1], objectnesses[i].data.shape[1],  cls_scores[i].data.shape[1], kpt_offsets[i].data.shape[1],kpt_vis[i].data.shape[1]]
             bbox_preds[i], objectnesses[i], cls_scores[i], kpt_offsets[i], kpt_vis[i] = torch.split(outs, shape_data, dim=1)
 
+            #old_decoder
+            # kpt_combined.append(self.out_kpt_combined[i](pose_feat))
+            # ### kpt_combined.append(torch.cat((self.out_kpt[i](pose_feat),self.out_kpt_vis[i](pose_feat)), dim=1))
+            # outs = torch.cat((bbox_preds[i], objectnesses[i], cls_scores[i], kpt_combined[i]), dim=1)
+            # shape_data = [bbox_preds[i].data.shape[1], objectnesses[i].data.shape[1], \
+            #               cls_scores[i].data.shape[1], kpt_combined[i].data.shape[1]]
+            # bbox_preds[i], objectnesses[i], cls_scores[i], kpt_combined[i] = torch.split(outs, shape_data, dim=1)
+
         return cls_scores, objectnesses, bbox_preds, kpt_offsets, kpt_vis
+        # return cls_scores, objectnesses, bbox_preds, kpt_combined
 
 
 @MODELS.register_module()
@@ -298,6 +314,18 @@ class YOLOXPoseHead(BaseModule):
         cls_scores, objectnesses, bbox_preds, kpt_offsets, \
             kpt_vis = self.forward(feats)
 
+        # #old_decoder
+        # cls_scores, objectnesses, bbox_preds,  \
+        #     kpt_combined = self.forward(feats)
+        
+        # kpt_offsets, kpt_vis = [], []
+        # for i in range(len(self.featmap_strides)):
+        #     kpt_combined[i] = rearrange(kpt_combined[i], 'b (k v) w h -> b k v w h', v=3)
+        #     kpt_offsets.append(kpt_combined[i][:,:, :2  ,:,:])
+        #     kpt_offsets[i] = rearrange(kpt_offsets[i], 'b k v w h -> b (k v) w h')
+        #     kpt_vis.append(kpt_combined[i][:,:, 2:,:,:])
+        #     kpt_vis[i] = rearrange(kpt_vis[i], 'b k v w h -> b (k v) w h')
+
         featmap_sizes = [cls_score.shape[2:] for cls_score in cls_scores]
         mlvl_priors = self.prior_generator.grid_priors(
             featmap_sizes,
@@ -305,6 +333,7 @@ class YOLOXPoseHead(BaseModule):
             device=cls_scores[0].device,
             with_stride=True)
         flatten_priors = torch.cat(mlvl_priors)
+
 
         # flatten cls_scores, bbox_preds and objectness
         flatten_cls_scores = self._flatten_predictions(cls_scores)
@@ -318,6 +347,18 @@ class YOLOXPoseHead(BaseModule):
         flatten_kpt_decoded = self.decode_kpt_reg(flatten_kpt_offsets,
                                                   flatten_priors[..., :2],
                                                   flatten_priors[..., -1])
+
+        #old_decoder
+        # # flatten_kpt_decoded, flatten_kpt_vis = self.decode_output(
+        # #                                         flatten_kpt_offsets,flatten_kpt_vis,featmap_sizes)
+        # flatten_kpt_decoded, flatten_kpt_vis = self.decode_kpt_combined(
+        #                                         flatten_kpt_offsets,flatten_kpt_vis,
+        #                                         flatten_priors[..., :2],
+        #                                           flatten_priors[..., -1])
+        
+
+
+
 
         # 2. generate targets
         targets = self._get_targets(flatten_priors,
@@ -634,6 +675,18 @@ class YOLOXPoseHead(BaseModule):
         cls_scores, objectnesses, bbox_preds, kpt_offsets, \
             kpt_vis = self.forward(feats)
 
+        # #old_decoder
+        # cls_scores, objectnesses, bbox_preds,  \
+        #     kpt_combined = self.forward(feats)
+        
+        # kpt_offsets, kpt_vis = [], []
+        # for i in range(len(self.featmap_strides)):
+        #     kpt_combined[i] = rearrange(kpt_combined[i], 'b (k v) w h -> b k v w h', v=3)
+        #     kpt_offsets.append(kpt_combined[i][:,:, :2  ,:,:])
+        #     kpt_offsets[i] = rearrange(kpt_offsets[i], 'b k v w h -> b (k v) w h')
+        #     kpt_vis.append(kpt_combined[i][:,:, 2:,:,:])
+        #     kpt_vis[i] = rearrange(kpt_vis[i], 'b k v w h -> b (k v) w h')
+
         cfg = copy.deepcopy(test_cfg)
 
         batch_img_metas = [d.metainfo for d in batch_data_samples]
@@ -661,10 +714,17 @@ class YOLOXPoseHead(BaseModule):
         flatten_objectness = self._flatten_predictions(objectnesses).sigmoid()
         flatten_kpt_offsets = self._flatten_predictions(kpt_offsets)
         flatten_kpt_vis = self._flatten_predictions(kpt_vis).sigmoid()
+        # flatten_kpt_vis = self._flatten_predictions(kpt_vis)
         flatten_bbox_preds = self.decode_bbox(flatten_bbox_preds,
                                               flatten_priors, flatten_stride)
         flatten_kpt_reg = self.decode_kpt_reg(flatten_kpt_offsets,
                                               flatten_priors, flatten_stride)
+        # #old_decoder
+        # # flatten_kpt_reg, flatten_kpt_vis = self.decode_output(
+        # #                                         flatten_kpt_offsets,flatten_kpt_vis,featmap_sizes)
+        # flatten_kpt_reg, flatten_kpt_vis = self.decode_kpt_combined(
+        #                                         flatten_kpt_offsets,flatten_kpt_vis,
+        #                                         flatten_priors, flatten_stride)
 
         results_list = []
         for (bboxes, scores, objectness, kpt_reg, kpt_vis,
@@ -751,6 +811,9 @@ class YOLOXPoseHead(BaseModule):
         decoded_bboxes = torch.stack([tl_x, tl_y, br_x, br_y], -1)
         return decoded_bboxes
 
+        # decoded_bboxes = torch.stack([xys[..., 0], xys[..., 1], whs[..., 0], whs[..., 1]], -1)
+        # return decoded_bboxes
+
     def decode_kpt_reg(self, pred_kpt_offsets: torch.Tensor,
                        priors: torch.Tensor,
                        stride: torch.Tensor) -> torch.Tensor:
@@ -775,6 +838,28 @@ class YOLOXPoseHead(BaseModule):
 
         decoded_kpts = pred_kpt_offsets * stride + priors
         return decoded_kpts
+    
+    # #old_decoder defibnation
+    # def decode_kpt_combined(self, pred_kpt_offsets: torch.Tensor,
+    #                         pred_kpt_vis: torch.Tensor,
+    #                    priors: torch.Tensor,
+    #                    stride: torch.Tensor):
+        
+    #     stride = stride.view(1, stride.size(0), 1, 1)
+    #     priors_offset = priors.view(1, priors.size(0), 1, 2)
+    #     # priors_vis = torch.zeros_like(priors_offset)[...,0:1]
+    #     # priors_vis = priors_vis.view(1, priors.size(0), 1, 1)
+    #     pred_kpt_offsets = pred_kpt_offsets.reshape(
+    #         *pred_kpt_offsets.shape[:-1], self.num_keypoints, 2)
+    #     pred_kpt_vis = pred_kpt_vis.reshape(
+    #         *pred_kpt_vis.shape[:-1], self.num_keypoints, 1)
+        
+    #     out_kpt_offset = ((2*pred_kpt_offsets - 0.5) * stride ) + priors_offset
+    #     out_kpt_vis = ((2*pred_kpt_vis - 0.5) * stride )
+
+    #     out_kpt_vis = out_kpt_vis.view(out_kpt_vis.shape[:3])
+
+    #     return out_kpt_offset, out_kpt_vis
 
     def _flatten_predictions(self, preds: List[Tensor]):
         """Flattens the predictions from a list of tensors to a single

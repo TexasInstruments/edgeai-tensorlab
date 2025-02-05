@@ -62,7 +62,7 @@ train_pipeline_stage1 = [
         ),
 ]
 train_dataloader = dict(
-    batch_size=64, dataset=dict(pipeline=train_pipeline_stage1))
+    batch_size=32, dataset=dict(pipeline=train_pipeline_stage1))
 
 input_size = (416, 416)
 val_pipeline = [
