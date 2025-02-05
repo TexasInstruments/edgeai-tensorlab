@@ -1,7 +1,7 @@
 -r requirements.txt
 onnxsim==0.4.35
 numpy==1.23.0
-onnx_graphsurgeon --extra-index-url https://pypi.ngc.nvidia.com
+onnx_graphsurgeon==0.3.26 --extra-index-url https://pypi.ngc.nvidia.com
 #git+https://github.com/NVIDIA/TensorRT@release/8.5#subdirectory=tools/onnx-graphsurgeon
 #git+https://github.com/TexasInstruments/edgeai-tidl-tools.git@10_00_08_00#subdirectory=osrt-model-tools
 git+ssh://git@bitbucket.itg.ti.com/processor-sdk-vision/edgeai-tidl-tools.git@master#subdirectory=osrt-model-tools
