@@ -355,7 +355,7 @@ if [ -d "${CURRENT_WORK_DIR}/../edgeai-tidl-tools" ]; then
   echo "Found local edgeai-tidl-tools, installing osrt_model_tools in develop mode"
   echo "--------------------------------------------------------------------------------------------------------------"
   pip3 uninstall -y osrt_model_tools
-  cd ${CURRENT_WORK_DIR}/../edgeai-tidl-tools/osrt_model_tools
+  cd ${CURRENT_WORK_DIR}/../edgeai-tidl-tools/osrt-model-tools
   python3 setup.py develop
   cd ${CURRENT_WORK_DIR}
 fi
