@@ -163,7 +163,10 @@ if __name__ == '__main__':
     work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
     print(f'work_dir: {work_dir}')
 
-    with open(settings.models_list_file, 'rt') as list_fp:
+    if kwargs['models_list_file'] is None:
+        kwargs['models_list_file'] = os.path.join(settings.modelartifacts_path, "models_list.txt")
+
+    with open(kwargs['models_list_file'], 'rt') as list_fp:
         model_entries = [model_entry.rstrip() for model_entry in list_fp]
         num_models = len(model_entries)
 
