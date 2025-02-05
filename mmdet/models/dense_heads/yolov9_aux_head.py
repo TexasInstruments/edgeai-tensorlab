@@ -45,7 +45,7 @@ from mmdet.models.layers.yolo_layers import Detection
 @MODELS.register_module()
 class YOLOV9AuxHead(BaseModule):
     def __init__(self,
-                 in_channels: Sequence[int] =[128, 192, 256],
+                 in_channels: Sequence[int] = [64, 96, 128],
                  upsample_cfg=dict(scale_factor=2, mode='nearest'),
                  csp_arg = {"repeat_num": 3},
                  num_classes: int = 80,

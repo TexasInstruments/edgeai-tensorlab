@@ -1,5 +1,4 @@
 _base_ = ['../_base_/schedules/schedule_1x.py', '../_base_/default_runtime.py']
-# model settings
 
 # training settings
 max_epochs = 300
@@ -44,9 +43,9 @@ model = dict(
             type='YOLOV7Loss',
                 loss_cfg = dict(
                     objective=dict(
-                        ClassLoss=0.3,
+                        ClassLoss=0.5,
                         BoxLoss=0.05,
-                        ObjLoss=0.7
+                        ObjLoss=1.0
                     ),
                     aux=0.25,
                     matcher=dict(
@@ -185,6 +184,8 @@ optim_wrapper = dict(
 #     dict(type='LinearLR', start_factor=0.1, by_epoch=False, begin=0, end=2000),
 #     dict(type='MultiStepLR', by_epoch=True, milestones=[218, 246], gamma=0.1)
 # ]
+
+lr_cosine_factor = 0.01
 param_scheduler = [
     dict(
         # use quadratic formula to warm up 5 epochs
@@ -198,7 +199,7 @@ param_scheduler = [
     dict(
         # use cosine lr from 5 to 285 epoch
         type='CosineAnnealingLR',
-        eta_min=base_lr * 0.05,
+        eta_min=base_lr * lr_cosine_factor,
         begin=5,
         T_max=max_epochs - num_last_epochs,
         end=max_epochs - num_last_epochs,

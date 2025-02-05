@@ -1,12 +1,12 @@
 _base_ = ['../_base_/schedules/schedule_1x.py', '../_base_/default_runtime.py']
 
 # training settings
-max_epochs = 100
+max_epochs = 300
 num_last_epochs = 15
 interval = 5
 
 img_scale = (640, 640)
-batch_size = 16
+batch_size = 32
 
 data_preprocessor = dict(
     type='DetDataPreprocessor',
@@ -15,50 +15,54 @@ data_preprocessor = dict(
     bgr_to_rgb=True,
     pad_size_divisor=32)
 model = dict(
-    type='YOLOV7',
+    type='YOLOV9',
     data_preprocessor=data_preprocessor,
     backbone=dict(
-        type='YOLOV7Backbone',
-        # init_cfg=dict(type='Pretrained', checkpoint='work_dirs/onnx_exports/yolov7/checkpoint/yolov7_new_weights.pth')
+        type='YOLOV9Backbone',
+        stem_channels=[16, 32],
+        expand_list=[64, 96, 128],
+        init_cfg=dict(type='Pretrained', checkpoint='https://github.com/WongKinYiu/yolov9mit/releases/download/v1.0-alpha/v9-s.pt')
         ),
     neck=dict(
-        type='YOLOV7Neck',
-        top_down_channels=[512, 256],
-        down_sample_channels=[256, 512],
-        output_channels=[256, 512, 1024],
+        type='YOLOV9Neck',
+        in_channels=[64, 96, 128],
+        csp_arg = {"repeat_num": 3}
         ),
     bbox_head=dict(
-        type='YOLOV7Head',
+        type='YOLOV9Head',
         num_classes=80,
-        in_channels=[256, 512, 1024],
-        anchor_num=3,
-        anchor_cfg = dict(
-            anchor = [
-                    [12,16, 19,36, 40,28],  # P5/8
-                    [36,75, 76,55, 72,146],  # P4/16
-                    [142,110, 192,243, 459,401]  # P5/32
-            ],
-            strides = [8, 16, 32]
-        ),
+        in_channels=[64, 96, 128]   ,
+        strides=(8, 16, 32),
+        reg_max=16,
         loss_yolo=dict(
-            type='YOLOV7Loss',
+            type='YOLOV9Loss',
                 loss_cfg = dict(
                     objective=dict(
-                        ClassLoss=0.3,
-                        BoxLoss=0.05,
-                        ObjLoss=0.7
+                        BCELoss=0.5,
+                        BoxLoss=7.5,
+                        DFLoss=1.5
                     ),
                     aux=0.25,
                     matcher=dict(
                         iou='CIoU',
-                        topk=4,
-                    factor=None,
+                        topk=10,
+                        factor=dict(
+                            iou=6.0,
+                            cls=0.5
+                        )
                     )
                 )
         ),
         ),
+        aux_head=dict(
+        type='YOLOV9AuxHead',
+        in_channels=[64, 96, 128],
+        csp_arg = {"repeat_num": 3},
+        num_classes=80,
+        reg_max=16,
+        ),
     # training and testing settings
-    test_cfg=dict(score_thr=0.001, max_bbox=1000, nms=dict(type='nms', iou_threshold=0.65)
+    test_cfg=dict(score_thr=0.01, nms=dict(type='nms', iou_threshold=0.65)
         ))
 # dataset settings
 dataset_type = 'CocoDataset'
@@ -127,7 +131,6 @@ train_dataset = dict(
 
 test_pipeline = [
     dict(type='LoadImageFromFile', backend_args=backend_args),
-    # dict(type='Resize', scale=img_scale, keep_ratio=True),
     dict(
         type='Pad',
         pad_to_square=True,
@@ -141,12 +144,12 @@ test_pipeline = [
 
 train_dataloader = dict(
     batch_size=batch_size,
-    num_workers=8,
+    num_workers=16,
     persistent_workers=True,
     sampler=dict(type='DefaultSampler', shuffle=True),
     dataset=train_dataset)
 val_dataloader = dict(
-    batch_size=8,
+    batch_size=16,
     num_workers=4,
     persistent_workers=True,
     drop_last=False,
@@ -172,7 +175,7 @@ train_cfg = dict(max_epochs=max_epochs, val_interval=interval)
 
 # optimizer
 # default 8 gpu
-base_lr = 1e-4
+base_lr = 1e-2
 optim_wrapper = dict(
     type='OptimWrapper',
     optimizer=dict(
@@ -215,7 +218,7 @@ param_scheduler = [
 ]
 
 
-default_hooks = dict(checkpoint=dict(type='CheckpointHook', interval=2, max_keep_ckpts=40))
+default_hooks = dict(checkpoint=dict(type='CheckpointHook', interval=5, max_keep_ckpts=20))
 
 # NOTE: `auto_scale_lr` is for automatically scaling LR,
 # USER SHOULD NOT CHANGE ITS VALUES.

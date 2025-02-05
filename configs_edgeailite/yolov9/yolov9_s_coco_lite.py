@@ -1,5 +1,4 @@
 _base_ = ['../../configs/yolov9/yolov9_s_coco.py']
-# model settings
 
 convert_to_lite_model = dict(model_surgery=1)
 
