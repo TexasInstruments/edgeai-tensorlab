@@ -69,7 +69,7 @@ def get_configs(settings, work_dir):
         # Transformer models from huggingface transformers
         'od-8920':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((800,800),(800,800), resize_with_pad=False, backend='cv2'),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True,
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False,
                     #output_feature_16bit_names_list_from_start_end={'/model/decoder/layers.5/Add_1_output_0':None}
                 ),
                 runtime_options=settings.runtime_options_onnx_np2(
@@ -84,7 +84,7 @@ def get_configs(settings, work_dir):
         ),
         'od-8930':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((800,1216), (800,1216), reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
-            session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True),
+            session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir, input_optimization=False),
                 runtime_options=settings.runtime_options_onnx_np2(
                    det_options=True, ext_options={}, fast_calibration=True),
                 model_path=f'../edgeai-modelzoo/models/vision/detection/coco/mmdet/fcos_r50-caffe_fpn_gn-head_ms-640-800-2x_coco.onnx'),
@@ -94,7 +94,7 @@ def get_configs(settings, work_dir):
         ),
         'od-8940':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((800,1216), (800,1216), reverse_channels=True, resize_with_pad=False, backend='cv2'),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=(103.53, 116.28, 123.675), input_scale=(1.0, 1.0, 1.0), input_optimization=False, tidl_onnx_model_optimizer=True,
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=(103.53, 116.28, 123.675), input_scale=(1.0, 1.0, 1.0), input_optimization=False,
                                                                         # deny_list_from_start_end_node = {
                                                                         #     '/Sigmoid_1':None,
                                                                         #     '/Sigmoid_4':None,
@@ -118,7 +118,7 @@ def get_configs(settings, work_dir):
         ),
         'od-8950':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((448, 672), (448, 672), reverse_channels=False, resize_with_pad=False, backend='cv2'),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=False,
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False,
                                                                         # deny_list_from_start_end_node = {'/bbox_head/Sigmoid':None}
                                                                         ),
                 runtime_options=settings.runtime_options_onnx_np2(

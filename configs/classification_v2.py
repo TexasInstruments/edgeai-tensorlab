@@ -169,7 +169,7 @@ def get_configs(settings, work_dir):
         ################################## huggingface transformer models ##################
         'cl-6700':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=dict(hf_attention_block_optimization=True)),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
                 runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}, fast_calibration=True),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/hf-transformers/vit_tiny_patch16_224_simp.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':45.23}, model_shortlist=80, compact_name='ViT-tiny-patch16-transformer-224', shortlisted=False)
@@ -177,49 +177,49 @@ def get_configs(settings, work_dir):
         # inference takes too much time - limit th number of frames for inference
         'cl-6710':utils.dict_update(utils.dict_update(common_cfg, num_frames=(min(settings.num_frames,1000) if settings.num_frames else None)),
             preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=dict(hf_attention_block_optimization=True)),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
                 runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}, fast_calibration=True),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/hf-transformers/vit_base_patch16_224_simp.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':75.40}, model_shortlist=80, compact_name='ViT-base-patch16-transformer-224', shortlisted=False)
         ),          
         'cl-6720':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=dict(hf_attention_block_optimization=True)),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
                 runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}, fast_calibration=True),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/hf-transformers/deit_tiny_patch16_224_simp.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':72.13}, model_shortlist=80, compact_name='DeiT-tiny-patch16-transformer-224', shortlisted=False)
         ),
         'cl-6730':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=dict(hf_attention_block_optimization=True)),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
                 runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}, fast_calibration=True),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/hf-transformers/levit_128_224_simp.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':78.59}, model_shortlist=80, compact_name='LeViT-128-transformer-224', shortlisted=False)
         ),  
         'cl-6740':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=dict(hf_attention_block_optimization=True)),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
                 runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}, fast_calibration=True),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/hf-transformers/levit_256_224_simp.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':81.59}, model_shortlist=80, compact_name='LeViT-256-transformer-224', shortlisted=False)
         ),          
         'cl-6750':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=dict(hf_attention_block_optimization=True)),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
                 runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}, fast_calibration=True),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/hf-transformers/swin_tiny_patch4_window7_224_simp.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':80.43}, model_shortlist=80, compact_name='Swin-tiny-patch4-window7-transformer-224', shortlisted=False)
         ),  
         'cl-6760':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=dict(hf_attention_block_optimization=True)),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
                 runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}, fast_calibration=True),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/hf-transformers/swin_small_patch4_window7_224_simp.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':83.07}, model_shortlist=80, compact_name='Swin-small-patch4-window7-transformer-224', shortlisted=False)
         ),         
         'cl-6770':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=dict(hf_attention_block_optimization=True)),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
                 runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}, fast_calibration=True),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/hf-transformers/swin_base_patch4_window7_224_simp.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':84.81}, model_shortlist=80, compact_name='Swin-base-patch4-window7-transformer-224', shortlisted=False)
@@ -227,7 +227,7 @@ def get_configs(settings, work_dir):
         # torchvision: classification convnext_tiny expected_metric:  top-1 accuracy
         'cl-6790':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, with_onnxsim=True, input_optimization=False, tidl_onnx_model_optimizer=True),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, with_onnxsim=True, input_optimization=False),
                 runtime_options=settings.runtime_options_onnx_np2(fast_calibration=True),
                 model_path=f'../edgeai-modelzoo/models/vision/classification/imagenet1k/torchvision/convnext_tiny.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':82.52}, model_shortlist=110, compact_name='convNext-tiny-tv-224', shortlisted=False)
@@ -235,7 +235,7 @@ def get_configs(settings, work_dir):
         # torchvision: classification convnext_small expected_metric:  top-1 accuracy
         'cl-6800':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, with_onnxsim=True, input_optimization=False, tidl_onnx_model_optimizer=True),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, with_onnxsim=True, input_optimization=False),
                 runtime_options=settings.runtime_options_onnx_np2(fast_calibration=True),
                 model_path=f'../edgeai-modelzoo/models/vision/classification/imagenet1k/torchvision/convnext_small.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':83.63}, model_shortlist=110, compact_name='convNext-small-tv-224', shortlisted=False)
@@ -243,7 +243,7 @@ def get_configs(settings, work_dir):
         # torchvision: classification efficientnet_b0 expected_metric:  top-1 accuracy
         'cl-6810':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, with_onnxsim=True, input_optimization=False, tidl_onnx_model_optimizer=True),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, with_onnxsim=True, input_optimization=False),
                 runtime_options=settings.runtime_options_onnx_np2(
                     ext_options={
                      'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL 
@@ -255,7 +255,7 @@ def get_configs(settings, work_dir):
         # torchvision: classification efficientnet_b1 expected_metric:  top-1 accuracy
         'cl-6820':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, with_onnxsim=True, input_optimization=False, tidl_onnx_model_optimizer=True),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, with_onnxsim=True, input_optimization=False),
                 runtime_options=settings.runtime_options_onnx_np2(
                     ext_options={
                      'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL 
@@ -267,7 +267,7 @@ def get_configs(settings, work_dir):
         # torchvision: classification mobilenet_v3_small expected_metric:  top-1 accuracy
         'cl-6830':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, with_onnxsim=False, input_optimization=False, tidl_onnx_model_optimizer=True),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, with_onnxsim=False, input_optimization=False),
                 runtime_options=settings.runtime_options_onnx_np2(
                     ext_options={
                         'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL 
@@ -279,7 +279,7 @@ def get_configs(settings, work_dir):
         # torchvision: classification mobilenet_v3_large expected_metric:  top-1 accuracy
         'cl-6840':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, with_onnxsim=True, input_optimization=False, tidl_onnx_model_optimizer=True),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, with_onnxsim=True, input_optimization=False),
                 runtime_options=settings.runtime_options_onnx_np2(
                     ext_options={
                      'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL 
@@ -291,8 +291,7 @@ def get_configs(settings, work_dir):
         # hf-transformers: classification convnext-tiny-224 expected_metric:  top-1 accuracy
         'cl-6850':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, with_onnxsim=False, input_optimization=False, 
-                                                                      tidl_onnx_model_optimizer={'convert_reducemean_to_matmul': True}),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, with_onnxsim=False, input_optimization=False),
                 runtime_options=settings.runtime_options_onnx_np2(
                     ext_options={
                      'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL 
@@ -303,7 +302,7 @@ def get_configs(settings, work_dir):
         #FAST-VIT
         'cl-6860':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(256,256),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
                 runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL,
                                                                                }, fast_calibration=True),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/timm/fastvit_s12.apple_in1k_reparam_simp.onnx'),
@@ -311,7 +310,7 @@ def get_configs(settings, work_dir):
         ),
         'cl-6870':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(256,256),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
                 runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL,
                                                                                }, fast_calibration=True),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/timm/fastvit_sa12.apple_in1k_reparam_simp.onnx'),

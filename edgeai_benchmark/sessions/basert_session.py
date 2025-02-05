@@ -108,7 +108,7 @@ class BaseRTSession(utils.ParamsBase):
         self.kwargs['shape_inference'] = self.kwargs.get('shape_inference', True)
 
         # optimizations specific to TIDL
-        self.kwargs['tidl_onnx_model_optimizer'] = self.kwargs.get('tidl_onnx_model_optimizer', None)
+        self.kwargs['tidl_onnx_model_optimizer'] = self.kwargs.get('tidl_onnx_model_optimizer', True)
         self.kwargs['deny_list_from_start_end_node'] = self.kwargs.get('deny_list_from_start_end_node', None)
         self.kwargs['output_feature_16bit_names_list_from_start_end'] = self.kwargs.get('output_feature_16bit_names_list_from_start_end', None)
 
