@@ -3,8 +3,8 @@ onnxsim==0.4.35
 numpy==1.23.0
 onnx_graphsurgeon --extra-index-url https://pypi.ngc.nvidia.com
 #git+https://github.com/NVIDIA/TensorRT@release/8.5#subdirectory=tools/onnx-graphsurgeon
-#git+https://github.com/TexasInstruments/edgeai-tidl-tools.git@10_00_08_00#subdirectory=scripts
-git+ssh://git@bitbucket.itg.ti.com/processor-sdk-vision/edgeai-tidl-tools.git@master#subdirectory=scripts
+#git+https://github.com/TexasInstruments/edgeai-tidl-tools.git@10_00_08_00#subdirectory=osrt_model_tools
+git+ssh://git@bitbucket.itg.ti.com/processor-sdk-vision/edgeai-tidl-tools.git@master#subdirectory=osrt_model_tools
 tflite
 flatbuffers==1.12.0
 requests
