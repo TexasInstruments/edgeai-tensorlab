@@ -228,7 +228,11 @@ def get_configs(settings, work_dir):
         'cl-6790':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, with_onnxsim=True, input_optimization=False),
-                runtime_options=settings.runtime_options_onnx_np2(fast_calibration=True),
+                runtime_options=settings.runtime_options_onnx_np2(fast_calibration=True,
+                    ext_options={
+                        'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL
+                     },
+                ),
                 model_path=f'../edgeai-modelzoo/models/vision/classification/imagenet1k/torchvision/convnext_tiny.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':82.52}, model_shortlist=110, compact_name='convNext-tiny-tv-224', shortlisted=False)
         ),
@@ -236,7 +240,11 @@ def get_configs(settings, work_dir):
         'cl-6800':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, with_onnxsim=True, input_optimization=False),
-                runtime_options=settings.runtime_options_onnx_np2(fast_calibration=True),
+                runtime_options=settings.runtime_options_onnx_np2(fast_calibration=True,
+                    ext_options={
+                        'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL
+                     },
+                ),
                 model_path=f'../edgeai-modelzoo/models/vision/classification/imagenet1k/torchvision/convnext_small.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':83.63}, model_shortlist=110, compact_name='convNext-small-tv-224', shortlisted=False)
         ),
