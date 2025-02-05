@@ -11,7 +11,7 @@ train_cfg = dict(
 auto_scale_lr = dict(base_batch_size=256)
 
 default_hooks = dict(
-    checkpoint=dict(type='CheckpointHook', interval=10, max_keep_ckpts=3))
+    checkpoint=dict(type='CheckpointHook', interval=10, max_keep_ckpts=10))
 
 optim_wrapper = dict(
     type='OptimWrapper',
@@ -208,7 +208,7 @@ train_dataloader = dict(
     batch_size=32,
     num_workers=8,
     persistent_workers=True,
-    pin_memory=True,
+    pin_memory=False,
     sampler=dict(type='DefaultSampler', shuffle=True),
     dataset=dataset_coco)
 
@@ -223,10 +223,10 @@ val_pipeline = [
 ]
 
 val_dataloader = dict(
-    batch_size=1,
+    batch_size=8,
     num_workers=2,
     persistent_workers=True,
-    pin_memory=True,
+    pin_memory=False,
     drop_last=False,
     sampler=dict(type='DefaultSampler', shuffle=False, round_up=False),
     dataset=dict(
