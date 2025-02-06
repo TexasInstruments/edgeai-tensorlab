@@ -38,6 +38,7 @@ from torch.fx.passes.utils.source_matcher_utils import SourcePartition
 
 from edgeai_torchmodelopt import xmodelopt, xops
 from projects.FCOS3D.fcos3d.modulated_deform_conv_tidl import ModulatedDeformConv2dTIDL
+from mmcv.ops.modulated_deform_conv import ModulatedDeformConv2dPack
 
 
 def wrap_fn_for_bbox_head(fn, module:nn.Module, *args, **kwargs):
@@ -301,7 +302,8 @@ def replace_maxpool2d_k_size_gt_3(model:nn.Module, verbose_mode=False, **kwargs)
 
 def replace_dform_conv_with_split_offset_mask(model):
     replacement_dict = {
-            'split_conv_in_deform_to_offset_mask': {ModulatedDeformConv2dTIDL: [replace_dform_conv_tidl]}
+            'split_conv_in_deform_to_offset_mask_tidl': {ModulatedDeformConv2dTIDL: [replace_dform_conv_tidl]},
+            'split_conv_in_deform_to_offset_mask_orig': {ModulatedDeformConv2dPack: [replace_dform_conv_tidl]},
         }
     model = xmodelopt.surgery.v1.convert_to_lite_model(model, replacement_dict)
     return model

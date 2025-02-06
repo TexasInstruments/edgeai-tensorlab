@@ -180,13 +180,13 @@ class PandaSetDataset(NuScenesDataset):
         for instance in instances:
             instance['bbox_label'] = self.get_label_func(instance['bbox_label'])
             instance['bbox_label_3d'] = self.get_label_func(instance['bbox_label_3d'])
-            instance['velocities'] = instance['velocities'] [::2] if self.load_type == 'mv_image_based' else instance['velocities'][:2]
+            instance['velocity'] = instance['velocity'] [::2] if self.load_type == 'mv_image_based' else instance['velocity'][:2]
         cam_instances = info.get('cam_instances',{})
         for name, instances in cam_instances.items():
             for instance in instances:
                 instance['bbox_label'] = self.get_label_func(instance['bbox_label'])
                 instance['bbox_label_3d'] = self.get_label_func(instance['bbox_label_3d'])
-                instance['velocities'] = instance['velocities'] [::2]
+                instance['velocity'] = instance['velocity'] [::2]
         ann_info =  super().parse_ann_info(info)
         return ann_info
     

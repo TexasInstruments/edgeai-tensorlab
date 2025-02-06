@@ -49,9 +49,8 @@ class PandaSetMetric(NuScenesMetric):
     
 
     
-    def __init__(self, data_root, ann_file, metric = 'bbox', modality = ..., prefix = None, format_only = False, jsonfile_prefix = None, eval_version = 'detection_cvpr_2019', collect_device = 'cpu', backend_args = None):
+    def __init__(self, data_root, ann_file, metric = 'bbox', modality = None, prefix = None, format_only = False, jsonfile_prefix = None, eval_version = 'detection_cvpr_2019', collect_device = 'cpu', backend_args = None):
         super().__init__(data_root, ann_file, metric, modality, prefix, format_only, jsonfile_prefix, eval_version, collect_device, backend_args)
-        self.NameMapping = dict(map(lambda x:(x,x),self.dataset_meta['classes']))
     
     def get_attr_name(self, attr_idx, label_name):
         attr_mapping = UNIQUE_ATTRIBUTE_LABELS
@@ -93,11 +92,11 @@ class PandaSetMetric(NuScenesMetric):
             annos = []
             boxes = det['bboxes_3d']
             if 'attr_labels' in det:
-                attrs = det['attr_labels'].to('cpu').numpy().tolist()
+                attrs = det['attr_labels'].to(self.collect_device).numpy().tolist()
             else:
                 attrs = None
-            scores = det['scores_3d'].to('cpu').numpy().tolist()
-            labels = det['labels_3d'].to('cpu').numpy().tolist()
+            scores = det['scores_3d'].to(self.collect_device).numpy().tolist()
+            labels = det['labels_3d'].to(self.collect_device).numpy().tolist()
             sample_idx = sample_idx_list[i]
             sample_token = self.data_infos[sample_idx]['token']
             for i in range(boxes.tensor.shape[0]):
@@ -142,7 +141,7 @@ class PandaSetMetric(NuScenesMetric):
             'results': nusc_annos,
         }
         mmengine.mkdir_or_exist(jsonfile_prefix)
-        res_path = osp.join(jsonfile_prefix, 'results_nusc.json')
+        res_path = osp.join(jsonfile_prefix, 'results_pandaset.json')
         print(f'Results writes to {res_path}')
         mmengine.dump(nusc_submissions, res_path)
         return res_path
@@ -204,9 +203,9 @@ class PandaSetMetric(NuScenesMetric):
             annos = []
             boxes = det['bboxes_3d']
             ego_corners, velocities = cam_bbox_to_ego_corners3d(boxes, info, camera_type)
-            attrs = det['attr_labels'].to('cpu').numpy().tolist()
-            scores = det['scores_3d'].to('cpu').numpy().tolist()
-            labels = det['labels_3d'].to('cpu').numpy().tolist()
+            attrs = det['attr_labels'].to(self.collect_device).numpy().tolist()
+            scores = det['scores_3d'].to(self.collect_device).numpy().tolist()
+            labels = det['labels_3d'].to(self.collect_device).numpy().tolist()
             corners_per_frame.extend(ego_corners.tolist())
             velocities_per_frame.extend(velocities.tolist())
             attrs_per_frame.extend(attrs)
@@ -217,12 +216,14 @@ class PandaSetMetric(NuScenesMetric):
                 continue
             assert len(corners_per_frame) == len(velocities_per_frame) == len(attrs_per_frame) == len(labels_per_frame) == len(scores_per_frame)
             # cam_boxes3d = get_cam3d_boxes_per_frame(boxes_per_frame)
-            scores= torch.Tensor(scores_per_frame).to('cuda')
+            scores= torch.Tensor(scores_per_frame).to(self.collect_device)
             nms_scores = scores.new_zeros(scores.shape[0],NUM_CLASSES+1)
-            labels = torch.LongTensor(labels_per_frame).to('cuda')
+            labels = torch.LongTensor(labels_per_frame).to(self.collect_device)
             indices = labels.new_tensor(list(range(scores.shape[0])))
             nms_scores[indices,labels] = scores
             scores = nms_scores
+            ego_corners= np.array(corners_per_frame)
+            velocities = velocities_per_frame
             cam_boxes3d = ego_corners3d_to_cam_bbox(ego_corners, velocities, info)
             
             # box nms 3d over 6 images in a frame
@@ -252,10 +253,10 @@ class PandaSetMetric(NuScenesMetric):
             det = bbox3d2result(cam_boxes3d, scores, labels, attrs)
             
             boxes = det['bboxes_3d']
-            attrs = det['attr_labels'].to('cpu').tolist()
-            scores = det['scores_3d'].to('cpu').tolist()
-            labels = det['labels_3d'].to('cpu').tolist()
-            ego_corners , velocities = cam_bbox_to_ego_corners3d(boxes)
+            attrs = det['attr_labels'].to(self.collect_device).tolist()
+            scores = det['scores_3d'].to(self.collect_device).tolist()
+            labels = det['labels_3d'].to(self.collect_device).tolist()
+            ego_corners , velocities = cam_bbox_to_ego_corners3d(boxes, info, camera_type)
             boxes = ego_corners3d_to_ego_bbox(ego_corners, velocities, )
             
             for i in range(boxes.tensor.shape[0]):
@@ -285,13 +286,14 @@ class PandaSetMetric(NuScenesMetric):
         }
 
         mmengine.mkdir_or_exist(jsonfile_prefix)
-        res_path = osp.join(jsonfile_prefix, 'results_nusc.json')
+        res_path = osp.join(jsonfile_prefix, 'results_pandaset.json')
         print(f'Results writes to {res_path}')
         mmengine.dump(nusc_submissions, res_path)
         return res_path
     
     def compute_metrics(self, results):
-        self.bbox_type_3d = type(results[0]['bboxes_3d'])
+        self.bbox_type_3d = type(results[0]['pred_instances_3d']['bboxes_3d'])
+        self.NameMapping = dict(map(lambda x:(x,x),self.dataset_meta['classes']))
         return super().compute_metrics(results)
     
     def _evaluate_single(self, result_path, classes = None, result_name = 'pred_instances_3d'):
@@ -299,9 +301,9 @@ class PandaSetMetric(NuScenesMetric):
         detail = dict()
         
         metrics = self.pandaset_evaluate(result_path)
-        metric_prefix = f'{result_name}_NuScenes'
+        metric_prefix = f'{result_name}_PandaSet'
         for name in classes:
-            for k, v in metrics['label_aps'][name].items():
+            for k, v in metrics['mean_dist_aps'][name].items():
                 val = float(f'{v:.4f}')
                 detail[f'{metric_prefix}/{name}_AP_dist_{k}'] = val
             for k, v in metrics['label_tp_errors'][name].items():
@@ -318,21 +320,14 @@ class PandaSetMetric(NuScenesMetric):
     def pandaset_evaluate(self, result_path):
         # load result json file
         data = mmengine.load(result_path)
-        results = data['results']
+        pred_boxes = data['results']
         meta = data['meta']
-        pred_boxes = {}
-        for sample_token, boxes in results.items():
-            if sample_token not in pred_boxes:
-                pred_boxes[sample_token] = boxes.copy()
-            else:
-                pred_boxes[sample_token].extend(boxes)
         classes =self.dataset_meta['classes']
         class_mapping = self.dataset_meta.get('class_mapping', list(range(len(self.dataset_meta['classes']))))
         gt_boxes = self.load_gt_bboxes(classes, class_mapping)
-        max_dist = 50 # None # for no filtering
+        max_dist = 100 # None # for no filtering
         gt_boxes = filter_eval_boxes(gt_boxes, max_dist)
         pred_boxes = filter_eval_boxes(pred_boxes, max_dist)
-        sample_tokens = list(gt_boxes.keys())
         dist_ths = [0.5, 1.0, 2.0, 4.0]
         metrics = pandaset_evaluate_matrics(pred_boxes, gt_boxes, classes, dist_ths, 2.0)
         return metrics
@@ -343,7 +338,8 @@ class PandaSetMetric(NuScenesMetric):
             for instance in instances:
                 if not instance['bbox_3d_isvalid']:
                     continue
-                box = instance['bbox3d']
+                box = instance['bbox_3d']
+                name = classes[class_mapping[instance['bbox_label_3d']]]
                 label = class_mapping[instance['bbox_label_3d']]
                 attr = self.get_attr_name(instance['attr_label'], name)
                 name = classes[label]
@@ -359,7 +355,7 @@ class PandaSetMetric(NuScenesMetric):
                     box = convert_corners_to_bbox_for_lidar_box(ego_corners)
                 res_instances.append(dict(
                     sample_token=sample_token,
-                    translatoin=box[:3],
+                    translation=box[:3],
                     size=box[3:6],
                     yaw=box[6],
                     velocity=velocity,
@@ -400,11 +396,11 @@ def cam_bbox_to_ego_corners3d(boxes, info, camera_type):
         raise NotImplementedError(f'Not implemented for box type {type(boxes)} only for CameraInstance3DBoxes and LiDARInstance3DBoxes')
     velocities = (boxes.tensor[:,-2:] if boxes.tensor.shape[1] > 7 else boxes.tensor.new_tensor(torch.zeros([boxes.tensor.shape[0],2]))).numpy()
     availabe_camera_types = list(info['images'].keys())
-    assert camera_type not in availabe_camera_types, f'camera type {camera_type} not in available camera types \n\t{availabe_camera_types}' 
+    assert camera_type in availabe_camera_types, f'camera type {camera_type} not in available camera types \n\t{availabe_camera_types}' 
     cam2ego = np.array(info['images'][camera_type]['cam2ego'])
     ego_corners = curr_corners @ cam2ego[:3,:3].T + cam2ego[:3,3]
     
-    velocities3d = np.zeros(velocities.shape[0],3)
+    velocities3d = np.zeros((velocities.shape[0],3))
     velocities3d[:,[0,2]] = velocities
     ego_velocities = velocities3d @ cam2ego[:3,:3].T
     
@@ -415,7 +411,7 @@ def ego_corners3d_to_cam_bbox(corners, velocities, info):
     ego2cam = np.linalg.inv(cam2ego)
     corners = np.array(corners)
     velocities = np.array(velocities)
-    velocities3d = np.zeros(velocities.shape[0],3)
+    velocities3d = np.zeros((velocities.shape[0],3))
     velocities3d[:,[0,1]] = velocities
     velocities = (velocities3d @ ego2cam[:3,:3].T)[:,::2].tolist()
     corners = corners @ ego2cam[:3,:3].T + ego2cam[:3,3]
@@ -426,7 +422,7 @@ def ego_corners3d_to_cam_bbox(corners, velocities, info):
 def ego_corners3d_to_ego_bbox(corners, velocities,):
     # corners = corners @ ego2cam[:3,:3].T + ego2cam[:3,3]
     boxes = [convert_corners_to_bbox_for_lidar_box(corner) for corner in corners]
-    bboxes = [bbox+velocities[i] for i,bbox in enumerate(boxes)]
+    bboxes = [bbox+velocities[i].tolist() for i,bbox in enumerate(boxes)]
     return LiDARInstance3DBoxes(tensor=torch.Tensor(bboxes), box_dim=9, origin=(0.5,0.5,0.5))
 
 def filter_eval_boxes(boxes:dict[str,list], max_dist=None):
@@ -447,27 +443,39 @@ def pandaset_evaluate_matrics(pred_boxes, gt_boxes, classes, dist_thrs, dist_thr
         metric_data_list = metric_data_lists[name] = {}
         for dist_th in dist_thrs:
             metric_data_list[dist_th] = metric_data = pandaset_metric_utils.get_metrics(pred_boxes, gt_boxes, name, dist_th)
+            # if len(metric_data) == 0:
+            #     continue
             ap = pandaset_metric_utils.calc_ap(metric_data, MIN_RECALL, MIN_PRECISION)
             metric_data['ap'] = ap
         for metric_name in TP_METRICS:
             metric_data = metric_data_list[dist_thr_tp]
+            # if len(metric_data) == 0:
+            #     continue
             metric_data[metric_name] = pandaset_metric_utils.calc_tp(metric_data, MIN_RECALL, metric_name)
 
-        mean_dist_aps[name] = np.mean(np.array([metric_data['ap'] for metric_data in metric_data_list.values()]))
+        mean_dist_aps[name] ={'ap': np.mean(np.array([metric_data['ap'] for metric_data in metric_data_list.values() if metric_data]))}
     
-    mean_ap = np.mean([ap for ap in mean_dist_aps.values()])
+    mean_ap = np.mean([ap_dict['ap'] for ap_dict in mean_dist_aps.values()])
     tp_errors = {}
+    label_tp_errors = {}
     for metric_name in TP_METRICS:
         class_errors = []
         for detection_name in classes:
-            class_errors.append(metric_data_lists[detection_name][metric_name])
+            metric_data = metric_data_lists[detection_name][dist_thr_tp]
+            # if len(metric_data) ==0:
+            #     continue
+            class_errors.append(metric_data.get(metric_name, float('nan')))
+            if detection_name not in label_tp_errors:
+                label_tp_errors[detection_name] = {metric_name:metric_data.get(metric_name, float('nan'))}
+            else:
+                label_tp_errors[detection_name][metric_name] = metric_data.get(metric_name, float('nan'))
 
         tp_errors[metric_name] = float(np.nanmean(class_errors))
     
     tp_scores = {}
     for metric_name in TP_METRICS:
         # We convert the true positive errors to "scores" by 1-error.
-        score = 1.0 - tp_errors[metric_name]
+        score = 1.0 - tp_errors.get(metric_name, float('nan'))
 
         # Some of the true positive errors are unbounded, so we bound the scores to min 0.
         score = max(0.0, score)
@@ -478,6 +486,7 @@ def pandaset_evaluate_matrics(pred_boxes, gt_boxes, classes, dist_thrs, dist_thr
 
     # Normalize.
     nd_score = total / float(MEAN_AP_WEIGHT + len(tp_scores.keys()))
+    print('mean AP: %.4f' % (mean_ap))
     err_name_mapping = {
             'trans_err': 'mATE',
             'scale_err': 'mASE',
@@ -494,14 +503,16 @@ def pandaset_evaluate_matrics(pred_boxes, gt_boxes, classes, dist_thrs, dist_thr
     print('Per-class results:')
     print('%-20s\t%-6s\t%-6s\t%-6s\t%-6s\t%-6s\t%-6s' % ('Object Class', 'AP', 'ATE', 'ASE', 'AOE', 'AVE', 'AAE'))
     class_aps = mean_dist_aps
-    class_tps = tp_errors
+    class_tps = label_tp_errors
     for class_name in class_aps.keys():
-        print('%-20s\t%-6.3f\t%-6.3f\t%-6.3f\t%-6.3f\t%-6.3f\t%-6.3f'
-            % (class_name, class_aps[class_name],
-                class_tps[class_name]['trans_err'],
-                class_tps[class_name]['scale_err'],
-                class_tps[class_name]['orient_err'],
-                class_tps[class_name]['vel_err'],
-                class_tps[class_name]['attr_err']))
+        class_ap = class_aps.get(class_name, {'ap':float('nan')})['ap']
+        class_tp = class_tps.get(class_name, {name: float('nan') for name in err_name_mapping})
+        print('%-40s\t%-6.3f\t%-6.3f\t%-6.3f\t%-6.3f\t%-6.3f\t%-6.3f'
+            % (class_name, class_ap,
+                class_tp['trans_err'],
+                class_tp['scale_err'],
+                class_tp['orient_err'],
+                class_tp['vel_err'],
+                class_tp['attr_err']))
 
-    return dict(mean_ap=mean_ap, mean_dist_aps=mean_dist_aps, tp_errors=tp_errors, tp_scores=tp_scores, nd_score=nd_score, metric_data_lists=metric_data_lists, eval_time = eval_time)
+    return dict(mean_ap=mean_ap, mean_dist_aps=mean_dist_aps, label_tp_errors=label_tp_errors, tp_errors=tp_errors, tp_scores=tp_scores, nd_score=nd_score, metric_data_lists=metric_data_lists, eval_time = eval_time)

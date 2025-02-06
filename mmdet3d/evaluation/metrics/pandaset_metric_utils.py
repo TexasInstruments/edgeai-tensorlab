@@ -88,7 +88,7 @@ def get_metrics(pred_boxes, gt_boxes, class_name, dist_th):
         min_dist = np.inf
         match_gt_idx = None
 
-        for gt_idx, gt_box in enumerate(gt_boxes[pred_box.sample_token]):
+        for gt_idx, gt_box in enumerate(gt_boxes[pred_box['sample_token']]):
 
             # Find closest match among ground truth boxes
             if gt_box['detection_name'] == class_name and not (pred_box['sample_token'], gt_idx) in taken:
@@ -101,7 +101,7 @@ def get_metrics(pred_boxes, gt_boxes, class_name, dist_th):
         is_match = min_dist < dist_th
 
         if is_match:
-            taken.add((pred_box.sample_token, match_gt_idx))
+            taken.add((pred_box['sample_token'], match_gt_idx))
 
             #  Update tp, fp and confs.
             tp.append(1)
@@ -164,10 +164,16 @@ def get_metrics(pred_boxes, gt_boxes, class_name, dist_th):
 
             # Then interpolate based on the confidences. (Note reversing since np.interp needs increasing arrays)
             match_data[key] = np.interp(conf[::-1], match_data['conf'][::-1], tmp[::-1])[::-1]
-
+    max_recall_ind = -1
+    for conf in match_data['conf']:
+        if conf == 0:
+            break
+        max_recall_ind +=1
+    
     return dict(recall=rec,
                 precision=prec,
                 confidence=conf,
+                max_recall_ind = max_recall_ind,
                 trans_err=match_data['trans_err'],
                 vel_err=match_data['vel_err'],
                 scale_err=match_data['scale_err'],
@@ -176,11 +182,12 @@ def get_metrics(pred_boxes, gt_boxes, class_name, dist_th):
     
 def calc_ap(md, min_recall: float, min_precision: float) -> float:
     """ Calculated average precision. """
-
+    if len(md) == 0:
+        return 0.0
     assert 0 <= min_precision < 1
     assert 0 <= min_recall <= 1
 
-    prec = np.copy(md['precision'])
+    prec = np.copy(md.get('precision'))
     prec = prec[round(100 * min_recall) + 1:]  # Clip low recalls. +1 to exclude the min recall bin.
     prec -= min_precision  # Clip low precision
     prec[prec < 0] = 0
@@ -189,10 +196,11 @@ def calc_ap(md, min_recall: float, min_precision: float) -> float:
 
 def calc_tp(md, min_recall: float, metric_name: str) -> float:
     """ Calculates true positive errors. """
-
+    if len(md) == 0:
+        return 1.0
     first_ind = round(100 * min_recall) + 1  # +1 to exclude the error at min recall.
-    last_ind = md.max_recall_ind  # First instance of confidence = 0 is index of max achieved recall.
-    if last_ind < first_ind:
+    last_ind = md.get('max_recall_ind',-1)  # First instance of confidence = 0 is index of max achieved recall.
+    if last_ind < first_ind :
         return 1.0  # Assign 1 here. If this happens for all classes, the score for that TP metric will be 0.
     else:
-        return float(np.mean(getattr(md, metric_name)[first_ind: last_ind + 1]))  # +1 to include error at max recall.
+        return float(np.mean(md.get(metric_name)[first_ind: last_ind + 1]))  # +1 to include error at max recall.
