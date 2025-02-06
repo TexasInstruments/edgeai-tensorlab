@@ -57,6 +57,32 @@ CLASSES = [
 get_original_label = lambda x: (CLASSES.index(x) if x in CLASSES else -1)
 
 
+UNIQUE_ATTRIBUTE_LABELS = [
+    'Adult.Lying',
+    'Adult.Sitting',
+    'Adult.Standing',
+    'Adult.Walking',
+    'Child.Sitting',
+    'Child.Standing',
+    'Child.Walking',
+    'Child.Lying',
+    'None',
+    'emergency_vehicle.Moving.Lights not Flashing',
+    'emergency_vehicle.Parked.Lights Flashing',
+    'emergency_vehicle.Parked.Lights not Flashing',
+    'emergency_vehicle.Stopped.Lights not Flashing',
+    'vehicle.Moving',
+    'vehicle.Moving.With Rider',
+    'vehicle.Parked',
+    'vehicle.Parked.With Rider',
+    'vehicle.Parked.Without Rider',
+    'vehicle.Stopped',
+    'vehicle.Stopped.With Rider',
+    'vehicle.With Rider',
+    'vehicle.Without Rider',
+]
+
+
 def get_attribute_labels(cls_label, attributes):
     assert all(attr in ALL_ATTRIBUTES for attr in attributes)
     label = ''
@@ -97,34 +123,9 @@ def get_attribute_labels(cls_label, attributes):
         if 'rider_status' in attributes:
             if attributes['rider_status']:
                 label += f'.{attributes["rider_status"]}'
-        result = f'vehicle{label}' if label != '' else None
-    return -1 if (result is None or result not in UNIQUE_ATTRIBUTE_LABELS )else UNIQUE_ATTRIBUTE_LABELS.index(result)
+        result: str | None = f'vehicle{label}' if label != '' else None
+    return UNIQUE_ATTRIBUTE_LABELS.index('None') if (result is None or result not in UNIQUE_ATTRIBUTE_LABELS )else UNIQUE_ATTRIBUTE_LABELS.index(result)
 
-
-UNIQUE_ATTRIBUTE_LABELS = [
-    'Adult.Lying',
-    'Adult.Sitting',
-    'Adult.Standing',
-    'Adult.Walking',
-    'Child.Sitting',
-    'Child.Standing',
-    'Child.Walking',
-    'Child.Lying'
-    'None',
-    'emergency_vehicle.Moving.Lights not Flashing',
-    'emergency_vehicle.Parked.Lights Flashing',
-    'emergency_vehicle.Parked.Lights not Flashing',
-    'emergency_vehicle.Stopped.Lights not Flashing',
-    'vehicle.Moving',
-    'vehicle.Moving.With Rider',
-    'vehicle.Parked',
-    'vehicle.Parked.With Rider',
-    'vehicle.Parked.Without Rider',
-    'vehicle.Stopped',
-    'vehicle.Stopped.With Rider',
-    'vehicle.With Rider',
-    'vehicle.Without Rider',
-]
 
 @DATASETS.register_module()
 class PandaSetDataset(NuScenesDataset):

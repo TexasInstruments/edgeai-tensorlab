@@ -85,6 +85,7 @@ param_scheduler = [
         milestones=[8, 11],
         gamma=0.1)
 ]
-load_from = './checkpoints/fcos3d/fcos3d_r101_caffe_fpn_gn-head_dcn_2x8_1x_nus-mono3d_finetune_20210717_095645-8d806dc2.pth'
+# TODO remove this
+load_from = './checkpoints/fcos3d/fcos3d_r101_caffe_fpn_gn-head_dcn_2x8_1x_ps-mono3d_finetune_20210717_095645-8d806dc2_adjusted.pth'
 
 find_unused_parameters = True

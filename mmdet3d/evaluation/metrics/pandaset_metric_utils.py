@@ -26,8 +26,8 @@ def attr_acc(gt_box, pred_box):
 
 def scale_iou(gt_box, pred_box) -> float:
     # Validate inputs.
-    sa_size = np.array(gt_box.size)
-    sr_size = np.array(pred_box.size)
+    sa_size = np.array(gt_box['size'])
+    sr_size = np.array(pred_box['size'])
     assert all(sa_size > 0), 'Error: gt_box sizes must be >0.'
     assert all(sr_size > 0), 'Error: pred_box sizes must be >0.'
     # Compute IOU.
@@ -106,10 +106,10 @@ def get_metrics(pred_boxes, gt_boxes, class_name, dist_th):
             #  Update tp, fp and confs.
             tp.append(1)
             fp.append(0)
-            conf.append(pred_box.detection_score)
+            conf.append(pred_box['detection_score'])
 
             # Since it is a match, update match data also.
-            gt_box_match = gt_boxes[pred_box.sample_token][match_gt_idx]
+            gt_box_match = gt_boxes[pred_box['sample_token']][match_gt_idx]
 
             match_data['trans_err'].append(center_distance(gt_box_match, pred_box))
             match_data['vel_err'].append(velocity_l2(gt_box_match, pred_box))
@@ -120,7 +120,7 @@ def get_metrics(pred_boxes, gt_boxes, class_name, dist_th):
             match_data['orient_err'].append(yaw_diff(gt_box_match, pred_box, period=period))
 
             match_data['attr_err'].append(1 - attr_acc(gt_box_match, pred_box))
-            match_data['conf'].append(pred_box.detection_score)
+            match_data['conf'].append(pred_box['detection_score'])
 
         else:
             # No match. Mark this as a false positive.

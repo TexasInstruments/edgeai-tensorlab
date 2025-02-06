@@ -9,7 +9,7 @@ import mmengine
 import argparse
 import copy
 
-from mmdet3d.datasets.pandaset_dataset import CLASSES, ALL_ATTRIBUTES, CAMERA_NAMES, UNIQUE_ATTRIBUTE_LABELS, get_attribute_labels, get_original_label
+from mmdet3d.datasets.pandaset_dataset import CLASSES, ALL_ATTRIBUTES, CAMERA_NAMES, get_attribute_labels, get_original_label
 from mmdet3d.datasets.convert_utils import convert_corners_to_bbox_for_lidar_box, convert_corners_to_bbox_for_cam_box, convert_bbox_to_corners_for_lidar
 
 def delete_obj(obj):
@@ -460,4 +460,4 @@ def main(args=None):
     create_pickle_files(args.dataset_path, args.output_dir, args.info_prefix, args.version, args.dataset_name, args.with_semseg, args.train_split)
 
 if __name__ == '__main__':
-    main()
+    main(['--dataset-path', '/data/ssd/files/a0507161/edgeai/edgeai-mmdetection3d/data/pandaset/data/', '--output-dir', '/data/ssd/files/a0507161/edgeai/edgeai-mmdetection3d/data/pandaset/data/'])
