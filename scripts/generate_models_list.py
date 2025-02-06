@@ -91,6 +91,9 @@ if __name__ == '__main__':
     # filter the configs
     pipeline_configs = pipelines.PipelineRunner(settings, pipeline_configs).get_pipeline_configs()
 
+    # make sure the folder exists
+    os.makedirs(os.path.dirname(kwargs['models_list_file']), exist_ok=True)
+
     model_keys = pipeline_configs.keys()
     with open(kwargs['models_list_file'], "w") as fp:
         for model_key in model_keys:
