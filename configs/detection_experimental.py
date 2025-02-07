@@ -31,7 +31,8 @@ from edgeai_benchmark import constants, utils, datasets, preprocess, sessions, p
 
 
 # for transformer models we need to set graph_optimization_level = ORT_DISABLE_ALL for onnxruntime
-from onnxruntime.GraphOptimizationLevel import ORT_DISABLE_ALL
+from onnxruntime import GraphOptimizationLevel
+ORT_DISABLE_ALL = GraphOptimizationLevel.ORT_DISABLE_ALL
 
 
 def get_configs(settings, work_dir):
