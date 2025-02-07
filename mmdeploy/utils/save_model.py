@@ -49,6 +49,7 @@ def save_model_proto(cfg, model, onnx_model, input, output_filename, input_names
     is_yolox = hasattr(cfg.model, 'bbox_head') and ('YOLOXHead' in cfg.model.bbox_head.type or 'YOLOXPoseHead' in cfg.model.bbox_head.type)
     is_efficientdet = hasattr(cfg.model,'bbox_head') and ('EfficientDetSepBNHead' in cfg.model.bbox_head.type)
     is_yoloxpose = hasattr(cfg.model, 'head') and ('YOLOXPoseHead' in cfg.model.head.type)
+    is_yolov7 = hasattr(cfg.model, 'bbox_head') and ('YOLOV7Head' in  cfg.model.bbox_head.type)
     input_names = input_names or ('input',)
 
     if is_ssd:
@@ -75,6 +76,11 @@ def save_model_proto(cfg, model, onnx_model, input, output_filename, input_names
         feature_names = prepare_model_for_layer_outputs(onnx_model, export_layer_types='Conv', match_layer = 'Concat',
                                                         return_layer='Concat')
         _save_mmdet_proto_yoloxpose(cfg, model, input_size, output_filename, input_names, feature_names, output_names)
+    elif is_yolov7:
+        feature_names = prepare_model_for_layer_outputs(onnx_model, export_layer_types='Mul', match_layer = 'Reshape',
+                                                        return_layer='Mul')
+        output_names = ['detections']
+        _save_mmyolo_proto_yolov7(cfg, model, input_size, output_filename, input_names, feature_names, output_names)
     #
 
 
@@ -345,6 +351,40 @@ def _save_mmdet_proto_yoloxpose(cfg, model, input_size, output_filename, input_n
                                             detection_output_param=detection_output_param,)
 
     arch = tidl_meta_arch_mmdeploy_pb2.TIDLMetaArch(name='yolox',  tidl_yolo=[yolox])
+
+    with open(output_filename, 'wt') as pfile:
+        txt_message = text_format.MessageToString(arch)
+        pfile.write(txt_message)
+
+
+###########################################################
+def _save_mmyolo_proto_yolov7(cfg, model, input_size, output_filename, input_names=None, proto_names=None, output_names=None):
+    bbox_head = model.bbox_head
+    base_sizes = model.bbox_head.anchor_cfg.anchor
+
+    background_label_id = -1
+    num_classes = bbox_head.num_classes
+
+    yolo_params = []
+    for base_size_id, base_size in enumerate(base_sizes):
+        yolo_param = tidl_meta_arch_mmdet_pb2.TIDLYoloParams(input=proto_names[base_size_id],
+                                                        anchor_width=[base_size[idx*2] for idx in range(len(base_size)//2)],
+                                                        anchor_height=[base_size[idx*2+1] for idx in range(len(base_size)//2)],
+                                                         )
+        yolo_params.append(yolo_param)
+
+    nms_param = tidl_meta_arch_mmdet_pb2.TIDLNmsParam(nms_threshold=0.65, top_k=200)
+    detection_output_param = tidl_meta_arch_mmdet_pb2.TIDLOdPostProc(num_classes=num_classes, share_location=True,
+                                            background_label_id=background_label_id, nms_param=nms_param,
+                                            code_type=tidl_meta_arch_mmdet_pb2.CODE_TYPE_YOLO_V5, keep_top_k=200,
+                                            confidence_threshold=0.001)
+
+    yolov7 = tidl_meta_arch_mmdet_pb2.TidlYoloOd(name='yolov7', output=output_names,
+                                            in_width=input_size[3], in_height=input_size[2],
+                                            yolo_param=yolo_params,
+                                            detection_output_param=detection_output_param)
+
+    arch = tidl_meta_arch_mmdet_pb2.TIDLMetaArch(name='yolov7',  tidl_yolo=[yolov7])
 
     with open(output_filename, 'wt') as pfile:
         txt_message = text_format.MessageToString(arch)

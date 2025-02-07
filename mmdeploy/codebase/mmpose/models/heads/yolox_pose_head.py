@@ -8,6 +8,7 @@ from mmdeploy.codebase.mmdet import get_post_processing_params
 from mmdeploy.core import FUNCTION_REWRITER
 from mmdeploy.mmcv.ops.nms import multiclass_nms
 from mmdeploy.utils import Backend, get_backend
+from einops import rearrange
 
 
 @FUNCTION_REWRITER.register_rewriter(
@@ -35,6 +36,16 @@ def predict(self,
 
     cls_scores, objectnesses, bbox_preds, kpt_offsets, \
         kpt_vis = self.head_module(x)[:5]
+    
+    # old_decoder
+    # cls_scores, objectnesses, bbox_preds, kpt_combined = self.head_module(x)[:4]
+    # kpt_offsets, kpt_vis = [], []
+    # for i in range(len(self.featmap_strides)):
+    #     kpt_combined[i] = rearrange(kpt_combined[i], 'b (k v) w h -> b k v w h', v=3)
+    #     kpt_offsets.append(kpt_combined[i][:,:, :2  ,:,:])
+    #     kpt_offsets[i] = rearrange(kpt_offsets[i], 'b k v w h -> b (k v) w h')
+    #     kpt_vis.append(kpt_combined[i][:,:, 2:,:,:])
+    #     kpt_vis[i] = rearrange(kpt_vis[i], 'b k v w h -> b (k v) w h')
 
     ctx = FUNCTION_REWRITER.get_context()
     deploy_cfg = ctx.cfg
@@ -64,10 +75,17 @@ def predict(self,
     flatten_objectness = self._flatten_predictions(objectnesses).sigmoid()
     flatten_kpt_offsets = self._flatten_predictions(kpt_offsets)
     flatten_kpt_vis = self._flatten_predictions(kpt_vis).sigmoid()
+    # flatten_kpt_vis = self._flatten_predictions(kpt_vis)
     bboxes = self.decode_bbox(flatten_bbox_preds, flatten_priors,
                               flatten_stride)
     flatten_decoded_kpts = self.decode_kpt_reg(flatten_kpt_offsets,
                                                flatten_priors, flatten_stride)
+    #old_decoder
+    # flatten_decoded_kpts, flatten_kpt_vis = self.decode_output(
+    #                                             flatten_kpt_offsets,flatten_kpt_vis,featmap_sizes)
+    # flatten_decoded_kpts, flatten_kpt_vis = self.decode_kpt_combined(
+    #                                             flatten_kpt_offsets,flatten_kpt_vis,
+    #                                             flatten_priors, flatten_stride)
 
     #singleclass
     scores = flatten_cls_scores * flatten_objectness

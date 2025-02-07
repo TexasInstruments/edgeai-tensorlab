@@ -106,6 +106,11 @@ def torch2onnx(img: Any,
 
     input_names = onnx_cfg['input_names']
     output_names = onnx_cfg['output_names']
+
+    # to support existing TIDL post-processing
+    if 'yolov7' in model_cfg.filename:
+        output_names = ['detections']
+
     axis_names = input_names + output_names
     dynamic_axes = get_dynamic_axes(deploy_cfg, axis_names)
     verbose = not onnx_cfg.get('strip_doc_string', True) or onnx_cfg.get(

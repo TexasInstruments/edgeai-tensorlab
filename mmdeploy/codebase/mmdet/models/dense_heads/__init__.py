@@ -13,3 +13,5 @@ from . import solo_head  # noqa: F401,F403
 from . import solov2_head  # noqa: F401,F403
 from . import yolo_head  # noqa: F401,F403
 from . import yolox_head  # noqa: F401,F403
+from . import yolov7_head
+from . import yolov9_head
