@@ -30,6 +30,11 @@ import cv2
 from edgeai_benchmark import constants, utils, datasets, preprocess, sessions, postprocess, metrics
 
 
+# for transformer models we need to set graph_optimization_level = ORT_DISABLE_ALL for onnxruntime
+from onnxruntime import GraphOptimizationLevel
+ORT_DISABLE_ALL = GraphOptimizationLevel.ORT_DISABLE_ALL
+
+
 def get_configs(settings, work_dir):
     # get the sessions types to use for each model type
     onnx_session_type = settings.get_session_type(constants.MODEL_TYPE_ONNX)
@@ -169,9 +174,9 @@ def get_configs(settings, work_dir):
         ###############huggingface transformer models######################
         'ss-8750':utils.dict_update(ade20k_cfg,
             preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
-                runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(fast_calibration=True),
-                    {"advanced_options:max_num_subgraph_nodes":2048}),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=dict(convert_conv_7x7_stride4_to_stride1=True)),
+                runtime_options=settings.runtime_options_onnx_p2(fast_calibration=True, 
+				    ext_options={"advanced_options:max_num_subgraph_nodes":2048, 'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
                 model_path=f'{settings.models_path}/vision/segmentation/ade20k/hf-transformers/segformer_b0_finetuned_ade_512_512_simp.onnx'),
             postprocess=postproc_segmentation_onnx,
             metric=dict(label_offset_pred=1),
@@ -179,8 +184,9 @@ def get_configs(settings, work_dir):
         ),
         'ss-8760':utils.dict_update(ade20k_cfg,
             preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
-                runtime_options=settings.runtime_options_onnx_p2(fast_calibration=True),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=dict(convert_conv_7x7_stride4_to_stride1=True)),
+                runtime_options=settings.runtime_options_onnx_p2(fast_calibration=True,
+                    ext_options={"advanced_options:max_num_subgraph_nodes":2048, 'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
                 model_path=f'{settings.models_path}/vision/segmentation/ade20k/hf-transformers/segformer_b1_finetuned_ade_512_512_simp.onnx'),
             postprocess=postproc_segmentation_onnx,
             metric=dict(label_offset_pred=1),
@@ -188,8 +194,9 @@ def get_configs(settings, work_dir):
         ),
         'ss-8770':utils.dict_update(ade20k_cfg,
             preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False),
-                runtime_options=settings.runtime_options_onnx_p2(fast_calibration=True),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=dict(convert_conv_7x7_stride4_to_stride1=True)),
+                runtime_options=settings.runtime_options_onnx_p2(fast_calibration=True,
+                    ext_options={"advanced_options:max_num_subgraph_nodes":2048, 'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
                 model_path=f'{settings.models_path}/vision/segmentation/ade20k/hf-transformers/segformer_b2_finetuned_ade_512_512_simp.onnx'),
             postprocess=postproc_segmentation_onnx,
             metric=dict(label_offset_pred=1),

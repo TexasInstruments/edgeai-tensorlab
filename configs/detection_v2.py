@@ -28,11 +28,12 @@
 
 import numpy as np
 from edgeai_benchmark import constants, utils, datasets, preprocess, sessions, postprocess, metrics
-import onnxruntime
+
 
 # for transformer models we need to set graph_optimization_level = ORT_DISABLE_ALL for onnxruntime
-ORT_DISABLE_ALL = onnxruntime.GraphOptimizationLevel.ORT_DISABLE_ALL
-ORT_ENABLE_EXTENDED = onnxruntime.GraphOptimizationLevel.ORT_ENABLE_EXTENDED
+from onnxruntime import GraphOptimizationLevel
+ORT_DISABLE_ALL = GraphOptimizationLevel.ORT_DISABLE_ALL
+
 
 def get_configs(settings, work_dir):
     # get the sessions types to use for each model type
@@ -67,9 +68,10 @@ def get_configs(settings, work_dir):
         #       ONNX MODELS
         #################onnx models#####################################
         # Transformer models from huggingface transformers
+		# TODO: tidl_onnx_model_optimizer is switched off right now as it cannopt hanlde this particular variant of self attention
         'od-8920':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((800,800),(800,800), resize_with_pad=False, backend='cv2'),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False,
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=False,
                     #output_feature_16bit_names_list_from_start_end={'/model/decoder/layers.5/Add_1_output_0':None}
                 ),
                 runtime_options=settings.runtime_options_onnx_np2(
