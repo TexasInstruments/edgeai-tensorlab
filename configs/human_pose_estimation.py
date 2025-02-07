@@ -80,7 +80,7 @@ def get_configs(settings, work_dir):
                 runtime_options=settings.runtime_options_onnx_p2(
                         det_options=True, ext_options={
                         'object_detection:meta_arch_type': 6,
-                        #  'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/keypoint/coco/edgeai-mmpose/yoloxpose_tiny_lite_416x416_20240808_model.onnx.prototxt',
+                        #  'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/keypoint/coco/edgeai-mmpose/yoloxpose_tiny_lite_416x416_20240808_model.prototxt',
                         'advanced_options:output_feature_16bit_names_list': '3'
                         },
                         fast_calibration=True),
@@ -89,6 +89,26 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=1), #TODO: add this for other models as well?
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':47.2, 'accuracy_ap50%':76.0}, model_shortlist=100)
         ),
-
+        'kd-7080':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(640, 640, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114,114,114]),
+            session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir, input_optimization=False,
+                                                                        deny_list_from_start_end_node = {
+                                                                            '201':None,
+                                                                            '224':None,
+                                                                            '177':None,
+                                                                            }
+                                                                            ),
+                runtime_options=settings.runtime_options_onnx_p2(
+                        det_options=True, ext_options={
+                        'object_detection:meta_arch_type': 6,
+                        #  'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/keypoint/coco/edgeai-mmpose/yoloxpose_s_lite_coco-640x640_20250119_model.prototxt',
+                        'advanced_options:output_feature_16bit_names_list': '3'
+                        },
+                        fast_calibration=True),
+                model_path=f'{settings.models_path}/vision/keypoint/coco/edgeai-mmpose/yoloxpose_s_lite_coco-640x640_20250119_model.onnx'),
+            postprocess=postproc_transforms.get_transform_detection_yolov5_pose_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS(), keypoint=True),
+            metric=dict(label_offset_pred=1), #TODO: add this for other models as well?
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':56.4, 'accuracy_ap50%':83.4}, model_shortlist=100)
+        ),
     }
     return pipeline_configs
