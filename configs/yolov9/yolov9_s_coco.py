@@ -1,13 +1,9 @@
 _base_ = ['../_base_/schedules/schedule_1x.py', '../_base_/default_runtime.py']
-# model settings
-
-convert_to_lite_model = dict(model_surgery=1)
-# load_from = '../edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolov9_s_coco_origin_640x640_20250113_checkpoint.pth'
 
 # training settings
 max_epochs = 300
 num_last_epochs = 15
-interval = 1
+interval = 5
 
 img_scale = (640, 640)
 batch_size = 16
@@ -23,6 +19,8 @@ model = dict(
     data_preprocessor=data_preprocessor,
     backbone=dict(
         type='YOLOV9Backbone',
+        stem_channels=[32, 64],
+        expand_list=[128, 192, 256],
         init_cfg=dict(type='Pretrained', checkpoint='https://github.com/WongKinYiu/yolov9mit/releases/download/v1.0-alpha/v9-s.pt')
         ),
     neck=dict(
@@ -220,7 +218,7 @@ param_scheduler = [
 ]
 
 
-default_hooks = dict(checkpoint=dict(type='CheckpointHook', interval=1, max_keep_ckpts=30))
+default_hooks = dict(checkpoint=dict(type='CheckpointHook', interval=5, max_keep_ckpts=20))
 
 # NOTE: `auto_scale_lr` is for automatically scaling LR,
 # USER SHOULD NOT CHANGE ITS VALUES.

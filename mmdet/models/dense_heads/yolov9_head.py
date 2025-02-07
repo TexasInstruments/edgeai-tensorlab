@@ -54,7 +54,7 @@ from mmdet.models.utils.yolo_model_utils import LossConfig, MatcherConfig, Vec2B
 class YOLOV9Head(BaseDenseHead):
     def __init__(self, 
                 num_classes: int = 80, 
-                in_channels: Sequence[int] =[128, 192, 256],
+                in_channels: Sequence[int] = [64, 96, 128],
                 strides: Sequence[int] = (8, 16, 32),
                 reg_max: int = 16,
                 # norm_cfg: OptConfigType = dict(

@@ -105,14 +105,18 @@ The models are grouped in terms of repositories used to train them or the reposi
 | Dataset | Model             | Input Size  | AP[0.5:0.95]%, AP50% | config file | Notes |
 |---------|-------------------|-------------|----------------------|-------------|-------|
 |         | **YOLOX models** 
-| COCO    | YOLOX-femto-lite    | 320x320     |	12.7, 21.9          | configs_edgeailite/yolox/yolox_femto_8xb8-300e_coco.py|       |
-| COCO    | YOLOX-pico-lite       | 320x320     | 17.9, 29.4          | configs_edgeailite/yolox/yolox_pico_8xb8-300e_coco.py|       |
-| COCO    | YOLOX-tiny-lite     | 416x416     | 24.8, 40.1          | configs_edgeailite/yolox/yolox_tiny_8xb8-300e_coco.py|       |
-| COCO    | YOLOX-nano-lite     | 416x416     | 30.5, 47.4          | configs_edgeailite/yolox/yolox_nano_8xb8-300e_coco.py|       |
-| COCO    | YOLOX-s-lite       | 640x640     | 38.3, 56.9          | configs_edgeailite/yolox/yolox_s_8xb8-300e_coco.py|       |
-| COCO    | YOLOX-m-lite       | 640x640     | 44.4, 62.9          | configs_edgeailite/yolox/yolox_m_8xb8-300e_coco.py|       |
+| COCO    | YOLOX-femto-lite    | 320x320     |	12.7, 21.9        | configs_edgeailite/yolox/yolox_femto_8xb8-300e_coco.py|       |
+| COCO    | YOLOX-pico-lite       | 320x320     | 17.9, 29.4      | configs_edgeailite/yolox/yolox_pico_8xb8-300e_coco.py|       |
+| COCO    | YOLOX-tiny-lite     | 416x416     | 24.8, 40.1        | configs_edgeailite/yolox/yolox_tiny_8xb8-300e_coco.py|       |
+| COCO    | YOLOX-nano-lite     | 416x416     | 30.5, 47.4        | configs_edgeailite/yolox/yolox_nano_8xb8-300e_coco.py|       |
+| COCO    | YOLOX-s-lite       | 640x640     | 38.3, 56.9         | configs_edgeailite/yolox/yolox_s_8xb8-300e_coco.py|       |
+| COCO    | YOLOX-m-lite       | 640x640     | 44.4, 62.9         | configs_edgeailite/yolox/yolox_m_8xb8-300e_coco.py|       |
 | COCO    | YOLOX-l-lite      | 640x640     | -                   | configs_edgeailite/yolox/yolox_l_8xb8-300e_coco.py|       |
-| COCO    | YOLOX-x-lite       | 640x640     | -                   | configs_edgeailite/yolox/yolox_x_8xb8-300e_coco.py|       |
+| COCO    | YOLOX-x-lite       | 640x640     | -                  | configs_edgeailite/yolox/yolox_x_8xb8-300e_coco.py|       |
+| COCO    | YOLOv7-l-lite       | 640x640     | 45.9, 65.1        | configs_edgeailite/yolov7/yolov7_l_coco_lite.py|       |
+| COCO    | YOLOv7-l-origin       | 640x640     | 50.6, 69.3      | configs/yolov7/yolov7_l_coco.py|       |
+| COCO    | YOLOv9-s-lite       | 640x640     | 39.8, 55.7        | configs_edgeailite/yolov9/yolov9_s_coco_lite.py|       |
+| COCO    | YOLOv9-s-origin       | 640x640     | 45.3, 61.3      | configs/yolov9/yolov9_s_coco.py|       |
 |         | **FCOS models** 
 | COCO    | FCOS-r50-lite       | 512x512     | 36.6, 56.0          | configs_edgeailite/fcos/fcos_r50-caffe_fpn_bn-head_1x_coco.py|       |
 |         | **Centernet models** 

@@ -28,7 +28,7 @@
 
 
 import math
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Sequence
 
 import torch.nn as nn
 from mmengine.model import BaseModule
@@ -53,7 +53,9 @@ class Aconv_RepNCSPELAN(nn.Module):
 
 @MODELS.register_module()
 class YOLOV9Backbone(BaseModule):
-    def __init__(self, 
+    def __init__(self,
+                    stem_channels : Sequence[int] = [16, 32],
+                    expand_list:Sequence[int] = [64, 96, 128],
                     init_cfg=dict(
                      type='Kaiming',
                      layer='Conv2d',
@@ -63,16 +65,22 @@ class YOLOV9Backbone(BaseModule):
                      nonlinearity='leaky_relu')
                      ):
         super().__init__(init_cfg)
-        self.conv1 = Conv(in_channels=3, out_channels=32, kernel_size=3,stride=2)
-        self.conv2 = Conv(in_channels=32, out_channels=64, kernel_size=3,stride=2)
-        self.elan = ELAN(in_channels=64, out_channels=64, part_channels=64)
+        self.conv1 = Conv(in_channels=3, out_channels=stem_channels[0], kernel_size=3,stride=2)
+        self.conv2 = Conv(in_channels=stem_channels[0], out_channels=stem_channels[1], kernel_size=3,stride=2)
+        self.elan = ELAN(in_channels=stem_channels[1], out_channels=stem_channels[1], part_channels=stem_channels[1])
 
-        self.aconv_repncspelan1 = Aconv_RepNCSPELAN(in_channel=64,out_channel=128,part_channel=128,
-                                                   csp_arg={"repeat_num": 3})
-        self.aconv_repncspelan2 = Aconv_RepNCSPELAN(in_channel=128,out_channel=192,part_channel=192,
-                                                   csp_arg={"repeat_num": 3})
-        self.aconv_repncspelan3 = Aconv_RepNCSPELAN(in_channel=192,out_channel=256,part_channel=256,
-                                                   csp_arg={"repeat_num": 3})
+        self.aconv_repncspelan1 = Aconv_RepNCSPELAN(in_channel=stem_channels[1],
+                                                    out_channel=expand_list[0],
+                                                    part_channel=expand_list[0],
+                                                    csp_arg={"repeat_num": 3})
+        self.aconv_repncspelan2 = Aconv_RepNCSPELAN(in_channel=expand_list[0],
+                                                    out_channel=expand_list[1],
+                                                    part_channel=expand_list[1],
+                                                    csp_arg={"repeat_num": 3})
+        self.aconv_repncspelan3 = Aconv_RepNCSPELAN(in_channel=expand_list[1],
+                                                    out_channel=expand_list[2],
+                                                    part_channel=expand_list[2],
+                                                    csp_arg={"repeat_num": 3})
         
     def forward(self, x):
         x = self.conv1(x)
