@@ -74,7 +74,7 @@ def get_arg_parser():
     return parser
 
 
-def run_one_model(entry_idx, kwargs, model_selection, run_dir, enable_logging, run_import, run_inference):
+def run_one_model(entry_idx, kwargs, parallel_processes, model_selection, run_dir, enable_logging, run_import, run_inference):
     if kwargs['parallel_devices'] in (None, 0):
         parallel_devices = [0]
     else:
@@ -115,16 +115,17 @@ def run_one_model(entry_idx, kwargs, model_selection, run_dir, enable_logging, r
 
     os.makedirs(run_dir, exist_ok=True)
 
-    # now actually run the process
-    if enable_logging:
+    if parallel_processes and enable_logging:
         log_filename = os.path.join(run_dir, 'run.log')
         with open(log_filename, 'a') as log_fp:
             proc = subprocess.Popen(command, stdout=log_fp, stderr=log_fp)
         #
-    else:
+    elif parallel_processes:
         proc = subprocess.Popen(command)
+    else:
+        os.system(' '.join(command))
+        proc = None
     #
-
     return proc
 
 
@@ -199,6 +200,7 @@ if __name__ == '__main__':
     separate_import_inference = kwargs.pop('separate_import_inference')
     parallel_subprocess = utils.ParallelSubProcess(parallel_processes=parallel_processes, parallel_devices=parallel_devices,
         overall_timeout=overall_timeout, instance_timeout=instance_timeout)
+    sequential_process_list = []
 
     for entry_idx, model_entry in enumerate(model_entries):
         model_entry = model_entry.split(' ')
@@ -209,24 +211,35 @@ if __name__ == '__main__':
             if settings.run_import:
                 proc_name = f'{model_selection}:import'
                 run_import_task = functools.partial(run_one_model,
-                    entry_idx, kwargs, model_selection, run_dir, settings.enable_logging, True, False)
+                    entry_idx, kwargs, parallel_processes, model_selection, run_dir, settings.enable_logging, True, False)
                 task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_import_task})
             #
             if settings.run_inference:
                 proc_name = f'{model_selection}:infer'
                 run_inference_task = functools.partial(run_one_model,
-                    entry_idx, kwargs, model_selection, run_dir, settings.enable_logging, False, True)
+                    entry_idx, kwargs, parallel_processes, model_selection, run_dir, settings.enable_logging, False, True)
                 task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_inference_task})
             #
         else:
             proc_name = f'{model_selection}'
             run_task = functools.partial(run_one_model,
-                entry_idx, kwargs, model_selection, run_dir, settings.enable_logging, settings.run_import, settings.run_inference)
+                entry_idx, kwargs, parallel_processes, model_selection, run_dir, settings.enable_logging, settings.run_import, settings.run_inference)
             task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_task})
         #
-        parallel_subprocess.enqueue(task_name=model_selection, task_list=task_list_for_model)
+        if parallel_processes:
+            parallel_subprocess.enqueue(task_name=model_selection, task_list=task_list_for_model)
+        else:
+            sequential_process_list.append(task_list_for_model)
+        #
     #
 
-    parallel_subprocess.run()
-
-    # print("benchmark modelzoo parallel - COMPLETED")
+    if parallel_processes:
+        parallel_subprocess.run()
+    else:
+        for proc_func_list in tqdm.tqdm(sequential_process_list):
+            for proc_entry in proc_func_list:
+                proc_func = proc_entry['proc_func']
+                proc_func()
+            #
+        #
+    #
