@@ -25,7 +25,7 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
+import copy
 import os
 import sys
 import argparse
@@ -156,7 +156,11 @@ if __name__ == '__main__':
         pass
     #
 
-    settings = config_settings.ConfigSettings(args.settings_file, **kwargs)
+    ####################################################################
+    # create list of models to run
+    kwargs_copy = copy.deepcopy(kwargs)
+    kwargs_copy['dataset_loading'] = False
+    settings = config_settings.ConfigSettings(args.settings_file, **kwargs_copy)
     print(f'settings: {settings}')
     sys.stdout.flush()
 
@@ -164,20 +168,37 @@ if __name__ == '__main__':
     print(f'work_dir: {work_dir}')
 
     if kwargs['models_list_file'] is None:
+        # make sure the folder exists
+        os.makedirs(settings.modelartifacts_path, exist_ok=True)
+        # create list file
         kwargs['models_list_file'] = os.path.join(settings.modelartifacts_path, "models_list.txt")
+        # get a dict of model configs
+        pipeline_configs = interfaces.get_configs(settings, work_dir)
+        # filter the configs
+        pipeline_configs = pipelines.PipelineRunner(settings, pipeline_configs).get_pipeline_configs()
+        model_keys = pipeline_configs.keys()
+        # now write to the list file
+        with open(kwargs['models_list_file'], "w") as fp:
+            for model_key in model_keys:
+                run_dir = pipeline_configs[model_key]['session'].kwargs['run_dir']
+                fp.write(f"{model_key} {run_dir}\n")
+            #
+        #
+    #
 
+    ####################################################################
+    # get the list of models and run
     with open(kwargs['models_list_file'], 'rt') as list_fp:
         model_entries = [model_entry.rstrip() for model_entry in list_fp]
-        num_models = len(model_entries)
+    #
 
     parallel_processes = kwargs.pop('parallel_processes', 0) or settings.parallel_processes
     parallel_devices = kwargs['parallel_devices']
     overall_timeout = kwargs.pop('overall_timeout', None)
     instance_timeout = kwargs.pop('instance_timeout', None)
+    separate_import_inference = kwargs.pop('separate_import_inference')
     parallel_subprocess = utils.ParallelSubProcess(parallel_processes=parallel_processes, parallel_devices=parallel_devices,
         overall_timeout=overall_timeout, instance_timeout=instance_timeout)
-
-    separate_import_inference = kwargs.pop('separate_import_inference')
 
     for entry_idx, model_entry in enumerate(model_entries):
         model_entry = model_entry.split(' ')

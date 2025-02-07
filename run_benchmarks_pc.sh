@@ -100,19 +100,7 @@ source run_set_env.sh ${TARGET_SOC} ${TARGET_MACHINE}
 SETTINGS=settings_import_on_pc.yaml
 
 ##################################################################
-echo "creating models list..."
-# run all the shortlisted models with these settings
-MODELARTIFACTS_DIR="./work_dirs/modelartifacts"
-MODELS_LIST_FILE="${MODELARTIFACTS_DIR}/${TARGET_SOC}/models_list.txt"
-mkdir -p ${MODELARTIFACTS_DIR}
-GENERATE_MODELS_LIST_SCRIPT="python3 ./scripts/generate_models_list.py ${SETTINGS} ${CMD_ARGS[@]} --target_device ${TARGET_SOC} --models_list_file ${MODELS_LIST_FILE} --get_run_dir True --dataset_loading False"
-echo ${GENERATE_MODELS_LIST_SCRIPT}
-eval "${GENERATE_MODELS_LIST_SCRIPT}"
-num_lines=$(wc -l < ${MODELS_LIST_FILE})
-echo "number of models to run: " $num_lines
-
-##################################################################
-PYARGS1="./scripts/benchmark_modelzoo.py ${SETTINGS} ${CMD_ARGS[@]} --target_device ${TARGET_SOC} --models_list_file ${MODELS_LIST_FILE}"
+PYARGS1="./scripts/benchmark_modelzoo.py ${SETTINGS} ${CMD_ARGS[@]} --target_device ${TARGET_SOC}"
 PYARGS3="./scripts/generate_report.py ${SETTINGS}"
 PYDEBUG="python3 -m debugpy --listen ${HOSTNAME}:${PORT} --wait-for-client"
 
