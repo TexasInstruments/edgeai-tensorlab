@@ -78,14 +78,14 @@ _model_descriptions = {
             input_resize=416,
             input_cropsize=416,
             pretrained_checkpoint_path=model_urls['yoloxpose_tiny_lite'][0],
-            batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_KEYPOINT_DETECTION],
+            batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_KEYPOINT_DETECTION],  #TODO: performance_infer_time_ms to be updated
             target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=None, performance_infer_time_ms=4.92,
-                                                     accuracy_factor=47.4, accuracy_unit='AP50%', accuracy_factor2=30.5, accuracy_unit2='AP[.5:.95]%'),
-                constants.TARGET_DEVICE_AM62A: dict(performance_fps=None, performance_infer_time_ms=15.32,
-                                                     accuracy_factor=47.4, accuracy_unit='AP50%', accuracy_factor2=30.5, accuracy_unit2='AP[.5:.95]%'),
-                constants.TARGET_DEVICE_AM68A: dict(performance_fps=None, performance_infer_time_ms=4.92,
-                                                     accuracy_factor=47.4, accuracy_unit='AP50%', accuracy_factor2=30.5, accuracy_unit2='AP[.5:.95]%')
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=None, performance_infer_time_ms=-1,
+                                                     accuracy_factor=76.1, accuracy_unit='AP50%', accuracy_factor2=47.2, accuracy_unit2='AP[.5:.95]%'),
+                constants.TARGET_DEVICE_AM62A: dict(performance_fps=None, performance_infer_time_ms=-1,
+                                                     accuracy_factor=76.1, accuracy_unit='AP50%', accuracy_factor2=47.2, accuracy_unit2='AP[.5:.95]%'),
+                constants.TARGET_DEVICE_AM68A: dict(performance_fps=None, performance_infer_time_ms=-1,
+                                                     accuracy_factor=76.1, accuracy_unit='AP50%', accuracy_factor2=47.2, accuracy_unit2='AP[.5:.95]%')
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
@@ -114,14 +114,14 @@ _model_descriptions = {
             input_resize=640,
             input_cropsize=640,
             pretrained_checkpoint_path=model_urls['yoloxpose_s_lite'][0],
-            batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_KEYPOINT_DETECTION],
+            batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_KEYPOINT_DETECTION],  #TODO: performance_infer_time_ms to be updated
             target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=None, performance_infer_time_ms=4.92,
-                                                     accuracy_factor=47.4, accuracy_unit='AP50%', accuracy_factor2=30.5, accuracy_unit2='AP[.5:.95]%'),
-                constants.TARGET_DEVICE_AM62A: dict(performance_fps=None, performance_infer_time_ms=15.32,
-                                                     accuracy_factor=47.4, accuracy_unit='AP50%', accuracy_factor2=30.5, accuracy_unit2='AP[.5:.95]%'),
-                constants.TARGET_DEVICE_AM68A: dict(performance_fps=None, performance_infer_time_ms=4.92,
-                                                     accuracy_factor=47.4, accuracy_unit='AP50%', accuracy_factor2=30.5, accuracy_unit2='AP[.5:.95]%')
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=None, performance_infer_time_ms=-1,
+                                                     accuracy_factor=83.6, accuracy_unit='AP50%', accuracy_factor2=56.4, accuracy_unit2='AP[.5:.95]%'),
+                constants.TARGET_DEVICE_AM62A: dict(performance_fps=None, performance_infer_time_ms=-1,
+                                                     accuracy_factor=83.6, accuracy_unit='AP50%', accuracy_factor2=56.4, accuracy_unit2='AP[.5:.95]%'),
+                constants.TARGET_DEVICE_AM68A: dict(performance_fps=None, performance_infer_time_ms=-1,
+                                                     accuracy_factor=83.6, accuracy_unit='AP50%', accuracy_factor2=56.4, accuracy_unit2='AP[.5:.95]%')
             },
             training_devices={
                 constants.TRAINING_DEVICE_CPU: True,
