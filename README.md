@@ -13,7 +13,7 @@ Accuracy of lite models
 |---------|------------------------|-------------|----------------------|-------------|-------|
 |         | **YOLOXPose models** 
 | COCO    | YOLOXPose-tiny-lite    | 416x416     | 47.2, 76.1     | configs_edgeailite/yoloxpose/yoloxpose_tiny_lite_coco-416.py |       |
-| COCO    | YOLOXPose-small-lite   | 640x640     | 55.9, 84.24    | configs_edgeailite/yoloxpose/yoloxpose_s_lite_coco-640.py    |       |
+| COCO    | YOLOXPose-small-lite   | 640x640     | 56.4, 83.6     | configs_edgeailite/yoloxpose/yoloxpose_s_lite_coco-640.py    |       |
 
 
 ## Citation
