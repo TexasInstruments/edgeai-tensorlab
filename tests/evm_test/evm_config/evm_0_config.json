@@ -1,0 +1,20 @@
+{
+    "soc" : "AM68A",
+
+    "dut_uart_info" : {
+        "port": "/dev/ttyUSB2",
+        "baudrate":115200,
+        "bytesize":8,
+        "parity":"N",
+        "stopbits":1,
+        "timeout":null,
+        "xonxoff":0,
+        "rtscts":0
+    },
+
+    "relay_info" : {
+        "executable_path": "path_to_net-pwrctrl.exe",
+        "ip_address": "10.24.XX.XX",
+        "power_port": 1
+    }
+}

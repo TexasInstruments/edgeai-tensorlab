@@ -1,0 +1,5 @@
+pyserial==3.5
+pexpect==4.8.0
+socket
+wget
+tarfile
