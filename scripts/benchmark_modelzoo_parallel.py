@@ -155,7 +155,7 @@ if __name__ == '__main__':
     ####################################################################
     try:
         if settings.target_machine == 'pc' and settings.parallel_devices is None:
-            print(f"INFO: in PC host emulation, cuda gpus can be used by tidl_tools_gpu (use setup_cpu_gpu.sh)")
+            print(f"INFO: model compilation in PC can use cuda gpus (setup using setup_pc_gpu.sh)")
             nvidia_smi_command = 'nvidia-smi --list-gpus | wc -l'
             proc = subprocess.Popen([nvidia_smi_command], stdout=subprocess.PIPE, shell=True)
             out_ret, err_ret = proc.communicate()
