@@ -61,7 +61,7 @@ def get_arg_parser():
     parser.add_argument('--modelartifacts_path', type=str)
     parser.add_argument('--modelpackage_path', type=str)
     parser.add_argument('--dataset_loading', type=utils.str_to_bool, default=True)
-    parser.add_argument('--parallel_devices', type=utils.int_or_none, default=-1)
+    parser.add_argument('--parallel_devices', type=utils.int_or_none)
     parser.add_argument('--parallel_processes', type=int)
     parser.add_argument('--fast_calibration_factor', type=utils.float_or_none)
     parser.add_argument('--experimental_models', type=utils.str_to_bool)
@@ -154,21 +154,19 @@ if __name__ == '__main__':
 
     ####################################################################
     try:
-        if settings.target_machine=='pc' and 'parallel_devices' not in kwargs or kwargs['parallel_devices']==-1:
-            print(f"INFO:  - make sure you have installed gpu tidl_tools using setup_cpu_gpu.sh")
-            print(f"INFO: attempting to get the number of cuda compatible gpus using nvidia-simi")
+        if settings.target_machine == 'pc' and settings.parallel_devices is None:
+            print(f"INFO: in PC host emulation mode, tidl_tools can accelerate using cuda gpus")
+            print(f"INFO: - cuda gpu will be used only if tidl_tools was installed using setup_cpu_gpu.sh")
+            print(f"INFO: - attempting to get parallel_devices (number of cuda compatible gpus) using nvidia-simi")
             nvidia_smi_command = 'nvidia-smi --list-gpus | wc -l'
             proc = subprocess.Popen([nvidia_smi_command], stdout=subprocess.PIPE, shell=True)
             out_ret, err_ret = proc.communicate()
             num_cuda_gpus = int(out_ret)
-            print(f'INFO: setting the number of gpus returned by nvidia-simi: {num_cuda_gpus}')
-            kwargs['parallel_devices'] = num_cuda_gpus
-            settings.parallel_devices = num_cuda_gpus
-        else:
-            settings.parallel_devices = kwargs['parallel_devices'] = None
+            print(f'INFO: - setting the number of gpus returned by nvidia-simi: {num_cuda_gpus}')
+            settings.parallel_devices = kwargs['parallel_devices'] = num_cuda_gpus
         #
     except:
-        print("INFO: could not find cuda gpus - parallel_devices will not be used.")
+        print("INFO: - could not find cuda gpus - parallel_devices will not be used.")
         settings.parallel_devices = kwargs['parallel_devices'] = None
     #
 
