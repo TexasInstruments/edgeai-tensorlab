@@ -166,7 +166,7 @@ def get_configs(settings, work_dir):
         #         model_path=f''),
         #     postprocess=postproc_transforms.get_transform_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=[True,'corner'], formatter=postprocess.DetectionBoxSL2BoxLS()),
         #     metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-        #     model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':30.7}, model_shortlist=100, compact_name='yolov7_l_mmdet', shortlisted=False)
+        #     model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':30.7}, model_shortlist=100, compact_name='yolov7-l-mmdet-coco-640x640', shortlisted=False)
         # ),
         #yolov7_l_lite_mmdet
         'od-9202':utils.dict_update(common_cfg,
@@ -200,7 +200,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolov7_l_coco_origin_640x640_20250109_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=[True,'corner'], formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':50.3}, model_shortlist=70, compact_name='yolov7-l-original-mmdet-coco-640x640', shortlisted=False)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':50.3}, model_shortlist=70, compact_name='yolov7-l-mmdet-coco-640x640', shortlisted=False)
         ),
         #yolov9_s_lite_mmdet
         'od-9204':utils.dict_update(common_cfg,
@@ -244,7 +244,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolov9_s_coco_origin_640x640_20250113_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=[True,'corner'], formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 45.3}, model_shortlist=70, compact_name='yolov9-s-original-mmdet-coco-640x640', shortlisted=True, recommended=True)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 45.3}, model_shortlist=70, compact_name='yolov9-s-mmdet-coco-640x640', shortlisted=True, recommended=True)
         ),
     }
     return pipeline_configs

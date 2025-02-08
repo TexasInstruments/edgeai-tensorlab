@@ -59,7 +59,7 @@ class GenConfigPipeline(BasePipeline):
         #
 
         if model_path is None or not os.path.exists(model_path):
-            return None
+            print(f"WARNING: file not found - {model_path}")
 
         self.pipeline_config['session'].kwargs['model_path'] = os.path.basename(model_path)
         self.pipeline_config['session'].kwargs['artifacts_folder'] = os.path.basename(self.pipeline_config['session'].kwargs['artifacts_folder'])
