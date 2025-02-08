@@ -4,7 +4,7 @@ _base_ = '../../configs/body_2d_keypoint/yoloxpose/coco/yoloxpose_tiny_4xb64-300
 convert_to_lite_model = dict(model_surgery=1)
 find_unused_parameters=True
 
-load_from = '../edgeai-modelzoo/models/vision/keypoint/coco/edgeai-mmpose/yoloxpose_tiny_lite_416x416_mmpose_original_checkpoint.pth'
+load_from = '../edgeai-modelzoo/models/vision/keypoint/coco/edgeai-mmpose/yoloxpose_tiny_416x416_mmpose_original_checkpoint.pth'
 
 optim_wrapper = dict(
     type='OptimWrapper',

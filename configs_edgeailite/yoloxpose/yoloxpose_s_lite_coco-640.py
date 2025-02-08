@@ -1,7 +1,7 @@
 _base_ = '../../configs/body_2d_keypoint/yoloxpose/coco/yoloxpose_s_8xb32-300e_coco-640.py'
 
 # load_from = 'https://download.openmmlab.com/mmpose/v1/body_2d_keypoint/yolox_pose/yoloxpose_s_8xb32-300e_coco-640-56c79c1f_20230829.pth'
-load_from = '../edgeai-modelzoo/models/vision/keypoint/coco/edgeai-mmpose/yoloxpose_s_lite_coco-640x640_mmpose_original_checkpoint.pth'
+load_from = '../edgeai-modelzoo/models/vision/keypoint/coco/edgeai-mmpose/yoloxpose_s_coco-640x640_mmpose_original_checkpoint.pth'
 
 convert_to_lite_model = dict(model_surgery=1)
 find_unused_parameters=True
