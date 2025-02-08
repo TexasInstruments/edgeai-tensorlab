@@ -41,10 +41,10 @@ def get_configs(settings, work_dir):
     # now get the config dictionaries
     is_config_file = (os.path.splitext(settings.configs_path)[-1] == '.yaml')
     if is_config_file:
-        print(f'Using model config(s) from file: {settings.configs_path}')
+        print(f'INFO: using model config(s) from file: {settings.configs_path}')
         pipeline_configs = get_configs_from_file(settings, work_dir)
     else:
-        print(f'Using model configs from Python module: {settings.configs_path}')
+        print(f'INFO: using model configs from Python module: {settings.configs_path}')
         pipeline_configs = get_configs_from_module(settings, work_dir)
     #
     return pipeline_configs
@@ -58,10 +58,10 @@ def select_configs(settings, work_dir, session_name=None, remove_models=False):
     # now get the config dictionaries
     is_config_file = (os.path.splitext(settings.configs_path)[-1] == '.yaml')
     if is_config_file:
-        print(f'Selecting model config(s) from file: {settings.configs_path}')
+        print(f'INFO: selecting model config(s) from file: {settings.configs_path}')
         pipeline_configs = select_configs_from_file(settings, work_dir, session_name=session_name, remove_models=remove_models)
     else:
-        print(f'Selecting model configs from Python module: {settings.configs_path}')
+        print(f'INFO: selecting model configs from Python module: {settings.configs_path}')
         pipeline_configs = select_configs_from_module(settings, work_dir, session_name=session_name, remove_models=remove_models)
     #
     return pipeline_configs
