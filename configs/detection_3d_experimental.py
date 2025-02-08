@@ -70,7 +70,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection_3d/kitti/mmdet3d/lidar_point_pillars_10k_496x432_qat-p2.onnx'),
             postprocess=postproc_transforms.get_transform_lidar_base(),
             metric=dict(label_offset_pred=None),
-            model_info=dict(metric_reference={'accuracy_ap_3d_moderate%':76.50}, model_shortlist=30, compact_name='pointPillars-lidar-10000-1c-496x432', shortlisted=True)
+            model_info=dict(metric_reference={'accuracy_ap_3d_moderate%':76.50}, model_shortlist=200, compact_name='pointPillars-lidar-10000-1c-496x432', shortlisted=True)
         ),
         '3dod-7110':utils.dict_update(common_cfg_3class,
             preprocess=preproc_transforms.get_transform_lidar_base(),
