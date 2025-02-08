@@ -200,7 +200,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/segmentation/ade20k/hf-transformers/segformer_b2_finetuned_ade_512_512_simp.onnx'),
             postprocess=postproc_segmentation_onnx,
             metric=dict(label_offset_pred=1),
-            model_info=dict(metric_reference={'accuracy_mean_iou%':46.5}, model_shortlist=80, compact_name='segformerB2-transformer-ade-512x512', shortlisted=False)
+            model_info=dict(metric_reference={'accuracy_mean_iou%':46.5}, model_shortlist=150, compact_name='segformerB2-transformer-ade-512x512', shortlisted=False)
         ),
         ###############robokit segmentation model######################
         'ss-7618': utils.dict_update(robokitseg_cfg,
