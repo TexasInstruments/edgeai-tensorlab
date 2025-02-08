@@ -58,10 +58,10 @@ do
 Usage: $0 [OPTIONS] [TARGET_SOC]
 This script sets up the environment and runs benchmarking on x86 PC for a specified target device by calling the following:
     ./scripts/generate_models_list.py
-    ./scripts/benchmark_modelzoo.py
+    ./scripts/benchmark_modelzoo_parallel.py
     ./scripts/generate_report.py
 
-For more precise configuration of benchmarking, see the CLI options available within ./scripts/benchmark_modelzoo.py.
+For more precise configuration of benchmarking, see the CLI options available within ./scripts/benchmark_modelzoo_parallel.py.
 
 Options:
 -d, --debug     Launch the Python script with debugpy for remote attach.
@@ -100,7 +100,7 @@ source run_set_env.sh ${TARGET_SOC} ${TARGET_MACHINE}
 SETTINGS=settings_import_on_pc.yaml
 
 ##################################################################
-PYARGS1="./scripts/benchmark_modelzoo.py ${SETTINGS} ${CMD_ARGS[@]} --target_device ${TARGET_SOC}"
+PYARGS1="./scripts/benchmark_modelzoo_parallel.py ${SETTINGS} ${CMD_ARGS[@]} --target_device ${TARGET_SOC}"
 PYARGS3="./scripts/generate_report.py ${SETTINGS}"
 PYDEBUG="python3 -m debugpy --listen ${HOSTNAME}:${PORT} --wait-for-client"
 
