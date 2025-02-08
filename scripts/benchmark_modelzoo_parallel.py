@@ -155,13 +155,13 @@ if __name__ == '__main__':
     ####################################################################
     try:
         if settings.target_machine == 'pc' and settings.parallel_devices is None:
-            print(f"INFO: in PC host emulation mode, tidl_tools can accelerate using cuda gpus")
+            print(f"INFO: in PC host emulation mode, tidl_tools can speedup model compilation using cuda gpus")
             print(f"INFO: - cuda gpus will be used only if tidl_tools was installed using setup_cpu_gpu.sh")
             nvidia_smi_command = 'nvidia-smi --list-gpus | wc -l'
             proc = subprocess.Popen([nvidia_smi_command], stdout=subprocess.PIPE, shell=True)
             out_ret, err_ret = proc.communicate()
             num_cuda_gpus = int(out_ret)
-            print(f'INFO: - number of cuda gpus found: {num_cuda_gpus}')
+            print(f'INFO: - setting parallel_devices to the number of cuda gpus found: {num_cuda_gpus}')
             settings.parallel_devices = kwargs['parallel_devices'] = num_cuda_gpus
         #
     except:
