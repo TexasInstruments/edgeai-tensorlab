@@ -142,7 +142,7 @@ class ConfigDict(utils.AttrDict):
         # run inference - for inferene in evm, it is assumed that the artifaacts folders are already available
         self.run_inference = True
         # run only models for which the results are missing. if this is False, all configs will be run
-        self.run_missing = True
+        self.run_incremental = True
         # detection threshold
         # recommend 0.3 for best fps, 0.05 for accuracy measurement
         self.detection_threshold = 0.3

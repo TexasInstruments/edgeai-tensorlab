@@ -43,7 +43,7 @@ class AccuracyPipeline(BasePipeline):
     def __call__(self, description=''):
         ##################################################################
         # check and return if result exists
-        if self.settings.run_missing and os.path.exists(self.result_yaml):
+        if self.settings.run_incremental and os.path.exists(self.result_yaml):
             with open(self.result_yaml) as fp:
                 param_result = yaml.safe_load(fp)
                 result_dict = param_result['result'] if 'result' in param_result else {}
@@ -97,7 +97,7 @@ class AccuracyPipeline(BasePipeline):
 
         ##################################################################
         # import.
-        run_import = ((not os.path.exists(self.param_yaml)) if self.settings.run_missing else True) \
+        run_import = ((not os.path.exists(self.param_yaml)) if self.settings.run_incremental else True) \
             if self.settings.run_import else False
         if run_import:
             # dump the config params
