@@ -144,19 +144,6 @@ if __name__ == '__main__':
         kwargs['session_type_dict'] = utils.str_to_dict(kwargs['session_type_dict'])
     #
 
-    try:
-        if 'parallel_devices' not in kwargs or kwargs['parallel_devices'] is None:
-            # getting the number of cuda compatible gpus
-            nvidia_smi_command = 'nvidia-smi --list-gpus | wc -l'
-            proc = subprocess.Popen([nvidia_smi_command], stdout=subprocess.PIPE, shell=True)
-            out_ret, err_ret = proc.communicate()
-            num_cuda_gpus = int(out_ret)
-            print(f'setting the number of gpus returned by nvidia-simi: {num_cuda_gpus}')
-            kwargs['parallel_devices'] = num_cuda_gpus
-    except:
-        pass
-    #
-
     ####################################################################
     # create list of models to run
     kwargs_copy = copy.deepcopy(kwargs)
@@ -165,6 +152,24 @@ if __name__ == '__main__':
     print(f'settings: {settings}')
     sys.stdout.flush()
 
+    ####################################################################
+    try:
+        if settings.target_machine=='pc' and 'parallel_devices' not in kwargs or kwargs['parallel_devices'] is None:
+            print("attempting to get the number of cuda compatible gpus using nvidia-simi")
+            nvidia_smi_command = 'nvidia-smi --list-gpus | wc -l'
+            proc = subprocess.Popen([nvidia_smi_command], stdout=subprocess.PIPE, shell=True)
+            out_ret, err_ret = proc.communicate()
+            num_cuda_gpus = int(out_ret)
+            print(f'setting the number of gpus returned by nvidia-simi: {num_cuda_gpus}')
+            print(" - make sure you have installed gpu tidl_tools using setup_cpu_gpu.sh")
+            kwargs['parallel_devices'] = num_cuda_gpus
+            settings.parallel_devices = num_cuda_gpus
+        #
+    except:
+        print("could not find cuda gpus - parallel_devices will not be used.")
+    #
+
+    ####################################################################
     work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
     print(f'work_dir: {work_dir}')
 
