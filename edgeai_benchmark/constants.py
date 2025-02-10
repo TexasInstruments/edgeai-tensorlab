@@ -168,4 +168,4 @@ TARGET_DEVICE_SETTINGS_PRESETS = {
 }
 
 # errors emitted in the log file to help identify a FATAL error
-FATAL_ERROR_LOGS = ['VX_ZONE_ERROR:']
+FATAL_ERROR_LOGS = ['VX_ZONE_ERROR:[tivxDeInit:245]']
