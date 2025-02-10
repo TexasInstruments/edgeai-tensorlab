@@ -166,3 +166,6 @@ TARGET_DEVICE_SETTINGS_PRESETS = {
         'tidl_offload': False,
     },
 }
+
+# errors emitted in the log file to help identify a FATAL error
+FATAL_ERROR_LOGS = ['VX_ZONE_ERROR:']

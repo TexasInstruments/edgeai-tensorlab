@@ -76,7 +76,7 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/detection/coco/mlperf/ssd_resnet34-ssd1200.onnx'),
             postprocess=postproc_transforms.get_transform_detection_onnx(reshape_list=[(-1,4), (-1,1), (-1,1)], squeeze_axis=None),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=0)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':20.0}, model_shortlist=200, compact_name='ssd1200-resNet34-mlperf-coco-1200x1200', shortlisted=False)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':20.0}, model_shortlist=30, compact_name='ssd1200-resNet34-mlperf-coco-1200x1200', shortlisted=False)
         ),
         'od-8020':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),

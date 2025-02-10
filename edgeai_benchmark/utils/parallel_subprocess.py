@@ -36,7 +36,7 @@ import warnings
 
 
 class ParallelSubProcess:
-    def __init__(self, parallel_processes, parallel_devices=None, desc='TASKS', maxinterval=10.0, tqdm_obj=None,
+    def __init__(self, parallel_processes, parallel_devices=None, desc='TASKS', maxinterval=60.0, tqdm_obj=None,
             overall_timeout=None, instance_timeout=None, verbose=False):
         self.parallel_processes = parallel_processes
         self.parallel_devices = parallel_devices if isinstance(parallel_devices, (list,tuple)) else list(range(parallel_devices))
@@ -142,7 +142,29 @@ class ParallelSubProcess:
                     proc_dict['running'] = running
                     running_proc_name = proc_dict['proc_name']
                     running_time = time.time() - proc_dict['start_time']
+                    proc_log = proc_dict['proc_log']
+                    proc_error = proc_dict['proc_error']
+                    proc_error = [proc_error] if not isinstance(proc_error, (list,tuple)) else proc_error
+
+                    proc_terminate = False
+                    proc_term_msgs = []
+                    if os.path.exists(proc_log):
+                        with open(proc_log, "r") as fp:
+                            proc_log_content = fp.read()
+                            for proc_error_entry in proc_error:
+                                if proc_error_entry in proc_log_content:
+                                    proc_terminate = True
+                                    proc_term_msgs += [proc_error_entry]
+                                #
+                            #
+                        #
+                    #
                     if self.instance_timeout and running_time > self.instance_timeout and proc is not None:
+                        proc_terminate = True
+                        proc_term_msgs += ["TIMEOUT"]
+                    #
+                    if proc_terminate:
+                        print(f"WARNING: terminating the process - {running_proc_name} - {','.join(proc_term_msgs)}")
                         proc.terminate()
                     #
                 #
