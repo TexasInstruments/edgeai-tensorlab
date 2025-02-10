@@ -37,7 +37,7 @@ import re
 
 
 class ParallelSubProcess:
-    def __init__(self, parallel_processes, parallel_devices=None, desc='TASKS', maxinterval=0.1, tqdm_obj=None,
+    def __init__(self, parallel_processes, parallel_devices=None, desc='TASKS', maxinterval=60.0, tqdm_obj=None,
             overall_timeout=None, instance_timeout=None, verbose=False):
         self.parallel_processes = parallel_processes
         self.parallel_devices = parallel_devices if isinstance(parallel_devices, (list,tuple)) else list(range(parallel_devices))
