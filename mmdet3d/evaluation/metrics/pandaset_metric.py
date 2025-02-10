@@ -49,8 +49,16 @@ class PandaSetMetric(NuScenesMetric):
     
 
     
-    def __init__(self, data_root, ann_file, metric = 'bbox', modality = None, prefix = None, format_only = False, jsonfile_prefix = None, eval_version = 'detection_cvpr_2019', collect_device = 'cpu', backend_args = None):
+    def __init__(self, data_root, ann_file, metric = 'bbox', modality = None, prefix = None, format_only = False, jsonfile_prefix = None, eval_version = 'detection_cvpr_2019', collect_device = 'cpu', backend_args = None, max_dists=None):
         super().__init__(data_root, ann_file, metric, modality, prefix, format_only, jsonfile_prefix, eval_version, collect_device, backend_args)
+        if max_dists is None:
+            self.max_dist_func = lambda cls: 50
+        elif isinstance(max_dists, dict):
+            self.max_dist_func = lambda cls: max_dists.get(cls, 50)
+        elif isinstance (max_dists, (int, float)):
+            self.max_dist_func = lambda cls: max_dists
+        elif isinstance(max_dists, (tuple, list)):
+            max_dists = dict((self.dataset_meta['classes'],max_dists))
     
     def get_attr_name(self, attr_idx, label_name):
         attr_mapping = UNIQUE_ATTRIBUTE_LABELS
@@ -104,7 +112,7 @@ class PandaSetMetric(NuScenesMetric):
                 name = classes[labels[i]]
                 if attrs:
                     attr = self.get_attr_name(attrs[i], name)
-                elif np.sqrt(np.sum(np.square(box[7:9]))) > 0.2:
+                elif np.linalg.norm(box[7:9]) > 0.2:
                     if name in [
                             'car',
                             'construction_vehicle',
@@ -181,7 +189,8 @@ class PandaSetMetric(NuScenesMetric):
             NUM_CLASSES = 0
         else:
             NUM_CLASSES = len(classes)
-
+        # l = [ det['bboxes_3d'].tensor.shape[0] for det in results]
+        # print(l)
         for i, det in enumerate(mmengine.track_iter_progress(results)):
 
             sample_idx = sample_idx_list[i]
@@ -233,7 +242,7 @@ class PandaSetMetric(NuScenesMetric):
                 nms_across_levels=False,
                 nms_pre=4096,
                 nms_thr=0.05,
-                score_thr=0.01,
+                score_thr=0.05,
                 min_bbox_size=0,
                 max_per_frame=500)
             nms_cfg = Config(nms_cfg)
@@ -325,9 +334,8 @@ class PandaSetMetric(NuScenesMetric):
         classes =self.dataset_meta['classes']
         class_mapping = self.dataset_meta.get('class_mapping', list(range(len(self.dataset_meta['classes']))))
         gt_boxes = self.load_gt_bboxes(classes, class_mapping)
-        max_dist = 100 # None # for no filtering
-        gt_boxes = filter_eval_boxes(gt_boxes, max_dist)
-        pred_boxes = filter_eval_boxes(pred_boxes, max_dist)
+        gt_boxes = filter_eval_boxes(gt_boxes, self.max_dist_func)
+        pred_boxes = filter_eval_boxes(pred_boxes, self.max_dist_func)
         dist_ths = [0.5, 1.0, 2.0, 4.0]
         metrics = pandaset_evaluate_matrics(pred_boxes, gt_boxes, classes, dist_ths, 2.0)
         return metrics
@@ -344,15 +352,15 @@ class PandaSetMetric(NuScenesMetric):
                 attr = self.get_attr_name(instance['attr_label'], name)
                 name = classes[label]
                 velocity = instance['velocity'] 
-                if self.bbox_type_3d == LiDARInstance3DBoxes:
-                    velocity = velocity[:2]
-                elif self.bbox_type_3d == CameraInstance3DBoxes:
+                if self.bbox_type_3d == CameraInstance3DBoxes:
                     assert info is not None and cam_type is not None, 'info and cam_type should be provided for CameraInstance3DBoxes'
-                    velocity = velocity[::2]
+                    velocity = np.array(velocity)
                     corners = convert_bbox_to_corners_for_camera(box)
                     cam2ego = np.array(info['images'][cam_type]['cam2ego'])
                     ego_corners = corners @ cam2ego[:3,:3].T + cam2ego[:3,3]
+                    velocity = velocity @ cam2ego[:3,:3].T
                     box = convert_corners_to_bbox_for_lidar_box(ego_corners)
+                velocity = velocity.tolist()[:2]
                 res_instances.append(dict(
                     sample_token=sample_token,
                     translation=box[:3],
@@ -393,8 +401,8 @@ def cam_bbox_to_ego_corners3d(boxes, info, camera_type):
     if isinstance(boxes, CameraInstance3DBoxes):
         curr_corners = convert_bbox_to_corners_for_camera(boxes)
     else:
-        raise NotImplementedError(f'Not implemented for box type {type(boxes)} only for CameraInstance3DBoxes and LiDARInstance3DBoxes')
-    velocities = (boxes.tensor[:,-2:] if boxes.tensor.shape[1] > 7 else boxes.tensor.new_tensor(torch.zeros([boxes.tensor.shape[0],2]))).numpy()
+        raise NotImplementedError(f'Not implemented for box type {type(boxes)}, only for CameraInstance3DBoxes')
+    velocities = (boxes.tensor[:,7:] if boxes.tensor.shape[1] > 7 else boxes.tensor.new_tensor(torch.zeros([boxes.tensor.shape[0],2]))).numpy()
     availabe_camera_types = list(info['images'].keys())
     assert camera_type in availabe_camera_types, f'camera type {camera_type} not in available camera types \n\t{availabe_camera_types}' 
     cam2ego = np.array(info['images'][camera_type]['cam2ego'])
@@ -425,10 +433,9 @@ def ego_corners3d_to_ego_bbox(corners, velocities,):
     bboxes = [bbox+velocities[i].tolist() for i,bbox in enumerate(boxes)]
     return LiDARInstance3DBoxes(tensor=torch.Tensor(bboxes), box_dim=9, origin=(0.5,0.5,0.5))
 
-def filter_eval_boxes(boxes:dict[str,list], max_dist=None):
-    max_dist = max_dist or float('inf')
+def filter_eval_boxes(boxes:dict[str,list], max_dist_func):
     for sample_token, instances in boxes.items():
-        boxes[sample_token] = [instance for instance in instances if np.sqrt(np.sum(np.square(instance['translation']))) < max_dist]
+        boxes[sample_token] = [instance for instance in instances if np.linalg.norm((instance['translation'][:2])) < max_dist_func(instance['detection_name'])]
     return boxes
 
 def pandaset_evaluate_matrics(pred_boxes, gt_boxes, classes, dist_thrs, dist_thr_tp):
@@ -501,13 +508,13 @@ def pandaset_evaluate_matrics(pred_boxes, gt_boxes, classes, dist_thrs, dist_thr
     print('Eval Time %.1fs' % (eval_time))
     print()
     print('Per-class results:')
-    print('%-20s\t%-6s\t%-6s\t%-6s\t%-6s\t%-6s\t%-6s' % ('Object Class', 'AP', 'ATE', 'ASE', 'AOE', 'AVE', 'AAE'))
+    print('%-40s\t%-10s\t%-6s\t%-6s\t%-6s\t%-6s\t%-6s' % ('Object Class', 'AP', 'ATE', 'ASE', 'AOE', 'AVE', 'AAE'))
     class_aps = mean_dist_aps
     class_tps = label_tp_errors
     for class_name in class_aps.keys():
         class_ap = class_aps.get(class_name, {'ap':float('nan')})['ap']
         class_tp = class_tps.get(class_name, {name: float('nan') for name in err_name_mapping})
-        print('%-40s\t%-6.3f\t%-6.3f\t%-6.3f\t%-6.3f\t%-6.3f\t%-6.3f'
+        print('%-40s\t%-6.6f\t%-6.3f\t%-6.3f\t%-6.3f\t%-6.3f\t%-6.3f'
             % (class_name, class_ap,
                 class_tp['trans_err'],
                 class_tp['scale_err'],

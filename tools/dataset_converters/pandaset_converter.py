@@ -92,7 +92,6 @@ def compute_camera_bboxes(cuboids, camera, frame_index):
     data = camera[frame_index]
     frame_idx = frame_index
     
-
     if isinstance(cuboids, pd.DataFrame):
         cuboids = cuboids.values.tolist()
     elif isinstance(cuboids, np.ndarray):
@@ -201,12 +200,12 @@ def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img ):
     lidar_file = seq.lidar._data_structure[frame_idx]
     lidar2global = (ps.geometry._heading_position_to_mat(**seq.lidar.poses[frame_idx]))
     lidar_timestamp = seq.lidar.timestamps[frame_idx]
-    lidar2lidar90 = np.array(
-        [[ 0, 1, 0, 0],
-                [-1, 0, 0, 0],
-                [ 0, 0, 1, 0],
-                [ 0, 0, 0, 1]]
-        )
+    lidar2lidar90 = np.array([
+            [ 0, 1, 0, 0],
+            [-1, 0, 0, 0],
+            [ 0, 0, 1, 0],
+            [ 0, 0, 0, 1]
+            ])
     lidar902ego = np.eye(4) # lidar90 = ego 
     
     # Current frame Lidar

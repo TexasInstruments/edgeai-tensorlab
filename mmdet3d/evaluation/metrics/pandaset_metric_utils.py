@@ -2,12 +2,11 @@ import numpy as np
 
 
 def center_distance(gt_box, pred_box):
-    return np.sqrt(np.sum(np.square(np.array(gt_box['translation']) - np.array(pred_box['translation']))))
+    return np.linalg.norm(np.array(gt_box['translation']) - np.array(pred_box['translation']))
 
 
 def velocity_l2(gt_box, pred_box):
-    return np.sqrt(np.sum(np.square(np.array(gt_box['velocity']) - np.array(pred_box['velocity']))))
-
+    return np.linalg.norm(np.array(gt_box['velocity']) - np.array(pred_box['velocity']))
 
 def yaw_diff(gt_box, pred_box, period=2 * np.pi):
     diff = (gt_box['yaw'] - pred_box['yaw'])
@@ -191,7 +190,8 @@ def calc_ap(md, min_recall: float, min_precision: float) -> float:
     prec = prec[round(100 * min_recall) + 1:]  # Clip low recalls. +1 to exclude the min recall bin.
     prec -= min_precision  # Clip low precision
     prec[prec < 0] = 0
-    return float(np.mean(prec)) / (1.0 - min_precision)
+    result = float(np.mean(prec)) / (1.0 - min_precision)
+    return max(0.0, min(1.0, result))  # Clip to 0-1 range.
 
 
 def calc_tp(md, min_recall: float, metric_name: str) -> float:
@@ -203,4 +203,5 @@ def calc_tp(md, min_recall: float, metric_name: str) -> float:
     if last_ind < first_ind :
         return 1.0  # Assign 1 here. If this happens for all classes, the score for that TP metric will be 0.
     else:
-        return float(np.mean(md.get(metric_name)[first_ind: last_ind + 1]))  # +1 to include error at max recall.
+        result = float(np.mean(md.get(metric_name)[first_ind: last_ind + 1]))  # +1 to include error at max recall.
+        return max(0.0, min(1.0, result))

@@ -425,38 +425,34 @@ def generate_record(ann_rec: dict, x1: float, y1: float, x2: float, y2: float,
     return rec
 
 
-
-
-def convert_bbox_to_corners(bbox, box_type=None, origin=None):
-    '''
-    bbox: list of float representing bbox with length 7
-    box_type: str, 'lidar' or 'camera' -> to specify either they are in a camera or lidar coordinate system
-    origin: tuple of float, (x,y,z) -> relative place of center of the box (generally (0.5, 0.5, 0.5) => centroid)
-    '''
-    box_type = box_type or 'lidar'
+def convert_bbox_to_corners_for_lidar(bbox, origin = None):
     origin = origin or (0.5, 0.5, 0.5)
-    box_type = box_type.lower()
-    assert box_type in ['lidar', 'camera']
-    if isinstance(bbox, (CameraInstance3DBoxes,LiDARInstance3DBoxes)):
+    if isinstance(bbox, (LiDARInstance3DBoxes)):
         bbox= bbox
         corners = bbox.corners[:,[6,2,1,5,7,3,0,4]].numpy()
     else:
         assert len(bbox) == 7
         bbox = np.array(bbox)
         bbox = bbox.reshape(1, 7)
-        if box_type == 'lidar':
-            bbox = LiDARInstance3DBoxes(bbox, box_dim=7, with_yaw=True, origin=origin)
-        elif box_type == 'camera':
-            bbox = CameraInstance3DBoxes(bbox, box_dim=7, with_yaw=True, origin=origin)
+        bbox = LiDARInstance3DBoxes(bbox, box_dim=7, with_yaw=True, origin=origin)
         corners = bbox.corners.reshape([8,3]).numpy()
         corners = corners[[6,2,1,5,7,3,0,4]]
     return corners
 
-def convert_bbox_to_corners_for_lidar(bbox, origin = None):
-    return convert_bbox_to_corners(bbox, box_type='lidar', origin=origin)
 
 def convert_bbox_to_corners_for_camera(bbox, origin = None):
-    return convert_bbox_to_corners(bbox, box_type='camera', origin=origin)
+    origin = origin or (0.5, 0.5, 0.5)
+    if isinstance(bbox, (CameraInstance3DBoxes)):
+        bbox= bbox
+        corners = bbox.corners[:,[5,1,0,4,6,2,3,7]].numpy()
+    else:
+        assert len(bbox) == 7
+        bbox = np.array(bbox)
+        bbox = bbox.reshape(1, 7)
+        bbox = CameraInstance3DBoxes(bbox, box_dim=7, with_yaw=True, origin=origin)
+        corners = bbox.corners.reshape([8,3]).numpy()
+        corners = corners[[5,1,0,4,6,2,3,7]]
+    return corners
 
 
 def convert_corners_to_bbox_for_lidar_box(corners):
@@ -499,8 +495,8 @@ def convert_corners_to_bbox_for_cam_box(corners):
     corners = np.array(corners)
     x,y,z = np.mean(corners, axis=0)
     width = np.linalg.norm(corners[0] - corners[1])
-    length = np.linalg.norm(corners[0] - corners[3])
-    height = np.linalg.norm(corners[0] - corners[4])
+    length = np.linalg.norm(corners[0] - corners[4])
+    height = np.linalg.norm(corners[0] - corners[3])
     vector = corners[0] - corners[1]
-    yaw = np.arctan2(vector[0], vector[2])
+    yaw = -np.arctan2(vector[2], vector[0])
     return [x, y, z, width, length, height, yaw]

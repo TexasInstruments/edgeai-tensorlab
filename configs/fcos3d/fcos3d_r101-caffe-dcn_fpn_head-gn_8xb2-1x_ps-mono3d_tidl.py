@@ -24,9 +24,12 @@ model = dict(
         num_attrs=22,),
     test_cfg=dict(
         use_rotate_nms=False,
-        score_thr=0.0025,
+        # score_thr=0.0025,
         ))
 
+env_cfg = dict(
+    dist_cfg = dict(timeout=3600)
+)
 
 train_cfg = dict(max_epochs=2)
 
@@ -59,7 +62,7 @@ test_pipeline = [
 ]
 
 train_dataloader = dict(
-    batch_size=2, num_workers=2, dataset=dict(pipeline=train_pipeline, ))
+    batch_size=2, num_workers=4, dataset=dict(pipeline=train_pipeline, ))
 test_dataloader = dict(batch_size=1, dataset=dict(pipeline=test_pipeline))
 val_dataloader = dict(batch_size=1, dataset=dict(pipeline=test_pipeline))
 
