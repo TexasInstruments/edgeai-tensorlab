@@ -37,7 +37,7 @@ import re
 
 
 class ParallelSubProcess:
-    def __init__(self, parallel_processes, parallel_devices=None, desc='TASKS', maxinterval=60.0, tqdm_obj=None,
+    def __init__(self, parallel_processes, parallel_devices=None, desc='TASKS', mininterval=1.0, maxinterval=60.0, tqdm_obj=None,
             overall_timeout=None, instance_timeout=None, verbose=False):
         self.parallel_processes = parallel_processes
         self.parallel_devices = parallel_devices if isinstance(parallel_devices, (list,tuple)) else list(range(parallel_devices))
@@ -45,12 +45,14 @@ class ParallelSubProcess:
         self.queued_tasks = dict()
         self.proc_dict = dict()
         self.tqdm_obj = tqdm_obj
+        self.mininterval = mininterval
         self.maxinterval = maxinterval
         self.overall_timeout = overall_timeout
         self.instance_timeout = instance_timeout
         self.num_queued_tasks = 0
         self.task_index = 0
         self.start_time = None
+        self.terminate_all = False
         if verbose:
             warnings.warn('''
             ParallelSubProcess is for tasks that are started with subprocess.Popen()
@@ -73,19 +75,21 @@ class ParallelSubProcess:
             self.tqdm_obj = tqdm.tqdm(total=self.num_queued_tasks, position=0, desc=desc)
         #
         num_completed, num_running = self._wait_in_loop(self.parallel_processes)
-        while num_completed < self.num_queued_tasks:
+        while num_completed < self.num_queued_tasks and (not self.terminate_all):
             # wait in a loop until the number of running processes comes down
             num_completed, num_running = self._wait_in_loop(self.parallel_processes)
             proc_dict_to_start = self._find_proc_dict_to_start()
             # start the process
-            if proc_dict_to_start:
+            if proc_dict_to_start and (not self.terminate_all):
                 proc_dict_to_start['running'] = True
                 proc_dict_to_start['start_time'] = time.time()
                 proc_dict_to_start['proc'] = self._worker(proc_dict_to_start['proc_func'])
             #
         #
         # wait for all remaining processes to finish
-        self._wait_in_loop(0)
+        if not self.terminate_all:
+            self._wait_in_loop(0)
+        #
         return True
 
     def _find_proc_dict_to_start(self):
@@ -124,7 +128,7 @@ class ParallelSubProcess:
         #
         return completed
 
-    def _check_running_status(self):
+    def _check_running_status(self, check_errors):
         running_tasks = []
         completed_tasks = []
         for task_name, task_list in self.queued_tasks.items():
@@ -152,18 +156,22 @@ class ParallelSubProcess:
 
                     # look for processes to terminate forcefully
                     # proc_dict entry of terminated process will eventually get removed - don't keep trying  to terminate it again and again    
-                    if (not terminated):
+                    if check_errors and (not terminated):
                         proc_terminate = False
                         proc_term_msgs = []
                         if os.path.exists(proc_log):
                             with open(proc_log, "r") as fp:
-                                proc_log_content = fp.read()
-                                for proc_error_entry in proc_error:
-                                    regex_match =  re.search(proc_error_entry, proc_log_content)
-                                    if regex_match:
-                                        proc_terminate = True
-                                        proc_term_msgs += [regex_match.group()]
+                                try:
+                                    proc_log_content = fp.read()
+                                    for proc_error_entry in proc_error:
+                                        regex_match =  re.search(proc_error_entry, proc_log_content)
+                                        if regex_match:
+                                            proc_terminate = True
+                                            proc_term_msgs += [regex_match.group()]
+                                        #
                                     #
+                                except:
+                                    print(f"WARNING: could not read file: {proc_log}")
                                 #
                             #
                         #
@@ -201,23 +209,38 @@ class ParallelSubProcess:
         return num_completed, num_running
 
     def _wait_in_loop(self, num_processes):
+        # wait in a loop until the number of running processes come down        
         num_processes = num_processes or 0
-        # wait in a loop until the number of running processes come down
-        num_completed, num_running = self._check_running_status()
-        while num_running > 0:
-            num_completed, num_running = self._check_running_status()
+        last_check_time = time.time()        
+        check_errors = True
+        num_completed, num_running = self._check_running_status(check_errors=check_errors)
+        while num_running > 0 and num_running >= num_processes and (not self.terminate_all):
+            num_completed, num_running = self._check_running_status(check_errors=check_errors)
             if num_running >= num_processes:
                 time.sleep(self.maxinterval)
             #
             # check if this run has been too long; terminate if needed
             running_time = time.time() - self.start_time
-            if self.overall_timeout and running_time > self.overall_timeout:
-                self._terminate_all()
+            if self.overall_timeout and (running_time > self.overall_timeout):
+                self._terminate_all_procs()
+                self.terminate_all = True
+            #
+            check_interval = time.time() - last_check_time            
+            check_errors = (check_interval > self.maxinterval)
+            if check_errors:              
+                last_check_time = time.time()          
             #
         #
+        time.sleep(self.mininterval)        
+        # check if this run has been too long; terminate if needed
+        running_time = time.time() - self.start_time
+        if self.overall_timeout and (running_time > self.overall_timeout) and (not self.terminate_all):
+            self._terminate_all_procs()
+            self.terminate_all = True            
+        #        
         return num_completed, num_running
 
-    def _terminate_all(self, term_mesage=None):
+    def _terminate_all_procs(self, term_mesage=None):
         term_mesage = term_mesage or f"TIMEOUT - TERMINATE ALL: {self.overall_timeout}"
         for task_name, task_list in self.queued_tasks.items():
             for proc_id, proc_dict in enumerate(task_list):
