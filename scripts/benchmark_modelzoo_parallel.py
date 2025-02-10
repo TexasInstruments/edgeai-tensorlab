@@ -217,19 +217,19 @@ if __name__ == '__main__':
                 proc_name = f'{model_selection}:import'
                 run_import_task = functools.partial(run_one_model,
                     entry_idx, kwargs, parallel_processes, model_selection, run_dir, settings.enable_logging, log_filename, True, False)
-                task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_import_task, 'proc_log':log_filename, 'proc_error':constants.FATAL_ERROR_LOGS})
+                task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_import_task, 'proc_log':log_filename, 'proc_error':constants.FATAL_ERROR_LOGS_REGEX_LIST})
             #
             if settings.run_inference:
                 proc_name = f'{model_selection}:infer'
                 run_inference_task = functools.partial(run_one_model,
                     entry_idx, kwargs, parallel_processes, model_selection, run_dir, settings.enable_logging, log_filename, False, True)
-                task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_inference_task, 'proc_log':log_filename, 'proc_error':constants.FATAL_ERROR_LOGS})
+                task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_inference_task, 'proc_log':log_filename, 'proc_error':constants.FATAL_ERROR_LOGS_REGEX_LIST})
             #
         else:
             proc_name = f'{model_selection}'
             run_task = functools.partial(run_one_model,
                 entry_idx, kwargs, parallel_processes, model_selection, run_dir, settings.enable_logging, log_filename, settings.run_import, settings.run_inference)
-            task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_task, 'proc_log':log_filename, 'proc_error':constants.FATAL_ERROR_LOGS})
+            task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_task, 'proc_log':log_filename, 'proc_error':constants.FATAL_ERROR_LOGS_REGEX_LIST})
         #
         if parallel_processes:
             parallel_subprocess.enqueue(task_name=model_selection, task_list=task_list_for_model)

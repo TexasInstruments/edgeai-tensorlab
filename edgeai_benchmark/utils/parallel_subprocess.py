@@ -33,10 +33,11 @@ import traceback
 import subprocess
 import tqdm
 import warnings
+import re
 
 
 class ParallelSubProcess:
-    def __init__(self, parallel_processes, parallel_devices=None, desc='TASKS', maxinterval=60.0, tqdm_obj=None,
+    def __init__(self, parallel_processes, parallel_devices=None, desc='TASKS', maxinterval=0.1, tqdm_obj=None,
             overall_timeout=None, instance_timeout=None, verbose=False):
         self.parallel_processes = parallel_processes
         self.parallel_devices = parallel_devices if isinstance(parallel_devices, (list,tuple)) else list(range(parallel_devices))
@@ -134,6 +135,9 @@ class ParallelSubProcess:
                 proc = proc_dict.get('proc', None)
                 completed = (proc is not None) and proc_dict.get('completed', False)
                 running = (proc is not None) and proc_dict.get('running', False)
+                terminated = (proc is not None) and proc_dict.get('terminated', False)   
+
+                # check running processes                         
                 if running:
                     # try to update the completed status for running processes
                     completed = self._check_proc_complete(proc)
@@ -146,26 +150,32 @@ class ParallelSubProcess:
                     proc_error = proc_dict['proc_error']
                     proc_error = [proc_error] if not isinstance(proc_error, (list,tuple)) else proc_error
 
-                    proc_terminate = False
-                    proc_term_msgs = []
-                    if os.path.exists(proc_log):
-                        with open(proc_log, "r") as fp:
-                            proc_log_content = fp.read()
-                            for proc_error_entry in proc_error:
-                                if proc_error_entry in proc_log_content:
-                                    proc_terminate = True
-                                    proc_term_msgs += [proc_error_entry]
+                    # look for processes to terminate forcefully
+                    # proc_dict entry of terminated process will eventually get removed - don't keep trying  to terminate it again and again    
+                    if (not terminated):
+                        proc_terminate = False
+                        proc_term_msgs = []
+                        if os.path.exists(proc_log):
+                            with open(proc_log, "r") as fp:
+                                proc_log_content = fp.read()
+                                for proc_error_entry in proc_error:
+                                    regex_match =  re.search(proc_error_entry, proc_log_content)
+                                    if regex_match:
+                                        proc_terminate = True
+                                        proc_term_msgs += [regex_match.group()]
+                                    #
                                 #
                             #
                         #
-                    #
-                    if self.instance_timeout and running_time > self.instance_timeout and proc is not None:
-                        proc_terminate = True
-                        proc_term_msgs += ["TIMEOUT"]
-                    #
-                    if proc_terminate:
-                        print(f"WARNING: terminating the process - {running_proc_name} - {','.join(proc_term_msgs)}")
-                        proc.terminate()
+                        if self.instance_timeout and running_time > self.instance_timeout and proc is not None:
+                            proc_terminate = True
+                            proc_term_msgs += [f"TIMEOUT : {self.instance_timeout}"]
+                        #
+                        if proc_terminate:
+                            print(f"WARNING: terminating the process - {running_proc_name} - {', '.join(proc_term_msgs)}")
+                            proc.terminate()
+                            proc_dict['terminated'] = True
+                        #
                     #
                 #
                 completed_proc_in_task.append(completed)
@@ -194,10 +204,11 @@ class ParallelSubProcess:
         num_processes = num_processes or 0
         # wait in a loop until the number of running processes come down
         num_completed, num_running = self._check_running_status()
-        while num_running > 0 and num_running >= num_processes:
+        while num_running > 0:
             num_completed, num_running = self._check_running_status()
-            time.sleep(self.maxinterval)
-
+            if num_running >= num_processes:
+                time.sleep(self.maxinterval)
+            #
             # check if this run has been too long; terminate if needed
             running_time = time.time() - self.start_time
             if self.overall_timeout and running_time > self.overall_timeout:
@@ -206,16 +217,21 @@ class ParallelSubProcess:
         #
         return num_completed, num_running
 
-    def _terminate_all(self):
+    def _terminate_all(self, term_mesage=None):
+        term_mesage = term_mesage or f"TIMEOUT - TERMINATE ALL: {self.overall_timeout}"
         for task_name, task_list in self.queued_tasks.items():
             for proc_id, proc_dict in enumerate(task_list):
                 proc = proc_dict.get('proc', None)
+                running_proc_name = proc_dict['proc_name']                
                 running = (proc is not None) and proc_dict.get('running', False)
-                if running:
+                terminated = (proc is not None) and proc_dict.get('terminated', False)                   
+                if running and (not terminated):
                     proc.terminate()
+                    proc_dict['terminated'] = True       
+                    print(f"WARNING: terminating the process - {running_proc_name} - {term_mesage}")                                                   
                 #
             #
-        #
+        #     
 
     def _worker(self, task):
         proc = None
