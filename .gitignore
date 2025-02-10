@@ -22,7 +22,6 @@ tutorials/.ipynb_checkpoints/
 backup/
 temp_files/
 
-.vscode/
 *.npy
 *.jpg
 #*.csv
