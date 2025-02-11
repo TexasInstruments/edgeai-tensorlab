@@ -221,9 +221,19 @@ def eager_attention_forward(
     value_states = repeat_kv(value, module.num_key_value_groups)
 
     attn_weights = torch.matmul(query, key_states.transpose(2, 3)) * scaling
+    # if attention_mask is not None:
+    #     causal_mask = attention_mask[:, :, :, : key_states.shape[-2]]
+    #     attn_weights = attn_weights + causal_mask
+
     if attention_mask is not None:
         causal_mask = attention_mask[:, :, :, : key_states.shape[-2]]
+        # This is only way currently TIDL can handle broadcasted operation right now 
+        N, C, H, W = attn_weights.shape
+        attn_weights = attn_weights.reshape(N, C,-1).transpose(0,2) 
+        causal_mask = causal_mask.reshape(causal_mask.shape[0],causal_mask.shape[1],-1).transpose(0,2)
         attn_weights = attn_weights + causal_mask
+        attn_weights = attn_weights.transpose(0,2)
+        attn_weights = attn_weights.reshape(N, C, H, W)
 
     attn_weights = nn.functional.softmax(attn_weights, dim=-1, dtype=torch.float32).to(query.dtype)
     attn_weights = nn.functional.dropout(attn_weights, p=dropout, training=module.training)

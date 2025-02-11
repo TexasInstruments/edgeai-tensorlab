@@ -1016,7 +1016,8 @@ try:
     if not is_edgeai_torchmodelopt_available():
         raise OptionalDependencyNotAvailable()
 except OptionalDependencyNotAvailable:
-    from .get_transformation_dict import transformation_dict_detr 
+    pass
+    # from .get_transformation_dict import transformation_dict_detr 
 
 # sentencepiece-backed objects
 try:

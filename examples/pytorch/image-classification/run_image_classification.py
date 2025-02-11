@@ -52,7 +52,11 @@ from transformers.utils import check_min_version, send_example_telemetry
 from transformers.utils.versions import require_version
 import copy
 
-from edgeai_torchmodelopt import xmodelopt
+present_torchmodelopt = True
+try:
+    from edgeai_torchmodelopt import xmodelopt
+except ModuleNotFoundError:
+    present_torchmodelopt = False
 
 torch.backends.cuda.enable_mem_efficient_sdp(False) # disabling the efficient attention block to support model onnx export
 
@@ -509,6 +513,9 @@ def main():
         ]
         del example_batch[data_args.image_column_name]
         return example_batch
+
+    if model_optimization_args.quantization and not(present_torchmodelopt):
+        raise Exception("TorchmodelOpt not present and requesting quantization.") 
 
     if data_args.max_train_samples is None and model_optimization_args.quantization and model_optimization_args.quantize_type == "PTQ":
         data_args.max_train_samples = model_optimization_args.quantize_calib_images * training_args.per_device_eval_batch_size * training_args.n_gpu
