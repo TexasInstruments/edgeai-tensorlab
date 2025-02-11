@@ -229,8 +229,8 @@ data_prefix = dict(
 
 train_dataloader = dict(
     _delete_=True,
-    batch_size=1,
-    num_workers=1,
+    batch_size=4,
+    num_workers=4,
     sampler=dict(type='DefaultSampler', shuffle=True),
     dataset=dict(
         type='CBGSDataset',
@@ -260,7 +260,7 @@ train_dataloader = dict(
 
 val_dataloader = dict(
     batch_size=1,
-    num_workers=1,
+    num_workers=4,
     sampler=dict(type='DefaultSampler', shuffle=False),
     dataset=dict(
         type=dataset_type,
@@ -320,7 +320,7 @@ param_scheduler = [
         eta_min_ratio=1e-3)
 ]
 
-total_epochs = 20
+total_epochs = 24
 
 train_cfg = dict(by_epoch=True, max_epochs=total_epochs, val_interval=total_epochs)
 val_cfg = dict(type='ValLoop')

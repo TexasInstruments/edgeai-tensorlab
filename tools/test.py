@@ -3,15 +3,27 @@ import argparse
 import os
 import os.path as osp
 
+from mmengine.model import is_model_wrapper
 from mmengine.config import Config, ConfigDict, DictAction
 from mmengine.registry import RUNNERS
+from mmengine.model.base_module import BaseModule
 from mmengine.runner import Runner
 
 from mmdet3d.utils import replace_ceph_backend
 
+from mmdet3d.utils.model_optimization import get_replacement_dict, get_input, wrap_fn_for_bbox_head, replace_dform_conv_with_split_offset_mask, modify_runner_load_check_point_function
+from mmengine.device import get_device
+
+import numpy as np
+import torch
+from edgeai_torchmodelopt import xmodelopt
+
+import warnings
+from copy import deepcopy
+
 
 # TODO: support fuse_conv_bn and format_only
-def parse_args():
+def parse_args(args=None):
     parser = argparse.ArgumentParser(
         description='MMDet3D test (and eval) a model')
     parser.add_argument('config', help='test config file path')
@@ -57,11 +69,19 @@ def parse_args():
         help='job launcher')
     parser.add_argument(
         '--tta', action='store_true', help='Test time augmentation')
+    parser.add_argument('--local_rank', '--local-rank', type=int, default=0)
+    parser.add_argument('--model-surgery', type=int, default=None)
+    parser.add_argument('--quantization', type=int, default=0)
+    parser.add_argument('--quantize-type', type=str, default='QAT')
+    parser.add_argument('--quantize-calib-images', type=int, default=50)
+    parser.add_argument('--max-eval-samples', type=int, default=2000)
+    parser.add_argument('--export-onnx-model', action='store_true', default=False, help='whether to export the onnx network' )
+    parser.add_argument('--simplify', action='store_true', default=False, help='whether to simplify the onnx model or not model' )   
     # When using PyTorch version >= 2.0.0, the `torch.distributed.launch`
     # will pass the `--local-rank` parameter to `tools/test.py` instead
     # of `--local_rank`.
-    parser.add_argument('--local_rank', '--local-rank', type=int, default=0)
-    args = parser.parse_args()
+    # parser.add_argument('--local_rank', '--local-rank', type=int, default=0)
+    args = parser.parse_args() if args is None else parser.parse_args(args)
     if 'LOCAL_RANK' not in os.environ:
         os.environ['LOCAL_RANK'] = str(args.local_rank)
     return args
@@ -96,8 +116,8 @@ def trigger_visualization_hook(cfg, args):
     return cfg
 
 
-def main():
-    args = parse_args()
+def main(args=None):
+    args = parse_args(args) 
 
     # load config
     cfg = Config.fromfile(args.config)
@@ -150,7 +170,76 @@ def main():
         # if 'runner_type' is set in the cfg
         runner = RUNNERS.build(cfg)
 
-    # start testing
+    # Model optimization is applied only to FCOS3D
+    # Need to validate it for other models
+    if args.quantization and \
+       (cfg.get("model")['type'] == 'FCOSMono3D' or \
+        cfg.get("model")['type'] == 'FastBEV'):
+
+        model_surgery = args.model_surgery
+        if args.model_surgery is None:
+            if hasattr(cfg, 'convert_to_lite_model'):
+                model_surgery = cfg.convert_to_lite_model.model_surgery
+            else:
+                model_surgery = 0
+
+        # if hasattr(cfg, 'resize_with_scale_factor') and cfg.resize_with_scale_factor:
+        #     torch.nn.functional._interpolate_orig = torch.nn.functional.interpolate
+        #     torch.nn.functional.interpolate = xnn.layers.resize_with_scale_factor
+
+        # model surgery
+
+        is_wrapped = False
+        if is_model_wrapper(runner.model):
+            runner.model = runner.model.module
+            is_wrapped = True
+
+        example_inputs, example_kwargs = get_input(runner, cfg, train=False)
+
+        # can we one unified transfomration_dict for all models?
+        if cfg.get("model")['type'] == 'FCOSMono3D':
+            transformation_dict = dict(backbone=None, neck=None, bbox_head=xmodelopt.utils.TransformationWrapper(wrap_fn_for_bbox_head))
+        else: #cfg.get("model")['type'] == 'FastBEV'
+            transformation_dict = dict(backbone=None, neck=None, neck_fuse_0=None, neck_3d=None, bbox_head=xmodelopt.utils.TransformationWrapper(wrap_fn_for_bbox_head))
+
+        copy_attrs=['train_step', 'val_step', 'test_step', 'data_preprocessor', 'parse_losses', 'bbox_head', '_run_forward']
+
+        if model_surgery:
+            model_surgery_kwargs = dict(replacement_dict=get_replacement_dict(model_surgery, cfg))
+        else:
+            model_surgery_kwargs = None
+
+        if args.quantization:
+            if args.quantize_type in ['PTQ', 'PTC']:
+                quantization_kwargs = dict(quantization_method=args.quantize_type, total_epochs=2, qconfig_type="WC8_AT8")
+            else:
+                quantization_kwargs = dict(quantization_method=args.quantize_type, total_epochs=runner.max_epochs, qconfig_type="WC8_AT8")
+        else:
+            quantization_kwargs = None
+
+        # if model_surgery_kwargs is not None and quantization_kwargs is None:
+        orig_model = deepcopy(runner.model)
+        runner.model = xmodelopt.apply_model_optimization(runner.model, example_inputs, example_kwargs, model_surgery_version=model_surgery, 
+                                                            quantization_version=args.quantization, model_surgery_kwargs=model_surgery_kwargs, 
+                                                            quantization_kwargs=quantization_kwargs, transformation_dict=transformation_dict, 
+                                                            copy_attrs=copy_attrs)
+
+        if is_wrapped:
+            runner.model = runner.wrap_model(
+                runner.cfg.get('model_wrapper_cfg'), runner.model)
+
+        # runner._init_model_weights()
+        # start testing
+        # runner._init_model_weights()
+        # del BaseModule.init_weights
+
+        runner.model.eval()
+        # runner.call_hook('before_run')
+        modify_runner_load_check_point_function(runner)
+        runner.load_or_resume()
+        # runner.call_hook('after_run')
+        # runner.model = replace_dform_conv_with_split_offset_mask(runner.model)
+
     runner.test()
 
 

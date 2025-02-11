@@ -110,15 +110,17 @@ def wrap_fn_for_bbox_head(fn, module:nn.Module, *args, **kwargs):
     return module    
 
 
-def get_input(runner, cfg, batch_size=None, to_export=False):
+def get_input(runner, cfg, train=True, to_export=False):
 
-    batch_size = batch_size or cfg.train_dataloader.batch_size
-    input_dict = runner.model.data_preprocessor(next(iter(runner.train_dataloader)))
-    data_samples = input_dict['data_samples'][0]
+    if train is True:
+        batch_size = cfg.train_dataloader.batch_size
+        input_dict = runner.model.data_preprocessor(next(iter(runner.train_dataloader)))
+    else:
+        batch_size = cfg.val_dataloader.batch_size
+        input_dict = runner.model.data_preprocessor(next(iter(runner.val_dataloader)))
 
     example_inputs = []
-    example_kwargs = {'inputs': {'imgs': input_dict['inputs']['imgs'].repeat(batch_size, 1, 1, 1)},
-                      'data_samples': data_samples}
+    example_kwargs = input_dict
     return example_inputs, example_kwargs
     
     
@@ -357,10 +359,18 @@ def replace_dform_conv_tidl(m):
     groups = m.groups
     output_padding = m.output_padding
     
-    
-    replaced_model = xops.DCNWithGSv2(in_channels, out_channels, kernel_size, stride, padding, dilation, groups, offset_clip=None, mode='bilinear')
+    replaced_model = xops.DCNWithGSv2MMCV(in_channels, out_channels, kernel_size, stride, padding, dilation, groups, offset_clip=None)#, mode='nearest')
     replaced_model.is_initialized = True
     setattr(replaced_model, 'orig', m.forward)
     replaced_model.copy_weights(m)
     replaced_model = replaced_model.to(m.weight.device)
+    replaced_model.bias = None
     return replaced_model
+
+
+# To MonkeyPatch Runner to prevent change 'module.' to ''
+def modify_runner_load_check_point_function(runner):
+    runner.load_checkpoint_orig = runner.load_checkpoint
+    def load_checkpoint_new (self, *args, revise_keys=[], **kwargs):
+        return self.load_checkpoint_orig(*args, revise_keys=revise_keys, **kwargs)
+    runner.load_checkpoint = types.MethodType(load_checkpoint_new, runner)

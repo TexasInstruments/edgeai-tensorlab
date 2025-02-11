@@ -111,7 +111,8 @@ class M2BevNeck(nn.Module):
             out = self.model.forward(x)
             return out
 
-        if bool(os.getenv("DEPLOY", False)):
+        # cause error with QAT
+        if False: #bool(os.getenv("DEPLOY", False)):
             N, X, Y, Z, C = x.shape
             x = x.reshape(N, X, Y, Z*C).permute(0, 3, 1, 2)
         else:

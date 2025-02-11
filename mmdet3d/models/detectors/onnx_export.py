@@ -304,15 +304,17 @@ def export_FCOS3D(model, inputs=None, data_samples=None, quantized_model=False, 
 
 
 
-def create_onnx_FastBEV(model):
+def create_onnx_FastBEV(model, quantized_model=False):
     onnxModel = FastBEV_export_model(model)
     onnxModel = onnxModel.cpu()
-    onnxModel.eval()
+    if not quantized_model:
+        onnxModel.eval()
 
     return onnxModel
 
 
-def export_FastBEV(onnxModel, inputs=None,  data_samples=None):
+def export_FastBEV(onnxModel, inputs=None, data_samples=None,
+                   quantized_model=False, opset_version=20,  **kwargs):
 
     img = inputs['imgs'].clone()
     img = img.cpu()
@@ -342,22 +344,41 @@ def export_FastBEV(onnxModel, inputs=None,  data_samples=None):
     model_input.append(xy_coors)
     model_input.append(prev_feats_map)
 
+    if quantized_model:
+        modelInput = []
+        modelInput.append(img)
+        modelInput.append(xy_coors)
+        modelInput.append(prev_feats_map)
+
+        from edgeai_torchmodelopt import xmodelopt
+        xmodelopt.quantization.v3.quant_utils.register_onnx_symbolics(opset_version=opset_version)
+
+        model_name = 'fastbev_quantized.onnx'
+    else:
+        modelInput = []
+        modelInput.append(img)
+        modelInput.append(xy_coors)
+        modelInput.append(prev_feats_map)
+
+        model_name = 'fastbev.onnx'
+
     input_names  = ["imgs", "xy_coor", "prev_img_feats"]
     if prev_feats_map is None:
-        output_names = ["bboxes", "bboxes_for_nms", "scores", "dir_scores", ]
+        output_names = ["bboxes", "bboxes_for_nms", "scores", "dir_scores"]
     else:
         output_names = ["bboxes", "bboxes_for_nms", "scores", "dir_scores", "img_feats"]
 
     torch.onnx.export(onnxModel,
                       tuple(model_input),
-                      'fastBEV.onnx',
+                      model_name,
                       input_names=input_names,
                       output_names=output_names,
-                      opset_version=16,
-                      verbose=True)
+                      opset_version=opset_version,
+                      training=torch._C._onnx.TrainingMode.PRESERVE,
+                      verbose=False)
 
-    onnx_model, _ = simplify('fastBEV.onnx')
-    onnx.save(onnx_model, 'fastBEV.onnx')
+    onnx_model, _ = simplify(model_name)
+    onnx.save(onnx_model, model_name)
 
     # move model back to gpu
     onnxModel = onnxModel.cuda()

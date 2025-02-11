@@ -6,7 +6,8 @@ _base_ = [
 
 custom_imports = dict(imports=['projects.FastBEV.fastbev'])
 
-n_times = 4
+# sequential = False for n_times = 1
+n_times = 1
 sequential=True
 
 img_norm_cfg = dict(
@@ -16,8 +17,8 @@ model = dict(
     type='FastBEV',
     style="v1",
     save_onnx_model=False,
+    quantized_model=True,
     num_temporal_feats=n_times-1,
-    # Image feat map size after backbone and neck (FPN)
     feats_size = [6, 64, 64, 176],
     data_preprocessor=dict(
         type='Det3DDataPreprocessor',
@@ -25,13 +26,13 @@ model = dict(
         pad_size_divisor=32),
     backbone=dict(
         type='mmdet.ResNet',
-        depth=34,
+        depth=18,
         num_stages=4,
         out_indices=(0, 1, 2, 3),
         frozen_stages=1,
         norm_cfg=dict(type='BN', requires_grad=True),
         norm_eval=True,
-        init_cfg=dict(type='Pretrained', checkpoint='torchvision://resnet34'),
+        init_cfg=dict(type='Pretrained', checkpoint='torchvision://resnet18'),
         style='pytorch'
     ),
     neck=dict(
@@ -44,8 +45,8 @@ model = dict(
     neck_3d=dict(
         type='M2BevNeck',
         in_channels=64*4,
-        out_channels=224,
-        num_layers=4,
+        out_channels=192,
+        num_layers=2,
         stride=2,
         is_transpose=False,
         fuse=dict(in_channels=64*4*n_times, out_channels=64*4),
@@ -55,8 +56,8 @@ model = dict(
         type='CustomFreeAnchor3DHead',
         is_transpose=True,
         num_classes=10,
-        in_channels=224,
-        feat_channels=224,
+        in_channels=192,
+        feat_channels=192,
         use_direction_classifier=True,
         pre_anchor_topk=25,
         bbox_thr=0.5,
@@ -125,6 +126,7 @@ model = dict(
         nms_type_list=[
             'circle', 'circle', 'circle', 'circle', 'circle', 'circle', 'circle', 'circle', 'circle', 'circle'],
         nms_thr_list=[0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.5, 0.5, 0.2],
+        #nms_thr_list=[0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5,  0.5],
         nms_radius_thr_list=[4, 12, 10, 10, 12, 0.85, 0.85, 0.175, 0.175, 1],
         nms_rescale_factor=[1.0, 0.7, 0.55, 0.4, 0.7, 1.0, 1.0, 4.5, 9.0, 1.0],
     )
@@ -204,12 +206,10 @@ train_pipeline = [
     dict(type='ObjectRangeFilter', point_cloud_range=point_cloud_range),
     dict(type='ResetPointOrigin', point_cloud_range=point_cloud_range),
     dict(type='Pack3DDetInputs', keys=['img',
-                                        #'gt_bboxes', 'gt_labels',
                                        'gt_bboxes_3d', 'gt_labels_3d'])]
 
 test_pipeline = [
-    # n_times should be 1 for validation and test
-    dict(type='MultiViewPipeline', sequential=sequential, n_images=6, n_times=1, transforms=[
+    dict(type='MultiViewPipeline', sequential=sequential, n_images=6, n_times=n_times, transforms=[
         dict(
             type='LoadImageFromFile',
             file_client_args=file_client_args)]),
@@ -232,6 +232,7 @@ train_dataloader = dict(
     _delete_=True,
     batch_size=4,
     num_workers=4,
+    drop_last=True,
     sampler=dict(type='DefaultSampler', shuffle=True),
     dataset=dict(
         type='CBGSDataset',
@@ -262,6 +263,7 @@ train_dataloader = dict(
 val_dataloader = dict(
     batch_size=1,
     num_workers=4,
+    drop_last=True,
     sampler=dict(type='DefaultSampler', shuffle=False),
     dataset=dict(
         type=dataset_type,
@@ -274,15 +276,14 @@ val_dataloader = dict(
         box_type_3d='LiDAR',
         ann_file='nuscenes_infos_val.pkl',
         sequential=sequential,
-        # n_times shoudl be 1 for test and validation dataloader
-        n_times=1,
+        n_times=n_times,
         train_adj_ids=[1, 3, 5], # not needed
         speed_mode='abs_velo',
         max_interval=10,
         min_interval=0,
         fix_direction=True,
         test_adj='prev',
-        test_adj_ids=[1, 3, 5], # not needed
+        test_adj_ids=[1, 3, 5],  # not needed
         test_time_id=None,
     ))
 
@@ -322,7 +323,10 @@ param_scheduler = [
         eta_min_ratio=1e-3)
 ]
 
-total_epochs = 20
+
+total_epochs = 24
+
+find_unused_parameters=True
 
 train_cfg = dict(by_epoch=True, max_epochs=total_epochs, val_interval=total_epochs)
 val_cfg = dict(type='ValLoop')
@@ -333,8 +337,6 @@ default_hooks = dict(
         type='CheckpointHook', interval=1, max_keep_ckpts=4, save_last=True))
 
 
-load_from = 'pretrained/cascade_mask_rcnn_r34_fpn_coco-mstrain_3x_20e_nuim_bbox_mAP_0.5190_segm_mAP_0.4140.pth'
+load_from = 'checkpoints/fastbev/edgeai_fastbev_m0_r18_s256x704_v200x200x4_c192_d2_f1.pth'
 resume_from = None
 
-# fp16 settings, the loss scale is specifically tuned to avoid Nan
-#fp16 = dict(loss_scale='dynamic')

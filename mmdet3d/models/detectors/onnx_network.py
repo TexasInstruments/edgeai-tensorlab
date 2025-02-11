@@ -839,11 +839,24 @@ def backproject_tidl(features, xy_coor, n_voxels):
 class FastBEV_export_model(nn.Module):
     def __init__(self, model):
         super().__init__()
-        self.backbone        = model.backbone
-        self.neck            = model.neck
-        self.neck_fuse_0     = model.neck_fuse_0
-        self.neck_3d         = model.neck_3d
-        self.bbox_head       = model.bbox_head
+        #self.backbone        = model.backbone
+        #self.neck            = model.neck
+        #self.neck_fuse_0     = model.neck_fuse_0
+        #self.neck_3d         = model.neck_3d
+        #self.bbox_head       = model.bbox_head
+        self.backbone    = model.backbone.convert(make_copy=True) if hasattr(model.backbone, "convert") else model.backbone
+        self.neck        = model.neck.convert(make_copy=True) if hasattr(model.neck, "convert") else model.neck
+        self.neck_fuse_0 = model.neck_fuse_0.convert(make_copy=True) if hasattr(model.neck_fuse_0, "convert") else model.neck_fuse_0
+        self.neck_3d     = model.neck_3d.convert(make_copy=True) if hasattr(model.neck_3d, "convert") else model.neck_3d
+        if hasattr(model.bbox_head, "new_bbox_head"):
+            self.bbox_head  = copy.deepcopy(model.bbox_head)
+            # self.bbox_head.new_bbox_head loses the convert function after deepcopy so using the original
+            setattr(self.bbox_head, "new_bbox_head", model.bbox_head.new_bbox_head.convert(make_copy=True))
+            self.bbox_head.cpu()
+        elif hasattr(model.bbox_head, "convert"): # bbox_head is not quantized but rest of the network is quantized
+            self.bbox_head  = copy.deepcopy(model.bbox_head).cpu()
+        else:
+            self.bbox_head = model.bbox_head
 
         self.multi_scale_id  = model.multi_scale_id
         self.n_voxels        = model.n_voxels
@@ -966,7 +979,8 @@ class FastBEV_export_model(nn.Module):
         if prev_feats_map is None:
             mlvl_feats_all = mlvl_feats
         else:
-            mlvl_feats_all = [torch.cat((mlvl_feats[0], prev_feats_map), dim=0)]
+            concat_mlvl_feats = torch.cat((mlvl_feats[0], mlvl_feats[0]), dim=0)
+            mlvl_feats_all    = [torch.cat((concat_mlvl_feats[0:6], prev_feats_map), dim=0)]
 
         feature_bev = self.extract_feat_neck3d(img, self.img_metas, mlvl_feats_all, xy_coors)
         x = self.bbox_head(feature_bev)
@@ -976,4 +990,4 @@ class FastBEV_export_model(nn.Module):
         if prev_feats_map is None:
             return bbox_list
         else:
-            return bbox_list, mlvl_feats
+            return bbox_list, concat_mlvl_feats[6:12]

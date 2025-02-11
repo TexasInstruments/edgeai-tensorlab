@@ -1,6 +1,6 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 from .box3d_nms import (aligned_3d_nms, box3d_multiclass_nms, circle_nms,
-                        nms_bev, nms_normal_bev)
+                        nms_bev, nms_normal_bev, circle_nms_python)
 from .dgcnn_modules import DGCNNFAModule, DGCNNFPModule, DGCNNGFModule
 from .edge_fusion_module import EdgeFusionModule
 from .fusion_layers import (PointFusion, VoteFusion, apply_3d_transformation,
@@ -27,8 +27,8 @@ __all__ = [
     'NaiveSyncBatchNorm2d', 'PAConv', 'PAConvCUDA', 'SparseBasicBlock',
     'SparseBottleneck', 'make_sparse_convmodule', 'PointFusion', 'VoteFusion',
     'apply_3d_transformation', 'bbox_2d_transform', 'coord_2d_transform',
-    'MLP', 'box3d_multiclass_nms', 'aligned_3d_nms', 'circle_nms', 'nms_bev',
-    'nms_normal_bev', 'build_sa_module', 'PointSAModuleMSG', 'PointSAModule',
+    'MLP', 'box3d_multiclass_nms', 'aligned_3d_nms', 'circle_nms', 'circle_nms_python',
+    'nms_bev', 'nms_normal_bev', 'build_sa_module', 'PointSAModuleMSG', 'PointSAModule',
     'PointFPModule', 'PAConvSAModule', 'PAConvSAModuleMSG',
     'PAConvCUDASAModule', 'PAConvCUDASAModuleMSG', 'TorchSparseConvModule',
     'TorchSparseBasicBlock', 'TorchSparseBottleneck', 'MinkowskiConvModule',
