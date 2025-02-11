@@ -8,6 +8,7 @@ from einops import rearrange
 from loguru import logger
 from torch import Tensor, nn
 from torch.nn.common_types import _size_2_t
+import copy
 
 from torch.nn import Identity, ReLU
 
@@ -149,18 +150,36 @@ class DetectionV7(nn.Module):
         return x
 
 
+# #conv3d here is being replaced with matmul
+# class Anchor2Vec(nn.Module):
+#     def __init__(self, reg_max: int = 16) -> None:
+#         super().__init__()
+#         reverse_reg = torch.arange(reg_max, dtype=torch.float32).view(1, reg_max, 1, 1, 1)
+#         self.anc2vec = nn.Conv3d(in_channels=reg_max, out_channels=1, kernel_size=1, bias=False)
+#         self.anc2vec.weight = nn.Parameter(reverse_reg, requires_grad=False)
+
+#     def forward(self, anchor_x: Tensor) -> Tensor:
+#         anchor_x = rearrange(anchor_x, "B (P R) h w -> B R P h w", P=4)
+#         vector_x = anchor_x.softmax(dim=1)
+#         vector_x = self.anc2vec(vector_x)[:, 0]
+#         return anchor_x, vector_x
+
 class Anchor2Vec(nn.Module):
     def __init__(self, reg_max: int = 16) -> None:
         super().__init__()
-        reverse_reg = torch.arange(reg_max, dtype=torch.float32).view(1, reg_max, 1, 1, 1)
-        self.anc2vec = nn.Conv3d(in_channels=reg_max, out_channels=1, kernel_size=1, bias=False)
-        self.anc2vec.weight = nn.Parameter(reverse_reg, requires_grad=False)
+        self.reg_max = reg_max
 
     def forward(self, anchor_x: Tensor) -> Tensor:
         anchor_x = rearrange(anchor_x, "B (P R) h w -> B R P h w", P=4)
-        vector_x = anchor_x.softmax(dim=1)
-        vector_x = self.anc2vec(vector_x)[:, 0]
-        return anchor_x, vector_x
+        vector_x = rearrange(anchor_x, "B R P h w -> B P h w R")
+        vector_x = vector_x.softmax(dim=-1)
+        vector_x = vector_x.squeeze(dim=0)
+        N,C,H,W = vector_x.shape
+        reverse_reg = torch.arange(self.reg_max, dtype=torch.float32).expand(N,C, 1, self.reg_max).transpose(2,3)
+        vector_x = torch.matmul(vector_x, reverse_reg)
+        vector_x = vector_x.unsqueeze(dim=0)
+        vector_x = rearrange(vector_x, "B P h w R -> B R P h w")
+        return anchor_x, vector_x[:, 0]
 
 
 # ----------- Backbone Class ----------- #
@@ -319,10 +338,10 @@ class RepNCSPELAN(nn.Module):
 class AConv(nn.Module):
     """Downsampling module combining average and max pooling with convolution for feature reduction."""
 
-    def __init__(self, in_channels: int, out_channels: int):
+    def __init__(self, in_channels: int, out_channels: int, pool_kernel_size:int):
         super().__init__()
         mid_layer = {"kernel_size": 3, "stride": 2}
-        self.avg_pool = Pool("avg", kernel_size=2, stride=1)
+        self.avg_pool = Pool("avg", kernel_size=pool_kernel_size, stride=1)
         self.conv = Conv(in_channels, out_channels, **mid_layer)
 
     def forward(self, x: Tensor) -> Tensor:
