@@ -4,6 +4,7 @@ import numpy as np
 from mmdet3d.registry import DATASETS
 from mmdet3d.datasets import NuScenesDataset
 from mmengine.logging import print_log
+import logging
 import mmcv
 import cv2
 from nuscenes.nuscenes import NuScenes
@@ -11,7 +12,7 @@ from nuscenes.map_expansion.map_api import NuScenesMap
 from pyquaternion import Quaternion
 from mmdet3d.structures import LiDARInstance3DBoxes
 try:
-    from tools.dataset_converter.nuscenes_converter import get_2d_boxes
+    from tools.dataset_converters.nuscenes_converter import get_2d_boxes
 except:
     print('import error')
 

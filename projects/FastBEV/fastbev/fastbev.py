@@ -112,7 +112,8 @@ class FastBEV(BaseDetector):
         style='v4',
         num_temporal_feats = 0,
         feats_size = [6, 64, 64, 176],
-        save_onnx_model=False
+        save_onnx_model=False,
+        quantized_model=False
     ):
         super().__init__(data_preprocessor=data_preprocessor, init_cfg=init_cfg)
         self.backbone = MODELS.build(backbone)
@@ -176,7 +177,7 @@ class FastBEV(BaseDetector):
         # for onnx model export
         self.onnx_model = None
         self.save_onnx_model = save_onnx_model
-        #self.model_exported = False
+        self.quantized_model = quantized_model
         self.num_temporal_feats = num_temporal_feats
         self.feats_size     = feats_size
 
@@ -242,9 +243,9 @@ class FastBEV(BaseDetector):
             else:
                 if self.save_onnx_model is True: # and self.model_exported is False:
                     if self.onnx_model is None:
-                        self.onnx_model = create_onnx_FastBEV(self)
-                    
-                    export_FastBEV(self.onnx_model, inputs, data_samples, **kwargs)
+                        self.onnx_model = create_onnx_FastBEV(self, quantized_model=self.quantized_model)
+
+                    export_FastBEV(self.onnx_model, inputs, data_samples, quantized_model=self.quantized_model, opset_version=18, **kwargs)
                     
                     # Export onnx only once
                     self.save_onnx_model = False
@@ -746,8 +747,21 @@ class FastBEV(BaseDetector):
         return losses
 
 
-    def _forward(self, inputs=None, data_samples=None, **kwargs):
-        raise NotImplementedError('tensor mode is yet to add')
+    def _forward(self, batch_inputs_dict: Dict[str, Optional[Tensor]],
+                batch_data_samples: List[Det3DDataSample],
+                **kwargs) -> List[Det3DDataSample]:
+        """Network forward process. Usually includes backbone, neck and head
+        forward without any post-processing.
+        """
+        img = batch_inputs_dict['imgs']
+        # batch_input_metas = [batch_data_samples.metainfo]
+        img_metas = [item.metainfo for item in batch_data_samples]
+
+        mlvl_feats, features_2d = self.extract_feat(img, img_metas, "test")
+        feature_bev = self.extract_feat_neck3d(img, img_metas, mlvl_feats)
+
+        results = self.bbox_head(feature_bev)
+        return results
 
 
     def precompute_volume_info(self, points, projection):

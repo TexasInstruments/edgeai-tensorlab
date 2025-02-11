@@ -11,7 +11,8 @@ from mmdet3d.registry import MODELS
 from mmdet3d.models.dense_heads import FreeAnchor3DHead
 from mmdet3d.models.layers import box3d_multiclass_nms
 
-from .box3d_nms import box3d_multiclass_scale_nms
+from .box3d_nms import box3d_multiclass_scale_nms, box3d_multiclass_scale_nms_python, \
+                       box3d_multiclass_nms_python
 
 @MODELS.register_module()
 class CustomFreeAnchor3DHead(FreeAnchor3DHead):
@@ -338,14 +339,11 @@ class CustomFreeAnchor3DHead(FreeAnchor3DHead):
         """
         score_thr = cfg.get('score_thr', 0)
         if cfg.get('use_scale_nms', False):
-            #mlvl_bboxes_for_nms = input_meta['box_type_3d'](mlvl_bboxes, box_dim=self.box_code_size).bev
-            results = box3d_multiclass_scale_nms(mlvl_bboxes, mlvl_bboxes_for_nms,
+            results = box3d_multiclass_scale_nms_python(mlvl_bboxes, mlvl_bboxes_for_nms,
                                                  mlvl_scores, score_thr, cfg.max_num,
                                                  cfg, mlvl_dir_scores)
         else:
-            #mlvl_bboxes_for_nms = xywhr2xyxyr(input_meta['box_type_3d'](
-            #    mlvl_bboxes, box_dim=self.box_code_size).bev)
-            results = box3d_multiclass_nms(mlvl_bboxes, mlvl_bboxes_for_nms,
+            results = box3d_multiclass_nms_python(mlvl_bboxes, mlvl_bboxes_for_nms,
                                            mlvl_scores, score_thr, cfg.max_num,
                                            cfg, mlvl_dir_scores)
 
@@ -356,7 +354,6 @@ class CustomFreeAnchor3DHead(FreeAnchor3DHead):
             bboxes[..., 6] = (
                 dir_rot + self.dir_offset +
                 np.pi * dir_scores.to(bboxes.dtype))
-        bboxes = input_meta['box_type_3d'](bboxes, box_dim=self.box_code_size)
         return bboxes, scores, labels
         """
 

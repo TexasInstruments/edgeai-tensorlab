@@ -158,7 +158,7 @@ from mmengine.utils.path import symlink
 
 from mmdet3d.utils import replace_ceph_backend
 
-from mmdet3d.utils.model_optimization import get_replacement_dict, get_input, wrap_fn_for_bbox_head, replace_dform_conv_with_split_offset_mask
+from mmdet3d.utils.model_optimization import get_replacement_dict, get_input, wrap_fn_for_bbox_head, replace_dform_conv_with_split_offset_mask, modify_runner_load_check_point_function
 from mmengine.device import get_device
 
 import numpy as np
@@ -168,7 +168,7 @@ from edgeai_torchmodelopt import xmodelopt
 import warnings
 from copy import deepcopy
 
-def parse_args():
+def parse_args(args=None):
     parser = argparse.ArgumentParser(description='Train a 3D detector')
     parser.add_argument('config', help='train config file path')
     parser.add_argument('--work-dir', help='the dir to save logs and models')
@@ -319,7 +319,7 @@ def main():
 
     if hasattr(cfg,'quantize') is False:
         cfg.quantize = False
-        
+
     if args.quantization:
         if 'custom_hooks' in cfg:
                 hooks_to_remove = ['EMAHook']
@@ -331,8 +331,8 @@ def main():
                 #
         else:
             cfg.custom_hooks = []
-        
-         # remove the init_weights wrapper from model, else train always calls init_weights wrapper
+
+        # remove the init_weights wrapper from model, else train always calls init_weights wrapper
         del BaseModule.init_weights
         
         if args.quantize_type in ['PTQ', 'PTC']:
@@ -387,7 +387,9 @@ def main():
 
     # Model optimization is applied only to FCOS3D
     # Need to validate it for other models
-    if cfg.get("model")['type'] == 'FCOSMono3D':
+    if cfg.get("model")['type'] == 'FCOSMono3D' or \
+       cfg.get("model")['type'] == 'FastBEV':
+
         model_surgery = args.model_surgery
         if args.model_surgery is None:
             if hasattr(cfg, 'convert_to_lite_model'):
@@ -400,9 +402,11 @@ def main():
         #     torch.nn.functional.interpolate = xnn.layers.resize_with_scale_factor
 
         # model surgery
-        runner.load_or_resume()
-        runner.model.eval()
-        runner.model = replace_dform_conv_with_split_offset_mask(runner.model)
+        # runner._init_model_weights()
+        # del BaseModule.init_weights
+        # runner.load_or_resume()
+        # runner.model.eval()
+        # runner.model = replace_dform_conv_with_split_offset_mask(runner.model)
 
         is_wrapped = False
         if is_model_wrapper(runner.model):
@@ -411,14 +415,19 @@ def main():
 
         example_inputs, example_kwargs = get_input(runner, cfg)
 
-        transformation_dict = dict(backbone=None, neck=None, bbox_head=xmodelopt.TransformationWrapper(wrap_fn_for_bbox_head))
+        # can we one unified transfomration_dict for all models?
+        if cfg.get("model")['type'] == 'FCOSMono3D':
+            transformation_dict = dict(backbone=None, neck=None, bbox_head=xmodelopt.utils.TransformationWrapper(wrap_fn_for_bbox_head))
+        elif cfg.get("model")['type'] == 'FastBEV':
+            transformation_dict = dict(backbone=None, neck=None, neck_fuse_0=None, neck_3d=None, bbox_head=xmodelopt.utils.TransformationWrapper(wrap_fn_for_bbox_head))
+
         copy_attrs=['train_step', 'val_step', 'test_step', 'data_preprocessor', 'parse_losses', 'bbox_head', '_run_forward']
 
         if model_surgery:
             model_surgery_kwargs = dict(replacement_dict=get_replacement_dict(model_surgery, cfg))
         else:
             model_surgery_kwargs = None
-    
+
         if args.quantization:
             if args.quantize_type in ['PTQ', 'PTC']:
                 quantization_kwargs = dict(quantization_method=args.quantize_type, total_epochs=2, qconfig_type="WC8_AT8")
@@ -426,17 +435,19 @@ def main():
                 quantization_kwargs = dict(quantization_method=args.quantize_type, total_epochs=runner.max_epochs, qconfig_type="WC8_AT8")
         else:
             quantization_kwargs = None
+
         # if model_surgery_kwargs is not None and quantization_kwargs is None:
+        modify_runner_load_check_point_function(runner)
         runner.call_hook('before_run')
         runner.load_or_resume()
         runner.call_hook('after_run')
-    
+
         orig_model = deepcopy(runner.model)
         runner.model = xmodelopt.apply_model_optimization(runner.model, example_inputs, example_kwargs, model_surgery_version=model_surgery, 
-                                                          quantization_version=args.quantization, model_surgery_kwargs=model_surgery_kwargs, 
-                                                          quantization_kwargs=quantization_kwargs, transformation_dict=transformation_dict, 
-                                                          copy_attrs=copy_attrs)
-    
+                                                            quantization_version=args.quantization, model_surgery_kwargs=model_surgery_kwargs, 
+                                                            quantization_kwargs=quantization_kwargs, transformation_dict=transformation_dict, 
+                                                            copy_attrs=copy_attrs)
+
         if is_wrapped:
             runner.model = runner.wrap_model(
                 runner.cfg.get('model_wrapper_cfg'), runner.model)
