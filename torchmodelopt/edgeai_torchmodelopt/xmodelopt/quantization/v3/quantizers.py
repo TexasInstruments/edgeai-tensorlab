@@ -86,7 +86,7 @@ def _is_annotated(nodes: List[Node]):
 def is_positive_function_present(node, find_level):
     if node.target in (torch.ops.aten.softmax.int, torch.ops.aten.relu.default, torch.ops.aten.sigmoid.default) :
         return True
-    elif find_level>0:
+    elif find_level>0 and len(node.args)> 0:
         return is_positive_function_present(node.args[0], find_level-1)
     else:
         return False
