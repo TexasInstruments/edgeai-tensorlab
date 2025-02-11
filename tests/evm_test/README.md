@@ -17,15 +17,21 @@ The purpose of these scripts are to automate the process of running benchmark pi
 
 **``main.py`` is the main script that needs to be invoked from the PC** . It has following options that can be provided by the user.
 
-| PARAMETER | REQUIRED | DEFAULT | DETAILS |
-| :---:     | :---:    | :---:   | :---:   |
-| evm_config|True|-|Path to evm config json file|
-| logs_dir|False|./evm_test_logs|Path to dum evm test logs in|
-| reboot_type|False|soft|Type of EVM reboot to use. Allowed values are soft or hard.Soft reboot signifies using 'reboot' command on evm. Hard reboot signifies using ANEL Power switch to control the power supply |
-| artifacts_tarball|False|None|Option to provide artifacts tarball download link or path. If provided, it will delete the existing folders in work_dirs/modelartifacts/*SOC*/8bits and replace with the tarball artifacts. If None, it will use the existing artifacts under work_dirs/modelartifacts/*SOC*/8bits|
+| PARAMETER | DEFAULT | DETAILS |
+| :---:     | :---:   | :---:   |
+| soc|AM68A|Allowed values are AM68A,AM69A,TDA4VM,AM62A,AM67A|
+| pc_ip|-| IP Address of your PC |
+| artifacts_tarball|None|Option to provide artifacts tarball download link or path. If provided, it will delete the existing folders in work_dirs/modelartifacts/*SOC*/8bits and replace with the tarball artifacts. If None, it will use the existing artifacts under work_dirs/modelartifacts/*SOC*/8bits|
+| logs_dir|./evm_test_logs|Path to dum evm test logs in|
+| uart|/dev/ttyUSB2|UART port of the SOC|
+| reboot_type|soft|Type of EVM reboot to use. Allowed values are soft or hard.Soft reboot signifies using 'reboot' command on evm. Hard reboot signifies using ANEL Power switch to control the power supply |
+| relay_exe_path|-| ANEL Power supply executable, path in case of using hard reboot |
+| relay_ip_address|-| ANEL Power supply ip address, in case of using hard reboot |
+| relay_power_port|-| ANEL Power supply port EVM is connect to, in case of using hard reboot |
 
 ## Invoke the script
 
 ```console
-foo@bar:~/edgeai-benchmark/tests/evm_test$ python3 main.py --evm_config evm_config/evm_0_config
+foo@bar:~/edgeai-benchmark/tests/evm_test$ python3 main.py --soc AM68A --pc_ip xx.xx.xx.xx --artifacts_tarball model_artifacts.tar.gz
+--uart /dev/ttyUSB2 --reboot_type soft
 ```

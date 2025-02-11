@@ -14,7 +14,7 @@ class AnelRelayControl():
     def __init__(self, executable, ip_address, relay_number):
         self.relay_exe = executable
         self.relay_ip = ip_address
-        self.relay_number = relay_number
+        self.relay_number = int(relay_number)
         self.verify_relay()
 
     def verify_relay(self):
