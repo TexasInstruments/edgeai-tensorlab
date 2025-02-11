@@ -173,12 +173,12 @@ class Anchor2Vec(nn.Module):
         anchor_x = rearrange(anchor_x, "B (P R) h w -> B R P h w", P=4)
         vector_x = rearrange(anchor_x, "B R P h w -> B P h w R")
         vector_x = vector_x.softmax(dim=-1)
-        vector_x = vector_x.squeeze(dim=0)
+        Batch = vector_x.shape[0] 
+        vector_x = rearrange(vector_x, "B P h w R -> (B P) h w R")
         N,C,H,W = vector_x.shape
-        reverse_reg = torch.arange(self.reg_max, dtype=torch.float32).expand(N,C, 1, self.reg_max).transpose(2,3)
+        reverse_reg = torch.arange(self.reg_max, dtype=torch.float32).expand(N,C, 1, self.reg_max).transpose(2,3).to(vector_x.device)
         vector_x = torch.matmul(vector_x, reverse_reg)
-        vector_x = vector_x.unsqueeze(dim=0)
-        vector_x = rearrange(vector_x, "B P h w R -> B R P h w")
+        vector_x = rearrange(vector_x, "(B P) h w R -> B R P h w", B=Batch)
         return anchor_x, vector_x[:, 0]
 
 
