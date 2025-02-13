@@ -34,7 +34,6 @@ import types
 import torch
 import torchvision
 import onnx
-import onnxscript # needed for dynamo export
 import onnxsim
 
 
