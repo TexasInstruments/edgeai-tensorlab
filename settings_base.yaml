@@ -13,7 +13,7 @@ target_device : null
 tensor_bits : 8
 
 # number of frames for inference
-num_frames : 5000 #1000 #10000 #50000
+num_frames : 1000 #5000 #10000 #50000
 
 # number of frames to be used for post training quantization / calibration
 calibration_frames : 25 #50
