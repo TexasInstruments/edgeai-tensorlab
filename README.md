@@ -1,5 +1,6 @@
-# EdgeAI-XVision - Examples Models & Training Scripts
-Model Training Examples For Embedded AI Development - in PyTorch.
+# edgeai-tensorvision
+* Examples Deep Neural Network Models for Computer Vision Tasks
+* Model Training Scripts & Examples For Embedded AI Models - in PyTorch.
 
 <br><hr><br>
 
@@ -28,7 +29,7 @@ This code provides a set of low complexity deep learning examples and models for
 
 
 ## Acknowledgements
-Apart from [torchvision](https://github.com/pytorch/vision), our source code uses parts of the following open source projects. We would like to thank their authors for making their code bases publicly available.
+Some parts of this code are taken from [torchvision](https://github.com/pytorch/vision). This also uses parts of the following open source projects. We would like to thank their authors for making their code bases publicly available.
 
 |Module/Functionality              |Parts of the code borrowed/modified from                                             |
 |----------------------------------|-------------------------------------------------------------------------------------|
