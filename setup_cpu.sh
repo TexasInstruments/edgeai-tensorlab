@@ -66,4 +66,4 @@ pip3 install -e ./references/edgeailite/
 pip install -e ../edgeai-modeloptimization/torchmodelopt
 
 ######################################################################
-pip3 install --no-input protobuf==3.20.2 onnx==1.13.0
+pip3 install --no-input protobuf==3.20.2 onnx==1.14.0
