@@ -56,7 +56,7 @@ pip install -v -e .
 pip install -e ../edgeai-modeloptimization/torchmodelopt
 
 ######################################################################
-pip3 install --no-input protobuf==3.20.2 onnx==1.13.0
+pip3 install --no-input protobuf==3.20.2 onnx==1.14.0
 
 # openmim downgrades the version of setuptools. restore it
 pip3 install --no-input --upgrade pip==24.2 setuptools==73.0.0
