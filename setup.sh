@@ -58,10 +58,6 @@ pip3 install --no-input -r requirements.txt
 #python3 setup.py develop
 
 ######################################################################
-# setup the edgeai_xvision package, which is inside references/edgeailite
-pip3 install --no-input -r ./references/edgeailite/requirements.txt
-pip3 install -e ./references/edgeailite/
-
 #pip install git+https://github.com/TexasInstruments/edgeai-modeloptimization.git@main#subdirectory=torchmodelopt
 pip install -e ../edgeai-modeloptimization/torchmodelopt
 
