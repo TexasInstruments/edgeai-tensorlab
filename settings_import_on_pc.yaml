@@ -19,4 +19,4 @@ run_inference : True
 # for example 8 will mean 8 models will run in parallel
 # for example 1 will mean one model will run (but in a separae processs from that of the main process)
 # null will mean one process will run, in the same process as the main
-parallel_processes : 16 #1 #null
+parallel_processes : 12 #1 #null
