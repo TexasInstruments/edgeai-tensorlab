@@ -117,56 +117,56 @@ def get_args_parser():
 
 
 ################################
-def main(arguemnts):
+def main(arguments):
 
     # Run the given phase
-    train_pixel2pixel.main(arguemnts)
+    train_pixel2pixel.main(arguments)
 
     ################################
     # if the previous phase was training, run a quantization aware training, starting from the trained model
-    if 'training' in arguemnts.phase and (arguemnts.quantize): # Removed not in arguemnts.quantize
-        if arguemnts.epochs > 0:
-            if arguemnts.save_path is None:
-                save_path = train_pixel2pixel.get_save_path(arguemnts)
+    if 'training' in arguments.phase and (arguments.quantize): # Removed not in arguments.quantize
+        if arguments.epochs > 0:
+            if arguments.save_path is None:
+                save_path = train_pixel2pixel.get_save_path(arguments)
             else:
-                save_path = arguemnts.save_path
-            if isinstance(arguemnts.model, str) and arguemnts.model.endswith('.onnx'):
-                # arguemnts.model = os.path.join(save_path, 'model.onnx')
-                arguemnts.model = os.path.join(save_path, 'model_best.onnx')
+                save_path = arguments.save_path
+            if isinstance(arguments.model, str) and arguments.model.endswith('.onnx'):
+                # arguments.model = os.path.join(save_path, 'model.onnx')
+                arguments.model = os.path.join(save_path, 'model_best.onnx')
             #
-            # arguemnts.pretrained = os.path.join(save_path, 'model.pth')
-            arguemnts.pretrained = os.path.join(save_path, 'model_best.pth')
+            # arguments.pretrained = os.path.join(save_path, 'model.pth')
+            arguments.pretrained = os.path.join(save_path, 'model_best.pth')
         #
-        arguemnts.phase = 'training_quantize'
-        arguemnts.quantize = False
-        arguemnts.lr = 1e-5
-        arguemnts.epochs = 10
-        train_pixel2pixel.main(arguemnts)
+        arguments.phase = 'training_quantize'
+        arguments.quantize = False
+        arguments.lr = 1e-5
+        arguments.epochs = 10
+        train_pixel2pixel.main(arguments)
     #
 
     ################################
     # In addition run a separate validation
-    if 'validation' in arguemnts.phase: #'training' in arguemnts.phase or 'calibration' in arguemnts.phase:
-        if arguemnts.save_path is None:
-            save_path = train_pixel2pixel.get_save_path(arguemnts)
+    if 'validation' in arguments.phase: #'training' in arguments.phase or 'calibration' in arguments.phase:
+        if arguments.save_path is None:
+            save_path = train_pixel2pixel.get_save_path(arguments)
         else:
-            save_path = arguemnts.save_path
-        if isinstance(arguemnts.model, str) and arguemnts.model.endswith('.onnx'):
-            # arguemnts.model = os.path.join(save_path, 'model.onnx')
-            arguemnts.model = os.path.join(save_path, 'model_best.onnx')
+            save_path = arguments.save_path
+        if isinstance(arguments.model, str) and arguments.model.endswith('.onnx'):
+            # arguments.model = os.path.join(save_path, 'model.onnx')
+            arguments.model = os.path.join(save_path, 'model_best.onnx')
 
-        # arguemnts.pretrained = os.path.join(save_path, 'model.pth')
-        arguemnts.pretrained = os.path.join(save_path, 'model_best.pth')
+        # arguments.pretrained = os.path.join(save_path, 'model.pth')
+        arguments.pretrained = os.path.join(save_path, 'model_best.pth')
 
-        if 'training' in arguemnts.phase:
+        if 'training' in arguments.phase:
             # DataParallel isn't enabled for QuantCalibrateModule and QuantTestModule.
             # If the previous phase was training, then it is likely that the batch_size was high and won't fit in a single gpu - reduce it.
             num_gpus = len(str(os.environ["CUDA_VISIBLE_DEVICES"]).split(',')) if ("CUDA_VISIBLE_DEVICES" in os.environ) else None
-            arguemnts.batch_size = max(arguemnts.batch_size // num_gpus, 1) if (num_gpus is not None) else arguemnts.batch_size
+            arguments.batch_size = max(arguments.batch_size // num_gpus, 1) if (num_gpus is not None) else arguments.batch_size
 
-        arguemnts.phase = 'validation'
-        arguemnts.quantize = False
-        train_pixel2pixel.main(arguemnts)
+        arguments.phase = 'validation'
+        arguments.quantize = False
+        train_pixel2pixel.main(arguments)
 
 
 def run(arg):

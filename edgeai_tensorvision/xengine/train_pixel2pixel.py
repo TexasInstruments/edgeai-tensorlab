@@ -462,9 +462,10 @@ def main(args):
         exit()
 
     #################################################
-    # DataParallel does not work for QuantCalibrateModule or QuantTestModule
-    if args.parallel_model and (not isinstance(model, (edgeai_torchmodelopt.xmodelopt.quantization.v1.QuantCalibrateModule, edgeai_torchmodelopt.xmodelopt.quantization.v1.QuantTestModule))):
-        model = torch.nn.DataParallel(model)
+    if args.parallel_model and args.device != 'cpu':
+        # DataParallel does not work for QuantCalibrateModule or QuantTestModule
+        if not isinstance(model, (edgeai_torchmodelopt.xmodelopt.quantization.v1.QuantCalibrateModule, edgeai_torchmodelopt.xmodelopt.quantization.v1.QuantTestModule)):
+            model = torch.nn.DataParallel(model)
 
     #################################################
     model = module_to_device(model)
