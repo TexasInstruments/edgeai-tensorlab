@@ -35,8 +35,7 @@
 if [ $# -le 1 ]; then
     echo "help:"
     echo "$0 target_device config_file"
-    echo "target_device can be one of TDA4VM AM62A AM68A AM69A AM62"
-    echo "(Note: until 8.5 version, only TDA4VM was supported)"
+    echo "target_device can be one of AM68A AM69A AM62A AM67A AM62 TDA4VM"
     exit 0
 fi
 

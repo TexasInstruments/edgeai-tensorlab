@@ -40,7 +40,7 @@ from ..... import utils
 this_dir_path = os.path.dirname(os.path.abspath(__file__))
 repo_parent_path = os.path.abspath(os.path.join(this_dir_path, '../../../../../../'))
 
-edgeai_torchvision_path = os.path.join(repo_parent_path, 'edgeai-torchvision')
+edgeai_torchvision_path = os.path.join(repo_parent_path, 'edgeai-tensorvision')
 edgeai_modelzoo_path = os.path.join(repo_parent_path, 'edgeai-modelzoo')
 www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01'
 
@@ -51,7 +51,7 @@ _model_descriptions = {
             task_type=constants.TASK_TYPE_SEGMENTATION,
         ),
         training=dict(
-            training_backend='edgeai_torchvision',
+            training_backend='edgeai_tensorvision',
             model_training_id='fpn_aspp_regnetx800mf_edgeailite',
             model_name='fpn_aspp_regnetx800mf_edgeailite',
             model_architecture='backbone',
@@ -90,7 +90,7 @@ _model_descriptions = {
             task_type=constants.TASK_TYPE_SEGMENTATION,
         ),
         training=dict(
-            training_backend='edgeai_torchvision',
+            training_backend='edgeai_tensorvision',
             model_training_id='unet_aspp_mobilenetv2_tv_edgeailite',
             model_name='unet_aspp_mobilenetv2_tv_edgeailite',
             model_architecture='backbone',
@@ -129,7 +129,7 @@ _model_descriptions = {
             task_type=constants.TASK_TYPE_SEGMENTATION,
         ),
         training=dict(
-            training_backend='edgeai_torchvision',
+            training_backend='edgeai_tensorvision',
             model_training_id='deeplabv3plus_mobilenetv2_tv_edgeailite',
             model_name='deeplabv3plus_mobilenetv2_tv_edgeailite',
             model_architecture='backbone',
@@ -250,7 +250,6 @@ class ModelTraining:
                 '--data_path', f'{self.params.dataset.dataset_path}',
                 '--annotation_prefix', f'{self.params.dataset.annotation_prefix}',
                 # '--num_classes', f'{self.params.training.num_classes}',
-                '--gpus', f'{self.params.training.num_gpus}',
                 '--output_dir', f'{self.params.training.training_path}',
                 '--epochs', f'{self.params.training.training_epochs}',
                 '--batch_size', f'{self.params.training.batch_size}',
@@ -262,11 +261,15 @@ class ModelTraining:
                 '--save_path', f'{self.params.training.training_path}',
                 #'--tensorboard-logger', 'True',
                 ]
+        if self.params.training.num_gpus and self.params.training.num_gpus > 0:
+            gpus = list(range(self.params.training.num_gpus))
+            argv += ['--gpus', f'{" ".join([str(gpu) for gpu in gpus])}']
+        #
         #input_size = self.params.training.input_cropsize if isinstance(self.params.training.input_cropsize, (list,tuple)) else \
         #    (self.params.training.input_cropsize,self.params.training.input_cropsize)
         #argv += ['--input-size', f'{input_size[0]}', f'{input_size[1]}']
         # import dynamically - force_import every time to avoid clashes with scripts in other repositories
-        train = utils.import_file_or_folder(os.path.join(edgeai_torchvision_path,'references', 'edgeailite', 'main', 'pixel2pixel', 'train_segmentation_main.py'), __name__, force_import=True)
+        train = utils.import_file_or_folder(os.path.join(edgeai_torchvision_path,'references', 'pixel2pixel', 'train_segmentation_main.py'), __name__, force_import=True)
         args = train.get_args_parser().parse_args(argv)
         #args.quit_event = self.quit_event
         # launch the training

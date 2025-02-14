@@ -42,7 +42,7 @@ CLONE_GIT_REPOS=0
 UPDATE_GIT_REPOS=0
 
 # use requirements from: pip list --format=freeze
-USE_PIP_FREEZE_REQUIREMENTS=1
+USE_PIP_FREEZE_REQUIREMENTS=0
 
 #################################################################################
 if [[ ${USE_INTERNAL_REPO} -eq 0 ]]; then
@@ -62,6 +62,7 @@ if [[ ${CLONE_GIT_REPOS} -ne 0 ]]; then
     if [[ ! -d ../edgeai-mmdetection ]]; then git clone --branch r10.0 ${SOURCE_LOCATION}edgeai-mmdetection.git ../edgeai-mmdetection; fi
     if [[ ! -d ../edgeai-mmpose ]]; then git clone --branch r10.0 ${SOURCE_LOCATION}edgeai-mmpose.git ../edgeai-mmpose; fi
     if [[ ! -d ../edgeai-torchvision ]]; then git clone --branch r10.0 ${SOURCE_LOCATION}edgeai-torchvision.git ../edgeai-torchvision; fi
+    if [[ ! -d ../edgeai-tensorvision ]]; then git clone --branch r10.0 ${SOURCE_LOCATION}edgeai-tensorvision.git ../edgeai-tensorvision; fi
     if [[ ! -d ../edgeai-modelzoo ]]; then git clone "--single-branch" --branch r10.0 ${SOURCE_LOCATION}edgeai-modelzoo.git ../edgeai-modelzoo; fi
     cd ../edgeai-modelmaker
     echo "git clone done."
@@ -73,6 +74,7 @@ if [[ ${UPDATE_GIT_REPOS} -ne 0 ]]; then
     cd ../edgeai-mmdetection; git stash; git fetch origin r10.0; git checkout r10.0; git pull --rebase
     cd ../edgeai-mmpose; git stash; git fetch origin r10.0; git checkout r10.0; git pull --rebase
     cd ../edgeai-torchvision; git stash; git fetch origin r10.0; git checkout r10.0; git pull --rebase
+    cd ../edgeai-tensorvision; git stash; git fetch origin r10.0; git checkout r10.0; git pull --rebase
     cd ../edgeai-modelzoo; git stash; git fetch origin r10.0; git checkout r10.0; git pull --rebase
     cd ../edgeai-modelmaker
     echo "git pull done."
@@ -92,6 +94,10 @@ echo "installing repositories..."
 
 echo "installing: edgeai-torchvision"
 cd ../edgeai-torchvision
+./setup.sh
+
+echo "installing: edgeai-tensorvision"
+cd ../edgeai-tensorvision
 ./setup.sh
 
 echo "installing: edgeai-mmdetection"
