@@ -43,7 +43,7 @@ echo "installing pytorch - use the applopriate index-url from https://pytorch.or
 pip3 install --no-input torch==2.4.0 torchvision==0.19.0 --index-url https://download.pytorch.org/whl/cpu
 
 ######################################################################
-pip3 install --no-input protobuf==3.20.2 onnx==1.13.0
+pip3 install --no-input protobuf==3.20.2 onnx==1.14.0
 echo 'Installing python packages...'
 pip3 install --no-input -r requirements.txt
 
@@ -55,7 +55,7 @@ python3 setup.py develop
 pip install -e ../edgeai-modeloptimization/torchmodelopt
 
 ######################################################################
-pip3 install --no-input protobuf==3.20.2 onnx==1.13.0
+pip3 install --no-input protobuf==3.20.2 onnx==1.14.0
 pip3 install numpy==1.23.0
 
 # there as issue with installing pillow-simd through requirements - force it here
