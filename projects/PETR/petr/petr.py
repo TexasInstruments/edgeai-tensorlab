@@ -26,6 +26,7 @@ class PETR(MVXTwoStageDetector):
     def __init__(self,
                  use_grid_mask=False,
                  save_onnx_model=False,
+                 quantized_model=False,
                  pts_voxel_encoder=None,
                  pts_middle_encoder=None,
                  pts_fusion_layer=None,
@@ -53,6 +54,7 @@ class PETR(MVXTwoStageDetector):
 
         # for onnx model export
         self.save_onnx_model = save_onnx_model
+        self.quantized_model = quantized_model
 
 
     def forward(self,
@@ -110,7 +112,8 @@ class PETR(MVXTwoStageDetector):
                 return self.aug_test(inputs, data_samples, **kwargs)
             else:
                 if self.save_onnx_model is True:
-                    export_PETR(self, inputs, data_samples, **kwargs)
+                    export_PETR(self, inputs, data_samples,
+                        quantized_model=self.quantized_model, opset_version=18, **kwargs)
                     # Export onnx only once
                     self.save_onnx_model = False
 
@@ -186,6 +189,7 @@ class PETR(MVXTwoStageDetector):
 
         return losses
 
+    '''
     def _forward(self, mode='loss', **kwargs):
         """Calls either forward_train or forward_test depending on whether
         return_loss=True.
@@ -198,6 +202,21 @@ class PETR(MVXTwoStageDetector):
         augmentations.
         """
         raise NotImplementedError('tensor mode is yet to add')
+    '''
+
+    def _forward(self, inputs: Dict[str, Optional[Tensor]],
+                data_samples: List[Det3DDataSample],
+                **kwargs) -> List[Det3DDataSample]:
+        img = inputs['imgs']
+        batch_img_metas = [ds.metainfo for ds in data_samples]
+
+        batch_img_metas = self.add_lidar2img(img, batch_img_metas)
+
+        img_feats = self.extract_feat(img=img, img_metas=batch_img_metas)
+        results = self.pts_bbox_head(img_feats, batch_img_metas)
+
+        return results
+
 
     def loss(self,
              inputs=None,

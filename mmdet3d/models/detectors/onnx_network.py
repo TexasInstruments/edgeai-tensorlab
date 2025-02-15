@@ -25,9 +25,20 @@ class PETR_export_model(nn.Module):
                  pts_bbox_head):
         super().__init__()
 
-        self.img_backbone   = img_backbone
-        self.img_neck       = img_neck
-        self.pts_bbox_head  = pts_bbox_head
+        #self.img_backbone   = img_backbone
+        #self.img_neck       = img_neck
+        #self.pts_bbox_head  = pts_bbox_head
+        self.img_backbone    = img_backbone.convert(make_copy=True) if hasattr(img_backbone, "convert") else img_backbone
+        self.img_neckeck     = img_neck.convert(make_copy=True) if hasattr(img_neck, "convert") else img_neck
+        if hasattr(pts_bbox_head, "new_bbox_head"):
+            self.pts_bbox_head = copy.deepcopy(pts_bbox_head)
+            # self.bbox_head.new_bbox_head loses the convert function after deepcopy so using the original
+            setattr(self.pts_bbox_head, "new_bbox_head", pts_bbox_head.new_bbox_head.convert(make_copy=True))
+            self.pts_bbox_head.cpu()
+        elif hasattr(pts_bbox_head, "convert"): # bbox_head is not quantized but rest of the network is quantized
+            self.pts_bbox_head = copy.deepcopy(pts_bbox_head).cpu()
+        else:
+            self.pts_bbox_head = pts_bbox_head
 
         # for camera frustum creation
         # Image feature size after image backbone. 
