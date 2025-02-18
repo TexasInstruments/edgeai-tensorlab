@@ -144,6 +144,16 @@ if __name__ == '__main__':
     #
 
     ####################################################################
+    # split on commas
+    if 'model_selection' in kwargs:
+        model_selection = kwargs['model_selection']
+        if model_selection is not None and ',' in model_selection:
+            model_selection = model_selection.replace(' ', '').split(',')
+            kwargs['model_selection'] = model_selection
+        #
+    #
+
+    ####################################################################
     # create list of models to run
     kwargs_copy = copy.deepcopy(kwargs)
     kwargs_copy['dataset_loading'] = False
