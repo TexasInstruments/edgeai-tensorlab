@@ -12,6 +12,152 @@
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
+from packaging.version import Version
+
+import torch
+if Version(torch.__version__.split('+')[0]) < Version('2.5'):
+
+    import torch.ao.quantization.pt2e.utils
+    from torch.export.unflatten import _assign_attr, _AttrKind
+    import operator
+
+    # monkey patch few functions of torch fixed in torch 2.5 # remove these in later releases # TODO
+    def _is_supported_batch_norm_for_training_new(node):
+        """
+        Return True if the given node refers to an aten batch norm op QAT supports.
+        """
+        supported_ops = [
+            torch.ops.aten.batch_norm.default,
+            torch.ops.aten._native_batch_norm_legit.default,
+            # Note: we won't need this op anymore after batch norm consolidation
+            # For now, we need to continue to support it because it gives better
+            # training numerics than `_native_batch_norm_legit`
+            torch.ops.aten.cudnn_batch_norm.default,
+            torch.ops.aten.miopen_batch_norm.default,
+        ]
+        return node.target in supported_ops
+
+    torch.ao.quantization.pt2e.utils._is_supported_batch_norm_for_training = _is_supported_batch_norm_for_training_new
+
+    def fold_bn_weights_into_conv_node_new_(
+        conv_node,
+        conv_weight_node,
+        conv_bias_node,
+        bn_node,
+        m,
+    ) -> None:
+        # conv args: input, weight, bias, stride, padding, dilation, ...
+        conv_w = torch.ao.quantization.pt2e.utils._get_tensor_constant_from_node(conv_weight_node, m)
+        conv_b = torch.ao.quantization.pt2e.utils._get_tensor_constant_from_node(conv_bias_node, m)
+        transpose = torch.ao.quantization.pt2e.utils._is_conv_transpose_node(conv_node)
+
+        # eval bn args: input, weight, bias, running mean, running var, momentum, eps
+        # train bn args: input, weight, bias, running mean, running var, training, momentum, eps
+        bn_args_schema = bn_node.target._schema.arguments  # type: ignore[union-attr]
+        bn_args = torch.ao.quantization.pt2e.utils._get_all_arguments(bn_node.args, bn_node.kwargs, bn_args_schema)
+        bn_w = torch.ao.quantization.pt2e.utils._get_tensor_constant_from_node(bn_args[1], m)
+        bn_b = torch.ao.quantization.pt2e.utils._get_tensor_constant_from_node(bn_args[2], m)
+        bn_rm = torch.ao.quantization.pt2e.utils._get_tensor_constant_from_node(bn_args[3], m)
+        bn_rv = torch.ao.quantization.pt2e.utils._get_tensor_constant_from_node(bn_args[4], m)
+        if bn_node.target == torch.ops.aten._native_batch_norm_legit_no_training.default:
+            eps_arg_index = 6
+        elif torch.ao.quantization.pt2e.utils._is_supported_batch_norm_for_training(bn_node):
+            eps_arg_index = 7
+        else:
+            raise ValueError("BN node target is unexpected ", bn_node.target)
+        bn_eps = bn_args[eps_arg_index]
+
+        fused_weight, fused_bias = torch.ao.quantization.pt2e.utils.fuse_conv_bn_weights(
+            conv_w, conv_b, bn_rm, bn_rv, bn_eps, bn_w, bn_b, transpose=transpose
+        )
+
+        # update the weight and bias for conv
+        conv_args = list(conv_node.args)
+        # filling in the default bias argument
+        if len(conv_args) == 2:
+            conv_args.append(None)
+
+        # calling data since the fused_weight and fused_bias are nn.Parameter
+        weight_attr_name = conv_weight_node.target
+        assert isinstance(weight_attr_name, str)
+        _assign_attr(fused_weight, m, weight_attr_name, _AttrKind.PARAMETER)
+        if conv_bias_node is not None:
+            bias_attr_name = conv_bias_node.target
+            _assign_attr(fused_bias, m, str(bias_attr_name), _AttrKind.PARAMETER)
+        else:
+            bias_attr_name = weight_attr_name + "_bias"
+            _assign_attr(fused_bias, m, bias_attr_name, _AttrKind.PARAMETER)
+            with m.graph.inserting_before(conv_node):
+                get_bias_node = m.graph.get_attr(bias_attr_name)
+            # NOTE: here we assume the bias of conv is not quantized!
+            conv_args[2] = get_bias_node
+        conv_node.args = tuple(conv_args)
+
+        # native_batch_norm has 3 outputs, we expect getitem calls on the output
+        # and we want to replace the uses of getitem 0 with the output of conv
+        #
+        if bn_node.target == torch.ops.aten.batch_norm.default:
+            # With the new training ir, instead of batch_norm + getitem,
+            # we only have the batch_norm node.
+            #
+            # Before:
+            # conv -> bn -> users
+            # After:
+            # conv -> users
+            #       bn has no users now
+            bn_node.replace_all_uses_with(conv_node)
+        else:
+            # Before:
+            # conv -> bn - (first output) -> users1
+            #          \ - (second output) -> users2
+            #          \ - (third output) -> users3
+            # After:
+            # conv -> (first output) -> users1
+            #       bn -
+            #          \ - (second output) -> users2
+            #          \ - (third output) -> users3
+            # if users2 and users3 are empty then bn will be removed through dead code elimination
+            for user in bn_node.users:
+                if (
+                    user.op != "call_function"
+                    or user.target != operator.getitem
+                    or user.args[1] != 0
+                ):
+                    continue
+                user.replace_all_uses_with(conv_node)
+
+        # If the BN node does not have users, erase it from the graph
+        # Note: we need to do this manually because the model can still be in train
+        # mode at this point, in which case DCE won't erase the BN node automatically
+        # since the node refers to a mutating op. Here we still need to call DCE first
+        # to get rid of the unused getitem nodes that consume the BN node.
+        m.graph.eliminate_dead_code()
+        if len(bn_node.users) == 0:
+            m.graph.erase_node(bn_node)
+
+    def _fuse_conv_bn_new_(m) -> None:
+        has_bn = any(torch.ao.quantization.pt2e.utils._is_bn_node(n) for n in m.graph.nodes)
+        if not has_bn:
+            return
+        for n in m.graph.nodes:
+            if n.op != "call_function" or n.target not in (torch.ops.aten._native_batch_norm_legit_no_training.default, torch.ops.aten.batch_norm.default):
+                continue
+            bn_node = n
+            n = bn_node.args[0]
+            if not torch.ao.quantization.pt2e.utils._is_conv_or_conv_transpose_node(n):
+                continue
+            conv_node = n
+            conv_weight_node = conv_node.args[1] 
+            if conv_weight_node.op != "get_attr":    ################### this is not fixed in later releases as well, ensure this is kept ###################
+                conv_weight_node = conv_weight_node.args[0] # weights are coming after reshape
+            conv_bias_node = conv_node.args[2] if len(conv_node.args) > 2 else None
+            fold_bn_weights_into_conv_node_new_(conv_node, conv_weight_node, conv_bias_node, bn_node, m)
+
+        m.graph.eliminate_dead_code()
+        m.recompile()
+
+    torch.ao.quantization.pt2e.utils._fuse_conv_bn_= _fuse_conv_bn_new_
+
 
 import logging
 import os
@@ -400,8 +546,8 @@ def main():
         id2label[str(i)] = label
 
     # Load the accuracy metric from the datasets package
-    metric = evaluate.load("accuracy", cache_dir=model_args.cache_dir)
-    # metric = evaluate.load("evaluate/metrics/accuracy/accuracy.py", cache_dir=model_args.cache_dir)
+    # metric = evaluate.load("accuracy", cache_dir=model_args.cache_dir)
+    metric = evaluate.load("evaluate/metrics/accuracy/accuracy.py", cache_dir=model_args.cache_dir)
 
     # Define our compute_metrics function. It takes an `EvalPrediction` object (a namedtuple with a
     # predictions and label_ids field) and has to return a dictionary string to float.
@@ -565,7 +711,7 @@ def main():
                 qconfig_type=model_optimization_args.qconfig_type, example_inputs=example_input, example_kwargs=example_kwargs, 
                 bias_calibration_factor=model_optimization_args.bias_calibration_factor, device=prepare_device)
         else: 
-            model = xmodelopt.quantization.v3.QATPT2EModule(model, total_epochs=total_iterations, is_qat=True, fast_mode=False,
+            model = xmodelopt.quantization.v3.QATPT2EModule(model, total_epochs=total_iterations, is_qat=False, fast_mode=False,
                 qconfig_type=model_optimization_args.qconfig_type, example_inputs=example_input, example_kwargs=example_kwargs, 
                 bias_calibration_factor=model_optimization_args.bias_calibration_factor, device=prepare_device)
             # need to turn the parameter update off during PTQ/PTC
