@@ -145,12 +145,16 @@ if __name__ == '__main__':
 
     ####################################################################
     # split on commas
-    if 'model_selection' in kwargs:
+    if 'model_selection' in kwargs and kwargs['model_selection'] is not None:
         model_selection = kwargs['model_selection']
-        if (model_selection is not None) and (not isinstance(model_selection, (list,tuple))) and (',' in model_selection):
+        if isinstance(model_selection, (list,tuple)):
+            if len(model_selection) == 1:
+                model_selection = model_selection[0].replace(' ', '').split(',')
+            #
+        elif ',' in model_selection:
             model_selection = model_selection.replace(' ', '').split(',')
-            kwargs['model_selection'] = model_selection
         #
+        kwargs['model_selection'] = model_selection
     #
 
     ####################################################################
