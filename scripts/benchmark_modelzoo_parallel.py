@@ -147,7 +147,7 @@ if __name__ == '__main__':
     # split on commas
     if 'model_selection' in kwargs:
         model_selection = kwargs['model_selection']
-        if model_selection is not None and ',' in model_selection:
+        if (model_selection is not None) and (not isinstance(model_selection, (list,tuple))) and (',' in model_selection):
             model_selection = model_selection.replace(' ', '').split(',')
             kwargs['model_selection'] = model_selection
         #
