@@ -2,9 +2,6 @@
 opencv-python-headless
 onnxsim==0.4.35
 numpy==1.23.0
-#git+https://github.com/NVIDIA/TensorRT@release/8.5#subdirectory=tools/onnx-graphsurgeon
-#git+https://github.com/TexasInstruments/edgeai-tidl-tools.git@10_00_08_00#subdirectory=osrt-model-tools
-git+ssh://git@bitbucket.itg.ti.com/processor-sdk-vision/edgeai-tidl-tools.git@master#subdirectory=osrt-model-tools
 tflite
 flatbuffers==1.12.0
 requests
@@ -15,3 +12,4 @@ h5py
 #onnx==1.14.0
 graphviz
 colored
+git+https://github.com/TexasInstruments/edgeai-tidl-tools.git@10_00_08_00#subdirectory=osrt-model-tools
