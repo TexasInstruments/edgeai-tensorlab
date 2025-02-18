@@ -30,11 +30,11 @@ import os
 import sys
 import argparse
 from .. import utils, pipelines, config_settings, datasets
-from .run_accuracy import *
+from .run_benchmark_config import *
 
 __all__ = ['run_gen_config']
 
 
 def run_gen_config(*args, **kwargs):
-    results_list = run_accuracy(*args, **kwargs)
+    results_list = run_benchmark_config(*args, **kwargs)
     return results_list

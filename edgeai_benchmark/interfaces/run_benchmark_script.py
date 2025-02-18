@@ -36,11 +36,10 @@ from .. import utils, pipelines, config_settings, datasets
 from .get_configs import *
 
 
-__all__ = ['run_benchmark']
+__all__ = ['run_benchmark_script']
 
 
-
-def run_benchmark_one_model(entry_idx, kwargs, parallel_processes, model_selection, run_dir,
+def run_benchmark_script_one_model(entry_idx, kwargs, parallel_processes, model_selection, run_dir,
     enable_logging, log_filename, run_import, run_inference, benchmark_script=None):
 
     if benchmark_script is None:
@@ -56,7 +55,7 @@ def run_benchmark_one_model(entry_idx, kwargs, parallel_processes, model_selecti
 
     cmd_args = []
     for key, value in kwargs.items():
-        if key not in ('settings_file', 'models_list_file', 'parallel_processes', 'parallel_devices'):
+        if key not in ['settings_file']:
             cmd_args += [f'--{key}']
             cmd_args += [f'{value}']
         #
@@ -100,11 +99,15 @@ def run_benchmark_one_model(entry_idx, kwargs, parallel_processes, model_selecti
     return proc
 
 
-def run_benchmark(settings, model_entries, kwargs_dict, parallel_processes, parallel_devices,
+def run_benchmark_script(settings, model_entries, kwargs_dict, parallel_processes, parallel_devices,
         overall_timeout, instance_timeout, proc_error_regex_list, separate_import_inference=True):
 
-    process_entries_list = []
+    process_runner = pipelines.ProcessRunner(settings, pipeline_configs=None,
+        parallel_processes=parallel_processes, parallel_devices=parallel_devices,
+        overall_timeout=overall_timeout, instance_timeout=instance_timeout,
+        with_subprocess=True)
 
+    task_entries = {}
     for entry_idx, model_entry in enumerate(model_entries):
         model_entry = model_entry.split(' ')
         model_selection = model_entry[0]
@@ -115,33 +118,24 @@ def run_benchmark(settings, model_entries, kwargs_dict, parallel_processes, para
         if separate_import_inference:
             if settings.run_import:
                 proc_name = f'{model_selection}:import'
-                run_import_task = functools.partial(run_benchmark_one_model,
+                run_import_task = functools.partial(run_benchmark_script_one_model,
                     entry_idx, kwargs_dict, parallel_processes, model_selection, run_dir, settings.enable_logging, log_filename, True, False)
                 task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_import_task, 'proc_log':log_filename, 'proc_error':proc_error_regex_list})
             #
             if settings.run_inference:
                 proc_name = f'{model_selection}:infer'
-                run_inference_task = functools.partial(run_benchmark_one_model,
+                run_inference_task = functools.partial(run_benchmark_script_one_model,
                     entry_idx, kwargs_dict, parallel_processes, model_selection, run_dir, settings.enable_logging, log_filename, False, True)
                 task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_inference_task, 'proc_log':log_filename, 'proc_error':proc_error_regex_list})
             #
         else:
             proc_name = f'{model_selection}'
-            run_task = functools.partial(run_benchmark_one_model,
+            run_task = functools.partial(run_benchmark_script_one_model,
                 entry_idx, kwargs_dict, parallel_processes, model_selection, run_dir, settings.enable_logging, log_filename, settings.run_import, settings.run_inference)
             task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_task, 'proc_log':log_filename, 'proc_error':proc_error_regex_list})
         #
-        process_entries_list.append(dict(task_name=model_selection, task_list=task_list_for_model))
+
+        task_entries.update({model_selection:task_list_for_model})
     #
 
-    parallel_runner = pipelines.ParallelRunner(settings,
-        parallel_processes=parallel_processes, parallel_devices=parallel_devices,
-        overall_timeout=overall_timeout, instance_timeout=instance_timeout)
-
-    for process_entry in process_entries_list:
-        parallel_runner.enqueue(**process_entry)
-    #
-
-    parallel_runner.run()
-
-    return process_entries_list
+    process_runner.run(task_entries)

@@ -136,12 +136,13 @@ if __name__ == '__main__':
     overall_timeout = kwargs.pop('overall_timeout', None)
     instance_timeout = kwargs.pop('instance_timeout', None)
     separate_import_inference = kwargs.pop('separate_import_inference')
+    models_list_file = kwargs.pop('models_list_file', None)
 
-    if kwargs['models_list_file'] is None:
+    if models_list_file is None:
         # make sure the folder exists
         os.makedirs(settings.modelartifacts_path, exist_ok=True)
         # create list file
-        kwargs['models_list_file'] = os.path.join(settings.modelartifacts_path, "models_list.txt")
+        models_list_file = os.path.join(settings.modelartifacts_path, "models_list.txt")
 
         # get a dict of model configs
         pipeline_configs = interfaces.get_configs(settings, work_dir)
@@ -150,7 +151,7 @@ if __name__ == '__main__':
 
         model_keys = pipeline_configs.keys()
         # now write to the list file
-        with open(kwargs['models_list_file'], "w") as fp:
+        with open(models_list_file, "w") as fp:
             for model_key in model_keys:
                 run_dir = pipeline_configs[model_key]['session'].kwargs['run_dir']
                 fp.write(f"{model_key} {run_dir}\n")
@@ -160,11 +161,11 @@ if __name__ == '__main__':
 
     ####################################################################
     # get the list of models and run
-    with open(kwargs['models_list_file'], 'rt') as list_fp:
+    with open(models_list_file, 'rt') as list_fp:
         model_entries = [model_entry.rstrip() for model_entry in list_fp]
     #
 
-    interfaces.run_benchmark(settings, model_entries, kwargs,
+    interfaces.run_benchmark_script(settings, model_entries, kwargs,
         parallel_processes=parallel_processes, parallel_devices=parallel_devices,
         overall_timeout=overall_timeout, instance_timeout=instance_timeout,
         proc_error_regex_list=constants.FATAL_ERROR_LOGS_REGEX_LIST,

@@ -26,25 +26,25 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import subprocess
+
 from .. import utils
 from .pipeline_runner import *
 
 
-class ParallelRunner(PipelineRunner, utils.ParallelSubProcess):
-    def __init__(self, settings, parallel_processes, parallel_devices, overall_timeout, instance_timeout):
-        PipelineRunner.__init__(self, settings, pipeline_configs=None)
-        utils.ParallelSubProcess.__init__(self, parallel_processes=parallel_processes,
+class ProcessRunner(PipelineRunner):
+    def __init__(self, settings, pipeline_configs, parallel_processes, parallel_devices, overall_timeout, instance_timeout, with_subprocess):
+        super().__init__(settings, pipeline_configs=pipeline_configs)
+        self.parallel_processes = parallel_processes
+        self.with_subprocess = with_subprocess
+        if not self.with_subprocess:
+            assert pipeline_configs is not None, 'pipeline_configs must be specified when with_subprocess is False'
+        #
+        self.parallel_runner = utils.ParallelProcess(parallel_processes=parallel_processes,
             parallel_devices=parallel_devices, overall_timeout=overall_timeout, instance_timeout=instance_timeout)
 
-    def run(self):
+    def run(self, task_entries):
         if self.parallel_processes:
-            return super(PipelineRunner, self).run()
+            return self.parallel_runner.run(task_entries)
         else:
-            import tqdm
-            for process_entry in tqdm.tqdm(process_entries_list):
-                for proc_entry in process_entry['task_list']:
-                    proc_func = proc_entry['proc_func']
-                    proc_func()
-                #
-            #
-        #
+            return super().run(task_entries)

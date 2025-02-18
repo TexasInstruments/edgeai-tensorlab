@@ -131,11 +131,12 @@ class PipelineRunner():
                     if calibration_dataset_category in self.settings.dataset_cache and input_dataset_category in self.settings.dataset_cache and \
                         isinstance(self.settings.dataset_cache[calibration_dataset_category]['calibration_dataset'], datasets.DatasetBase) and \
                         isinstance(self.settings.dataset_cache[input_dataset_category]['input_dataset'], datasets.DatasetBase):
+                        print(utils.log_color("\nINFO", f"pipeline_config", f'{pipeline_key} - dataset loader copy for config'))
                         pipeline_config['calibration_dataset'] = copy.deepcopy(self.settings.dataset_cache[calibration_dataset_category]['calibration_dataset'])
                         pipeline_config['input_dataset'] = copy.deepcopy(self.settings.dataset_cache[input_dataset_category]['input_dataset'])
                         pipelines_final.update({pipeline_key: pipeline_config})
                     else:
-                        print(f'{os.path.basename(__file__)}: ignoring the pipeline_config: {pipeline_key}, since the dataset was not loaded: {calibration_dataset_category}, {input_dataset_category}')
+                        print(utils.log_color("\nWARNING", f"pipeline_config", f'{os.path.basename(__file__)}: ignoring the pipeline_config: {pipeline_key}, since the dataset was not loaded: {calibration_dataset_category}, {input_dataset_category}'))
                     #
                 else:
                     # if the dataset in pipeline_config is None, we will not bother to copy from dataset_cache, assuming it is not needed.
@@ -145,16 +146,57 @@ class PipelineRunner():
         #
         return pipelines_final
 
-    def run(self):
+    def get_tasks(self, separate_import_inference=True):
         # get the cwd so that we can continue even if exception occurs
         cwd = os.getcwd()
         results_list = []
         total = len(self.pipeline_configs)
+        proc_error_regex_list = []
+        log_filename = None
+        task_entries = {}
         for pipeline_index, (model_id, pipeline_config) in enumerate(self.pipeline_configs.items()):
             os.chdir(cwd)
             description = f'{pipeline_index+1}/{total}' if total > 1 else ''
-            result = self._run_pipeline(self.settings, pipeline_config, description=description)
-            results_list.append(result)
+
+            task_list_for_model = []
+            if separate_import_inference:
+                # separate import and inference into two tasks - tidl import and inference to run in separate process
+                if self.settings.run_import:
+                    proc_name = model_id + ':import'
+                    basic_settings = self.settings.basic_settings()
+                    basic_settings.run_inference = False
+                    run_task = functools.partial(self._run_pipeline, basic_settings, pipeline_config, description=description)
+                    task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_task, 'proc_log':log_filename, 'proc_error':proc_error_regex_list})
+                #
+                if self.settings.run_inference:
+                    proc_name = model_id + ':infer'
+                    basic_settings = self.settings.basic_settings()
+                    basic_settings.run_import = False
+                    run_task = functools.partial(self._run_pipeline, basic_settings, pipeline_config, description=description)
+                    task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_task, 'proc_log':log_filename, 'proc_error':proc_error_regex_list})
+                #
+            else:
+                proc_name = model_id
+                # note that this basic_settings() copies only the basic settings.
+                # sometimes, there is no need to copy the entire settings which includes the dataset_cache
+                basic_settings = self.settings.basic_settings()
+                run_task = functools.partial(self._run_pipeline, basic_settings, pipeline_config, description=description)
+                task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_task, 'proc_log':log_filename, 'proc_error':proc_error_regex_list})
+            #
+            task_entries.update({model_id:task_list_for_model})
+        #
+        return task_entries
+
+    def run(self, task_entries):
+        cwd = os.getcwd()
+        results_list = []
+        for task_name, task_list in task_entries.items():
+            for proc_entry in task_list:
+                os.chdir(cwd)
+                proc_func = proc_entry['proc_func']
+                result = proc_func()
+                results_list.append(result)
+            #
         #
         return results_list
 
@@ -188,13 +230,9 @@ class PipelineRunner():
         result = {}
 
         try:
-             # note that this basic_settings() copies only the basic settings.
-            # sometimes, there is no need to copy the entire settings which includes the dataset_cache
-            basic_settings = settings.basic_settings()
-
             run_dir = pipeline_config['session'].get_param('run_dir')
             print(utils.log_color('\nINFO', 'starting', os.path.basename(run_dir)))
-            result = cls._run_pipeline_impl(basic_settings, pipeline_config, description)
+            result = cls._run_pipeline_impl(settings, pipeline_config, description)
         except Exception as e:
             result = {"error" : str(e)}
             traceback.print_exc()

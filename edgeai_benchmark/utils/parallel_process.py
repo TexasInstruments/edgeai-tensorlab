@@ -28,140 +28,240 @@
 
 import os
 import sys
-import multiprocessing
-from multiprocessing import pool
-import collections
 import time
 import traceback
-import queue
-import copy
-
-from .progress_step import *
-from .logger_utils import *
+import subprocess
+import multiprocessing
+import tqdm
+import warnings
+import re
 
 
 class ParallelProcess:
-    def __init__(self, parallel_processes, parallel_devices=None, desc='tasks', blocking=True, verbose=True, maxinterval=60):
-        self.desc = desc
+    def __init__(self, parallel_processes, parallel_devices=None, desc='TASKS', mininterval=1.0, maxinterval=60.0, tqdm_obj=None,
+            overall_timeout=None, instance_timeout=None, verbose=False):
         self.parallel_processes = parallel_processes
         self.parallel_devices = parallel_devices
-        self.queued_tasks = collections.deque()
+        self.desc = desc
+        self.queued_tasks = dict()
+        self.proc_dict = dict()
+        self.tqdm_obj = tqdm_obj
+        self.mininterval = mininterval
         self.maxinterval = maxinterval
-        self.blocking = blocking
-        self.verbose = verbose
-        self.num_total_tasks = 0
-        self.num_started_tasks = 0
-        self.result_queues_dict = dict()
-        self.process_dict = dict()
-        self.result_list = []
-        if self.verbose:
-            print(log_color('\nINFO', "parallel_run", f"parallel_processes:{self.parallel_processes} parallel_devices={self.parallel_devices}"))
-            sys.stdout.flush()
+        self.overall_timeout = overall_timeout
+        self.instance_timeout = instance_timeout
+        self.num_queued_tasks = 0
+        self.task_index = 0
+        self.start_time = None
+        self.terminate_all = False
+        if verbose:
+            warnings.warn('''
+            ParallelSubProcess is for tasks that are started with subprocess.Popen()
+            The task should return the proc object that supports communicate
+            For more details, see: https://docs.python.org/3/library/subprocess.html
+            ''')
         #
 
-    def enqueue(self, task):
-        self.queued_tasks.append(task)
+    def run(self, task_entries):
+        self.queued_tasks = task_entries
+        self.num_queued_tasks = len(task_entries)
 
-    def run(self):
-        assert len(self.queued_tasks) > 0, f'at least one task must be queued, got {len(self.queued_tasks)}'
-        return self._run_parallel()
-
-    def _run_sequential(self):
-        self.result_list = []
-        for task_id, task in progress_step(self.queued_tasks, desc='tasks'):
-            result = task()
-            self.result_list.append(result)
+        self.start_time = time.time()
+        desc = self.desc + f' STATUS - TOTAL={self.num_queued_tasks}, NUM_RUNNING={0}'
+        if self.tqdm_obj is None:
+            self.tqdm_obj = tqdm.tqdm(total=self.num_queued_tasks, position=0, desc=desc)
         #
-        return self.result_list
-
-    def _run_parallel(self):
-        self.result_list = []
-        self.num_total_tasks = len(self.queued_tasks)
-        self.num_started_tasks = 0
-        self.result_queues_dict = dict()
-        self.process_dict = dict()
-        pbar_tasks = progress_step(iterable=range(self.num_total_tasks), desc=self.desc, position=1)
-        while len(self.result_list) < self.num_total_tasks:
-            try:
-                self._run_parallel_loop(pbar_tasks)
-            except Exception as exception_e:
-                print(f"Exception occurred in parallel loop: {exception_e} \nRestarting the parallel loop - remaining tasks: {len(self.queued_tasks)}")
-                traceback.print_exc()
-                # add a dummy result because a process/task has exited unexpectedly
-                self.result_list.append({})
-                pbar_tasks.update(1)
+        num_completed, num_running = self._wait_in_loop(self.parallel_processes)
+        while num_completed < self.num_queued_tasks and (not self.terminate_all):
+            # wait in a loop until the number of running processes comes down
+            num_completed, num_running = self._wait_in_loop(self.parallel_processes)
+            proc_dict_to_start = self._find_proc_dict_to_start()
+            # start the process
+            if proc_dict_to_start and (not self.terminate_all):
+                proc_dict_to_start['running'] = True
+                proc_dict_to_start['start_time'] = time.time()
+                proc_dict_to_start['proc'] = self._worker(proc_dict_to_start['proc_func'])
             #
         #
-        pbar_tasks.close()
-        print('\n')
-        return self.result_list
+        # wait for all remaining processes to finish
+        if not self.terminate_all:
+            self._wait_in_loop(0)
+        #
+        return True
 
-    def _run_parallel_loop(self, pbar_tasks):
-        mp_context = multiprocessing.get_context(method="fork") #fork, forkserver, spawn
-        last_time = time.time()
-
-        while len(self.result_list) < self.num_total_tasks:
-            cur_time = time.time()
-            if self.verbose and (cur_time - last_time) >= self.maxinterval:
-                print(log_color('\nINFO', "parallel_run", f"num_total_tasks:{self.num_total_tasks} "
-                      f"len(queued_tasks):{len(self.queued_tasks)} len(process_dict):{len(self.process_dict)} "
-                      f"len(result_list):{len(self.result_list)}"))
-                last_time = cur_time
-            #
-
-            # start the processes
-            if len(self.process_dict) < self.parallel_processes and len(self.queued_tasks) > 0:
-                task = self.queued_tasks.pop()
-                result_queue = mp_context.SimpleQueue()
-                proc = mp_context.Process(target=self._worker, args=(task,self.num_started_tasks,result_queue))
-                proc.start()
-                self.result_queues_dict[self.num_started_tasks] = result_queue
-                self.process_dict[self.num_started_tasks] = proc
-                self.num_started_tasks += 1
-            #
-
-            # collect the available the results
-            result_queues_dict_shallow_copy = copy.copy(self.result_queues_dict)
-            for r_key, r_queue in result_queues_dict_shallow_copy.items():
-                result = {}
-                exception_e = None
-                if not r_queue.empty():
-                    (result, exception_e) = r_queue.get()
-                    self.result_list.append(result)
-                    self.result_queues_dict.pop(r_key)
-                    proc = self.process_dict.pop(r_key)
-                    proc.join()
-                    pbar_tasks.update(1)
-                elif not self.process_dict[r_key].is_alive():
-                    self.result_list.append(result)
-                    self.result_queues_dict.pop(r_key)
-                    proc = self.process_dict.pop(r_key)
-                    proc.terminate() # something has happened with the process, terminate it.
-                    proc.join()
-                    pbar_tasks.update(1)
+    def _find_proc_dict_to_start(self):
+        proc_dict_to_start = None
+        # now search through tasks and find a process to start
+        for task_name, task_list in self.queued_tasks.items():
+            completed_flag_in_task = []
+            for proc_id, proc_dict in enumerate(task_list):
+                if len(completed_flag_in_task) == 0 or all(completed_flag_in_task):
+                    # if all the proc in this task untill now are complete
+                    # we can go and check the next proc in this task
+                    running = proc_dict.get('running', False)
+                    completed = proc_dict.get('completed', False)
+                    completed_flag_in_task.append(completed)
+                    if (not running) and (not completed):
+                        proc_dict_to_start = proc_dict
+                        break
+                    #
                 #
             #
-
-            time.sleep(0.1)
-        #
-        return self.result_list
-
-    def _worker(self, task, task_index, result_queue):
-        result = {}
-        exception_e = None
-        try:
-            if self.parallel_devices is not None:
-                num_devices = len(self.parallel_devices)
-                parallel_device = self.parallel_devices[task_index%num_devices]
-                os.environ['CUDA_VISIBLE_DEVICES'] = str(parallel_device)
-                print(log_color('\nINFO', 'starting process on parallel_device', parallel_device))
+            if proc_dict_to_start:
+                break
             #
-            result = task()
+        #
+        return proc_dict_to_start
+
+    def _check_proc_complete(self, proc):
+        completed = False
+        exit_code = proc.returncode
+        try:
+            out_ret, err_ret = proc.communicate(timeout=0.1)
+        except subprocess.TimeoutExpired as ex:
+            pass
+        except multiprocessing.TimeoutError as ex:
+            pass
+        else:
+            completed = True
+        #
+        return completed
+
+    def _check_running_status(self, check_errors):
+        running_tasks = []
+        completed_tasks = []
+        for task_name, task_list in self.queued_tasks.items():
+            completed_proc_in_task = []
+            running_proc_in_task = []
+            running_proc_name = None
+            for proc_id, proc_dict in enumerate(task_list):
+                proc = proc_dict.get('proc', None)
+                completed = (proc is not None) and proc_dict.get('completed', False)
+                running = (proc is not None) and proc_dict.get('running', False)
+                terminated = (proc is not None) and proc_dict.get('terminated', False)   
+
+                # check running processes                         
+                if running:
+                    # try to update the completed status for running processes
+                    completed = self._check_proc_complete(proc)
+                    running = (not completed)
+                    proc_dict['completed'] = completed
+                    proc_dict['running'] = running
+                    running_proc_name = proc_dict['proc_name']
+                    running_time = time.time() - proc_dict['start_time']
+                    proc_log = proc_dict['proc_log']
+                    proc_error = proc_dict['proc_error']
+                    proc_error = [proc_error] if not isinstance(proc_error, (list,tuple)) else proc_error
+
+                    # look for processes to terminate forcefully
+                    # proc_dict entry of terminated process will eventually get removed - don't keep trying  to terminate it again and again    
+                    if check_errors and (not terminated):
+                        proc_terminate = False
+                        proc_term_msgs = []
+                        if proc_log and os.path.exists(proc_log):
+                            with open(proc_log, "r") as fp:
+                                try:
+                                    proc_log_content = fp.read()
+                                    for proc_error_entry in proc_error:
+                                        regex_match =  re.search(proc_error_entry, proc_log_content)
+                                        if regex_match:
+                                            proc_terminate = True
+                                            proc_term_msgs += [regex_match.group()]
+                                        #
+                                    #
+                                except:
+                                    print(f"WARNING: could not read file: {proc_log}")
+                                #
+                            #
+                        #
+                        if self.instance_timeout and running_time > self.instance_timeout and proc is not None:
+                            proc_terminate = True
+                            proc_term_msgs += [f"TIMEOUT : {self.instance_timeout}"]
+                        #
+                        if proc_terminate:
+                            print(f"WARNING: terminating the process - {running_proc_name} - {', '.join(proc_term_msgs)}")
+                            proc.terminate()
+                            proc_dict['terminated'] = True
+                        #
+                    #
+                #
+                completed_proc_in_task.append(completed)
+                running_proc_in_task.append(running)
+            #
+            is_task_completed = all(completed_proc_in_task)
+            is_task_running = any(running_proc_in_task)
+            if is_task_completed:
+                completed_tasks += [task_name]
+            #
+            if is_task_running:
+                running_tasks += [running_proc_name or task_name]
+            #
+        #
+
+        num_completed = len(completed_tasks)
+        num_running = len(running_tasks)
+
+        self.tqdm_obj.update(num_completed - self.tqdm_obj.n)
+        desc = self.desc + f' STATUS - TOTAL={self.num_queued_tasks}, NUM_RUNNING={num_running}'
+        self.tqdm_obj.set_description(desc)
+        self.tqdm_obj.set_postfix(postfix=dict(RUNNING=running_tasks, COMPLETED=completed_tasks))
+        return num_completed, num_running
+
+    def _wait_in_loop(self, num_processes):
+        # wait in a loop until the number of running processes come down        
+        num_processes = num_processes or 0
+        last_check_time = time.time()        
+        check_errors = True
+        num_completed, num_running = self._check_running_status(check_errors=check_errors)
+        while num_running > 0 and num_running >= num_processes and (not self.terminate_all):
+            num_completed, num_running = self._check_running_status(check_errors=check_errors)
+            if num_running >= num_processes:
+                time.sleep(self.maxinterval)
+            #
+            # check if this run has been too long; terminate if needed
+            running_time = time.time() - self.start_time
+            if self.overall_timeout and (running_time > self.overall_timeout):
+                self._terminate_all_procs()
+                self.terminate_all = True
+            #
+            check_interval = time.time() - last_check_time            
+            check_errors = (check_interval > self.maxinterval)
+            if check_errors:              
+                last_check_time = time.time()          
+            #
+        #
+        time.sleep(self.mininterval)        
+        # check if this run has been too long; terminate if needed
+        running_time = time.time() - self.start_time
+        if self.overall_timeout and (running_time > self.overall_timeout) and (not self.terminate_all):
+            self._terminate_all_procs()
+            self.terminate_all = True            
+        #        
+        return num_completed, num_running
+
+    def _terminate_all_procs(self, term_mesage=None):
+        term_mesage = term_mesage or f"TIMEOUT - TERMINATE ALL: {self.overall_timeout}"
+        for task_name, task_list in self.queued_tasks.items():
+            for proc_id, proc_dict in enumerate(task_list):
+                proc = proc_dict.get('proc', None)
+                running_proc_name = proc_dict['proc_name']                
+                running = (proc is not None) and proc_dict.get('running', False)
+                terminated = (proc is not None) and proc_dict.get('terminated', False)                   
+                if running and (not terminated):
+                    proc.terminate()
+                    proc_dict['terminated'] = True       
+                    print(f"WARNING: terminating the process - {running_proc_name} - {term_mesage}")                                                   
+                #
+            #
+        #     
+
+    def _worker(self, task):
+        proc = None
+        try:
+            proc = task()
         except Exception as e:
             print(f"Exception occurred in worker process: {e}")
             traceback.print_exc()
-            exception_e = e
         #
-        result_queue.put((result,exception_e))
-
-
+        self.task_index += 1
+        return proc

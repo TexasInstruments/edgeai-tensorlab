@@ -32,8 +32,6 @@ from .attr_dict import *
 from .download_utils import *
 from .file_utils import *
 from .logger_utils import *
-from .parallel_process import *
-from .parallel_subprocess import *
 from .environ_utils import *
 from .timer_utils import *
 from .metric_utils import *
@@ -42,4 +40,7 @@ from .transforms_utils import *
 from .onnx_utils import *
 from .model_utils import *
 from .import_utils import *
+from .process_queue import *
+from .parallel_process import *
+
 from .artifacts_id_to_model_name import *

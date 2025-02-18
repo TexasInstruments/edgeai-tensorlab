@@ -29,13 +29,28 @@
 import os
 import sys
 import argparse
+import functools
+
 from .. import utils, pipelines, config_settings, datasets
 from .get_configs import *
 
-__all__ = ['run_accuracy']
+__all__ = ['run_benchmark_config']
 
 
-def run_accuracy(settings, work_dir, pipeline_configs=None, modify_pipelines_func=None):
+def run_benchmark_config_one_model(settings, entry_idx, proc_name, proc_func):
+    if settings.parallel_processes and settings.parallel_devices:
+        # only relevant for compilation and when using tidl-tools with GPU/CUDA support
+        num_devices = len(settings.parallel_devices)
+        parallel_device = settings.parallel_devices[entry_idx%num_devices]
+        os.environ['CUDA_VISIBLE_DEVICES'] = str(parallel_device)
+    #
+    proc = utils.ProcessWtihQueue(name=proc_name, target=proc_func)
+    proc.start()
+    return proc
+
+
+def run_benchmark_config(settings, work_dir, pipeline_configs=None, modify_pipelines_func=None,
+    overall_timeout=None, instance_timeout=None, proc_error_regex_list=None, separate_import_inference=True):
     
     # verify that targt device is correct
     if settings.target_device is not None and 'TIDL_TOOLS_PATH' in os.environ and \
@@ -51,8 +66,14 @@ def run_accuracy(settings, work_dir, pipeline_configs=None, modify_pipelines_fun
         pipeline_configs = get_configs(settings, work_dir)
     #
 
-    # create the pipeline_runner which will manage the sessions.
-    pipeline_runner = pipelines.PipelineRunner(settings, pipeline_configs)
+    if settings.parallel_processes:
+        process_runner = pipelines.ProcessRunner(settings, pipeline_configs=pipeline_configs,
+            parallel_processes=settings.parallel_processes, parallel_devices=settings.parallel_devices,
+            overall_timeout=overall_timeout, instance_timeout=instance_timeout, with_subprocess=False)
+    else:
+        # create the pipeline_runner which will manage the sessions.
+        process_runner = pipelines.PipelineRunner(settings, pipeline_configs=pipeline_configs)
+    #
 
     ############################################################################
     # at this point, pipeline_runner.pipeline_configs is a dictionary that has the selected configs
@@ -69,20 +90,29 @@ def run_accuracy(settings, work_dir, pipeline_configs=None, modify_pipelines_fun
     ############################################################################
 
     if modify_pipelines_func is not None:
-        pipeline_runner.pipeline_configs = modify_pipelines_func(pipeline_runner.pipeline_configs)
+        process_runner.pipeline_configs = modify_pipelines_func(process_runner.pipeline_configs)
     #
 
     # print some info
     run_dirs = [pipeline_config['session'].get_param('run_dir') for model_key, pipeline_config \
-                in pipeline_runner.pipeline_configs.items()]
+                in process_runner.pipeline_configs.items()]
     run_dirs = [os.path.basename(run_dir) for run_dir in run_dirs]
     print(f'configs to run: {run_dirs}')
-    print(f'number of configs: {len(pipeline_runner.pipeline_configs)}')
+    print(f'number of configs: {len(process_runner.pipeline_configs)}')
     sys.stdout.flush()
 
-    # now actually run the configs
-    results_list = None
-    if settings.run_import or settings.run_inference:
-        results_list = pipeline_runner.run()
+    task_entries = process_runner.get_tasks(separate_import_inference=separate_import_inference)
 
-    return results_list
+    if settings.parallel_processes:
+        for task_entry_idx, (task_name, task_list) in enumerate(task_entries.items()):
+            for proc_entry in task_list:
+                proc_name = proc_entry['proc_name']
+                proc_func = proc_entry['proc_func']
+                proc_func = functools.partial(run_benchmark_config_one_model, settings, task_entry_idx, proc_name, proc_func)
+                proc_entry['proc_func'] =  proc_func
+            #
+        #
+    #
+
+    # now actually run the configs
+    return process_runner.run(task_entries)

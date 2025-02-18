@@ -89,6 +89,9 @@ if __name__ == '__main__':
     work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
     print(f'work_dir: {work_dir}')
 
+    settings.parallel_processes = None
+    settings.run_import = True
+    settings.run_inference = False
     settings.pipeline_type = constants.PIPELINE_GEN_CONFIG
     settings.param_template_file = settings.param_template_file or cmds.param_template_file
     settings.dataset_loading = False
