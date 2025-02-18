@@ -26,5 +26,25 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from .. import utils
 from .pipeline_runner import *
-from .parallel_runner import *
+
+
+class ParallelRunner(PipelineRunner, utils.ParallelSubProcess):
+    def __init__(self, settings, parallel_processes, parallel_devices, overall_timeout, instance_timeout):
+        PipelineRunner.__init__(self, settings, pipeline_configs=None)
+        utils.ParallelSubProcess.__init__(self, parallel_processes=parallel_processes,
+            parallel_devices=parallel_devices, overall_timeout=overall_timeout, instance_timeout=instance_timeout)
+
+    def run(self):
+        if self.parallel_processes:
+            return super(PipelineRunner, self).run()
+        else:
+            import tqdm
+            for process_entry in tqdm.tqdm(process_entries_list):
+                for proc_entry in process_entry['task_list']:
+                    proc_func = proc_entry['proc_func']
+                    proc_func()
+                #
+            #
+        #

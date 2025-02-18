@@ -44,14 +44,7 @@ from .. import preprocess
 class PipelineRunner():
     def __init__(self, settings, pipeline_configs):
         self.settings = settings
-        self.pipeline_configs = self.filter_pipeline_configs(pipeline_configs)
-
-        if self.settings.parallel_devices in (None, 0):
-            self.parallel_devices = [0]
-        else:
-            self.parallel_devices = range(self.settings.parallel_devices) if isinstance(self.settings.parallel_devices, int) \
-                else self.settings.parallel_devices
-        #
+        self.pipeline_configs = self.filter_pipeline_configs(pipeline_configs) if pipeline_configs else pipeline_configs
 
     def get_pipeline_configs(self):
         return self.pipeline_configs
@@ -158,12 +151,9 @@ class PipelineRunner():
         results_list = []
         total = len(self.pipeline_configs)
         for pipeline_index, (model_id, pipeline_config) in enumerate(self.pipeline_configs.items()):
-            num_devices = len(self.parallel_devices)
-            parallel_device = self.parallel_devices[pipeline_index%num_devices]
-
             os.chdir(cwd)
             description = f'{pipeline_index+1}/{total}' if total > 1 else ''
-            result = self._run_pipeline(self.settings, pipeline_config, parallel_device, description=description)
+            result = self._run_pipeline(self.settings, pipeline_config, description=description)
             results_list.append(result)
         #
         return results_list
@@ -192,7 +182,7 @@ class PipelineRunner():
         return result
 
     @classmethod
-    def _run_pipeline(cls, settings, pipeline_config, parallel_device, description=''):
+    def _run_pipeline(cls, settings, pipeline_config, description=''):
         # capture cwd - to set it later
         cwd = os.getcwd()
         result = {}

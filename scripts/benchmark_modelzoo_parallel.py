@@ -74,60 +74,6 @@ def get_arg_parser():
     return parser
 
 
-def run_one_model(entry_idx, kwargs, parallel_processes, model_selection, run_dir, enable_logging, log_filename, run_import, run_inference):
-    if kwargs['parallel_devices'] in (None, 0):
-        parallel_devices = [0]
-    else:
-        parallel_devices = range(kwargs['parallel_devices']) if isinstance(kwargs['parallel_devices'], int) \
-            else kwargs['parallel_devices']
-    #
-
-    cmd_args = []
-    for key, value in kwargs.items():
-        if key not in ('settings_file', 'models_list_file', 'parallel_processes', 'parallel_devices'):
-            cmd_args += [f'--{key}']
-            cmd_args += [f'{value}']
-        #
-    #
-
-    # only relevant for compilation and when using tidl-tools with GPU/CUDA support
-    num_devices = len(parallel_devices)
-    parallel_device = parallel_devices[entry_idx%num_devices]
-    os.environ['CUDA_VISIBLE_DEVICES'] = str(parallel_device)
-
-    # benchmark script
-    command = ['python3',  './scripts/benchmark_modelzoo.py', kwargs['settings_file']]
-    # add additional commanline arguments passed to this script
-    command += cmd_args
-    # specify which model(s) to run
-    command += ['--model_selection', model_selection]
-    # additional process helps with stability - even if a model compilation crashes, it won't affect the main program.
-    # but, since we open a process with subprocess.Popen here, there is no need for the underlying python script to open a process inside
-    command += ['--parallel_processes', '0']
-    # which device should this be run on
-    # relevant only if this is using the gpu/cuda tidl-tools and if there are multiple GPUs
-    command += ['--parallel_devices', "1"]
-    # logging is done by capturing the stdout and stderr to a file here - no need to enable logging to file inside
-    command += ['--enable_logging', '0']
-    # import and/or inference
-    command += ['--run_import', f'{run_import}']
-    command += ['--run_inference', f'{run_inference}']
-
-    os.makedirs(os.path.dirname(log_filename), exist_ok=True)
-
-    if parallel_processes and enable_logging:
-        with open(log_filename, 'a') as log_fp:
-            proc = subprocess.Popen(command, stdout=log_fp, stderr=log_fp)
-        #
-    elif parallel_processes:
-        proc = subprocess.Popen(command)
-    else:
-        os.system(' '.join(command))
-        proc = None
-    #
-    return proc
-
-
 if __name__ == '__main__':
     print(f'argv: {sys.argv}')
     # the cwd must be the root of the respository
@@ -185,15 +131,23 @@ if __name__ == '__main__':
     work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
     print(f'INFO: work_dir - {work_dir}')
 
+    parallel_processes = kwargs.pop('parallel_processes', 0) or settings.parallel_processes
+    parallel_devices = kwargs['parallel_devices']
+    overall_timeout = kwargs.pop('overall_timeout', None)
+    instance_timeout = kwargs.pop('instance_timeout', None)
+    separate_import_inference = kwargs.pop('separate_import_inference')
+
     if kwargs['models_list_file'] is None:
         # make sure the folder exists
         os.makedirs(settings.modelartifacts_path, exist_ok=True)
         # create list file
         kwargs['models_list_file'] = os.path.join(settings.modelartifacts_path, "models_list.txt")
+
         # get a dict of model configs
         pipeline_configs = interfaces.get_configs(settings, work_dir)
         # filter the configs
         pipeline_configs = pipelines.PipelineRunner(settings, pipeline_configs).get_pipeline_configs()
+
         model_keys = pipeline_configs.keys()
         # now write to the list file
         with open(kwargs['models_list_file'], "w") as fp:
@@ -210,55 +164,8 @@ if __name__ == '__main__':
         model_entries = [model_entry.rstrip() for model_entry in list_fp]
     #
 
-    parallel_processes = kwargs.pop('parallel_processes', 0) or settings.parallel_processes
-    parallel_devices = kwargs['parallel_devices']
-    overall_timeout = kwargs.pop('overall_timeout', None)
-    instance_timeout = kwargs.pop('instance_timeout', None)
-    separate_import_inference = kwargs.pop('separate_import_inference')
-    parallel_subprocess = utils.ParallelSubProcess(parallel_processes=parallel_processes, parallel_devices=parallel_devices,
-        overall_timeout=overall_timeout, instance_timeout=instance_timeout)
-    sequential_process_list = []
-
-    for entry_idx, model_entry in enumerate(model_entries):
-        model_entry = model_entry.split(' ')
-        model_selection = model_entry[0]
-        run_dir = model_entry[1]
-        task_list_for_model = []
-        log_filename = os.path.join(run_dir, 'run.log')
-
-        if separate_import_inference:
-            if settings.run_import:
-                proc_name = f'{model_selection}:import'
-                run_import_task = functools.partial(run_one_model,
-                    entry_idx, kwargs, parallel_processes, model_selection, run_dir, settings.enable_logging, log_filename, True, False)
-                task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_import_task, 'proc_log':log_filename, 'proc_error':constants.FATAL_ERROR_LOGS_REGEX_LIST})
-            #
-            if settings.run_inference:
-                proc_name = f'{model_selection}:infer'
-                run_inference_task = functools.partial(run_one_model,
-                    entry_idx, kwargs, parallel_processes, model_selection, run_dir, settings.enable_logging, log_filename, False, True)
-                task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_inference_task, 'proc_log':log_filename, 'proc_error':constants.FATAL_ERROR_LOGS_REGEX_LIST})
-            #
-        else:
-            proc_name = f'{model_selection}'
-            run_task = functools.partial(run_one_model,
-                entry_idx, kwargs, parallel_processes, model_selection, run_dir, settings.enable_logging, log_filename, settings.run_import, settings.run_inference)
-            task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_task, 'proc_log':log_filename, 'proc_error':constants.FATAL_ERROR_LOGS_REGEX_LIST})
-        #
-        if parallel_processes:
-            parallel_subprocess.enqueue(task_name=model_selection, task_list=task_list_for_model)
-        else:
-            sequential_process_list.append(task_list_for_model)
-        #
-    #
-
-    if parallel_processes:
-        parallel_subprocess.run()
-    else:
-        for proc_func_list in tqdm.tqdm(sequential_process_list):
-            for proc_entry in proc_func_list:
-                proc_func = proc_entry['proc_func']
-                proc_func()
-            #
-        #
-    #
+    interfaces.run_benchmark(settings, model_entries, kwargs,
+        parallel_processes=parallel_processes, parallel_devices=parallel_devices,
+        overall_timeout=overall_timeout, instance_timeout=instance_timeout,
+        proc_error_regex_list=constants.FATAL_ERROR_LOGS_REGEX_LIST,
+        separate_import_inference=separate_import_inference)
