@@ -111,3 +111,7 @@ class SequentialProcess:
         #
         self.task_index += 1
         return proc
+
+    def terminate_all(self):
+        pass
+        

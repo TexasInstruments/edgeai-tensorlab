@@ -39,9 +39,18 @@ __all__ = ['run_benchmark_config']
 
 def run_benchmark_config_one_model(settings, entry_idx, proc_name, proc_func):
     if settings.parallel_processes and settings.parallel_devices:
+        if isinstance(settings.parallel_devices, (list,tuple)):
+            parallel_devices = settings.parallel_devices
+        elif settings.parallel_devices in (None, 0):
+            parallel_devices = [0]
+        elif isinstance(settings.parallel_devices, int):
+            parallel_devices = list(range(settings.parallel_devices))
+        else:
+            assert False, f'unknown value of settings.parallel_devices: {settings.parallel_devices} in {__file__}'
+
         # only relevant for compilation and when using tidl-tools with GPU/CUDA support
-        num_devices = len(settings.parallel_devices)
-        parallel_device = settings.parallel_devices[entry_idx%num_devices]
+        num_devices = len(parallel_devices)
+        parallel_device = parallel_devices[entry_idx%num_devices]
         os.environ['CUDA_VISIBLE_DEVICES'] = str(parallel_device)
     #
     proc = utils.ProcessWtihQueue(name=proc_name, target=proc_func)
@@ -101,20 +110,28 @@ def run_benchmark_config(settings, work_dir, pipeline_configs=None, modify_pipel
     sys.stdout.flush()
 
     task_entries = pipeline_runner.get_tasks(separate_import_inference=separate_import_inference)
+    process_runner = None
 
-    # now actually run the configs
-    if settings.parallel_processes:
-        for task_entry_idx, (task_name, task_list) in enumerate(task_entries.items()):
-            for proc_entry in task_list:
-                proc_name = proc_entry['proc_name']
-                proc_func = proc_entry['proc_func']
-                proc_func = functools.partial(run_benchmark_config_one_model, settings, task_entry_idx, proc_name, proc_func)
-                proc_entry['proc_func'] =  proc_func
+    try:
+        # now actually run the configs
+        if settings.parallel_processes:
+            for task_entry_idx, (task_name, task_list) in enumerate(task_entries.items()):
+                for proc_entry in task_list:
+                    proc_name = proc_entry['proc_name']
+                    proc_func = proc_entry['proc_func']
+                    proc_func = functools.partial(run_benchmark_config_one_model, settings, task_entry_idx, proc_name, proc_func)
+                    proc_entry['proc_func'] =  proc_func
+                #
             #
+            process_runner = utils.ProcessRunner(
+                parallel_processes=settings.parallel_processes, parallel_devices=settings.parallel_devices,
+                overall_timeout=overall_timeout, instance_timeout=instance_timeout)
+            return process_runner.run(task_entries)
+        else:
+            return pipeline_runner.run(task_entries)
         #
-        process_runner = utils.ProcessRunner(
-            parallel_processes=settings.parallel_processes, parallel_devices=settings.parallel_devices,
-            overall_timeout=overall_timeout, instance_timeout=instance_timeout)
-        return process_runner.run(task_entries)        
-    else:
-        return pipeline_runner.run(task_entries)
+    except KeyboardInterrupt:
+        if process_runner:
+            process_runner.terminate_all(term_mesage="KeyboardInterrupt")
+        #
+        sys.exit(f"KeyboardInterrupt received: {__file__}")

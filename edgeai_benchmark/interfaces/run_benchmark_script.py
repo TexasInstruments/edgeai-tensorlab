@@ -39,19 +39,21 @@ from .get_configs import *
 __all__ = ['run_benchmark_script']
 
 
-def run_benchmark_script_one_model(entry_idx, kwargs, parallel_processes, model_selection, run_dir,
+def run_benchmark_script_one_model(entry_idx, kwargs, parallel_processes, parallel_devices, model_selection, run_dir,
     enable_logging, log_filename, run_import, run_inference, benchmark_script=None):
 
     if benchmark_script is None:
         benchmark_script = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../scripts/benchmark_modelzoo.py'))
     #
 
-    if kwargs['parallel_devices'] in (None, 0):
+    if isinstance(parallel_devices, (list,tuple)):
+        parallel_devices = parallel_devices
+    elif parallel_devices in (None, 0):
         parallel_devices = [0]
+    elif isinstance(parallel_devices, int):
+        parallel_devices = list(range(parallel_devices))
     else:
-        parallel_devices = range(kwargs['parallel_devices']) if isinstance(kwargs['parallel_devices'], int) \
-            else kwargs['parallel_devices']
-    #
+        assert False, f'unknown value of settings.parallel_devices: {parallel_devices} in {__file__}'
 
     # only relevant for compilation and when using tidl-tools with GPU/CUDA support
     num_devices = len(parallel_devices)
@@ -115,19 +117,19 @@ def run_benchmark_script(settings, model_entries, kwargs_dict, parallel_processe
             if settings.run_import:
                 proc_name = f'{model_selection}:import'
                 run_import_task = functools.partial(run_benchmark_script_one_model,
-                    entry_idx, kwargs_dict, parallel_processes, model_selection, run_dir, settings.enable_logging, log_filename, True, False)
+                    entry_idx, kwargs_dict, parallel_processes, parallel_devices, model_selection, run_dir, settings.enable_logging, log_filename, True, False)
                 task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_import_task, 'proc_log':log_filename, 'proc_error':proc_error_regex_list})
             #
             if settings.run_inference:
                 proc_name = f'{model_selection}:infer'
                 run_inference_task = functools.partial(run_benchmark_script_one_model,
-                    entry_idx, kwargs_dict, parallel_processes, model_selection, run_dir, settings.enable_logging, log_filename, False, True)
+                    entry_idx, kwargs_dict, parallel_processes, parallel_devices, model_selection, run_dir, settings.enable_logging, log_filename, False, True)
                 task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_inference_task, 'proc_log':log_filename, 'proc_error':proc_error_regex_list})
             #
         else:
             proc_name = f'{model_selection}'
             run_task = functools.partial(run_benchmark_script_one_model,
-                entry_idx, kwargs_dict, parallel_processes, model_selection, run_dir, settings.enable_logging, log_filename, settings.run_import, settings.run_inference)
+                entry_idx, kwargs_dict, parallel_processes, parallel_devices, model_selection, run_dir, settings.enable_logging, log_filename, settings.run_import, settings.run_inference)
             task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_task, 'proc_log':log_filename, 'proc_error':proc_error_regex_list})
         #
 

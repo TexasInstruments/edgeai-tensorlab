@@ -26,6 +26,8 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import sys
+
 from .sequential_process import *
 from .parallel_process import *
 
@@ -40,4 +42,8 @@ class ProcessRunner():
                 parallel_devices=parallel_devices, overall_timeout=overall_timeout, instance_timeout=instance_timeout)
 
     def run(self, task_entries):
-        return self.process_runner.run(task_entries)
+        try:
+            return self.process_runner.run(task_entries)
+        except KeyboardInterrupt:
+            self.process_runner.terminate_all(term_mesage="KeyboardInterrupt")
+            sys.exit(f"KeyboardInterrupt received: {__file__}")

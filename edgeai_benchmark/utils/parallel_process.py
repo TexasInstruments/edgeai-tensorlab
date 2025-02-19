@@ -53,7 +53,7 @@ class ParallelProcess:
         self.num_queued_tasks = 0
         self.task_index = 0
         self.start_time = None
-        self.terminate_all = False
+        self.terminate_all_flag = False
         if verbose:
             warnings.warn('''
             ParallelSubProcess is for tasks that are started with subprocess.Popen()
@@ -72,12 +72,12 @@ class ParallelProcess:
             self.tqdm_obj = tqdm.tqdm(total=self.num_queued_tasks, position=0, desc=desc)
         #
         num_completed, num_running = self._wait_in_loop(self.parallel_processes)
-        while num_completed < self.num_queued_tasks and (not self.terminate_all):
+        while num_completed < self.num_queued_tasks and (not self.terminate_all_flag):
             # wait in a loop until the number of running processes comes down
             num_completed, num_running = self._wait_in_loop(self.parallel_processes)
             proc_dict_to_start = self._find_proc_dict_to_start()
             # start the process
-            if proc_dict_to_start and (not self.terminate_all):
+            if proc_dict_to_start and (not self.terminate_all_flag):
                 proc_dict_to_start['running'] = True
                 proc_dict_to_start['completed'] = False
                 proc_dict_to_start['start_time'] = time.time()
@@ -85,7 +85,7 @@ class ParallelProcess:
             #
         #
         # wait for all remaining processes to finish
-        if not self.terminate_all:
+        if not self.terminate_all_flag:
             self._wait_in_loop(0)
         #
         return True
@@ -220,7 +220,7 @@ class ParallelProcess:
         last_check_time = time.time()        
         check_errors = True
         num_completed, num_running = self._check_running_status(check_errors=check_errors)
-        while num_running > 0 and num_running >= num_processes and (not self.terminate_all):
+        while num_running > 0 and num_running >= num_processes and (not self.terminate_all_flag):
             num_completed, num_running = self._check_running_status(check_errors=check_errors)
             if num_running >= num_processes:
                 time.sleep(self.maxinterval)
@@ -228,8 +228,7 @@ class ParallelProcess:
             # check if this run has been too long; terminate if needed
             running_time = time.time() - self.start_time
             if self.overall_timeout and (running_time > self.overall_timeout):
-                self._terminate_all_procs()
-                self.terminate_all = True
+                self.terminate_all()
             #
             check_interval = time.time() - last_check_time            
             check_errors = (check_interval > self.maxinterval)
@@ -240,9 +239,8 @@ class ParallelProcess:
         time.sleep(self.mininterval)        
         # check if this run has been too long; terminate if needed
         running_time = time.time() - self.start_time
-        if self.overall_timeout and (running_time > self.overall_timeout) and (not self.terminate_all):
-            self._terminate_all_procs()
-            self.terminate_all = True            
+        if self.overall_timeout and (running_time > self.overall_timeout) and (not self.terminate_all_flag):
+            self.terminate_all()
         #        
         return num_completed, num_running
 
@@ -272,3 +270,7 @@ class ParallelProcess:
         #
         self.task_index += 1
         return proc
+
+    def terminate_all(self, term_mesage):
+        self._terminate_all_procs(term_mesage)
+        self.terminate_all_flag = True

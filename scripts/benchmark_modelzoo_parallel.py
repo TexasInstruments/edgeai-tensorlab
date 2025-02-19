@@ -132,7 +132,7 @@ if __name__ == '__main__':
     print(f'INFO: work_dir - {work_dir}')
 
     parallel_processes = kwargs.pop('parallel_processes', 0) or settings.parallel_processes
-    parallel_devices = kwargs['parallel_devices']
+    parallel_devices = kwargs.get('parallel_devices', 0)
     overall_timeout = kwargs.pop('overall_timeout', None)
     instance_timeout = kwargs.pop('instance_timeout', None)
     separate_import_inference = kwargs.pop('separate_import_inference')
