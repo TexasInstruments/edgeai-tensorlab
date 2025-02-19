@@ -503,6 +503,8 @@ def main():
         model_args.config_name or model_args.model_name_or_path,
         label2id=label2id,
         id2label=id2label,
+        attn_implementation="eager", # the default is sdpa mode, need to use eager for proper quantization
+        return_dict=None, # for prepare_qat_pt2e() used in quantization
         **common_pretrained_args,
     )
     model = AutoModelForObjectDetection.from_pretrained(
@@ -602,10 +604,12 @@ def main():
     )
 
     assert (model_optimization_args.quantization==0 or model_optimization_args.quantization==3), \
-        print("Only pt2e (args.quantization=3) based quantization is currently supported for hf-transformers ")
+        print("Only pt2e (args.quantization=3) based quantization is currently supported for hf-transformers")
 
     
     if model_optimization_args.quantization == 3:
+        print("The quantization flow is currently not working with this flow.\n")
+        quit()
         assert training_args.per_device_train_batch_size == training_args.per_device_eval_batch_size, \
             print("only fixed batch size across train and eval is currently supported, (args.per_device_train_batch_size and args.per_device_eval_batch_size should be same)")  
         example_kwargs = next(iter(dataset["validation"]))
@@ -675,19 +679,13 @@ def main():
             # example_kwargs['pixel_mask'] = example_kwargs['pixel_mask'].repeat(training_args.per_device_train_batch_size, 1, 1)
             pixel_mask = example_kwargs.pop('pixel_mask')
             example_kwargs['labels'] = [example_kwargs.pop('labels')]*training_args.per_device_train_batch_size
+            # maybe labels are required being a traced model, see to it
             trainer.model.export(example_kwargs, filename=file_name, simplify=True, device=export_device, make_copy=True)
         else:
-            trainer.model.eval()
-            example_input = next(iter(dataset["validation"]))
-            example_input['labels'] = torch.tensor(example_input.pop('labels')).unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1)
-            example_input['pixel_values'] = example_input['pixel_values'].unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1, 1, 1)
-            if isinstance(example_input, dict):
-                example_inputs = ()
-                for val in example_input.values():
-                    example_inputs += tuple([val.to(device=export_device)])
-            else:
-                example_inputs = example_input.to(device=export_device)
-            torch.onnx.export(trainer.model, example_inputs, file_name, opset_version=17, training=torch._C._onnx.TrainingMode.PRESERVE)
+            trainer.model.eval().to(device=export_device)
+            example_kwargs = next(iter(dataset["validation"]))
+            pixel_values = example_kwargs['pixel_values'].unsqueeze(0).repeat(training_args.per_device_train_batch_size, 1, 1, 1)
+            torch.onnx.export(trainer.model, pixel_values, file_name, opset_version=17, training=torch._C._onnx.TrainingMode.PRESERVE)
             import onnx
             from onnxsim import simplify
             onnx_model = onnx.load(file_name)

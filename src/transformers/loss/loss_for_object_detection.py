@@ -511,6 +511,9 @@ def ForSegmentationLoss(
         auxiliary_outputs = _set_aux_loss(outputs_class, outputs_coord)
         outputs_loss["auxiliary_outputs"] = auxiliary_outputs
 
+    for i, label in enumerate(labels):
+        labels[i] = label.to(outputs_loss["logits"].device)
+
     loss_dict = criterion(outputs_loss, labels)
     # Fourth: compute total loss, as a weighted sum of the various losses
     weight_dict = {"loss_ce": 1, "loss_bbox": config.bbox_loss_coefficient}
@@ -548,6 +551,9 @@ def ForObjectDetectionLoss(
     if config.auxiliary_loss:
         auxiliary_outputs = _set_aux_loss(outputs_class, outputs_coord)
         outputs_loss["auxiliary_outputs"] = auxiliary_outputs
+
+    for i, label in enumerate(labels):
+        labels[i] = label.to(outputs_loss["logits"].device)
 
     loss_dict = criterion(outputs_loss, labels)
     # Fourth: compute total loss, as a weighted sum of the various losses
