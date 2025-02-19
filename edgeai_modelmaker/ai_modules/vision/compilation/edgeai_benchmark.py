@@ -259,18 +259,14 @@ class ModelCompilation():
             print(edgeai_benchmark.utils.log_color('\nINFO', 'model import is in progress',
                                                    'please see the log file for status.'))
         #
-        self.settings.run_import = True
-        self.settings.run_inference = False
-        edgeai_benchmark.interfaces.run_accuracy(self.settings, self.work_dir, self.pipeline_configs)
-        # run inference
+
+        edgeai_benchmark.interfaces.run_benchmark_config(self.settings, self.work_dir, self.pipeline_configs)
+
         if self.params.compilation.capture_log:
             # when capture_log, detailed log will only be in the log file - so print this info
-            print(edgeai_benchmark.utils.log_color('\nINFO', 'model inference is in progress',
+            print(edgeai_benchmark.utils.log_color('\nINFO', 'model compilation is in progress',
                                                    'please see the log file for status.'))
         #
-        self.settings.run_import = False
-        self.settings.run_inference = True
-        edgeai_benchmark.interfaces.run_accuracy(self.settings, self.work_dir, self.pipeline_configs)
 
         # remove special characters
         utils.cleanup_special_chars(self.params.compilation.log_file_path)
