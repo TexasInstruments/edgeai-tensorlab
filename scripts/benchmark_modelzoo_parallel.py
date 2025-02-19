@@ -94,7 +94,7 @@ if __name__ == '__main__':
     if 'model_selection' in kwargs and kwargs['model_selection'] is not None:
         model_selection = kwargs['model_selection']
         if isinstance(model_selection, (list,tuple)):
-            if len(model_selection) == 1:
+            if len(model_selection) == 1 and model_selection[0] is not None:
                 model_selection = model_selection[0].replace(' ', '').split(',')
             #
         elif ',' in model_selection:
