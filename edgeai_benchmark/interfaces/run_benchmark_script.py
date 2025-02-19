@@ -25,7 +25,7 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
+import copy
 import os
 import sys
 import argparse
@@ -53,36 +53,33 @@ def run_benchmark_script_one_model(entry_idx, kwargs, parallel_processes, model_
             else kwargs['parallel_devices']
     #
 
-    cmd_args = []
-    for key, value in kwargs.items():
-        if key not in ['settings_file']:
-            cmd_args += [f'--{key}']
-            cmd_args += [f'{value}']
-        #
-    #
-
     # only relevant for compilation and when using tidl-tools with GPU/CUDA support
     num_devices = len(parallel_devices)
     parallel_device = parallel_devices[entry_idx%num_devices]
     os.environ['CUDA_VISIBLE_DEVICES'] = str(parallel_device)
 
-    # benchmark script
-    command = ['python3',  benchmark_script, kwargs['settings_file']]
-    # add additional commanline arguments passed to this script
-    command += cmd_args
+    cmd_args = copy.deepcopy(kwargs)
+    cmd_args.pop('settings_file', None)
+
     # specify which model(s) to run
-    command += ['--model_selection', model_selection]
+    cmd_args['model_selection'] = model_selection
     # additional process helps with stability - even if a model compilation crashes, it won't affect the main program.
     # but, since we open a process with subprocess.Popen here, there is no need for the underlying python script to open a process inside
-    command += ['--parallel_processes', '0']
+    cmd_args['parallel_processes'] = '0'
     # which device should this be run on
     # relevant only if this is using the gpu/cuda tidl-tools and if there are multiple GPUs
-    command += ['--parallel_devices', "1"]
+    cmd_args['parallel_devices'] = '1'
     # logging is done by capturing the stdout and stderr to a file here - no need to enable logging to file inside
-    command += ['--enable_logging', '0']
+    cmd_args['enable_logging'] = '0'
     # import and/or inference
-    command += ['--run_import', f'{run_import}']
-    command += ['--run_inference', f'{run_inference}']
+    cmd_args['run_import'] = f'{run_import}'
+    cmd_args['run_inference'] = f'{run_inference}'
+
+    # benchmark script
+    command = ['python3',  benchmark_script, kwargs['settings_file']]
+    for key, value in cmd_args.items():
+        command += ['--'+str(key), str(value)]
+    #
 
     os.makedirs(os.path.dirname(log_filename), exist_ok=True)
 
@@ -101,11 +98,6 @@ def run_benchmark_script_one_model(entry_idx, kwargs, parallel_processes, model_
 
 def run_benchmark_script(settings, model_entries, kwargs_dict, parallel_processes, parallel_devices,
         overall_timeout, instance_timeout, proc_error_regex_list, separate_import_inference=True):
-
-    process_runner = pipelines.ProcessRunner(settings, pipeline_configs=None,
-        parallel_processes=parallel_processes, parallel_devices=parallel_devices,
-        overall_timeout=overall_timeout, instance_timeout=instance_timeout,
-        with_subprocess=True)
 
     task_entries = {}
     for entry_idx, model_entry in enumerate(model_entries):
@@ -138,4 +130,7 @@ def run_benchmark_script(settings, model_entries, kwargs_dict, parallel_processe
         task_entries.update({model_selection:task_list_for_model})
     #
 
+    process_runner = utils.ProcessRunner(
+        parallel_processes=parallel_processes, parallel_devices=parallel_devices,
+        overall_timeout=overall_timeout, instance_timeout=instance_timeout)
     process_runner.run(task_entries)

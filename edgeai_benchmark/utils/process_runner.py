@@ -26,25 +26,18 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import subprocess
-
-from .. import utils
-from .pipeline_runner import *
+from .sequential_process import *
+from .parallel_process import *
 
 
-class ProcessRunner(PipelineRunner):
-    def __init__(self, settings, pipeline_configs, parallel_processes, parallel_devices, overall_timeout, instance_timeout, with_subprocess):
-        super().__init__(settings, pipeline_configs=pipeline_configs)
-        self.parallel_processes = parallel_processes
-        self.with_subprocess = with_subprocess
-        if not self.with_subprocess:
-            assert pipeline_configs is not None, 'pipeline_configs must be specified when with_subprocess is False'
-        #
-        self.parallel_runner = utils.ParallelProcess(parallel_processes=parallel_processes,
-            parallel_devices=parallel_devices, overall_timeout=overall_timeout, instance_timeout=instance_timeout)
+class ProcessRunner():
+    def __init__(self, parallel_processes, parallel_devices, overall_timeout, instance_timeout):
+        if parallel_processes:
+            self.process_runner = ParallelProcess(parallel_processes=parallel_processes,
+                parallel_devices=parallel_devices, overall_timeout=overall_timeout, instance_timeout=instance_timeout)
+        else:
+            self.process_runner = SequentialProcess(parallel_processes=parallel_processes,
+                parallel_devices=parallel_devices, overall_timeout=overall_timeout, instance_timeout=instance_timeout)
 
     def run(self, task_entries):
-        if self.parallel_processes:
-            return self.parallel_runner.run(task_entries)
-        else:
-            return super().run(task_entries)
+        return self.process_runner.run(task_entries)

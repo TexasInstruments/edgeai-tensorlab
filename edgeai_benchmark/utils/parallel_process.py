@@ -79,6 +79,7 @@ class ParallelProcess:
             # start the process
             if proc_dict_to_start and (not self.terminate_all):
                 proc_dict_to_start['running'] = True
+                proc_dict_to_start['completed'] = False
                 proc_dict_to_start['start_time'] = time.time()
                 proc_dict_to_start['proc'] = self._worker(proc_dict_to_start['proc_func'])
             #
@@ -114,15 +115,21 @@ class ParallelProcess:
         return proc_dict_to_start
 
     def _check_proc_complete(self, proc):
-        completed = False
-        exit_code = proc.returncode
-        try:
-            out_ret, err_ret = proc.communicate(timeout=0.1)
-        except subprocess.TimeoutExpired as ex:
-            pass
-        except multiprocessing.TimeoutError as ex:
-            pass
+        if proc is not None:
+            completed = False
+            exit_code = proc.returncode
+            try:
+                out_ret, err_ret = proc.communicate(timeout=0.1)
+            except subprocess.TimeoutExpired as ex:
+                pass
+            except multiprocessing.TimeoutError as ex:
+                pass
+            else:
+                completed = True
+            #
         else:
+            # proc = None indicates a completed task
+            # especially happens if a ParallelProcess is not lanched, but is a simple task that returns None as proc.
             completed = True
         #
         return completed
@@ -136,9 +143,9 @@ class ParallelProcess:
             running_proc_name = None
             for proc_id, proc_dict in enumerate(task_list):
                 proc = proc_dict.get('proc', None)
-                completed = (proc is not None) and proc_dict.get('completed', False)
-                running = (proc is not None) and proc_dict.get('running', False)
-                terminated = (proc is not None) and proc_dict.get('terminated', False)   
+                completed = proc_dict.get('completed', False)
+                running = proc_dict.get('running', False)
+                terminated = proc_dict.get('terminated', False)
 
                 # check running processes                         
                 if running:

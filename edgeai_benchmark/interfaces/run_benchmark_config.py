@@ -66,14 +66,9 @@ def run_benchmark_config(settings, work_dir, pipeline_configs=None, modify_pipel
         pipeline_configs = get_configs(settings, work_dir)
     #
 
-    if settings.parallel_processes:
-        process_runner = pipelines.ProcessRunner(settings, pipeline_configs=pipeline_configs,
-            parallel_processes=settings.parallel_processes, parallel_devices=settings.parallel_devices,
-            overall_timeout=overall_timeout, instance_timeout=instance_timeout, with_subprocess=False)
-    else:
-        # create the pipeline_runner which will manage the sessions.
-        process_runner = pipelines.PipelineRunner(settings, pipeline_configs=pipeline_configs)
-    #
+
+    # create the pipeline_runner which will manage the sessions.
+    pipeline_runner = pipelines.PipelineRunner(settings, pipeline_configs=pipeline_configs)
 
     ############################################################################
     # at this point, pipeline_runner.pipeline_configs is a dictionary that has the selected configs
@@ -90,18 +85,18 @@ def run_benchmark_config(settings, work_dir, pipeline_configs=None, modify_pipel
     ############################################################################
 
     if modify_pipelines_func is not None:
-        process_runner.pipeline_configs = modify_pipelines_func(process_runner.pipeline_configs)
+        pipeline_runner.pipeline_configs = modify_pipelines_func(pipeline_runner.pipeline_configs)
     #
 
     # print some info
     run_dirs = [pipeline_config['session'].get_param('run_dir') for model_key, pipeline_config \
-                in process_runner.pipeline_configs.items()]
+                in pipeline_runner.pipeline_configs.items()]
     run_dirs = [os.path.basename(run_dir) for run_dir in run_dirs]
     print(f'configs to run: {run_dirs}')
-    print(f'number of configs: {len(process_runner.pipeline_configs)}')
+    print(f'number of configs: {len(pipeline_runner.pipeline_configs)}')
     sys.stdout.flush()
 
-    task_entries = process_runner.get_tasks(separate_import_inference=separate_import_inference)
+    task_entries = pipeline_runner.get_tasks(separate_import_inference=separate_import_inference)
 
     if settings.parallel_processes:
         for task_entry_idx, (task_name, task_list) in enumerate(task_entries.items()):
@@ -115,4 +110,10 @@ def run_benchmark_config(settings, work_dir, pipeline_configs=None, modify_pipel
     #
 
     # now actually run the configs
-    return process_runner.run(task_entries)
+    if settings.parallel_processes:
+        process_runner = utils.ProcessRunner(
+            parallel_processes=settings.parallel_processes, parallel_devices=settings.parallel_devices,
+            overall_timeout=overall_timeout, instance_timeout=instance_timeout)
+        return process_runner.run(task_entries)        
+    else:
+        return pipeline_runner.run(task_entries)
