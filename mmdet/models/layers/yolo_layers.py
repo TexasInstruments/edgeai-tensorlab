@@ -338,10 +338,11 @@ class RepNCSPELAN(nn.Module):
 class AConv(nn.Module):
     """Downsampling module combining average and max pooling with convolution for feature reduction."""
 
-    def __init__(self, in_channels: int, out_channels: int, pool_kernel_size:int):
+    def __init__(self, in_channels: int, out_channels: int, pool_kernel_size:int, pool_type:str):
         super().__init__()
         mid_layer = {"kernel_size": 3, "stride": 2}
-        self.avg_pool = Pool("avg", kernel_size=pool_kernel_size, stride=1)
+        # self.avg_pool = Pool("avg", kernel_size=pool_kernel_size, stride=1) #avg_pool changed to custom
+        self.avg_pool = Pool(pool_type, kernel_size=pool_kernel_size, stride=1)
         self.conv = Conv(in_channels, out_channels, **mid_layer)
 
     def forward(self, x: Tensor) -> Tensor:

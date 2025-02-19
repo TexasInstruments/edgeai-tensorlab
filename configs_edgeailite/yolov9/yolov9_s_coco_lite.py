@@ -7,7 +7,9 @@ load_from = '../edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/yolov9
 model = dict(
     backbone=dict(
         pool_kernel_size=3,
+        pool_type='max',
         ),
     neck=dict(
         pool_kernel_size=3,
+        pool_type='max',
         ))

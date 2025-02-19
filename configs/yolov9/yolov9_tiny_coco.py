@@ -22,12 +22,14 @@ model = dict(
         stem_channels=[16, 32],
         expand_list=[64, 96, 128],
         pool_kernel_size=2,
-        init_cfg=dict(type='Pretrained', checkpoint='https://github.com/WongKinYiu/yolov9mit/releases/download/v1.0-alpha/v9-s.pt')
+        pool_type='avg',
+        # init_cfg=dict(type='Pretrained', checkpoint='https://github.com/WongKinYiu/yolov9mit/releases/download/v1.0-alpha/v9-s.pt')
         ),
     neck=dict(
         type='YOLOV9Neck',
         in_channels=[64, 96, 128],
         pool_kernel_size=2,
+        pool_type='avg',
         csp_arg = {"repeat_num": 3}
         ),
     bbox_head=dict(

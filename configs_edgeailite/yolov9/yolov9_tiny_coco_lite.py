@@ -7,7 +7,9 @@ convert_to_lite_model = dict(model_surgery=1)
 model = dict(
     backbone=dict(
         pool_kernel_size=3,
+        pool_type='max',
         ),
     neck=dict(
         pool_kernel_size=3,
+        pool_type='max',
         ))
