@@ -98,6 +98,7 @@ def run_benchmark_config(settings, work_dir, pipeline_configs=None, modify_pipel
 
     task_entries = pipeline_runner.get_tasks(separate_import_inference=separate_import_inference)
 
+    # now actually run the configs
     if settings.parallel_processes:
         for task_entry_idx, (task_name, task_list) in enumerate(task_entries.items()):
             for proc_entry in task_list:
@@ -107,10 +108,6 @@ def run_benchmark_config(settings, work_dir, pipeline_configs=None, modify_pipel
                 proc_entry['proc_func'] =  proc_func
             #
         #
-    #
-
-    # now actually run the configs
-    if settings.parallel_processes:
         process_runner = utils.ProcessRunner(
             parallel_processes=settings.parallel_processes, parallel_devices=settings.parallel_devices,
             overall_timeout=overall_timeout, instance_timeout=instance_timeout)

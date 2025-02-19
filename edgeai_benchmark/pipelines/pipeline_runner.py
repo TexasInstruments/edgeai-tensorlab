@@ -42,7 +42,11 @@ from .. import preprocess
 
 
 class PipelineRunner():
-    def __init__(self, settings, pipeline_configs):
+    def __init__(self, settings, pipeline_configs, copy_dataloader=False):
+        # making a copy of the dataloader for every config can take a lot of time
+        # since this happends int he beginning, this can be quite annoying
+        # instead it may be better to make a copy opf the whole proc_func just before executaion of it
+        self.copy_dataloader = copy_dataloader
         self.settings = settings
         self.pipeline_configs = self.filter_pipeline_configs(pipeline_configs) if pipeline_configs else pipeline_configs
 
@@ -131,9 +135,15 @@ class PipelineRunner():
                     if calibration_dataset_category in self.settings.dataset_cache and input_dataset_category in self.settings.dataset_cache and \
                         isinstance(self.settings.dataset_cache[calibration_dataset_category]['calibration_dataset'], datasets.DatasetBase) and \
                         isinstance(self.settings.dataset_cache[input_dataset_category]['input_dataset'], datasets.DatasetBase):
-                        print(utils.log_color("\nINFO", f"pipeline_config", f'{pipeline_key} - dataset loader copy for config'))
-                        pipeline_config['calibration_dataset'] = copy.deepcopy(self.settings.dataset_cache[calibration_dataset_category]['calibration_dataset'])
-                        pipeline_config['input_dataset'] = copy.deepcopy(self.settings.dataset_cache[input_dataset_category]['input_dataset'])
+                        calibration_dataset = self.settings.dataset_cache[calibration_dataset_category]['calibration_dataset']
+                        input_dataset = self.settings.dataset_cache[input_dataset_category]['input_dataset']
+                        if self.copy_dataloader:
+                            print(utils.log_color("\nINFO", f"pipeline_config", f'{pipeline_key} - dataset loader copy for config'))
+                            calibration_dataset = copy.deepcopy(calibration_dataset)
+                            input_dataset = copy.deepcopy(input_dataset)
+                        #
+                        pipeline_config['calibration_dataset'] = calibration_dataset
+                        pipeline_config['input_dataset'] = input_dataset
                         pipelines_final.update({pipeline_key: pipeline_config})
                     else:
                         print(utils.log_color("\nWARNING", f"pipeline_config", f'{os.path.basename(__file__)}: ignoring the pipeline_config: {pipeline_key}, since the dataset was not loaded: {calibration_dataset_category}, {input_dataset_category}'))
@@ -194,6 +204,10 @@ class PipelineRunner():
             for proc_entry in task_list:
                 os.chdir(cwd)
                 proc_func = proc_entry['proc_func']
+                if not self.copy_dataloader:
+                    # data loader was not copied at initialization - make a copy of the whole proc_func
+                    proc_func = copy.deepcopy(proc_func)
+                #
                 result = proc_func()
                 results_list.append(result)
             #
