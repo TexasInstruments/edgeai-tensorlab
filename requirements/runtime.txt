@@ -6,3 +6,5 @@ shapely
 six
 terminaltables
 tqdm
+loguru
+einops
