@@ -2,6 +2,8 @@ from .nuscenes_dataset import NuScenesDataset
 from os import path as osp
 import copy
 from typing import Union, List
+import torch
+import numpy as np
 
 from mmdet3d.registry import DATASETS
 from mmengine.utils import is_abs
@@ -164,17 +166,40 @@ class PandaSetDataset(NuScenesDataset):
         ]
     }
     
-    def __init__(self, data_root, ann_file, pipeline = ..., box_type_3d = 'LiDAR', load_type = 'frame_based', modality = ..., filter_empty_gt = True, test_mode = False, with_velocity = True, use_valid_flag = False, **kwargs):
+    def __init__(self, data_root, ann_file, pipeline = ..., box_type_3d = 'LiDAR', load_type = 'frame_based', modality = ..., filter_empty_gt = True, test_mode = False, with_velocity = True, use_valid_flag = False, max_dist_thr = None, **kwargs):
         if 'metainfo' in kwargs:
             orig_class_mapping = kwargs['metainfo'].get('class_mapping', None)
         else:
             orig_class_mapping = None
         self._orig_data_prefix = copy.deepcopy(kwargs.get('data_prefix',{}))
         self.get_label_func = (lambda x : orig_class_mapping[x]) if orig_class_mapping else (lambda x: x)
+        self.max_dist_thr = max_dist_thr
         super().__init__(data_root, ann_file, pipeline, box_type_3d, load_type, modality, filter_empty_gt, test_mode, with_velocity, use_valid_flag, **kwargs)
         
     def filter_data(self):
         return super().filter_data()
+    
+    def _filter_with_mask(self, ann_info):
+        if self.max_dist_thr:
+            filtered_ann_info = {}
+            gt_bboxes_3d = ann_info['gt_bboxes_3d']
+            if self.load_type == 'mv_image_based':
+                translations = gt_bboxes_3d[:,[0,2]]
+            else:
+                translations = gt_bboxes_3d[:,:2]
+            filtered_indices = np.where(np.sqrt(np.sum(np.square(translations),axis=-1))<self.max_dist_thr)[0].tolist()
+            for key, value in ann_info.items():
+                if key == 'instances':
+                    value = value
+                elif isinstance(value,np.ndarray):
+                    value = value[filtered_indices]
+                elif isinstance(value, torch.Tensor):
+                    value = value[filtered_indices]
+                elif isinstance(value, (list,tuple)):
+                    value = [v for i,v in enumerate(value) if i in filtered_indices]
+                filtered_ann_info[key] = value
+            ann_info = filtered_ann_info
+        return super()._filter_with_mask(ann_info)
     
     def parse_ann_info(self, info):
         instances = info['instances']
@@ -189,6 +214,7 @@ class PandaSetDataset(NuScenesDataset):
                 instance['bbox_label_3d'] = self.get_label_func(instance['bbox_label_3d'])
                 instance['velocity'] = instance['velocity'] [::2]
         ann_info =  super().parse_ann_info(info)
+        
         return ann_info
     
     def _join_prefix(self, scene_id=None):

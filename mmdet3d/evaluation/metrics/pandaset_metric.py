@@ -52,13 +52,15 @@ class PandaSetMetric(NuScenesMetric):
     def __init__(self, data_root, ann_file, metric = 'bbox', modality = None, prefix = None, format_only = False, jsonfile_prefix = None, eval_version = 'detection_cvpr_2019', collect_device = 'cpu', backend_args = None, max_dists=None):
         super().__init__(data_root, ann_file, metric, modality, prefix, format_only, jsonfile_prefix, eval_version, collect_device, backend_args)
         if max_dists is None:
-            self.max_dist_func = lambda cls: 50
+            self.max_dist_func = lambda cls: float('inf')
         elif isinstance(max_dists, dict):
             self.max_dist_func = lambda cls: max_dists.get(cls, 50)
         elif isinstance (max_dists, (int, float)):
             self.max_dist_func = lambda cls: max_dists
         elif isinstance(max_dists, (tuple, list)):
-            max_dists = dict((self.dataset_meta['classes'],max_dists))
+            max_dists = dict(zip(self.dataset_meta['classes'],max_dists))
+            self.max_dist_func = lambda cls: max_dists.get(cls, 50)
+            
     
     def get_attr_name(self, attr_idx, label_name):
         attr_mapping = UNIQUE_ATTRIBUTE_LABELS
@@ -174,7 +176,7 @@ class PandaSetMetric(NuScenesMetric):
 
         print('Start to convert detection format...')
 
-        # Camera types in Nuscenes datasets
+        # Camera types in pandaset datasets
         camera_types = [
             'back_camera',
             'front_camera',
@@ -189,8 +191,7 @@ class PandaSetMetric(NuScenesMetric):
             NUM_CLASSES = 0
         else:
             NUM_CLASSES = len(classes)
-        # l = [ det['bboxes_3d'].tensor.shape[0] for det in results]
-        # print(l)
+        
         for i, det in enumerate(mmengine.track_iter_progress(results)):
 
             sample_idx = sample_idx_list[i]
