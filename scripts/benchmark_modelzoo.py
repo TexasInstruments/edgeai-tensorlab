@@ -91,5 +91,4 @@ if __name__ == '__main__':
     work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
     print(f'work_dir: {work_dir}')
 
-    interfaces.run_benchmark_config(settings, work_dir, pipeline_configs=None, modify_pipelines_func=None,
-        overall_timeout=None, instance_timeout=None, proc_error_regex_list=None, separate_import_inference=True)
+    interfaces.run_benchmark_config(settings, work_dir)

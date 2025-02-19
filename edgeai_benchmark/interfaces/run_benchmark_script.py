@@ -32,7 +32,7 @@ import argparse
 import functools
 import subprocess
 
-from .. import utils, pipelines, config_settings, datasets
+from .. import utils, pipelines, config_settings, datasets, constants
 from .get_configs import *
 
 
@@ -97,7 +97,11 @@ def run_benchmark_script_one_model(entry_idx, kwargs, parallel_processes, model_
 
 
 def run_benchmark_script(settings, model_entries, kwargs_dict, parallel_processes, parallel_devices,
-        overall_timeout, instance_timeout, proc_error_regex_list, separate_import_inference=True):
+        overall_timeout, instance_timeout, proc_error_regex_list=None, separate_import_inference=True):
+
+    if proc_error_regex_list is None:
+        proc_error_regex_list=constants.FATAL_ERROR_LOGS_REGEX_LIST
+    #
 
     task_entries = {}
     for entry_idx, model_entry in enumerate(model_entries):

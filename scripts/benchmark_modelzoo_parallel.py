@@ -168,5 +168,4 @@ if __name__ == '__main__':
     interfaces.run_benchmark_script(settings, model_entries, kwargs,
         parallel_processes=parallel_processes, parallel_devices=parallel_devices,
         overall_timeout=overall_timeout, instance_timeout=instance_timeout,
-        proc_error_regex_list=constants.FATAL_ERROR_LOGS_REGEX_LIST,
         separate_import_inference=separate_import_inference)

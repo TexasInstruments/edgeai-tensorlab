@@ -31,7 +31,7 @@ import sys
 import argparse
 import functools
 
-from .. import utils, pipelines, config_settings, datasets
+from .. import utils, pipelines, config_settings, datasets, constants
 from .get_configs import *
 
 __all__ = ['run_benchmark_config']
@@ -51,7 +51,11 @@ def run_benchmark_config_one_model(settings, entry_idx, proc_name, proc_func):
 
 def run_benchmark_config(settings, work_dir, pipeline_configs=None, modify_pipelines_func=None,
     overall_timeout=None, instance_timeout=None, proc_error_regex_list=None, separate_import_inference=True):
-    
+
+    if proc_error_regex_list is None:
+        proc_error_regex_list=constants.FATAL_ERROR_LOGS_REGEX_LIST
+    #
+
     # verify that targt device is correct
     if settings.target_device is not None and 'TIDL_TOOLS_PATH' in os.environ and \
             os.environ['TIDL_TOOLS_PATH'] is not None:
