@@ -352,6 +352,7 @@ def main():
 
     # Load the mean IoU metric from the evaluate package
     metric = evaluate.load("mean_iou", cache_dir=model_args.cache_dir)
+    # metric = evaluate.load("evaluate/metrics/mean_iou/mean_iou.py", cache_dir=model_args.cache_dir)
 
     # Define our compute_metrics function. It takes an `EvalPrediction` object (a namedtuple with a
     # predictions and label_ids field) and has to return a dictionary string to float.

@@ -63,6 +63,10 @@ Some issues can come :
 
     Refer to [this comment.](https://github.com/huggingface/evaluate/issues/456#issuecomment-1712629695)
 
+3. Module 'mean_iou' doesn't exist on the Hugging Face Hub either.
+
+    Modify the `evaluate.load("mean_iou", cache_dir=model_args.cache_dir)` line from examples/pytorch/semantic-segmentation/run_semantic_segmentation.py to `metric = evaluate.load("evaluate/metrics/mean_iou/mean_iou.py", cache_dir=model_args.cache_dir)`. This is similar to previous issue, you will have to `git clone https://github.com/huggingface/evaluate.git`.
+
 
 <h2> Model Zoo </h2>
 
