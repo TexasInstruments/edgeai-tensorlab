@@ -6,6 +6,7 @@ from typing import List, Optional, Tuple, Union
 import numpy as np
 from nuscenes import NuScenes
 from nuscenes.utils.geometry_utils import view_points
+from nuscenes.utils.data_classes import Box
 from pyquaternion import Quaternion
 from shapely.geometry import MultiPoint, box
 from shapely.geometry.polygon import Polygon
@@ -424,8 +425,54 @@ def generate_record(ann_rec: dict, x1: float, y1: float, x2: float, y2: float,
 
     return rec
 
+def convert_bbox_to_lidar(bbox, global2lidar):
+    """
+    Create Box object
+    """
+    quat = Quaternion(axis=[0, 0, 1], radians=bbox[6])
+    bbox_in_lidar = Box(
+        bbox[0:3],
+        bbox[3:6],
+        quat,
+        label=np.nan,
+        score=np.nan,
+        velocity=(np.nan, np.nan, np.nan))
+
+    bbox_in_lidar.rotate(Quaternion(matrix=global2lidar[:3, :3], rtol=1e-05, atol=1e-07))
+    bbox_in_lidar.translate(np.array(global2lidar[:3, 3]))
+
+    return bbox_in_lidar
+
 
 def convert_bbox_to_corners_for_lidar(bbox, origin = None):
+    """
+    LiDARInstance3DBoxes corner's order
+
+                          front x
+                               /
+                   up z  ^    /
+                         | 5 + ------------ + 6
+                         |  /|            / |
+                         | / |           /  |
+                      1  + ----------- + 2  + 7
+                         |  / 4    .   |   /
+               left y    | / origin    |  /
+                 <------ + ----------- + 3
+                       0 
+    
+    Permuted order
+                          front x
+                               /
+                   up z  ^    /
+                         | 3 + -----------  + 0
+                         |  /|            / |
+                         | / |           /  |
+                      2  + ----------- + 1  + 4
+                         |  / 7    .   |   /
+                left y   | / origin    |  /
+                 <------ + ----------- + 5
+                       6 
+    """
     origin = origin or (0.5, 0.5, 0.5)
     if isinstance(bbox, (LiDARInstance3DBoxes)):
         bbox= bbox
@@ -441,6 +488,41 @@ def convert_bbox_to_corners_for_lidar(bbox, origin = None):
 
 
 def convert_bbox_to_corners_for_camera(bbox, origin = None):
+    """
+    CameraInstance3DBoxes corner's order
+
+                         front z
+                              /
+                             /
+                          1 + -----------  + 5
+                           /|            / |
+                          / |           /  |
+                       0 + ----------- + 4 + 6
+                         |  / 2    .   |  /
+                         | / origin    | /
+                       3 + ----------- + -------> right x
+                         |             7
+                         |
+                         v
+                    down y
+
+    Permuted order
+
+                         front z
+                              /
+                             /
+                          1 + -----------  + 0
+                           /|            / |
+                          / |           /  |
+                       2 + ----------- + 3 + 4
+                         |  / 5    .   |  /
+                         | / origin    | /
+                       6 + ----------- + -------> right x
+                         |             7
+                         |
+                         v
+                    down y
+    """
     origin = origin or (0.5, 0.5, 0.5)
     if isinstance(bbox, (CameraInstance3DBoxes)):
         bbox= bbox

@@ -26,7 +26,7 @@ ALL_ATTRIBUTES =  [
     'object_motion', 'pedestrian_behavior', 'pedestrian_age', 'rider_status', 'emergency_vehicle_lights'
 ]
 
-
+"""
 CLASSES = [
     'Car', 
     'Semi-truck', 
@@ -56,6 +56,21 @@ CLASSES = [
     'Cones', 
     'Medium-sized Truck'
 ]
+"""
+
+CLASSES = [
+    'Car',
+    'Pedestrian with Object',
+    'Rolling Containers',
+    'Pylons',
+    'Signs',
+    'Temporary Construction Barriers',
+    'Pickup Truck',
+    'Pedestrian',
+    'Cones',
+    'Medium-sized Truck'
+]
+
 get_original_label = lambda x: (CLASSES.index(x) if x in CLASSES else -1)
 
 
@@ -133,7 +148,7 @@ def get_attribute_labels(cls_label, attributes):
 class PandaSetDataset(NuScenesDataset):
     
     METAINFO = {
-            'classes':CLASSES,
+        'classes':CLASSES,
         'version': 'v1.0-trainval',
         'palette': [
             (255, 158, 0),  # Orange
@@ -166,7 +181,19 @@ class PandaSetDataset(NuScenesDataset):
         ]
     }
     
-    def __init__(self, data_root, ann_file, pipeline = ..., box_type_3d = 'LiDAR', load_type = 'frame_based', modality = ..., filter_empty_gt = True, test_mode = False, with_velocity = True, use_valid_flag = False, max_dist_thr = None, **kwargs):
+    def __init__(self, 
+                 data_root,
+                 ann_file,
+                 pipeline = ...,
+                 box_type_3d = 'LiDAR',
+                 load_type = 'frame_based',
+                 modality = ...,
+                 filter_empty_gt = True,
+                 test_mode = False,
+                 with_velocity = True,
+                 use_valid_flag = False,
+                 max_dist_thr = None,
+                 **kwargs):
         if 'metainfo' in kwargs:
             orig_class_mapping = kwargs['metainfo'].get('class_mapping', None)
         else:

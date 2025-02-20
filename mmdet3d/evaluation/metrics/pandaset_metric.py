@@ -7,6 +7,7 @@ import mmengine
 import numpy as np
 import pyquaternion
 import torch
+import copy
 from mmengine import Config, load
 from .nuscenes_metric import NuScenesMetric
 from mmengine.logging import MMLogger
@@ -24,11 +25,11 @@ from mmdet3d.datasets.pandaset_dataset import UNIQUE_ATTRIBUTE_LABELS,CLASSES
 
 @METRICS.register_module()
 class PandaSetMetric(NuScenesMetric):
-    default_attrinutes = {
+    default_attributes = {
         'Car':'vehicle.Parked', 
         'Pickup Truck':'vehicle.Parked', 
         'Medium-sized Truck':'vehicle.Parked', 
-        'Semi-truck':'vehicle.Parked',     
+        'Semi-truck':'vehicle.Parked',
         'Towed Object':'vehicle.Parked', 
         'Other Vehicle - Construction Vehicle':'vehicle.Parked',
         'Other Vehicle - Uncommon':'vehicle.Parked', 
@@ -45,8 +46,15 @@ class PandaSetMetric(NuScenesMetric):
         'Motorized Scooter':'vehicle.Parked',
         'Bicycle':'vehicle.Parked', 
         'Animals - Other':'vehicle.Parked',
+        'Animals - Bird': 'vehiche.Parked',
+        'Rolling Containers': 'vehicle.Parked',
+        'Pylons': 'object.standing',
+        'Signs' : 'object.standing',
+        'Temporary Construction Barriers' : 'object.standing',
+        'Road Barriers' : 'object.standing',
+        'Construction Signs' : 'object.standing',
+        'Cones': 'object.standing',
     }
-    
 
     
     def __init__(self, data_root, ann_file, metric = 'bbox', modality = None, prefix = None, format_only = False, jsonfile_prefix = None, eval_version = 'detection_cvpr_2019', collect_device = 'cpu', backend_args = None, max_dists=None):
@@ -67,40 +75,42 @@ class PandaSetMetric(NuScenesMetric):
         if attr_idx == -1:
             return 'None'
         
-        if label_name in ('Car', 'Pickup Truck', 'Medium-sized Truck', 'Semi-truck',     
+        if label_name in ('Car', 'Pickup Truck', 'Medium-sized Truck', 'Semi-truck',
                 'Towed Object', 'Other Vehicle - Construction Vehicle',
                 'Other Vehicle - Uncommon', 'Other Vehicle - Pedicab',
                 'Bus', 'Train', 'Trolley', 'Tram / Subway',):
             if attr_idx in list(range(13,22)):
                 return attr_mapping[attr_idx]
-            return self.default_attrinutes[label_name]
+            return self.default_attributes[label_name]
         
         if label_name == 'Emergency Vehicle':
             if attr_idx in list(range(9,13)):
                 return attr_mapping[attr_idx]
-            return self.default_attrinutes[label_name]
+            return self.default_attributes[label_name]
         
         if label_name in ('Pedestrian', 'Pedestrian with Object'):
             if attr_idx in list(range(8)):
                 return attr_mapping[attr_idx]
-            return self.default_attrinutes[label_name]
+            return self.default_attributes[label_name]
         
         if label_name in ('Motorcycle', 'Personal Mobility Device', 'Motorized Scooter',
                         'Bicycle', 'Animals - Other',):
             if attr_idx in list(range(13,22)):
                 return attr_mapping[attr_idx]
-            return self.default_attrinutes[label_name]
+            return self.default_attributes[label_name]
         
         return 'None'
     
     def _format_lidar_bbox(self, results, sample_idx_list, classes = None, jsonfile_prefix = None):
         # return
-        nusc_annos = {}
+        pandaset_annos = {}
 
         print('Start to convert detection format...')
         for i, det in enumerate(mmengine.track_iter_progress(results)):
             annos = []
             boxes = det['bboxes_3d']
+            # make (0.5, 0.5, 0.5) center
+            boxes.tensor[:, 2] = boxes.tensor[:, 2] + boxes.tensor[:, 5] * 0.5
             if 'attr_labels' in det:
                 attrs = det['attr_labels'].to(self.collect_device).numpy().tolist()
             else:
@@ -109,6 +119,19 @@ class PandaSetMetric(NuScenesMetric):
             labels = det['labels_3d'].to(self.collect_device).numpy().tolist()
             sample_idx = sample_idx_list[i]
             sample_token = self.data_infos[sample_idx]['token']
+
+            """
+            if boxes.tensor.shape[0] > 0:
+                # Move box from LiDAR CS to ego CS 
+                lidar2ego = np.array(self.data_infos[sample_idx]['lidar_points']['lidar2ego'])
+                boxes.rotate(lidar2ego[:3, :3])
+                boxes.translate(lidar2ego[:3, 3])
+                # Move box from ego CS to Global CS
+                ego2global = np.array(self.data_infos[sample_idx]['ego2global'])
+                boxes.rotate(ego2global[:3, :3])
+                boxes.translate(ego2global[:3, 3])
+            """
+
             for i in range(boxes.tensor.shape[0]):
                 box = boxes.tensor[i]
                 name = classes[labels[i]]
@@ -116,26 +139,31 @@ class PandaSetMetric(NuScenesMetric):
                     attr = self.get_attr_name(attrs[i], name)
                 elif np.linalg.norm(box[7:9]) > 0.2:
                     if name in [
-                            'car',
-                            'construction_vehicle',
-                            'bus',
-                            'truck',
-                            'trailer',
+                            'Car',
+                            'Semi-truck',
+                            'Other Vehicle - Construction Vehicle',
+                            'Bicycle',
+                            'Emergency Vehicle',
+                            'Motorcycle',
+                            'Medium-sized Truck',
+                            'Other Vehicle - Uncommon',
+                            'Other Vehicle - Pedicab',
+                            'Bus',
+                            'Motorized Scooter',
+                            'Pickup Truck',
                     ]:
                         attr = 'vehicle.moving'
-                    elif name in ['bicycle', 'motorcycle']:
-                        attr = 'cycle.with_rider'
+                    elif name in [
+                            'Pedestrian',
+                            'Pedestrian with Object'
+                    ]:
+                        attr = 'Adult.moving'
                     else:
-                        attr = self.DefaultAttribute[name]
+                        attr = self.default_attributes[name]
                 else:
-                    if name in ['pedestrian']:
-                        attr = 'pedestrian.standing'
-                    elif name in ['bus']:
-                        attr = 'vehicle.stopped'
-                    else:
-                        attr = self.DefaultAttribute[name]
+                    attr = self.default_attributes[name]
 
-                nusc_anno = dict(
+                pandaset_anno = dict(
                     sample_token=sample_token,
                     translation=box[0:3].tolist(),
                     size=box[3:6].tolist(),
@@ -144,16 +172,16 @@ class PandaSetMetric(NuScenesMetric):
                     detection_name=name,
                     detection_score=scores[i],
                     attribute_name=attr)
-                annos.append(nusc_anno)
-            nusc_annos[sample_token] = annos
-        nusc_submissions = {
+                annos.append(pandaset_anno)
+            pandaset_annos[sample_token] = annos
+        pandaset_submissions = {
             'meta': self.modality,
-            'results': nusc_annos,
+            'results': pandaset_annos,
         }
         mmengine.mkdir_or_exist(jsonfile_prefix)
         res_path = osp.join(jsonfile_prefix, 'results_pandaset.json')
         print(f'Results writes to {res_path}')
-        mmengine.dump(nusc_submissions, res_path)
+        mmengine.dump(pandaset_submissions, res_path)
         return res_path
 
     def _format_camera_bbox(self, results, sample_idx_list, classes = None, jsonfile_prefix = None):
@@ -172,7 +200,7 @@ class PandaSetMetric(NuScenesMetric):
             str: Path of the output json file.
         """
         # return
-        nusc_annos = {}
+        pandaset_annos = {}
 
         print('Start to convert detection format...')
 
@@ -285,20 +313,20 @@ class PandaSetMetric(NuScenesMetric):
                     attribute_name=attr)
                 annos.append(nusc_anno)
             # other views results of the same frame should be concatenated
-            if sample_token in nusc_annos:
-                nusc_annos[sample_token].extend(annos)
+            if sample_token in pandaset_annos:
+                pandaset_annos[sample_token].extend(annos)
             else:
-                nusc_annos[sample_token] = annos
+                pandaset_annos[sample_token] = annos
 
-        nusc_submissions = {
+        pandaset_submissions = {
             'meta': self.modality,
-            'results': nusc_annos,
+            'results': pandaset_annos,
         }
 
         mmengine.mkdir_or_exist(jsonfile_prefix)
         res_path = osp.join(jsonfile_prefix, 'results_pandaset.json')
         print(f'Results writes to {res_path}')
-        mmengine.dump(nusc_submissions, res_path)
+        mmengine.dump(pandaset_submissions, res_path)
         return res_path
     
     def compute_metrics(self, results):
@@ -309,7 +337,7 @@ class PandaSetMetric(NuScenesMetric):
     def _evaluate_single(self, result_path, classes = None, result_name = 'pred_instances_3d'):
         output_dir = osp.join(*osp.split(result_path)[:-1])
         detail = dict()
-        
+
         metrics = self.pandaset_evaluate(result_path)
         metric_prefix = f'{result_name}_PandaSet'
         for name in classes:
@@ -335,15 +363,19 @@ class PandaSetMetric(NuScenesMetric):
         classes =self.dataset_meta['classes']
         class_mapping = self.dataset_meta.get('class_mapping', list(range(len(self.dataset_meta['classes']))))
         gt_boxes = self.load_gt_bboxes(classes, class_mapping)
+
         gt_boxes = filter_eval_boxes(gt_boxes, self.max_dist_func)
         pred_boxes = filter_eval_boxes(pred_boxes, self.max_dist_func)
         dist_ths = [0.5, 1.0, 2.0, 4.0]
-        metrics = pandaset_evaluate_matrics(pred_boxes, gt_boxes, classes, dist_ths, 2.0)
+        metrics = pandaset_evaluate_metrics(pred_boxes, gt_boxes, classes, dist_ths, 2.0)
         return metrics
 
     def load_gt_bboxes(self, classes, class_mapping):
         def create_instance_list(instances, sample_token, info=None, cam_type=None):
             res_instances = []
+
+            lidar2ego = np.array(info['lidar_points']['lidar2ego'])
+            ego2global = np.array(info['ego2global'])
             for instance in instances:
                 if not instance['bbox_3d_isvalid']:
                     continue
@@ -352,7 +384,16 @@ class PandaSetMetric(NuScenesMetric):
                 label = class_mapping[instance['bbox_label_3d']]
                 attr = self.get_attr_name(instance['attr_label'], name)
                 name = classes[label]
-                velocity = instance['velocity'] 
+                velocity = instance['velocity']
+
+                #box = LiDARInstance3DBoxes(torch.Tensor(instance['bbox_3d']+instance['velocity'][0:2]).unsqueeze(0), box_dim=9)
+                #box.rotate(lidar2ego[:3, :3])
+                #box.translate(lidar2ego[:3, 3])
+                #box.rotate(ego2global[:3, :3])
+                #box.translate(ego2global[:3, 3])
+                #box = box.tensor[0]
+                #velocity=box[7:9]
+
                 if self.bbox_type_3d == CameraInstance3DBoxes:
                     assert info is not None and cam_type is not None, 'info and cam_type should be provided for CameraInstance3DBoxes'
                     velocity = np.array(velocity)
@@ -361,7 +402,10 @@ class PandaSetMetric(NuScenesMetric):
                     ego_corners = corners @ cam2ego[:3,:3].T + cam2ego[:3,3]
                     velocity = velocity @ cam2ego[:3,:3].T
                     box = convert_corners_to_bbox_for_lidar_box(ego_corners)
-                velocity = velocity.tolist()[:2]
+                if isinstance(velocity, list):
+                    velocity = velocity[:2]
+                else:
+                    velocity = velocity.tolist()[:2]
                 res_instances.append(dict(
                     sample_token=sample_token,
                     translation=box[:3],
@@ -369,7 +413,6 @@ class PandaSetMetric(NuScenesMetric):
                     yaw=box[6],
                     velocity=velocity,
                     detection_name=name,
-
                     attribute_name=attr
                 ))
             return res_instances
@@ -439,7 +482,7 @@ def filter_eval_boxes(boxes:dict[str,list], max_dist_func):
         boxes[sample_token] = [instance for instance in instances if np.linalg.norm((instance['translation'][:2])) < max_dist_func(instance['detection_name'])]
     return boxes
 
-def pandaset_evaluate_matrics(pred_boxes, gt_boxes, classes, dist_thrs, dist_thr_tp):
+def pandaset_evaluate_metrics(pred_boxes, gt_boxes, classes, dist_thrs, dist_thr_tp):
     from mmdet3d.evaluation.metrics import pandaset_metric_utils
     start_time = time.time()
     MEAN_AP_WEIGHT = 5

@@ -10,8 +10,20 @@ import argparse
 import copy
 
 from mmdet3d.datasets.pandaset_dataset import CLASSES, ALL_ATTRIBUTES, CAMERA_NAMES, get_attribute_labels, get_original_label
-from mmdet3d.datasets.convert_utils import convert_corners_to_bbox_for_lidar_box, convert_corners_to_bbox_for_cam_box, convert_bbox_to_corners_for_lidar
+from mmdet3d.datasets.convert_utils import convert_corners_to_bbox_for_lidar_box, convert_corners_to_bbox_for_cam_box, convert_bbox_to_corners_for_lidar, \
+                                           convert_bbox_to_lidar
 
+test_scenes_const  = ['014', '101', '069', '091', '120', '011', '115', '059', '117', '068', '086',
+                      '112', '019', '013', '052', '039', '113', '044', '079', '024', '099']
+train_scenes_const = ['041', '064', '067', '012', '073', '093', '106', '004', '057', '090', '051',
+                      '063', '021', '035', '008', '119', '056', '102', '095', '065', '066', '005',
+                      '017', '109', '023', '105', '043', '047', '034', '003', '104', '042', '033',
+                      '058', '006', '103', '158', '139', '037', '050', '029', '110', '018', '098',
+                      '016', '084', '100', '122', '048', '001', '040', '070', '046', '149', '085',
+                      '074', '002', '078', '097', '062', '054', '116', '077', '124', '053', '027',
+                      '071', '015', '045', '080', '072', '030', '123', '094', '092', '089', '028',
+                      '055', '088', '038', '020', '032']
+    
 def delete_obj(obj):
     if isinstance(obj, (list, tuple)):
         for o in obj:
@@ -187,6 +199,22 @@ def filter_siblings(cuboids,sibling_idx):
     non_removed_bboxes = cuboids[[token not in removable_siblings  for token in tokens]]
     return non_removed_bboxes
 
+def filter_unused_labels(cuboids):
+    if isinstance(cuboids, pd.DataFrame):
+        cuboids = cuboids.values
+    elif isinstance(cuboids, (list, tuple)):
+        cuboids = np.array(cuboids,dtype=object)
+
+    valid_index =[]
+    for i in range(cuboids.shape[0]):
+        if cuboids[i, 1] in CLASSES:
+            valid_index.append(i)
+
+    cuboids=cuboids[valid_index]
+    return pd.DataFrame(cuboids)
+
+
+
 def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img ):
     scene_token = scene_id
     frame_token = f'{scene_id}_{frame_idx:02}'
@@ -200,12 +228,12 @@ def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img ):
     lidar_file = seq.lidar._data_structure[frame_idx]
     lidar2global = (ps.geometry._heading_position_to_mat(**seq.lidar.poses[frame_idx]))
     lidar_timestamp = seq.lidar.timestamps[frame_idx]
-    lidar2lidar90 = np.array([
-            [ 0, 1, 0, 0],
-            [-1, 0, 0, 0],
-            [ 0, 0, 1, 0],
-            [ 0, 0, 0, 1]
-            ])
+    lidar2lidar90 = np.array(
+        [[ 0,-1, 0, 0],
+         [ 1, 0, 0, 0],
+         [ 0, 0, 1, 0],
+         [ 0, 0, 0, 1]]
+    )
     lidar902ego = np.eye(4) # lidar90 = ego 
     
     # Current frame Lidar
@@ -223,7 +251,8 @@ def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img ):
     #                             | /
     # (yaw=0.5*pi) left y <------ 0
     
-    lidar2ego = lidar902ego @ lidar2lidar90
+    #lidar2ego = lidar902ego @ lidar2lidar90
+    lidar2ego = np.eye(4)
     ego2global = lidar2global @ np.linalg.inv(lidar2ego)
     
     cam2global = { name : (ps.geometry._heading_position_to_mat(**camera.poses[frame_idx])) for name, camera  in seq.camera.items()}
@@ -236,9 +265,11 @@ def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img ):
 
     velocities = all_velocities[frame_idx]
     cuboids = seq.cuboids[frame_idx]
-    
+
     sibling_column_index = list(cuboids.columns).index('cuboids.sibling_id')
-    
+
+    cuboids = filter_unused_labels(cuboids)
+
     filtered_cuboids = filter_siblings(cuboids,sibling_column_index)
     world_velocities = [velocities[i] for i in range(len(cuboids)) if cuboids.to_numpy()[i][0] in filtered_cuboids[:,0]]
     valid_flags, lidar_points_within_bboxes = compute_valid_flag_for_bboxes(filtered_cuboids, seq.lidar.data[frame_idx])
@@ -246,20 +277,29 @@ def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img ):
     # filtered_cuboids = filtered_cuboids[valid_flags]
     # world_velocities = [world_velocities[i] for i in range(len(valid_flags)) if valid_flags[i]]
     world_velocities = np.array(world_velocities)
-    
+
     lidar_velocities = (np.linalg.inv(lidar2global[:3,:3]) @ world_velocities.T).T.tolist()
     cam_velocities = {name: dict(zip(filtered_cuboids[:,0].tolist(),(np.linalg.inv(cam2global[name][:3,:3]) @ world_velocities.T).T.tolist())) for name in CAMERA_NAMES}
     cuboids_data = {value[0]: value[1:] for value in filtered_cuboids}
-    
+
     lidar90_bboxes = []
+    """
     for cuboid in filtered_cuboids.tolist():
         bbox = cuboid[5:11] + [cuboid[2]]
         # print((cuboid),(bbox),sep='\n')
         corners = convert_bbox_to_corners_for_lidar(bbox)
         # we have to store in lidar90 reference not in lidar refrence, of current frame
-        lidar90_corners = ( lidar2lidar90 @ np.linalg.inv(lidar2global) @ np.hstack([corners, np.ones((corners.shape[0], 1))]).T).T[:,:3]
+        #lidar90_corners = ( lidar2lidar90 @ np.linalg.inv(lidar2global) @ np.hstack([corners, np.ones((corners.shape[0], 1))]).T).T[:,:3]
+        lidar90_corners = ( np.linalg.inv(lidar2global) @ np.hstack([corners, np.ones((corners.shape[0], 1))]).T).T[:,:3]
         lidar90_bboxes.append(convert_corners_to_bbox_for_lidar_box(lidar90_corners))
-        
+    """
+    for cuboid in filtered_cuboids.tolist():
+        bbox = cuboid[5:11] + [cuboid[2]]
+        bbox_in_lidar = convert_bbox_to_lidar(bbox, np.linalg.inv(lidar2global))
+        bbox_in_lidar = bbox_in_lidar.center.tolist() + bbox_in_lidar.wlh[[1, 0, 2]].tolist() + \
+             [bbox_in_lidar.orientation.yaw_pitch_roll[0]]
+        lidar90_bboxes.append(bbox_in_lidar)
+
     available_attrs = [attr for attr in ALL_ATTRIBUTES if f'attributes.{attr}' in cuboids.columns]
     columns_names = list(cuboids.columns)
     attribute_dicts = {}
@@ -284,10 +324,10 @@ def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img ):
             token=token,
             bbox_label=label,
             bbox_label_3d =label,
-            bbox3d = lidar90_bboxes[i],
+            bbox_3d = lidar90_bboxes[i], # change to bbox_3d
             bbox_3d_isvalid = valid_flags[i],
             bbox_3d_isstationary = stationary,
-            num_lidar_points = num_lidar_points[i],
+            num_lidar_pts = num_lidar_points[i], # change to num_lidar_pts
             velocity = lidar_velocities[i],
             world_bbox3d = [x, y, z, width, length, height, yaw],
             world_velocity = world_velocities[i],
@@ -403,8 +443,9 @@ def create_pickle_file( dataset, scenes, output_dir=None, info_prefix=None, vers
         info_version='1.0',
         categories={name:get_original_label(name) for name in CLASSES}
     )
-    
-    file_name = info_prefix + '_' if len(info_prefix) else '' + f'pandaset_infos_{"train" if train_split else "val"}.pkl'
+
+    prefix = info_prefix + '_' if len(info_prefix) else ''
+    file_name = prefix + f'pandaset_infos_{"train" if train_split else "val"}.pkl'
     os.makedirs(output_dir, exist_ok=True)
     output_file = os.path.join(output_dir, file_name)
     data_list = []
@@ -414,15 +455,14 @@ def create_pickle_file( dataset, scenes, output_dir=None, info_prefix=None, vers
     
     for i, frame in enumerate(data_list):
         frame['sample_idx'] = i
-    
+
     pkl_data =  dict(metainfo=metainfo, data_list=data_list)
     mmengine.dump(pkl_data, output_file)
     print('Pickle data saved to', output_file)
-    
 
 
 
-def create_pickle_files(dataset_path, output_dir, info_prefix, version, dataset_name, with_semseg=False, train_split=0.75):
+def create_pickle_files(dataset_path, output_dir, info_prefix, version, dataset_name, with_semseg=False, fixed_split=True, train_split=0.80):
     dataset = ps.DataSet(dataset_path)
     semseg_scenes = dataset.sequences(with_semseg=with_semseg)
     scenes = dataset.sequences()
@@ -430,13 +470,19 @@ def create_pickle_files(dataset_path, output_dir, info_prefix, version, dataset_
     has_semseg = [scene in semseg_scenes for scene in scenes]
     if with_semseg:
         scenes = semseg_scenes
-    train_scenes = random.sample(scenes, k=int(len(scenes)*train_split))
-    test_scenes = [scene for scene in scenes if scene not in train_scenes]
+
+    if fixed_split is True:
+        train_scenes = train_scenes_const
+        test_scenes  = test_scenes_const
+    else:
+        train_scenes = random.sample(scenes, k=int(len(scenes)*train_split))
+        test_scenes  = [scene for scene in scenes if scene not in train_scenes]
+
     if with_semseg:
         pass
     else:
-        create_pickle_file(dataset, train_scenes,  output_dir, info_prefix, version, dataset_name,)
         create_pickle_file(dataset, test_scenes, output_dir, info_prefix, version, dataset_name, train_split=False)
+        create_pickle_file(dataset, train_scenes,  output_dir, info_prefix, version, dataset_name,)
 
 def create_pandaset_infos(root_path,
                        info_prefix,
