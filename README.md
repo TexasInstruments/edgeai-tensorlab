@@ -114,7 +114,7 @@ The models are grouped in terms of repositories used to train them or the reposi
 | COCO    | YOLOX-x-lite       | 640x640     | -                  | configs_edgeailite/yolox/yolox_x_8xb8-300e_coco.py|       |
 | COCO    | YOLOv7-l-lite       | 640x640     | 45.9, 65.1        | configs_edgeailite/yolov7/yolov7_l_coco_lite.py |       |
 | COCO    | YOLOv7-l-orig       | 640x640     | 50.6, 69.3        | configs_edgeailite/yolov7/yolov7_l_coco_orig.py |       |
-| COCO    | YOLOv9-s-lite       | 640x640     | 39.8, 55.7        | configs_edgeailite/yolov9/yolov9_s_coco_lite.py |       |
+| COCO    | YOLOv9-s-lite       | 640x640     | 38.3, 54.0        | configs_edgeailite/yolov9/yolov9_s_coco_lite.py |       |
 | COCO    | YOLOv9-s-Plus       | 640x640     | 40.0, 55.9        | configs_edgeailite/yolov9/yolov9_s_coco_plus.py |       |
 |         | **FCOS models** 
 | COCO    | FCOS-r50-lite       | 512x512     | 36.6, 56.0          | configs_edgeailite/fcos/fcos_r50-caffe_fpn_bn-head_1x_coco.py|       |

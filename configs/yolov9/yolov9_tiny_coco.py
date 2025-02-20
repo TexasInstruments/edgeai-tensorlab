@@ -58,7 +58,7 @@ model = dict(
                 )
         ),
         ),
-        aux_head=dict(
+    aux_head=dict(
         type='YOLOV9AuxHead',
         in_channels=[64, 96, 128],
         csp_arg = {"repeat_num": 3},
