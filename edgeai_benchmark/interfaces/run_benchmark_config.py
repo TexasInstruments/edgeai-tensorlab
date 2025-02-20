@@ -121,6 +121,7 @@ def run_benchmark_config(settings, work_dir, pipeline_configs=None, modify_pipel
                     proc_func = proc_entry['proc_func']
                     proc_func = functools.partial(run_benchmark_config_one_model, settings, task_entry_idx, proc_name, proc_func)
                     proc_entry['proc_func'] =  proc_func
+                    proc_entry['proc_error'] = proc_error_regex_list
                 #
             #
             process_runner = utils.ProcessRunner(
