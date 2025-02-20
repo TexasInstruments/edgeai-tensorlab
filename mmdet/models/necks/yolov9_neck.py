@@ -42,6 +42,8 @@ from mmdet.models.layers.yolo_layers import SPPELAN,UpSample,RepNCSPELAN,AConv
 class YOLOV9Neck(BaseModule):
     def __init__(self,
                  in_channels:Sequence[int] = [64, 96, 128],
+                 pool_kernel_size:int = 2,
+                 pool_type = 'max',
                  upsample_cfg=dict(scale_factor=2, mode='nearest'),
                  csp_arg = {"repeat_num": 3},
                  init_cfg=dict(
@@ -67,14 +69,14 @@ class YOLOV9Neck(BaseModule):
                             csp_args=csp_arg
                             )
             )
-        self.aconv_layer_0 = AConv(in_channels[0], in_channels[1]//2)
+        self.aconv_layer_0 = AConv(in_channels[0], in_channels[1]//2, pool_kernel_size=pool_kernel_size,pool_type=pool_type)
         self.repncspelan_layers2_0 = RepNCSPELAN(
                             in_channels=in_channels[1]+in_channels[1]//2,
                             out_channels=in_channels[1],
                             part_channels=in_channels[1],
                             csp_args=csp_arg
                             )
-        self.aconv_layer_1 = AConv(in_channels[1], in_channels[2]//2)
+        self.aconv_layer_1 = AConv(in_channels[1], in_channels[2]//2, pool_kernel_size=pool_kernel_size, pool_type=pool_type)
         self.repncspelan_layers2_1 = RepNCSPELAN(
                             in_channels=in_channels[2]+in_channels[2]//2,
                             out_channels=in_channels[2],

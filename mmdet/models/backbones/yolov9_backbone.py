@@ -41,9 +41,11 @@ class Aconv_RepNCSPELAN(nn.Module):
                  in_channel,
                  out_channel,
                  part_channel,
+                 pool_kernel_size,
+                 pool_type,
                  csp_arg: Dict[str, Any] = {},):
         super().__init__()
-        self.aconv = AConv(in_channel,out_channel)
+        self.aconv = AConv(in_channel,out_channel,pool_kernel_size,pool_type)
         self.repncspelan = RepNCSPELAN(out_channel,out_channel,part_channels=part_channel,
                                        csp_args=csp_arg)
     
@@ -56,6 +58,8 @@ class YOLOV9Backbone(BaseModule):
     def __init__(self,
                     stem_channels : Sequence[int] = [16, 32],
                     expand_list:Sequence[int] = [64, 96, 128],
+                    pool_kernel_size:int = 2,
+                    pool_type:str = 'max',
                     init_cfg=dict(
                      type='Kaiming',
                      layer='Conv2d',
@@ -72,14 +76,20 @@ class YOLOV9Backbone(BaseModule):
         self.aconv_repncspelan1 = Aconv_RepNCSPELAN(in_channel=stem_channels[1],
                                                     out_channel=expand_list[0],
                                                     part_channel=expand_list[0],
+                                                    pool_kernel_size=pool_kernel_size,
+                                                    pool_type=pool_type,
                                                     csp_arg={"repeat_num": 3})
         self.aconv_repncspelan2 = Aconv_RepNCSPELAN(in_channel=expand_list[0],
                                                     out_channel=expand_list[1],
                                                     part_channel=expand_list[1],
+                                                    pool_kernel_size=pool_kernel_size,
+                                                    pool_type=pool_type,
                                                     csp_arg={"repeat_num": 3})
         self.aconv_repncspelan3 = Aconv_RepNCSPELAN(in_channel=expand_list[1],
                                                     out_channel=expand_list[2],
                                                     part_channel=expand_list[2],
+                                                    pool_kernel_size=pool_kernel_size,
+                                                    pool_type=pool_type,
                                                     csp_arg={"repeat_num": 3})
         
     def forward(self, x):
