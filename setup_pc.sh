@@ -105,15 +105,17 @@ if [[ $TIDL_TOOLS_RELEASE_NAME == "latest" || $TIDL_TOOLS_RELEASE_NAME == "r10.1
   echo "Installing tidl_tools..."
   echo "--------------------------------------------------------------------------------------------------------------"
   TARGET_SOCS=(TDA4VM AM68A AM69A AM62A AM67A)
-  TIDL_TOOLS_RELEASE_ID=10_01_03_00
+  TIDL_TOOLS_RELEASE_ID=10_01_04_00
   TIDL_TOOLS_VERSION_NAME="10.1"
   pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/10_00_08_00/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/dlr-1.13.0-py3-none-any.whl
   pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/10_00_08_00/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/tvm-0.12.0-cp310-cp310-linux_x86_64.whl
   pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/10_01_00_02/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/onnxruntime_tidl-1.15.0-cp310-cp310-linux_x86_64.whl
   pip3 install --no-input https://software-dl.ti.com/jacinto7/esd/tidl-tools/10_00_08_00/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/tflite_runtime-2.12.0-cp310-cp310-linux_x86_64.whl
+  TIDL_TOOLS_DOWNLOAD_LINKS=()
   for (( soc_idx=0; soc_idx<"${#TARGET_SOCS[@]}"; soc_idx++ )); do
     TARGET_SOC=${TARGET_SOCS[$soc_idx]}
-    TIDL_TOOLS_DOWNLOAD_LINK=TIDL_TOOLS_DOWNLOAD_LINKS="https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/TIDL_TOOLS/${TARGET_SOC}/tidl_tools${TIDL_TOOLS_TYPE_SUFFIX}.tar.gz"
+    TIDL_TOOLS_DOWNLOAD_LINK="https://software-dl.ti.com/jacinto7/esd/tidl-tools/${TIDL_TOOLS_RELEASE_ID}/TIDL_TOOLS/${TARGET_SOC}/tidl_tools${TIDL_TOOLS_TYPE_SUFFIX}.tar.gz"
+    TIDL_TOOLS_DOWNLOAD_LINKS+=(${TIDL_TOOLS_DOWNLOAD_LINK})
     echo "$TARGET_SOC $TIDL_TOOLS_DOWNLOAD_LINK"
   done
 

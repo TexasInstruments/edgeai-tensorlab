@@ -246,7 +246,7 @@ class ConfigSettings(config_dict.ConfigDict):
             # max number of nodes in a subgraph (default is 750)
             #'advanced_options:max_num_subgraph_nodes': 2000,
             # use a specific firmware version
-            'advanced_options:c7x_firmware_version': '10_01_04_00',
+            'advanced_options:c7x_firmware_version': constants.TIDL_FIRMWARE_VERSION,
             ##################################
             # additional options (internal / performance estimation)
             #################################
