@@ -383,7 +383,9 @@ def generate_camera_sweeps(info, nusc, out_dir):
     return info
 
 
-def update_nuscenes_infos(pkl_path, out_dir, enable_bevdet=False, enable_petrv2=False):
+def update_nuscenes_infos(pkl_path, out_dir, 
+                          enable_bevdet=False, enable_petrv2=False,
+                          enable_strpetr=False):
     camera_types = [
         'CAM_FRONT',
         'CAM_FRONT_RIGHT',
@@ -528,6 +530,15 @@ def update_nuscenes_infos(pkl_path, out_dir, enable_bevdet=False, enable_petrv2=
         if enable_petrv2 is True:
             temp_data_info = \
                 generate_camera_sweeps(temp_data_info, nusc, out_dir)
+
+        # For StreamPETR
+        if enable_strpetr is True and 'bboxes2d' in ori_info_dict.keys():
+            temp_data_info['bboxes2d']      = ori_info_dict['bboxes2d']
+            temp_data_info['bboxes3d_cams'] = ori_info_dict['bboxes3d_cams']
+            temp_data_info['labels2d']      = ori_info_dict['labels2d']
+            temp_data_info['centers2d']     = ori_info_dict['centers2d']
+            temp_data_info['depths']        = ori_info_dict['depths']
+            temp_data_info['bboxes_ignore'] = ori_info_dict['bboxes_ignore']
 
         converted_list.append(temp_data_info)
 
@@ -1295,7 +1306,8 @@ def parse_args():
 
 
 def update_pkl_infos(dataset, out_dir, pkl_path,
-                     enable_bevdet=False, enable_petrv2=False):
+                     enable_bevdet=False, enable_petrv2=False,
+                     enable_strpetr=False):
     if dataset.lower() == 'kitti':
         update_kitti_infos(pkl_path=pkl_path, out_dir=out_dir)
     elif dataset.lower() == 'waymo':
@@ -1308,7 +1320,8 @@ def update_pkl_infos(dataset, out_dir, pkl_path,
         update_lyft_infos(pkl_path=pkl_path, out_dir=out_dir)
     elif dataset.lower() == 'nuscenes':
         update_nuscenes_infos(pkl_path=pkl_path, out_dir=out_dir,
-                              enable_bevdet=enable_bevdet, enable_petrv2=enable_petrv2)
+                              enable_bevdet=enable_bevdet, enable_petrv2=enable_petrv2,
+                              enable_strpetr=enable_strpetr)
     elif dataset.lower() == 's3dis':
         update_s3dis_infos(pkl_path=pkl_path, out_dir=out_dir)
     else:

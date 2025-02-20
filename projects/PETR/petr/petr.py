@@ -8,10 +8,9 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 # ------------------------------------------------------------------------
 
+from typing import Dict, List, Union, Optional
 import torch
 from mmengine.structures import InstanceData
-from typing import Dict, List, Union, Optional
-
 from mmdet3d.models.detectors.mvx_two_stage import MVXTwoStageDetector
 from mmdet3d.structures.det3d_data_sample import ForwardResults, OptSampleList
 from mmdet3d.registry import MODELS
@@ -27,7 +26,7 @@ class PETR(MVXTwoStageDetector):
     def __init__(self,
                  use_grid_mask=False,
                  save_onnx_model=False,
-                 pts_voxel_layer=None,
+                 pts_voxel_encoder=None,
                  pts_middle_encoder=None,
                  pts_fusion_layer=None,
                  img_backbone=None,
@@ -43,7 +42,7 @@ class PETR(MVXTwoStageDetector):
                  data_preprocessor=None,
                  **kwargs):
         super(PETR,
-              self).__init__(pts_voxel_layer, pts_middle_encoder,
+              self).__init__(pts_voxel_encoder, pts_middle_encoder,
                              pts_fusion_layer, img_backbone, pts_backbone,
                              img_neck, pts_neck, pts_bbox_head, img_roi_head,
                              img_rpn_head, train_cfg, test_cfg, init_cfg,

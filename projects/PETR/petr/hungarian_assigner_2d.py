@@ -1,17 +1,13 @@
-# ------------------------------------------------------------------------
-# Copyright (c) 2021 megvii-model. All Rights Reserved.
-# ------------------------------------------------------------------------
-# Modified from DETR3D (https://github.com/WangYueFt/detr3d)
-# Copyright (c) 2021 Wang, Yue
-# ------------------------------------------------------------------------
-# Modified from mmdetection (https://github.com/open-mmlab/mmdetection)
 # Copyright (c) OpenMMLab. All rights reserved.
-# ------------------------------------------------------------------------
+# ---------------------------------------------
+#  Modified by Shihao Wang
+# ---------------------------------------------
 import torch
-from mmdet.models.task_modules import AssignResult, BaseAssigner
 
+from mmdet.models.task_modules import AssignResult, BaseAssigner
 from mmdet3d.registry import TASK_UTILS
-from projects.PETR.petr.utils import normalize_bbox, normalize_bbox_streampetr
+from mmdet.structures.bbox import bbox_cxcywh_to_xyxy
+from mmengine.structures import InstanceData
 
 try:
     from scipy.optimize import linear_sum_assignment
@@ -20,18 +16,20 @@ except ImportError:
 
 
 @TASK_UTILS.register_module()
-class HungarianAssigner3D(BaseAssigner):
-    """Computes one-to-one matching between predictions and ground truth. This
-    class computes an assignment between the targets and the predictions based
-    on the costs. The costs are weighted sum of three components:
+class HungarianAssigner2D(BaseAssigner):
+    """Computes one-to-one matching between predictions and ground truth.
+
+    This class computes an assignment between the targets and the predictions
+    based on the costs. The costs are weighted sum of three components:
     classification cost, regression L1 cost and regression iou cost. The
     targets don't include the no_object, so generally there are more
-    predictions than targets. After the one-to-one matching, the un-matched are
-    treated as backgrounds. Thus each query prediction will be assigned with
-    `0` or a positive integer indicating the ground truth index:
+    predictions than targets. After the one-to-one matching, the un-matched
+    are treated as backgrounds. Thus each query prediction will be assigned
+    with `0` or a positive integer indicating the ground truth index:
 
     - 0: negative sample, no assigned gt
     - positive integer: positive sample, index (1-based) of assigned gt
+
     Args:
         cls_weight (int | float, optional): The scale factor for classification
             cost. Default 1.0.
@@ -49,36 +47,38 @@ class HungarianAssigner3D(BaseAssigner):
     def __init__(self,
                  cls_cost=dict(type='ClassificationCost', weight=1.),
                  reg_cost=dict(type='BBoxL1Cost', weight=1.0),
-                 iou_cost=dict(type='IoUCost', weight=0.0),
-                 pc_range=None,
-                 model='PETR'):
+                 iou_cost=dict(type='IoUCost', iou_mode='giou', weight=1.0),
+                 centers2d_cost=dict(type='BBox3DL1Cost', weight=1.0)):
         self.cls_cost = TASK_UTILS.build(cls_cost)
         self.reg_cost = TASK_UTILS.build(reg_cost)
         self.iou_cost = TASK_UTILS.build(iou_cost)
-        self.pc_range = pc_range
-        self.model    = model
+        self.centers2d_cost = TASK_UTILS.build(centers2d_cost)
 
     def assign(self,
                bbox_pred,
                cls_pred,
+               pred_centers2d,
                gt_bboxes,
                gt_labels,
+               centers2d,
+               img_meta,
                gt_bboxes_ignore=None,
-               code_weights=None,
-               with_velo=False,
                eps=1e-7):
         """Computes one-to-one matching based on the weighted costs.
+
         This method assign each query prediction to a ground truth or
         background. The `assigned_gt_inds` with -1 means don't care,
         0 means negative sample, and positive number is the index (1-based)
         of assigned gt.
         The assignment is done in the following steps, the order matters.
+
         1. assign every prediction to -1
         2. compute the weighted costs
         3. do Hungarian matching on CPU based on the costs
         4. assign all to 0 (background) first, then for each matched pair
            between predictions and gts, treat this prediction as foreground
            and assign the corresponding gt index (plus 1) to it.
+
         Args:
             bbox_pred (Tensor): Predicted boxes with normalized coordinates
                 (cx, cy, w, h), which are all in range [0, 1]. Shape
@@ -88,10 +88,12 @@ class HungarianAssigner3D(BaseAssigner):
             gt_bboxes (Tensor): Ground truth boxes with unnormalized
                 coordinates (x1, y1, x2, y2). Shape [num_gt, 4].
             gt_labels (Tensor): Label of `gt_bboxes`, shape (num_gt,).
+            img_meta (dict): Meta information for current image.
             gt_bboxes_ignore (Tensor, optional): Ground truth bboxes that are
                 labelled as `ignored`. Default None.
             eps (int | float, optional): A value added to the denominator for
                 numerical stability. Default 1e-7.
+
         Returns:
             :obj:`AssignResult`: The assigned result.
         """
@@ -113,33 +115,38 @@ class HungarianAssigner3D(BaseAssigner):
                 assigned_gt_inds[:] = 0
             return AssignResult(
                 num_gts, assigned_gt_inds, None, labels=assigned_labels)
+        img_h, img_w = img_meta['pad_shape']
+        factor = gt_bboxes.new_tensor([img_w, img_h, img_w,
+                                       img_h]).unsqueeze(0)
 
         # 2. compute the weighted costs
         # classification and bboxcost.
         cls_cost = self.cls_cost(cls_pred, gt_labels)
         # regression L1 cost
-        if self.model == 'PETR3D':
-            normalized_gt_bboxes = normalize_bbox_streampetr(gt_bboxes, self.pc_range)
-        else:
-            normalized_gt_bboxes = normalize_bbox(gt_bboxes, self.pc_range)
-        if code_weights is not None:
-            bbox_pred = bbox_pred * code_weights
-            normalized_gt_bboxes = normalized_gt_bboxes * code_weights
+        normalize_gt_bboxes = gt_bboxes / factor
 
-        if with_velo:
-            reg_cost = self.reg_cost(bbox_pred, normalized_gt_bboxes)
-        else:
-            reg_cost = self.reg_cost(bbox_pred[:, :8], normalized_gt_bboxes[:, :8])
+        """
+        box_pred_instance = InstanceData(bboxes=bbox_pred)
+        gt_instances = InstanceData(bboxes=normalize_gt_bboxes)
+        reg_cost = self.reg_cost(box_pred_instance, gt_instances)
+        """
+        reg_cost = self.reg_cost(bbox_pred, normalize_gt_bboxes)
+        # regression iou cost, defaultly giou is used in official DETR.
+        bboxes = bbox_cxcywh_to_xyxy(bbox_pred) * factor
+        iou_cost = self.iou_cost(bboxes, gt_bboxes)
 
-        # weighted sum of above two costs
-        cost = cls_cost + reg_cost
+        # center2d L1 cost
+        normalize_centers2d = centers2d / factor[:, 0:2]
+        centers2d_cost = self.centers2d_cost(pred_centers2d, normalize_centers2d)
 
+        # weighted sum of above four costs
+        cost = cls_cost + reg_cost + iou_cost + centers2d_cost
+        cost = torch.nan_to_num(cost, nan=100.0, posinf=100.0, neginf=-100.0)
         # 3. do Hungarian matching on CPU using linear_sum_assignment
         cost = cost.detach().cpu()
         if linear_sum_assignment is None:
             raise ImportError('Please run "pip install scipy" '
                               'to install scipy first.')
-        cost = torch.nan_to_num(cost, nan=100.0, posinf=100.0, neginf=-100.0)
         matched_row_inds, matched_col_inds = linear_sum_assignment(cost)
         matched_row_inds = torch.from_numpy(matched_row_inds).to(
             bbox_pred.device)

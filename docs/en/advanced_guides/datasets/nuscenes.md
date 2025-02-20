@@ -1,10 +1,10 @@
 # NuScenes Dataset
 
-This page provides specific tutorials about the usage of MMDetection3D for nuScenes dataset.
+This page provides specific tutorials about the usage of **EdgeAI-MMDetection3D** for nuScenes dataset.
 
 ## Before Preparation
 
-You can download nuScenes 3D detection `Full dataset (v1.0)` [HERE](https://www.nuscenes.org/download) and unzip all zip files. You have to download CAN bus expansion data as well and move it to data directory.
+You can download nuScenes 3D detection `Full dataset (v1.0)` [HERE](https://www.nuscenes.org/download) and unzip all zip files. You have to download CAN bus expansion data as well and move it to data directory.3d
 
 ```
 # Download 'can_bus.zip'
@@ -12,13 +12,9 @@ unzip can_bus.zip
 # Move can_bus to data dir
 ```
 
-If you want to implement 3D semantic segmentation task, you need to additionally download the `nuScenes-lidarseg` data annotation and place the extracted files in the nuScenes corresponding folder.
+[//]: <> (If you want to implement 3D semantic segmentation task, you need to additionally download the `nuScenes-lidarseg` data annotation and place the extracted files in the nuScenes corresponding folder.)
 
-**Note**: `v1.0trainval(test)/categroy.json` in nuScenes-lidarseg will replace the original `v1.0trainval(test)/categroy.json` of the Full dataset (v1.0), but will not affect the 3D object detection task.
-
-Like the general way to prepare dataset, it is recommended to symlink the dataset root to `$MMDETECTION3D/data`.
-
-The folder structure should be organized as follows before our processing.
+Like the general way to prepare dataset, it is recommended to symlink the dataset root to `edgeai-mmdetection3d/data`. The folder structure should be organized as follows before our processing.
 
 ```
 edgeai-mmdetection3d
@@ -31,7 +27,6 @@ edgeai-mmdetection3d
 │   │   ├── maps
 │   │   ├── samples
 │   │   ├── sweeps
-│   │   ├── lidarseg (optional)
 │   │   ├── v1.0-test
 |   |   ├── v1.0-trainval
 ```
@@ -71,7 +66,6 @@ edgeai-mmdetection3d
 │   │   ├── maps
 │   │   ├── samples
 │   │   ├── sweeps
-│   │   ├── lidarseg (optional)
 │   │   ├── v1.0-test
 |   |   ├── v1.0-trainval
 │   │   ├── nuscenes_gt_database
@@ -139,7 +133,7 @@ Please refer to [nuscenes_converter.py](https://github.com/open-mmlab/mmdetectio
 
 ### LiDAR-Based Methods
 
-A typical training pipeline of LiDAR-based 3D detection (including multi-modality methods) on nuScenes is as below.
+A typical training pipeline of LiDAR-based 3D detection (including multi-modality methods) on nuScenes is as below. No LiDAR-Based network hasn't been tested in **EdgeAI-MMDetection3D** though.
 
 ```python
 train_pipeline = [

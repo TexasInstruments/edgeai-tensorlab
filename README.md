@@ -115,7 +115,17 @@ Prepare the nuScenes dataset as per the MMDetection3D documentation [NuScenes Da
 
 <hr>
 
-## Supported Models 
+## Models Supported
+
+**Disclaimer**: The following models are supported in **EdgeAI-MMDetection3D** for training and inference testing. However, these models may not be supported yet in **TIDL**.
+
+### FastBEV
+
+FastBEV has been trained and validated with egdgeai-mmdetection3d. Data preparation, training and testing of them can be found in [FastBEV](./projects/FastBEV/README.md).
+
+### PETR / PETRv2
+
+PETR and PETRv2 have been trained and validated with egdgeai-mmdetection3d. Data preparation, training and testing of them can be found in [PETR/PETRv2](./projects/PETR/README.md).
 
 ### BEVDet
 
@@ -125,17 +135,9 @@ BEVDet has been trained and validated with egdgeai-mmdetection3d. Data preparati
 
 BEVFormer has been trained and validated with egdgeai-mmdetection3d. Data preparation, training and testing of BEVFormer can be found in [BEVFormer](./projects/BEVFormer/README.md).
 
-### PETR / PETRv2
-
-PETR and PETRv2 have been trained and validated with egdgeai-mmdetection3d. Data preparation, training and testing of them can be found in [PETR/PETRv2](./projects/PETR/README.md).
-
 ### FCOS3D
 
 FCOS3D has been trained and validated with egdgeai-mmdetection3d. Data preparation, training and testing of them can be found in [FCOS3D](./projects/FCOS3D/README.md).
-
-### FastBEV
-
-FastBEV has been trained and validated with egdgeai-mmdetection3d. Data preparation, training and testing of them can be found in [FastBEV](./projects/FastBEV/README.md).
 
 
 ### PointPillars
