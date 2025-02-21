@@ -49,8 +49,8 @@ class ModelMakerDetectionDataset(coco_det.COCODetection):
         assert 'path' in kwargs and 'split' in kwargs, 'kwargs must have path and split'
         path = kwargs['path']
         split = kwargs['split']
-        image_dir = os.path.join(path, split)
-        annotation_file = os.path.join(path, 'annotations', f'{annotation_prefix}_{split}.json')
+        image_dir = kwargs.pop('image_dir', os.path.join(path, split))
+        annotation_file = kwargs.pop('annotation_file', os.path.join(path, 'annotations', f'{annotation_prefix}_{split}.json'))
         super().__init__(num_classes=num_classes, image_dir=image_dir, annotation_file=annotation_file,
                          download=False, num_frames=num_frames, name=name, **kwargs)
         with open(annotation_file) as afp:
@@ -89,8 +89,8 @@ class ModelMakerClassificationDataset(DatasetBase):
         assert 'path' in kwargs and 'split' in kwargs, 'kwargs must have path and split'
         path = kwargs['path']
         split = kwargs['split']
-        self.image_dir = os.path.join(path, split)
-        self.annotation_file = os.path.join(path, 'annotations', f'{annotation_prefix}_{split}.json')
+        self.image_dir = kwargs.pop('image_dir', os.path.join(path, split))
+        self.annotation_file = kwargs.pop('annotation_file', os.path.join(path, 'annotations', f'{annotation_prefix}_{split}.json'))
         with open(self.annotation_file) as afp:
             self.dataset_store = json.load(afp)
         #
@@ -209,9 +209,9 @@ class ModelMakerSegmentationDataset(DatasetBase):
         shuffle = self.kwargs.get('shuffle', False)
         image_base_dir = 'images' if ('images' in dataset_folders) else ''
         image_base_dir = os.path.join(root, image_base_dir)
-        self.image_dir = image_base_dir
+        self.image_dir = kwargs.pop('image_dir', image_base_dir)
 
-        self.annotation_file = os.path.join(annotations_dir, f'{self.kwargs["annotation_prefix"]}_{split}.json')
+        self.annotation_file = kwargs.pop('annotation_file', os.path.join(annotations_dir, f'{self.kwargs["annotation_prefix"]}_{split}.json'))
 
         with open(self.annotation_file) as afp:
             json_data = json.load(afp)
@@ -432,7 +432,8 @@ class ModelMakerKeypointDetectionDataset(coco_kpt_det.COCOKeypointDetection):
         assert 'path' in kwargs and 'split' in kwargs, 'kwargs must have path and split'
         path = kwargs['path']
         split = kwargs['split']
-        annotation_file = os.path.join(path, 'annotations', f'{annotation_prefix}_{split}.json')
+        image_dir = kwargs.pop('image_dir', None)
+        annotation_file = kwargs.pop('annotation_file', os.path.join(path, 'annotations', f'{annotation_prefix}_{split}.json'))
         super().__init__(num_classes=num_classes, image_dir=None, annotation_file=annotation_file,
                          download=download, num_frames=num_frames, name=name, num_keypoints=num_keypoints, annotation_prefix=annotation_prefix, **kwargs)
         num_keypoints = self.num_keypoints

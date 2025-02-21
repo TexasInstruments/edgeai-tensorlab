@@ -79,7 +79,6 @@ def run_benchmark_config(settings, work_dir, pipeline_configs=None, modify_pipel
         pipeline_configs = get_configs(settings, work_dir)
     #
 
-
     # create the pipeline_runner which will manage the sessions.
     pipeline_runner = pipelines.PipelineRunner(settings, pipeline_configs=pipeline_configs)
 
@@ -125,7 +124,7 @@ def run_benchmark_config(settings, work_dir, pipeline_configs=None, modify_pipel
                 #
             #
             process_runner = utils.ProcessRunner(
-                parallel_processes=settings.parallel_processes, parallel_devices=settings.parallel_devices,
+                parallel_processes=settings.parallel_processes,
                 overall_timeout=overall_timeout, instance_timeout=instance_timeout)
             return process_runner.run(task_entries)
         else:

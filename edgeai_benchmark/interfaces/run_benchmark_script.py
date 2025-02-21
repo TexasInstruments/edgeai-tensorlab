@@ -39,7 +39,7 @@ from .get_configs import *
 __all__ = ['run_benchmark_script']
 
 
-def run_benchmark_script_one_model(entry_idx, kwargs, parallel_processes, parallel_devices, model_selection, run_dir,
+def run_benchmark_script_one_model(settings_file, entry_idx, cmd_kwargs, parallel_processes, parallel_devices, model_selection, run_dir,
     enable_logging, log_filename, run_import, run_inference, benchmark_script=None):
 
     if benchmark_script is None:
@@ -60,26 +60,23 @@ def run_benchmark_script_one_model(entry_idx, kwargs, parallel_processes, parall
     parallel_device = parallel_devices[entry_idx%num_devices]
     os.environ['CUDA_VISIBLE_DEVICES'] = str(parallel_device)
 
-    cmd_args = copy.deepcopy(kwargs)
-    cmd_args.pop('settings_file', None)
-
     # specify which model(s) to run
-    cmd_args['model_selection'] = model_selection
+    cmd_kwargs['model_selection'] = model_selection
     # additional process helps with stability - even if a model compilation crashes, it won't affect the main program.
     # but, since we open a process with subprocess.Popen here, there is no need for the underlying python script to open a process inside
-    cmd_args['parallel_processes'] = '0'
+    cmd_kwargs['parallel_processes'] = '0'
     # which device should this be run on
     # relevant only if this is using the gpu/cuda tidl-tools and if there are multiple GPUs
-    cmd_args['parallel_devices'] = '1'
+    cmd_kwargs['parallel_devices'] = '1'
     # logging is done by capturing the stdout and stderr to a file here - no need to enable logging to file inside
-    cmd_args['enable_logging'] = '0'
+    cmd_kwargs['enable_logging'] = '0'
     # import and/or inference
-    cmd_args['run_import'] = f'{run_import}'
-    cmd_args['run_inference'] = f'{run_inference}'
+    cmd_kwargs['run_import'] = f'{run_import}'
+    cmd_kwargs['run_inference'] = f'{run_inference}'
 
     # benchmark script
-    command = ['python3',  benchmark_script, kwargs['settings_file']]
-    for key, value in cmd_args.items():
+    command = ['python3',  benchmark_script, settings_file]
+    for key, value in cmd_kwargs.items():
         command += ['--'+str(key), str(value)]
     #
 
@@ -98,8 +95,9 @@ def run_benchmark_script_one_model(entry_idx, kwargs, parallel_processes, parall
     return proc
 
 
-def run_benchmark_script(settings, model_entries, kwargs_dict, parallel_processes, parallel_devices,
-        overall_timeout, instance_timeout, proc_error_regex_list=None, separate_import_inference=True):
+def run_benchmark_script(settings, model_entries, settings_file, cmd_kwargs,
+        overall_timeout=None, instance_timeout=None, proc_error_regex_list=None,
+        separate_import_inference=True):
 
     if proc_error_regex_list is None:
         proc_error_regex_list=constants.FATAL_ERROR_LOGS_REGEX_LIST
@@ -116,20 +114,20 @@ def run_benchmark_script(settings, model_entries, kwargs_dict, parallel_processe
         if separate_import_inference:
             if settings.run_import:
                 proc_name = f'{model_selection}:import'
-                run_import_task = functools.partial(run_benchmark_script_one_model,
-                    entry_idx, kwargs_dict, parallel_processes, parallel_devices, model_selection, run_dir, settings.enable_logging, log_filename, True, False)
+                run_import_task = functools.partial(run_benchmark_script_one_model, settings_file,
+                    entry_idx, cmd_kwargs, settings.parallel_processes, settings.parallel_devices, model_selection, run_dir, settings.enable_logging, log_filename, True, False)
                 task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_import_task, 'proc_log':log_filename, 'proc_error':proc_error_regex_list})
             #
             if settings.run_inference:
                 proc_name = f'{model_selection}:infer'
-                run_inference_task = functools.partial(run_benchmark_script_one_model,
-                    entry_idx, kwargs_dict, parallel_processes, parallel_devices, model_selection, run_dir, settings.enable_logging, log_filename, False, True)
+                run_inference_task = functools.partial(run_benchmark_script_one_model, settings_file,
+                    entry_idx, cmd_kwargs, settings.parallel_processes, settings.parallel_devices, model_selection, run_dir, settings.enable_logging, log_filename, False, True)
                 task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_inference_task, 'proc_log':log_filename, 'proc_error':proc_error_regex_list})
             #
         else:
             proc_name = f'{model_selection}'
-            run_task = functools.partial(run_benchmark_script_one_model,
-                entry_idx, kwargs_dict, parallel_processes, parallel_devices, model_selection, run_dir, settings.enable_logging, log_filename, settings.run_import, settings.run_inference)
+            run_task = functools.partial(run_benchmark_script_one_model, settings_file,
+                entry_idx, cmd_kwargs, settings.parallel_processes, settings.parallel_devices, model_selection, run_dir, settings.enable_logging, log_filename, settings.run_import, settings.run_inference)
             task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_task, 'proc_log':log_filename, 'proc_error':proc_error_regex_list})
         #
 
@@ -137,6 +135,6 @@ def run_benchmark_script(settings, model_entries, kwargs_dict, parallel_processe
     #
 
     process_runner = utils.ProcessRunner(
-        parallel_processes=parallel_processes, parallel_devices=parallel_devices,
+        parallel_processes=settings.parallel_processes,
         overall_timeout=overall_timeout, instance_timeout=instance_timeout)
     process_runner.run(task_entries)

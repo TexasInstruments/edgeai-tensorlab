@@ -172,13 +172,13 @@ def get_datasets(settings, download=False, dataset_list=None):
             path=f'{settings.datasets_path}/{dataset_variant}/{imagenet_split}',
             split=f'{settings.datasets_path}/{dataset_variant}/{imagenet_split}.txt',
             shuffle=True,
-            num_frames=settings.calibration_frames,
+            num_frames=min(settings.calibration_frames,num_imgs),
             name=dataset_variant)
         imagenet_cls_val_cfg = dict(
             path=f'{settings.datasets_path}/{dataset_variant}/{imagenet_split}',
             split=f'{settings.datasets_path}/{dataset_variant}/{imagenet_split}.txt',
             shuffle=True,
-            num_frames=min(settings.num_frames,num_imgs),
+            num_frames=min(settings.num_frames,num_imgs) if settings.num_frames else num_imgs,
             name=dataset_variant)
         # what is provided is mechanism to select one of the imagenet variants
         # but only one is selected and assigned to the key imagenet
@@ -200,14 +200,14 @@ def get_datasets(settings, download=False, dataset_list=None):
             path=f'{settings.datasets_path}/coco',
             split='val2017',
             shuffle=True,
-            num_frames=settings.calibration_frames,
+            num_frames=min(settings.calibration_frames,5000),
             name=DATASET_CATEGORY_COCOKPTS,
             filter_imgs=filter_imgs)
         coco_kpts_val_cfg = dict(
             path=f'{settings.datasets_path}/coco',
             split='val2017',
             shuffle=False, #TODO: need to make COCODetection.evaluate() work with shuffle
-            num_frames=min(settings.num_frames,5000),
+            num_frames=min(settings.num_frames,5000) if settings.num_frames else 5000,
             name=DATASET_CATEGORY_COCOKPTS,
             filter_imgs=filter_imgs)
         try:
@@ -226,14 +226,14 @@ def get_datasets(settings, download=False, dataset_list=None):
             path=f'{settings.datasets_path}/ycbv',
             split='test',
             shuffle=True,
-            num_frames=settings.calibration_frames,
+            num_frames=min(settings.calibration_frames,900),
             name=DATASET_CATEGORY_YCBV,
             filter_imgs=filter_imgs)
         ycbv_val_cfg = dict(
             path=f'{settings.datasets_path}/ycbv',
             split='test',
             shuffle=False,
-            num_frames=min(settings.num_frames,900),
+            num_frames=min(settings.num_frames,900) if settings.num_frames else 900,
             name=DATASET_CATEGORY_YCBV,
             filter_imgs=filter_imgs)
         try:
@@ -251,13 +251,13 @@ def get_datasets(settings, download=False, dataset_list=None):
             path=f'{settings.datasets_path}/coco',
             split='val2017',
             shuffle=True,
-            num_frames=settings.calibration_frames,
+            num_frames=min(settings.calibration_frames,5000),
             name=DATASET_CATEGORY_COCO)
         coco_det_val_cfg = dict(
             path=f'{settings.datasets_path}/coco',
             split='val2017',
             shuffle=False, # can be set to True as well, if needed
-            num_frames=min(settings.num_frames,5000),
+            num_frames=min(settings.num_frames,5000) if settings.num_frames else 5000,
             name=DATASET_CATEGORY_COCO)
         try:
             dataset_cache[DATASET_CATEGORY_COCO]['calibration_dataset'] = COCODetection(**coco_det_calib_cfg, download=download)
@@ -274,13 +274,13 @@ def get_datasets(settings, download=False, dataset_list=None):
             path=f'{settings.datasets_path}/widerface',
             split='val',
             shuffle=True,
-            num_frames=settings.calibration_frames,
+            num_frames=min(settings.calibration_frames,3226),
             name=DATASET_CATEGORY_WIDERFACE)
         widerface_det_val_cfg = dict(
             path=f'{settings.datasets_path}/widerface',
             split='val',
             shuffle=False, # can be set to True as well, if needed
-            num_frames=min(settings.num_frames,3226),
+            num_frames=min(settings.num_frames,3226) if settings.num_frames else 3226,
             name=DATASET_CATEGORY_WIDERFACE)
         try:
             dataset_cache[DATASET_CATEGORY_WIDERFACE]['calibration_dataset'] = WiderFaceDetection(**widerface_det_calib_cfg, download=download)
@@ -297,13 +297,13 @@ def get_datasets(settings, download=False, dataset_list=None):
             path=f'{settings.datasets_path}/coco',
             split='val2017',
             shuffle=True,
-            num_frames=settings.calibration_frames,
+            num_frames=min(settings.calibration_frames,5000),
             name=DATASET_CATEGORY_COCOSEG21)
         cocoseg21_val_cfg = dict(
             path=f'{settings.datasets_path}/coco',
             split='val2017',
             shuffle=True,
-            num_frames=min(settings.num_frames,5000),
+            num_frames=min(settings.num_frames,5000) if settings.num_frames else 5000,
             name=DATASET_CATEGORY_COCOSEG21)
         try:
             dataset_cache[DATASET_CATEGORY_COCOSEG21]['calibration_dataset'] = COCOSegmentation(**cocoseg21_calib_cfg, download=download)
@@ -320,13 +320,13 @@ def get_datasets(settings, download=False, dataset_list=None):
             path=f'{settings.datasets_path}/ADEChallengeData2016',
             split='validation',
             shuffle=True,
-            num_frames=settings.calibration_frames,
+            num_frames=min(settings.calibration_frames,2000),
             name=DATASET_CATEGORY_ADE20K)
         ade20k_seg_val_cfg = dict(
             path=f'{settings.datasets_path}/ADEChallengeData2016',
             split='validation',
             shuffle=True,
-            num_frames=min(settings.num_frames, 2000),
+            num_frames=min(settings.num_frames,2000) if settings.num_frames else 2000,
             name=DATASET_CATEGORY_ADE20K)
         try:
             dataset_cache[DATASET_CATEGORY_ADE20K]['calibration_dataset'] = ADE20KSegmentation(**ade20k_seg_calib_cfg, download=download)
@@ -343,13 +343,13 @@ def get_datasets(settings, download=False, dataset_list=None):
             path=f'{settings.datasets_path}/ADEChallengeData2016',
             split='validation',
             shuffle=True,
-            num_frames=settings.calibration_frames,
+            num_frames=min(settings.calibration_frames,2000),
             name=DATASET_CATEGORY_ADE20K32)
         ade20k_seg_val_cfg = dict(
             path=f'{settings.datasets_path}/ADEChallengeData2016',
             split='validation',
             shuffle=True,
-            num_frames=min(settings.num_frames, 2000),
+            num_frames=min(settings.num_frames,2000) if settings.num_frames else 2000,
             name=DATASET_CATEGORY_ADE20K32)
         try:
             dataset_cache[DATASET_CATEGORY_ADE20K32]['calibration_dataset'] = ADE20KSegmentation(**ade20k_seg_calib_cfg, num_classes=32, download=download)
@@ -366,13 +366,13 @@ def get_datasets(settings, download=False, dataset_list=None):
             path=f'{settings.datasets_path}/VOCdevkit/VOC2012',
             split='val',
             shuffle=True,
-            num_frames=settings.calibration_frames,
+            num_frames=min(settings.calibration_frames,1449),
             name=DATASET_CATEGORY_VOC2012)
         voc_seg_val_cfg = dict(
             path=f'{settings.datasets_path}/VOCdevkit/VOC2012',
             split='val',
             shuffle=True,
-            num_frames=min(settings.num_frames, 1449),
+            num_frames=min(settings.num_frames,1449) if settings.num_frames else 1449,
             name=DATASET_CATEGORY_VOC2012)
         try:
             dataset_cache[DATASET_CATEGORY_VOC2012]['calibration_dataset'] = VOC2012Segmentation(**voc_seg_calib_cfg, download=download)
@@ -390,13 +390,13 @@ def get_datasets(settings, download=False, dataset_list=None):
             path=f'{settings.datasets_path}/nyudepthv2',
             split='val',
             shuffle=True,
-            num_frames=settings.calibration_frames,
+            num_frames=min(settings.calibration_frames,654),
             name=DATASET_CATEGORY_NYUDEPTHV2)
         nyudepthv2_val_cfg = dict(
             path=f'{settings.datasets_path}/nyudepthv2',
             split='val',
             shuffle=False, #TODO: need to make COCODetection.evaluate() work with shuffle
-            num_frames=min(settings.num_frames, 654),
+            num_frames=min(settings.num_frames,654) if settings.num_frames else 654,
             name=DATASET_CATEGORY_NYUDEPTHV2)
 
         try:
@@ -426,7 +426,7 @@ def get_datasets(settings, download=False, dataset_list=None):
             split=f'{settings.datasets_path}/ti-robokit_semseg_zed1hd/val_img_gt_pair.txt',
             num_classes=19,
             shuffle=True,
-            num_frames=min(settings.num_frames,49),
+            num_frames=min(settings.num_frames,49) if settings.num_frames else 49,
             name=DATASET_CATEGORY_TI_ROBOKIT_SEMSEG_ZED1HD
         )
 
@@ -457,7 +457,7 @@ def get_datasets(settings, download=False, dataset_list=None):
             split=f'{settings.datasets_path}/ti-robokit_semseg_zed1hd/val_img_gt_pair.txt',
             num_classes=19,
             shuffle=True,
-            num_frames=min(settings.num_frames,49),
+            num_frames=min(settings.num_frames,49) if settings.num_frames else 49,
             name=DATASET_CATEGORY_TI_ROBOKIT_VISLOC_ZED1HD
         )
 
@@ -480,13 +480,13 @@ def get_datasets(settings, download=False, dataset_list=None):
                 path=f'{settings.datasets_path}/cityscapes',
                 split='val',
                 shuffle=True,
-                num_frames=settings.calibration_frames,
+                num_frames=min(settings.calibration_frames,500),
                 name=DATASET_CATEGORY_CITYSCAPES)
             cityscapes_seg_val_cfg = dict(
                 path=f'{settings.datasets_path}/cityscapes',
                 split='val',
                 shuffle=True,
-                num_frames=min(settings.num_frames,500),
+                num_frames=min(settings.num_frames,500) if settings.num_frames else 500,
                 name=DATASET_CATEGORY_CITYSCAPES)
             try:
                 dataset_cache[DATASET_CATEGORY_CITYSCAPES]['calibration_dataset'] = CityscapesSegmentation(**cityscapes_seg_calib_cfg, download=False)
@@ -505,7 +505,7 @@ def get_datasets(settings, download=False, dataset_list=None):
                 pts_prefix='velodyne_reduced',
                 num_classes=3,
                 shuffle=False,
-                num_frames=min(settings.calibration_frames, 3769),
+                num_frames=min(settings.calibration_frames,3769),
                 name=DATASET_CATEGORY_KITTI_LIDAR_DET_3CLASS)
 
             # dataset parameters for actual inference
@@ -515,7 +515,7 @@ def get_datasets(settings, download=False, dataset_list=None):
                 pts_prefix='velodyne_reduced',
                 num_classes=3,
                 shuffle=False,
-                num_frames=min(settings.num_frames, 3769),
+                num_frames=min(settings.num_frames,3769) if settings.num_frames else 3769,
                 name=DATASET_CATEGORY_KITTI_LIDAR_DET_3CLASS)
             try:
                 dataset_cache[DATASET_CATEGORY_KITTI_LIDAR_DET_3CLASS]['calibration_dataset'] = KittiLidar3D(**dataset_calib_cfg, download=False, read_anno=False)
@@ -534,7 +534,7 @@ def get_datasets(settings, download=False, dataset_list=None):
                 pts_prefix='velodyne_reduced',
                 num_classes=1,
                 shuffle=False,
-                num_frames=min(settings.calibration_frames, 3769),
+                num_frames=min(settings.calibration_frames,3769),
                 name=DATASET_CATEGORY_KITTI_LIDAR_DET_1CLASS)
 
             # dataset parameters for actual inference
@@ -544,7 +544,7 @@ def get_datasets(settings, download=False, dataset_list=None):
                 pts_prefix='velodyne_reduced',
                 num_classes=1,
                 shuffle=False,
-                num_frames=min(settings.num_frames, 3769),
+                num_frames=min(settings.num_frames,3769) if settings.num_frames else 3769,
                 name=DATASET_CATEGORY_KITTI_LIDAR_DET_1CLASS)
             try:
                 dataset_cache[DATASET_CATEGORY_KITTI_LIDAR_DET_1CLASS]['calibration_dataset'] = KittiLidar3D(**dataset_calib_cfg, download=False, read_anno=False)
@@ -563,7 +563,7 @@ def get_datasets(settings, download=False, dataset_list=None):
                 split='training',                
                 shuffle=False,
                 max_disp=192,
-                num_frames=min(settings.calibration_frames, 50))
+                num_frames=min(settings.calibration_frames,50))
 
             # dataset parameters for actual inference
             dataset_val_cfg = dict(
@@ -571,7 +571,8 @@ def get_datasets(settings, download=False, dataset_list=None):
                 split='training',                
                 shuffle=False,
                 max_disp=192,
-                num_frames=min(settings.num_frames, 50))
+                num_frames=min(settings.num_frames,50) if settings.num_frames else 50
+            )
             try:
                 dataset_cache[DATASET_CATEGORY_KITTI_2015]['calibration_dataset'] = Kitti2015(**dataset_calib_cfg, download=False)
                 dataset_cache[DATASET_CATEGORY_KITTI_2015]['input_dataset'] = Kitti2015(**dataset_val_cfg, download=False)

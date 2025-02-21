@@ -33,16 +33,17 @@ from .get_configs_from_module import *
 from .get_configs_from_file import *
 
 
-def get_configs(settings, work_dir):
+def get_configs(settings, work_dir, adjust_config=True):
     # initialize the dataset place holders.
     if settings.dataset_cache is None:
         settings.dataset_cache = datasets.initialize_datasets(settings)
     #
     # now get the config dictionaries
-    is_config_file = (os.path.splitext(settings.configs_path)[-1] == '.yaml')
-    if is_config_file:
+    is_config_dict_or_file = isinstance(settings.configs_path, dict) or \
+        (isinstance(settings.configs_path, str) and (os.path.splitext(settings.configs_path)[-1] == '.yaml'))
+    if is_config_dict_or_file:
         print(f'INFO: using model config(s) from file: {settings.configs_path}')
-        pipeline_configs = get_configs_from_file(settings, work_dir)
+        pipeline_configs = get_configs_from_file(settings, work_dir, adjust_config=adjust_config)
     else:
         print(f'INFO: using model configs from Python module: {settings.configs_path}')
         pipeline_configs = get_configs_from_module(settings, work_dir)
@@ -50,16 +51,17 @@ def get_configs(settings, work_dir):
     return pipeline_configs
 
 
-def select_configs(settings, work_dir, session_name=None, remove_models=False):
+def select_configs(settings, work_dir, session_name=None, remove_models=False, adjust_config=True):
     # initialize the dataset place holders.
     if settings.dataset_cache is None:
         settings.dataset_cache = datasets.initialize_datasets(settings)
     #
     # now get the config dictionaries
-    is_config_file = (os.path.splitext(settings.configs_path)[-1] == '.yaml')
-    if is_config_file:
+    is_config_dict_or_file = isinstance(settings.configs_path, dict) or \
+        (isinstance(settings.configs_path, str) and (os.path.splitext(settings.configs_path)[-1] == '.yaml'))
+    if is_config_dict_or_file:
         print(f'INFO: selecting model config(s) from file: {settings.configs_path}')
-        pipeline_configs = select_configs_from_file(settings, work_dir, session_name=session_name, remove_models=remove_models)
+        pipeline_configs = select_configs_from_file(settings, work_dir, session_name=session_name, remove_models=remove_models, adjust_config=adjust_config)
     else:
         print(f'INFO: selecting model configs from Python module: {settings.configs_path}')
         pipeline_configs = select_configs_from_module(settings, work_dir, session_name=session_name, remove_models=remove_models)

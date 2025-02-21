@@ -36,7 +36,7 @@ from .. import utils, preprocess, postprocess, pipelines, datasets, sessions, co
 __all__ = ['get_configs_from_file']
 
 
-def pipeline_param_to_config(settings, config_file_or_pipeline_param, work_dir):
+def pipeline_param_to_config(settings, config_file_or_pipeline_param, work_dir, adjust_config):
     if isinstance(config_file_or_pipeline_param, str):
         with open(config_file_or_pipeline_param) as cfp:
             pipeline_param = yaml.safe_load(cfp)
@@ -50,35 +50,62 @@ def pipeline_param_to_config(settings, config_file_or_pipeline_param, work_dir):
     pipeline_config = copy.deepcopy(pipeline_param)
     session_name = pipeline_param['session']['session_name']
     task_type = pipeline_param['task_type']
-    model_path = pipeline_param['session']['model_path']
-    if model_path == os.path.basename(model_path) and config_dirname is not None:
-        model_path = os.path.join(config_dirname, model_path)
-        pipeline_param['session']['model_path'] = model_path
+
+    calibration_dataset = pipeline_config['calibration_dataset']
+    if isinstance(calibration_dataset, dict):
+        calibration_dataset_name = calibration_dataset.pop('type')
+        calibration_dataset_type = getattr(datasets, calibration_dataset_name)
+        calibration_dataset = calibration_dataset_type(**calibration_dataset)
     #
+    pipeline_config['calibration_dataset'] = calibration_dataset
+
+    input_dataset = pipeline_config['input_dataset']
+    if isinstance(input_dataset, dict):
+        input_dataset_name = input_dataset.pop('type')
+        input_dataset_type = getattr(datasets, input_dataset_name)
+        input_dataset = input_dataset_type(**input_dataset)
+    #
+    pipeline_config['input_dataset'] = input_dataset
 
     preprocess_pipeline = preprocess.PreProcessTransforms(settings).get_transform_base(**pipeline_param['preprocess'])
     pipeline_config['preprocess'] = preprocess_pipeline
 
-    runtime_options_in_config = pipeline_param['session']['runtime_options']
-    prequantized_model_type = runtime_options_in_config['info']['prequantized_model_type']
-    runtime_options_in_settings = settings.get_runtime_options(prequantized_model_type=prequantized_model_type)
-    runtime_options = copy.deepcopy(runtime_options_in_settings)
-    # conditional update
-    for rt_opt_key, rt_opt_value in runtime_options_in_config.items():
-        if rt_opt_key in ['advanced_options:calibration_frames', 'advanced_options:calibration_iterations'] \
-            and rt_opt_key in runtime_options_in_config:
-            rt_opt_value = min(runtime_options_in_settings[rt_opt_key], runtime_options_in_config[rt_opt_key])
-        #
-        runtime_options[rt_opt_key] = rt_opt_value
-    #
+    if adjust_config:
+        if config_dirname is not None:
+            model_path = pipeline_param['session']['model_path']
+            if model_path == os.path.basename(model_path):
+                model_path = os.path.join(config_dirname, model_path)
+                pipeline_param['session']['model_path'] = model_path
+            #
 
-    # handle device specific overrides
-    if settings.runtime_options is not None:
-        runtime_options.update(settings.runtime_options)
-    #
-    if settings.target_device == constants.TARGET_DEVICE_TDA4VM:
-        if runtime_options['advanced_options:quantization_scale_type'] == constants.QUANTScaleType.QUANT_SCALE_TYPE_NP2_PERCHAN:
-            runtime_options['advanced_options:quantization_scale_type'] = constants.QUANTScaleType.QUANT_SCALE_TYPE_P2
+            meta_layers_names_list = pipeline_param['session']['runtime_options'].get('object_detection:meta_layers_names_list', None)
+            if meta_layers_names_list is not None and meta_layers_names_list == os.path.basename(meta_layers_names_list):
+                meta_layers_names_list = os.path.join(config_dirname, meta_layers_names_list)
+                pipeline_param['session']['runtime_options']['object_detection:meta_layers_names_list'] = meta_layers_names_list
+            #
+        #
+
+        runtime_options_in_config = pipeline_param['session']['runtime_options']
+        prequantized_model_type = runtime_options_in_config['info']['prequantized_model_type']
+        runtime_options_in_settings = settings.get_runtime_options(prequantized_model_type=prequantized_model_type)
+        runtime_options = copy.deepcopy(runtime_options_in_settings)
+        # conditional update
+        for rt_opt_key, rt_opt_value in runtime_options_in_config.items():
+            if rt_opt_key in ['advanced_options:calibration_frames', 'advanced_options:calibration_iterations'] \
+                and rt_opt_key in runtime_options_in_config:
+                rt_opt_value = min(runtime_options_in_settings[rt_opt_key], runtime_options_in_config[rt_opt_key])
+            #
+            runtime_options[rt_opt_key] = rt_opt_value
+        #
+
+        # handle device specific overrides
+        if settings.runtime_options is not None:
+            runtime_options.update(settings.runtime_options)
+        #
+        if settings.target_device == constants.TARGET_DEVICE_TDA4VM:
+            if runtime_options['advanced_options:quantization_scale_type'] == constants.QUANTScaleType.QUANT_SCALE_TYPE_NP2_PERCHAN:
+                runtime_options['advanced_options:quantization_scale_type'] = constants.QUANTScaleType.QUANT_SCALE_TYPE_P2
+            #
         #
     #
 
@@ -118,33 +145,47 @@ def pipeline_param_to_config(settings, config_file_or_pipeline_param, work_dir):
 
     return pipeline_config
 
-def get_configs_from_file(settings, work_dir):
-    config_file = settings.configs_path
-    if config_file == os.path.basename(config_file):
-            config_file = os.path.abspath(os.path.join(settings.models_path, config_file))
+def get_configs_from_file(settings, work_dir, adjust_config):
+    config_dict_or_file = settings.configs_path
+    if isinstance(config_dict_or_file, str) and (os.path.splitext(config_dict_or_file)[-1] == '.yaml'):
+        if config_dict_or_file == os.path.basename(config_dict_or_file):
+            config_dict_or_file = os.path.abspath(os.path.join(settings.models_path, config_dict_or_file))
         #
-    with open(config_file) as fp:
-        configs_dict = yaml.safe_load(fp)
-        assert isinstance(configs_dict, dict), f'config file contnet must be a dict {config_file}'
+        with open(config_dict_or_file) as fp:
+            configs_dict = yaml.safe_load(fp)
+            assert isinstance(configs_dict, dict), f'config file contnet must be a dict {config_file}'
+        #
+    elif isinstance(config_dict_or_file, dict):
+        configs_dict = config_dict_or_file
+    else:
+        assert False, f"settings.configs_path must be a yaml file path or a dict: got {type(config_dict_or_file)}"
     #
     if 'configs' not in configs_dict:
-        configs_dict = {'configs': {'model-1': config_file}}
+        if 'session' in configs_dict:
+            configs_dict = {'configs': {'model-1': configs_dict}}
+        else:
+            configs_dict = {'configs': configs_dict}
+        #
     #
 
     # read and create configs from configs_file
     pipeline_configs = {}
-    for model_id, config_file in configs_dict['configs'].items():
-        config_file = os.path.normpath(config_file)
-        if not config_file.startswith(os.sep):
-            config_file = os.path.abspath(os.path.join(settings.models_path, config_file))
+    for model_id, config_entry in configs_dict['configs'].items():
+        if isinstance(config_entry, str):
+            config_entry = os.path.normpath(config_entry)
+            if not config_entry.startswith(os.sep):
+                config_entry = os.path.abspath(os.path.join(settings.models_path, config_entry))
+            #
+        else:
+            assert isinstance(config_entry, dict), f'configs file entries must be files names if dict. got: {config_entry}'
         #
-        pipeline_config = pipeline_param_to_config(settings, config_file, work_dir)
+        pipeline_config = pipeline_param_to_config(settings, config_entry, work_dir, adjust_config=adjust_config)
         pipeline_configs[model_id] = pipeline_config
     #
     return pipeline_configs
 
-def select_configs_from_file(settings, work_dir, session_name=None, remove_models=False):
-    pipeline_configs = get_configs_from_file(settings, work_dir)
+def select_configs_from_file(settings, work_dir, session_name=None, remove_models=False, adjust_config=True):
+    pipeline_configs = get_configs_from_file(settings, work_dir, adjust_config=adjust_config)
     if session_name is not None:
         pipeline_configs = {pipeline_id:pipeline_config for pipeline_id, pipeline_config in pipeline_configs.items() \
                 if pipeline_config['session'].peek_param('session_name') == session_name}

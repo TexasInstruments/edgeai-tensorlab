@@ -131,12 +131,13 @@ if __name__ == '__main__':
     work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
     print(f'INFO: work_dir - {work_dir}')
 
-    parallel_processes = kwargs.pop('parallel_processes', 0) or settings.parallel_processes
-    parallel_devices = kwargs.get('parallel_devices', 0)
+    # remove thse from kwargs as it is not needed for each model
+    _parallel_processes_ = kwargs.pop('parallel_processes', 0)
+    _parallel_devices_ = kwargs.get('parallel_devices', 0)
     overall_timeout = kwargs.pop('overall_timeout', None)
     instance_timeout = kwargs.pop('instance_timeout', None)
-    separate_import_inference = kwargs.pop('separate_import_inference')
     models_list_file = kwargs.pop('models_list_file', None)
+    separate_import_inference = kwargs.pop('separate_import_inference', True)
 
     if models_list_file is None:
         # make sure the folder exists
@@ -165,7 +166,10 @@ if __name__ == '__main__':
         model_entries = [model_entry.rstrip() for model_entry in list_fp]
     #
 
-    interfaces.run_benchmark_script(settings, model_entries, kwargs,
-        parallel_processes=parallel_processes, parallel_devices=parallel_devices,
+    cmd_kwargs = copy.deepcopy(kwargs)
+    # settings_file is a positional argument - pop it and pass as a positional argument
+    settings_file = cmd_kwargs.pop('settings_file')
+
+    interfaces.run_benchmark_script(settings, model_entries, settings_file, cmd_kwargs,
         overall_timeout=overall_timeout, instance_timeout=instance_timeout,
         separate_import_inference=separate_import_inference)
