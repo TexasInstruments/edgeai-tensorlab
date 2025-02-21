@@ -50,15 +50,17 @@ else
 fi
 
 #################################################################################
-# until r8.5: TDA4VM
-# from r8.6 onwards use one of: AM62A AM68A AM69A TDA4VM
-TARGET_SOC=${1:-TDA4VM}
+# first argument - target_device - use one of: TDA4VM AM62A AM68A AM69A AM67A AM62
+TARGET_SOC=${1:-"AM68A"}
+
+# second argument - config_file - use an appropriate config file - see examples given in this folder
+CONFIG_FILE=${2:-"config_classification.yaml"}
 
 #################################################################################
-export PYTHONPATH=.:$PYTHONPATH
+export PYTHONPATH=".:${PYTHONPATH}"
 export TIDL_TOOLS_PATH="../edgeai-benchmark/tools/${TARGET_SOC}/tidl_tools"
-export LD_LIBRARY_PATH=${TIDL_TOOLS_PATH}
-#export PYTHONPATH=../edgeai-mmpose/projects/yolox-pose:$PYTHONPATH
+export LD_LIBRARY_PATH="${TIDL_TOOLS_PATH}:${LD_LIBRARY_PATH}"
+
 
 #################################################################################
 # environement variable to help shape exchange between TIDL and onnxruntime
@@ -74,4 +76,4 @@ echo "TIDL_TOOLS_PATH                   : ${TIDL_TOOLS_PATH}"
 echo "LD_LIBRARY_PATH                   : ${LD_LIBRARY_PATH}"
 
 #################################################################################
-python3 ./scripts/run_modelmaker.py $2 --target_device $1
+python3 ./scripts/run_modelmaker.py ${CONFIG_FILE} --target_device ${TARGET_SOC}
