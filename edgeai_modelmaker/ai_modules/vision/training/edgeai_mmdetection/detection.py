@@ -85,6 +85,12 @@ model_urls = {
             'download_path': os.path.join('{download_path}', 'pretrained', 'yolov7_l_lite')
         },
     ],
+    'yolov9_s_lite': [
+        {
+            'download_url': f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/yolov9_s_coco_lite_640x640_20250219_checkpoint.pth',
+            'download_path': os.path.join('{download_path}', 'pretrained', 'yolov9_s_lite')
+        },
+    ],
 }
 
 
@@ -301,7 +307,7 @@ _model_descriptions = {
                 constants.TARGET_DEVICE_AM67A: dict(performance_fps=None, performance_infer_time_ms='-1* (with 1/2 device capability)',
                                                     accuracy_factor=65.1, accuracy_unit='AP50%', accuracy_factor2=45.9,
                                                     accuracy_unit2='AP[.5:.95]%'),
-                constants.TARGET_DEVICE_AM68A: dict(performance_fps=None, performance_infer_time_ms=-1,
+                constants.TARGET_DEVICE_AM68A: dict(performance_fps=None, performance_infer_time_ms=33.56,
                                                      accuracy_factor=65.1, accuracy_unit='AP50%', accuracy_factor2=45.9, accuracy_unit2='AP[.5:.95]%'), #TODO: this has to be corrected
                 constants.TARGET_DEVICE_AM69A: dict(performance_fps=None, performance_infer_time_ms='-1* (with 1/4th device capability)',
                                                      accuracy_factor=65.1, accuracy_unit='AP50%', accuracy_factor2=45.9, accuracy_unit2='AP[.5:.95]%'),
@@ -313,6 +319,44 @@ _model_descriptions = {
         ),
         compilation=dict(
             model_compilation_id='od-9202',
+            input_optimization=False,
+            metric=dict(label_offset_pred=1)
+        )
+    ),
+    'yolov9_s_lite': dict(
+        common=dict(
+            task_type=constants.TASK_TYPE_DETECTION,
+        ),
+        download=model_urls['yolov9_s_lite'],
+        training=dict(
+            training_backend='edgeai_mmdetection',
+            model_name='yolov9_s_lite',
+            model_training_id='yolov9_s_coco_lite',
+            model_architecture='yolov9',
+            input_resize=640,
+            input_cropsize=640,
+            pretrained_checkpoint_path=model_urls['yolov9_s_lite'][0],
+            batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_DETECTION], #TODO: performance_infer_time_ms to be updated
+            target_devices={
+                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=None, performance_infer_time_ms=-1,
+                                                     accuracy_factor=54.0, accuracy_unit='AP50%', accuracy_factor2=38.3, accuracy_unit2='AP[.5:.95]%'),
+                constants.TARGET_DEVICE_AM62A: dict(performance_fps=None, performance_infer_time_ms=-1,
+                                                     accuracy_factor=54.0, accuracy_unit='AP50%', accuracy_factor2=38.3, accuracy_unit2='AP[.5:.95]%'),
+                constants.TARGET_DEVICE_AM67A: dict(performance_fps=None, performance_infer_time_ms='-1* (with 1/2 device capability)',
+                                                    accuracy_factor=54.0, accuracy_unit='AP50%', accuracy_factor2=38.3,
+                                                    accuracy_unit2='AP[.5:.95]%'),
+                constants.TARGET_DEVICE_AM68A: dict(performance_fps=None, performance_infer_time_ms=-1,
+                                                     accuracy_factor=54.0, accuracy_unit='AP50%', accuracy_factor2=38.3, accuracy_unit2='AP[.5:.95]%'), #TODO: this has to be corrected
+                constants.TARGET_DEVICE_AM69A: dict(performance_fps=None, performance_infer_time_ms='-1* (with 1/4th device capability)',
+                                                     accuracy_factor=54.0, accuracy_unit='AP50%', accuracy_factor2=38.3, accuracy_unit2='AP[.5:.95]%'),
+            },
+            training_devices={
+                constants.TRAINING_DEVICE_CPU: True,
+                constants.TRAINING_DEVICE_CUDA: True,
+            }
+        ),
+        compilation=dict(
+            model_compilation_id='od-9204',
             input_optimization=False,
             metric=dict(label_offset_pred=1)
         )
@@ -413,6 +457,18 @@ class ModelTraining:
                         f'  bbox_head=dict(\n'
                         f'    num_classes={self.params.training.num_classes}\n'
                         f'  ) \n'                            
+                        f') \n']
+        if 'yolov9' in base_config_path:
+            config_strs += [f'model=dict(\n'
+                        f'  bbox_head=dict(\n'
+                        f'    num_classes={self.params.training.num_classes},\n'
+                        f'    loss_yolo=dict(\n'
+                        f'      class_num={self.params.training.num_classes},\n'
+                        f'   ) \n'
+                        f'  ), \n'
+                        f'  aux_head=dict(\n'
+                        f'    num_classes={self.params.training.num_classes}, \n'
+                        f'  ) \n'                             
                         f') \n']
         config_strs += [f'train_dataloader=dict(\n'
                         f'  dataset=dict(\n'
