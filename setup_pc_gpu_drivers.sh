@@ -31,24 +31,25 @@
 
 # ============================================================
 # NVIDIA HPC SDK
-# https://developer.nvidia.com/nvidia-hpc-sdk-2311-downloads
+# https://developer.nvidia.com/nvidia-hpc-sdk-237-downloads
 # ============================================================
 curl https://developer.download.nvidia.com/hpc-sdk/ubuntu/DEB-GPG-KEY-NVIDIA-HPC-SDK | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-hpcsdk-archive-keyring.gpg
 echo 'deb [signed-by=/usr/share/keyrings/nvidia-hpcsdk-archive-keyring.gpg] https://developer.download.nvidia.com/hpc-sdk/ubuntu/amd64 /' | sudo tee /etc/apt/sources.list.d/nvhpc.list
 sudo apt-get update -y
-sudo apt-get install -y nvhpc-23-11-cuda-multi
+# sudo apt-get install -y nvhpc-23-7-cuda-multi
+sudo apt-get install -y nvhpc-23-7
 
 # ============================================================
-# CUDA 12.3 - Download Installer for Linux Ubuntu 22.04 x86_64
-# https://developer.nvidia.com/cuda-12-3-0-download-archive?target_os=Linux&target_arch=x86_64&Distribution=Ubuntu&target_version=22.04&target_type=deb_local
+# CUDA 12.2 - Download Installer for Linux Ubuntu 22.04 x86_64
+# https://developer.nvidia.com/cuda-12-2-0-download-archive?target_os=Linux&target_arch=x86_64&Distribution=Ubuntu&target_version=22.04&target_type=deb_local
 # ============================================================
-wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-ubuntu2204.pin
-sudo mv cuda-ubuntu2204.pin /etc/apt/preferences.d/cuda-repository-pin-600
-wget https://developer.download.nvidia.com/compute/cuda/12.3.0/local_installers/cuda-repo-ubuntu2204-12-3-local_12.3.0-545.23.06-1_amd64.deb
-sudo dpkg -i cuda-repo-ubuntu2204-12-3-local_12.3.0-545.23.06-1_amd64.deb
-sudo cp /var/cuda-repo-ubuntu2204-12-3-local/cuda-*-keyring.gpg /usr/share/keyrings/
-sudo apt-get update
-sudo apt-get -y install cuda-toolkit-12-3
+# wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-ubuntu2204.pin
+# sudo mv cuda-ubuntu2204.pin /etc/apt/preferences.d/cuda-repository-pin-600
+# wget https://developer.download.nvidia.com/compute/cuda/12.2.0/local_installers/cuda-repo-ubuntu2204-12-2-local_12.2.0-535.54.03-1_amd64.deb
+# sudo dpkg -i cuda-repo-ubuntu2204-12-2-local_12.2.0-535.54.03-1_amd64.deb
+# sudo cp /var/cuda-repo-ubuntu2204-12-2-local/cuda-*-keyring.gpg /usr/share/keyrings/
+# sudo apt-get update
+# sudo apt-get -y install cuda-toolkit-12-2
 
 # ============================================================
 # This can be ignored is the latest nvidia gpu driver is already installed:
@@ -57,5 +58,5 @@ sudo apt-get -y install cuda-toolkit-12-3
 ## Option 1: To install the legacy kernel module flavor:
 #   sudo apt-get install -y cuda-drivers
 ## Option 2: To install the open kernel module flavor:
-#   sudo apt-get install -y nvidia-kernel-open-545
-#   sudo apt-get install -y cuda-drivers-545
+#   sudo apt-get install -y nvidia-kernel-open-550
+#   sudo apt-get install -y cuda-drivers-550
