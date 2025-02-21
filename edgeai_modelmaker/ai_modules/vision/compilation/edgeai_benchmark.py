@@ -31,10 +31,18 @@
 
 import os
 import shutil
+import copy
+import yaml
+
 import edgeai_benchmark
 from .... import utils
 from .. import constants
 
+
+this_dir_path = os.path.dirname(os.path.abspath(__file__))
+repo_parent_path = os.path.abspath(os.path.join(this_dir_path, '../../../../../'))
+
+edgeai_benchmark_path = os.path.join(repo_parent_path, 'edgeai-benchmark')
 
 class ModelCompilation():
     @classmethod
@@ -119,7 +127,7 @@ class ModelCompilation():
             log_summary_regex = None
         #
 
-        model_compiled_path = self._get_compiled_artifact_dir()
+        model_compiled_path = self.run_dir
         packaged_artifact_path = self._get_packaged_artifact_path() # actual, internal, short path
         model_packaged_path = self._get_final_artifact_path() # a more descriptive symlink
 
@@ -166,6 +174,7 @@ class ModelCompilation():
             annotation_prefix=self.params.dataset.annotation_prefix,
             **dataset_kwargs
         )
+        calib_dataset.kwargs['type'] = dataset_loader.__name__ # insert type to be able to reconstruct it back from yaml file
         val_dataset = dataset_loader(
             path=self.params.dataset.dataset_path,
             split=self.params.dataset.split_names[1],
@@ -174,16 +183,18 @@ class ModelCompilation():
             annotation_prefix=self.params.dataset.annotation_prefix,
             **dataset_kwargs
         )
+        val_dataset.kwargs['type'] = dataset_loader.__name__ # insert type to be able to reconstruct it back from yaml file
 
         self.settings_file = edgeai_benchmark.get_settings_file(target_machine=self.params.common.target_machine, with_model_import=True)
         self.settings = self._get_settings(self.params.compilation.model_compilation_id, calib_dataset, val_dataset)
         self.work_dir, self.package_dir = self._get_base_dirs()
+        self.run_dir = self._get_run_dir()
 
         # it may be easier to get the existing config and modify the aspects that need to be changed
         if hasattr(calib_dataset, "num_keypoints"):
             self.settings['num_kpts'] = calib_dataset.num_keypoints
         #
-        pipeline_configs = edgeai_benchmark.interfaces.select_configs(self.settings, self.work_dir)
+        pipeline_configs = edgeai_benchmark.interfaces.select_configs(self.settings, self.work_dir, adjust_config=False)
         num_pipeline_configs = len(pipeline_configs)
         assert num_pipeline_configs == 1, f'specify a unique model name in edgeai-benchmark. found {num_pipeline_configs} configs'
         pipeline_config = list(pipeline_configs.values())[0]
@@ -202,8 +213,7 @@ class ModelCompilation():
         pipeline_config['session'].set_param('model_path', self.params.training.model_export_path)
 
         # use a short path for the compiled artifacts dir
-        compiled_artifact_dir = self._get_compiled_artifact_dir()
-        pipeline_config['session'].set_param('run_dir', compiled_artifact_dir)
+        pipeline_config['session'].set_param('run_dir', self.run_dir)
 
         runtime_options = pipeline_config['session'].get_param('runtime_options')
         self.meta_layers_names_list = 'object_detection:meta_layers_names_list'
@@ -252,20 +262,25 @@ class ModelCompilation():
         The actual compilation function. Move this to a worker process, if this function is called from a GUI.
         '''
 
-        # running import and inference separately for more stability
-        # run import
         if self.params.compilation.capture_log:
             # when capture_log, detailed log will only be in the log file - so print this info
-            print(edgeai_benchmark.utils.log_color('\nINFO', 'model import is in progress',
-                                                   'please see the log file for status.'))
-        #
+            print(edgeai_benchmark.utils.log_color('\nINFO', 'model compilation is in progress', 'please see the log file for status.'))
 
-        edgeai_benchmark.interfaces.run_benchmark_config(self.settings, self.work_dir, self.pipeline_configs)
+            os.makedirs(self.work_dir, exist_ok=True)
 
-        if self.params.compilation.capture_log:
-            # when capture_log, detailed log will only be in the log file - so print this info
-            print(edgeai_benchmark.utils.log_color('\nINFO', 'model compilation is in progress',
-                                                   'please see the log file for status.'))
+            settings_path = os.path.join(self.work_dir, 'settings.yaml')
+            with open(settings_path, "w") as fp:
+                yaml.safe_dump(edgeai_benchmark.utils.pretty_object(self.settings), fp)
+            #
+            configs_path = os.path.join(self.work_dir, 'configs.yaml')
+            with open(configs_path, "w") as fp:
+                yaml.safe_dump(edgeai_benchmark.utils.pretty_object(self.pipeline_configs), fp)
+            #
+
+            model_entries = [f"{list(self.pipeline_configs.keys())[0]} {self.run_dir}"]
+            edgeai_benchmark.interfaces.run_benchmark_script(self.settings, model_entries, settings_path, cmd_kwargs={'configs_path':configs_path})
+        else:
+            edgeai_benchmark.interfaces.run_benchmark_config(self.settings, self.work_dir, self.pipeline_configs)
         #
 
         # remove special characters
@@ -298,22 +313,22 @@ class ModelCompilation():
                         runtime_options=None,
                         detection_threshold=self.params.compilation.detection_threshold,
                         detection_top_k=self.params.compilation.detection_top_k,
-                        parallel_devices=None,   # not assuming availability cuda/gpu compatible tidl_tools for compilation
-                        parallel_processes=1,    # do the compilation in a new processes for more stability
+                        # parallel_devices=None,   # not assuming availability cuda/gpu compatible tidl_tools for compilation
+                        # parallel_processes=1,    # do the compilation in a new processes for more stability
                         dataset_loading=False,
                         save_output=self.params.compilation.save_output,
                         input_optimization=self.params.compilation.input_optimization,
                         tidl_offload=self.params.compilation.tidl_offload,
                         num_output_frames=self.params.compilation.num_output_frames,
-                        capture_log=self.params.compilation.capture_log
+                        # capture_log=self.params.compilation.capture_log
         )
         return settings
 
     # compiled_artifact and packaged artifact uses a short name using model_compilation_id
     # as tidl has limitations in path length
-    def _get_compiled_artifact_dir(self):
-        compiled_artifact_dir = os.path.join(self.work_dir, self.params.compilation.model_compilation_id)
-        return compiled_artifact_dir
+    def _get_run_dir(self):
+        run_dir = os.path.join(self.work_dir, self.params.compilation.model_compilation_id)
+        return run_dir
 
     # compiled_artifact and packaged artifact uses a short name using model_compilation_id
     # as tidl has limitations in path length
@@ -333,7 +348,7 @@ class ModelCompilation():
         return final_artifact_path
 
     def _has_logs(self):
-        log_dir = self._get_compiled_artifact_dir()
+        log_dir = self.run_dir
         if (log_dir is None) or (not os.path.exists(log_dir)):
             return False
         #

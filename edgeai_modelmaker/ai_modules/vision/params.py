@@ -126,7 +126,7 @@ def init_params(*args, **kwargs):
             save_output=True, # save inference outputs
             tidl_offload=True,
             input_optimization=True, # if this is set, the compilation tool will try to fold mean and scale inside the model.
-            capture_log=True # more detailed logs - capture logs from the underlying c library
+            capture_log=True, # more detailed logs - capture logs from the underlying c library - not required if we are doing subprocess.Popen
         ),
     )
     params = utils.ConfigDict(default_params, *args, **kwargs)
