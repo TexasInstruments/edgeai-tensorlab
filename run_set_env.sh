@@ -71,7 +71,7 @@ source run_set_target_machine.sh ${TARGET_SOC} ${TARGET_MACHINE}
 export TIDL_TOOLS_PATH=$(pwd)/tools/${TARGET_SOC}/tidl_tools
 echo "TIDL_TOOLS_PATH=${TIDL_TOOLS_PATH}"
 
-export LD_LIBRARY_PATH=$TIDL_TOOLS_PATH
+export LD_LIBRARY_PATH="${TIDL_TOOLS_PATH}:${LD_LIBRARY_PATH}"
 echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}"
 
 # make sure current directory is visible for python import
