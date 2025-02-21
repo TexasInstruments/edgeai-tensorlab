@@ -55,7 +55,8 @@ model = dict(
                             cls=0.5
                         )
                     )
-                )
+                ),
+                class_num=80,
         ),
         ),
         aux_head=dict(
