@@ -322,13 +322,13 @@ class ModelTraining:
         #    (self.params.training.input_cropsize,self.params.training.input_cropsize)
         #argv += ['--input-size', f'{input_size[0]}', f'{input_size[1]}']
         # import dynamically - force_import every time to avoid clashes with scripts in other repositories
-        train = utils.import_file_or_folder(
+        train_module = utils.import_file_or_folder(
             os.path.join(edgeai_torchvision_path,'references','classification','train.py'),
             __name__, force_import=True)
-        args = train.get_args_parser().parse_args(argv)
+        args = train_module.get_args_parser().parse_args(argv)
         args.quit_event = self.quit_event
         # launch the training
-        train.main(args)
+        train_module.main(args)
 
         return self.params
 

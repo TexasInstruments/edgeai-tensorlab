@@ -312,7 +312,7 @@ class ModelTraining:
             distributed_launch.main()
         else:
             # Non-cuda mode is currently supported only with non-distributed training
-            os.environ['CUDA_VISIBLE_DEVICES'] = "-1"
+            # os.environ['CUDA_VISIBLE_DEVICES'] = "-1"
             # sys.argv = [sys.argv[0], f'--gpus={self.params.training.num_gpus}', '--no-validate', f'{config_file}']
             sys.argv = [sys.argv[0], f'{config_file}']
             sys.path.insert(0, edgeai_mmpose_path)
