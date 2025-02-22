@@ -331,7 +331,7 @@ def dataset_split(dataset, split_factor, split_names, random_seed=1):
         dataset_splits[split_name]['annotations'].extend(annotations)
         image_count_split[split_name] += 1
     #
-    print('dataset split sizes', image_count_split)
+    print('INFO: ModelMaker - dataset split sizes', image_count_split)
     return dataset_splits
 
 

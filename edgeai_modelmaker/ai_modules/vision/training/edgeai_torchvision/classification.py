@@ -33,9 +33,11 @@ import os
 import sys
 import shutil
 import json
+import subprocess
 
 from ... import constants
 from ..... import utils
+import edgeai_benchmark
 
 this_dir_path = os.path.dirname(os.path.abspath(__file__))
 repo_parent_path = os.path.abspath(os.path.join(this_dir_path, '../../../../../../'))
@@ -247,9 +249,8 @@ class ModelTraining:
         params = utils.ConfigDict(params, *args, **kwargs)
         return params
 
-    def __init__(self, *args, quit_event=None, **kwargs):
+    def __init__(self, *args, **kwargs):
         self.params = self.init_params(*args, **kwargs)
-        self.quit_event = quit_event
 
         # num classes
         self.train_ann_file = f'{self.params.dataset.dataset_path}/annotations/{self.params.dataset.annotation_prefix}_train.json'
@@ -295,7 +296,19 @@ class ModelTraining:
         The actual training function. Move this to a worker process, if this function is called from a GUI.
         '''
         os.makedirs(self.params.training.training_path, exist_ok=True)
+        task_list = [{
+            'proc_name':f'{self.params.training.model_name}:train',
+            'proc_func':self._proc_func,
+            'proc_log':self.params.training.log_file_path,
+            'proc_error':[]
+        }]
+        task_entries = {self.params.training.model_name:task_list}
+        parallel_processes = (1 if self.params.compilation.capture_log else 0)
+        process_runner = edgeai_benchmark.utils.ProcessRunner(parallel_processes=parallel_processes)
+        process_runner.run(task_entries)
+        return self.params
 
+    def _proc_func(self):
         distributed = 1 if self.params.training.num_gpus > 1 else 0
         device = 'cuda' if self.params.training.num_gpus > 0 else 'cpu'
         # training params
@@ -318,26 +331,13 @@ class ModelTraining:
                 '--device', f'{device}',
                 #'--tensorboard-logger', 'True',
                 ]
-        #input_size = self.params.training.input_cropsize if isinstance(self.params.training.input_cropsize, (list,tuple)) else \
-        #    (self.params.training.input_cropsize,self.params.training.input_cropsize)
-        #argv += ['--input-size', f'{input_size[0]}', f'{input_size[1]}']
-        # import dynamically - force_import every time to avoid clashes with scripts in other repositories
-        train_module = utils.import_file_or_folder(
-            os.path.join(edgeai_torchvision_path,'references','classification','train.py'),
-            __name__, force_import=True)
-        args = train_module.get_args_parser().parse_args(argv)
-        args.quit_event = self.quit_event
-        # launch the training
-        train_module.main(args)
-
-        return self.params
-
-    def stop(self):
-        if self.quit_event is not None:
-            self.quit_event.set()
-            return True
+        run_script = os.path.join(edgeai_torchvision_path,'references','classification','train.py')
+        run_args = [str(arg) for arg in argv]
+        run_command = ['python3', run_script] + run_args
+        with open(self.params.training.log_file_path, 'a') as log_fp:
+            proc = subprocess.Popen(run_command, stdout=log_fp, stderr=log_fp)
         #
-        return False
+        return proc
 
     def get_params(self):
         return self.params

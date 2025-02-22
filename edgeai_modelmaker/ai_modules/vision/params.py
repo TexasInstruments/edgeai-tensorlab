@@ -43,7 +43,8 @@ def init_params(*args, **kwargs):
             project_path=None,
             project_run_path=None,
             task_type=None,
-            target_machine='evm',
+            # does not affect functionality - but setting to pc avoids (wrong) inference time capture during compilation
+            target_machine='pc', #'evm',
             target_device=None,
             # run_name can be any string, but there are some special cases:
             # {date-time} will be replaced with datetime.datetime.now().strftime("%Y%m%d-%H%M%S")

@@ -58,6 +58,7 @@ class ModelCompilation():
         self.params = self.init_params(*args, **kwargs)
         self.quit_event = quit_event
         self.artifact_ext = '.tar.gz'
+
         # prepare for model compilation
         self._prepare_pipeline_config()
 
@@ -147,6 +148,74 @@ class ModelCompilation():
         # clear the dirs
         shutil.rmtree(self.params.compilation.compilation_path, ignore_errors=True)
 
+    def run(self):
+        ''''
+        The actual compilation function.
+        '''
+        if self.params.compilation.capture_log:
+            # when capture_log, detailed log will only be in the log file - so print this info
+            print(edgeai_benchmark.utils.log_color('\nINFO', 'model compilation is in progress', 'please see the log file for status.'))
+
+            os.makedirs(self.work_dir, exist_ok=True)
+
+            settings_path = os.path.join(self.work_dir, 'settings.yaml')
+            with open(settings_path, "w") as fp:
+                yaml.safe_dump(edgeai_benchmark.utils.pretty_object(self.settings), fp)
+            #
+            configs_path = os.path.join(self.work_dir, 'configs.yaml')
+            with open(configs_path, "w") as fp:
+                yaml.safe_dump(edgeai_benchmark.utils.pretty_object(self.pipeline_configs), fp)
+            #
+
+            model_entries = [f"{list(self.pipeline_configs.keys())[0]} {self.run_dir}"]
+            edgeai_benchmark.interfaces.run_benchmark_script(self.settings, model_entries, settings_path, cmd_kwargs={'configs_path':configs_path})
+        else:
+            edgeai_benchmark.interfaces.run_benchmark_config(self.settings, self.work_dir, self.pipeline_configs)
+        #
+
+        # remove special characters
+        utils.cleanup_special_chars(self.params.compilation.log_file_path)
+
+        # package artifacts
+        edgeai_benchmark.interfaces.package_artifacts(self.settings, self.work_dir, out_dir=self.package_dir, custom_model=True)
+        
+        # make a symlink to the packaged artifacts
+        # internally we use a short path as tidl has file path length restrictions
+        # for use outside, create symlink to a more descriptive file
+        packaged_artifact_path = self._get_packaged_artifact_path()
+        utils.make_symlink(packaged_artifact_path, self.params.compilation.model_packaged_path)
+        
+        return self.params
+
+    def _get_benchmark_settings(self, model_selection, calib_dataset, val_dataset):
+        settings_file = edgeai_benchmark.get_settings_file(target_machine=self.params.common.target_machine, with_model_import=True)
+
+        # do not let the calibration_frames exceed calibration_dataset size
+        calibration_frames = min(self.params.compilation.calibration_frames, len(calib_dataset))
+
+        settings = edgeai_benchmark.config_settings.ConfigSettings(
+                        settings_file,
+                        target_device=self.params.common.target_device,
+                        model_selection=model_selection,
+                        modelartifacts_path=self.params.compilation.compilation_path,
+                        tensor_bits=self.params.compilation.tensor_bits,
+                        calibration_frames=calibration_frames,
+                        calibration_iterations=self.params.compilation.calibration_iterations,
+                        num_frames=self.params.compilation.num_frames,
+                        runtime_options=None,
+                        detection_threshold=self.params.compilation.detection_threshold,
+                        detection_top_k=self.params.compilation.detection_top_k,
+                        # parallel_devices=None,   # not assuming availability cuda/gpu compatible tidl_tools for compilation
+                        # parallel_processes=1,    # do the compilation in a new processes for more stability
+                        dataset_loading=False,
+                        save_output=self.params.compilation.save_output,
+                        input_optimization=self.params.compilation.input_optimization,
+                        tidl_offload=self.params.compilation.tidl_offload,
+                        num_output_frames=self.params.compilation.num_output_frames,
+                        # capture_log=self.params.compilation.capture_log
+        )
+        return settings
+
     def _prepare_pipeline_config(self):
         '''
         prepare for model compilation
@@ -185,8 +254,7 @@ class ModelCompilation():
         )
         val_dataset.kwargs['type'] = dataset_loader.__name__ # insert type to be able to reconstruct it back from yaml file
 
-        self.settings_file = edgeai_benchmark.get_settings_file(target_machine=self.params.common.target_machine, with_model_import=True)
-        self.settings = self._get_settings(self.params.compilation.model_compilation_id, calib_dataset, val_dataset)
+        self.settings = self._get_benchmark_settings(self.params.compilation.model_compilation_id, calib_dataset, val_dataset)
         self.work_dir, self.package_dir = self._get_base_dirs()
         self.run_dir = self._get_run_dir()
 
@@ -256,73 +324,6 @@ class ModelCompilation():
             #
         #
         self.pipeline_configs = pipeline_configs
-
-    def run(self):
-        ''''
-        The actual compilation function. Move this to a worker process, if this function is called from a GUI.
-        '''
-
-        if self.params.compilation.capture_log:
-            # when capture_log, detailed log will only be in the log file - so print this info
-            print(edgeai_benchmark.utils.log_color('\nINFO', 'model compilation is in progress', 'please see the log file for status.'))
-
-            os.makedirs(self.work_dir, exist_ok=True)
-
-            settings_path = os.path.join(self.work_dir, 'settings.yaml')
-            with open(settings_path, "w") as fp:
-                yaml.safe_dump(edgeai_benchmark.utils.pretty_object(self.settings), fp)
-            #
-            configs_path = os.path.join(self.work_dir, 'configs.yaml')
-            with open(configs_path, "w") as fp:
-                yaml.safe_dump(edgeai_benchmark.utils.pretty_object(self.pipeline_configs), fp)
-            #
-
-            model_entries = [f"{list(self.pipeline_configs.keys())[0]} {self.run_dir}"]
-            edgeai_benchmark.interfaces.run_benchmark_script(self.settings, model_entries, settings_path, cmd_kwargs={'configs_path':configs_path})
-        else:
-            edgeai_benchmark.interfaces.run_benchmark_config(self.settings, self.work_dir, self.pipeline_configs)
-        #
-
-        # remove special characters
-        utils.cleanup_special_chars(self.params.compilation.log_file_path)
-
-        # package artifacts
-        edgeai_benchmark.interfaces.package_artifacts(self.settings, self.work_dir, out_dir=self.package_dir, custom_model=True)
-        
-        # make a symlink to the packaged artifacts
-        # internally we use a short path as tidl has file path length restrictions
-        # for use outside, create symlink to a more descriptive file
-        packaged_artifact_path = self._get_packaged_artifact_path()
-        utils.make_symlink(packaged_artifact_path, self.params.compilation.model_packaged_path)
-        
-        return self.params
-
-    def _get_settings(self, model_selection, calib_dataset, val_dataset):
-        # do not let the calibration_frames exceed calibration_dataset size
-        calibration_frames = min(self.params.compilation.calibration_frames, len(calib_dataset))
-
-        settings = edgeai_benchmark.config_settings.ConfigSettings(
-                        self.settings_file,
-                        target_device=self.params.common.target_device,
-                        model_selection=model_selection,
-                        modelartifacts_path=self.params.compilation.compilation_path,
-                        tensor_bits=self.params.compilation.tensor_bits,
-                        calibration_frames=calibration_frames,
-                        calibration_iterations=self.params.compilation.calibration_iterations,
-                        num_frames=self.params.compilation.num_frames,
-                        runtime_options=None,
-                        detection_threshold=self.params.compilation.detection_threshold,
-                        detection_top_k=self.params.compilation.detection_top_k,
-                        # parallel_devices=None,   # not assuming availability cuda/gpu compatible tidl_tools for compilation
-                        # parallel_processes=1,    # do the compilation in a new processes for more stability
-                        dataset_loading=False,
-                        save_output=self.params.compilation.save_output,
-                        input_optimization=self.params.compilation.input_optimization,
-                        tidl_offload=self.params.compilation.tidl_offload,
-                        num_output_frames=self.params.compilation.num_output_frames,
-                        # capture_log=self.params.compilation.capture_log
-        )
-        return settings
 
     # compiled_artifact and packaged artifact uses a short name using model_compilation_id
     # as tidl has limitations in path length

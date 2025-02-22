@@ -193,11 +193,11 @@ class DatasetHandling:
             #
         #
         if self.params.dataset.max_num_files is not None:
-            print(f'max_num_files is set to: {self.params.dataset.max_num_files}')
-            print(f'dataset split sizes are limited to:', \
+            print(f'INFO: ModelMaker - max_num_files is set to: {self.params.dataset.max_num_files}')
+            print(f'INFO: ModelMaker - dataset split sizes are limited to:', \
                   {split_name: len(dataset_split['images']) for split_name, dataset_split in dataset_splits.items()})
         #
-        print('dataset loading OK')
+        print('INFO: ModelMaker dataset loading OK')
         return True
 
     def get_max_num_fies(self):
