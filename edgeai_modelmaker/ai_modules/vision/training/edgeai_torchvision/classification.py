@@ -297,7 +297,7 @@ class ModelTraining:
         '''
         os.makedirs(self.params.training.training_path, exist_ok=True)
         task_list = [{
-            'proc_name':f'{self.params.training.model_name}:train',
+            'proc_name':f'{self.params.training.model_name}:training',
             'proc_func':self._proc_func,
             'proc_log':self.params.training.log_file_path,
             'proc_error':[]

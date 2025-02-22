@@ -197,7 +197,7 @@ class DatasetHandling:
             print(f'INFO: ModelMaker - dataset split sizes are limited to:', \
                   {split_name: len(dataset_split['images']) for split_name, dataset_split in dataset_splits.items()})
         #
-        print('INFO: ModelMaker dataset loading OK')
+        print('INFO: ModelMaker - dataset loading OK')
         return True
 
     def get_max_num_fies(self):
