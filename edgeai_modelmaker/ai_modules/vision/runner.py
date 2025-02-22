@@ -86,7 +86,11 @@ class ModelRunner():
         if self.params.common.target_device in self.params.training.target_devices:
             performance_infer_time_ms_list = {k:v['performance_infer_time_ms'] for k,v in self.params.training.target_devices.items()}
             print('---------------------------------------------------------------------')
-            print(f'INFO: ModelMaker - run name: {self.params.common.run_name}')
+            print(f'INFO: ModelMaker - '
+                    f'task_type:{self.params.common.task_type} '
+                    f'model_name:{self.params.training.model_name} '
+                    f'dataset_name:{self.params.dataset.dataset_name} '                    
+                    f'run_name:{self.params.common.run_name}')
             print(f'- Model: {self.params.training.model_name}')
             print(f'- TargetDevices & Estimated Inference Times (ms): {performance_infer_time_ms_list}')
             print(f'- This model can be compiled for the above device(s).')

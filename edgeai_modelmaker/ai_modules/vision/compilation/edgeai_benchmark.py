@@ -216,7 +216,7 @@ class ModelCompilation():
                         input_optimization=self.params.compilation.input_optimization,
                         tidl_offload=self.params.compilation.tidl_offload,
                         num_output_frames=self.params.compilation.num_output_frames,
-                        capture_log=self.params.compilation.capture_log
+                        # capture_log=self.params.compilation.capture_log
         )
         return settings
 

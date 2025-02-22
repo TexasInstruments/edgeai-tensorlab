@@ -390,9 +390,8 @@ class ModelTraining:
         params = utils.ConfigDict(params, *args, **kwargs)
         return params
 
-    def __init__(self, *args, quit_event=None, **kwargs):
+    def __init__(self, *args, **kwargs):
         self.params = self.init_params(*args, **kwargs)
-        self.quit_event = quit_event
 
         # num_classes
         self.train_ann_file = f'{self.params.dataset.dataset_path}/annotations/{self.params.dataset.annotation_prefix}_train.json'
@@ -576,13 +575,6 @@ class ModelTraining:
             proc = subprocess.Popen(run_command, stdout=log_fp, stderr=log_fp)
         #
         return proc
-
-    def stop(self):
-        if self.quit_event is not None:
-            self.quit_event.set()
-            return True
-        #
-        return False
 
     def get_params(self):
         return self.params
