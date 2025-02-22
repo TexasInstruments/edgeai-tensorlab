@@ -98,7 +98,7 @@ if [[ $TIDL_TOOLS_RELEASE_NAME == "latest" || $TIDL_TOOLS_RELEASE_NAME == "r10.1
   pip3 uninstall --yes pillow
   pip3 install --no-input -U --force-reinstall pillow-simd
   pip3 install --no-input onnx==1.14.0 protobuf
-  pip3 install --no-input -r ./requirements_pc.txt
+  pip3 install --no-input -r ./requirements/requirements_pc.txt
   pip3 install --no-input onnx_graphsurgeon==0.3.26 --extra-index-url https://pypi.ngc.nvidia.com
 
   echo "--------------------------------------------------------------------------------------------------------------"
@@ -133,7 +133,7 @@ elif [[ $TIDL_TOOLS_RELEASE_NAME == "stable" || $TIDL_TOOLS_RELEASE_NAME == "r10
   pip3 uninstall --yes pillow
   pip3 install --no-input -U --force-reinstall pillow-simd
   pip3 install --no-input protobuf==3.20.2 onnx==1.13.0
-  pip3 install --no-input -r ./requirements_pc.txt
+  pip3 install --no-input -r ./requirements/requirements_pc.txt
   pip3 install --no-input onnx_graphsurgeon==0.3.26 --extra-index-url https://pypi.ngc.nvidia.com
 
   echo "--------------------------------------------------------------------------------------------------------------"
@@ -168,7 +168,7 @@ elif [[ $TIDL_TOOLS_RELEASE_NAME == "r9.2" ]]; then
   pip3 uninstall --yes pillow
   pip3 install --no-input -U --force-reinstall pillow-simd
   pip3 install --no-input protobuf==3.20.2 onnx==1.13.0
-  pip3 install --no-input -r ./requirements_pc.txt
+  pip3 install --no-input -r ./requirements/requirements_pc.txt
   pip3 install --no-input onnx_graphsurgeon==0.3.26 --extra-index-url https://pypi.ngc.nvidia.com
 
   echo "--------------------------------------------------------------------------------------------------------------"
@@ -248,7 +248,7 @@ elif  [[ $TIDL_TOOLS_RELEASE_NAME == "test9.0.1" ]]; then
   # there as issue with installing pillow-simd through requirements - force it here
   pip3 uninstall --yes pillow
   pip3 install --no-input -U --force-reinstall pillow-simd
-  pip3 install --no-input -r ./requirements_pc.txt
+  pip3 install --no-input -r ./requirements/requirements_pc.txt
   pip3 install --no-input onnx_graphsurgeon==0.3.26 --extra-index-url https://pypi.ngc.nvidia.com
 
   # installers for internal release
@@ -293,7 +293,7 @@ elif [[ $TIDL_TOOLS_RELEASE_NAME == "r9.0" ]]; then
   # there as issue with installing pillow-simd through requirements - force it here
   pip3 uninstall --yes pillow
   pip3 install --no-input -U --force-reinstall pillow-simd
-  pip3 install --no-input -r ./requirements_pc.txt
+  pip3 install --no-input -r ./requirements/requirements_pc.txt
   pip3 install --no-input onnx_graphsurgeon==0.3.26 --extra-index-url https://pypi.ngc.nvidia.com
 
   # installers for 9.0 release

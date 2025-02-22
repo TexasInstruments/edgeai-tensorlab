@@ -66,7 +66,7 @@ def get_version():
 def main():
     version_str = get_version()
 
-    requirements_file = os.path.realpath(os.path.join(os.path.dirname(__file__), 'requirements.txt'))
+    requirements_file = os.path.realpath(os.path.join(os.path.dirname(__file__), 'requirements', 'requirements.txt'))
     with open(requirements_file) as fp:
         requirements = fp.read().splitlines()
 

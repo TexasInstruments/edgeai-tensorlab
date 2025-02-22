@@ -28,32 +28,13 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-##################################################################
-# Generate confg yaml files and write into the same location as the the models
-# (i.e. inside the edgeai-modelzoo or wherever the model_path is pointing to)
-# It will also write a configs.yaml at the location of settings.models_path
-# that lists all such config yaml files.
-# This configs.yaml file or individial config yaml files can be given to
-# run_benchmrks_pc.sh OR run_benchmarks_parallel_pc.sh OR directly to scripts/benchmark_modelzoo.py
-# to import or infer the the model using the parameters specified in that config file.
+######################################################################
+pip3 install --no-input -r ./requirements/requirements_evm.txt
 
-##################################################################
-# target_device - use one of: TDA4VM AM62A AM68A AM69A AM67A AM62
-TARGET_SOC=${1:-AM68A}
+######################################################################
+echo "--------------------------------------------------------------------------------------------------------------"
+echo 'Installing local module using setup.py...'
+echo "--------------------------------------------------------------------------------------------------------------"
+python3 setup.py develop
 
-
-##################################################################
-# set environment variables
-# also point to the right type of artifacts (pc or evm)
-source ./run_set_env.sh ${TARGET_SOC} ${TARGET_MACHINE}
-
-##################################################################
-# specify one of the following settings - options can be changed inside the yaml
-#settings_file=settings_infer_on_evm.yaml
-#settings_file=settings_import_on_pc.yaml
-settings_file=settings_import_on_pc.yaml
-
-echo "==================================================================="
-# generate the final report with results for all the artifacts generated
-python3 ./scripts/generate_configs.py ${settings_file} --target_device ${TARGET_SOC} ${@:2}
-echo "-------------------------------------------------------------------"
+echo 'Completed installation.'

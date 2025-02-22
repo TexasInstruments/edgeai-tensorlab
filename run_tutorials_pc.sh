@@ -73,7 +73,7 @@ pip3 install jupyter
 ##################################################################
 # set environment variables
 # also point to the right type of artifacts (pc or evm)
-source run_set_env.sh ${TARGET_SOC} ${TARGET_MACHINE}
+source ./run_set_env.sh ${TARGET_SOC} ${TARGET_MACHINE}
 
 # run the script
 jupyter notebook --ip=localhost

@@ -85,7 +85,7 @@ done
 
 # set environment variables
 # also point to the right type of artifacts (pc or evm)
-source run_set_env.sh ${TARGET_SOC} ${TARGET_MACHINE}
+source ./run_set_env.sh ${TARGET_SOC} ${TARGET_MACHINE}
 
 # specify one of the following - additional options can be changed inside the yaml
 # SETTINGS=settings_infer_on_evm.yaml

@@ -1,4 +1,4 @@
--r requirements.txt
+-r requirements/requirements.txt
 opencv-python-headless
 onnxsim==0.4.35
 numpy==1.23.0

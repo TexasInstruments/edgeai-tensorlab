@@ -60,11 +60,6 @@ EOF
     esac
 done
 
-##################################################################
-# tvmdlr artifacts are different for pc and evm device
-# point to the right artifact before this script executes
-source run_set_target_machine.sh ${TARGET_SOC} ${TARGET_MACHINE}
-
 #################################################################################
 # setup the environment
 # source run_setupenv_pc.sh
@@ -98,3 +93,37 @@ if [ ${CPUINFO_NUM_AVX_CORES} -eq 0 ]; then
 else
   export TIDL_RT_AVX_REF="1"
 fi
+
+
+################################################################################
+# tvmdlr artifacts are different for pc and evm device
+# point to the right artifact before this script executes
+
+# "evm" or "pc"
+target_machine=${TARGET_MACHINE}
+if [ "$artifacts_base" = "" ]; then
+  artifacts_base="./work_dirs/modelartifacts/${TARGET_SOC}/8bits"
+fi
+artifacts_folders=$(find "${artifacts_base}/" -maxdepth 1 |grep "_tvmdlr_")
+cur_dir=$(pwd)
+
+declare -a artifact_files=("deploy_lib.so" "deploy_graph.json" "deploy_params.params")
+
+for artifact_folder in ${artifacts_folders}
+do
+  echo "Entering: ${artifact_folder}"
+  cd ${artifact_folder}/"artifacts"
+  for artifact_file in "${artifact_files[@]}"
+  do
+    if [[ -f ${artifact_file}.${target_machine} ]]; then
+      echo "creating symbolic link to ${artifact_file}.${target_machine}"
+      ln -snf ${artifact_file}.${target_machine} ${artifact_file}
+    fi
+  done
+  cd ${cur_dir}
+done
+
+# TIDL_ARTIFACT_SYMLINKS is used to indicate that the symlinks have been set to evm
+# affects only artifacts created by/for TVM/DLR
+export TIDL_ARTIFACT_SYMLINKS=1
+################################################################################
