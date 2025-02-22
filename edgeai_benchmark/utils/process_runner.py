@@ -33,12 +33,12 @@ from .parallel_process import *
 
 
 class ProcessRunner():
-    def __init__(self, parallel_processes, overall_timeout=None, instance_timeout=None):
+    def __init__(self, parallel_processes, desc='TASKS', overall_timeout=None, instance_timeout=None):
         if parallel_processes:
-            self.process_runner = ParallelProcess(parallel_processes=parallel_processes,
+            self.process_runner = ParallelProcess(parallel_processes=parallel_processes, desc=desc,
                 overall_timeout=overall_timeout, instance_timeout=instance_timeout)
         else:
-            self.process_runner = SequentialProcess(parallel_processes=parallel_processes,
+            self.process_runner = SequentialProcess(parallel_processes=parallel_processes, desc=desc,
                 overall_timeout=overall_timeout, instance_timeout=instance_timeout)
 
     def run(self, task_entries):

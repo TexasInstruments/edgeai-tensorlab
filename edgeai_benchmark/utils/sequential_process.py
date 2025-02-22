@@ -66,7 +66,7 @@ class SequentialProcess:
         self.num_queued_tasks = len(task_entries)
 
         self.start_time = time.time()
-        desc = self.desc + f' STATUS - TOTAL={self.num_queued_tasks}, NUM_RUNNING={0}'
+        desc = self.desc + f' TOTAL={self.num_queued_tasks}, NUM_RUNNING={0}'
         if self.tqdm_obj is None:
             self.tqdm_obj = tqdm.tqdm(total=self.num_queued_tasks, position=0, desc=desc)
         #
@@ -79,7 +79,7 @@ class SequentialProcess:
 
                 running_tasks = [proc_name]
                 num_running = len(running_tasks)
-                desc = self.desc + f' STATUS - TOTAL={self.num_queued_tasks}, NUM_RUNNING={num_running}'
+                desc = self.desc + f' TOTAL={self.num_queued_tasks}, NUM_RUNNING={num_running}'
                 self.tqdm_obj.set_description(desc)
                 self.tqdm_obj.set_postfix(postfix=dict(RUNNING=running_tasks, COMPLETED=completed_tasks))
 

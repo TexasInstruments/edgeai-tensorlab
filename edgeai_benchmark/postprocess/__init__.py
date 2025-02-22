@@ -62,8 +62,11 @@ class PostProcessTransforms(utils.TransformsCompose):
     # post process transforms for detection
     ###############################################################
     def get_transform_detection_base(self, formatter=None, resize_with_pad=False, keypoint=False, object6dpose=False, normalized_detections=True,
-                                     shuffle_indices=None, squeeze_axis=0, reshape_list=None, ignore_index=None, logits_bbox_to_bbox_ls=False):
-        
+                                     shuffle_indices=None, squeeze_axis=0, reshape_list=None, ignore_index=None, logits_bbox_to_bbox_ls=False,
+                                     detection_threshold=None):
+
+        detection_threshold = detection_threshold or self.settings.detection_threshold
+
         postprocess_detection = []
         if logits_bbox_to_bbox_ls:
             postprocess_detection += [LogitsToLabelScore()]
@@ -90,9 +93,9 @@ class PostProcessTransforms(utils.TransformsCompose):
         #
         postprocess_detection += [DetectionResizePad(resize_with_pad=resize_with_pad, keypoint=keypoint, object6dpose=object6dpose,
                                                     normalized_detections=normalized_detections)]
-        if self.settings.detection_threshold is not None:
-            postprocess_detection += [DetectionFilter(detection_threshold=self.settings.detection_threshold,
-                                                                  detection_keep_top_k=self.settings.detection_keep_top_k)]
+        if detection_threshold is not None:
+            postprocess_detection += [DetectionFilter(detection_threshold=detection_threshold,
+                                                      detection_keep_top_k=self.settings.detection_keep_top_k)]
         #
         if keypoint:
             postprocess_detection += [BboxKeypointsConfReformat()]
@@ -108,8 +111,8 @@ class PostProcessTransforms(utils.TransformsCompose):
                 postprocess_detection += [DetectionImageSave(self.settings.num_output_frames)]
         #
         transforms = PostProcessTransforms(None, postprocess_detection,
-                                           detection_threshold=self.settings.detection_threshold,
-                                           save_output=self.settings.save_output, formatter=formatter, resize_with_pad=resize_with_pad,
+                                           detection_threshold=detection_threshold,
+                                           formatter=formatter, resize_with_pad=resize_with_pad,
                                            normalized_detections=normalized_detections, shuffle_indices=shuffle_indices,
                                            squeeze_axis=squeeze_axis, ignore_index=ignore_index, logits_bbox_to_bbox_ls=logits_bbox_to_bbox_ls)
         return transforms
