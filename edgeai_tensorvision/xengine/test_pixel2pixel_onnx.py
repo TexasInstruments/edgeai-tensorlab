@@ -69,6 +69,7 @@ def get_config():
     args.model_config.input_channels = None                  # number of input channels
     args.n_classes = None                       # number of classes (for segmentation)
 
+    args.log_file = None                                # log file name
     args.logger = None                          # logger stream to output into
 
     args.prediction_type = 'flow'               # the network is used to predict flow or depth or sceneflow
@@ -182,7 +183,7 @@ def main(args):
         os.makedirs(save_path)
 
     #################################################
-    if args.logger is None:
+    if args.log_file:
         log_file = os.path.splitext(os.path.basename(__file__))[0] + '.log'
         args.logger = xnn.utils.TeeLogger(filename=os.path.join(save_path,log_file))
     transforms = get_transforms(args)

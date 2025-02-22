@@ -83,6 +83,7 @@ def get_config():
     args.date = None                                    # date to add to save path. if this is None, current date will be added.
 
     args.workers = 12                                   # number of data loading workers (default: 8)
+    args.log_file = None                                # log file name
     args.logger = None                                  # logger stream to output into
 
     args.epochs = 150                                   # number of total epochs to run: recommended 100 or 150
@@ -205,7 +206,7 @@ def main(args):
         print("cmd:", cmd)    
         os.system(cmd)
     #################################################
-    if args.logger is None:
+    if args.log_file:
         log_file = os.path.splitext(os.path.basename(__file__))[0] + '.log'
         args.logger = xnn.utils.TeeLogger(filename=os.path.join(save_path,log_file))
 
@@ -328,7 +329,7 @@ def main(args):
     #################################################
     if args.print_model:
         print(model)
-    else:
+    elif args.logger:
         args.logger.debug(str(model))
 
     #################################################
@@ -612,7 +613,7 @@ def train(args, train_loader, model, criterion, optimizer, epoch, grad_scaler):
     print('{}'.format(Fore.RESET), end='')
 
     ##########################
-    if args.quantize:
+    if args.quantize and args.logger:
         def debug_format(v):
             return ('{:.3f}'.format(v) if v is not None else 'None')
         #

@@ -84,6 +84,7 @@ def get_config():
     args.model_config.num_decoders = None               # number of decoders to use. [options: 0, 1, None]
     args.sky_dir = False
 
+    args.log_file = None                                # log file name
     args.logger = None                          # logger stream to output into
 
     args.split_file = None                      # train_val split file
@@ -220,7 +221,7 @@ def main(args):
         os.makedirs(save_path)
 
     #################################################
-    if args.logger is None:
+    if args.log_file:
         log_file = os.path.splitext(os.path.basename(__file__))[0] + '.log'
         args.logger = xnn.utils.TeeLogger(filename=os.path.join(save_path,log_file))
 

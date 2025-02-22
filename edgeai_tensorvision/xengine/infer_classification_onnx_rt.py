@@ -76,6 +76,7 @@ def get_config():
     args.image_mean = (123.675, 116.28, 103.53)         # image mean for input image normalization')
     args.image_scale = (0.017125, 0.017507, 0.017429)   # image scaling/mult for input iamge normalization')
 
+    args.log_file = None                                # log file name
     args.logger = None                                  # logger stream to output into
 
     args.data_augument = 'inception'                    # data augumentation method, choices=['inception','resize','adaptive_resize']
@@ -127,7 +128,7 @@ def main(args):
     #
 
     #################################################
-    if args.logger is None:
+    if args.log_file:
         log_file = os.path.splitext(os.path.basename(__file__))[0] + '.log'
         args.logger = xnn.utils.TeeLogger(filename=os.path.join(save_path,log_file))
 

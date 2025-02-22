@@ -100,6 +100,7 @@ def get_config():
     args.date = None                                    # date to add to save path. if this is None, current date will be added.
     args.output_dir = None
 
+    args.log_file = None                                # log file name
     args.logger = None                                  # logger stream to output into
     args.show_gpu_usage = False                         # Shows gpu usage at the begining of each training epoch
     args.device = None
@@ -277,8 +278,8 @@ def main(args):
         os.system(cmd)
 
     #################################################
-    # if args.logger is None:
-    #     args.logger = xnn.utils.TeeLogger(filename=os.path.join(save_path,'run.log'))
+    if args.log_file:
+        args.logger = xnn.utils.TeeLogger(filename=os.path.join(save_path,args.log_file))
 
     #################################################
     # global settings. rand seeds for repeatability
@@ -451,10 +452,9 @@ def main(args):
     if args.print_model:
         print(model)
         print('\n')
-    else:
-        # args.logger.debug(str(model))
-        # args.logger.debug('\n')
-        pass
+    elif args.logger is not None:
+        args.logger.debug(str(model))
+        args.logger.debug('\n')
 
     #################################################
     if (not args.run_soon):
@@ -837,16 +837,16 @@ def train(args, train_dataset, train_loader, model, optimizer, epoch, train_writ
     output_metric = float(avg_metric[args.pivot_task_idx])
 
     ##########################
-    # if args.quantize:
-    #     def debug_format(v):
-    #         return ('{:.3f}'.format(v) if v is not None else 'None')
-    #     #
-    #     clips_act = [m.get_clips_act()[1] for n,m in model.named_modules() if isinstance(m,xnn.layers.PAct2)]
-    #     if len(clips_act) > 0:
-    #         args.logger.debug('\nclips_act : ' + ' '.join(map(debug_format, clips_act)))
-    #         args.logger.debug('')
-    #     #
-    # #
+    if args.quantize and args.logger is not None:
+        def debug_format(v):
+            return ('{:.3f}'.format(v) if v is not None else 'None')
+        #
+        clips_act = [m.get_clips_act()[1] for n,m in model.named_modules() if isinstance(m,xnn.layers.PAct2)]
+        if len(clips_act) > 0:
+            args.logger.debug('\nclips_act : ' + ' '.join(map(debug_format, clips_act)))
+            args.logger.debug('')
+        #
+    #
     return output_metric, output_name
 
 
@@ -946,11 +946,11 @@ def validate(args, val_dataset, val_loader, model, epoch, val_writer, descriptio
 
 ###################################################################
 def close(args):
-    # if args.logger is not None:
-    #     args.logger.close()
-    #     del args.logger
-    #     args.logger = None
-    # #
+    if args.logger is not None:
+        args.logger.close()
+        del args.logger
+        args.logger = None
+    #
     args.best_metric = -1
 #
 
