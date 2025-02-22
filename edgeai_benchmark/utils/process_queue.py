@@ -55,9 +55,17 @@ class ProcessWtihQueue(mp_context.Process):
         self.result_queue = result_queue
 
     def wait(self, input=None, timeout=None):
+        try:
+            self.join(timeout=timeout)
+        except multiprocessing.TimeoutError:
+            if self.result_queue.empty():
+                raise multiprocessing.TimeoutError
+            #
+        except:
+            raise RuntimeError(f'Error during wait() in {__file__}')
+
         # join() doesn't seem to be raising TimeoutError, so check the exitcode
         # when timeout occurs in join(), exitcode will have None
-        self.join(timeout=timeout)
         if self.exitcode is None:
             raise multiprocessing.TimeoutError
         #
@@ -66,8 +74,12 @@ class ProcessWtihQueue(mp_context.Process):
     def communicate(self, input=None, timeout=None):
         try:
             self.wait(timeout=timeout)
-        except multiprocessing.TimeoutError and self.result_queue.empty():
-            raise multiprocessing.TimeoutError
+        except multiprocessing.TimeoutError:
+            if self.result_queue.empty():
+                raise multiprocessing.TimeoutError
+            #
+        except:
+            raise RuntimeError(f'Error during communicate() in {__file__}')
         #
         result, exception_e = self.result_queue.get()
         self.join()
