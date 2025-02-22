@@ -35,9 +35,10 @@ import shutil
 import json
 import subprocess
 
+import edgeai_benchmark
 from ... import constants
 from ..... import utils
-import edgeai_benchmark
+
 
 this_dir_path = os.path.dirname(os.path.abspath(__file__))
 repo_parent_path = os.path.abspath(os.path.join(this_dir_path, '../../../../../../'))
@@ -297,7 +298,7 @@ class ModelTraining:
         '''
         os.makedirs(self.params.training.training_path, exist_ok=True)
         task_list = [{
-            'proc_name':f'{self.params.training.model_name}:training',
+            'proc_name':f'{self.params.common.run_name}:training',
             'proc_func':self._proc_func,
             'proc_log':self.params.training.log_file_path,
             'proc_error':[]

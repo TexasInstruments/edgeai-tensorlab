@@ -34,8 +34,10 @@ import sys
 import shutil
 import sys
 import json
-from torch.distributed import launch as distributed_launch
+from torch.distributed import run as distributed_run
+import subprocess
 
+import edgeai_benchmark
 from ... import constants
 from ..... import utils
 
@@ -433,10 +435,27 @@ class ModelTraining:
         The actual training function. Move this to a worker process, if this function is called from a GUI.
         '''
         os.makedirs(self.params.training.training_path, exist_ok=True)
+        task_list = [{
+            'proc_name':f'{self.params.common.run_name}:training',
+            'proc_func':self._proc_func,
+            'proc_log':self.params.training.log_file_path,
+            'proc_error':[]
+        }]
+        task_entries = {self.params.training.model_name:task_list}
+        parallel_processes = (1 if self.params.compilation.capture_log else 0)
+        process_runner = edgeai_benchmark.utils.ProcessRunner(parallel_processes=parallel_processes)
+        process_runner.run(task_entries)
+        return self.params
+
+    def _proc_func(self, **kwargs):
+        ''''
+        The actual training function. Move this to a worker process, if this function is called from a GUI.
+        '''
+        os.makedirs(self.params.training.training_path, exist_ok=True)
         # training params
-        dataset_style = 'coco' #'voc' #'coco'
-        input_size = self.params.training.input_cropsize if isinstance(self.params.training.input_cropsize, (list,tuple)) else \
-            (self.params.training.input_cropsize,self.params.training.input_cropsize)
+        # dataset_style = 'coco' #'voc' #'coco'
+        # input_size = self.params.training.input_cropsize if isinstance(self.params.training.input_cropsize, (list,tuple)) else \
+        #     (self.params.training.input_cropsize,self.params.training.input_cropsize)
         base_config_path = os.path.join(edgeai_mmdetection_path, 'configs_edgeailite', self.params.training.model_architecture, self.params.training.model_training_id, )
         classes = tuple(self.object_categories)
         config_file = os.path.join(self.params.training.training_path, f'{self.params.training.model_name}.py')
@@ -533,29 +552,30 @@ class ModelTraining:
 
         # invoke the distributed training
         if self.params.training.distributed and self.params.training.num_gpus > 0:
-            train_module_path = f'{edgeai_mmdetection_path}/tools/train.py'
-            sys.argv = [sys.argv[0],
-                        f'--nproc_per_node={self.params.training.num_gpus}',
-                        f'--nnodes=1',
-                        f'--master_port={self.params.training.training_master_port}',
-                        train_module_path,
-                        f'--launcher=pytorch',
-                        config_file
-                        ]
-            # launch the training
-            distributed_launch.main()
+            # launcher for the training
+            run_launcher = distributed_run.__file__
+            run_script = os.path.join(edgeai_mmdetection_tools_path,'train.py')
+            argv = [f'--nproc_per_node={self.params.training.num_gpus}',
+                    f'--nnodes=1',
+                    f'--master_port={self.params.training.training_master_port}',
+                    train_module_path,
+                    f'--launcher=pytorch',
+                    config_file
+                    ]
+            run_args = [str(arg) for arg in argv]
+            run_command = ['python3', run_launcher, run_script] + run_args
         else:
             # Non-cuda mode is currently supported only with non-distributed training
             # os.environ['CUDA_VISIBLE_DEVICES'] = "-1"
-            # sys.argv = [sys.argv[0], f'--gpus={self.params.training.num_gpus}', '--no-validate', f'{config_file}']
-            sys.argv = [sys.argv[0], f'{config_file}']
-            # import dynamically - force_import every time to avoid clashes with scripts in other repositories
-            train_module = utils.import_file_or_folder(os.path.join(edgeai_mmdetection_tools_path,'train'),
-                __name__, force_import=True)
-            args = train_module.parse_args()
-            train_module.main(args)
+            run_script = os.path.join(edgeai_mmdetection_tools_path,'train.py')
+            argv = [f'{config_file}']
+            run_args = [str(arg) for arg in argv]
+            run_command = ['python3', run_script] + run_args
         #
-        return self.params
+        with open(self.params.training.log_file_path, 'a') as log_fp:
+            proc = subprocess.Popen(run_command, stdout=log_fp, stderr=log_fp)
+        #
+        return proc
 
     def stop(self):
         if self.quit_event is not None:
