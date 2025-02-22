@@ -172,9 +172,9 @@ def main(args=None):
         # if 'runner_type' is set in the cfg
         runner = RUNNERS.build(cfg)
 
-    log_file = runner.logger.log_file
-    log_file_link = osp.join(cfg.work_dir, f'run.log')
-    xnn.utils.make_symlink(log_file, log_file_link)
+    # log_file = runner.logger.log_file
+    # log_file_link = osp.join(cfg.work_dir, f'run.log')
+    # xnn.utils.make_symlink(log_file, log_file_link)
 
     model_surgery = args.model_surgery
     if args.model_surgery is None:
