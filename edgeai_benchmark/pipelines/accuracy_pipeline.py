@@ -192,11 +192,13 @@ class AccuracyPipeline(BasePipeline):
         is_ok = session.start_infer()
         assert is_ok, utils.log_color('\nERROR', f'start_infer() did not succeed for:', run_dir_base)
 
-        invoke_time = 0.0
-        core_time = 0.0
-        subgraph_time = 0.0
-        ddr_transfer = 0.0
-        num_frames_ddr = 0
+        if self.settings.target_machine == constants.TARGET_MACHINE_EVM:
+            invoke_time = 0.0
+            core_time = 0.0
+            subgraph_time = 0.0
+            ddr_transfer = 0.0
+            num_frames_ddr = 0
+        #
 
         output_list = []
         pbar_desc = f'infer {description}: {run_dir_base}'
@@ -205,40 +207,49 @@ class AccuracyPipeline(BasePipeline):
             data = input_dataset[data_index]
             data, info_dict = preprocess(data, info_dict)
             output, info_dict = self._run_with_log(session.infer_frame, data, info_dict)
-            invoke_time += info_dict['session_invoke_time']
 
             stats_dict = session.infer_stats()
-            core_time += stats_dict['core_time']
-            subgraph_time += stats_dict['subgraph_time']
-            if stats_dict['write_total'] >= 0  and stats_dict['read_total'] >= 0 :
-                ddr_transfer += (stats_dict['write_total'] + stats_dict['read_total'])
-                num_frames_ddr += 1
-           
-            if self.settings.flip_test:
-                outputs_flip, info_dict = self._run_with_log(session.infer_frame, info_dict['flip_img'], info_dict)
-                info_dict['outputs_flip'] = outputs_flip
+            if self.settings.target_machine == constants.TARGET_MACHINE_EVM:
                 invoke_time += info_dict['session_invoke_time']
-
-                stats_dict = session.infer_stats()
                 core_time += stats_dict['core_time']
                 subgraph_time += stats_dict['subgraph_time']
                 if stats_dict['write_total'] >= 0  and stats_dict['read_total'] >= 0 :
                     ddr_transfer += (stats_dict['write_total'] + stats_dict['read_total'])
                     num_frames_ddr += 1
+               #
+           #
+            if self.settings.flip_test:
+                outputs_flip, info_dict = self._run_with_log(session.infer_frame, info_dict['flip_img'], info_dict)
+                info_dict['outputs_flip'] = outputs_flip
+
+                stats_dict = session.infer_stats()
+                if self.settings.target_machine == constants.TARGET_MACHINE_EVM:
+                    invoke_time += info_dict['session_invoke_time']
+                    core_time += stats_dict['core_time']
+                    subgraph_time += stats_dict['subgraph_time']
+                    if stats_dict['write_total'] >= 0  and stats_dict['read_total'] >= 0 :
+                        ddr_transfer += (stats_dict['write_total'] + stats_dict['read_total'])
+                        num_frames_ddr += 1
+                    #
+                #
             else:
                 info_dict['outputs_flip'] = None
-
+            #
             output, info_dict = postprocess(output, info_dict)
             output_list.append(output)
         #
         # compute and populate final stats so that it can be used in result
         self.infer_stats_dict = {
             'num_subgraphs': stats_dict['num_subgraphs'],
-            #'infer_time_invoke_ms': invoke_time * constants.MILLI_CONST / num_frames,
-            'infer_time_core_ms': core_time * constants.MILLI_CONST / num_frames,
-            'infer_time_subgraph_ms': subgraph_time * constants.MILLI_CONST / num_frames,
-            'ddr_transfer_mb': (ddr_transfer / num_frames_ddr / constants.MEGA_CONST) if num_frames_ddr > 0 else 0
         }
+        if self.settings.target_machine == constants.TARGET_MACHINE_EVM:
+            self.infer_stats_dict.update({
+                #'infer_time_invoke_ms': invoke_time * constants.MILLI_CONST / num_frames,
+                'infer_time_core_ms': core_time * constants.MILLI_CONST / num_frames,
+                'infer_time_subgraph_ms': subgraph_time * constants.MILLI_CONST / num_frames,
+                'ddr_transfer_mb': (ddr_transfer / num_frames_ddr / constants.MEGA_CONST) if num_frames_ddr > 0 else 0
+            })
+        #
         if 'perfsim_time' in stats_dict:
             self.infer_stats_dict.update({'perfsim_time_ms': stats_dict['perfsim_time'] * constants.MILLI_CONST})
         #

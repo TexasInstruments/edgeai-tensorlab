@@ -227,18 +227,27 @@ class BaseRTSession(utils.ParamsBase):
         #
 
     def infer_stats(self):
+        stats_dict = dict()
+        stats_dict['num_subgraphs'] = None
+
+        stats_dict['total_time'] = None
+        stats_dict['core_time'] = None
+        stats_dict['subgraph_time'] = None
+        stats_dict['read_total'] = None
+        stats_dict['write_total'] = None
+
+        stats_dict['perfsim_macs'] = None
+        stats_dict['perfsim_time'] = None
+        stats_dict['perfsim_ddr_transfer'] = None
+
         if hasattr(self.interpreter, 'get_TI_benchmark_data'):
             stats_dict = self._tidl_infer_stats()
-        else:
-            stats_dict = dict()
-            stats_dict['num_subgraphs'] = 0
-            stats_dict['core_time'] = 0.0
-            stats_dict['subgraph_time'] = 0.0
-            stats_dict['read_total'] = 0.0
-            stats_dict['write_total'] = 0.0
-            stats_dict['perfsim_macs'] = 0.0
-            stats_dict['perfsim_time'] = 0.0
-            stats_dict['perfsim_ddr_transfer'] = 0.0
+        #
+        try:
+            perfsim_stats = self._infer_perfsim_stats()
+            stats.update(perfsim_stats)
+        except:
+            pass
         #
         return stats_dict
 
@@ -377,15 +386,15 @@ class BaseRTSession(utils.ParamsBase):
         core_time = total_time - copy_time
         stats = {
             'num_subgraphs': len(subgraphIds),
-            'total_time': total_time, 'core_time': core_time, 'subgraph_time': subgraph_time,
-            'write_total': write_total, 'read_total': read_total,
-            'perfsim_macs': 0.0, 'perfsim_time': 0.0, 'perfsim_ddr_transfer': 0.0
         }
-        try:
-            perfsim_stats = self._infer_perfsim_stats()
-            stats.update(perfsim_stats)
-        except:
-            pass
+        if self.kwargs['target_machine'] == constants.TARGET_MACHINE_EVM:
+            stats.update({
+                'total_time': total_time,
+                'core_time': core_time,
+                'subgraph_time': subgraph_time,
+                'write_total': write_total,
+                'read_total': read_total
+            })
         #
         return stats
 

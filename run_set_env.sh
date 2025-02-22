@@ -29,7 +29,10 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ##################################################################
+
 TARGET_SOC=${1:-AM68A}
+
+# "evm" or "pc"
 TARGET_MACHINE=${2:-pc}
 
 ##################################################################
@@ -98,32 +101,34 @@ fi
 ################################################################################
 # tvmdlr artifacts are different for pc and evm device
 # point to the right artifact before this script executes
-
-# "evm" or "pc"
-target_machine=${TARGET_MACHINE}
-if [ "$artifacts_base" = "" ]; then
-  artifacts_base="./work_dirs/modelartifacts/${TARGET_SOC}/8bits"
+if [ "${ARTIFACTS_BASE_PATH}" = "" ]; then
+  ARTIFACTS_BASE_PATH="./work_dirs/modelartifacts/${TARGET_SOC}/8bits"
 fi
-artifacts_folders=$(find "${artifacts_base}/" -maxdepth 1 |grep "_tvmdlr_")
-cur_dir=$(pwd)
 
-declare -a artifact_files=("deploy_lib.so" "deploy_graph.json" "deploy_params.params")
+if [ -d "${ARTIFACTS_BASE_PATH}" ]; then
+  echo "INFO: settings the correct symlinks in tvmdlr compiled artifacts"
 
-for artifact_folder in ${artifacts_folders}
-do
-  echo "Entering: ${artifact_folder}"
-  cd ${artifact_folder}/"artifacts"
-  for artifact_file in "${artifact_files[@]}"
+  artifacts_folders=$(find "${ARTIFACTS_BASE_PATH}/" -maxdepth 1 |grep "_tvmdlr_")
+  cur_dir=$(pwd)
+
+  declare -a artifact_files=("deploy_lib.so" "deploy_graph.json" "deploy_params.params")
+
+  for artifact_folder in ${artifacts_folders}
   do
-    if [[ -f ${artifact_file}.${target_machine} ]]; then
-      echo "creating symbolic link to ${artifact_file}.${target_machine}"
-      ln -snf ${artifact_file}.${target_machine} ${artifact_file}
-    fi
+    echo "Entering: ${artifact_folder}"
+    cd ${artifact_folder}/"artifacts"
+    for artifact_file in "${artifact_files[@]}"
+    do
+      if [[ -f ${artifact_file}.${TARGET_MACHINE} ]]; then
+        echo "creating symbolic link to ${artifact_file}.${TARGET_MACHINE}"
+        ln -snf ${artifact_file}.${TARGET_MACHINE} ${artifact_file}
+      fi
+    done
+    cd ${cur_dir}
   done
-  cd ${cur_dir}
-done
 
-# TIDL_ARTIFACT_SYMLINKS is used to indicate that the symlinks have been set to evm
-# affects only artifacts created by/for TVM/DLR
-export TIDL_ARTIFACT_SYMLINKS=1
+  # TIDL_ARTIFACT_SYMLINKS is used to indicate that the symlinks have been set to evm
+  # affects only artifacts created by/for TVM/DLR
+  export TIDL_ARTIFACT_SYMLINKS=1
+fi
 ################################################################################

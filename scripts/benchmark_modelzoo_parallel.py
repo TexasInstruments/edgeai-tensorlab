@@ -42,6 +42,7 @@ def get_arg_parser():
     parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
     parser.add_argument('settings_file', type=str, default=None)
     parser.add_argument('--target_device', type=str)
+    parser.add_argument('--target_machine', type=str)
     parser.add_argument('--tensor_bits', type=utils.str_to_int)
     parser.add_argument('--configs_path', type=str, help='Path to configs. Can be one of: '
                         '\n  Python module, such as in ./configs OR '
@@ -114,7 +115,7 @@ if __name__ == '__main__':
     ####################################################################
     try:
         if settings.target_machine == 'pc' and settings.parallel_devices is None:
-            print(f"INFO: model compilation in PC can use cuda gpus (setup using setup_pc_gpu.sh)")
+            print(f"INFO: model compilation in PC can use CUDA gpus (if it is available) - setup using setup_pc_gpu.sh")
             nvidia_smi_command = 'nvidia-smi --list-gpus | wc -l'
             proc = subprocess.Popen([nvidia_smi_command], stdout=subprocess.PIPE, shell=True)
             out_ret, err_ret = proc.communicate()

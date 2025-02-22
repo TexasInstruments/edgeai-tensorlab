@@ -100,7 +100,7 @@ source ./run_set_env.sh ${TARGET_SOC} ${TARGET_MACHINE}
 SETTINGS=settings_import_on_pc.yaml
 
 ##################################################################
-PYARGS1="./scripts/benchmark_modelzoo_parallel.py ${SETTINGS} ${CMD_ARGS[@]} --target_device ${TARGET_SOC}"
+PYARGS1="./scripts/benchmark_modelzoo_parallel.py ${SETTINGS} ${CMD_ARGS[@]} --target_device ${TARGET_SOC} --target_machine ${TARGET_MACHINE}"
 PYARGS3="./scripts/generate_report.py ${SETTINGS}"
 PYDEBUG="python3 -m debugpy --listen ${HOSTNAME}:${PORT} --wait-for-client"
 
@@ -131,4 +131,5 @@ else
     python3 ${PYARGS3}
     echo "-------------------------------------------------------------------"
 fi
+
 echo "==================================================================="

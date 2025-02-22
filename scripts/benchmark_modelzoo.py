@@ -36,6 +36,7 @@ def get_arg_parser():
     parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
     parser.add_argument('settings_file', type=str, default=None)
     parser.add_argument('--target_device', type=str)
+    parser.add_argument('--target_machine', type=str)
     parser.add_argument('--tensor_bits', type=utils.str_to_int)
     parser.add_argument('--configs_path', type=str, help='Path to configs. Can be one of: '
                         '\n  Python module, such as in ./configs OR '
