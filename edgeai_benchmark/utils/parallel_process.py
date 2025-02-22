@@ -118,12 +118,16 @@ class ParallelProcess:
             completed = False
             exit_code = proc.returncode
             try:
-                out_ret, err_ret = proc.communicate(timeout=0.1)
+                err_code = proc.wait(timeout=0.1)
+                if err_code:
+                    raise subprocess.CalledProcessError(err_code, "Error occurred")
+                #
             except subprocess.TimeoutExpired as ex:
                 pass
             except multiprocessing.TimeoutError as ex:
                 pass
             else:
+                out_ret, err_ret = proc.communicate(timeout=0.1)
                 completed = True
             #
         else:

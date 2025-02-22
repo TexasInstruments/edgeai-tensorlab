@@ -38,6 +38,9 @@ __all__ = ['run_benchmark_config']
 
 
 def run_benchmark_config_one_model(settings, entry_idx, proc_name, proc_func):
+    # isettings.parallel_processes is 0, then CUDA_VISIBLE_DEVICES
+    # has already been taken care in the calling process
+    # no need to do anything here
     if settings.parallel_processes and settings.parallel_devices:
         if isinstance(settings.parallel_devices, (list,tuple)):
             parallel_devices = settings.parallel_devices
@@ -53,10 +56,15 @@ def run_benchmark_config_one_model(settings, entry_idx, proc_name, proc_func):
         parallel_device = parallel_devices[entry_idx%num_devices]
         os.environ['CUDA_VISIBLE_DEVICES'] = str(parallel_device)
     #
-    proc = utils.ProcessWtihQueue(name=proc_name, target=proc_func)
-    proc.start()
-    return proc
 
+    if settings.parallel_processes:
+        proc = utils.ProcessWtihQueue(name=proc_name, target=proc_func)
+        proc.start()
+    else:
+        proc_func()
+        proc = None
+    #
+    return proc
 
 def run_benchmark_config(settings, work_dir, pipeline_configs=None, modify_pipelines_func=None,
     overall_timeout=None, instance_timeout=None, proc_error_regex_list=None, separate_import_inference=True):

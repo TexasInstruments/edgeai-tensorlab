@@ -54,23 +54,24 @@ class ProcessWtihQueue(mp_context.Process):
         self.returncode = None
         self.result_queue = result_queue
 
-    def communicate(self, input=None, timeout=None):
-        delta_time = 0.1
-        start_time = time.time()
-        while ((time.time() - start_time) < timeout) and self.result_queue.empty():
-            time.sleep(delta_time)
-        #
-        if self.result_queue.empty():
+    def wait(self, input=None, timeout=None):
+        # join() doesn't seem to be raising TimeoutError, so check the exitcode
+        # when timeout occurs in join(), exitcode will have None
+        self.join(timeout=timeout)
+        if self.exitcode is None:
             raise multiprocessing.TimeoutError
-        # elif not self.is_alive():
-        #     print('WARNING: error in ProcessWtihQueue:commnucate()')
-        #     self.terminate()
-        #     self.join()
-        #     return {}, None
-        else:
-            result, exception_e = self.result_queue.get()
-            self.join()
-            return result, exception_e
+        #
+        return self.exitcode
+
+    def communicate(self, input=None, timeout=None):
+        try:
+            self.wait(timeout=timeout)
+        except multiprocessing.TimeoutError and self.result_queue.empty():
+            raise multiprocessing.TimeoutError
+        #
+        result, exception_e = self.result_queue.get()
+        self.join()
+        return result, exception_e
 
     def _worker(self, task, result_queue):
         result = {}

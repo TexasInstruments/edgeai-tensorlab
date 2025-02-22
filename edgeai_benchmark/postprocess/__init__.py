@@ -85,8 +85,12 @@ class PostProcessTransforms(utils.TransformsCompose):
             if isinstance(formatter, str):
                 formatter_name = formatter
                 formatter = getattr(postprocess_transform_types, formatter_name)()
-            elif isinstance(formatter, dict) and 'type' in formatter:
-                formatter_name = formatter.pop('type')
+            elif isinstance(formatter, dict):
+                if 'type' in formatter:
+                    formatter_name = formatter.pop('type')
+                elif 'name' in formatter:
+                    formatter_name = formatter.pop('name')
+                #
                 formatter = getattr(postprocess_transform_types, formatter_name)(**formatter)
             #
             postprocess_detection += [formatter]
