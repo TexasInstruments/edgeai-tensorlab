@@ -67,7 +67,7 @@ def main(config):
     # update the params with model_description, preset and config
     params = params.update(model_description).update(preset_description).update(config)
 
-    print(params)
+    # print(params)
 
     if target_device not in params.training.target_devices:
         model_descriptions = ai_target_module.runner.ModelRunner.get_model_descriptions(params)

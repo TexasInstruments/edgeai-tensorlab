@@ -152,7 +152,11 @@ class ModelCompilation():
         ''''
         The actual compilation function.
         '''
-        if self.params.compilation.capture_log:
+        # invoking edgeai-benchmark via run_benchmark_script uses subprocess and python script / config file
+        # that needs the pipeline config to be written out here and then read back in edgeai-benchmark
+        # that is a quite involved process and needs some work to be completed.
+        with_subprocess = False
+        if with_subprocess: #self.params.compilation.capture_log:
             # when capture_log, detailed log will only be in the log file - so print this info
             print(edgeai_benchmark.utils.log_color('\nINFO', 'model compilation is in progress', 'please see the log file for status.'))
 
@@ -212,7 +216,7 @@ class ModelCompilation():
                         input_optimization=self.params.compilation.input_optimization,
                         tidl_offload=self.params.compilation.tidl_offload,
                         num_output_frames=self.params.compilation.num_output_frames,
-                        # capture_log=self.params.compilation.capture_log
+                        capture_log=self.params.compilation.capture_log
         )
         return settings
 
