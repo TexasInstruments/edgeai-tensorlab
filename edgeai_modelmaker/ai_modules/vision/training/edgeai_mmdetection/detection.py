@@ -542,12 +542,15 @@ class ModelTraining:
         #                 f'{yolox_lr_config_str}',
         #                 f')\n',
         #                 ]
-        config_strs += [f'load_from   = "{self.params.training.pretrained_checkpoint_path}"']
+        config_strs += [f'load_from   = "{os.path.abspath(self.params.training.pretrained_checkpoint_path)}"']
 
         # write the config file
         with open(config_file, 'w') as config_fp:
             config_fp.write('\n'.join(config_strs))
         #
+
+        cwd = os.getcwd()
+        os.chdir(edgeai_mmdetection_path)
 
         # invoke the distributed training
         if self.params.training.distributed and self.params.training.num_gpus > 0:
@@ -574,6 +577,8 @@ class ModelTraining:
         with open(self.params.training.log_file_path, 'a') as log_fp:
             proc = subprocess.Popen(run_command, stdout=log_fp, stderr=log_fp)
         #
+		
+        os.chdir(cwd)		
         return proc
 
     def get_params(self):
