@@ -103,6 +103,11 @@ class ProcessWtihQueue(mp_context.Process):
                 print(f"WARNING: log_file was not provided - running without capturing the log - {__file__}")
                 result = task()
             #
+        except KeyboardInterrupt:
+            print(f"KeyboardInterrupt occurred in worker process: {__file__}")
+            traceback.print_exc()
+            exception_e = None
+            raise
         except Exception as e:
             print(f"Exception occurred in worker process: {e}")
             traceback.print_exc()

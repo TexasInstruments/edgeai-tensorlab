@@ -32,6 +32,7 @@ import itertools
 import warnings
 import copy
 import traceback
+import wurlitzer
 
 from .. import utils
 from .. import datasets
@@ -42,11 +43,11 @@ from .. import preprocess
 
 
 class PipelineRunner():
-    def __init__(self, settings, pipeline_configs, copy_dataloader=False):
+    def __init__(self, settings, pipeline_configs):
         # making a copy of the dataloader for every config can take a lot of time
         # since this happends int he beginning, this can be quite annoying
         # instead it may be better to make a copy opf the whole proc_func just before executaion of it
-        self.copy_dataloader = copy_dataloader
+        self.copy_dataloader = False
         self.settings = settings
         self.pipeline_configs = self.filter_pipeline_configs(pipeline_configs) if pipeline_configs else pipeline_configs
 
@@ -167,7 +168,8 @@ class PipelineRunner():
         for pipeline_index, (model_id, pipeline_config) in enumerate(self.pipeline_configs.items()):
             os.chdir(cwd)
             description = f'{pipeline_index+1}/{total}' if total > 1 else ''
-            log_file = os.path.join(pipeline_config['session'].get_param('run_dir'), 'run.log')
+            log_filename = 'run.log' if self.settings.log_file is True else self.settings.log_file
+            log_file = os.path.join(pipeline_config['session'].get_param('run_dir'), log_filename) if self.settings.log_file else None
             task_list_for_model = []
             if separate_import_inference:
                 # separate import and inference into two tasks - tidl import and inference to run in separate process
@@ -197,7 +199,10 @@ class PipelineRunner():
         #
         return task_entries
 
-    def run(self, task_entries):
+    def run(self, task_entries=None):
+        if task_entries is None:
+            task_entries = self.get_tasks()
+        #
         cwd = os.getcwd()
         results_list = []
         for task_name, task_list in task_entries.items():
@@ -208,7 +213,17 @@ class PipelineRunner():
                     # data loader was not copied at initialization - make a copy of the whole proc_func
                     proc_func = copy.deepcopy(proc_func)
                 #
-                result = proc_func()
+                log_file = proc_entry.get('proc_log', None)
+                if log_file:
+                    os.makedirs(os.path.dirname(log_file), exist_ok=True)
+                    with open(log_file, 'a') as log_fp:
+                        with wurlitzer.pipes(stdout=log_fp, stderr=wurlitzer.STDOUT):
+                            result = proc_func()
+                        #
+                    #
+                else:
+                    result = proc_func()
+                #
                 results_list.append(result)
             #
         #

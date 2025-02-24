@@ -37,7 +37,7 @@ import warnings
 import re
 
 
-class ParallelProcess:
+class ParallelRunner:
     def __init__(self, parallel_processes, desc='TASKS', mininterval=1.0, maxinterval=60.0, tqdm_obj=None,
             overall_timeout=None, instance_timeout=None, verbose=False):
         self.parallel_processes = parallel_processes
@@ -64,6 +64,7 @@ class ParallelProcess:
     def run(self, task_entries):
         self.queued_tasks = task_entries
         self.num_queued_tasks = len(task_entries)
+        self.task_index = 0
 
         self.start_time = time.time()
         desc = self.desc + f' TOTAL={self.num_queued_tasks}, NUM_RUNNING={0}'
@@ -264,11 +265,17 @@ class ParallelProcess:
         #     
 
     def _worker(self, task):
+        # in ParallelRunner, we cannot capture the log here
+        # It has to be captured inside the worker of the process - see the class utils.ProcessWithQueue
         proc = None
         try:
             proc = task()
+        except KeyboardInterrupt:
+            print(f"KeyboardInterrupt occurred: {__file__}")
+            traceback.print_exc()
+            raise
         except Exception as e:
-            print(f"Exception occurred in worker process: {e}")
+            print(f"Exception occurred: {__file__}")
             traceback.print_exc()
         #
         self.task_index += 1

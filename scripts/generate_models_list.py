@@ -63,7 +63,6 @@ if __name__ == '__main__':
     parser.add_argument('--fast_calibration_factor', type=utils.float_or_none)
     parser.add_argument('--experimental_models', type=utils.str_to_bool)
     parser.add_argument('--additional_models', type=utils.str_to_bool)
-    parser.add_argument('--enable_logging', type=utils.str_to_bool)
     parser.add_argument('--models_list_file', type=str, default=None)
     parser.add_argument('--get_run_dir', type=str_to_bool, default=True)
     # this is only for compatibility with benchmark_modelzoo.py

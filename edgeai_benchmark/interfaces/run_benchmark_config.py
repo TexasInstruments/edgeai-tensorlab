@@ -30,7 +30,6 @@ import os
 import sys
 import argparse
 import functools
-import wurlitzer
 
 from .. import utils, pipelines, config_settings, datasets, constants
 from .get_configs import *
@@ -38,11 +37,11 @@ from .get_configs import *
 __all__ = ['run_benchmark_config']
 
 
-def run_benchmark_config_one_model(settings, entry_idx, proc_name, proc_func, proc_log):
+def run_benchmark_config_one_model_parallel(settings, entry_idx, proc_name, proc_func, proc_log):
     # isettings.parallel_processes is 0, then CUDA_VISIBLE_DEVICES
     # has already been taken care in the calling process
     # no need to do anything here
-    if settings.parallel_processes and settings.parallel_devices:
+    if settings.parallel_devices:
         if isinstance(settings.parallel_devices, (list,tuple)):
             parallel_devices = settings.parallel_devices
         elif settings.parallel_devices in (None, 0):
@@ -57,19 +56,8 @@ def run_benchmark_config_one_model(settings, entry_idx, proc_name, proc_func, pr
         parallel_device = parallel_devices[entry_idx%num_devices]
         os.environ['CUDA_VISIBLE_DEVICES'] = str(parallel_device)
     #
-
-    if settings.parallel_processes:
-        proc = utils.ProcessWtihQueue(name=proc_name, target=proc_func, log_file=proc_log)
-        proc.start()
-    else:
-        os.makedirs(os.path.dirname(proc_log), exist_ok=True)
-        with open(proc_log, 'a') as log_fp:
-            with wurlitzer.pipes(stdout=log_fp, stderr=wurlitzer.STDOUT):
-                proc_func()
-            #
-        #
-        proc = None
-    #
+    proc = utils.ProcessWtihQueue(name=proc_name, target=proc_func, log_file=proc_log)
+    proc.start()
     return proc
 
 def run_benchmark_config(settings, work_dir, pipeline_configs=None, modify_pipelines_func=None,
@@ -119,7 +107,7 @@ def run_benchmark_config(settings, work_dir, pipeline_configs=None, modify_pipel
     sys.stdout.flush()
 
     task_entries = pipeline_runner.get_tasks(separate_import_inference=separate_import_inference)
-    process_runner = None
+    parallel_runner = None
 
     try:
         # now actually run the configs
@@ -131,18 +119,18 @@ def run_benchmark_config(settings, work_dir, pipeline_configs=None, modify_pipel
                     proc_name = proc_entry['proc_name']
                     proc_func = proc_entry['proc_func']
                     proc_log = proc_entry['proc_log']
-                    proc_func = functools.partial(run_benchmark_config_one_model, settings, task_entry_idx, proc_name, proc_func, proc_log)
+                    proc_func = functools.partial(run_benchmark_config_one_model_parallel, settings, task_entry_idx, proc_name, proc_func, proc_log)
                     proc_entry['proc_func'] =  proc_func
                 #
             #
-            process_runner = utils.ProcessRunner(parallel_processes=settings.parallel_processes,
+            parallel_runner = utils.ParallelRunner(parallel_processes=settings.parallel_processes,
                 overall_timeout=overall_timeout, instance_timeout=instance_timeout)
-            return process_runner.run(task_entries)
+            return parallel_runner.run(task_entries)
         else:
             return pipeline_runner.run(task_entries)
         #
     except KeyboardInterrupt:
-        if process_runner:
-            process_runner.terminate_all(term_mesage="KeyboardInterrupt")
+        if parallel_runner:
+            parallel_runner.terminate_all(term_mesage="KeyboardInterrupt")
         #
         sys.exit(f"KeyboardInterrupt received: {__file__}")

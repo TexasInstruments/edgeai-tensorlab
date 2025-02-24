@@ -35,9 +35,10 @@ import multiprocessing
 import tqdm
 import warnings
 import re
+import wurlitzer
 
 
-class SequentialProcess:
+class SequentialRunner:
     def __init__(self, parallel_processes=None, desc='TASKS', mininterval=1.0, maxinterval=60.0, tqdm_obj=None,
             overall_timeout=None, instance_timeout=None, verbose=False):
         self.parallel_processes = parallel_processes
@@ -64,6 +65,7 @@ class SequentialProcess:
     def run(self, task_entries):
         self.queued_tasks = task_entries
         self.num_queued_tasks = len(task_entries)
+        self.task_index = 0
 
         self.start_time = time.time()
         desc = self.desc + f' TOTAL={self.num_queued_tasks}, NUM_RUNNING={0}'
@@ -85,7 +87,7 @@ class SequentialProcess:
 
                 proc_dict['running'] = True
                 proc_dict['completed'] = False
-                proc_dict['proc'] = self._worker(proc_dict['proc_func'])
+                proc_dict['proc'] = self._worker(proc_dict['proc_func'], proc_dict['proc_log'])
                 if proc_dict['proc'] is not None:
                     proc_dict['proc'].communicate()
                 #
@@ -100,12 +102,26 @@ class SequentialProcess:
             self.tqdm_obj.update(num_completed - self.tqdm_obj.n)
         #
 
-    def _worker(self, task):
+    def _worker(self, task, log_file):
         proc = None
         try:
-            proc = task()
+            if log_file:
+                os.makedirs(os.path.dirname(log_file), exist_ok=True)
+                with open(log_file, 'a') as log_fp:
+                    with wurlitzer.pipes(stdout=log_fp, stderr=wurlitzer.STDOUT):
+                        result = task()
+                    #
+                #
+            else:
+                print(f"WARNING: log_file was not provided - running without capturing the log - {__file__}")
+                result = task()
+            #
+        except KeyboardInterrupt:
+            print(f"KeyboardInterrupt occurred in worker: {e}")
+            traceback.print_exc()
+            raise
         except Exception as e:
-            print(f"Exception occurred in worker process: {e}")
+            print(f"Exception occurred in worker: {e}")
             traceback.print_exc()
         #
         self.task_index += 1

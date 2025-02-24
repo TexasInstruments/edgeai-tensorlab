@@ -40,7 +40,7 @@ __all__ = ['run_benchmark_script']
 
 
 def run_benchmark_script_one_model(settings_file, entry_idx, cmd_kwargs, parallel_processes, parallel_devices, model_selection, run_dir,
-    enable_logging, log_filename, run_import, run_inference, benchmark_script=None):
+    log_filename, run_import, run_inference, benchmark_script=None):
 
     if benchmark_script is None:
         benchmark_script = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../scripts/benchmark_modelzoo.py'))
@@ -68,8 +68,6 @@ def run_benchmark_script_one_model(settings_file, entry_idx, cmd_kwargs, paralle
     # which device should this be run on
     # relevant only if this is using the gpu/cuda tidl-tools and if there are multiple GPUs
     cmd_kwargs['parallel_devices'] = '1'
-    # logging is done by capturing the stdout and stderr to a file here - no need to enable logging to file inside
-    cmd_kwargs['enable_logging'] = '0'
     # import and/or inference
     cmd_kwargs['run_import'] = f'{run_import}'
     cmd_kwargs['run_inference'] = f'{run_inference}'
@@ -82,11 +80,7 @@ def run_benchmark_script_one_model(settings_file, entry_idx, cmd_kwargs, paralle
 
     os.makedirs(os.path.dirname(log_filename), exist_ok=True)
 
-    if parallel_processes and enable_logging:
-        with open(log_filename, 'a') as log_fp:
-            proc = subprocess.Popen(command, stdout=log_fp, stderr=log_fp)
-        #
-    elif parallel_processes:
+    if parallel_processes:
         proc = subprocess.Popen(command)
     else:
         os.system(' '.join(command))
@@ -114,19 +108,19 @@ def run_benchmark_script(settings, model_entries, settings_file, cmd_kwargs,
             if settings.run_import:
                 proc_name = f'{model_selection}:import'
                 run_import_task = functools.partial(run_benchmark_script_one_model, settings_file,
-                    entry_idx, cmd_kwargs, settings.parallel_processes, settings.parallel_devices, model_selection, run_dir, settings.enable_logging, log_filename, True, False)
+                    entry_idx, cmd_kwargs, settings.parallel_processes, settings.parallel_devices, model_selection, run_dir, log_filename, True, False)
                 task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_import_task, 'proc_log':log_filename, 'proc_error':proc_error_regex_list})
             #
             if settings.run_inference:
                 proc_name = f'{model_selection}:infer'
                 run_inference_task = functools.partial(run_benchmark_script_one_model, settings_file,
-                    entry_idx, cmd_kwargs, settings.parallel_processes, settings.parallel_devices, model_selection, run_dir, settings.enable_logging, log_filename, False, True)
+                    entry_idx, cmd_kwargs, settings.parallel_processes, settings.parallel_devices, model_selection, run_dir, log_filename, False, True)
                 task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_inference_task, 'proc_log':log_filename, 'proc_error':proc_error_regex_list})
             #
         else:
             proc_name = f'{model_selection}'
             run_task = functools.partial(run_benchmark_script_one_model, settings_file,
-                entry_idx, cmd_kwargs, settings.parallel_processes, settings.parallel_devices, model_selection, run_dir, settings.enable_logging, log_filename, settings.run_import, settings.run_inference)
+                entry_idx, cmd_kwargs, settings.parallel_processes, settings.parallel_devices, model_selection, run_dir, log_filename, settings.run_import, settings.run_inference)
             task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_task, 'proc_log':log_filename, 'proc_error':proc_error_regex_list})
         #
 

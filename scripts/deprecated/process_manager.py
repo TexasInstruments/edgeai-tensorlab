@@ -32,7 +32,7 @@ from .sequential_process import *
 from .parallel_process import *
 
 
-class ProcessRunner():
+class ProcessManager():
     def __init__(self, parallel_processes, desc='TASKS', overall_timeout=None, instance_timeout=None):
         if parallel_processes:
             self.process_runner = ParallelProcess(parallel_processes=parallel_processes, desc=desc,

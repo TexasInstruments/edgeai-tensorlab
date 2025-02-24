@@ -198,12 +198,10 @@ class ConfigDict(utils.AttrDict):
         self.config_range = None
         # writing of dataset.yaml, config.yaml, param.yaml and result.yaml depends on this flag
         self.write_results = True
-        # logging of the import, infer and the accuracy to a file. set to False to disable it.
-        self.enable_logging = True
         # verbose mode - print out more information
         self.verbose = False
-        # capture_log mode - capture and redirect details logs to log file
-        self.capture_log = False
+        # log_file mode - capture and redirect details logs to log file
+        self.log_file = True
         # enable use of additional models - the actual model files may be in a different modelzoo repo (for example edgeai-modelzoo-cl)
         self.additional_models = False
         # enable use of experimental models - the actual model files are not available in modelzoo
