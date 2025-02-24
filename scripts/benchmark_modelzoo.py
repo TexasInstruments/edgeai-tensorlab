@@ -30,7 +30,10 @@ import os
 import sys
 import argparse
 import warnings
+import subprocess
+
 from edgeai_benchmark import *
+
 
 def get_arg_parser():
     parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
@@ -88,6 +91,23 @@ if __name__ == '__main__':
     print(f'settings: {settings}')
     sys.stdout.flush()
 
+    ####################################################################
+    try:
+        if settings.target_machine == 'pc' and settings.parallel_devices is None:
+            print(f"INFO: model compilation in PC can use CUDA gpus (if it is available) - setup using setup_pc_gpu.sh")
+            nvidia_smi_command = 'nvidia-smi --list-gpus | wc -l'
+            proc = subprocess.Popen([nvidia_smi_command], stdout=subprocess.PIPE, shell=True)
+            out_ret, err_ret = proc.communicate()
+            num_cuda_gpus = int(out_ret)
+            print(f'INFO: - setting parallel_devices to the number of cuda gpus found: {num_cuda_gpus}')
+            settings.parallel_devices = kwargs['parallel_devices'] = num_cuda_gpus
+        #
+    except:
+        print("INFO: - could not find cuda gpus - parallel_devices will not be used.")
+        settings.parallel_devices = kwargs['parallel_devices'] = None
+    #
+
+    ####################################################################
     work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
     print(f'work_dir: {work_dir}')
 
