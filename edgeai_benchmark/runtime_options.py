@@ -50,9 +50,8 @@ class RuntimeOptions(config_dict.ConfigDict):
             self.update(preset_dict)
         #
 
-    def _get_runtime_options_default(self, session_name=None, quantization_scale_type=None, is_qat=False, det_options=None,
-                                     min_options=None, max_options=None, fast_calibration=False,
-                                     prequantized_model_type=constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_NONE):
+    def _get_runtime_options_default(self, session_name=None, is_qat=False,
+            min_options=None, max_options=None, fast_calibration=False, **kwargs):
         '''
         Default runtime options.
         Overiride this according to the needs of specific configs using methods below.
@@ -64,8 +63,8 @@ class RuntimeOptions(config_dict.ConfigDict):
 
         Returns: runtime_options
         '''
-        prequantized_model_type_clip = (is_qat and prequantized_model_type == constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_CLIP)
-        prequantized_model_type_qdq = (is_qat and prequantized_model_type == constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_QDQ)
+        advanced_options_quantization_scale_type = kwargs.get('advanced_options:quantization_scale_type', None)
+        advanced_options_prequantized_model = kwargs.get('advanced_options:prequantized_model', constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_NONE)
 
         fast_calibration_factor = self._get_fast_calibration_factor(fast_calibration)
 
@@ -75,7 +74,7 @@ class RuntimeOptions(config_dict.ConfigDict):
         calibration_frames = max(int(self.calibration_frames * fast_calibration_factor), 1)
         calibration_frames = np.clip(calibration_frames, min_options.get('advanced_options:calibration_frames', -sys.maxsize), max_options.get('advanced_options:calibration_frames', sys.maxsize))
 
-        calibration_iterations = max(int(self._get_calibration_iterations(quantization_scale_type, is_qat, prequantized_model_type) * fast_calibration_factor), 1)
+        calibration_iterations = max(int(self._get_calibration_iterations(advanced_options_quantization_scale_type, is_qat, advanced_options_prequantized_model) * fast_calibration_factor), 1)
         calibration_iterations = np.clip(calibration_iterations, min_options.get('advanced_options:calibration_iterations', -sys.maxsize), max_options.get('advanced_options:calibration_iterations', sys.maxsize))
 
         runtime_options = {
@@ -83,7 +82,7 @@ class RuntimeOptions(config_dict.ConfigDict):
             # basic_options
             #################################
             'tensor_bits': self.tensor_bits,
-            'accuracy_level': self._get_calibration_accuracy_level(quantization_scale_type, is_qat, prequantized_model_type),
+            'accuracy_level': self._get_calibration_accuracy_level(advanced_options_quantization_scale_type, is_qat, advanced_options_prequantized_model),
             # debug level
             'debug_level': 0,
             'inference_mode': 0,
@@ -98,7 +97,7 @@ class RuntimeOptions(config_dict.ConfigDict):
             # note that calibration_iterations has effect only if accuracy_level>0
             'advanced_options:calibration_iterations': calibration_iterations,
             # 0 (non-power of 2, default), 1 (power of 2, might be helpful sometimes, needed for qat models)
-            'advanced_options:quantization_scale_type': self._get_quantization_scale_type(quantization_scale_type, is_qat, prequantized_model_type),
+            'advanced_options:quantization_scale_type': self._get_quantization_scale_type(advanced_options_quantization_scale_type, is_qat, advanced_options_prequantized_model),
             # further quantization/calibration options - these take effect
             # only if the accuracy_level in basic options is set to 9
             'advanced_options:activation_clipping': 1,
@@ -125,50 +124,22 @@ class RuntimeOptions(config_dict.ConfigDict):
             # additional options (internal / performance estimation)
             #################################
             "ti_internal_nc_flag" : 83886080, #1601
-            #################################
-            # additional options (for info only)
-            #################################
-            'info': {
-                'prequantized_model_type': prequantized_model_type
-            },
         }
-        if prequantized_model_type_qdq:
-            runtime_options.update({'advanced_options:prequantized_model': 1})
-        #
-        # if detection options are needed, set them.
-        if det_options is True:
-            # some of the od post proc options can be specified in runtime_options
-            # for tflite models, these options are directly handled inside tidl
-            # for onnx od models, od post proc options are specified in the prototxt and it is modified with these options
-            # use a large top_k, keep_top_k and low confidence_threshold for accuracy measurement
-            if self.detection_threshold is not None:
-                runtime_options.update({
-                    'object_detection:confidence_threshold': self.detection_threshold,
-                })
-            #
-            if self.detection_top_k is not None:
-                runtime_options.update({
-                    'object_detection:top_k': self.detection_top_k,
-                })
-            #
-            if self.detection_nms_threshold is not None:
-                runtime_options.update({
-                    'object_detection:nms_threshold': self.detection_nms_threshold,
-                })
-            #
-            if self.detection_keep_top_k is not None:
-                runtime_options.update({
-                    'object_detection:keep_top_k': self.detection_keep_top_k
-                })
-            #
-        elif isinstance(det_options, dict):
-            runtime_options.update(det_options)
-        #
+
+        # kwargs will have this already
+        # advanced_options_prequantized_model_clip = (is_qat and advanced_options_prequantized_model == constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_CLIP)
+        # advanced_options_prequantized_model_qdq = (is_qat and advanced_options_prequantized_model == constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_QDQ)
+        # if advanced_options_prequantized_model_qdq:
+        #     runtime_options.update({'advanced_options:prequantized_model': 1})
+        # #
+
+        # update with kwargs
+        runtime_options.update(kwargs)
+
         return runtime_options
 
-    def get_runtime_options(self, model_type_or_session_name=None, quantization_scale_type=None, is_qat=False,
-                            det_options=None, ext_options=None, min_options=None, max_options=None, fast_calibration=False,
-                            prequantized_model_type=constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_NONE, **kwargs):
+    def get_runtime_options(self, model_type_or_session_name=None, advanced_options_quantization_scale_type=None, is_qat=False,
+            det_options=None, ext_options=None, min_options=None, max_options=None, fast_calibration=False, **kwargs):
         '''
         example usage for min_options and max_options to set the limit
             settings.runtime_options_onnx_np2(max_options={'advanced_options:calibration_frames':25, 'advanced_options:calibration_iterations':25})
@@ -178,81 +149,150 @@ class RuntimeOptions(config_dict.ConfigDict):
         # runtime_params are currently common, so session_name is currently optional
         session_name = self.get_session_name(model_type_or_session_name) if \
                 model_type_or_session_name is not None else None
+
         # this is the default runtime_options defined above
-        runtime_options_new = self._get_runtime_options_default(
-            session_name, quantization_scale_type, is_qat=is_qat, det_options=det_options,
-            min_options=min_options, max_options=max_options, fast_calibration=fast_calibration,
-            prequantized_model_type=prequantized_model_type)
+        runtime_options = self._get_runtime_options_default(session_name=session_name, is_qat=is_qat,
+            min_options=min_options, max_options=max_options, fast_calibration=fast_calibration, **kwargs)
+
         # this takes care of overrides given as ext_options keyword argument
         if ext_options is not None:
             assert isinstance(ext_options, dict), \
                 f'runtime_options provided via kwargs must be dict, got {type(ext_options)}'
-            runtime_options_new.update(ext_options)
+            runtime_options.update(ext_options)
         #
-        # update with kwargs
-        runtime_options_new.update(kwargs)
 
-        # this is now taken care of in the below functions
-        # if self.runtime_options is not None:
-        #     runtime_options_new.update(self.runtime_options)
+        object_detection_meta_arch_type = runtime_options.get('object_detection:meta_arch_type', None)
+
+        # if detection options are needed, set them.
+        # some of the od post proc options can be specified in runtime_options
+        # for tflite models, these options are directly handled inside tidl
+        # for onnx od models, od post proc options are specified in the prototxt and it is modified with these options
+        # use a large top_k, keep_top_k and low confidence_threshold for accuracy measurement
+        if det_options is True:
+            # SSD models have a high detection_threshold as default since thier runtime is sensitive to this threhold
+            if self.detection_threshold is True:
+                runtime_options.update({
+                    'object_detection:confidence_threshold': 0.3,
+                })
+            #
+            if self.detection_top_k is True:
+                runtime_options.update({
+                    'object_detection:top_k': 200,
+                })
+            #
+            if self.detection_nms_threshold is True:
+                runtime_options.update({
+                    'object_detection:nms_threshold': 0.45,
+                })
+            #
+            if self.detection_keep_top_k is True:
+                runtime_options.update({
+                    'object_detection:keep_top_k': 200
+                })
+            #
+
+        # if det_options is True and object_detection_meta_arch_type in constants.TIDL_DETECTION_META_ARCH_TYPE_SSD_LIST:
+        #     # SSD models have a high detection_threshold as default since thier runtime is sensitive to this threhold
+        #     if self.detection_threshold is True:
+        #         runtime_options.update({
+        #             'object_detection:confidence_threshold': 0.3,
+        #         })
+        #     #
+        #     if self.detection_top_k is True:
+        #         runtime_options.update({
+        #             'object_detection:top_k': 200,
+        #         })
+        #     #
+        #     if self.detection_nms_threshold is True:
+        #         runtime_options.update({
+        #             'object_detection:nms_threshold': 0.45,
+        #         })
+        #     #
+        #     if self.detection_keep_top_k is True:
+        #         runtime_options.update({
+        #             'object_detection:keep_top_k': 200
+        #         })
+        #     #
+        # elif det_options is True:
+        #     # other models, especially YOLO modles can use a lower detection threshold
+        #     if self.detection_threshold is True:
+        #         runtime_options.update({
+        #             'object_detection:confidence_threshold': 0.05,
+        #         })
+        #     #
+        #     if self.detection_top_k is True:
+        #         runtime_options.update({
+        #             'object_detection:top_k': 500,
+        #         })
+        #     #
+        #     if self.detection_nms_threshold is True:
+        #         runtime_options.update({
+        #             'object_detection:nms_threshold': 0.45,
+        #         })
+        #     #
+        #     if self.detection_keep_top_k is True:
+        #         runtime_options.update({
+        #             'object_detection:keep_top_k': 200
+        #         })
+        #     #
+        # elif isinstance(det_options, dict):
+        #     runtime_options.update(det_options)
         # #
-        return runtime_options_new
 
-    def runtime_options_onnx_np2(self, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_NP2, **kwargs):
-        if self.runtime_options:
-            quantization_scale_type = self.runtime_options.get('advanced_options:quantization_scale_type', quantization_scale_type)
+        # this is now taken care of here, instead of in the below functions
+        if self.runtime_options is not None:
+            runtime_options.update(self.runtime_options)
         #
-        return self.get_runtime_options(constants.MODEL_TYPE_ONNX, quantization_scale_type=quantization_scale_type, is_qat=False, **kwargs)
+        return runtime_options
 
-    def runtime_options_tflite_np2(self, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_NP2, **kwargs):
-        if self.runtime_options:
-            quantization_scale_type = self.runtime_options.get('advanced_options:quantization_scale_type', quantization_scale_type)
-        #
-        return self.get_runtime_options(constants.MODEL_TYPE_TFLITE, quantization_scale_type=quantization_scale_type, is_qat=False, **kwargs)
+    def runtime_options_onnx_np2(self, **kwargs):
+        kwargs['advanced_options:quantization_scale_type'] = kwargs.get('advanced_options:quantization_scale_type', constants.QUANTScaleType.QUANT_SCALE_TYPE_NP2)
+        return self.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=False, **kwargs)
 
-    def runtime_options_mxnet_np2(self, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_NP2, **kwargs):
-        if self.runtime_options:
-            quantization_scale_type = self.runtime_options.get('advanced_options:quantization_scale_type', quantization_scale_type)
-        #
-        return self.get_runtime_options(constants.MODEL_TYPE_MXNET, quantization_scale_type=quantization_scale_type, is_qat=False, **kwargs)
+    def runtime_options_tflite_np2(self, **kwargs):
+        kwargs['advanced_options:quantization_scale_type'] = kwargs.get('advanced_options:quantization_scale_type', constants.QUANTScaleType.QUANT_SCALE_TYPE_NP2)
+        return self.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=False, **kwargs)
 
-    def runtime_options_onnx_p2(self, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2, **kwargs):
-        if self.runtime_options:
-            quantization_scale_type = self.runtime_options.get('advanced_options:quantization_scale_type', quantization_scale_type)
-        #
-        return self.get_runtime_options(constants.MODEL_TYPE_ONNX, quantization_scale_type=quantization_scale_type, is_qat=False, **kwargs)
+    def runtime_options_mxnet_np2(self, **kwargs):
+        kwargs['advanced_options:quantization_scale_type'] = kwargs.get('advanced_options:quantization_scale_type', constants.QUANTScaleType.QUANT_SCALE_TYPE_NP2)
+        return self.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=False, **kwargs)
 
-    def runtime_options_tflite_p2(self, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2, **kwargs):
-        if self.runtime_options:
-            quantization_scale_type = self.runtime_options.get('advanced_options:quantization_scale_type', quantization_scale_type)
-        #
-        return self.get_runtime_options(constants.MODEL_TYPE_TFLITE, quantization_scale_type=quantization_scale_type, is_qat=False, **kwargs)
+    def runtime_options_onnx_p2(self, **kwargs):
+        kwargs['advanced_options:quantization_scale_type'] = kwargs.get('advanced_options:quantization_scale_type', constants.QUANTScaleType.QUANT_SCALE_TYPE_P2)
+        return self.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=False, **kwargs)
 
-    def runtime_options_mxnet_p2(self, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2, **kwargs):
-        if self.runtime_options:
-            quantization_scale_type = self.runtime_options.get('advanced_options:quantization_scale_type', quantization_scale_type)
-        #
-        return self.get_runtime_options(constants.MODEL_TYPE_MXNET, quantization_scale_type=quantization_scale_type, is_qat=False, **kwargs)
+    def runtime_options_tflite_p2(self, **kwargs):
+        kwargs['advanced_options:quantization_scale_type'] = kwargs.get('advanced_options:quantization_scale_type', constants.QUANTScaleType.QUANT_SCALE_TYPE_P2)
+        return self.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=False, **kwargs)
 
-    def runtime_options_onnx_qat_v1(self, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2, **kwargs):
-        return self.get_runtime_options(constants.MODEL_TYPE_ONNX, quantization_scale_type=quantization_scale_type, is_qat=True,
-                                        prequantized_model_type=constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_CLIP, **kwargs)
+    def runtime_options_mxnet_p2(self, **kwargs):
+        kwargs['advanced_options:quantization_scale_type'] = kwargs.get('advanced_options:quantization_scale_type', constants.QUANTScaleType.QUANT_SCALE_TYPE_P2)
+        return self.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=False, **kwargs)
 
-    def runtime_options_tflite_qat_v1(self, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2, **kwargs):
-        return self.get_runtime_options(constants.MODEL_TYPE_TFLITE, quantization_scale_type=quantization_scale_type, is_qat=True,
-                                        prequantized_model_type=constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_CLIP, **kwargs)
+    def runtime_options_onnx_qat_v1(self, **kwargs):
+        kwargs['advanced_options:quantization_scale_type'] = kwargs.get('advanced_options:quantization_scale_type', constants.QUANTScaleType.QUANT_SCALE_TYPE_P2)
+        kwargs['advanced_options:prequantized_model'] = kwargs.get('advanced_options:prequantized_model', constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_CLIP)
+        return self.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=True, **kwargs)
 
-    def runtime_options_mxnet_qat_v1(self, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2, **kwargs):
-        return self.get_runtime_options(constants.MODEL_TYPE_MXNET, quantization_scale_type=quantization_scale_type, is_qat=True,
-                                        prequantized_model_type=constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_CLIP, **kwargs)
+    def runtime_options_tflite_qat_v1(self, **kwargs):
+        kwargs['advanced_options:quantization_scale_type'] = kwargs.get('advanced_options:quantization_scale_type', constants.QUANTScaleType.QUANT_SCALE_TYPE_P2)
+        kwargs['advanced_options:prequantized_model'] = kwargs.get('advanced_options:prequantized_model', constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_CLIP)
+        return self.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=True, **kwargs)
 
-    def runtime_options_onnx_qat_v2(self, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_NP2_PERCHAN, **kwargs):
-        return self.get_runtime_options(constants.MODEL_TYPE_ONNX, quantization_scale_type=quantization_scale_type, is_qat=True,
-                                        prequantized_model_type=constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_QDQ, **kwargs)
+    def runtime_options_mxnet_qat_v1(self, **kwargs):
+        kwargs['advanced_options:quantization_scale_type'] = kwargs.get('advanced_options:quantization_scale_type', constants.QUANTScaleType.QUANT_SCALE_TYPE_P2)
+        kwargs['advanced_options:prequantized_model'] = kwargs.get('advanced_options:prequantized_model', constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_CLIP)
+        return self.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=True, **kwargs)
 
-    def runtime_options_onnx_qat_v2_p2(self, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2, **kwargs):
-        return self.get_runtime_options(constants.MODEL_TYPE_ONNX, quantization_scale_type=quantization_scale_type, is_qat=True,
-                                        prequantized_model_type=constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_QDQ, **kwargs)
+    def runtime_options_onnx_qat_v2(self, **kwargs):
+        kwargs['advanced_options:quantization_scale_type'] = kwargs.get('advanced_options:quantization_scale_type', constants.QUANTScaleType.QUANT_SCALE_TYPE_NP2_PERCHAN)
+        kwargs['advanced_options:prequantized_model'] = kwargs.get('advanced_options:prequantized_model', constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_QDQ)
+        return self.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=True, **kwargs)
+
+    def runtime_options_onnx_qat_v2_p2(self, **kwargs):
+        kwargs['advanced_options:quantization_scale_type'] = kwargs.get('advanced_options:quantization_scale_type', constants.QUANTScaleType.QUANT_SCALE_TYPE_P2)
+        kwargs['advanced_options:prequantized_model'] = kwargs.get('advanced_options:prequantized_model', constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_QDQ)
+        return self.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=True, **kwargs)
 
     def get_session_name(self, model_type_or_session_name):
         assert model_type_or_session_name in constants.MODEL_TYPES + constants.SESSION_NAMES, \
@@ -272,26 +312,26 @@ class RuntimeOptions(config_dict.ConfigDict):
         session_name = self.get_session_name(model_type_or_session_name)
         return sessions.get_session_name_to_type_dict()[session_name]
 
-    def _get_calibration_iterations(self, quantization_scale_type, is_qat, prequantized_model_type):
+    def _get_calibration_iterations(self, advanced_options_quantization_scale_type, is_qat, advanced_options_prequantized_model):
         # note that calibration_iterations has effect only if accuracy_level>0
         # so we can just set it to the max value here.
         # for more information see: get_calibration_accuracy_level()
         # Not overriding for 16b now
-        quantized_model = is_qat or prequantized_model_type != constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_NONE
+        quantized_model = is_qat or advanced_options_prequantized_model != constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_NONE
         return -1 if quantized_model else self.calibration_iterations
 
-    def _get_calibration_accuracy_level(self, quantization_scale_type, is_qat, prequantized_model_type):
+    def _get_calibration_accuracy_level(self, advanced_options_quantization_scale_type, is_qat, advanced_options_prequantized_model):
         # For QAT models, simple calibration is sufficient, so we shall use accuracy_level=0
         #use advance calib for 16b too
-        quantized_model = is_qat or prequantized_model_type != constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_NONE
+        quantized_model = is_qat or advanced_options_prequantized_model != constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_NONE
         return 0 if quantized_model else 1
 
-    def _get_quantization_scale_type(self, quantization_scale_type, is_qat, prequantized_model_type):
+    def _get_quantization_scale_type(self, advanced_options_quantization_scale_type, is_qat, advanced_options_prequantized_model):
         # 0 (non-power of 2, default)
         # 1 (power of 2, might be helpful sometimes, needed for p2 qat models)
         # 3 (non-power of 2 qat/prequantized model, supported in newer devices)
         # 4 (non-power2 of 2, supported in newer devices)
-        return quantization_scale_type.value if isinstance(quantization_scale_type, enum.Enum) else quantization_scale_type
+        return advanced_options_quantization_scale_type.value if isinstance(advanced_options_quantization_scale_type, enum.Enum) else advanced_options_quantization_scale_type
 
     def _get_fast_calibration_factor(self, fast_calibration):
         if fast_calibration:

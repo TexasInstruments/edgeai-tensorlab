@@ -144,15 +144,15 @@ class ConfigDict(utils.AttrDict):
         # run only models for which the results are missing. if this is False, all configs will be run
         self.run_incremental = True
         # detection threshold
-        # recommend 0.3 for best fps, 0.05 for accuracy measurement
-        self.detection_threshold = 0.3
-        # detection  - top_k boxes that go into nms
+        # recommend 0.3 for best fps, 0.05 for accuracy measurement - set to True to se this automatically
+        self.detection_threshold = True
+        # detection  - top_k boxes that go into nms - set to True to se this automatically
         # (this is an intermediate set, not the final number of boxes that are kept)
         # # recommend 200 for best fps, 500 for accuracy measurement
-        self.detection_top_k = 200
-        # detection  - NMS threshold to be used for detection
+        self.detection_top_k = True
+        # detection  - NMS threshold to be used for detection - set to True to se this automatically
         self.detection_nms_threshold = None
-        # max number of final detections
+        # max number of final detections - set to True to se this automatically
         self.detection_keep_top_k = None
         # save detection, segmentation output
         self.save_output = False

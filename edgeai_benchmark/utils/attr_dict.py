@@ -54,15 +54,23 @@ class AttrDict(BaseAttrDict):
         super().__init__(*args, **kwargs)
         self._recursive_attrdict = _recursive_attrdict
 
-    def update(self,  *args, **kwargs):
-        new_args = list()
-        for arg in args:
-            arg = AttrDict(arg) if self._recursive_attrdict and (type(arg) is dict) else arg
-            new_args.append(arg)
-
-        new_kwargs = dict()
-        for k, v in kwargs:
+    def update(self,  arg, **kwargs):
+        if isinstance(arg, dict):
+            new_arg = AttrDict()
+            for k, v in arg.items():
+                v = AttrDict(v) if self._recursive_attrdict and (type(v) is dict) else v
+                if k in self and self[k] is not None and isinstance(v, dict):
+                    self[k].update({k:v})
+                else:
+                    self[k] = v
+                #
+            #
+        #
+        for k, v in kwargs.items():
             v = AttrDict(v) if self._recursive_attrdict and (type(v) is dict) else v
-            new_kwargs[k] = v
-
-        super().update(*new_args, **new_kwargs)
+            if k in self and self[k] is not None and isinstance(v, dict):
+                self[k].update({k:v})
+            else:
+                self[k] = v
+            #
+        #

@@ -86,8 +86,7 @@ def pipeline_param_to_config(settings, config_file_or_pipeline_param, work_dir, 
         #
 
         runtime_options_in_config = pipeline_param['session']['runtime_options']
-        prequantized_model_type = runtime_options_in_config['info']['prequantized_model_type']
-        runtime_options_in_settings = settings.get_runtime_options(prequantized_model_type=prequantized_model_type)
+        runtime_options_in_settings = settings.get_runtime_options()
         runtime_options = copy.deepcopy(runtime_options_in_settings)
         # conditional update
         for rt_opt_key, rt_opt_value in runtime_options_in_config.items():
