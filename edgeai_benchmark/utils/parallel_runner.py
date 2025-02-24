@@ -38,7 +38,7 @@ import re
 
 
 class ParallelRunner:
-    def __init__(self, parallel_processes, desc='TASKS', mininterval=1.0, maxinterval=60.0, tqdm_obj=None,
+    def __init__(self, parallel_processes, desc='TASKS', mininterval=0.25, maxinterval=60.0, tqdm_obj=None,
             overall_timeout=None, instance_timeout=None, verbose=False):
         self.parallel_processes = parallel_processes
         self.desc = desc
@@ -47,6 +47,7 @@ class ParallelRunner:
         self.tqdm_obj = tqdm_obj
         self.mininterval = mininterval
         self.maxinterval = maxinterval
+        self.epsinterval=0.1
         self.overall_timeout = overall_timeout
         self.instance_timeout = instance_timeout
         self.num_queued_tasks = 0
@@ -114,21 +115,27 @@ class ParallelRunner:
         #
         return proc_dict_to_start
 
-    def _check_proc_complete(self, proc):
+    def _check_proc_complete(self, proc_dict):
+        proc = proc_dict.get('proc', None)
+        running_proc_name = proc_dict['proc_name']
         if proc is not None:
             completed = False
             exit_code = proc.returncode
             try:
-                err_code = proc.wait(timeout=0.1)
+                err_code = proc.wait(timeout=self.epsinterval)
                 if err_code:
-                    raise subprocess.CalledProcessError(err_code, "Error occurred")
+                    # raise subprocess.CalledProcessError(err_code, "Error occurred")
+                    print(f"ERROR: Error occurred: {running_proc_name} - Error Code: {err_code} at {__file__}")
+                    proc.terminate()
+                    completed = True
+                    return completed
                 #
             except subprocess.TimeoutExpired as ex:
                 pass
             except multiprocessing.TimeoutError as ex:
                 pass
             else:
-                out_ret, err_ret = proc.communicate(timeout=0.1)
+                out_ret, err_ret = proc.communicate(timeout=self.epsinterval)
                 completed = True
             #
         else:
@@ -154,7 +161,7 @@ class ParallelRunner:
                 # check running processes                         
                 if running:
                     # try to update the completed status for running processes
-                    completed = self._check_proc_complete(proc)
+                    completed = self._check_proc_complete(proc_dict)
                     running = (not completed)
                     proc_dict['completed'] = completed
                     proc_dict['running'] = running
