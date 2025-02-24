@@ -30,6 +30,7 @@ import os
 import sys
 import argparse
 import functools
+import wurlitzer
 
 from .. import utils, pipelines, config_settings, datasets, constants
 from .get_configs import *
@@ -37,7 +38,7 @@ from .get_configs import *
 __all__ = ['run_benchmark_config']
 
 
-def run_benchmark_config_one_model(settings, entry_idx, proc_name, proc_func):
+def run_benchmark_config_one_model(settings, entry_idx, proc_name, proc_func, proc_log):
     # isettings.parallel_processes is 0, then CUDA_VISIBLE_DEVICES
     # has already been taken care in the calling process
     # no need to do anything here
@@ -58,20 +59,21 @@ def run_benchmark_config_one_model(settings, entry_idx, proc_name, proc_func):
     #
 
     if settings.parallel_processes:
-        proc = utils.ProcessWtihQueue(name=proc_name, target=proc_func)
+        proc = utils.ProcessWtihQueue(name=proc_name, target=proc_func, log_file=proc_log)
         proc.start()
     else:
-        proc_func()
+        os.makedirs(os.path.dirname(proc_log), exist_ok=True)
+        with open(proc_log, 'a') as log_fp:
+            with wurlitzer.pipes(stdout=log_fp, stderr=wurlitzer.STDOUT):
+                proc_func()
+            #
+        #
         proc = None
     #
     return proc
 
 def run_benchmark_config(settings, work_dir, pipeline_configs=None, modify_pipelines_func=None,
-    overall_timeout=None, instance_timeout=None, proc_error_regex_list=None, separate_import_inference=True):
-
-    if proc_error_regex_list is None:
-        proc_error_regex_list=constants.FATAL_ERROR_LOGS_REGEX_LIST
-    #
+    overall_timeout=None, instance_timeout=None, separate_import_inference=True):
 
     # verify that targt device is correct
     if settings.target_device is not None and 'TIDL_TOOLS_PATH' in os.environ and \
@@ -109,11 +111,11 @@ def run_benchmark_config(settings, work_dir, pipeline_configs=None, modify_pipel
     #
 
     # print some info
-    run_dirs = [pipeline_config['session'].get_param('run_dir') for model_key, pipeline_config \
-                in pipeline_runner.pipeline_configs.items()]
-    run_dirs = [os.path.basename(run_dir) for run_dir in run_dirs]
-    print(f'configs to run: {run_dirs}')
-    print(f'number of configs: {len(pipeline_runner.pipeline_configs)}')
+    # run_dirs = [pipeline_config['session'].get_param('run_dir') for model_key, pipeline_config \
+    #             in pipeline_runner.pipeline_configs.items()]
+    # run_dirs = [os.path.basename(run_dir) for run_dir in run_dirs]
+    # print(f'INFO: configs to run: {run_dirs}')
+    print(f'INFO: number of configs: {len(pipeline_runner.pipeline_configs)}')
     sys.stdout.flush()
 
     task_entries = pipeline_runner.get_tasks(separate_import_inference=separate_import_inference)
@@ -121,18 +123,19 @@ def run_benchmark_config(settings, work_dir, pipeline_configs=None, modify_pipel
 
     try:
         # now actually run the configs
+        # the proc_func in the task_entries that pipeline_runner.get_tasks returns
+        # is not what is exactly needed by utils.ProcessRunner - modify it
         if settings.parallel_processes:
             for task_entry_idx, (task_name, task_list) in enumerate(task_entries.items()):
                 for proc_entry in task_list:
                     proc_name = proc_entry['proc_name']
                     proc_func = proc_entry['proc_func']
-                    proc_func = functools.partial(run_benchmark_config_one_model, settings, task_entry_idx, proc_name, proc_func)
+                    proc_log = proc_entry['proc_log']
+                    proc_func = functools.partial(run_benchmark_config_one_model, settings, task_entry_idx, proc_name, proc_func, proc_log)
                     proc_entry['proc_func'] =  proc_func
-                    proc_entry['proc_error'] = proc_error_regex_list
                 #
             #
-            process_runner = utils.ProcessRunner(
-                parallel_processes=settings.parallel_processes,
+            process_runner = utils.ProcessRunner(parallel_processes=settings.parallel_processes,
                 overall_timeout=overall_timeout, instance_timeout=instance_timeout)
             return process_runner.run(task_entries)
         else:

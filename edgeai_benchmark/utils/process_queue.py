@@ -35,6 +35,7 @@ import traceback
 import queue
 import copy
 import functools
+import wurlitzer
 
 from .progress_step import *
 from .logger_utils import *
@@ -46,11 +47,12 @@ SimpleQueueForProcess =  mp_context.SimpleQueue
 
 class ProcessWtihQueue(mp_context.Process):
     def __init__(self, group=None, target=None, name=None, args=(), kwargs={},
-        result_queue=SimpleQueueForProcess(), **proc_kwargs):
+        result_queue=SimpleQueueForProcess(), log_file=None, **proc_kwargs):
         kwargs = copy.copy(kwargs)
         kwargs['result_queue'] = result_queue
         target = functools.partial(self._worker, target)
         super().__init__(group, target, name, args, kwargs, **proc_kwargs)
+        self.log_file = log_file
         self.returncode = None
         self.result_queue = result_queue
 
@@ -63,7 +65,8 @@ class ProcessWtihQueue(mp_context.Process):
             #
         except:
             raise RuntimeError(f'Error during wait() in {__file__}')
-
+        #
+        
         # join() doesn't seem to be raising TimeoutError, so check the exitcode
         # when timeout occurs in join(), exitcode will have None
         if self.exitcode is None:
@@ -89,13 +92,20 @@ class ProcessWtihQueue(mp_context.Process):
         result = {}
         exception_e = None
         try:
-            result = task()
+            if self.log_file:
+                os.makedirs(os.path.dirname(self.log_file), exist_ok=True)
+                with open(self.log_file, 'a') as log_fp:
+                    with wurlitzer.pipes(stdout=log_fp, stderr=wurlitzer.STDOUT):
+                        result = task()
+                    #
+                #
+            else:
+                print(f"WARNING: log_file was not provided - running without capturing the log - {__file__}")
+                result = task()
+            #
         except Exception as e:
             print(f"Exception occurred in worker process: {e}")
             traceback.print_exc()
             exception_e = e
         #
         result_queue.put((result,exception_e))
-
-
-

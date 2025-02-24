@@ -96,11 +96,10 @@ def run_benchmark_script_one_model(settings_file, entry_idx, cmd_kwargs, paralle
 
 
 def run_benchmark_script(settings, model_entries, settings_file, cmd_kwargs,
-        overall_timeout=None, instance_timeout=None, proc_error_regex_list=None,
-        separate_import_inference=True):
+        overall_timeout=None, instance_timeout=None, proc_error_regex_list=None, separate_import_inference=True):
 
     if proc_error_regex_list is None:
-        proc_error_regex_list=constants.FATAL_ERROR_LOGS_REGEX_LIST
+        proc_error_regex_list=constants.TIDL_FATAL_ERROR_LOGS_REGEX_LIST
     #
 
     task_entries = {}

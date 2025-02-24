@@ -156,18 +156,18 @@ class PipelineRunner():
         #
         return pipelines_final
 
-    def get_tasks(self, separate_import_inference=True):
+    def get_tasks(self, separate_import_inference=True, proc_error_regex_list=None):
         # get the cwd so that we can continue even if exception occurs
         cwd = os.getcwd()
         results_list = []
         total = len(self.pipeline_configs)
-        proc_error_regex_list = []
-        log_filename = None
+        proc_error_regex_list = proc_error_regex_list or constants.TIDL_FATAL_ERROR_LOGS_REGEX_LIST
+        
         task_entries = {}
         for pipeline_index, (model_id, pipeline_config) in enumerate(self.pipeline_configs.items()):
             os.chdir(cwd)
             description = f'{pipeline_index+1}/{total}' if total > 1 else ''
-
+            log_file = os.path.join(pipeline_config['session'].get_param('run_dir'), 'run.log')
             task_list_for_model = []
             if separate_import_inference:
                 # separate import and inference into two tasks - tidl import and inference to run in separate process
@@ -176,14 +176,14 @@ class PipelineRunner():
                     basic_settings = self.settings.basic_settings()
                     basic_settings.run_inference = False
                     run_task = functools.partial(self._run_pipeline, basic_settings, pipeline_config, description=description)
-                    task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_task, 'proc_log':log_filename, 'proc_error':proc_error_regex_list})
+                    task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_task, 'proc_log':log_file, 'proc_error':proc_error_regex_list})
                 #
                 if self.settings.run_inference:
                     proc_name = model_id + ':infer'
                     basic_settings = self.settings.basic_settings()
                     basic_settings.run_import = False
                     run_task = functools.partial(self._run_pipeline, basic_settings, pipeline_config, description=description)
-                    task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_task, 'proc_log':log_filename, 'proc_error':proc_error_regex_list})
+                    task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_task, 'proc_log':log_file, 'proc_error':proc_error_regex_list})
                 #
             else:
                 proc_name = model_id
@@ -191,7 +191,7 @@ class PipelineRunner():
                 # sometimes, there is no need to copy the entire settings which includes the dataset_cache
                 basic_settings = self.settings.basic_settings()
                 run_task = functools.partial(self._run_pipeline, basic_settings, pipeline_config, description=description)
-                task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_task, 'proc_log':log_filename, 'proc_error':proc_error_regex_list})
+                task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_task, 'proc_log':log_file, 'proc_error':proc_error_regex_list})
             #
             task_entries.update({model_id:task_list_for_model})
         #

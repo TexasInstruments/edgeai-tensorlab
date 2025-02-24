@@ -67,11 +67,6 @@ class AccuracyPipeline(BasePipeline):
         # start() must be called to create the required directories
         self.session.start()
 
-        # start logger - run_dir has been created in start() above
-        log_filename = os.path.join(self.run_dir, 'run.log') if self.settings.enable_logging else None
-        logger_buffering = (1 if self.settings.capture_log else -1)
-        self.logger = utils.TeeLogger(log_filename, mode='a', buffering=logger_buffering)
-
         # log some info
         self.write_log(utils.log_color('\nINFO', 'running', os.path.basename(self.run_dir)))
         self.write_log(utils.log_color('\nINFO', 'pipeline_config', self.pipeline_config))
@@ -88,8 +83,6 @@ class AccuracyPipeline(BasePipeline):
 
         result_dict = param_result.get('result', {})
         self.write_log(utils.log_color('\n\nSUCCESS', 'benchmark results', f'{result_dict}\n'))
-        self.logger.close()
-        self.logger = None
         return param_result
 
     def _run(self, description=''):
@@ -175,7 +168,7 @@ class AccuracyPipeline(BasePipeline):
         #
 
         # this is the actual import
-        self._run_with_log(session.import_model, calib_data)
+        session.import_model(calib_data)
         # close the interpreter
         session.close_interpreter()
 
@@ -202,11 +195,11 @@ class AccuracyPipeline(BasePipeline):
 
         output_list = []
         pbar_desc = f'infer {description}: {run_dir_base}'
-        for data_index in utils.progress_step(range(num_frames), desc=pbar_desc, file=self.logger, position=0):
+        for data_index in utils.progress_step(range(num_frames), desc=pbar_desc, position=0):
             info_dict = {'dataset_info': self.dataset_info, 'label_offset_pred': self.pipeline_config.get('metric',{}).get('label_offset_pred',None)}
             data = input_dataset[data_index]
             data, info_dict = preprocess(data, info_dict)
-            output, info_dict = self._run_with_log(session.infer_frame, data, info_dict)
+            output, info_dict = session.infer_frame(data, info_dict)
 
             stats_dict = session.infer_stats()
             if self.settings.target_machine == constants.TARGET_MACHINE_EVM:
@@ -219,7 +212,7 @@ class AccuracyPipeline(BasePipeline):
                #
            #
             if self.settings.flip_test:
-                outputs_flip, info_dict = self._run_with_log(session.infer_frame, info_dict['flip_img'], info_dict)
+                outputs_flip, info_dict = session.infer_frame(info_dict['flip_img'], info_dict)
                 info_dict['outputs_flip'] = outputs_flip
 
                 stats_dict = session.infer_stats()
@@ -285,25 +278,3 @@ class AccuracyPipeline(BasePipeline):
             output_dict.update(output)
         #
         return output_dict
-
-    def _run_with_log(self, func, *args, **kwargs):
-        log_fp = self.logger.log_file if self.logger is not None else None
-        logging_mode = 'wurlitzer' if self.settings.capture_log else None
-        if log_fp is None or logging_mode is None:
-            return func(*args, **kwargs)
-        elif logging_mode == 'redirect_logger':
-            # redirect prints to file using os.dup2()
-            # observation: may not work well with multiprocessing
-            with utils.RedirectLogger(log_fp):
-                return func(*args, **kwargs)
-            #
-        elif logging_mode == 'wurlitzer':
-            # redirect logs using wurlitzer
-            # this works well with multiprocessing, but causes the execution to slow down
-            import wurlitzer
-            with wurlitzer.pipes(stdout=log_fp, stderr=wurlitzer.STDOUT):
-                return func(*args, **kwargs)
-            #
-        else:
-            assert False, f'_run_with_log: unknown logging_level {logging_mode}'
-        #
