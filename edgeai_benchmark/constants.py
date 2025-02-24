@@ -170,13 +170,13 @@ TARGET_DEVICE_SETTINGS_PRESETS = {
     },
 }
 
-# # to handle speciall case for runtime_options['object_detection:xx']
-# TIDL_DETECTION_META_ARCH_TYPE_SSD_TFLITE = 1
-# TIDL_DETECTION_META_ARCH_TYPE_SSD_ONNX = 3
-# TIDL_DETECTION_META_ARCH_TYPE_SSD_LIST = [
-#     TIDL_DETECTION_META_ARCH_TYPE_SSD_TFLITE,
-#     TIDL_DETECTION_META_ARCH_TYPE_SSD_ONNX
-# ]
+# to handle speciall case for runtime_options['object_detection:xx']
+TIDL_DETECTION_META_ARCH_TYPE_SSD_TFLITE = 1
+TIDL_DETECTION_META_ARCH_TYPE_SSD_ONNX = 3
+TIDL_DETECTION_META_ARCH_TYPE_SSD_LIST = [
+    TIDL_DETECTION_META_ARCH_TYPE_SSD_TFLITE,
+    TIDL_DETECTION_META_ARCH_TYPE_SSD_ONNX,
+]
 
 # errors emitted in the log file to help identify a FATAL error
 # look for erros such as: VX_ZONE_ERROR:[tivxDeInit:245] De-Initialization Error !!!

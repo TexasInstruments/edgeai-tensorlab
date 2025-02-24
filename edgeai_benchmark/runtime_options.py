@@ -163,13 +163,11 @@ class RuntimeOptions(config_dict.ConfigDict):
 
         object_detection_meta_arch_type = runtime_options.get('object_detection:meta_arch_type', None)
 
-        # if detection options are needed, set them.
-        # some of the od post proc options can be specified in runtime_options
         # for tflite models, these options are directly handled inside tidl
         # for onnx od models, od post proc options are specified in the prototxt and it is modified with these options
         # use a large top_k, keep_top_k and low confidence_threshold for accuracy measurement
-        if det_options is True:
-            # SSD models have a high detection_threshold as default since thier runtime is sensitive to this threhold
+        # SSD models have a high detection_threshold as default since thier runtime is sensitive to this threhold
+        if det_options == 'SSD' or (det_options is True and object_detection_meta_arch_type in constants.TIDL_DETECTION_META_ARCH_TYPE_SSD_LIST):
             if self.detection_threshold is True:
                 runtime_options.update({
                     'object_detection:confidence_threshold': 0.3,
@@ -190,54 +188,31 @@ class RuntimeOptions(config_dict.ConfigDict):
                     'object_detection:keep_top_k': 200
                 })
             #
-
-        # if det_options is True and object_detection_meta_arch_type in constants.TIDL_DETECTION_META_ARCH_TYPE_SSD_LIST:
-        #     # SSD models have a high detection_threshold as default since thier runtime is sensitive to this threhold
-        #     if self.detection_threshold is True:
-        #         runtime_options.update({
-        #             'object_detection:confidence_threshold': 0.3,
-        #         })
-        #     #
-        #     if self.detection_top_k is True:
-        #         runtime_options.update({
-        #             'object_detection:top_k': 200,
-        #         })
-        #     #
-        #     if self.detection_nms_threshold is True:
-        #         runtime_options.update({
-        #             'object_detection:nms_threshold': 0.45,
-        #         })
-        #     #
-        #     if self.detection_keep_top_k is True:
-        #         runtime_options.update({
-        #             'object_detection:keep_top_k': 200
-        #         })
-        #     #
-        # elif det_options is True:
-        #     # other models, especially YOLO modles can use a lower detection threshold
-        #     if self.detection_threshold is True:
-        #         runtime_options.update({
-        #             'object_detection:confidence_threshold': 0.05,
-        #         })
-        #     #
-        #     if self.detection_top_k is True:
-        #         runtime_options.update({
-        #             'object_detection:top_k': 500,
-        #         })
-        #     #
-        #     if self.detection_nms_threshold is True:
-        #         runtime_options.update({
-        #             'object_detection:nms_threshold': 0.45,
-        #         })
-        #     #
-        #     if self.detection_keep_top_k is True:
-        #         runtime_options.update({
-        #             'object_detection:keep_top_k': 200
-        #         })
-        #     #
-        # elif isinstance(det_options, dict):
-        #     runtime_options.update(det_options)
-        # #
+        elif det_options is True:
+            # other models, especially YOLO modles can use a lower detection threshold
+            if self.detection_threshold is True:
+                runtime_options.update({
+                    'object_detection:confidence_threshold': 0.05,
+                })
+            #
+            if self.detection_top_k is True:
+                runtime_options.update({
+                    'object_detection:top_k': 500,
+                })
+            #
+            if self.detection_nms_threshold is True:
+                runtime_options.update({
+                    'object_detection:nms_threshold': 0.45,
+                })
+            #
+            if self.detection_keep_top_k is True:
+                runtime_options.update({
+                    'object_detection:keep_top_k': 200
+                })
+            #
+        elif isinstance(det_options, dict):
+            runtime_options.update(det_options)
+        #
 
         # this is now taken care of here, instead of in the below functions
         if self.runtime_options is not None:
