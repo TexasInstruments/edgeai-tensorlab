@@ -167,6 +167,7 @@ class ModelRunner():
         # actual model training
         if self.params.training.enable:
             self.model_training.clear()
+            print(f'INFO: ModelMaker - running training - for detailed info see the log file: {self.params.training.log_file_path}')
             self.model_training.run()
             # remove special characters
             utils.cleanup_special_chars(self.params.training.log_file_path)
@@ -188,6 +189,7 @@ class ModelRunner():
         # actual model compilation
         if self.params.compilation.enable:
             self.model_compilation.clear()
+            print(f'INFO: ModelMaker - running compilation - for detailed info see the log file: {self.params.compilation.log_file_path}')
             self.model_compilation.run()
             print(f'Compiled model is at: {self.params.compilation.model_packaged_path}', flush=True)
             with open(self.params.compilation.log_file_path, 'a') as lfp:

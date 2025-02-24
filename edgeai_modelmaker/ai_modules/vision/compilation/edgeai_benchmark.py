@@ -209,14 +209,14 @@ class ModelCompilation():
                         runtime_options=None,
                         detection_threshold=self.params.compilation.detection_threshold,
                         detection_top_k=self.params.compilation.detection_top_k,
-                        # parallel_devices=None,   # not assuming availability cuda/gpu compatible tidl_tools for compilation
-                        # parallel_processes=1,    # do the compilation in a new processes for more stability
+                        parallel_devices=None,   # 0 or None will use the first cuda/gpu if tidl_tools with gpu support is used
+                        parallel_processes=1,    # do the compilation in a new processes for more stability
                         dataset_loading=False,
                         save_output=self.params.compilation.save_output,
                         input_optimization=self.params.compilation.input_optimization,
                         tidl_offload=self.params.compilation.tidl_offload,
                         num_output_frames=self.params.compilation.num_output_frames,
-                        # capture_log=self.params.compilation.capture_log
+                        log_file=self.params.compilation.log_file
         )
         return settings
 
