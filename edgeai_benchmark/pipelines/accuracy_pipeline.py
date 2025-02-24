@@ -228,6 +228,10 @@ class AccuracyPipeline(BasePipeline):
             else:
                 info_dict['outputs_flip'] = None
             #
+
+            # needed in postprocess to understand the detection threshold set
+            info_dict['runtime_options'] = session.kwargs['runtime_options']
+
             output, info_dict = postprocess(output, info_dict)
             output_list.append(output)
         #

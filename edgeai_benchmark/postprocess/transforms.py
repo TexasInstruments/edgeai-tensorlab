@@ -478,14 +478,20 @@ class DetectionFilter():
 
     def __call__(self, bbox, info_dict):
         if self.detection_threshold is not None:
+            detection_threshold = info_dict['runtime_options'].get('object_detection:confidence_threshold', None) \
+                        if self.detection_threshold is True else self.detection_threshold
             bbox_score = bbox[:, 5]
-            bbox_selected = (bbox_score >= self.detection_threshold)
+            bbox_selected = (bbox_score >= detection_threshold)
             bbox = bbox[bbox_selected, ...]
         #
-        if self.detection_keep_top_k is not None and bbox.shape[0] > self.detection_keep_top_k:
-            bbox = sorted(bbox, key=lambda b: b[5])
-            bbox = np.stack(bbox, axis=0)
-            bbox = bbox[range(self.detection_keep_top_k), ...]
+        if self.detection_keep_top_k is not None:
+            detection_keep_top_k = info_dict['runtime_options'].get('object_detection:keep_top_k', None) \
+                        if self.detection_keep_top_k is True else self.detection_keep_top_k
+            if bbox.shape[0] > detection_keep_top_k:
+                bbox = sorted(bbox, key=lambda b: b[5])
+                bbox = np.stack(bbox, axis=0)
+                bbox = bbox[range(detection_keep_top_k), ...]
+            #
         #
         return bbox, info_dict
 
@@ -713,6 +719,8 @@ class OD3DOutPutPorcess(object):
         self.detection_threshold = detection_threshold
 
     def __call__(self, tidl_op, info_dict):
+        detection_threshold = info_dict['runtime_options'].get('object_detection:confidence_threshold', None) \
+                    if self.detection_threshold is True else self.detection_threshold
         selected_op = tidl_op[0][0][0]
-        selected_op = selected_op[selected_op[:, 1] > self.detection_threshold]
+        selected_op = selected_op[selected_op[:, 1] > detection_threshold]
         return np.array(selected_op), info_dict

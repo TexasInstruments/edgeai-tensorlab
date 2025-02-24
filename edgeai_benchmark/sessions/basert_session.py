@@ -524,6 +524,8 @@ class BaseRTSession(utils.ParamsBase):
         
         model_file0 = model_file[0] if isinstance(model_file, (list,tuple)) else model_file
         model_file_exists = utils.file_exists(model_file0)
+        is_new_file=(not model_file_exists)
+
         if not model_file_exists:
             # download to modelzoo if the given path is a url or a link file
             model_folder_download = model_folder if utils.is_url(model_path) else os.path.dirname(model_path)
@@ -535,8 +537,7 @@ class BaseRTSession(utils.ParamsBase):
         # for example, the input of the model can be converted to 8bit and mean/scale can be moved inside the model
         # for prequantized models, it may also be required to run onnx-simplifier (this will be run if it is set for the model)
         # also does shape_inference for onnx models
-        apply_input_optimization = self._optimize_model(model_file,
-                                                 is_new_file=(not model_file_exists))
+        apply_input_optimization = self._optimize_model(model_file, is_new_file=is_new_file)
         if apply_input_optimization:
             # set the mean and scale in kwargs to None as they have been absorbed inside.
             self.kwargs['input_mean'] = None
@@ -559,11 +560,11 @@ class BaseRTSession(utils.ParamsBase):
                 meta_path = utils.download_file(meta_path, meta_folder_download)
                 # make a local copy to the run_dir/model folder
                 meta_path = utils.download_file(meta_path, root=model_folder)
+                # replace confidence_threshold in opject detection prototxt
+                self._replace_confidence_threshold(meta_file)
             #
             # write the local path
             self.kwargs['runtime_options'][constants.OBJECT_DETECTION_META_FILE_KEY] = meta_file
-            # replace confidence_threshold in opject detection prototxt
-            self._replace_confidence_threshold(meta_file)
         #
 
     def _optimize_model(self, model_file, is_new_file=True):
