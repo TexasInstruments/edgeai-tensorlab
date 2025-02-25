@@ -16,10 +16,10 @@ tensor_bits : 8
 num_frames : 1000 #5000 #10000 #50000
 
 # number of frames to be used for post training quantization / calibration
-calibration_frames : 25 #50
+calibration_frames : 12 #25 #50
 
 # number of iterations to be used for post training quantization / calibration
-calibration_iterations : 25 #50
+calibration_iterations : 12 #25 #50
 
 # runtime_options to be passed to the core session. default: null or a dict
 # eg. (in next line and with preceding spaces to indicate this is a dict entry) accuracy_level : 0

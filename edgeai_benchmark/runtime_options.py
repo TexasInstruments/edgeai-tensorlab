@@ -51,7 +51,7 @@ class RuntimeOptions(config_dict.ConfigDict):
         #
 
     def _get_runtime_options_default(self, session_name=None, is_qat=False,
-            min_options=None, max_options=None, fast_calibration=False, **kwargs):
+            min_options=None, max_options=None, fast_calibration=True, **kwargs):
         '''
         Default runtime options.
         Overiride this according to the needs of specific configs using methods below.
@@ -66,15 +66,15 @@ class RuntimeOptions(config_dict.ConfigDict):
         advanced_options_quantization_scale_type = kwargs.get('advanced_options:quantization_scale_type', None)
         advanced_options_prequantized_model = kwargs.get('advanced_options:prequantized_model', constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_NONE)
 
-        fast_calibration_factor = self._get_fast_calibration_factor(fast_calibration)
+        calibration_iterations_factor = self._get_calibration_iterations_factor(fast_calibration)
 
         min_options = min_options or dict()
         max_options = max_options or dict()
 
-        calibration_frames = max(int(self.calibration_frames * fast_calibration_factor), 1)
+        calibration_frames = max(int(self.calibration_frames * calibration_iterations_factor), 1)
         calibration_frames = np.clip(calibration_frames, min_options.get('advanced_options:calibration_frames', -sys.maxsize), max_options.get('advanced_options:calibration_frames', sys.maxsize))
 
-        calibration_iterations = max(int(self._get_calibration_iterations(advanced_options_quantization_scale_type, is_qat, advanced_options_prequantized_model) * fast_calibration_factor), 1)
+        calibration_iterations = max(int(self._get_calibration_iterations(advanced_options_quantization_scale_type, is_qat, advanced_options_prequantized_model) * calibration_iterations_factor), 1)
         calibration_iterations = np.clip(calibration_iterations, min_options.get('advanced_options:calibration_iterations', -sys.maxsize), max_options.get('advanced_options:calibration_iterations', sys.maxsize))
 
         runtime_options = {
@@ -139,7 +139,7 @@ class RuntimeOptions(config_dict.ConfigDict):
         return runtime_options
 
     def get_runtime_options(self, model_type_or_session_name=None, advanced_options_quantization_scale_type=None, is_qat=False,
-            det_options=None, ext_options=None, min_options=None, max_options=None, fast_calibration=False, **kwargs):
+            det_options=None, ext_options=None, min_options=None, max_options=None, **kwargs):
         '''
         example usage for min_options and max_options to set the limit
             settings.runtime_options_onnx_np2(max_options={'advanced_options:calibration_frames':25, 'advanced_options:calibration_iterations':25})
@@ -152,7 +152,7 @@ class RuntimeOptions(config_dict.ConfigDict):
 
         # this is the default runtime_options defined above
         runtime_options = self._get_runtime_options_default(session_name=session_name, is_qat=is_qat,
-            min_options=min_options, max_options=max_options, fast_calibration=fast_calibration, **kwargs)
+            min_options=min_options, max_options=max_options, **kwargs)
 
         # this takes care of overrides given as ext_options keyword argument
         if ext_options is not None:
@@ -308,9 +308,13 @@ class RuntimeOptions(config_dict.ConfigDict):
         # 4 (non-power2 of 2, supported in newer devices)
         return advanced_options_quantization_scale_type.value if isinstance(advanced_options_quantization_scale_type, enum.Enum) else advanced_options_quantization_scale_type
 
-    def _get_fast_calibration_factor(self, fast_calibration):
-        if fast_calibration:
-            return constants.FAST_CALIBRATION_FACTOR
+    def _get_calibration_iterations_factor(self, fast_calibration):
+        # model may need higher number of itarations for certain devices (i.e. when per channel quantization is not supported)
+        device_needs_more_iterations = (self.calibration_iterations_factor is not None)
+        model_needs_more_iterations = (not fast_calibration)
+        if device_needs_more_iterations and model_needs_more_iterations:
+            return self.calibration_iterations_factor
         else:
-            fast_calibration_factor = self.fast_calibration_factor or 1.0
-            return fast_calibration_factor
+            return constants.CALIBRATION_ITERATIONS_FACTOR_1X
+
+

@@ -67,8 +67,7 @@ def get_configs(settings, work_dir):
         #         runtime_options=settings.runtime_options_onnx_np2(
         #             det_options=True, ext_options={'object_detection:meta_arch_type': 6,
         #              'object_detection:meta_layers_names_list':f'../edgeai-yolov5/pretrained_models/models/detection/coco/edgeai-yolov5-gplv3/yolov5s6_640_ti_lite_metaarch.prototxt',
-        #              'advanced_options:output_feature_16bit_names_list':'370, 680, 990, 1300'},
-        #              fast_calibration=True),
+        #              'advanced_options:output_feature_16bit_names_list':'370, 680, 990, 1300'}),
         #         model_path=f'../edgeai-yolov5/pretrained_models/models/detection/coco/edgeai-yolov5-gplv3/yolov5s6_640_ti_lite_37p4_56p0.onnx'),
         #     postprocess=postproc_transforms.get_transform_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
         #     metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
@@ -80,8 +79,7 @@ def get_configs(settings, work_dir):
         #         runtime_options=settings.runtime_options_onnx_np2(
         #             det_options=True, ext_options={'object_detection:meta_arch_type': 6,
         #              'object_detection:meta_layers_names_list':f'../edgeai-yolov5/pretrained_models/models/detection/coco/edgeai-yolov5-gplv3/yolov5s6_384_ti_lite_metaarch.prototxt',
-        #              'advanced_options:output_feature_16bit_names_list':'168, 370, 680, 990, 1300'},
-        #              fast_calibration=True),
+        #              'advanced_options:output_feature_16bit_names_list':'168, 370, 680, 990, 1300'}),
         #         model_path=f'../edgeai-yolov5/pretrained_models/models/detection/coco/edgeai-yolov5-gplv3/yolov5s6_384_ti_lite_32p8_51p2.onnx'),
         #     postprocess=postproc_transforms.get_transform_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
         #     metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
@@ -93,8 +91,7 @@ def get_configs(settings, work_dir):
         #         runtime_options=settings.runtime_options_onnx_np2(
         #             det_options=True, ext_options={'object_detection:meta_arch_type': 6,
         #              'object_detection:meta_layers_names_list':f'../edgeai-yolov5/pretrained_models/models/detection/coco/edgeai-yolov5-gplv3/yolov5m6_640_ti_lite_metaarch.prototxt',
-        #              'advanced_options:output_feature_16bit_names_list':'228, 498, 808, 1118, 1428'},
-        #              fast_calibration=True),
+        #              'advanced_options:output_feature_16bit_names_list':'228, 498, 808, 1118, 1428'}),
         #         model_path=f'../edgeai-yolov5/pretrained_models/models/detection/coco/edgeai-yolov5-gplv3/yolov5m6_640_ti_lite_44p1_62p9.onnx'),
         #     postprocess=postproc_transforms.get_transform_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False,  resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
         #     metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
@@ -106,8 +103,7 @@ def get_configs(settings, work_dir):
         #         runtime_options=settings.runtime_options_onnx_np2(
         #             det_options=True, ext_options={'object_detection:meta_arch_type': 6,
         #              'object_detection:meta_layers_names_list':f'../edgeai-yolov5/pretrained_models/models/detection/coco/edgeai-yolov5-gplv3/yolov5l6_640_ti_lite_metaarch.prototxt',
-        #              'advanced_options:output_feature_16bit_names_list':'288, 626, 936, 1246, 1556'},
-        #              fast_calibration=True),
+        #              'advanced_options:output_feature_16bit_names_list':'288, 626, 936, 1246, 1556'}),
         #         model_path=f'../edgeai-yolov5/pretrained_models/models/detection/coco/edgeai-yolov5-gplv3/yolov5l6_640_ti_lite_47p1_65p6.onnx'),
         #     postprocess=postproc_transforms.get_transform_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False,  resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
         #     metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
@@ -117,7 +113,7 @@ def get_configs(settings, work_dir):
         # 'od-8960expt':utils.dict_update(common_cfg,
         #     preprocess=preproc_transforms.get_transform_onnx((800, 800), (800, 800), resize_with_pad=False, backend='cv2'),
         #     session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=False),
-        #         runtime_options=settings.runtime_options_onnx_np2(fast_calibration=True,
+        #         runtime_options=settings.runtime_options_onnx_np2(
         #             det_options=True, ext_options={'object_detection:meta_arch_type': 6, 'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
         #         model_path=f'../edgeai-modelzoo/models/vision/detection/coco/edgeai-mmdet/detr_r50_8xb2-150e_20240722_model.onnx'),
         #     postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=False, formatter=postprocess.DetectionBoxSL2BoxLS()),

@@ -229,7 +229,11 @@ class ConfigDict(utils.AttrDict):
         # wehther to apply predifened presets based on target_device
         self.target_device_preset = True
         # some models can use faster calibration (fewer frames and iterations)
-        self.fast_calibration_factor = None
+        self.calibration_iterations_factor = None
+        # timeout while running the benchmark - per model timeout
+        self.instance_timeout = None
+        # timeout while running the benchmark - overall timeout
+        self.overall_timeout = None
         # cna use this file as template to cleanup model config file
         self.param_template_file = None
 

@@ -65,8 +65,7 @@ def get_configs(settings, work_dir):
         #         runtime_options=settings.runtime_options_onnx_np2(
         #             det_options=True, ext_options={'object_detection:meta_arch_type': 6,
         #             'object_detection:meta_layers_names_list': f'../edgeai-yolov5/pretrained_models/models/detection/widerface/edgeai-yolov5-gplv3/yolov5s6_640_ti_lite_metaarch.prototxt',
-        #             'advanced_options:output_feature_16bit_names_list': '168, 370, 432, 494, 556'},
-        #             fast_calibration=True),
+        #             'advanced_options:output_feature_16bit_names_list': '168, 370, 432, 494, 556'}),
         #         model_path=f'../edgeai-yolov5/pretrained_models/models/detection/widerface/edgeai-yolov5-gplv3/yolov5s6_640_ti_lite_71p53.onnx'),
         #     postprocess=postproc_transforms.get_transform_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
         #     metric=dict(label_offset_pred=datasets.widerfacedet_det_label_offset_1to1(label_offset=1)),

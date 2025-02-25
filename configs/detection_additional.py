@@ -99,8 +99,7 @@ def get_configs(settings, work_dir):
                 runtime_options=settings.runtime_options_onnx_np2(
                     det_options=True, ext_options={'object_detection:meta_arch_type': 6,
                      'object_detection:meta_layers_names_list':f'../edgeai-modelforest/models-cl/vision/detection/coco/edgeai-mmyolo-gplv3/yolov5_small-v61_lite_640x640_20240329_model.prototxt',
-                     'advanced_options:output_feature_16bit_names_list':'1,3,142,150,158'},
-                     fast_calibration=True),
+                     'advanced_options:output_feature_16bit_names_list':'1,3,142,150,158'}),
                 model_path=f'../edgeai-modelforest/models-cl/vision/detection/coco/edgeai-mmyolo-gplv3/yolov5_small-v61_lite_640x640_20240329_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
@@ -114,8 +113,7 @@ def get_configs(settings, work_dir):
         #             det_options=True, ext_options={'object_detection:meta_arch_type': 6,
         #              'object_detection:meta_layers_names_list':f'/data/files/a0508577/work/edgeai-algo/edgeai-mmyolo-gplv3/work_dirs/yolov6_n_syncbn_fast_8xb32-400e_coco/epoch_400.prototxt',
         #             #  'advanced_options:output_feature_16bit_names_list':'1,142,150,158'
-        #              },
-        #              fast_calibration=True),
+        #              }),
         #         model_path=f'/data/files/a0508577/work/edgeai-algo/edgeai-mmyolo-gplv3/work_dirs/yolov6_n_syncbn_fast_8xb32-400e_coco/epoch_400.onnx'),
         #     postprocess=postproc_transforms.get_transform_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
         #     metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
@@ -128,8 +126,7 @@ def get_configs(settings, work_dir):
                 runtime_options=settings.runtime_options_onnx_np2(
                     det_options=True, ext_options={'object_detection:meta_arch_type': 6,
                      'object_detection:meta_layers_names_list':f'../edgeai-modelforest/models-cl/vision/detection/coco/edgeai-mmyolo-gplv3/yolov7_tiny_lite_640x640_20230830_model.prototxt',
-                     'advanced_options:output_feature_16bit_names_list':'1,137,147,157'},
-                     fast_calibration=True),
+                     'advanced_options:output_feature_16bit_names_list':'1,137,147,157'}),
                 model_path=f'../edgeai-modelforest/models-cl/vision/detection/coco/edgeai-mmyolo-gplv3/yolov7_tiny_lite_640x640_20230830_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
@@ -143,8 +140,7 @@ def get_configs(settings, work_dir):
                     det_options=True, ext_options={'object_detection:meta_arch_type': 6,
                      'object_detection:meta_layers_names_list':f'../edgeai-modelforest/models-cl/vision/detection/coco/edgeai-mmyolo-gplv3/yolov7_large_lite_640x640_20240119_model.prototxt',
                      'advanced_options:output_feature_16bit_names_list':'2,221,251,277'
-                     },
-                     fast_calibration=True),
+                     }),
                 model_path=f'../edgeai-modelforest/models-cl/vision/detection/coco/edgeai-mmyolo-gplv3/yolov7_large_lite_640x640_20240119_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
@@ -158,8 +154,7 @@ def get_configs(settings, work_dir):
                      det_options=True, ext_options={'object_detection:meta_arch_type': 8,
                      'object_detection:meta_layers_names_list':f'../edgeai-modelforest/models-cl/vision/detection/coco/edgeai-mmyolo-gplv3/yolov8_nano_lite_640x640_20231118_model.prototxt',
                      'advanced_options:output_feature_16bit_names_list':''
-                     },
-                     ),
+                     }),
                 model_path=f'../edgeai-modelforest/models-cl/vision/detection/coco/edgeai-mmyolo-gplv3/yolov8_nano_lite_640x640_20231118_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
@@ -173,8 +168,7 @@ def get_configs(settings, work_dir):
                      det_options=True, ext_options={'object_detection:meta_arch_type': 8,
                      'object_detection:meta_layers_names_list':f'../edgeai-modelforest/models-cl/vision/detection/coco/edgeai-mmyolo-gplv3/yolov8_small_lite_640x640_20231117_model.prototxt',
                      'advanced_options:output_feature_16bit_names_list':'1,129,134,139,144,149,154'
-                     },
-                     fast_calibration=True),
+                     }),
                 model_path=f'../edgeai-modelforest/models-cl/vision/detection/coco/edgeai-mmyolo-gplv3/yolov8_small_lite_640x640_20231117_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_yolov5_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()), #TODO: check this
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),

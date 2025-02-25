@@ -108,7 +108,7 @@ def get_configs(settings, work_dir):
         'ss-8610':utils.dict_update(ade20k32_cfg,
             preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
             session=onnx_session_type(**sessions.get_jai_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_np2(),
+                runtime_options=settings.runtime_options_onnx_np2(fast_calibration=False),
                 model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-tv/deeplabv3plus_mobilenetv2_edgeailite_512x512_20210308_outby4.onnx'),
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':51.08}, model_shortlist=10, compact_name='deeplabv3lite-mobv2-ade20k32-512x512', shortlisted=True, recommended=True)
@@ -116,7 +116,7 @@ def get_configs(settings, work_dir):
         'ss-8630':utils.dict_update(ade20k32_cfg,
             preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
             session=onnx_session_type(**sessions.get_jai_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_p2(),
+                runtime_options=settings.runtime_options_onnx_p2(fast_calibration=False),
                 model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-tv/unet_aspp_mobilenetv2_edgeailite_512x512_20210306_outby2.onnx'),
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':50.07}, model_shortlist=20, compact_name='unetlite-aspp-mobv2-tv-ade20k32-512x512', shortlisted=True)
@@ -124,7 +124,7 @@ def get_configs(settings, work_dir):
         'ss-8650':utils.dict_update(ade20k32_cfg,
             preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
             session=onnx_session_type(**sessions.get_jai_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_np2(),
+                runtime_options=settings.runtime_options_onnx_np2(fast_calibration=False),
                 model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-tv/fpn_aspp_mobilenetv2_edgeailite_512x512_20210306_outby4.onnx'),
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':50.55}, model_shortlist=90, compact_name='fpnlite-aspp-mobv2-ade20k32-512x512', shortlisted=False)
@@ -132,7 +132,7 @@ def get_configs(settings, work_dir):
         'ss-8670':utils.dict_update(ade20k32_cfg,
             preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_AREA),
             session=onnx_session_type(**sessions.get_jai_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_p2(),
+                runtime_options=settings.runtime_options_onnx_p2(fast_calibration=False),
                 model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-tv/fpn_aspp_mobilenetv2_1p4_edgeailite_512x512_20210307_outby4.onnx'),
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':52.90}, model_shortlist=90, compact_name='fpnlite-aspp-mobv2-1p4-ade20k32-512x512', shortlisted=False)
@@ -142,7 +142,7 @@ def get_configs(settings, work_dir):
         'ss-8710':utils.dict_update(cocoseg21_cfg,
             preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_LINEAR),
             session=onnx_session_type(**sessions.get_jai_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_p2(),
+                runtime_options=settings.runtime_options_onnx_p2(fast_calibration=False),
                 model_path=f'{settings.models_path}/vision/segmentation/cocoseg21/edgeai-tv/deeplabv3plus_mobilenetv2_edgeailite_512x512_20210405.onnx'),
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':57.77}, model_shortlist=20, compact_name='deeplabv3lite-mobv2-cocoseg21-512x512', shortlisted=True)
@@ -158,7 +158,7 @@ def get_configs(settings, work_dir):
         'ss-8730':utils.dict_update(cocoseg21_cfg,
             preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_LINEAR),
             session=onnx_session_type(**sessions.get_jai_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_p2(),
+                runtime_options=settings.runtime_options_onnx_p2(fast_calibration=False),
                 model_path=f'{settings.models_path}/vision/segmentation/cocoseg21/edgeai-tv/deeplabv3_mobilenet_v3_large_lite_512x512_20210527.onnx'),
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':60.80}, model_shortlist=90, compact_name='deeplabv3-mobv3-lite-large-cocoseg21-512x512', shortlisted=False)
@@ -166,7 +166,7 @@ def get_configs(settings, work_dir):
         'ss-8740':utils.dict_update(cocoseg21_cfg,
             preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_LINEAR),
             session=onnx_session_type(**sessions.get_jai_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_p2(),
+                runtime_options=settings.runtime_options_onnx_p2(fast_calibration=False),
                 model_path=f'{settings.models_path}/vision/segmentation/cocoseg21/edgeai-tv/lraspp_mobilenet_v3_large_lite_512x512_20210527.onnx'),
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':59.80}, model_shortlist=40, compact_name='lraspp-mobV3-ti-lite-large-cocoseg21-512x512', shortlisted=True)
@@ -175,7 +175,7 @@ def get_configs(settings, work_dir):
         'ss-8750':utils.dict_update(ade20k_cfg,
             preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=dict(convert_conv_7x7_stride4_to_stride1=True)),
-                runtime_options=settings.runtime_options_onnx_p2(fast_calibration=True, 
+                runtime_options=settings.runtime_options_onnx_p2(
 				    ext_options={"advanced_options:max_num_subgraph_nodes":2048, 'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
                 model_path=f'{settings.models_path}/vision/segmentation/ade20k/hf-transformers/segformer_b0_finetuned_ade_512_512_simp.onnx'),
             postprocess=postproc_segmentation_onnx,
@@ -185,7 +185,7 @@ def get_configs(settings, work_dir):
         'ss-8760':utils.dict_update(ade20k_cfg,
             preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=dict(convert_conv_7x7_stride4_to_stride1=True)),
-                runtime_options=settings.runtime_options_onnx_p2(fast_calibration=True,
+                runtime_options=settings.runtime_options_onnx_p2(
                     ext_options={"advanced_options:max_num_subgraph_nodes":2048, 'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
                 model_path=f'{settings.models_path}/vision/segmentation/ade20k/hf-transformers/segformer_b1_finetuned_ade_512_512_simp.onnx'),
             postprocess=postproc_segmentation_onnx,
@@ -195,7 +195,7 @@ def get_configs(settings, work_dir):
         'ss-8770':utils.dict_update(ade20k_cfg,
             preprocess=preproc_transforms.get_transform_onnx((512,512), (512,512), backend='cv2'),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=dict(convert_conv_7x7_stride4_to_stride1=True)),
-                runtime_options=settings.runtime_options_onnx_p2(fast_calibration=True,
+                runtime_options=settings.runtime_options_onnx_p2(
                     ext_options={"advanced_options:max_num_subgraph_nodes":2048, 'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
                 model_path=f'{settings.models_path}/vision/segmentation/ade20k/hf-transformers/segformer_b2_finetuned_ade_512_512_simp.onnx'),
             postprocess=postproc_segmentation_onnx,
@@ -206,7 +206,7 @@ def get_configs(settings, work_dir):
         'ss-7618': utils.dict_update(robokitseg_cfg,
             preprocess=preproc_transforms.get_transform_jai((432,768), (432,768), backend='cv2', interpolation=cv2.INTER_AREA),
             session=onnx_session_type(**sessions.get_jai_quant_session_cfg(settings, work_dir=work_dir, input_optimization=False),
-                runtime_options=settings.runtime_options_onnx_qat_v1(),
+                runtime_options=settings.runtime_options_onnx_qat_v1(fast_calibration=False),
                 model_path=f'{settings.models_path}/vision/segmentation/ti-robokit/edgeai-tv/deeplabv3plus_mnetv2_edgeailite_robokit_768x432_qat-p2.onnx'),
             postprocess=postproc_transforms.get_transform_segmentation_onnx(),
             model_info=dict(metric_reference={'accuracy_mean_iou%':54.1}, model_shortlist=10, compact_name='deeplabv3lite-mobv2-qat-robokit-768x432', shortlisted=True, recommended=True)
@@ -222,7 +222,7 @@ def get_configs(settings, work_dir):
         'ss-2580':utils.dict_update(ade20k32_cfg,
             preprocess=preproc_transforms.get_transform_tflite((512, 512), (512, 512), backend='cv2'),
             session=tflite_session_type(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir, input_mean=(123.675, 116.28, 103.53), input_scale=(0.017125, 0.017507, 0.017429)),
-                 runtime_options=settings.runtime_options_tflite_p2(),
+                 runtime_options=settings.runtime_options_tflite_p2(fast_calibration=False),
                  model_path=f'{settings.models_path}/vision/segmentation/ade20k32/mlperf/deeplabv3_mnv2_ade20k32_float.tflite'),
             postprocess=postproc_segmenation_tflite,
             model_info=dict(metric_reference={'accuracy_mean_iou%':54.8}, model_shortlist=10, compact_name='deeplabv3_mobv2-ade20k32-mlperf-512x512', shortlisted=True, recommended=True)
@@ -232,7 +232,7 @@ def get_configs(settings, work_dir):
         'ss-2540':utils.dict_update(ade20k_cfg,
             preprocess=preproc_transforms.get_transform_tflite((512, 512), (512, 512), backend='cv2'),
             session=tflite_session_type(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir, input_mean=(123.675, 116.28, 103.53), input_scale=(0.017125, 0.017507, 0.017429)),
-                 runtime_options=settings.runtime_options_tflite_np2(),
+                 runtime_options=settings.runtime_options_tflite_np2(fast_calibration=False),
                  model_path=f'{settings.models_path}/vision/segmentation/ade20k/tf1-models/deeplabv3_mnv2_ade20k_train_20181203_512x512.tflite'),
             postprocess=postproc_segmenation_tflite,
             model_info=dict(metric_reference={'accuracy_mean_iou%':32.04}, model_shortlist=None, compact_name='deeplabv3-mobv2-ade20k-512x512', shortlisted=False)
@@ -241,7 +241,7 @@ def get_configs(settings, work_dir):
         'ss-2590': utils.dict_update(pascal_voc_cfg, #pascalvoc2012 deeplab
             preprocess=preproc_transforms.get_transform_tflite((512, 512), (512, 512), backend='cv2'),
             session=tflite_session_type(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir, input_mean=(127.5, 127.5, 127.5), input_scale=(1/127.5, 1/127.5, 1/127.5)),
-                runtime_options=settings.runtime_options_tflite_np2(),
+                runtime_options=settings.runtime_options_tflite_np2(fast_calibration=False),
                 model_path=f'{settings.models_path}/vision/segmentation/voc2012/tf1-models/deeplabv3_mnv2_dm05_pascal_trainaug_512x512.tflite'),
             postprocess=postproc_segmenation_tflite,
             model_info=dict(metric_reference={'accuracy_mean_iou%':70.19}, model_shortlist=None, compact_name='deeplabv3_mobv2-dm05-pascal-trainaug-512x512', shortlisted=False)
@@ -250,7 +250,7 @@ def get_configs(settings, work_dir):
         'ss-2600': utils.dict_update(pascal_voc_cfg,  # pascalvoc2012 deeplab
             preprocess=preproc_transforms.get_transform_tflite((512, 512), (512, 512), backend='cv2'),
             session=tflite_session_type(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir, input_mean=(127.5, 127.5, 127.5), input_scale=(1/127.5, 1/127.5, 1/127.5)),
-                runtime_options=settings.runtime_options_tflite_np2(),
+                runtime_options=settings.runtime_options_tflite_np2(fast_calibration=False),
                 model_path=f'{settings.models_path}/vision/segmentation/voc2012/tf1-models/deeplabv3_mnv2_pascal_trainaug_512x512.tflite'),
             postprocess=postproc_segmenation_tflite,
             model_info=dict(metric_reference={'accuracy_mean_iou%':77.33}, model_shortlist=None, compact_name='deeplabv3_mobv2-pascal-trainaug-512x512', shortlisted=False)
@@ -260,7 +260,7 @@ def get_configs(settings, work_dir):
         'ss-5710':utils.dict_update(cocoseg21_cfg,
             preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_LINEAR),
             session=sessions.TVMDLRSession(**sessions.get_jai_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_p2(),
+                runtime_options=settings.runtime_options_onnx_p2(fast_calibration=False),
                 model_path=f'{settings.models_path}/vision/segmentation/cocoseg21/edgeai-tv/deeplabv3plus_mobilenetv2_edgeailite_512x512_20210405.onnx'),
             postprocess=postproc_segmentation_onnx,
             model_info=dict(metric_reference={'accuracy_mean_iou%':57.77}, model_shortlist=10, compact_name='deeplabv3lite-mobv2-cocoseg21-512x512', shortlisted=True, recommended=True)

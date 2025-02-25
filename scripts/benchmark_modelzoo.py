@@ -63,7 +63,7 @@ def get_arg_parser():
     parallel_devices_group.add_argument('--parallel_devices', type=utils.int_or_none)
     parallel_devices_group.add_argument('--parallel_devices_list', type=int, nargs='*', default=None)
     parser.add_argument('--parallel_processes', type=int)
-    parser.add_argument('--fast_calibration_factor', type=utils.float_or_none)
+    parser.add_argument('--calibration_iterations_factor', type=utils.float_or_none)
     parser.add_argument('--experimental_models', type=utils.str_to_bool)
     parser.add_argument('--additional_models', type=utils.str_to_bool)
     parser.add_argument('--detection_threshold', type=float)

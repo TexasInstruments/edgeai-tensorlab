@@ -128,42 +128,36 @@ OBJECT_DETECTION_META_FILE_KEY = 'object_detection:meta_layers_names_list'
 ADVANCED_OPTIONS_QUANT_FILE_KEY = 'advanced_options:quant_params_proto_path'
 
 
-# we can use fewer number of calibration images and iterations if per channel assymetric quantization is enabled
-FAST_CALIBRATION_FACTOR = 0.5
+CALIBRATION_ITERATIONS_FACTOR_1X = 1.0
+CALIBRATION_ITERATIONS_FACTOR_NX = 2.0
 
 
 # runtime_options preferred - may not blindly apply for qat models
 TARGET_DEVICE_SETTINGS_PRESETS = {
     TARGET_DEVICE_TDA4VM : {
         # TDA4VM does not support the per-channel asymmetric quantization
+        # hence we may need more number calibration images and iterations
+        'calibration_iterations_factor': CALIBRATION_ITERATIONS_FACTOR_NX        
     },
     TARGET_DEVICE_AM62A : {
         'runtime_options': {
             'advanced_options:quantization_scale_type': 4
         },
-        # we can use fewer number of calibration images and iterations if per channel asymmetric quantization is enabled
-        'fast_calibration_factor': FAST_CALIBRATION_FACTOR
     },
     TARGET_DEVICE_AM67A: {
         'runtime_options': {
             'advanced_options:quantization_scale_type': 4
         },
-        # we can use fewer number of calibration images and iterations if per channel asymmetric quantization is enabled
-        'fast_calibration_factor': FAST_CALIBRATION_FACTOR
     },
     TARGET_DEVICE_AM68A : {
         'runtime_options': {
             'advanced_options:quantization_scale_type': 4
         },
-        # we can use fewer number of calibration images and iterations if per channel asymmetric quantization is enabled
-        'fast_calibration_factor': FAST_CALIBRATION_FACTOR
     },
     TARGET_DEVICE_AM69A : {
         'runtime_options': {
             'advanced_options:quantization_scale_type': 4
         },
-        # we can use fewer number of calibration images and iterations if per channel asymmetric quantization is enabled
-        'fast_calibration_factor': FAST_CALIBRATION_FACTOR
     },
     TARGET_DEVICE_AM62 : {
         'tidl_offload': False,

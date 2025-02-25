@@ -61,8 +61,7 @@ def get_configs(settings, work_dir):
                 runtime_options=settings.runtime_options_onnx_p2(
                         det_options=True, ext_options={'object_detection:meta_arch_type': 6,
                          'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/keypoint/coco/edgeai-yolox/yolox_s_pose_ti_lite_640_20220301_model.prototxt',
-                        'advanced_options:output_feature_16bit_names_list': '/0/backbone/backbone/stem/stem.0/act/Relu_output_0, /0/head/cls_preds.0/Conv_output_0, /0/head/reg_preds.0/Conv_output_0, /0/head/obj_preds.0/Conv_output_0, /0/head/kpts_preds.0/Conv_output_0, /0/head/cls_preds.1/Conv_output_0, /0/head/reg_preds.1/Conv_output_0, /0/head/obj_preds.1/Conv_output_0, /0/head/kpts_preds.1/Conv_output_0, /0/head/cls_preds.2/Conv_output_0, /0/head/reg_preds.2/Conv_output_0, /0/head/obj_preds.2/Conv_output_0, /0/head/kpts_preds.2/Conv_output_0'},
-                        fast_calibration=True),
+                        'advanced_options:output_feature_16bit_names_list': '/0/backbone/backbone/stem/stem.0/act/Relu_output_0, /0/head/cls_preds.0/Conv_output_0, /0/head/reg_preds.0/Conv_output_0, /0/head/obj_preds.0/Conv_output_0, /0/head/kpts_preds.0/Conv_output_0, /0/head/cls_preds.1/Conv_output_0, /0/head/reg_preds.1/Conv_output_0, /0/head/obj_preds.1/Conv_output_0, /0/head/kpts_preds.1/Conv_output_0, /0/head/cls_preds.2/Conv_output_0, /0/head/reg_preds.2/Conv_output_0, /0/head/obj_preds.2/Conv_output_0, /0/head/kpts_preds.2/Conv_output_0'}),
                 model_path=f'{settings.models_path}/vision/keypoint/coco/edgeai-yolox/yolox_s_pose_ti_lite_640_20220301_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_yolov5_pose_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS(), keypoint=True),
             metric=dict(label_offset_pred=1), #TODO: add this for other models as well?
@@ -82,8 +81,7 @@ def get_configs(settings, work_dir):
                         'object_detection:meta_arch_type': 6,
                         #  'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/keypoint/coco/edgeai-mmpose/yoloxpose_tiny_lite_416x416_20240808_model.prototxt',
                         'advanced_options:output_feature_16bit_names_list': '3'
-                        },
-                        fast_calibration=True),
+                        }),
                 model_path=f'{settings.models_path}/vision/keypoint/coco/edgeai-mmpose/yoloxpose_tiny_lite_416x416_20240808_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_yolov5_pose_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS(), keypoint=True),
             metric=dict(label_offset_pred=1), #TODO: add this for other models as well?
@@ -103,8 +101,7 @@ def get_configs(settings, work_dir):
                         'object_detection:meta_arch_type': 6,
                         #  'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/keypoint/coco/edgeai-mmpose/yoloxpose_s_lite_coco-640x640_20250119_model.prototxt',
                         'advanced_options:output_feature_16bit_names_list': '3'
-                        },
-                        fast_calibration=True),
+                        }),
                 model_path=f'{settings.models_path}/vision/keypoint/coco/edgeai-mmpose/yoloxpose_s_lite_coco-640x640_20250119_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_yolov5_pose_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS(), keypoint=True),
             metric=dict(label_offset_pred=1), #TODO: add this for other models as well?

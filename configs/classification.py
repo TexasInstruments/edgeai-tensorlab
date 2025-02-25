@@ -70,7 +70,7 @@ def get_configs(settings, work_dir):
         'cl-6060':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_np2(),
+                runtime_options=settings.runtime_options_onnx_np2(fast_calibration=False),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv/mobilenet_v1_20190906.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':71.82}, model_shortlist=None, compact_name='mobileNetV1', shortlisted=False)
         ),
@@ -78,7 +78,7 @@ def get_configs(settings, work_dir):
         'cl-6070':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_p2(),
+                runtime_options=settings.runtime_options_onnx_p2(fast_calibration=False),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':72.13}, model_shortlist=None, compact_name='mobileNetV2', shortlisted=False)
         ),
@@ -102,7 +102,7 @@ def get_configs(settings, work_dir):
         'cl-6480':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_np2(),
+                runtime_options=settings.runtime_options_onnx_np2(fast_calibration=False),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_small_20210429.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':62.688}, model_shortlist=30, compact_name='mobv3-lite-small', shortlisted=True)
         ),
@@ -118,7 +118,7 @@ def get_configs(settings, work_dir):
         'cl-6490':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_p2(),
+                runtime_options=settings.runtime_options_onnx_p2(fast_calibration=False),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/edgeai-tv/mobilenet_v3_lite_large_20210507.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':72.122}, model_shortlist=30, compact_name='mobv3-lite-large', shortlisted=True)
         ),
@@ -127,7 +127,7 @@ def get_configs(settings, work_dir):
         'cl-6080':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_np2(),
+                runtime_options=settings.runtime_options_onnx_np2(fast_calibration=False),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/shufflenet_v2_x1.0.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':69.36}, model_shortlist=90, compact_name='shuffleNetV2', shortlisted=False)
         ),
@@ -135,7 +135,7 @@ def get_configs(settings, work_dir):
         'cl-6090':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_p2(),
+                runtime_options=settings.runtime_options_onnx_p2(fast_calibration=False),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/mobilenet_v2_tv.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':71.88}, model_shortlist=20, compact_name='mobileNetV2-tv', shortlisted=True)
         ),
@@ -222,7 +222,7 @@ def get_configs(settings, work_dir):
         'cl-6180':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_np2(fast_calibration=True),
+                runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/regnet_x_1_6gf_tv.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':77.040}, model_shortlist=40, compact_name='regNetX-1.6gf-tv', shortlisted=True)
         ),
@@ -233,7 +233,7 @@ def get_configs(settings, work_dir):
         'cl-0000':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite(),
             session=tflite_session_type(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_tflite_np2(),
+                runtime_options=settings.runtime_options_tflite_np2(fast_calibration=False),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/mlperf/mobilenet_v1_1.0_224.tflite'),
             metric=dict(label_offset_pred=-1),
             model_info=dict(metric_reference={'accuracy_top1%':71.676}, model_shortlist=10, compact_name='mobileNetV1-mlperf', shortlisted=True, recommended=True)
@@ -270,7 +270,7 @@ def get_configs(settings, work_dir):
         'cl-0010':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite(),
             session=tflite_session_type(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_tflite_np2(),
+                runtime_options=settings.runtime_options_tflite_np2(fast_calibration=False),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v2_1.0_224.tflite'),
             metric=dict(label_offset_pred=-1),
             model_info=dict(metric_reference={'accuracy_top1%':71.9}, model_shortlist=30, compact_name='mobileNetV2', shortlisted=True)
@@ -279,7 +279,7 @@ def get_configs(settings, work_dir):
         'cl-0020':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite(),
             session=tflite_session_type(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir, input_mean=(123.68, 116.78, 103.94), input_scale=(1/255, 1/255, 1/255)),
-                runtime_options=settings.runtime_options_tflite_np2(fast_calibration=True),
+                runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/squeezenet.tflite'),
             metric=dict(label_offset_pred=-1),
             model_info=dict(metric_reference={'accuracy_top1%':57.5}, model_shortlist=None, compact_name='SqueezeNet', shortlisted=False)
@@ -288,7 +288,7 @@ def get_configs(settings, work_dir):
         'cl-0200':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite(),
             session=tflite_session_type(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_tflite_np2(),
+                runtime_options=settings.runtime_options_tflite_np2(fast_calibration=False),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v2_float_1.4_224.tflite'),
             metric=dict(label_offset_pred=-1),
             model_info=dict(metric_reference={'accuracy_top1%':75.0}, model_shortlist=90, compact_name='mobileNetV2-1p4', shortlisted=False)
@@ -297,7 +297,7 @@ def get_configs(settings, work_dir):
         'cl-0038':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite_quant(),
             session=tflite_session_type(**sessions.get_tflite_quant_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_tflite_np2(fast_calibration=True),
+                runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/inception_v1_224_quant.tflite'),
             metric=dict(label_offset_pred=-1),
             model_info=dict(metric_reference={'accuracy_top1%':69.63}, model_shortlist=90, compact_name='InceptionNetV1', shortlisted=False)
@@ -306,7 +306,7 @@ def get_configs(settings, work_dir):
         'cl-0040':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite(342, 299),
             session=tflite_session_type(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_tflite_np2(fast_calibration=True),
+                runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/inception_v3.tflite'),
             metric=dict(label_offset_pred=-1),
             model_info=dict(metric_reference={'accuracy_top1%':78.0}, model_shortlist=90, compact_name='InceptionNetV3', shortlisted=False)
@@ -315,7 +315,7 @@ def get_configs(settings, work_dir):
         'cl-0070':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite(),
             session=tflite_session_type(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_tflite_np2(),
+                runtime_options=settings.runtime_options_tflite_np2(fast_calibration=False),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/mnasnet_1.0_224.tflite'),
             metric=dict(label_offset_pred=-1),
             model_info=dict(metric_reference={'accuracy_top1%':74.08}, model_shortlist=None, compact_name='mnasNet', shortlisted=False)
@@ -342,7 +342,7 @@ def get_configs(settings, work_dir):
         'cl-0260':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite(),
             session=tflite_session_type(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_tflite_np2(),
+                runtime_options=settings.runtime_options_tflite_np2(fast_calibration=False),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v3-large-minimalistic_224_1.0_float.tflite'),
             metric=dict(label_offset_pred=-1),
             model_info=dict(metric_reference={'accuracy_top1%':72.3}, model_shortlist=None, compact_name='mobv3-large-minimalistic', shortlisted=False)
@@ -351,7 +351,7 @@ def get_configs(settings, work_dir):
         'cl-0270':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite(),
             session=tflite_session_type(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_tflite_np2(),
+                runtime_options=settings.runtime_options_tflite_np2(fast_calibration=False),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v3-small-minimalistic_224_1.0_float.tflite'),
             metric=dict(label_offset_pred=-1),
             model_info=dict(metric_reference={'accuracy_top1%':61.9}, model_shortlist=None, compact_name='mobv3-small-minimalistic', shortlisted=False)
@@ -361,7 +361,7 @@ def get_configs(settings, work_dir):
         'cl-0130':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite(),
             session=tflite_session_type(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_tflite_p2(),
+                runtime_options=settings.runtime_options_tflite_p2(fast_calibration=False),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf-tpu/efficientnet-lite0-fp32.tflite'),
             model_info=dict(metric_reference={'accuracy_top1%':75.1}, model_shortlist=30, compact_name='efficientNet-lite0', shortlisted=True)
         ),
@@ -369,7 +369,7 @@ def get_configs(settings, work_dir):
         'cl-0170':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite(274, 240),
             session=tflite_session_type(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_tflite_np2(),
+                runtime_options=settings.runtime_options_tflite_np2(fast_calibration=False),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf-tpu/efficientnet-lite1-fp32.tflite'),
             model_info=dict(metric_reference={'accuracy_top1%':76.7}, model_shortlist=90, compact_name='efficientNet-lite1', shortlisted=False)
         ),
@@ -377,7 +377,7 @@ def get_configs(settings, work_dir):
         'cl-0140':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite(343, 300),
             session=tflite_session_type(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_tflite_np2(fast_calibration=True),
+                runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf-tpu/efficientnet-lite4-fp32.tflite'),
             model_info=dict(metric_reference={'accuracy_top1%':81.5}, model_shortlist=40, compact_name='efficientNet-lite4', shortlisted=True)
         ),
@@ -385,7 +385,7 @@ def get_configs(settings, work_dir):
         'cl-0090':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite(),
             session=tflite_session_type(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_tflite_np2(fast_calibration=True),
+                runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf-tpu/efficientnet-edgetpu-S_float.tflite'),
             metric=dict(label_offset_pred=-1),
             model_info=dict(metric_reference={'accuracy_top1%':77.23}, model_shortlist=40, compact_name='efficientNet-edgeTPU-s', shortlisted=True)
@@ -394,7 +394,7 @@ def get_configs(settings, work_dir):
         'cl-0100':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite(274, 240),
             session=tflite_session_type(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_tflite_np2(fast_calibration=True),
+                runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf-tpu/efficientnet-edgetpu-M_float.tflite'),
             metric=dict(label_offset_pred=-1),
             model_info=dict(metric_reference={'accuracy_top1%':78.69}, model_shortlist=90, compact_name='efficientNet-edgeTPU-m', shortlisted=False)
@@ -403,7 +403,7 @@ def get_configs(settings, work_dir):
         'cl-0190':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite(343, 300),
             session=tflite_session_type(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_tflite_np2(fast_calibration=True),
+                runtime_options=settings.runtime_options_tflite_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf-tpu/efficientnet-edgetpu-L_float.tflite'),
             metric=dict(label_offset_pred=-1),
             model_info=dict(metric_reference={'accuracy_top1%':80.62}, model_shortlist=None, compact_name='efficientNet-edgeTPU-l', shortlisted=False)
@@ -414,7 +414,7 @@ def get_configs(settings, work_dir):
         'cl-3090':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=sessions.TVMDLRSession(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_onnx_p2(),
+                runtime_options=settings.runtime_options_onnx_p2(fast_calibration=False),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/mobilenet_v2_tv.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':71.88}, model_shortlist=10, compact_name='mobileNetV2-tv', shortlisted=True, recommended=True)
         ),
@@ -438,7 +438,7 @@ def get_configs(settings, work_dir):
         'cl-3520':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_tflite(),
             session=sessions.TVMDLRSession(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_tflite_np2(),
+                runtime_options=settings.runtime_options_tflite_np2(fast_calibration=False),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v1_1.0_224.tflite'),
             metric=dict(label_offset_pred=-1),
             model_info=dict(metric_reference={'accuracy_top1%':71.0}, model_shortlist=None, compact_name='mobileNetV1', shortlisted=False)
