@@ -1091,9 +1091,13 @@ class BEVFormer_export_model(nn.Module):
         #    device=bev_query.device, dtype=bev_query.dtype)
         
         # Get image coors corresponding to ref_3d. bev_mask indicates valid coors
+        # bev_mask: 6x1x2500x4
+        # reference_points_cam: 6x1x2500x4x2
         reference_points_cam, bev_mask = self.point_sampling(
             ref_3d, self.pc_range, self.img_metas)
 
+        # bev_valid_indices has valid BEV grid indices. Invalid BEV grids is bev_h*bev_w
+        # bev_valid_indices_count has # of valid BEV grids
         bev_valid_indices = []
         bev_valid_indices_count = []
         for mask_per_img in bev_mask:
