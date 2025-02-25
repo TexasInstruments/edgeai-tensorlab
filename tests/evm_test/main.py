@@ -22,6 +22,7 @@ parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
 parser.add_argument('--soc', help='SOC (AM68A|AM69A|TDA4VM|AM62A|AM67A)', type=str, default="AM68A")
 parser.add_argument('--uart', help='UART port', type=str, default="/dev/ttyUSB2")
 parser.add_argument('--logs_dir', help='Optional path to store evm test logs', type=str, default='./evm_test_logs')
+parser.add_argument('--artifacts_folder', help='Optional path to store the model artifacts after EVM run', type=str, default=None)
 parser.add_argument('--artifacts_tarball', help='Optional path to model artifacts tarball', type=str, default=None)
 parser.add_argument('--reboot_type', help='Reboot type (hard|soft)', type=str, default="soft")
 parser.add_argument('--relay_exe_path', help='Anel power switch exe path', type=str, default=None)
@@ -86,7 +87,10 @@ evm_config = { "soc" : args.soc,
             }
 
 # Model artifacts folder
-artifacts_dir = os.path.join(edgeai_benchmark_path,"work_dirs","modelartifacts",evm_config["soc"],"8bits")
+if args.artifacts_folder is None:
+    artifacts_dir = os.path.join(edgeai_benchmark_path,"work_dirs","modelartifacts",evm_config["soc"],"8bits")
+else:
+    artifacts_dir = args.artifacts_folder
 
 # Print info
 print()

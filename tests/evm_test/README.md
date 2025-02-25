@@ -22,6 +22,7 @@ The purpose of these scripts are to automate the process of running benchmark pi
 | soc|AM68A|Allowed values are AM68A,AM69A,TDA4VM,AM62A,AM67A|
 | pc_ip|-| IP Address of your PC |
 | artifacts_tarball|None|Option to provide artifacts tarball download link or path. If provided, it will delete the existing folders in work_dirs/modelartifacts/*SOC*/8bits and replace with the tarball artifacts. If None, it will use the existing artifacts under work_dirs/modelartifacts/*SOC*/8bits|
+| artifacts_folder |None| Path to store the model artifacts, creates a deafult if not specified. |
 | logs_dir|./evm_test_logs|Path to dum evm test logs in|
 | uart|/dev/ttyUSB2|UART port of the SOC|
 | reboot_type|soft|Type of EVM reboot to use. Allowed values are soft or hard.Soft reboot signifies using 'reboot' command on evm. Hard reboot signifies using ANEL Power switch to control the power supply |
