@@ -66,6 +66,8 @@ def get_arg_parser():
     parser.add_argument('--fast_calibration_factor', type=utils.float_or_none)
     parser.add_argument('--experimental_models', type=utils.str_to_bool)
     parser.add_argument('--additional_models', type=utils.str_to_bool)
+    parser.add_argument('--detection_threshold', type=float)
+    parser.add_argument('--detection_top_k', type=float)
     return parser
 
 if __name__ == '__main__':
