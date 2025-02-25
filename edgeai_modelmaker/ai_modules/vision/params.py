@@ -122,8 +122,8 @@ def init_params(*args, **kwargs):
             calibration_iterations=10,
             num_frames=None, # inference frames for accuracy measurement. example: 100. None means entire validation set.
             num_output_frames=50, # inference frames for example output. example: 50
-            detection_threshold=0.05, # threshold for detection: 0.6 for visualization, 0.3 atleast for good performance(fps), 0.05 for best accuracy
-            detection_top_k=500, # num boxes to preserve in nms: 200 for best performance(fps), 500 for best accuracy.
+            detection_threshold=0.3, # threshold for detection: 0.6 for visualization, 0.3 atleast for good performance(fps), 0.05 for best accuracy
+            detection_top_k=200, # num boxes to preserve in nms: 200 for best performance(fps), 500 for best accuracy.
             save_output=True, # save inference outputs
             tidl_offload=True,
             input_optimization=True, # if this is set, the compilation tool will try to fold mean and scale inside the model.

@@ -106,6 +106,7 @@ if __name__ == '__main__':
     parser.add_argument('--target_device', type=str)
     parser.add_argument('--num_gpus', type=int)
     parser.add_argument('--batch_size', type=int)
+    parser.add_argument('--compilation_preset_name', type=str)
     args = parser.parse_args()
 
     # read the config
@@ -144,6 +145,9 @@ if __name__ == '__main__':
     #
     if 'learning_rate' in kwargs:
         config['training']['learning_rate'] = kwargs['learning_rate']
+    #
+    if 'compilation_preset_name' in kwargs:
+        config['compilation']['preset_name'] = kwargs['compilation_preset_name']
     #
 
     main(config)
