@@ -328,420 +328,420 @@ PRESET_DESCRIPTIONS = {
     TARGET_DEVICE_TDA4VM: {
         TASK_TYPE_CLASSIFICATION: {
             'best_accuracy_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=16)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None, detection_top_k=None, tensor_bits=16)
             ),
             'high_accuracy_preset': dict(
-                compilation=dict(calibration_frames=25, calibration_iterations=25, tensor_bits=8)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
             'default_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=8)
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
             'high_speed_preset': dict(
-                compilation=dict(calibration_frames=5, calibration_iterations=5, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
             'best_speed_preset': dict(
-                compilation=dict(calibration_frames=3, calibration_iterations=3, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
         },
         TASK_TYPE_DETECTION: {
             'best_accuracy_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=16)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.05, detection_top_k=500, tensor_bits=16)
             ),
             'high_accuracy_preset': dict(
-                compilation=dict(calibration_frames=25, calibration_iterations=25, tensor_bits=8)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.05, detection_top_k=500, tensor_bits=8)
             ),
             'default_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=8)
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=0.3, detection_top_k=200, tensor_bits=8)
             ),
             'high_speed_preset': dict(
-                compilation=dict(calibration_frames=5, calibration_iterations=5, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=0.3, detection_top_k=200, tensor_bits=8)
             ),
             'best_speed_preset': dict(
-                compilation=dict(calibration_frames=3, calibration_iterations=3, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=0.3, detection_top_k=200, tensor_bits=8)
             ),
         },
         TASK_TYPE_SEGMENTATION: {
             'best_accuracy_preset': dict(
-                compilation=dict(calibration_frames=25, calibration_iterations=25, tensor_bits=16)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None, detection_top_k=None, tensor_bits=16)
             ),
             'high_accuracy_preset': dict(
-                compilation=dict(calibration_frames=25, calibration_iterations=25, tensor_bits=8)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
             'default_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=8)
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
             'high_speed_preset': dict(
-                compilation=dict(calibration_frames=5, calibration_iterations=5, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
             'best_speed_preset': dict(
-                compilation=dict(calibration_frames=3, calibration_iterations=3, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
         },
         TASK_TYPE_KEYPOINT_DETECTION: {
             'best_accuracy_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=16)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.05, detection_top_k=500, tensor_bits=16)
             ),
             'high_accuracy_preset': dict(
-                compilation=dict(calibration_frames=25, calibration_iterations=25, tensor_bits=8)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.05, detection_top_k=500, tensor_bits=8)
             ),
             'default_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=8)
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=0.3, detection_top_k=200, tensor_bits=8)
             ),
             'high_speed_preset': dict(
-                compilation=dict(calibration_frames=5, calibration_iterations=5, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=0.3, detection_top_k=200, tensor_bits=8)
             ),
             'best_speed_preset': dict(
-                compilation=dict(calibration_frames=3, calibration_iterations=3, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=0.3, detection_top_k=200, tensor_bits=8)
             ),
         },
     },
     TARGET_DEVICE_AM62A: {
         TASK_TYPE_CLASSIFICATION: {
             'best_accuracy_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=16)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None, detection_top_k=None, tensor_bits=16)
             ),
             'high_accuracy_preset': dict(
-                compilation=dict(calibration_frames=25, calibration_iterations=25, tensor_bits=8)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
             'default_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=8)
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
             'high_speed_preset': dict(
-                compilation=dict(calibration_frames=5, calibration_iterations=5, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
             'best_speed_preset': dict(
-                compilation=dict(calibration_frames=3, calibration_iterations=3, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
         },
         TASK_TYPE_DETECTION: {
             'best_accuracy_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=16)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.05, detection_top_k=500, tensor_bits=16)
             ),
             'high_accuracy_preset': dict(
-                compilation=dict(calibration_frames=25, calibration_iterations=25, tensor_bits=8)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.05, detection_top_k=500, tensor_bits=8)
             ),
             'default_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=8)
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=0.3, detection_top_k=200, tensor_bits=8)
             ),
             'high_speed_preset': dict(
-                compilation=dict(calibration_frames=5, calibration_iterations=5, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=0.3, detection_top_k=200, tensor_bits=8)
             ),
             'best_speed_preset': dict(
-                compilation=dict(calibration_frames=3, calibration_iterations=3, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=0.3, detection_top_k=200, tensor_bits=8)
             ),
         },
         TASK_TYPE_SEGMENTATION: {
             'best_accuracy_preset': dict(
-                compilation=dict(calibration_frames=25, calibration_iterations=25, tensor_bits=16)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None, detection_top_k=None, tensor_bits=16)
             ),
             'high_accuracy_preset': dict(
-                compilation=dict(calibration_frames=25, calibration_iterations=25, tensor_bits=8)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
             'default_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=8)
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
             'high_speed_preset': dict(
-                compilation=dict(calibration_frames=5, calibration_iterations=5, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
             'best_speed_preset': dict(
-                compilation=dict(calibration_frames=3, calibration_iterations=3, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
         },
         TASK_TYPE_KEYPOINT_DETECTION: {
             'best_accuracy_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=16)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.05, detection_top_k=500, tensor_bits=16)
             ),
             'high_accuracy_preset': dict(
-                compilation=dict(calibration_frames=25, calibration_iterations=25, tensor_bits=8)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.05, detection_top_k=500, tensor_bits=8)
             ),
             'default_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=8)
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=0.3, detection_top_k=200, tensor_bits=8)
             ),
             'high_speed_preset': dict(
-                compilation=dict(calibration_frames=5, calibration_iterations=5, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=0.3, detection_top_k=200, tensor_bits=8)
             ),
             'best_speed_preset': dict(
-                compilation=dict(calibration_frames=3, calibration_iterations=3, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=0.3, detection_top_k=200, tensor_bits=8)
             ),
         },
     },
     TARGET_DEVICE_AM67A: {
         TASK_TYPE_CLASSIFICATION: {
             'best_accuracy_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=16)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None, detection_top_k=None, tensor_bits=16)
             ),
             'high_accuracy_preset': dict(
-                compilation=dict(calibration_frames=25, calibration_iterations=25, tensor_bits=8)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
             'default_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=8)
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
             'high_speed_preset': dict(
-                compilation=dict(calibration_frames=5, calibration_iterations=5, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
             'best_speed_preset': dict(
-                compilation=dict(calibration_frames=3, calibration_iterations=3, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
         },
         TASK_TYPE_DETECTION: {
             'best_accuracy_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=16)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.05, detection_top_k=500, tensor_bits=16)
             ),
             'high_accuracy_preset': dict(
-                compilation=dict(calibration_frames=25, calibration_iterations=25, tensor_bits=8)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.05, detection_top_k=500, tensor_bits=8)
             ),
             'default_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=8)
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=0.3, detection_top_k=200, tensor_bits=8)
             ),
             'high_speed_preset': dict(
-                compilation=dict(calibration_frames=5, calibration_iterations=5, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=0.3, detection_top_k=200, tensor_bits=8)
             ),
             'best_speed_preset': dict(
-                compilation=dict(calibration_frames=3, calibration_iterations=3, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=0.3, detection_top_k=200, tensor_bits=8)
             ),
         },
         TASK_TYPE_SEGMENTATION: {
             'best_accuracy_preset': dict(
-                compilation=dict(calibration_frames=25, calibration_iterations=25, tensor_bits=16)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None, detection_top_k=None, tensor_bits=16)
             ),
             'high_accuracy_preset': dict(
-                compilation=dict(calibration_frames=25, calibration_iterations=25, tensor_bits=8)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
             'default_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=8)
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
             'high_speed_preset': dict(
-                compilation=dict(calibration_frames=5, calibration_iterations=5, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
             'best_speed_preset': dict(
-                compilation=dict(calibration_frames=3, calibration_iterations=3, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
         },
         TASK_TYPE_KEYPOINT_DETECTION: {
             'best_accuracy_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=16)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.05, detection_top_k=500, tensor_bits=16)
             ),
             'high_accuracy_preset': dict(
-                compilation=dict(calibration_frames=25, calibration_iterations=25, tensor_bits=8)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.05, detection_top_k=500, tensor_bits=8)
             ),
             'default_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=8)
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=0.3, detection_top_k=200, tensor_bits=8)
             ),
             'high_speed_preset': dict(
-                compilation=dict(calibration_frames=5, calibration_iterations=5, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=0.3, detection_top_k=200, tensor_bits=8)
             ),
             'best_speed_preset': dict(
-                compilation=dict(calibration_frames=3, calibration_iterations=3, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=0.3, detection_top_k=200, tensor_bits=8)
             ),
         },
     },
     TARGET_DEVICE_AM68A: {
         TASK_TYPE_CLASSIFICATION: {
             'best_accuracy_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=16)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None, detection_top_k=None, tensor_bits=16)
             ),
             'high_accuracy_preset': dict(
-                compilation=dict(calibration_frames=25, calibration_iterations=25, tensor_bits=8)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
             'default_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=8)
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
             'high_speed_preset': dict(
-                compilation=dict(calibration_frames=5, calibration_iterations=5, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
             'best_speed_preset': dict(
-                compilation=dict(calibration_frames=3, calibration_iterations=3, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
         },
         TASK_TYPE_DETECTION: {
             'best_accuracy_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=16)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.05, detection_top_k=500, tensor_bits=16)
             ),
             'high_accuracy_preset': dict(
-                compilation=dict(calibration_frames=25, calibration_iterations=25, tensor_bits=8)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.05, detection_top_k=500, tensor_bits=8)
             ),
             'default_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=8)
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=0.3, detection_top_k=200, tensor_bits=8)
             ),
             'high_speed_preset': dict(
-                compilation=dict(calibration_frames=5, calibration_iterations=5, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=0.3, detection_top_k=200, tensor_bits=8)
             ),
             'best_speed_preset': dict(
-                compilation=dict(calibration_frames=3, calibration_iterations=3, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=0.3, detection_top_k=200, tensor_bits=8)
             ),
         },
         TASK_TYPE_SEGMENTATION: {
             'best_accuracy_preset': dict(
-                compilation=dict(calibration_frames=25, calibration_iterations=25, tensor_bits=16)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None, detection_top_k=None, tensor_bits=16)
             ),
             'high_accuracy_preset': dict(
-                compilation=dict(calibration_frames=25, calibration_iterations=25, tensor_bits=8)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
             'default_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=8)
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
             'high_speed_preset': dict(
-                compilation=dict(calibration_frames=5, calibration_iterations=5, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
             'best_speed_preset': dict(
-                compilation=dict(calibration_frames=3, calibration_iterations=3, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
         },
         TASK_TYPE_KEYPOINT_DETECTION: {
             'best_accuracy_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=16)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.05, detection_top_k=500, tensor_bits=16)
             ),
             'high_accuracy_preset': dict(
-                compilation=dict(calibration_frames=25, calibration_iterations=25, tensor_bits=8)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.05, detection_top_k=500, tensor_bits=8)
             ),
             'default_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=8)
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=0.3, detection_top_k=200, tensor_bits=8)
             ),
             'high_speed_preset': dict(
-                compilation=dict(calibration_frames=5, calibration_iterations=5, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=0.3, detection_top_k=200, tensor_bits=8)
             ),
             'best_speed_preset': dict(
-                compilation=dict(calibration_frames=3, calibration_iterations=3, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=0.3, detection_top_k=200, tensor_bits=8)
             ),
         },
     },
     TARGET_DEVICE_AM69A: {
         TASK_TYPE_CLASSIFICATION: {
             'best_accuracy_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=16)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None, detection_top_k=None, tensor_bits=16)
             ),
             'high_accuracy_preset': dict(
-                compilation=dict(calibration_frames=25, calibration_iterations=25, tensor_bits=8)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
             'default_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=8)
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
             'high_speed_preset': dict(
-                compilation=dict(calibration_frames=5, calibration_iterations=5, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
             'best_speed_preset': dict(
-                compilation=dict(calibration_frames=3, calibration_iterations=3, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
         },
         TASK_TYPE_DETECTION: {
             'best_accuracy_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=16)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.05, detection_top_k=500, tensor_bits=16)
             ),
             'high_accuracy_preset': dict(
-                compilation=dict(calibration_frames=25, calibration_iterations=25, tensor_bits=8)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.05, detection_top_k=500, tensor_bits=8)
             ),
             'default_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=8)
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=0.3, detection_top_k=200, tensor_bits=8)
             ),
             'high_speed_preset': dict(
-                compilation=dict(calibration_frames=5, calibration_iterations=5, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=0.3, detection_top_k=200, tensor_bits=8)
             ),
             'best_speed_preset': dict(
-                compilation=dict(calibration_frames=3, calibration_iterations=3, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=0.3, detection_top_k=200, tensor_bits=8)
             ),
         },
         TASK_TYPE_SEGMENTATION: {
             'best_accuracy_preset': dict(
-                compilation=dict(calibration_frames=25, calibration_iterations=25, tensor_bits=16)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None, detection_top_k=None, tensor_bits=16)
             ),
             'high_accuracy_preset': dict(
-                compilation=dict(calibration_frames=25, calibration_iterations=25, tensor_bits=8)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
             'default_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=8)
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
             'high_speed_preset': dict(
-                compilation=dict(calibration_frames=5, calibration_iterations=5, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
             'best_speed_preset': dict(
-                compilation=dict(calibration_frames=3, calibration_iterations=3, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=None, detection_top_k=None, tensor_bits=8)
             ),
         },
         TASK_TYPE_KEYPOINT_DETECTION: {
             'best_accuracy_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=16)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.05, detection_top_k=500, tensor_bits=16)
             ),
             'high_accuracy_preset': dict(
-                compilation=dict(calibration_frames=25, calibration_iterations=25, tensor_bits=8)
+                compilation=dict(calibration_frames=25, calibration_iterations=25, detection_threshold=0.05, detection_top_k=500, tensor_bits=8)
             ),
             'default_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=8)
+                compilation=dict(calibration_frames=10, calibration_iterations=10, detection_threshold=0.3, detection_top_k=200, tensor_bits=8)
             ),
             'high_speed_preset': dict(
-                compilation=dict(calibration_frames=5, calibration_iterations=5, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=0.3, detection_top_k=200, tensor_bits=8)
             ),
             'best_speed_preset': dict(
-                compilation=dict(calibration_frames=3, calibration_iterations=3, tensor_bits=8)
+                compilation=dict(calibration_frames=5, calibration_iterations=5, detection_threshold=0.3, detection_top_k=200, tensor_bits=8)
             ),
         },
     },
     TARGET_DEVICE_AM62: {
         TASK_TYPE_CLASSIFICATION: {
             'best_accuracy_preset': dict(
-                compilation=dict(calibration_frames=1, calibration_iterations=1, tensor_bits=32, tidl_offload=False)
+                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=32, tidl_offload=False)
             ),
             'high_accuracy_preset': dict(
-                compilation=dict(calibration_frames=1, calibration_iterations=1, tensor_bits=32, tidl_offload=False)
+                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=32, tidl_offload=False)
             ),
             'default_preset': dict(
-                compilation=dict(calibration_frames=1, calibration_iterations=1, tensor_bits=32, tidl_offload=False)
+                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=32, tidl_offload=False)
             ),
             'high_speed_preset': dict(
-                compilation=dict(calibration_frames=1, calibration_iterations=1, tensor_bits=32, tidl_offload=False)
+                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=32, tidl_offload=False)
             ),
             'best_speed_preset': dict(
-                compilation=dict(calibration_frames=1, calibration_iterations=1, tensor_bits=32, tidl_offload=False)
+                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=32, tidl_offload=False)
             ),
         },
         TASK_TYPE_DETECTION: {
             'best_accuracy_preset': dict(
-                compilation=dict(calibration_frames=1, calibration_iterations=1, tensor_bits=32, tidl_offload=False)
+                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.05, detection_top_k=500, tensor_bits=32, tidl_offload=False)
             ),
             'high_accuracy_preset': dict(
-                compilation=dict(calibration_frames=1, calibration_iterations=1, tensor_bits=32, tidl_offload=False)
+                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.05, detection_top_k=500, tensor_bits=32, tidl_offload=False)
             ),
             'default_preset': dict(
-                compilation=dict(calibration_frames=1, calibration_iterations=1, tensor_bits=32, tidl_offload=False)
+                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.3, detection_top_k=200, tensor_bits=32, tidl_offload=False)
             ),
             'high_speed_preset': dict(
-                compilation=dict(calibration_frames=1, calibration_iterations=1, tensor_bits=32, tidl_offload=False)
+                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.3, detection_top_k=200, tensor_bits=32, tidl_offload=False)
             ),
             'best_speed_preset': dict(
-                compilation=dict(calibration_frames=1, calibration_iterations=1, tensor_bits=32, tidl_offload=False)
+                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.3, detection_top_k=200, tensor_bits=32, tidl_offload=False)
             ),
         },
         TASK_TYPE_SEGMENTATION: {
             'best_accuracy_preset': dict(
-                compilation=dict(calibration_frames=1, calibration_iterations=1, tensor_bits=32, tidl_offload=False)
+                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=32, tidl_offload=False)
             ),
             'high_accuracy_preset': dict(
-                compilation=dict(calibration_frames=1, calibration_iterations=1, tensor_bits=32, tidl_offload=False)
+                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=32, tidl_offload=False)
             ),
             'default_preset': dict(
-                compilation=dict(calibration_frames=1, calibration_iterations=1, tensor_bits=32, tidl_offload=False)
+                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=32, tidl_offload=False)
             ),
             'high_speed_preset': dict(
-                compilation=dict(calibration_frames=1, calibration_iterations=1, tensor_bits=32, tidl_offload=False)
+                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=32, tidl_offload=False)
             ),
             'best_speed_preset': dict(
-                compilation=dict(calibration_frames=1, calibration_iterations=1, tensor_bits=32, tidl_offload=False)
+                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=None, detection_top_k=None, tensor_bits=32, tidl_offload=False)
             ),
         },
         TASK_TYPE_KEYPOINT_DETECTION: {
             'best_accuracy_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=32)
+                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.05, detection_top_k=500, tensor_bits=32, tidl_offload=False)
             ),
             'high_accuracy_preset': dict(
-                compilation=dict(calibration_frames=25, calibration_iterations=25, tensor_bits=32)
+                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.05, detection_top_k=500, tensor_bits=32, tidl_offload=False)
             ),
             'default_preset': dict(
-                compilation=dict(calibration_frames=10, calibration_iterations=10, tensor_bits=32)
+                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.3, detection_top_k=200, tensor_bits=32, tidl_offload=False)
             ),
             'high_speed_preset': dict(
-                compilation=dict(calibration_frames=5, calibration_iterations=5, tensor_bits=32)
+                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.3, detection_top_k=200, tensor_bits=32, tidl_offload=False)
             ),
             'best_speed_preset': dict(
-                compilation=dict(calibration_frames=3, calibration_iterations=3, tensor_bits=32)
+                compilation=dict(calibration_frames=1, calibration_iterations=1, detection_threshold=0.3, detection_top_k=200, tensor_bits=32, tidl_offload=False)
             ),
         },
     },
