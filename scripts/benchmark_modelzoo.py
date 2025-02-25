@@ -68,6 +68,8 @@ def get_arg_parser():
     parser.add_argument('--additional_models', type=utils.str_to_bool)
     parser.add_argument('--detection_threshold', type=float)
     parser.add_argument('--detection_top_k', type=float)
+    parser.add_argument('--overall_timeout', type=utils.float_or_none)
+    parser.add_argument('--instance_timeout', type=utils.float_or_none)
     return parser
 
 if __name__ == '__main__':
@@ -113,4 +115,6 @@ if __name__ == '__main__':
     work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
     print(f'work_dir: {work_dir}')
 
-    interfaces.run_benchmark_config(settings, work_dir)
+    interfaces.run_benchmark_config(settings, work_dir,
+        overall_timeout=settings.overall_timeout,
+        instance_timeout=settings.instance_timeout)

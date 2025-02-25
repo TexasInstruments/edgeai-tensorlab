@@ -69,6 +69,8 @@ def get_arg_parser():
     parser.add_argument('--additional_models', type=utils.str_to_bool)
     parser.add_argument('--models_list_file', type=str, default=None)
     parser.add_argument('--separate_import_inference', type=utils.str_to_bool, default=True)
+    parser.add_argument('--detection_threshold', type=float)
+    parser.add_argument('--detection_top_k', type=float)
     parser.add_argument('--overall_timeout', type=utils.float_or_none)
     parser.add_argument('--instance_timeout', type=utils.float_or_none)
     return parser
