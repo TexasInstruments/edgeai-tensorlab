@@ -30,65 +30,20 @@
 
 ##################################################################
 # target_device - use one of: TDA4VM AM62A AM68A AM69A AM67A AM62
-TARGET_SOC=AM68A
+TARGET_SOC=${1-AM68A}
 
 # leave this as evm - no change needed
 # pc: for model compilation and inference on PC, evm: for model inference on EVM
 TARGET_MACHINE=evm
 
-# launch the python script with debugpy for remote attach
-DEBUG=false
-HOSTNAME=$(hostname)
-PORT=5678
+# settigns model_shortlist will cause only selected models to be run
+# in ./configs folder, model configs have a model_shortlist associated with them
+# in this script, if --model_shortlist is set to 120, only those models with model_shortlist values <= 120 will run
+MODEL_SHORTLIST=120
 
-##################################################################
-CMD_ARGS=()
-for arg in "$@"
-do 
-    case "$arg" in
-        "TDA4VM"|"AM68A"|"AM69A"|"AM62A"|"AM67A"|"AM62"|"NONE")
-            TARGET_SOC=$arg
-            ;;
-        "-d"|"--debug")
-            DEBUG=true
-            ;;
-        "-h"|"--help")
-            cat << EOF
-Usage: $0 [OPTIONS] [TARGET_SOC]
-This script sets up the environment and runs benchmarking on EVM for a specified target device by calling the following:
-    ./scripts/generate_models_list.py 
-    ./scripts/benchmark_modelzoo_parallel.py
-    ./scripts/generate_report.py
 
-For more precise configuration of benchmarking, see the CLI options available within ./scripts/benchmark_modelzoo_parallel.py.
-
-Options:
--d, --debug     Launch the Python script with debugpy for remote attach.
--h, --help      Display this help message and exit.
-
-TARGET_SOC:
-Specify the target device. Use one of: TDA4VM, AM62A, AM68A, AM69A. Defaults to TDA4VM.
-Note: Until r8.5, only TDA4VM was supported.
-
-Debug Mode:
-If debug mode is enabled, the script will wait for a debugpy to attach at ${HOSTNAME}:${PORT}.
-See https://code.visualstudio.com/docs/python/debugging#_example for more info on using debugpy attach with VS Code.
-
-Example:
-$0 # defaults to TDA4VM, no debug
-$0 [-d|--debug] AM62A # select device with debug
-EOF
-            exit 0
-            ;;
-        *) # Catch-all
-            CMD_ARGS+=("$arg")
-            ;;
-    esac
-done
-
-echo "TARGET_SOC:     ${TARGET_SOC}"
-echo "TARGET_MACHINE: ${TARGET_MACHINE}"
-echo "DEBUG MODE:     ${DEBUG} @ ${HOSTNAME}:${PORT}"
+echo "TARGET_SOC:      ${TARGET_SOC}"
+echo "MODEL_SHORTLIST: ${MODEL_SHORTLIST}"
 
 ##################################################################
 # set environment variables
@@ -96,38 +51,10 @@ echo "DEBUG MODE:     ${DEBUG} @ ${HOSTNAME}:${PORT}"
 source ./run_set_env.sh ${TARGET_SOC} ${TARGET_MACHINE}
 
 # specify settings yaml file - additional options can be changed inside the yaml
-SETTINGS=settings_infer_on_evm.yaml
-
-##################################################################
-PYARGS1="./scripts/benchmark_modelzoo.py ${SETTINGS} ${CMD_ARGS[@]} --target_device ${TARGET_SOC} --target_machine ${TARGET_MACHINE}"
-PYARGS3="./scripts/generate_report.py ${SETTINGS}"
-PYDEBUG="python3 -m debugpy --listen ${HOSTNAME}:${PORT} --wait-for-client"
+SETTINGS_FILE=settings_infer_on_evm.yaml
 
 echo "==================================================================="
-if $DEBUG
-then
-    # Launch script 1, waiting for debugger attachment.
-    echo "Waiting for attach @ ${HOSTNAME}:${PORT} to debug the following:"
-    echo ${PYARGS1} 
-    echo "See --help for more info."
-    ${PYDEBUG} ${PYARGS1}
-    [ $? -ne 0 ] && exit # Continue only on prior success.
-    echo "-------------------------------------------------------------------"
-
-    # Launch script 3, waiting for debugger attachment.
-    echo "Waiting for attach @ ${HOSTNAME}:${PORT} to debug the following:"
-    echo ${PYARGS3} 
-    echo "See --help for more info."
-    ${PYDEBUG} ${PYARGS3}            
-    echo "-------------------------------------------------------------------"
-else
-    # Launch script 1.
-    python3 ${PYARGS1}
-    [ $? -ne 0 ] && exit # Continue only on prior success.
-    echo "-------------------------------------------------------------------"
-
-    # Launch script 3.
-    python3 ${PYARGS3}
-    echo "-------------------------------------------------------------------"
-fi
+python3 ./scripts/benchmark_modelzoo.py ${SETTINGS_FILE} --target_device ${TARGET_SOC} --target_machine ${TARGET_MACHINE} --model_shortlist ${MODEL_SHORTLIST} "${@:2}"
+python3 ./scripts/generate_report.py ${SETTINGS_FILE}
 echo "==================================================================="
+

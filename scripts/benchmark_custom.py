@@ -274,17 +274,15 @@ if __name__ == '__main__':
         os.chdir('../')
     #
 
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
     parser.add_argument('settings_file', type=str)
     parser.add_argument('--model_selection', type=str, default=None, nargs='*')
     parser.add_argument('--target_device', type=str)
-
+    parser.add_argument('--target_machine', type=str)
     cmds = parser.parse_args()
-	
-    # the cwd must be the root of the respository
-    if os.path.split(os.getcwd())[-1] in ('scripts',):
-        os.chdir('../')
-    #
+
+    kwargs = vars(cmds)
+    settings_file = kwargs.pop('settings_file')
 
     assert ('TIDL_TOOLS_PATH' in os.environ and 'LD_LIBRARY_PATH' in os.environ), "Check the environment variables"
     print("TIDL_TOOLS_PATH=", os.environ['TIDL_TOOLS_PATH'])
@@ -299,8 +297,7 @@ if __name__ == '__main__':
         shutil.rmtree(modelartifacts_custom)
     #
 
-    settings = config_settings.CustomConfigSettings(cmds.settings_file, model_selection=cmds.model_selection,
-                                              modelartifacts_path=modelartifacts_custom, target_device=cmds.target_device)
+    settings = config_settings.CustomConfigSettings(settings_file, modelartifacts_path=modelartifacts_custom, **kwargs)
 
     work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
     print(f'INFO: work_dir = {work_dir}')

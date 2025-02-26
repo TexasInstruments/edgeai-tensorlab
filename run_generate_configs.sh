@@ -49,11 +49,11 @@ source ./run_set_env.sh ${TARGET_SOC} ${TARGET_MACHINE}
 
 ##################################################################
 # specify one of the following settings - options can be changed inside the yaml
-#settings_file=settings_infer_on_evm.yaml
-#settings_file=settings_import_on_pc.yaml
-settings_file=settings_import_on_pc.yaml
+#SETTINGS_FILE=settings_infer_on_evm.yaml
+#SETTINGS_FILE=settings_import_on_pc.yaml
+SETTINGS_FILE=settings_import_on_pc.yaml
 
-echo "==================================================================="
+echo "-------------------------------------------------------------------"
 # generate the final report with results for all the artifacts generated
-python3 ./scripts/generate_configs.py ${settings_file} --target_device ${TARGET_SOC} ${@:2}
+python3 ./scripts/generate_configs.py ${SETTINGS_FILE} --target_device ${TARGET_SOC} ${@:2}
 echo "-------------------------------------------------------------------"

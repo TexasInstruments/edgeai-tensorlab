@@ -51,8 +51,9 @@ if __name__ == '__main__':
 
     cmds = parser.parse_args()
     kwargs = vars(cmds)
+    settings_file = kwargs.pop('settings_file')
 
-    settings = config_settings.ConfigSettings(cmds.settings_file, **kwargs)
+    settings = config_settings.ConfigSettings(settings_file, **kwargs)
 
     param_template = None
     if cmds.param_template_file is not None:

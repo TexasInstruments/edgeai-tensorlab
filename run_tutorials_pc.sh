@@ -29,43 +29,17 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ##################################################################
-# until r8.5: TDA4VM
-# from r8.6 onwards use one of: AM62A AM68A AM69A TDA4VM
-export TARGET_SOC=AM68A
+# target_device - use one of: TDA4VM AM62A AM68A AM69A AM67A AM62
+TARGET_SOC=${1-AM68A}
 
+# leave this as pc - no change needed
 # pc: for model compilation and inference on PC, evm: for model inference on EVM
-export TARGET_MACHINE=pc
+# after compilation, run_package_artifacts_evm.sh can be used to format and package the compiled artifacts for evm
+TARGET_MACHINE=pc
 
-##################################################################
-for arg in "$@"
-do 
-    case "$arg" in
-        "TDA4VM"|"AM68A"|"AM69A"|"AM62A"|"AM67A"|"AM62"|"NONE")
-            export TARGET_SOC=$arg
-            ;;
-        "-h"|"--help")
-            cat << EOF
-Usage: $0 [OPTIONS] [TARGET_SOC]
-This script
-
-Options:
--h, --help      Display this help message and exit.
-
-TARGET_SOC:
-Specify the target device. Use one of: TDA4VM, AM62A, AM68A, AM69A. Defaults to TDA4VM.
-Note: Until r8.5, only TDA4VM was supported.  
-
-Example:
-$0 # defaults to TDA4VM
-$0 AM62A # select device
-EOF
-            exit 0
-            ;;
-    esac
-done
 
 echo "TARGET_SOC:     ${TARGET_SOC}"
-echo "TARGET_MACHINE: ${TARGET_MACHINE}"
+
 ##################################################################
 
 if python3 -c "import jupyter" &> /dev/null; then
@@ -81,11 +55,13 @@ fi
 # also point to the right type of artifacts (pc or evm)
 source ./run_set_env.sh ${TARGET_SOC} ${TARGET_MACHINE}
 
+# in addition to the above environment settings, these scripts also look for the TARGET_SOC environemt variable
+# so set that while calling these scripts
+export TARGET_SOC=${TARGET_SOC}
+
 # run the script directly
 # python3 ./tutorials/tutorial_classification.py
 # python3 ./tutorials/tutorial_detection.py
 
 # run the jypyter notebook
 jupyter notebook --ip=localhost
-
-

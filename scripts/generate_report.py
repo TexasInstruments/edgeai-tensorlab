@@ -45,13 +45,16 @@ if __name__ == '__main__':
     parser.add_argument('--target_device', type=utils.str_or_none)
     parser.add_argument('--modelartifacts_path', type=str)
     parser.add_argument('--report_perfsim', type=utils.str_to_bool)
-    parser.add_argument('--skip_pattern', type=str, default='_package')
+    parser.add_argument('--skip_pattern', type=str)
     cmds = parser.parse_args()
 
     kwargs = vars(cmds)
-    settings = config_settings.ConfigSettings(cmds.settings_file, **kwargs)
+    settings_file = kwargs.pop('settings_file')
+    skip_pattern = kwargs.pop('skip_pattern', '_package')
+
+    settings = config_settings.ConfigSettings(settings_file, **kwargs)
     print(f'settings: {settings}')
     sys.stdout.flush()
 
-    interfaces.run_report(settings, skip_pattern=cmds.skip_pattern)
+    interfaces.run_report(settings, skip_pattern=skip_pattern)
     print("Report generated at {}".format(settings.modelartifacts_path))

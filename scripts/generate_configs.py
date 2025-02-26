@@ -79,10 +79,12 @@ if __name__ == '__main__':
     cmds = parser.parse_args()
 
     kwargs = vars(cmds)
+    settings_file = kwargs.pop('settings_file')
+
     if 'session_type_dict' in kwargs:
         kwargs['session_type_dict'] = utils.str_to_dict(kwargs['session_type_dict'])
     #
-    settings = config_settings.ConfigSettings(cmds.settings_file, **kwargs)
+    settings = config_settings.ConfigSettings(settings_file, **kwargs)
     print(f'settings: {settings}')
     sys.stdout.flush()
 

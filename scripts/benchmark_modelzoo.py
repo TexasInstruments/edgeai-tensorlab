@@ -83,6 +83,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     kwargs = vars(args)
+    settings_file = kwargs.pop('settings_file')
+
     if 'session_type_dict' in kwargs:
         kwargs['session_type_dict'] = utils.str_to_dict(kwargs['session_type_dict'])
     #
@@ -91,7 +93,7 @@ if __name__ == '__main__':
     if parallel_devices_list is not None:
         kwargs['parallel_devices'] = parallel_devices_list
 
-    settings = config_settings.ConfigSettings(args.settings_file, **kwargs)
+    settings = config_settings.ConfigSettings(settings_file, **kwargs)
     print(f'settings: {settings}')
     sys.stdout.flush()
 
