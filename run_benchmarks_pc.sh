@@ -43,8 +43,8 @@ TARGET_MACHINE=pc
 MODEL_SHORTLIST=120
 
 
-echo "TARGET_SOC:      ${TARGET_SOC}"
-echo "MODEL_SHORTLIST: ${MODEL_SHORTLIST}"
+echo "TARGET_SOC:     ${TARGET_SOC}"
+echo "TARGET_MACHINE: ${TARGET_MACHINE}"
 
 ##################################################################
 # set environment variables
