@@ -41,13 +41,9 @@ from .progress_step import *
 from .logger_utils import *
 
 
-# multiprocessing.Process
-mp_context = multiprocessing.get_context(method="fork") # "spawn"
-SimpleQueueForProcess =  mp_context.SimpleQueue
-
-class ProcessWtihQueue(mp_context.Process):
+class ProcessWtihQueue(multiprocessing.Process):
     def __init__(self, group=None, target=None, name=None, args=(), kwargs={},
-        result_queue=SimpleQueueForProcess(), log_file=None, **proc_kwargs):
+        result_queue=multiprocessing.Queue(), log_file=None, **proc_kwargs):
         kwargs = copy.copy(kwargs)
         kwargs['result_queue'] = result_queue
         target = functools.partial(self._worker, target)
