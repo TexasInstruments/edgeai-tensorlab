@@ -34,8 +34,7 @@ class ConfigSettings(runtime_options.GetRuntimeOptions):
     def __init__(self, input, **kwargs):
         super().__init__(input, **kwargs)
         # variable to pre-load datasets - so that it is not separately created for each config
-        self.dataset_cache = {}
-
+        self.dataset_cache = datasets.initialize_datasets(self)
 
 class CustomConfigSettings(ConfigSettings):
     def __init__(self, input, dataset_loading=False, **kwargs):

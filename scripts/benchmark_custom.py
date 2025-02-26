@@ -283,6 +283,8 @@ if __name__ == '__main__':
 
     kwargs = vars(cmds)
     settings_file = kwargs.pop('settings_file')
+    model_selection = kwargs.pop('model_selection', None)
+    model_shortlist = kwargs.pop('model_shortlist', None)
 
     assert ('TIDL_TOOLS_PATH' in os.environ and 'LD_LIBRARY_PATH' in os.environ), "Check the environment variables"
     print("TIDL_TOOLS_PATH=", os.environ['TIDL_TOOLS_PATH'])
@@ -294,10 +296,11 @@ if __name__ == '__main__':
     modelartifacts_custom = os.path.join(modelartifacts_tempdir_name, 'modelartifacts')
     print(f'INFO: clearing modelartifacts: {modelartifacts_custom}')
     if os.path.exists(modelartifacts_custom):
-        shutil.rmtree(modelartifacts_custom)
+        shutil.rmtree(modelartifacts_custom, ignore_errors=True)
     #
 
-    settings = config_settings.CustomConfigSettings(settings_file, modelartifacts_path=modelartifacts_custom, **kwargs)
+    settings = config_settings.CustomConfigSettings(settings_file, modelartifacts_path=modelartifacts_custom,
+        model_selection=model_selection, model_shortlist=model_shortlist, **kwargs)
 
     work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
     print(f'INFO: work_dir = {work_dir}')

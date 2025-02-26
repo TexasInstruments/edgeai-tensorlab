@@ -51,17 +51,21 @@ modelartifacts_tempdir_name = os.path.abspath('./work_dirs_custom')
 modelartifacts_custom = os.path.join(modelartifacts_tempdir_name, 'modelartifacts')
 print(f'INFO: clearing modelartifacts: {modelartifacts_custom}')
 if os.path.exists(modelartifacts_custom):
-    shutil.rmtree(modelartifacts_custom)
+    shutil.rmtree(modelartifacts_custom, ignore_errors=True)
 #
 
 settings = config_settings.CustomConfigSettings('./settings_import_on_pc.yaml',
                 target_device = os.environ['TARGET_SOC'],
                 modelartifacts_path=modelartifacts_custom,
+                model_selection=None, model_shortlist=None,
                 num_frames=100)
 
 work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
 
-
+# download dataset if it doesn't exist
+if not os.path.exists(f'{settings.datasets_path}/imagenetv2c'):
+    os.system('python3 ./scripts/download_datasets.py settings_import_on_pc.yaml --dataset_list imagenetv2c')
+#
 
 dataset_calib_cfg = dict(
     path=f'{settings.datasets_path}/imagenetv2c/val',
