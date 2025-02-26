@@ -29,6 +29,8 @@
 import os
 import argparse
 import cv2
+import yaml
+import shutil
 from edgeai_benchmark import *
 
 
@@ -278,20 +280,38 @@ if __name__ == '__main__':
     parser.add_argument('--target_device', type=str)
 
     cmds = parser.parse_args()
-    settings = config_settings.ConfigSettings(cmds.settings_file, model_selection=cmds.model_selection,
-                                              target_device=cmds.target_device)
+	
+    # the cwd must be the root of the respository
+    if os.path.split(os.getcwd())[-1] in ('scripts',):
+        os.chdir('../')
+    #
+
+    assert ('TIDL_TOOLS_PATH' in os.environ and 'LD_LIBRARY_PATH' in os.environ), "Check the environment variables"
+    print("TIDL_TOOLS_PATH=", os.environ['TIDL_TOOLS_PATH'])
+    print("LD_LIBRARY_PATH=", os.environ['LD_LIBRARY_PATH'])
+
+    print(f"INFO: current dir is: {os.getcwd()}")
+
+    modelartifacts_tempdir_name = os.path.abspath('./work_dirs_custom')
+    modelartifacts_custom = os.path.join(modelartifacts_tempdir_name, 'modelartifacts')
+    print(f'INFO: clearing modelartifacts: {modelartifacts_custom}')
+    if os.path.exists(modelartifacts_custom):
+        shutil.rmtree(modelartifacts_custom)
+    #
+
+    settings = config_settings.CustomConfigSettings(cmds.settings_file, model_selection=cmds.model_selection,
+                                              modelartifacts_path=modelartifacts_custom, target_device=cmds.target_device)
 
     work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
-    print(f'work_dir = {work_dir}')
-
-    packaged_dir = os.path.join(f'{settings.modelpackage_path}', f'{settings.tensor_bits}bits')
-    print(f'packaged_dir = {packaged_dir}')
+    print(f'INFO: work_dir = {work_dir}')
 
     # now run the actual pipeline
     pipeline_configs = create_configs(settings, work_dir)
 
     # run the accuracy pipeline
-    interfaces.run_accuracy(settings, work_dir, pipeline_configs)
+    interfaces.run_benchmark_config(settings, work_dir, pipeline_configs)
 
     # package the artifacts
+    packaged_dir = os.path.join(f'{settings.modelpackage_path}', f'{settings.tensor_bits}bits')
+    print(f'INFO packaged_dir = {packaged_dir}')
     interfaces.run_package(settings, work_dir, packaged_dir, custom_model=True)
