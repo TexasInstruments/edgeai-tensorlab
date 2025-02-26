@@ -31,17 +31,17 @@
 ##################################################################
 # until r8.5: TDA4VM
 # from r8.6 onwards use one of: AM62A AM68A AM69A TDA4VM
-TARGET_SOC=AM68A
+export TARGET_SOC=AM68A
 
 # pc: for model compilation and inference on PC, evm: for model inference on EVM
-TARGET_MACHINE=pc
+export TARGET_MACHINE=pc
 
 ##################################################################
 for arg in "$@"
 do 
     case "$arg" in
         "TDA4VM"|"AM68A"|"AM69A"|"AM62A"|"AM67A"|"AM62"|"NONE")
-            TARGET_SOC=$arg
+            export TARGET_SOC=$arg
             ;;
         "-h"|"--help")
             cat << EOF
@@ -68,12 +68,24 @@ echo "TARGET_SOC:     ${TARGET_SOC}"
 echo "TARGET_MACHINE: ${TARGET_MACHINE}"
 ##################################################################
 
-pip3 install jupyter
+if python3 -c "import jupyter" &> /dev/null; then
+    echo 'jupyter is installed'
+else
+    echo 'installing jupyter...'
+  pip3 install jupyter
+fi
+
 
 ##################################################################
 # set environment variables
 # also point to the right type of artifacts (pc or evm)
 source ./run_set_env.sh ${TARGET_SOC} ${TARGET_MACHINE}
 
-# run the script
+# run the script directly
+# python3 ./tutorials/tutorial_classification.py
+# python3 ./tutorials/tutorial_detection.py
+
+# run the jypyter notebook
 jupyter notebook --ip=localhost
+
+

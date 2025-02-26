@@ -64,31 +64,32 @@ work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bi
 
 
 dataset_calib_cfg = dict(
-    path=f'{settings.datasets_path}/coco',
-    split='val2017',
+    path=f'{settings.datasets_path}/imagenetv2c/val',
+    split=f'{settings.datasets_path}/imagenetv2c/val.txt',
+    num_classes=1000,
     shuffle=True,
-    num_frames=min(settings.calibration_frames,5000),
-    name='coco'
+    num_frames=10000,
+    name='imagenet'
 )
 
 # dataset parameters for actual inference
 dataset_val_cfg = dict(
-    path=f'{settings.datasets_path}/coco',
-    split='val2017',
-    shuffle=False, # can be set to True as well, if needed
-    num_frames=min(settings.num_frames,5000),
-    name='coco'
+    path=f'{settings.datasets_path}/imagenetv2c/val',
+    split=f'{settings.datasets_path}/imagenetv2c/val.txt',
+    num_classes=1000,
+    shuffle=True,
+    num_frames=min(settings.num_frames,10000),
+    name='imagenet'
 )
 
-calib_dataset = datasets.COCODetection(**dataset_calib_cfg, download=True)
-val_dataset = datasets.COCODetection(**dataset_val_cfg, download=True)
+calib_dataset = datasets.ImageClassification(**dataset_calib_cfg)
+val_dataset = datasets.ImageClassification(**dataset_val_cfg)
 
 
 # choose one session_name depending on the model type
-# tflitert for tflite models, onnxrt for onnx models, tvmdlr for mxnet models.
-session_name = constants.SESSION_NAME_TFLITERT
-#session_name = constants.SESSION_NAME_ONNXRT
-#session_name = constants.SESSION_NAME_TVMDLR
+# tflitert for tflite models, onnxrt for onnx model
+#session_name = constants.SESSION_NAME_TFLITERT
+session_name = constants.SESSION_NAME_ONNXRT
 
 session_type = settings.get_session_type(session_name)
 runtime_options = settings.get_runtime_options(session_name, is_qat=False)
@@ -107,18 +108,17 @@ tflite_session_cfg = sessions.get_tflite_session_cfg(settings, work_dir=work_dir
 
 
 pipeline_configs = {
-    'od-mlpefmnv1': dict(
-        task_type='detection',
+    'cl-mnv2': dict(
+        task_type='classification',
         calibration_dataset=calib_dataset,
         input_dataset=val_dataset,
-        preprocess=preproc_transforms.get_transform_tflite((300,300), (300,300), backend='cv2'),
-        session=session_type(**tflite_session_cfg,
+        preprocess=preproc_transforms.get_transform_onnx(),
+        session=session_type(**onnx_session_cfg,
             runtime_options=runtime_options,
-            model_path=f'{settings.models_path}/vision/detection/coco/mlperf/ssd_mobilenet_v1_coco_20180128.tflite'),
-        postprocess=postproc_transforms.get_transform_detection_tflite(),
-        metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
-        model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':23.0})
-    )
+            model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/mobilenet_v2_tv.onnx'),
+        postprocess=postproc_transforms.get_transform_classification(),
+        model_info=dict(metric_reference={'accuracy_top1%':71.88})
+    ),
 }
 print(f"\nINFO: pipeline_configs={pipeline_configs}")
 
