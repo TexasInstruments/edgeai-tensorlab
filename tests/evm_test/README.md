@@ -29,6 +29,7 @@ The purpose of these scripts are to automate the process of running benchmark pi
 | relay_exe_path|-| ANEL Power supply executable, path in case of using hard reboot |
 | relay_ip_address|-| ANEL Power supply ip address, in case of using hard reboot |
 | relay_power_port|-| ANEL Power supply port EVM is connect to, in case of using hard reboot |
+| num_frames | - | The number of frames for which the evaluation is run | 
 
 ## Invoke the script
 
