@@ -304,10 +304,12 @@ class PipelineRunner():
                 selected_model = False
             #
         #
-        if isinstance(settings.model_shortlist, (int,float)):
-            if settings.model_shortlist is not None:
+        if settings.model_shortlist is not None:
+            if isinstance(settings.model_shortlist, (int,)):
                 model_shortlist = pipeline_config['model_info'].get('model_shortlist', None)
                 selected_model = selected_model and (model_shortlist is not None and model_shortlist <= settings.model_shortlist)
+            else:
+                assert False, f"ERROR: invalid value or type for model_shortlist (type:int): {settings.model_shortlist}, (type:{type(settings.model_shortlist)})"
             #
         #
         if settings.model_selection is not None:
