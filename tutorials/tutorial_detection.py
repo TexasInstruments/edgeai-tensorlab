@@ -55,9 +55,9 @@ if os.path.exists(modelartifacts_custom):
 #
 
 settings = config_settings.CustomConfigSettings('./settings_import_on_pc.yaml',
-                target_device = os.environ['TARGET_SOC'], target_machine = constants.TARGET_MACHINE_PC_EMULATION,
+                target_device = os.environ['TARGET_SOC'],
                 modelartifacts_path=modelartifacts_custom,
-                calibration_frames=10, calibration_iterations=10, num_frames=100)
+                num_frames=100)
 
 work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
 
