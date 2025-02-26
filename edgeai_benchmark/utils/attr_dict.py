@@ -58,8 +58,8 @@ class AttrDict(BaseAttrDict):
             new_arg = AttrDict()
             for k, v in arg.items():
                 v = AttrDict(v) if (type(v) is dict) else v
-                if k in self and self[k] is not None and isinstance(v, dict):
-                    self[k].update({k:v})
+                if k in self and isinstance(self[k], dict) and isinstance(v, dict):
+                    self[k].update(v)
                 else:
                     self[k] = v
                 #
@@ -67,8 +67,8 @@ class AttrDict(BaseAttrDict):
         #
         for k, v in kwargs.items():
             v = AttrDict(v) if (type(v) is dict) else v
-            if k in self and self[k] is not None and isinstance(v, dict):
-                self[k].update({k:v})
+            if k in self and isinstance(self[k], dict) and isinstance(v, dict):
+                self[k].update(v)
             else:
                 self[k] = v
             #

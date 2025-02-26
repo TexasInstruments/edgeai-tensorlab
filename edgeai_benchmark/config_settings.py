@@ -38,5 +38,5 @@ class ConfigSettings(runtime_options.GetRuntimeOptions):
 
 
 class CustomConfigSettings(ConfigSettings):
-    def __init__(self, input, dataset_loading=False, run_incremental=False, **kwargs):
-        super().__init__(input, dataset_loading=dataset_loading, run_incremental=run_incremental, **kwargs)
+    def __init__(self, input, dataset_loading=False, **kwargs):
+        super().__init__(input, dataset_loading=dataset_loading, **kwargs)

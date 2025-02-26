@@ -41,6 +41,16 @@ class ConfigDict(utils.AttrDict):
         # initialize with default values
         self._initialize()
 
+        # collect basic keys that are added during initialization
+        # only these will be copied during call to basic_settings()
+        self.basic_keys = list(self.keys())
+
+        for k, v in kwargs.items():
+            if k not in self.basic_keys:
+                raise RuntimeError(f"ERROR: invalid parameter given: {k}")
+            #
+        #
+
         # read the given settings file
         input_dict = dict()
         settings_file = None
@@ -80,9 +90,6 @@ class ConfigDict(utils.AttrDict):
         # format keys - replace special {} keywords
         self.format_keywords()
 
-        # collect basic keys that are added during initialization
-        # only these will be copied during call to basic_settings()
-        self.basic_keys = list(self.keys())
 
     def basic_settings(self):
         '''this only returns the basic settings.
