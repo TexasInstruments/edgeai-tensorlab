@@ -204,7 +204,7 @@ def package_artifact(pipeline_param, work_dir, out_dir, make_package_tar=True, m
 
 
 def package_artifacts(settings, work_dir, out_dir, include_results=False, custom_model=False, param_template=None):
-    print(f'packaging artifacts to {out_dir} please wait...')
+    print(f'INFO: packaging artifacts to {out_dir} please wait...')
     run_dirs = glob.glob(f'{work_dir}/*')
     run_dirs = sorted(run_dirs)
 

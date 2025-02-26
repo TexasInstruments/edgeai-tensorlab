@@ -98,12 +98,11 @@ def run_benchmark_config(settings, work_dir, pipeline_configs=None, modify_pipel
         pipeline_runner.pipeline_configs = modify_pipelines_func(pipeline_runner.pipeline_configs)
     #
 
-    # print some info
-    # run_dirs = [pipeline_config['session'].get_param('run_dir') for model_key, pipeline_config \
-    #             in pipeline_runner.pipeline_configs.items()]
-    # run_dirs = [os.path.basename(run_dir) for run_dir in run_dirs]
-    # print(f'INFO: configs to run: {run_dirs}')
-    print(f'INFO: number of configs: {len(pipeline_runner.pipeline_configs)}')
+    num_pipeline_configs = len(pipeline_runner.pipeline_configs)
+    print(f'INFO: number of configs: {num_pipeline_configs}')
+    if num_pipeline_configs == 0:
+        print(f"WARNING: no pipeline_configs were loaded - please check settings: model_selection ({settings.model_section}), model_shortlist ({settings.model_shortlist}): ")
+    #
     sys.stdout.flush()
 
     task_entries = pipeline_runner.get_tasks(separate_import_inference=separate_import_inference)

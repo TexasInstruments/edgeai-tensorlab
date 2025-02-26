@@ -35,7 +35,7 @@ from .get_configs_from_file import *
 
 def get_configs(settings, work_dir, adjust_config=True):
     # initialize the dataset place holders.
-    if settings.dataset_cache is None:
+    if settings.dataset_cache is None or len(settings.dataset_cache) == 0:
         settings.dataset_cache = datasets.initialize_datasets(settings)
     #
     # now get the config dictionaries
@@ -53,7 +53,7 @@ def get_configs(settings, work_dir, adjust_config=True):
 
 def select_configs(settings, work_dir, session_name=None, remove_models=False, adjust_config=True):
     # initialize the dataset place holders.
-    if settings.dataset_cache is None:
+    if settings.dataset_cache is None or len(settings.dataset_cache) == 0:
         settings.dataset_cache = datasets.initialize_datasets(settings)
     #
     # now get the config dictionaries

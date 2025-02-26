@@ -36,9 +36,11 @@ from . import utils, preprocess, postprocess, constants, sessions
 from . import config_dict
 
 
-class RuntimeOptions(config_dict.ConfigDict):
+class GetRuntimeOptions(config_dict.ConfigDict):
     def __init__(self, input, **kwargs):
         super().__init__(input, **kwargs)
+        self.runtime_options = {}
+
         # target device presets
         preset_dict = None
         if isinstance(self.target_device_preset, dict):

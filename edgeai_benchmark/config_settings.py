@@ -26,12 +26,17 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from . import datasets
 from . import runtime_options
 
 
-class ConfigSettings(runtime_options.RuntimeOptions):
+class ConfigSettings(runtime_options.GetRuntimeOptions):
     def __init__(self, input, **kwargs):
         super().__init__(input, **kwargs)
-        # variable to pre-load datasets - so that it is not
-        # separately created for each config
-        self.dataset_cache = None
+        # variable to pre-load datasets - so that it is not separately created for each config
+        self.dataset_cache = {}
+
+
+class CustomConfigSettings(ConfigSettings):
+    def __init__(self, input, dataset_loading=False, run_incremental=False, **kwargs):
+        super().__init__(input, dataset_loading=dataset_loading, run_incremental=run_incremental, **kwargs)

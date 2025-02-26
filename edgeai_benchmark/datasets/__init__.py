@@ -187,9 +187,10 @@ def get_datasets(settings, download=False, dataset_list=None):
         try:
             dataset_cache[DATASET_CATEGORY_IMAGENET]['calibration_dataset'] = ImageNetDataSetType(**imagenet_cls_calib_cfg, download=download)
             dataset_cache[DATASET_CATEGORY_IMAGENET]['input_dataset'] = ImageNetDataSetType(**imagenet_cls_val_cfg, download=False)
-        except:
+        except Exception as e:
             dataset_cache[DATASET_CATEGORY_IMAGENET]['calibration_dataset'] = DATASET_CATEGORY_IMAGENET
             dataset_cache[DATASET_CATEGORY_IMAGENET]['input_dataset'] = DATASET_CATEGORY_IMAGENET
+            print(f'Exception occurred: {str(e)}')
             print('ImageNet Classification dataset could not be loaded')
         #
     #
