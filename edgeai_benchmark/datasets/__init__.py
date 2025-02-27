@@ -155,6 +155,50 @@ def initialize_datasets(settings):
     return settings.dataset_cache
 
 
+def _get_additional_datasets(settings, download=False, dataset_list=None):
+    dataset_cache = settings.dataset_cache
+    dset_info_dict = get_dataset_info_dict(settings)
+    dataset_list = dataset_list or get_dataset_categories(settings)
+    # this is the max number of calibration images required for device
+    #calibration_frames_nx = (settings.calibration_frames * (self.calibration_iterations_factor or 1.0))
+    calibration_frames_nx = int(settings.calibration_frames * constants.CALIBRATION_ITERATIONS_FACTOR_NX)
+
+    dataset_variant = 'imagenetv2c'
+    if check_dataset_load(settings, dataset_variant) and (dataset_variant in dataset_list):
+        print(utils.log_color("\nINFO", f"loading dataset", f"category:{DATASET_CATEGORY_IMAGENET} variant:{dataset_variant}"))
+        # dataset settings
+        imagenet_dataset_dict = dset_info_dict[dataset_variant]
+        ImageNetDataSetType = imagenet_dataset_dict['type']
+        imagenet_split = imagenet_dataset_dict['split']
+        num_imgs = imagenet_dataset_dict['size']
+        # the cfg to be used to construct the dataset class
+        imagenet_cls_calib_cfg = dict(
+            path=f'{settings.datasets_path}/{dataset_variant}/{imagenet_split}',
+            split=f'{settings.datasets_path}/{dataset_variant}/{imagenet_split}.txt',
+            shuffle=True,
+            num_frames=min(num_imgs,calibration_frames_nx),
+            name=dataset_variant)
+        imagenet_cls_val_cfg = dict(
+            path=f'{settings.datasets_path}/{dataset_variant}/{imagenet_split}',
+            split=f'{settings.datasets_path}/{dataset_variant}/{imagenet_split}.txt',
+            shuffle=True,
+            num_frames=min(settings.num_frames,num_imgs),
+            name=dataset_variant)
+        # what is provided is mechanism to select one of the imagenet variants
+        # but only one is selected and assigned to the key imagenet
+        # all the imagenet models will use this variant.
+        print(f'Value of download here: {download}')# TODO: LUKE remove
+        try:
+            dataset_cache[DATASET_CATEGORY_IMAGENET]['calibration_dataset'] = ImageNetDataSetType(**imagenet_cls_calib_cfg, download=download)
+            dataset_cache[DATASET_CATEGORY_IMAGENET]['input_dataset'] = ImageNetDataSetType(**imagenet_cls_val_cfg, download=False)
+        except Exception as e:
+            dataset_cache[DATASET_CATEGORY_IMAGENET]['calibration_dataset'] = DATASET_CATEGORY_IMAGENET
+            dataset_cache[DATASET_CATEGORY_IMAGENET]['input_dataset'] = DATASET_CATEGORY_IMAGENET
+            print(f'Exception occurred: {str(e)}')
+            print('ImageNet Classification dataset could not be loaded')
+        #
+    #
+
 def get_datasets(settings, download=False, dataset_list=None):
     dataset_cache = settings.dataset_cache
     dset_info_dict = get_dataset_info_dict(settings)
@@ -588,6 +632,9 @@ def get_datasets(settings, download=False, dataset_list=None):
             #         
         #
     #
+
+    _get_additional_datasets(settings, download=download, dataset_list=dataset_list)
+
     return dataset_cache
 
 

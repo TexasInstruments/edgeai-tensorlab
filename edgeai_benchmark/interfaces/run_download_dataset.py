@@ -34,36 +34,13 @@ import warnings
 
 from edgeai_benchmark import *
 
-
-def get_arg_parser():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('settings_file', type=str, default=None)
-    parser.add_argument('--dataset_list', type=str, nargs='*')
-    return parser
+__all__ = ['run_download_dataset']
 
 
-if __name__ == '__main__':
-    print(f'argv: {sys.argv}')
-    # the cwd must be the root of the respository
-    if os.path.split(os.getcwd())[-1] == 'scripts':
-        os.chdir('../')
-    #
-
-    parser = get_arg_parser()
-    args = parser.parse_args()
-
-    assert args.dataset_list is not None, f'dataset_list must be provided: {args.dataset_list}'
-
-    kwargs = vars(args)
-    settings_file = kwargs.pop('settings_file')
-    dataset_list = kwargs.pop('dataset_list')
-
-    settings = config_settings.ConfigSettings(settings_file, **kwargs)
-
-    if 'imagenetv2c' in dataset_list:
-        settings.dataset_type_dict ={'imagenet': 'imagenetv2c'}
-        replacements = {key:entry['category'] for key, entry in datasets.dataset_info_dict.items()}
-        dataset_list = [replacements.get(entry, entry) for entry in dataset_list]
-    #
-
+def run_download_dataset(settings, dataset_name):
+    assert dataset_name is not None, f'dataset_name must be provided: {dataset_name}'
+    dataset_list = dataset_name if isinstance(dataset_name, (list,tuple)) else [dataset_name]
+    dataset_loading_backup = settings.dataset_loading
+    settings.dataset_loading = True
     datasets.download_datasets(settings, dataset_list=dataset_list)
+    settings.dataset_loading = dataset_loading_backup
