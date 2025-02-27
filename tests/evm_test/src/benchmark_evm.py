@@ -17,10 +17,11 @@ from src.relay_control import AnelRelayControl
 from src.uart_interface import UartInterface
 
 class BenchmarkEvm():
-    def __init__(self, evm_config, edgeai_benchmark_path, ip_address, reboot_type="soft", logs_dir=None):
+    def __init__(self, evm_config, edgeai_benchmark_path, ip_address, reboot_type="soft", logs_dir=None, dataset_dir_path=None):
         self.evm_config = evm_config
         self.soc = self.evm_config["soc"]
         self.eai_benchmark_mount_path = f"{ip_address}:{edgeai_benchmark_path}"
+        self.dataset_dir_mount_path = f"{ip_address}:{dataset_dir_path}" if dataset_dir_path is not None else None
         self.test_num = 0
         self.pass_num = 0
         self.restarts = 0
@@ -80,7 +81,7 @@ class BenchmarkEvm():
 
         ## mount edgeai-benchmark and dataset
         if status:
-            command = f"cd && ./setup_eai_benchmark.sh {self.eai_benchmark_mount_path}"
+            command = f"cd && ./setup_eai_benchmark.sh {self.eai_benchmark_mount_path} {self.dataset_dir_mount_path}"
             status = uart_interface.send_uart_command(command, "SCRIPT_EXECUTED_SUCCESSFULLY", 60, True)
             response = uart_interface.log_buffer
             print(f"\n\n*******************************\nLog Buffer : {response}\n*******************************\n\n")

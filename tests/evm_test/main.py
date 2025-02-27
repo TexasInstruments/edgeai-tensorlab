@@ -29,6 +29,9 @@ parser.add_argument('--relay_exe_path', help='Anel power switch exe path', type=
 parser.add_argument('--relay_ip_address', help='Anel power switch IP address', type=str, default=None)
 parser.add_argument('--relay_power_port', help='Anel power switch port number', type=str, default=None)
 parser.add_argument('--pc_ip', help='IP address of the pc', type=str, default=None)
+parser.add_argument('--num_frames', help='The number of frames to run the evaluation', type=str, default=None)
+parser.add_argument('--dataset_dir', help='Optional path to get the dataset from pc, used with pc_ip', type=str, default=None)
+
 
 args = parser.parse_args()
 
@@ -191,11 +194,12 @@ benchmark_evm = BenchmarkEvm(evm_config=evm_config,
                              edgeai_benchmark_path=edgeai_benchmark_path,
                              ip_address=ip_address,
                              reboot_type=args.reboot_type,
-                             logs_dir=args.logs_dir)
+                             logs_dir=args.logs_dir,
+                             dataset_dir_path=args.dataset_dir)
 
 status = benchmark_evm.init_setup()
 if status:
     print (f"[ Info ] Model under tests are {model_list}")
-    benchmark_evm.run_tests(model_list)
+    benchmark_evm.run_tests(model_list, num_frames=args.num_frames)
 else:
     sys.exit(-1)
