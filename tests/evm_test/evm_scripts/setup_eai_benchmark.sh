@@ -36,7 +36,12 @@ if [ $? -ne 0 ]; then
 fi
 echo "[ Info ] ${EAI_BENCHMARK_MOUNT_PATH} mount successful"
 
-cd ~/edgeai-benchmark/dependencies && mkdir -p datasets
+cd ~/edgeai-benchmark/dependencies
+if [ -d "datasets" ]; then
+  rm datasets
+fi
+
+mkdir -p datasets
 mount -r -t nfs ${DATASET_MOUNT_PATH} datasets
 if [ $? -ne 0 ]; then
     echo "[ Error ] could not mount to ${DATASET_MOUNT_PATH}"
