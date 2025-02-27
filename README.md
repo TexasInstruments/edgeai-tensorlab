@@ -116,7 +116,7 @@ The models are grouped in terms of repositories used to train them or the reposi
 | COCO    | YOLOv7-l-lite       | 640x640     | 45.9, 65.1        | configs_edgeailite/yolov7/yolov7_l_coco_lite.py |       |
 | COCO    | YOLOv7-l-orig       | 640x640     | 50.6, 69.3        | configs_edgeailite/yolov7/yolov7_l_coco_orig.py |       |
 | COCO    | YOLOv9-s-lite       | 640x640     | 38.3, 54.0        | configs_edgeailite/yolov9/yolov9_s_coco_lite.py |       |
-| COCO    | YOLOv9-s-Plus       | 640x640     | 40.0, 55.9        | configs_edgeailite/yolov9/yolov9_s_coco_plus.py |       |
+| COCO    | YOLOv9-s-plus       | 640x640     | 40.0, 55.9        | configs_edgeailite/yolov9/yolov9_s_coco_plus.py |       |
 |         | **FCOS models** 
 | COCO    | FCOS-r50-lite       | 512x512     | 36.6, 56.0          | configs_edgeailite/fcos/fcos_r50-caffe_fpn_bn-head_1x_coco.py|       |
 |         | **Centernet models** 
@@ -125,7 +125,7 @@ The models are grouped in terms of repositories used to train them or the reposi
 | COCO    | Efficientdet-b0-lite    | 512x512     | 28.0, 45.9           | configs_edgeailite/efficientdet/efficientdet_effb0_bifpn_8xb16-crop512-300e_coco.py|      |
 | COCO    | Efficientdet-b1-lite    | 640x640     | -                    | configs_edgeailite/efficientdet/efficientdet_effb1_bifpn_8xb16-crop512-300e_coco.py|      |
 
-<!-- | COCO    | YOLOv9-s-origin       | 640x640     | 45.3, 61.3      | configs/yolov9/yolov9_s_coco.py|       | -->
+<!-- | COCO    | YOLOv9-s-orig       | 640x640     | 45.3, 61.3      | configs/yolov9/yolov9_s_coco.py|       | -->
 
 
 ## Quantization
