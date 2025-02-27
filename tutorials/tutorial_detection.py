@@ -64,10 +64,11 @@ work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bi
 
 
 # download dataset if it doesn't exist
-if not os.path.exists(f'{settings.datasets_path}/coco'):
-    os.system('python3 ./scripts/download_datasets.py settings_import_on_pc.yaml --dataset_list coco')
+dataset_name='coco'
+if not os.path.exists(f'{settings.datasets_path}/{dataset_name}'):
+    print(f'INFO: downloading the dataset - {dataset_name}')
+    interfaces.run_download_dataset(settings, dataset_name=dataset_name)
 #
-
 
 dataset_calib_cfg = dict(
     path=f'{settings.datasets_path}/coco',

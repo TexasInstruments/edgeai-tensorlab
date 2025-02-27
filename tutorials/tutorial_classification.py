@@ -63,13 +63,15 @@ settings = config_settings.CustomConfigSettings('./settings_import_on_pc.yaml',
 work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
 
 # download dataset if it doesn't exist
-if not os.path.exists(f'{settings.datasets_path}/imagenetv2c'):
-    os.system('python3 ./scripts/download_datasets.py settings_import_on_pc.yaml --dataset_list imagenetv2c')
+dataset_name='imagenetv2c'
+if not os.path.exists(f'{settings.datasets_path}/{dataset_name}'):
+    print(f'INFO: downloading the dataset - {dataset_name}')
+    interfaces.run_download_dataset(settings, dataset_name=dataset_name)
 #
 
 dataset_calib_cfg = dict(
-    path=f'{settings.datasets_path}/imagenetv2c/val',
-    split=f'{settings.datasets_path}/imagenetv2c/val.txt',
+    path=f'{settings.datasets_path}/{dataset_name}/val',
+    split=f'{settings.datasets_path}/{dataset_name}/val.txt',
     num_classes=1000,
     shuffle=True,
     num_frames=10000,
