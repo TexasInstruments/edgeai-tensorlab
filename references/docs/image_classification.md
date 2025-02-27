@@ -15,20 +15,20 @@ Since the dataset is small, the training script itself can download the dataset 
 
 Training can be started by the following command:<br>
 ```
-python ./references/edgeailite/scripts/train_classification_main.py --dataset_name cifar100_classification --model_name mobilenetv2_tv_x1 --data_path ./data/datasets/cifar100_classification --img_resize 32 --img_crop 32 --rand_scale 0.5 1.0
+python ./references/classification/train_classification_main.py --dataset_name cifar100_classification --model_name mobilenetv2_tv_x1 --data_path ./data/datasets/cifar100_classification --img_resize 32 --img_crop 32 --rand_scale 0.5 1.0
 ```
  
 In the script, note that there are some special settings for the cifar datasets. The most important one is the 'strides' settings. Since the input images in Cifar are small we do not want to have as many strides as in a large sized image. See the argument args.model_config.strides being set in the script.
 
 During the training, **validation** accuracy will also be printed. But if you want to explicitly check the accuracy again with **validation** set, it can be done:<br>
 ```
-python ./references/edgeailite/scripts/train_classification_main.py --phase validation --dataset_name cifar100_classification --model_name mobilenetv2_tv_x1 --data_path ./data/datasets/cifar100_classification --img_resize 32 --img_crop 32
+python ./references/classification/train_classification_main.py --phase validation --dataset_name cifar100_classification --model_name mobilenetv2_tv_x1 --data_path ./data/datasets/cifar100_classification --img_resize 32 --img_crop 32
 ```
 
 ### Cifar10 Dataset
  Training can be started by the following command:<br>
 ```
-python ./references/edgeailite/scripts/train_classification_main.py --dataset_name cifar10_classification --model_name mobilenetv2_tv_x1 --data_path ./data/datasets/cifar10_classification --img_resize 32 --img_crop 32 --rand_scale 0.5 1.0
+python ./references/classification/train_classification_main.py --dataset_name cifar10_classification --model_name mobilenetv2_tv_x1 --data_path ./data/datasets/cifar10_classification --img_resize 32 --img_crop 32 --rand_scale 0.5 1.0
 ```
 
 <br><hr><br>
@@ -41,17 +41,17 @@ Important note: ImageNet dataset is huge and download may take long time. Attemp
 
 Training can be started by the following command:<br>
 ```
-python ./references/edgeailite/scripts/train_classification_main.py --dataset_name imagenet_classification --model_name mobilenetv2_tv_x1 --data_path ./data/datasets/imagenet_classification
+python ./references/classification/train_classification_main.py --dataset_name imagenet_classification --model_name mobilenetv2_tv_x1 --data_path ./data/datasets/imagenet_classification
 ```
 
 Training with ResNet50:<br>
 ```
-python ./references/edgeailite/scripts/train_classification_main.py --dataset_name imagenet_classification --model_name resnet50_x1 --data_path ./data/datasets/imagenet_classification
+python ./references/classification/train_classification_main.py --dataset_name imagenet_classification --model_name resnet50_x1 --data_path ./data/datasets/imagenet_classification
 ```
   
 After the training, the **validation** accuracy using (make sure that  args.dataset_name and args.pretrained are correctly set)<br>
 ```
-python ./references/edgeailite/scripts/train_classification_main.py --phase validation --dataset_name imagenet_classification --model_name mobilenetv2_tv_x1 --data_path ./data/datasets/imagenet_classification --pretrained <checkpoint_path>
+python ./references/classification/train_classification_main.py --phase validation --dataset_name imagenet_classification --model_name mobilenetv2_tv_x1 --data_path ./data/datasets/imagenet_classification --pretrained <checkpoint_path>
 ```
 
 ## ImageNet or any other classification dataset - manual download
@@ -98,16 +98,16 @@ rm ./valprep.sh
 
 Training with **MobileNetV2** model can be started by the following command from the base folder of the repository:<br>
 ```
-python ./references/edgeailite/scripts/train_classification_main.py --dataset_name image_folder_classification --model_name mobilenetv2_tv_x1 --data_path ./data/datasets/image_folder_classification
+python ./references/classification/train_classification_main.py --dataset_name image_folder_classification --model_name mobilenetv2_tv_x1 --data_path ./data/datasets/image_folder_classification
 ```
 
 Training with **ResNet50** model:<br>
 ```
-python ./references/edgeailite/scripts/train_classification_main.py --dataset_name image_folder_classification --model_name resnet50_x1 --data_path ./data/datasets/image_folder_classification
+python ./references/classification/train_classification_main.py --dataset_name image_folder_classification --model_name resnet50_x1 --data_path ./data/datasets/image_folder_classification
 ```
 
 Training with **RegNet800MF model and BGR image input transform**:<br>
-```python ./references/edgeailite/scripts/train_classification_main.py --dataset_name image_folder_classification --model_name regnetx800mf_x1 --data_path ./data/datasets/image_folder_classification --input_channel_reverse True --image_mean 103.53 116.28 123.675 --image_scale 0.017429 0.017507 0.017125
+```python ./references/classification/train_classification_main.py --dataset_name image_folder_classification --model_name regnetx800mf_x1 --data_path ./data/datasets/image_folder_classification --input_channel_reverse True --image_mean 103.53 116.28 123.675 --image_scale 0.017429 0.017507 0.017125
 ```
 
 If the dataset is in a different location, it can be specified by the --data_path option, but dataset_name must be *image_folder_classification* for folder based classification.

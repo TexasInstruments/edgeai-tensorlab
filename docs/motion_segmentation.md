@@ -43,15 +43,15 @@ Now, the final directory structure must look like this:
 
 **(Previous frame, Current frame):** 
 ```
-python ./scripts/train_motion_segmentation_main.py --image_folders  leftImg8bit_previous leftImg8bit --is_flow 0,0 0 --data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --gpus 0 1
+python ./references/pixel2pixel/train_motion_segmentation_main.py --image_folders  leftImg8bit_previous leftImg8bit --is_flow 0,0 0 --data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --gpus 0 1
 ```
 **(Optical flow, Current frame):**
 ``` 
-python ./scripts/train_motion_segmentation_main.py --image_folders leftImg8bit_flow_farneback leftImg8bit --is_flow 1,0 0 --data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --gpus 0 1
+python ./references/pixel2pixel/train_motion_segmentation_main.py --image_folders leftImg8bit_flow_farneback leftImg8bit --is_flow 1,0 0 --data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --gpus 0 1
 ```
 **(Optical flow with confidence, Current frame):**
 ```  
-python ./scripts/train_motion_segmentation_main.py --image_folders leftImg8bit_flow_farneback_confidence leftImg8bit --is_flow 1,0 0 --data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --gpus 0 1
+python ./references/pixel2pixel/train_motion_segmentation_main.py --image_folders leftImg8bit_flow_farneback_confidence leftImg8bit --is_flow 1,0 0 --data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --gpus 0 1
 ```
 
 ## Results:

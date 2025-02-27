@@ -38,15 +38,15 @@ There are many practical challenges in training a network for multiple tasks wit
 
 **Vanilla multi-task learning**: Here the weights are not learnt.They are all set to 1.0. To train a vanilla multi-task model run the following command, <br> 
 ``` 
-python ./references/edgeailite/scripts/train_pixel2pixel_multitask_main.py  --img_resize 384 768 --output_size 1024 2048 --gpus 0 1 
+python ./references/pixel2pixel/train_pixel2pixel_multitask_main.py  --img_resize 384 768 --output_size 1024 2048 --gpus 0 1 
 ```
 **Gradient nornalization** : The weights are updated based on the norm of the backward gradient of the last common along with the rate of learning for each task. To train a model based on gradient normalization run the following command: <br>
 ```
-python ./references/edgeailite/scripts/train_pixel2pixel_multitask_main.py  --multi_task_type pseudo_grad_norm --img_resize 384 768 --output_size 1024 2048 --gpus 0 1
+python ./references/pixel2pixel/train_pixel2pixel_multitask_main.py  --multi_task_type pseudo_grad_norm --img_resize 384 768 --output_size 1024 2048 --gpus 0 1
 ```
 **Uncertainty bassed learning**: In this case, the weights are updated based on homscedastic uncertainty. To train a uncertainty based multi-task model run the following command: <br>
 ```
-python ./scripts/train_pixel2pixel_multitask_main.py --multi_task_type uncertainty --img_resize 384 768 --output_size 1024 2048 --gpus 0 1 
+python ./references/pixel2pixel/train_pixel2pixel_multitask_main.py --multi_task_type uncertainty --img_resize 384 768 --output_size 1024 2048 --gpus 0 1 
 ```
 
 ## Results:

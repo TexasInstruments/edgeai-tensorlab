@@ -2,13 +2,13 @@
 
 Depth Estimation predicts the depth (in the 3D space) associated with each pixel of the image. It is useful for tasks such as 3D Object detetion, surround view image stitching etc.
 
-We suggest you to first read the documentation on [Sematic Segmentation](./Semantic_Segmentation.md) and also try out some examples in [run_edgeailite_segmentation.sh](../../run_edgeailite_segmentation.sh) before attempting Depth Estimation training.
+We suggest you to first read the documentation on [Sematic Segmentation](./Semantic_Segmentation.md) and also try out some examples in [run_segmentation.sh](../../run_segmentation.sh) before attempting Depth Estimation training.
 
 In these examples we demonstrate the use of KITTI dataset for depth estimation training. We also support Cityscapes dataset, but we do not have an example for it here.
 
 Commonly used Training/Validation commands are listed in the file [run_depth.sh](../../run_depth.sh). Uncommend one line and run the file to start the run.
 
-Loss functions and many other parametes can be changed or configured in [references/edgeailite/scripts/train_depth_main.py](../../references/edgeailite/scripts/train_depth_main.py). We have seen that a combination of SmoothL1, ErrorVariance and Overall Scale Difference produces good results.
+Loss functions and many other parametes can be changed or configured in [references/pixel2pixel/train_depth_main.py](../../references/pixel2pixel/train_depth_main.py). We have seen that a combination of SmoothL1, ErrorVariance and Overall Scale Difference produces good results.
 
 ### Results
 

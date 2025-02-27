@@ -58,6 +58,7 @@ parser.add_argument('--pretrained', type=str, default=None, help='pretrained mod
 parser.add_argument('--bitwidth_weights', type=int, default=None, help='bitwidth for weight quantization')
 parser.add_argument('--bitwidth_activations', type=int, default=None, help='bitwidth for activation quantization')
 parser.add_argument('--img_border_crop', type=int, nargs=4, default=None, help='image border crop rectangle. can be relative or absolute')
+parser.add_argument('--log_file', type=str, default=None, help='log_file')
 cmds = parser.parse_args()
 
 ################################

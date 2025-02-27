@@ -112,7 +112,7 @@ def get_args_parser():
     parser.add_argument('--output_dir', type=str, default=None, help='Output Directory')
     parser.add_argument('--device', type=str, default=None, help='Device Name')
     parser.add_argument('--distributed', type=str2bool, default=False, help='Distributed training check')
-    #
+    parser.add_argument('--log_file', type=str, default=None, help='log_file')
     return parser
 
 

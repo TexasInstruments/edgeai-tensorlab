@@ -8,7 +8,7 @@ In these examples we demonstrate the use of KITTI dataset for depth estimation t
 
 Commonly used Training/Validation commands are listed in the file [run_depth.sh](../../run_depth.sh). Uncommend one line and run the file to start the run.
 
-Loss functions and many other parametes can be changed or configured in [references/edgeailite/scripts/train_depth_main.py](../../references/edgeailite/scripts/train_depth_main.py). We have seen that a combination of SmoothL1, ErrorVariance and Overall Scale Difference produces good results.
+Loss functions and many other parametes can be changed or configured in [references/pixel2pixel/train_depth_main.py](../../references/pixel2pixel/train_depth_main.py). We have seen that a combination of SmoothL1, ErrorVariance and Overall Scale Difference produces good results.
 
 ### Results
 

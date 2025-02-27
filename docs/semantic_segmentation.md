@@ -72,40 +72,40 @@ These examples use two gpus because we use slightly higher accuracy when we rest
 
 **Cityscapes Segmentation Training** with MobileNetV2 backbone and DeeplabV3Lite decoder can be done as follows:<br>
 ```
-python ./references/edgeailite/scripts/train_segmentation_main.py --model_name deeplabv3plus_mobilenetv2_tv_edgeailite --dataset_name cityscapes_segmentation --data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --pretrained https://download.pytorch.org/models/mobilenet_v2-b0353104.pth --gpus 0 1
+python ./references/pixel2pixel/train_segmentation_main.py --model_name deeplabv3plus_mobilenetv2_tv_edgeailite --dataset_name cityscapes_segmentation --data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --pretrained https://download.pytorch.org/models/mobilenet_v2-b0353104.pth --gpus 0 1
 ```
 
 Cityscapes Segmentation Training with **RegNet800MF backbone and FPN decoder** can be done as follows:<br>
 ```
-python ./references/edgeailite/scripts/train_segmentation_main.py --dataset_name cityscapes_segmentation --model_name fpn_aspp_regnetx800mf_edgeailite --data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --gpus 0 1 --pretrained https://dl.fbaipublicfiles.com/pycls/dds_baselines/160906036/RegNetX-800MF_dds_8gpu.pyth
+python ./references/pixel2pixel/train_segmentation_main.py --dataset_name cityscapes_segmentation --model_name fpn_aspp_regnetx800mf_edgeailite --data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --gpus 0 1 --pretrained https://dl.fbaipublicfiles.com/pycls/dds_baselines/160906036/RegNetX-800MF_dds_8gpu.pyth
 ```
 
 It is possible to use a **different image size**. For example, we trained for 1536x768 resolution by the following. (We used a smaller crop size compared to the image resize resolution to reduce GPU memory usage). <br>
 ```
-python ./references/edgeailite/scripts/train_segmentation_main.py --model_name deeplabv3plus_mobilenetv2_tv_edgeailite --dataset_name cityscapes_segmentation --data_path ./data/datasets/cityscapes/data --img_resize 768 1536 --rand_crop 512 1024 --output_size 1024 2048 --pretrained https://download.pytorch.org/models/mobilenet_v2-b0353104.pth --gpus 0 1
+python ./references/pixel2pixel/train_segmentation_main.py --model_name deeplabv3plus_mobilenetv2_tv_edgeailite --dataset_name cityscapes_segmentation --data_path ./data/datasets/cityscapes/data --img_resize 768 1536 --rand_crop 512 1024 --output_size 1024 2048 --pretrained https://download.pytorch.org/models/mobilenet_v2-b0353104.pth --gpus 0 1
 ```
 
 Train **FPNPixel2Pixel model at 1536x768 resolution** (use 1024x512 crop to reduce memory usage):<br>
 ```
-python ./references/edgeailite/scripts/train_segmentation_main.py --model_name fpn_aspp_mobilenetv2_tv_edgeailite --dataset_name cityscapes_segmentation --data_path ./data/datasets/cityscapes/data --img_resize 768 1536 --rand_crop 512 1024 --output_size 1024 2048 --pretrained https://download.pytorch.org/models/mobilenet_v2-b0353104.pth --gpus 0 1
+python ./references/pixel2pixel/train_segmentation_main.py --model_name fpn_aspp_mobilenetv2_tv_edgeailite --dataset_name cityscapes_segmentation --data_path ./data/datasets/cityscapes/data --img_resize 768 1536 --rand_crop 512 1024 --output_size 1024 2048 --pretrained https://download.pytorch.org/models/mobilenet_v2-b0353104.pth --gpus 0 1
 ```
  
 **VOC Segmentation Training** can be done as follows:<br>
 ```
-python ./references/edgeailite/scripts/train_segmentation_main.py --model_name deeplabv3plus_mobilenetv2_tv_edgeailite --dataset_name voc_segmentation --data_path ./data/datasets/voc --img_resize 512 512 --output_size 512 512 --pretrained https://download.pytorch.org/models/mobilenet_v2-b0353104.pth --gpus 0 1
+python ./references/pixel2pixel/train_segmentation_main.py --model_name deeplabv3plus_mobilenetv2_tv_edgeailite --dataset_name voc_segmentation --data_path ./data/datasets/voc --img_resize 512 512 --output_size 512 512 --pretrained https://download.pytorch.org/models/mobilenet_v2-b0353104.pth --gpus 0 1
 ```
 
 ## Validation
 During the training, **validation** accuracy will also be printed. But to explicitly check the accuracy again with **validation** set, it can be done as follows (fill in the path to the pretrained model):<br>
 ```
-python ./references/edgeailite/scripts/train_segmentation_main.py --phase validation --model_name deeplabv3plus_mobilenetv2_tv_edgeailite --dataset_name cityscapes_segmentation --data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --gpus 0 1 --pretrained ?????
+python ./references/pixel2pixel/train_segmentation_main.py --phase validation --model_name deeplabv3plus_mobilenetv2_tv_edgeailite --dataset_name cityscapes_segmentation --data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --gpus 0 1 --pretrained ?????
 ```
 
 
 ## Inference
 Inference can be done as follows (fill in the path to the pretrained model):<br>
 ```
-python ./scripts/infer_segmentation_main.py --phase validation --model_name deeplabv3plus_mobilenetv2_tv_edgeailite --dataset_name cityscapes_segmentation_measure --data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --gpus 0 1 --pretrained ?????
+python ./references/pixel2pixel/infer_segmentation_main.py --phase validation --model_name deeplabv3plus_mobilenetv2_tv_edgeailite --dataset_name cityscapes_segmentation_measure --data_path ./data/datasets/cityscapes/data --img_resize 384 768 --output_size 1024 2048 --gpus 0 1 --pretrained ?????
 ```
 
  

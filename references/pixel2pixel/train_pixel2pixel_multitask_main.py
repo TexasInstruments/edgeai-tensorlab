@@ -72,6 +72,7 @@ parser.add_argument('--bitwidth_activations', type=int, default=None, help='bitw
 parser.add_argument('--multi_task_type', type=str, default=None, help='multi_task_type')
 #
 parser.add_argument('--freeze_bn', type=str2bool, default=None, help='freeze the bn stats or not')
+parser.add_argument('--log_file', type=str, default=None, help='log_file')
 cmds = parser.parse_args()
 
 ################################

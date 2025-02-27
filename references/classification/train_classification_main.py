@@ -101,6 +101,7 @@ parser.add_argument('--epoch_size_val', type=float, default=None, help='epoch si
                                                                    'using a fraction will reduce the number of images used for one epoch. ')
 parser.add_argument('--parallel_model', type=str2bool, default=None, help='whether to use DataParallel for models')
 parser.add_argument('--enable_fp16', type=str2bool, default=None, help='fp16/half precision mode to speedup training')
+parser.add_argument('--log_file', type=str, default=None, help='log_file')
 #
 cmds = parser.parse_args()
 

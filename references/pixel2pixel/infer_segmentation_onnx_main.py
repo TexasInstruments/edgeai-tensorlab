@@ -61,6 +61,7 @@ parser.add_argument("--quantization", "--quantize", dest="quantize", type=str2bo
 #parser.add_argument('--model_surgery', type=str, default=None, choices=[None, 'pact2'], help='whether to transform the model after defining')
 parser.add_argument('--pretrained', type=str, default=None, help='pretrained model')
 parser.add_argument('--resume', type=str, default=None, help='resume an unfinished training from this model')
+parser.add_argument('--log_file', type=str, default=None, help='log_file')
 cmds = parser.parse_args()
 
 ################################
