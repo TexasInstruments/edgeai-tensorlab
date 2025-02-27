@@ -241,6 +241,8 @@ class ConfigDict(utils.AttrDict):
         self.instance_timeout = None
         # timeout while running the benchmark - overall timeout
         self.overall_timeout = None
+        # sort model configs based on model_shortlist parameter provided for each model
+        self.sort_pipeline_configs = True
         # cna use this file as template to cleanup model config file
         self.param_template_file = None
 

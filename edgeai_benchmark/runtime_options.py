@@ -30,6 +30,8 @@ import enum
 import copy
 import os
 import sys
+import warnings
+
 import cv2
 import numpy as np
 import yaml
@@ -147,7 +149,7 @@ class GetRuntimeOptions(config_dict.ConfigDict):
                     tools_version = Version(str(tools_version_info['version']))
                     if tools_version == Version('10.1.4'):
                         c7x_firmware_version = constants.TIDL_FIRMWARE_VERSION_10_01_04
-                        print(f'INFO: tidl_tools version found - setting advanced_options:c7x_firmware_version to {c7x_firmware_version}')
+                        warnings.warn(f'INFO: tidl_tools version found - setting advanced_options:c7x_firmware_version to {c7x_firmware_version}')
                         runtime_options.update({
                             'advanced_options:c7x_firmware_version': c7x_firmware_version,
                         })
@@ -156,7 +158,7 @@ class GetRuntimeOptions(config_dict.ConfigDict):
             #
         #
         if not tools_version_info_found:
-            print(f'WARNING: tidl_tools version could not be determined - will use the default value for advanced_options:c7x_firmware_version')
+            warnings.warn(f'WARNING: tidl_tools version could not be determined - will use the default value for advanced_options:c7x_firmware_version')
         #
 
         return runtime_options

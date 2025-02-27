@@ -49,12 +49,29 @@ class PipelineRunner():
         # instead it may be better to make a copy opf the whole proc_func just before executaion of it
         self.copy_dataloader = False
         self.settings = settings
-        self.pipeline_configs = self.filter_pipeline_configs(pipeline_configs) if pipeline_configs else pipeline_configs
+        self.pipeline_configs = pipeline_configs
+        if settings.sort_pipeline_configs:
+            self.pipeline_configs = self._sort_pipeline_configs(self.pipeline_configs)
+        #
+        self.pipeline_configs = self._filter_pipeline_configs(self.pipeline_configs)
 
     def get_pipeline_configs(self):
         return self.pipeline_configs
 
-    def filter_pipeline_configs(self, pipeline_configs):
+    def _sort_pipeline_configs(self, pipeline_configs):
+        if pipeline_configs is None:
+            return pipeline_configs
+        #
+        model_shortlist_factors = {model_id:pipeline_config.get('model_info',{}).get('model_shortlist',None) for model_id, pipeline_config in pipeline_configs.items()}
+        model_shortlist_factors = dict(sorted(list(model_shortlist_factors.items()), key=lambda d:(d[1] or float('inf'))))
+        model_ids_sorted = model_shortlist_factors.keys()
+        pipeline_configs_sorted = {model_id:pipeline_configs[model_id] for model_id in model_ids_sorted}
+        return pipeline_configs_sorted
+
+    def _filter_pipeline_configs(self, pipeline_configs):
+        if pipeline_configs is None:
+            return pipeline_configs
+        #
         for model_id, pipeline_config in pipeline_configs.items():
             # set model_id in each config
             pipeline_config['session'].set_param('model_id', model_id)
