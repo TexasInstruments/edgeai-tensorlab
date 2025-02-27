@@ -28,9 +28,12 @@
 
 import enum
 import copy
+import os
 import sys
 import cv2
 import numpy as np
+import yaml
+from packaging.version import Version
 
 from . import utils, preprocess, postprocess, constants, sessions
 from . import config_dict
@@ -122,8 +125,6 @@ class GetRuntimeOptions(config_dict.ConfigDict):
             'advanced_options:add_data_convert_ops': 3,
             # max number of nodes in a subgraph (default is 750)
             #'advanced_options:max_num_subgraph_nodes': 2000,
-            # use a specific firmware version
-            'advanced_options:c7x_firmware_version': constants.TIDL_FIRMWARE_VERSION,
             ##################################
             # additional options (internal / performance estimation)
             #################################
@@ -132,6 +133,31 @@ class GetRuntimeOptions(config_dict.ConfigDict):
 
         # set other runtime_options from kwargs
         runtime_options.update(kwargs)
+
+        ##################################
+        # use a specific firmware version if needed
+        #################################
+        tools_version_info_found = False
+        version_yaml = os.path.join(os.environ['TIDL_TOOLS_PATH'], 'version.yaml')
+        if os.path.exists(version_yaml):
+            with open(version_yaml) as fp:
+                tools_version_info = yaml.safe_load(fp)
+                if 'version' in tools_version_info:
+                    tools_version_info_found = True
+                    tools_version = Version(str(tools_version_info['version']))
+                    if tools_version == Version('10.1.4'):
+                        c7x_firmware_version = constants.TIDL_FIRMWARE_VERSION_10_01_04
+                        print(f'INFO: tidl_tools version found - setting advanced_options:c7x_firmware_version to {c7x_firmware_version}')
+                        runtime_options.update({
+                            'advanced_options:c7x_firmware_version': c7x_firmware_version,
+                        })
+                    #
+                #
+            #
+        #
+        if not tools_version_info_found:
+            print(f'WARNING: tidl_tools version could not be determined - will use the default value for advanced_options:c7x_firmware_version')
+        #
 
         return runtime_options
 

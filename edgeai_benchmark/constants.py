@@ -37,8 +37,8 @@ TIDL_PLATFORM = "J7"
 TIDL_VERSION = (10,1,0)
 TIDL_VERSION_STR = '10.1.0'
 
-TIDL_FIRMWARE_VERSION_BC = '10_01_03_00' # Compatible with SDK 10.1: Version: 10.01.00.04 - Release date: Dec 18, 2024
-TIDL_FIRMWARE_VERSION    = '10_01_04_00' # Not compatible with released version of SDK 10.1 - needs firmware update.
+TIDL_FIRMWARE_VERSION_10_01_03 = '10_01_03_00' # Compatible with the publicly released SDK 10.1 - Version: 10.01.00.04 - Release date: Dec 18, 2024
+TIDL_FIRMWARE_VERSION_10_01_04 = '10_01_04_00' # Not automatically compatible with publicly released version of SDK 10.1 - needs firmware update.
 
 # data layout constants
 NCHW = 'NCHW'

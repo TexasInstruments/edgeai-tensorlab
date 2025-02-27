@@ -13,3 +13,4 @@ wurlitzer
 plyfile
 scikit-learn
 debugpy
+packaging
