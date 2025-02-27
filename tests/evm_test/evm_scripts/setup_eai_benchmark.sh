@@ -53,6 +53,6 @@ export FTP_PROXY=http://webproxy.ext.ti.com:80
 export no_proxy=ti.com,localhost 
 
 cd ~/edgeai-benchmark
-pip3 install --no-input -r requirements_evm.txt
+pip3 install --no-input -r requirements/requirements_evm.txt
 
 echo "SCRIPT_EXECUTED_SUCCESSFULLY"
