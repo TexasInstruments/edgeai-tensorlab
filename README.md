@@ -1,4 +1,4 @@
-# EdgeAI-TorchVision 
+# edgeai-torchvision 
 
 <hr>
 
@@ -8,10 +8,8 @@ Develop Embedded Friendly Deep Neural Network Models in **PyTorch** ![PyTorch](.
 This is an extension of the popular GitHub repository [pytorch/vision](https://github.com/pytorch/vision) that implements torchvision - PyTorch based datasets, model architectures, and common image transformations for computer vision.
 
 Apart from the features in underlying torchvision, we support the following features
-- Models and model training scripts: We also have several example embedded friendly models and training scripts for various Vision tasks. These models and scripts are called when you run the .sh scripts containing the name edgeailite - for example [run_edgeailite_classification_v1.sh](./run_edgeailite_classification_v1.sh)
-- Model optimization tools: We used added edgeai-modeloptimization to add support for Surgery, Purning and Quantization in torchvision's training scripts [./references/classification/train.py](./references/classification/train.py) and [./references/segmentation/train.py](./references/segmentation/train.py). These .sh scripts that utilize these have the keyword torchvision - for example [run_torchvision_classification_v2.sh](./run_torchvision_classification_v2.sh), [run_torchvision_classification_v2_qat.sh](./run_torchvision_classification_v2_qat.sh)
-
-It is important to note that we do not modify the [torchvision](./torchvision) python package itself - so off-the-shelf, pip installed torchvision python package can be used with the scripts in this repository. See the setup documentation and the setup file for details. However, we do modify the training scripts in [references](./references) that uses the torchvision package. When we need to modify a model, we do that by modifying the model object/instance in the training script using our model surgery tool.
+- Training & export of embedded friendly "lite" models.
+- Model optimization - examples for quantization (QAT/PTC) / pruning of models
 
 <hr>
 
@@ -19,71 +17,52 @@ It is important to note that we do not modify the [torchvision](./torchvision) p
 [Setup Instructions](./references/edgeailite/docs/setup.md)
 
 <hr>
-
+<hr>
 
 ## Models and Scripts
 
 We have different categories of models and scripts in this repository:
 
-### Category 1: "lite" variants of original torchvision models
-These are models that created replacing unsupported layers of torchvision models with supported ones - we call them "lite" models. This replacing is done by using our Model Optimization Tools, just after the model is created, in the training script.
+### "lite" variants of original torchvision models
+**Models and model training scripts**: We have several example embedded friendly models and training scripts for various Vision tasks. These are models that created replacing unsupported layers of torchvision models with supported ones - we call them "lite" models. This replacing is done by using our [Model Optimization Tools](../edgeai-modeloptimization) - using torch model surgery, in the training script. These models and scripts are called when you run the .sh scripts - for example 
+- [run_classification.sh](run_classification.sh)
+- [run_segmentation.sh](run_segmentation.sh)
 
-It is important to note that we do not modify the [torchvision](./torchvision) python package itself - so off-the-shelf, pip installed torchvision python package can be used with the scripts in this repository. However, we do modify the training scripts in [references](./references) that uses the torchvision package. When we need to modify a model, we do that by modifying the model object/instance in the training script using our Model Optimization Tools.
+**Model optimization tools**: We used added edgeai-modeloptimization to add support for Surgery, Purning and Quantization in torchvision's training scripts. - There are .sh scripts provided as examples 
+- [run_classification_qat.sh](run_classification_qat.sh)
 
-To see example usages of Model Optimization Tools, please refer to [references/classification/train.py](./references/classification/train.py) and [references/segmentation/train.py](./references/segmentation/train.py)
+It is important to note that we do not modify the [torchvision](./torchvision) python package itself - so off-the-shelf, pip installed torchvision python package can also be used with the scripts in this repository. However, we do modify the training scripts in [references](./references) that uses the torchvision package. When we need to modify a model, we do that by modifying the model object/instance in the training script using our Model Optimization Tools.
 
-The shell scripts **run_torchvision_....sh** can be used to train, evaluate or export these "lite" models. Accuracy results of training these lite models are in the documentation of our Model Optimization Tools.
+To see example usages of Model Optimization Tools, please refer to 
+- [references/classification/train.py](./references/classification/train.py)
+- [references/segmentation/train.py](./references/segmentation/train.py)
 
 
-### Category 2: Our custom 'edgeailite' models
-
-torchvision had only classification models before 2019. So we went ahead added embedded friendly models and training scripts for tasks such as Semantic Segmentation, Depth Estimation, Multi-Task Estimation etc. These are low complexity models that are suitable for embedded SoCs. 
-
-[See documentation of our edgeailite extensions to torchvision](./references/edgeailite/README.md)
-
-Scripts are provided for training these models for a variety of tasks:
-
-- Image Classification
-- Semantic Segmentation
-- Motion Segmentation
-- Depth Estimation
-- Multi-Task Estimation
-- And more...
-
-These models, transforms, and training scrpts are in [./references/edgeailite](./references/edgeailite). The models in our model zoo that were trained using these scripts carries a keyword "edgeailite".
-
-The shell scripts **run_edgeailite_....sh** can be used to train, evaluate or export these "edgeailite" models. 
-
+<hr>
+<hr>
 
 ### Original torchvision models and documentation
-This repository is built on top of **0.15.x** release of torchvision. We do not modify torchvision python package itself, so the user can use the original models as well. See the original torchvision documentation:
-- [online html version](https://pytorch.org/vision/0.15/)
-- [the local git version](./README.rst)
+This repository is built on top of **0.19** release of torchvision. We do not modify torchvision python package itself (but only the scripts in the [references](./references) folder), so the user can use the original torchvision models as well from the scripts in this repository. See the original torchvision documentation below:
+- [Online html version](https://pytorch.org/vision/0.19/)
+- Offline version continues below:
 
-<hr><hr><hr>
+<hr>
 
-**Documentation of original torchvision**
-
-
-# torchvision
+## torchvision
 
 [![total torchvision downloads](https://pepy.tech/badge/torchvision)](https://pepy.tech/project/torchvision)
 [![documentation](https://img.shields.io/badge/dynamic/json.svg?label=docs&url=https%3A%2F%2Fpypi.org%2Fpypi%2Ftorchvision%2Fjson&query=%24.info.version&colorB=brightgreen&prefix=v)](https://pytorch.org/vision/stable/index.html)
 
-The torchvision package consists of popular datasets, model architectures, and common image transformations for computer
-vision.
+The torchvision package consists of popular datasets, model architectures, and common image transformations for computer vision.
 
 ## Installation
 
-Please refer to the [official
-instructions](https://pytorch.org/get-started/locally/) to install the stable
+Please refer to the [official instructions](https://pytorch.org/get-started/locally/) to install the stable
 versions of `torch` and `torchvision` on your system.
 
-To build source, refer to our [contributing
-page](https://github.com/pytorch/vision/blob/main/CONTRIBUTING.md#development-installation).
+To build source, refer to our [contributing page](https://github.com/pytorch/vision/blob/main/CONTRIBUTING.md#development-installation).
 
-The following is the corresponding `torchvision` versions and supported Python
-versions.
+The following is the corresponding `torchvision` versions and supported Python versions.
 
 | `torch`            | `torchvision`      | Python              |
 | ------------------ | ------------------ | ------------------- |
