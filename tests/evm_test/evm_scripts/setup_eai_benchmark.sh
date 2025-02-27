@@ -36,9 +36,14 @@ if [ $? -ne 0 ]; then
 fi
 echo "[ Info ] ${EAI_BENCHMARK_MOUNT_PATH} mount successful"
 
+
+## add check whether dataset is mounted or not
 cd ~/edgeai-benchmark/dependencies
 if [ -d "datasets" ]; then
-  rm datasets
+  if mountpoint -q datasets; then
+    umount datasets 
+  fi
+  rm -r datasets
 fi
 
 mkdir -p datasets
@@ -58,6 +63,13 @@ export FTP_PROXY=http://webproxy.ext.ti.com:80
 export no_proxy=ti.com,localhost 
 
 cd ~/edgeai-benchmark
-pip3 install --no-input -r requirements/requirements_evm.txt
+###########################################################
+if [ -d "evm_wheels" ]; then 
+  pip3 install --no-index --find-links evm_wheels/ -r requirements/requirements_evm.txt
+else
+  pip3 install --no-input -r requirements/requirements_evm.txt
+fi
+
+###########################################################
 
 echo "SCRIPT_EXECUTED_SUCCESSFULLY"

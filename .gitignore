@@ -22,6 +22,7 @@ tutorials/.ipynb_checkpoints/
 /tidl_tools_backup/
 backup/
 temp_files/
+evm_wheels/
 
 *.npy
 *.jpg

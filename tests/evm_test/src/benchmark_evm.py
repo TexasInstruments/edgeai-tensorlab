@@ -67,8 +67,14 @@ class BenchmarkEvm():
         time.sleep(30)
 
         # wait for root prompt
-        if status:
-            status = uart_interface.send_uart_command('', 'login:', 30, True)
+        cnt=0
+        while True:
+            status = uart_interface.send_uart_command('', 'login:', 10, True)
+            cnt+=1
+            if status:
+                break
+            if cnt>10 and not status:
+                sys.exit(-1)
 
         # login as root
         if status:
@@ -81,7 +87,11 @@ class BenchmarkEvm():
 
         ## mount edgeai-benchmark and dataset
         if status:
-            command = f"cd && ./setup_eai_benchmark.sh {self.eai_benchmark_mount_path} {self.dataset_dir_mount_path}"
+            if self.dataset_dir_mount_path:
+                command = f"cd && ./setup_eai_benchmark.sh {self.eai_benchmark_mount_path} {self.dataset_dir_mount_path}"
+            else:
+                command = f"cd && ./setup_eai_benchmark.sh {self.eai_benchmark_mount_path}"
+
             status = uart_interface.send_uart_command(command, "SCRIPT_EXECUTED_SUCCESSFULLY", 60, True)
             response = uart_interface.log_buffer
             print(f"\n\n*******************************\nLog Buffer : {response}\n*******************************\n\n")
