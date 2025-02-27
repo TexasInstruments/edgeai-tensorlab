@@ -1,6 +1,6 @@
 # edgeai-tensorvision
-* Examples Deep Neural Network Models for Computer Vision Tasks
-* Model Training Scripts & Examples For Embedded AI Models - in PyTorch.
+
+Model Training Scripts & Examples For Embedded AI Models - in PyTorch.
 
 <hr>
 
