@@ -9,7 +9,6 @@ from os import path as osp
 import torch
 from nuscenes.eval.common.utils import quaternion_yaw, Quaternion
 from .nuscnes_eval import NuScenesEval_custom
-#from mmcv.parallel import DataContainer as DC
 import random
 
 

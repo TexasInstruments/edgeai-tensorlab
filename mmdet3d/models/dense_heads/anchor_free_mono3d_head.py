@@ -146,7 +146,8 @@ class AnchorFreeMono3DHead(BaseMono3DDenseHead):
         self.in_channels = in_channels
         self.feat_channels = feat_channels
         self.stacked_convs = stacked_convs
-        self.strides = strides
+        # self.strides = strides
+        self.register_buffer('strides', torch.tensor(strides).to(torch.float32)) # required for quantization
         self.dcn_on_last_conv = dcn_on_last_conv
         assert conv_bias == 'auto' or isinstance(conv_bias, bool)
         self.conv_bias = conv_bias

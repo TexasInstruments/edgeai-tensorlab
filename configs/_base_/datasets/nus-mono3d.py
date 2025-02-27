@@ -5,6 +5,7 @@ class_names = [
     'motorcycle', 'pedestrian', 'traffic_cone', 'barrier'
 ]
 metainfo = dict(classes=class_names)
+# metainfo = dict(classes=class_names, version='v1.0-mini') # mini dataset
 # Input modality for nuScenes dataset, this is consistent with the submission
 # format which requires the information in input_modality.
 input_modality = dict(use_lidar=False, use_camera=True)

@@ -21,14 +21,9 @@ custom_imports = dict(imports=['projects.BEVFormer.bevformer'])
 point_cloud_range = [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0]
 voxel_size = [0.2, 0.2, 8]
 
-
-# for data_preprocessor 
+# for data_preprocessor
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], bgr_to_rgb=True)
-# for normailization in data pipeline
-#img_norm_cfg = dict(
-#    mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
-
 
 # For nuScenes we usually do 10-class detection
 class_names = [
@@ -54,7 +49,7 @@ queue_length = 3 # each sequence contains `queue_length` frames.
 model = dict(
     type='BEVFormer',
     use_grid_mask=True,
-    #data_preprocessor=None,
+    save_onnx_model=False,
     data_preprocessor=dict(
         type='BEVFormer3DDataPreprocessor', **img_norm_cfg, pad_size_divisor=32),
     video_test_mode=True,
@@ -203,25 +198,8 @@ train_pipeline = [
 
 test_pipeline = [
     dict(type='LoadMultiViewImageFromFiles', to_float32=True, num_views=6),
-    #dict(type='NormalizeMultiviewImage', **img_norm_cfg),
     dict(type='RandomScaleImageMultiViewImage', scales=[0.5]),
-    #dict(type='CustomMultiViewWrapper', transforms=test_transforms),
-    #dict(type='PadMultiViewImage', size_divisor=32),
     dict(type='CustomPack3DDetInputs', keys=['img'])
-    #dict(
-    #    type='MultiScaleFlipAug3D',
-    #    img_scale=(1600, 900),
-    #    pts_scale_ratio=1,
-    #    flip=False,
-    #    transforms=[
-    #        dict(type='RandomScaleImageMultiViewImage', scales=[0.5]),
-    #        dict(type='PadMultiViewImage', size_divisor=32),
-    #        #dict(
-    #        #    type='DefaultFormatBundle3D',
-    #        #    class_names=class_names,
-    #        #    with_label=False),
-    #        dict(type='CustomCollect3D', keys=['img'])
-    #    ])
 ]
 
 metainfo = dict(classes=class_names)
@@ -235,7 +213,7 @@ data_prefix = dict(
     CAM_BACK_LEFT='samples/CAM_BACK_LEFT')
 
 train_dataloader = dict(
-    batch_size=1,
+    batch_size=2,
     num_workers=4,
     persistent_workers=True,
     drop_last=False,
@@ -243,7 +221,7 @@ train_dataloader = dict(
     dataset=dict(
         type=dataset_type,
         data_root=data_root,
-        ann_file='nuscenes_infos_temporal_train.pkl',
+        ann_file='nuscenes_infos_train.pkl',
         pipeline=train_pipeline,
         metainfo=metainfo,
         modality=input_modality,
@@ -265,7 +243,7 @@ val_dataloader = dict(
     dataset=dict(
         type=dataset_type,
         data_root=data_root,
-        ann_file='nuscenes_infos_temporal_val.pkl',
+        ann_file='nuscenes_infos_val.pkl',
         pipeline=test_pipeline,
         data_prefix=data_prefix,
         metainfo=metainfo,
@@ -278,7 +256,7 @@ test_dataloader = val_dataloader
 val_evaluator = dict(
     type='CustomNuScenesMetric',
     data_root=data_root,
-    ann_file=data_root + 'nuscenes_infos_temporal_val.pkl',
+    ann_file=data_root + 'nuscenes_infos_val.pkl',
     metric='bbox',
     backend_args=None)
 test_evaluator = val_evaluator
@@ -310,20 +288,15 @@ param_scheduler = [
 
 total_epochs = 24
 
-#train_cfg = dict(
-#    type='EpochBasedTrainLoop', max_epochs=total_epochs, val_interval=2)
-train_cfg = dict(max_epochs=total_epochs, val_interval=2)
+train_cfg = dict(max_epochs=total_epochs, val_interval=total_epochs)
 val_cfg = dict(type='ValLoop')
 test_cfg = dict(type='TestLoop')
 
+find_unused_parameters=True
+
+default_hooks = dict(
+    checkpoint=dict(
+        type='CheckpointHook', interval=1, max_keep_ckpts=4, save_last=True))
+
+
 #load_from = 'checkpoints/BEVFormer/bevformer_tiny_epoch_24.pth'
-
-
-#log_config = dict(
-#    interval=50,
-#    hooks=[
-#        dict(type='TextLoggerHook'),
-#        dict(type='TensorboardLoggerHook')
-#    ])
-
-#checkpoint_config = dict(interval=1)

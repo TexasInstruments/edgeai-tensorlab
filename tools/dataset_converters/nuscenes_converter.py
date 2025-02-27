@@ -9,15 +9,42 @@ import mmengine
 import numpy as np
 from nuscenes.nuscenes import NuScenes
 from nuscenes.utils.geometry_utils import view_points
+from nuscenes.utils.data_classes import Box
 from pyquaternion import Quaternion
 from shapely.geometry import MultiPoint, box
 
 from mmdet3d.datasets.convert_utils import NuScenesNameMapping
 from mmdet3d.structures import points_cam2img
 
-nus_categories = ('car', 'truck', 'trailer', 'bus', 'construction_vehicle',
-                  'bicycle', 'motorcycle', 'pedestrian', 'traffic_cone',
-                  'barrier')
+map_name_from_general_to_detection = {
+    'human.pedestrian.adult': 'pedestrian',
+    'human.pedestrian.child': 'pedestrian',
+    'human.pedestrian.wheelchair': 'ignore',
+    'human.pedestrian.stroller': 'ignore',
+    'human.pedestrian.personal_mobility': 'ignore',
+    'human.pedestrian.police_officer': 'pedestrian',
+    'human.pedestrian.construction_worker': 'pedestrian',
+    'animal': 'ignore',
+    'vehicle.car': 'car',
+    'vehicle.motorcycle': 'motorcycle',
+    'vehicle.bicycle': 'bicycle',
+    'vehicle.bus.bendy': 'bus',
+    'vehicle.bus.rigid': 'bus',
+    'vehicle.truck': 'truck',
+    'vehicle.construction': 'construction_vehicle',
+    'vehicle.emergency.ambulance': 'ignore',
+    'vehicle.emergency.police': 'ignore',
+    'vehicle.trailer': 'trailer',
+    'movable_object.barrier': 'barrier',
+    'movable_object.trafficcone': 'traffic_cone',
+    'movable_object.pushable_pullable': 'ignore',
+    'movable_object.debris': 'ignore',
+    'static_object.bicycle_rack': 'ignore',
+}
+
+nus_categories = ('car', 'truck', 'construction_vehicle', 'bus', 
+                  'trailer', 'barrier', 'motorcycle', 'bicycle', 'pedestrian', 
+                  'traffic_cone')
 
 nus_attributes = ('cycle.with_rider', 'cycle.without_rider',
                   'pedestrian.moving', 'pedestrian.standing',
@@ -26,9 +53,12 @@ nus_attributes = ('cycle.with_rider', 'cycle.without_rider',
 
 
 def create_nuscenes_infos(root_path,
+                          can_bus_root_path,
                           info_prefix,
                           version='v1.0-trainval',
-                          max_sweeps=10):
+                          max_sweeps=10,
+                          enable_bevdet=False,
+                          enable_strpetr=False):
     """Create info file of nuscene dataset.
 
     Given the raw data, generate its related info file in pkl format.
@@ -42,7 +72,9 @@ def create_nuscenes_infos(root_path,
             Default: 10.
     """
     from nuscenes.nuscenes import NuScenes
+    from nuscenes.can_bus.can_bus_api import NuScenesCanBus
     nusc = NuScenes(version=version, dataroot=root_path, verbose=True)
+    nusc_can_bus = NuScenesCanBus(dataroot=can_bus_root_path)
     from nuscenes.utils import splits
     available_vers = ['v1.0-trainval', 'v1.0-test', 'v1.0-mini']
     assert version in available_vers
@@ -79,8 +111,10 @@ def create_nuscenes_infos(root_path,
     else:
         print('train scene: {}, val scene: {}'.format(
             len(train_scenes), len(val_scenes)))
+
     train_nusc_infos, val_nusc_infos = _fill_trainval_infos(
-        nusc, train_scenes, val_scenes, test, max_sweeps=max_sweeps)
+        nusc, nusc_can_bus, train_scenes, val_scenes, test, max_sweeps=max_sweeps,
+        enable_bevdet=enable_bevdet, enable_strpetr=enable_strpetr)
 
     metadata = dict(version=version)
     if test:
@@ -143,11 +177,144 @@ def get_available_scenes(nusc):
     return available_scenes
 
 
+def _get_can_bus_info(nusc, nusc_can_bus, sample):
+    scene_name = nusc.get('scene', sample['scene_token'])['name']
+    sample_timestamp = sample['timestamp']
+    try:
+        pose_list = nusc_can_bus.get_messages(scene_name, 'pose')
+    except:
+        return np.zeros(18)  # server scenes do not have can bus information.
+    can_bus = []
+    # during each scene, the first timestamp of can_bus may be large than the first sample's timestamp
+    last_pose = pose_list[0]
+    for i, pose in enumerate(pose_list):
+        if pose['utime'] > sample_timestamp:
+            break
+        last_pose = pose
+    _ = last_pose.pop('utime')  # useless
+    pos = last_pose.pop('pos')
+    rotation = last_pose.pop('orientation')
+    can_bus.extend(pos)
+    can_bus.extend(rotation)
+    for key in last_pose.keys():
+        can_bus.extend(pose[key])  # 16 elements
+    can_bus.extend([0., 0.])
+    return np.array(can_bus)
+
+
+def get_gt_bevdet(info):
+    """Generate gt labels from info for BEVDet
+
+    Args:
+        info(dict): Infos needed to generate gt labels.
+
+    Returns:
+        Tensor: GT bboxes.
+        Tensor: GT labels.
+    """
+    ego2global_rotation = info['cams']['CAM_FRONT']['ego2global_rotation']
+    ego2global_translation = info['cams']['CAM_FRONT'][
+        'ego2global_translation']
+    trans = -np.array(ego2global_translation)
+    rot = Quaternion(ego2global_rotation).inverse
+    gt_boxes = list()
+    gt_labels = list()
+    for ann_info in info['ann_infos']:
+        # Use ego coordinate.
+        if (map_name_from_general_to_detection[ann_info['category_name']]
+                not in nus_categories
+                or ann_info['num_lidar_pts'] + ann_info['num_radar_pts'] <= 0):
+            continue
+        box = Box(
+            ann_info['translation'],
+            ann_info['size'],
+            Quaternion(ann_info['rotation']),
+            velocity=ann_info['velocity'],
+        )
+        box.translate(trans)
+        box.rotate(rot)
+        box_xyz = np.array(box.center)
+        box_dxdydz = np.array(box.wlh)[[1, 0, 2]]
+        box_yaw = np.array([box.orientation.yaw_pitch_roll[0]])
+        box_velo = np.array(box.velocity[:2])
+        gt_box = np.concatenate([box_xyz, box_dxdydz, box_yaw, box_velo])
+        gt_boxes.append(gt_box)
+        gt_labels.append(
+            nus_categories.index(
+                map_name_from_general_to_detection[ann_info['category_name']]))
+    return gt_boxes, gt_labels
+
+
+def get_info_streampetr(nusc, info):
+    gt_2dbboxes_cams = []
+    gt_3dbboxes_cams = []
+    centers2d_cams = []
+    gt_2dbboxes_ignore_cams = []
+    gt_2dlabels_cams = []
+    depths_cams = []
+
+    for cam_type, cam_info in info['cams'].items():
+        gt_3dbboxes = []
+        gt_2dbboxes = []
+        centers2d = []
+        gt_2dbboxes_ignore = []
+        gt_2dlabels = []
+        depths = []
+
+        (height, width, _) = mmcv.imread(cam_info['data_path']).shape
+        annos_cam = get_2d_boxes(nusc, cam_info['sample_data_token'], visibilities= ['', '1', '2', '3', '4'], mono3d=True)
+        for i, ann in enumerate(annos_cam):
+            if ann is None:
+                continue
+            if ann.get('ignore', False):
+                continue
+            x1, y1, w, h = ann['bbox']
+            inter_w = max(0, min(x1 + w, width) - max(x1, 0))
+            inter_h = max(0, min(y1 + h, height) - max(y1, 0))
+            if inter_w * inter_h == 0:
+                continue
+            if ann['area'] <= 0 or w < 1 or h < 1:
+                continue
+            if ann['category_name'] not in nus_categories:
+                continue
+            bbox = [x1, y1, x1 + w, y1 + h]
+            if ann.get('iscrowd', False):
+                gt_2dbboxes_ignore.append(bbox)
+            else:
+                gt_2dbboxes.append(bbox)
+                gt_2dlabels.append(ann['category_id'])
+                center2d = ann['center2d'][:2]
+                depth = ann['center2d'][2]
+                centers2d.append(center2d)
+                depths.append(depth)
+                gt_3dbboxes.append(ann['bbox_cam3d'])
+
+        gt_2dbboxes = np.array(gt_2dbboxes, dtype=np.float32)
+        gt_3dbboxes_cam = np.array(gt_3dbboxes, dtype=np.float32)
+        gt_2dlabels = np.array(gt_2dlabels, dtype=np.int64)
+        centers2d = np.array(centers2d, dtype=np.float32)
+        depths = np.array(depths, dtype=np.float32)
+        gt_2dbboxes_ignore = np.array(gt_2dbboxes_ignore, dtype=np.float32)
+
+        gt_2dbboxes_cams.append(gt_2dbboxes)
+        gt_2dlabels_cams.append(gt_2dlabels)
+        centers2d_cams.append(centers2d)
+        gt_3dbboxes_cams.append(gt_3dbboxes_cam)
+        depths_cams.append(depths)
+        gt_2dbboxes_ignore_cams.append(gt_2dbboxes_ignore)
+
+    return gt_2dbboxes_cams, gt_3dbboxes_cams, gt_2dlabels_cams, centers2d_cams, \
+        depths_cams, gt_2dbboxes_ignore_cams
+
+
 def _fill_trainval_infos(nusc,
+                         nusc_can_bus,
                          train_scenes,
                          val_scenes,
                          test=False,
-                         max_sweeps=10):
+                         max_sweeps=10,
+                         enable_bevdet=False,
+                         enable_strpetr=False):
     """Generate the train/val infos from the raw data.
 
     Args:
@@ -164,7 +331,7 @@ def _fill_trainval_infos(nusc,
     """
     train_nusc_infos = []
     val_nusc_infos = []
-
+    frame_idx = 0
     for sample in mmengine.track_iter_progress(nusc.sample):
         lidar_token = sample['data']['LIDAR_TOP']
         sd_rec = nusc.get('sample_data', sample['data']['LIDAR_TOP'])
@@ -174,19 +341,29 @@ def _fill_trainval_infos(nusc,
         lidar_path, boxes, _ = nusc.get_sample_data(lidar_token)
 
         mmengine.check_file_exist(lidar_path)
-
+        can_bus = _get_can_bus_info(nusc, nusc_can_bus, sample)
         info = {
             'lidar_path': lidar_path,
             'num_features': 5,
             'token': sample['token'],
+            'prev': sample['prev'],
+            'next': sample['next'],
+            'can_bus': can_bus,
+            'frame_idx': frame_idx,  # temporal related info
             'sweeps': [],
             'cams': dict(),
+            'scene_token': sample['scene_token'],  # temporal related info
             'lidar2ego_translation': cs_record['translation'],
             'lidar2ego_rotation': cs_record['rotation'],
             'ego2global_translation': pose_record['translation'],
             'ego2global_rotation': pose_record['rotation'],
             'timestamp': sample['timestamp'],
         }
+
+        if sample['next'] == '':
+            frame_idx = 0
+        else:
+            frame_idx += 1
 
         l2e_r = info['lidar2ego_rotation']
         l2e_t = info['lidar2ego_translation']
@@ -224,6 +401,7 @@ def _fill_trainval_infos(nusc,
             else:
                 break
         info['sweeps'] = sweeps
+
         # obtain annotation
         if not test:
             annotations = [
@@ -252,6 +430,7 @@ def _fill_trainval_infos(nusc,
                 if names[i] in NuScenesNameMapping:
                     names[i] = NuScenesNameMapping[names[i]]
             names = np.array(names)
+
             # we need to convert box size to
             # the format of our lidar coordinate system
             # which is x_size, y_size, z_size (corresponding to l, w, h)
@@ -271,6 +450,33 @@ def _fill_trainval_infos(nusc,
                 info['pts_semantic_mask_path'] = osp.join(
                     nusc.dataroot,
                     nusc.get('lidarseg', lidar_token)['filename'])
+
+            # For BEVDet, add ann_infos
+            # It is similar to codes above, but coordinate system seems different
+            # Note that BEVDet creates image frustum in ego CS, not LiDAR CS.
+            if enable_bevdet is True:
+                ann_infos = list()
+                for token in sample['anns']:
+                    ann_info = nusc.get('sample_annotation', token)
+                    velocity = nusc.box_velocity(ann_info['token'])
+                    if np.any(np.isnan(velocity)):
+                        velocity = np.zeros(3)
+                    ann_info['velocity'] = velocity
+                    ann_infos.append(ann_info)
+                info['ann_infos'] = ann_infos
+                info['ann_infos'] = get_gt_bevdet(info)
+
+            # For StreamPETR
+            if enable_strpetr is True:
+                gt_2dbboxes_cams, gt_3dbboxes_cams, gt_2dlabels_cams, \
+                    centers2d_cams, depths_cams, gt_2dbboxes_ignore_cams = get_info_streampetr(nusc, info)
+                info.update(dict(
+                    bboxes2d=gt_2dbboxes_cams,
+                    bboxes3d_cams=gt_3dbboxes_cams,
+                    labels2d=gt_2dlabels_cams,
+                    centers2d=centers2d_cams,
+                    depths=depths_cams,
+                    bboxes_ignore=gt_2dbboxes_ignore_cams))
 
         if sample['scene_token'] in train_scenes:
             train_nusc_infos.append(info)

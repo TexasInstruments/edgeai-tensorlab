@@ -22,6 +22,8 @@ from .util import normalize_bbox, denormalize_bbox
 
 from mmengine.structures import InstanceData
 
+import numpy as np
+
 
 @MODELS.register_module()
 class BEVFormerHead(AnchorFreeHead):
@@ -240,7 +242,14 @@ class BEVFormerHead(AnchorFreeHead):
                 nn.init.constant_(m[-1].bias, bias_init)
 
    
-    def forward(self, mlvl_feats, img_metas, prev_bev=None,  only_bev=False):
+    def forward(self, mlvl_feats, img_metas, prev_bev=None,
+                rotation_grid = None,
+                reference_points_cam=None, 
+                bev_mask_count=None,
+                bev_valid_indices=None,
+                bev_valid_indices_count=None,
+                shift_xy=None, 
+                can_bus=None, only_bev=False):
         """Forward function.
         Args:
             mlvl_feats (tuple[Tensor]): Features from the upstream
@@ -262,8 +271,13 @@ class BEVFormerHead(AnchorFreeHead):
         bev_queries = self.bev_embedding.weight.to(dtype)
 
         bev_mask = torch.zeros((bs, self.bev_h, self.bev_w),
-                               device=bev_queries.device).to(dtype)
-        bev_pos = self.positional_encoding(bev_mask).to(dtype)
+                               device=bev_queries.device).to(dtype) # bev_mask: 1x50x50
+        bev_pos = self.positional_encoding(bev_mask).to(dtype)      # bev_pos:  1x256x50x50
+
+        # These tensors are constant
+        #bev_queries.cpu().numpy().tofile("./temp/bev_queries.dat")
+        #bev_pos.cpu().numpy().tofile("./temp/bev_pos.dat")
+        #object_query_embeds.cpu().numpy().tofile("./temp/object_query_embeds.dat")
 
         if only_bev:  # only use encoder to obtain BEV features, TODO: refine the workaround
             return self.transformer.get_bev_features(
@@ -276,6 +290,7 @@ class BEVFormerHead(AnchorFreeHead):
                 bev_pos=bev_pos,
                 img_metas=img_metas,
                 prev_bev=prev_bev,
+                rotation_grid=rotation_grid,
             )
         else:
             outputs = self.transformer(
@@ -290,7 +305,14 @@ class BEVFormerHead(AnchorFreeHead):
                 reg_branches=self.reg_branches if self.with_box_refine else None,  # noqa:E501
                 cls_branches=self.cls_branches if self.as_two_stage else None,
                 img_metas=img_metas,
-                prev_bev=prev_bev
+                prev_bev=prev_bev,
+                rotation_grid=rotation_grid,
+                reference_points_cam=reference_points_cam,
+                bev_mask_count=bev_mask_count,
+                bev_valid_indices=bev_valid_indices,
+                bev_valid_indices_count=bev_valid_indices_count,
+                shift_xy=shift_xy,
+                can_bus=can_bus
         )
 
         bev_embed, hs, init_reference, inter_references = outputs
@@ -308,15 +330,11 @@ class BEVFormerHead(AnchorFreeHead):
 
             # TODO: check the shape of reference
             assert reference.shape[-1] == 3
-            tmp[..., 0:2] += reference[..., 0:2]
-            tmp[..., 0:2] = tmp[..., 0:2].sigmoid()
-            tmp[..., 4:5] += reference[..., 2:3]
-            tmp[..., 4:5] = tmp[..., 4:5].sigmoid()
-            tmp[..., 0:1] = (tmp[..., 0:1] * (self.pc_range[3] -
+            tmp[..., 0:1] = ((tmp[..., 0:1] + reference[..., 0:1]).sigmoid() * (self.pc_range[3] -
                              self.pc_range[0]) + self.pc_range[0])
-            tmp[..., 1:2] = (tmp[..., 1:2] * (self.pc_range[4] -
-                             self.pc_range[1]) + self.pc_range[1])
-            tmp[..., 4:5] = (tmp[..., 4:5] * (self.pc_range[5] -
+            tmp[..., 1:2] = ((tmp[..., 1:2] + reference[..., 1:2]).sigmoid() * (self.pc_range[4] -
+                             self.pc_range[0]) + self.pc_range[0])
+            tmp[..., 4:5] = ((tmp[..., 4:5] + reference[..., 2:3]).sigmoid() * (self.pc_range[5] -
                              self.pc_range[2]) + self.pc_range[2])
 
             # TODO: check if using sigmoid

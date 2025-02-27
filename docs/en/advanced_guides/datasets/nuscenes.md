@@ -1,30 +1,32 @@
 # NuScenes Dataset
 
-This page provides specific tutorials about the usage of MMDetection3D for nuScenes dataset.
+This page provides specific tutorials about the usage of **EdgeAI-MMDetection3D** for nuScenes dataset.
 
 ## Before Preparation
 
-You can download nuScenes 3D detection `Full dataset (v1.0)` [HERE](https://www.nuscenes.org/download) and unzip all zip files.
-
-If you want to implement 3D semantic segmentation task, you need to additionally download the `nuScenes-lidarseg` data annotation and place the extracted files in the nuScenes corresponding folder.
-
-**Note**: `v1.0trainval(test)/categroy.json` in nuScenes-lidarseg will replace the original `v1.0trainval(test)/categroy.json` of the Full dataset (v1.0), but will not affect the 3D object detection task.
-
-Like the general way to prepare dataset, it is recommended to symlink the dataset root to `$MMDETECTION3D/data`.
-
-The folder structure should be organized as follows before our processing.
+You can download nuScenes 3D detection `Full dataset (v1.0)` [HERE](https://www.nuscenes.org/download) and unzip all zip files. You have to download CAN bus expansion data as well and move it to data directory.3d
 
 ```
-mmdetection3d
+# Download 'can_bus.zip'
+unzip can_bus.zip
+# Move can_bus to data dir
+```
+
+[//]: <> (If you want to implement 3D semantic segmentation task, you need to additionally download the `nuScenes-lidarseg` data annotation and place the extracted files in the nuScenes corresponding folder.)
+
+Like the general way to prepare dataset, it is recommended to symlink the dataset root to `edgeai-mmdetection3d/data`. The folder structure should be organized as follows before our processing.
+
+```
+edgeai-mmdetection3d
 ├── mmdet3d
 ├── tools
 ├── configs
 ├── data
+│   ├── can_bus
 │   ├── nuscenes
 │   │   ├── maps
 │   │   ├── samples
 │   │   ├── sweeps
-│   │   ├── lidarseg (optional)
 │   │   ├── v1.0-test
 |   |   ├── v1.0-trainval
 ```
@@ -35,32 +37,46 @@ We typically need to organize the useful data information with a `.pkl` file in 
 To prepare these files for nuScenes, run the following command:
 
 ```bash
-python tools/create_data.py nuscenes --root-path ./data/nuscenes --out-dir ./data/nuscenes --extra-tag nuscenes
+python tools/create_data.py nuscenes --root-path ./data/nuscenes --out-dir ./data/nuscenes --extra-tag nuscenes --canbus ./data
 ```
+
+This command creates `.pkl` files for PETR, BEVFormer and FCOS3D. To include additional data fields for BEVDet and PETRv2, we should add `--bevdet` and `--petrv2`, respectively, to the command. For example,
+
+```bash
+python tools/create_data.py nuscenes --root-path ./data/nuscenes --out-dir ./data/nuscenes --extra-tag nuscenes --canbus ./data --bevdet --petrv2
+```
+
+FastBEV uses multiple temporal frames and therefore need to organize neighboring frames's information as well in a `.pkl` file for training. For this purpose, we should run the following script, which will create `nuscenes_infos_train_fastbev.pkl` from `nuscenes_infos_train.pkl`.
+
+```bash
+python tools/dataset_converters/generate_fastbev_sweep_pkl.py n --root-path ./data/nuscenes --version 'v1.0-trainval'
+```
+
 
 The folder structure after processing should be as below.
 
 ```
-mmdetection3d
+edgeai-mmdetection3d
 ├── mmdet3d
 ├── tools
 ├── configs
 ├── data
+│   ├── can_bus
 │   ├── nuscenes
 │   │   ├── maps
 │   │   ├── samples
 │   │   ├── sweeps
-│   │   ├── lidarseg (optional)
 │   │   ├── v1.0-test
 |   |   ├── v1.0-trainval
-│   │   ├── nuscenes_database
+│   │   ├── nuscenes_gt_database
 │   │   ├── nuscenes_infos_train.pkl
+│   │   ├── nuscenes_infos_train_fastbev.pkl
 │   │   ├── nuscenes_infos_val.pkl
 │   │   ├── nuscenes_infos_test.pkl
 │   │   ├── nuscenes_dbinfos_train.pkl
 ```
 
-- `nuscenes_database/xxxxx.bin`: point cloud data included in each 3D bounding box of the training dataset
+- `nuscenes_gt_database/xxxxx.bin`: point cloud data included in each 3D bounding box of the training dataset
 - `nuscenes_infos_train.pkl`: training dataset, a dict contains two keys: `metainfo` and `data_list`.
   `metainfo` contains the basic information for the dataset itself, such as `categories`, `dataset` and `info_version`, while `data_list` is a list of dict, each dict (hereinafter referred to as `info`) contains all the detailed information of single sample as follows:
   - info\['sample_idx'\]: The index of this sample in the whole dataset.
@@ -117,7 +133,7 @@ Please refer to [nuscenes_converter.py](https://github.com/open-mmlab/mmdetectio
 
 ### LiDAR-Based Methods
 
-A typical training pipeline of LiDAR-based 3D detection (including multi-modality methods) on nuScenes is as below.
+A typical training pipeline of LiDAR-based 3D detection (including multi-modality methods) on nuScenes is as below. No LiDAR-Based network hasn't been tested in **EdgeAI-MMDetection3D** though.
 
 ```python
 train_pipeline = [

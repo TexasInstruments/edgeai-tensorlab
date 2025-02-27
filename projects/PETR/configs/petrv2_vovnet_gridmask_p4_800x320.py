@@ -30,6 +30,7 @@ metainfo = dict(classes=class_names)
 input_modality = dict(use_camera=True)
 model = dict(
     type='PETR',
+    save_onnx_model=False,
     data_preprocessor=dict(
         type='Det3DDataPreprocessor',
         mean=[103.530, 116.280, 123.675],
@@ -234,7 +235,7 @@ train_dataloader = dict(
     num_workers=4,
     dataset=dict(
         type=dataset_type,
-        ann_file='mmdet3d_nuscenes_30f_infos_latest_train.pkl',
+        ann_file='nuscenes_long_infos_train.pkl',
         data_prefix=dict(
             pts='samples/LIDAR_TOP',
             CAM_FRONT='samples/CAM_FRONT',
@@ -253,7 +254,7 @@ train_dataloader = dict(
 test_dataloader = dict(
     dataset=dict(
         type=dataset_type,
-        ann_file='mmdet3d_nuscenes_30f_infos_latest_val.pkl',
+        ann_file='nuscenes_long_infos_val.pkl',
         data_prefix=dict(
             pts='samples/LIDAR_TOP',
             CAM_FRONT='samples/CAM_FRONT',
@@ -272,7 +273,7 @@ test_dataloader = dict(
 val_dataloader = dict(
     dataset=dict(
         type=dataset_type,
-        ann_file='mmdet3d_nuscenes_30f_infos_latest_val.pkl',
+        ann_file='nuscenes_long_infos_val.pkl',
         data_prefix=dict(
             pts='samples/LIDAR_TOP',
             CAM_FRONT='samples/CAM_FRONT',
@@ -293,7 +294,7 @@ val_dataloader = dict(
 val_evaluator = dict(
     type='CustomNuScenesMetric',
     data_root=data_root,
-    ann_file=data_root + 'nuscenes_infos_val.pkl',
+    ann_file=data_root + 'nuscenes_long_infos_val.pkl',
     metric='bbox',
     backend_args=backend_args)
 test_evaluator = val_evaluator
@@ -328,7 +329,7 @@ param_scheduler = [
     )
 ]
 
-train_cfg = dict(max_epochs=num_epochs, val_interval=num_epochs/2)
+train_cfg = dict(max_epochs=num_epochs, val_interval=num_epochs)
 #checkpoint_config = dict(interval=1, max_keep_ckpts=3)
 
 default_hooks = dict(

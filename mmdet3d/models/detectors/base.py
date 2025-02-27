@@ -10,11 +10,6 @@ from mmdet3d.structures.det3d_data_sample import (ForwardResults,
 from mmdet3d.utils.typing_utils import (OptConfigType, OptInstanceList,
                                         OptMultiConfig)
 
-from .onnx_export import export_PETR, export_DETR3D, export_BEVFormer, export_BEVDet
-
-EXPORT_ONNX = False
-MODEL_TO_EXPORT = 'BEVDet' # 'PETR', 'BEVDet' 'BEVFormer', 'DETR3D'
-
 
 @MODELS.register_module()
 class Base3DDetector(BaseDetector):
@@ -33,6 +28,8 @@ class Base3DDetector(BaseDetector):
                  init_cfg: OptMultiConfig = None) -> None:
         super().__init__(
             data_preprocessor=data_preprocessor, init_cfg=init_cfg)
+
+        self.onnxModel = None
 
     def forward(self,
                 inputs: Union[dict, List[dict]],
@@ -88,18 +85,6 @@ class Base3DDetector(BaseDetector):
                                                   'time augmentation.'
                 return self.aug_test(inputs, data_samples, **kwargs)
             else:
-                if EXPORT_ONNX is True:
-                    if MODEL_TO_EXPORT == 'PETR':
-                        export_PETR(self, inputs, data_samples, **kwargs)
-                    elif MODEL_TO_EXPORT == 'BEVDet':
-                        export_BEVDet(self, inputs, data_samples, **kwargs)
-                    elif MODEL_TO_EXPORT == 'BEVFormer':
-                        export_BEVFormer(self, inputs, data_samples, **kwargs)
-                    elif MODEL_TO_EXPORT == 'DETR3D':
-                        export_DETR3D(self, inputs, data_samples, **kwargs)
-                    else:
-                        print("Unsupported model to export!")
-
                 return self.predict(inputs, data_samples, **kwargs)
         elif mode == 'tensor':
             return self._forward(inputs, data_samples, **kwargs)

@@ -25,10 +25,6 @@ from mmdet3d.datasets.utils import convert_quaternion_to_matrix
 from mmdet3d.structures import points_cam2img
 
 
-# Set true for data converstion for the particular network
-update_bevformer = False
-update_bevdet = False
-
 def get_empty_instance():
     """Empty annotation for single instance."""
     instance = dict(
@@ -249,8 +245,147 @@ def generate_nuscenes_camera_instances(info, nusc):
 
     return empty_multicamera_instance
 
+def add_frame(sample_data, nusc, l2e_RT, e2g_RT, out_dir):
+    """
+    Add sweep frame
+    """
+    sweep_cam = dict()
+    sweep_cam['is_key_frame'] = sample_data['is_key_frame']
+    sweep_cam['data_path'] = osp.join(out_dir, sample_data['filename'])
+    sweep_cam['type'] = 'camera'
+    sweep_cam['timestamp'] = sample_data['timestamp']
+    sweep_cam['sample_data_token'] = sample_data['sample_token']
+    pose_record = nusc.get('ego_pose', sample_data['ego_pose_token']) ##{'token': '4367ec13cba845aab19cff4973eebc4a', 'timestamp': 1533153862354799, 'rotation': [0.014338564560080185, -0.005652165998640543, 0.023939306730068593, -0.9995946019157788], 'translation': [2365.4560154353267, 796.2968658597514, 0.0]}
+    calibrated_sensor_record = nusc.get('calibrated_sensor', sample_data['calibrated_sensor_token']) ##{'token': '2fde3d3376ea42a8a561df595e001cc7', 'sensor_token': 'ec4b5d41840a509984f7ec36419d4c09', 'translation': [1.5752559464, 0.500519383135, 1.50696032589], 'rotation': [0.6812088525125634, -0.6687507165046241, 0.2101702448905517, -0.21108161122114324], 'camera_intrinsic': [[1257.8625342125129, 0.0, 827.2410631095686], [0.0, 1257.8625342125129, 450.915498205774], [0.0, 0.0, 1.0]]}
 
-def update_nuscenes_infos(pkl_path, out_dir):
+    sweep_cam['ego2global_translation']  = pose_record['translation']
+    sweep_cam['ego2global_rotation']  = pose_record['rotation']
+    sweep_cam['sensor2ego_translation']  = calibrated_sensor_record['translation']
+    sweep_cam['sensor2ego_rotation']  = calibrated_sensor_record['rotation']
+    sweep_cam['cam_intrinsic'] = calibrated_sensor_record['camera_intrinsic']
+
+    l2e_r_s = sweep_cam['sensor2ego_rotation']
+    l2e_t_s = sweep_cam['sensor2ego_translation']
+    e2g_r_s = sweep_cam['ego2global_rotation']
+    e2g_t_s = sweep_cam['ego2global_translation']
+
+    #l2e_r_s_mat = Quaternion(l2e_r_s).rotation_matrix
+    #e2g_r_s_mat = Quaternion(e2g_r_s).rotation_matrix
+
+    l2e_RT_s = convert_quaternion_to_matrix(l2e_r_s, l2e_t_s)
+    e2g_RT_s = convert_quaternion_to_matrix(e2g_r_s, e2g_t_s)
+
+    # Transform [R|t] from the (temporal) previous camera  to the current frame
+    RT_p_c = np.linalg.inv(l2e_RT) @ np.linalg.inv(e2g_RT) @ e2g_RT_s @ l2e_RT_s
+    
+    '''
+    R = (l2e_r_s_mat.T @ e2g_r_s_mat.T) @ (
+            np.linalg.inv(e2g_r_mat).T @ np.linalg.inv(l2e_r_mat).T)
+    T = (l2e_t_s @ e2g_r_s_mat.T + e2g_t_s) @ (
+        np.linalg.inv(e2g_r_mat).T @ np.linalg.inv(l2e_r_mat).T)
+    T -= e2g_t @ (np.linalg.inv(e2g_r_mat).T @ np.linalg.inv(l2e_r_mat).T
+                    ) + l2e_t @ np.linalg.inv(l2e_r_mat).T
+
+    T2 = (l2e_t_s @ e2g_r_s_mat.T + e2g_t_s) @ (e2g_r_mat @ l2e_r_mat)
+    T2 -= e2g_t @ (e2g_r_mat @ l2e_r_mat) + l2e_t @ l2e_r_mat
+
+    sweep_cam['sensor2lidar_rotation'] = R.T  # points @ R.T + T
+    sweep_cam['sensor2lidar_translation'] = T
+    '''
+
+    sweep_cam['sensor2lidar_rotation'] = RT_p_c[0:3, 0:3]
+    sweep_cam['sensor2lidar_translation'] = RT_p_c[0:3, 3]
+
+    lidar2cam_r = np.linalg.inv(sweep_cam['sensor2lidar_rotation'])
+    lidar2cam_t = sweep_cam['sensor2lidar_translation'] @ lidar2cam_r.T
+    lidar2cam_rt = np.eye(4)
+    #lidar2cam_rt[:3, :3] = lidar2cam_r.T  # it is transposed for multiplication with List (1x3 vector)?
+    #lidar2cam_rt[3, :3] = -lidar2cam_t
+    lidar2cam_rt[:3, :3] = lidar2cam_r
+    lidar2cam_rt[:3, 3] = -lidar2cam_t
+
+    intrinsic = np.array(sweep_cam['cam_intrinsic'])
+    viewpad = np.eye(4)
+    viewpad[:intrinsic.shape[0], :intrinsic.shape[1]] = intrinsic
+    #lidar2img_rt = (viewpad @ lidar2cam_rt.T)
+    lidar2img_rt = (viewpad @ lidar2cam_rt)
+    
+    #sweep_cam['intrinsics'] = viewpad.astype(np.float32)
+    sweep_cam['cam2img'] = intrinsic.astype(np.float32).tolist()
+    sweep_cam['lidar2cam'] = lidar2cam_rt.astype(np.float32).tolist()
+    sweep_cam['lidar2img'] = lidar2img_rt.astype(np.float32).tolist()
+
+    pop_keys = ['ego2global_translation', 'ego2global_rotation', 'sensor2ego_translation', 
+        'sensor2ego_rotation', 'cam_intrinsic', 'sensor2lidar_rotation', 'sensor2lidar_translation']
+    [sweep_cam.pop(k) for k in pop_keys]
+
+    return sweep_cam
+
+
+def generate_camera_sweeps(info, nusc, out_dir):
+    # Nummber of previous key frames
+    # Nummber of sweep frames between two key frame
+    num_prev = 5
+    num_sweep = 5
+
+    camera_types = [
+        'CAM_FRONT',
+        'CAM_FRONT_RIGHT',
+        'CAM_BACK_RIGHT',
+        'CAM_BACK',
+        'CAM_BACK_LEFT',
+        'CAM_FRONT_LEFT',
+    ]
+
+    e2g = info['ego2global']
+    l2e = info['lidar_points']['lidar2ego']
+
+    e2g_p = np.array(e2g)
+    l2e_p = np.array(l2e)
+
+    sample = nusc.get('sample', info['token'])
+    # Cam of current key frame
+    current_cams = dict()
+    for cam in camera_types:
+        current_cams[cam] = nusc.get('sample_data', sample['data'][cam])
+
+    sweep_lists = []
+    # Previous sweep frame
+    for i in range(num_prev):
+        # Justify the first frame of a scene
+        if sample['prev'] == '':
+            break
+
+        # Add sweep frame between two key frame
+        for j in range(num_sweep):
+            sweep_cams = dict()
+            for cam in camera_types:
+                if current_cams[cam]['prev'] == '':
+                    sweep_cams = sweep_lists[-1]
+                    break
+                sample_data = nusc.get('sample_data', current_cams[cam]['prev'])
+                sweep_cam = add_frame(sample_data, nusc, l2e_p, e2g_p, out_dir)
+                current_cams[cam] = sample_data
+                sweep_cams[cam] = sweep_cam
+            sweep_lists.append(sweep_cams)
+
+        # Add previous key frame
+        sample = nusc.get('sample', sample['prev'])
+        sweep_cams = dict()
+        for cam in camera_types:
+            sample_data = nusc.get('sample_data', sample['data'][cam])
+            sweep_cam = add_frame(sample_data, nusc, l2e_p, e2g_p, out_dir)
+            current_cams[cam] = sample_data
+            sweep_cams[cam] = sweep_cam
+        sweep_lists.append(sweep_cams)
+
+    info['camera_sweeps'] = sweep_lists
+    return info
+
+
+def update_nuscenes_infos(pkl_path, out_dir, 
+                          enable_bevdet=False, enable_petrv2=False,
+                          enable_strpetr=False):
     camera_types = [
         'CAM_FRONT',
         'CAM_FRONT_RIGHT',
@@ -283,15 +418,15 @@ def update_nuscenes_infos(pkl_path, out_dir):
             camera_types=camera_types)
         temp_data_info['sample_idx'] = i
 
-        # for bevFormer #
-        if update_bevformer is True:
-            temp_data_info['frame_idx'] = ori_info_dict['frame_idx']
-            temp_data_info['prev'] = ori_info_dict['prev']
-            temp_data_info['next'] = ori_info_dict['next']
-            temp_data_info['can_bus'] = ori_info_dict['can_bus']
-            temp_data_info['scene_token'] = ori_info_dict['scene_token']
+        # for bevFormer
+        temp_data_info['frame_idx'] = ori_info_dict['frame_idx']
+        temp_data_info['prev'] = ori_info_dict['prev']
+        temp_data_info['next'] = ori_info_dict['next']
+        temp_data_info['can_bus'] = ori_info_dict['can_bus']
+        temp_data_info['scene_token'] = ori_info_dict['scene_token']
 
-        if update_bevdet is True:
+        # for BEVDet
+        if enable_bevdet is True and 'ann_infos' in ori_info_dict.keys():
             temp_data_info['ann_infos'] = ori_info_dict['ann_infos']
 
         temp_data_info['token'] = ori_info_dict['token']
@@ -306,6 +441,7 @@ def update_nuscenes_infos(pkl_path, out_dir):
             'lidar2ego'] = convert_quaternion_to_matrix(
                 ori_info_dict['lidar2ego_rotation'],
                 ori_info_dict['lidar2ego_translation'])
+
         # bc-breaking: Timestamp has divided 1e6 in pkl infos.
         temp_data_info['timestamp'] = ori_info_dict['timestamp'] / 1e6
         for ori_sweep in ori_info_dict['sweeps']:
@@ -330,6 +466,7 @@ def update_nuscenes_infos(pkl_path, out_dir):
             temp_lidar_sweep['sample_data_token'] = ori_sweep[
                 'sample_data_token']
             temp_data_info['lidar_sweeps'].append(temp_lidar_sweep)
+
         temp_data_info['images'] = {}
         for cam in ori_info_dict['cams']:
             empty_img_info = get_empty_img_info()
@@ -353,6 +490,7 @@ def update_nuscenes_infos(pkl_path, out_dir):
             empty_img_info['lidar2cam'] = lidar2sensor.astype(
                 np.float32).tolist()
             temp_data_info['images'][cam] = empty_img_info
+
         ignore_class_name = set()
         if 'gt_boxes' in ori_info_dict:
             num_instances = ori_info_dict['gt_boxes'].shape[0]
@@ -381,11 +519,29 @@ def update_nuscenes_infos(pkl_path, out_dir):
             temp_data_info[
                 'cam_instances'] = generate_nuscenes_camera_instances(
                     ori_info_dict, nusc)
+
         if 'pts_semantic_mask_path' in ori_info_dict:
             temp_data_info['pts_semantic_mask_path'] = Path(
                 ori_info_dict['pts_semantic_mask_path']).name
+
         temp_data_info, _ = clear_data_info_unused_keys(temp_data_info)
+
+        # For PETRv2, add camera_sweep
+        if enable_petrv2 is True:
+            temp_data_info = \
+                generate_camera_sweeps(temp_data_info, nusc, out_dir)
+
+        # For StreamPETR
+        if enable_strpetr is True and 'bboxes2d' in ori_info_dict.keys():
+            temp_data_info['bboxes2d']      = ori_info_dict['bboxes2d']
+            temp_data_info['bboxes3d_cams'] = ori_info_dict['bboxes3d_cams']
+            temp_data_info['labels2d']      = ori_info_dict['labels2d']
+            temp_data_info['centers2d']     = ori_info_dict['centers2d']
+            temp_data_info['depths']        = ori_info_dict['depths']
+            temp_data_info['bboxes_ignore'] = ori_info_dict['bboxes_ignore']
+
         converted_list.append(temp_data_info)
+
     pkl_name = Path(pkl_path).name
     out_path = osp.join(out_dir, pkl_name)
     print(f'Writing to output file: {out_path}.')
@@ -1149,7 +1305,9 @@ def parse_args():
     return args
 
 
-def update_pkl_infos(dataset, out_dir, pkl_path):
+def update_pkl_infos(dataset, out_dir, pkl_path,
+                     enable_bevdet=False, enable_petrv2=False,
+                     enable_strpetr=False):
     if dataset.lower() == 'kitti':
         update_kitti_infos(pkl_path=pkl_path, out_dir=out_dir)
     elif dataset.lower() == 'waymo':
@@ -1161,7 +1319,9 @@ def update_pkl_infos(dataset, out_dir, pkl_path):
     elif dataset.lower() == 'lyft':
         update_lyft_infos(pkl_path=pkl_path, out_dir=out_dir)
     elif dataset.lower() == 'nuscenes':
-        update_nuscenes_infos(pkl_path=pkl_path, out_dir=out_dir)
+        update_nuscenes_infos(pkl_path=pkl_path, out_dir=out_dir,
+                              enable_bevdet=enable_bevdet, enable_petrv2=enable_petrv2,
+                              enable_strpetr=enable_strpetr)
     elif dataset.lower() == 's3dis':
         update_s3dis_infos(pkl_path=pkl_path, out_dir=out_dir)
     else:

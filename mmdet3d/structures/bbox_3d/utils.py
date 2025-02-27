@@ -224,6 +224,11 @@ def points_cam2img(points_3d: Union[Tensor, np.ndarray],
 
     return point_2d_res
 
+# For onnx export of torch.inverse
+def aten_linalg_inv(g, arg):
+    return g.op("com.microsoft::Inverse", arg)
+
+torch.onnx.register_custom_op_symbolic("aten::linalg_inv", aten_linalg_inv, 16)
 
 @array_converter(apply_to=('points', 'cam2img'))
 def points_img2cam(

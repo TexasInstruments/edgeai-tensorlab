@@ -11,7 +11,7 @@ import torch
 from mmdet.models.task_modules import AssignResult, BaseAssigner
 
 from mmdet3d.registry import TASK_UTILS
-from projects.PETR.petr.utils import normalize_bbox
+from projects.PETR.petr.utils import normalize_bbox, normalize_bbox_streampetr
 
 try:
     from scipy.optimize import linear_sum_assignment
@@ -50,11 +50,13 @@ class HungarianAssigner3D(BaseAssigner):
                  cls_cost=dict(type='ClassificationCost', weight=1.),
                  reg_cost=dict(type='BBoxL1Cost', weight=1.0),
                  iou_cost=dict(type='IoUCost', weight=0.0),
-                 pc_range=None):
+                 pc_range=None,
+                 model='PETR'):
         self.cls_cost = TASK_UTILS.build(cls_cost)
         self.reg_cost = TASK_UTILS.build(reg_cost)
         self.iou_cost = TASK_UTILS.build(iou_cost)
         self.pc_range = pc_range
+        self.model    = model
 
     def assign(self,
                bbox_pred,
@@ -62,6 +64,8 @@ class HungarianAssigner3D(BaseAssigner):
                gt_bboxes,
                gt_labels,
                gt_bboxes_ignore=None,
+               code_weights=None,
+               with_velo=False,
                eps=1e-7):
         """Computes one-to-one matching based on the weighted costs.
         This method assign each query prediction to a ground truth or
@@ -114,8 +118,18 @@ class HungarianAssigner3D(BaseAssigner):
         # classification and bboxcost.
         cls_cost = self.cls_cost(cls_pred, gt_labels)
         # regression L1 cost
-        normalized_gt_bboxes = normalize_bbox(gt_bboxes, self.pc_range)
-        reg_cost = self.reg_cost(bbox_pred[:, :8], normalized_gt_bboxes[:, :8])
+        if self.model == 'PETR3D':
+            normalized_gt_bboxes = normalize_bbox_streampetr(gt_bboxes, self.pc_range)
+        else:
+            normalized_gt_bboxes = normalize_bbox(gt_bboxes, self.pc_range)
+        if code_weights is not None:
+            bbox_pred = bbox_pred * code_weights
+            normalized_gt_bboxes = normalized_gt_bboxes * code_weights
+
+        if with_velo:
+            reg_cost = self.reg_cost(bbox_pred, normalized_gt_bboxes)
+        else:
+            reg_cost = self.reg_cost(bbox_pred[:, :8], normalized_gt_bboxes[:, :8])
 
         # weighted sum of above two costs
         cost = cls_cost + reg_cost

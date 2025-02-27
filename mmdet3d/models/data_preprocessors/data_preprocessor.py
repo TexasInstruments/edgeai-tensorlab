@@ -308,6 +308,11 @@ class Det3DDataPreprocessor(DetDataPreprocessor):
         if is_seq_of(_batch_inputs, torch.Tensor):
             batch_pad_shape = []
             for ori_input in _batch_inputs:
+                if ori_input.dim() == 5:
+                    # Added for StreamPETR
+                    # mean multiview input with queue,
+                    # select one of the image to calculate the pad shape
+                    ori_input = ori_input[0, 0]
                 if ori_input.dim() == 4:
                     # mean multiview input, select one of the
                     # image to calculate the pad shape

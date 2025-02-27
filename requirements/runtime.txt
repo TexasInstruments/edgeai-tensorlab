@@ -9,4 +9,6 @@ scikit-image
 # by default we also use tensorboard to log results
 tensorboard
 trimesh
-eniops==0.7.0
+einops==0.7.0
+ftfy
+regex

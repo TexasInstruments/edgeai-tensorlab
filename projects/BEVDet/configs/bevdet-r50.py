@@ -1,25 +1,27 @@
 # Copyright (c) Phigent Robotics. All rights reserved.
 
-# mAP: 0.2828
-# mATE: 0.7734
-# mASE: 0.2884
-# mAOE: 0.6976
-# mAVE: 0.8637
-# mAAE: 0.2908
+# mAP: 0.2843
+# mATE: 0.7585
+# mASE: 0.2807
+# mAOE: 0.6717
+# mAVE: 0.9227
+# mAAE: 0.2875
 # NDS: 0.3500
-#
+# Eval time: 80.6s
+# 
 # Per-class results:
-# Object Class	AP	ATE	ASE	AOE	AVE	AAE
-# car	0.517	0.533	0.161	0.123	0.909	0.235
-# truck	0.226	0.745	0.232	0.222	0.848	0.268
-# bus	0.305	0.797	0.220	0.192	1.982	0.355
-# trailer	0.101	1.107	0.230	0.514	0.536	0.068
-# construction_vehicle	0.039	1.105	0.501	1.402	0.119	0.386
-# pedestrian	0.318	0.805	0.305	1.341	0.826	0.650
-# motorcycle	0.216	0.783	0.286	0.977	1.224	0.273
-# bicycle	0.203	0.712	0.304	1.354	0.465	0.090
-# traffic_cone	0.499	0.547	0.347	nan	nan	nan
-# barrier	0.404	0.599	0.297	0.153	nan	nan
+# Object Class            AP      ATE     ASE     AOE     AVE     AAE   
+# car                     0.516   0.556   0.160   0.109   0.967   0.227 
+# truck                   0.240   0.754   0.224   0.162   0.799   0.258 
+# bus                     0.316   0.813   0.214   0.212   2.054   0.354 
+# trailer                 0.111   1.140   0.225   0.529   0.495   0.049 
+# construction_vehicle    0.039   1.053   0.496   1.352   0.115   0.424 
+# pedestrian              0.281   0.734   0.300   1.407   0.967   0.642 
+# motorcycle              0.267   0.743   0.258   0.795   1.519   0.243 
+# bicycle                 0.239   0.674   0.302   1.340   0.466   0.102 
+# traffic_cone            0.419   0.544   0.334   nan     nan     nan   
+# barrier                 0.417   0.573   0.293   0.139   nan     nan   
+
 
 _base_ = ['../../../configs/_base_/datasets/nus-3d.py',
           '../../../configs/_base_/default_runtime.py']
@@ -30,6 +32,7 @@ custom_imports = dict(imports=['projects.BEVDet.bevdet'])
 # If point cloud range is changed, the models should also change their point
 # cloud range accordingly
 point_cloud_range = [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0]
+
 # For nuScenes we usually do 10-class detection
 class_names = [
     'car', 'truck', 'construction_vehicle', 'bus', 'trailer', 'barrier',
@@ -72,12 +75,11 @@ numC_Trans = 64
 
 model = dict(
     type='BEVDet',
+    save_onnx_model=False,
     data_preprocessor=dict(
         type='Det3DDataPreprocessor',
         mean=[123.675,  116.280, 103.530],
         std=[58.395, 57.120, 57.375],
-        #mean=[0.0,  0.0, 0.0],
-        #std=[1.0, 1.0, 1.0],
         bgr_to_rgb=False,
         pad_size_divisor=32),
     img_backbone=dict(
@@ -204,9 +206,6 @@ train_pipeline = [
         classes=class_names),
     dict(type='ObjectRangeFilter', point_cloud_range=point_cloud_range),
     dict(type='ObjectNameFilter', classes=class_names),
-    #dict(type='DefaultFormatBundle3D', class_names=class_names),
-    #dict(
-    #    type='Collect3D', keys=['img_inputs', 'gt_bboxes_3d', 'gt_labels_3d'])
     dict(type='CustomPack3DDetInputs', keys=['img', 'gt_bboxes_3d', 'gt_labels_3d'])
 ]
 
@@ -224,12 +223,6 @@ test_pipeline = [
          bda_aug_conf=bda_aug_conf,
          classes=class_names,
          is_train=False),
-    #dict(
-    #    type='LoadPointsFromFile',
-    #    coord_type='LIDAR',
-    #    load_dim=5,
-    #    use_dim=5,
-    #    backend_args=backend_args),
     dict(
         type='CustomMultiScaleFlipAug3D',
         img_scale=(1333, 800),
@@ -238,19 +231,17 @@ test_pipeline = [
         transforms=[
             dict(type='CustomPack3DDetInputs', keys=['points', 'img'])
         ])
-    #dict(type='Pack3DDetInputs', keys=['points', 'img_input'])
 ]
 
 
 train_dataloader = dict(
     batch_size=4,
-    num_workers=4,
+    num_workers=1,
     sampler=dict(type='DefaultSampler', shuffle=True),
     dataset=dict(
         type=dataset_type,
-        ann_file='bevdetv3-nuscenes_infos_train.pkl',
+        ann_file='nuscenes_long_infos_train.pkl',
         data_prefix=dict(
-            pts='samples/LIDAR_TOP',
             CAM_FRONT='samples/CAM_FRONT',
             CAM_FRONT_LEFT='samples/CAM_FRONT_LEFT',
             CAM_FRONT_RIGHT='samples/CAM_FRONT_RIGHT',
@@ -270,7 +261,7 @@ train_dataloader = dict(
 val_dataloader = dict(
     dataset=dict(
         type=dataset_type,
-        ann_file='bevdetv3-nuscenes_infos_val.pkl',
+        ann_file='nuscenes_long_infos_val.pkl',
         data_prefix=dict(
             pts='samples/LIDAR_TOP',
             CAM_FRONT='samples/CAM_FRONT',
@@ -294,7 +285,7 @@ test_dataloader = val_dataloader
 val_evaluator = dict(
     type='CustomNuScenesMetric',
     data_root=data_root,
-    ann_file=data_root + 'bevdetv3-nuscenes_infos_val.pkl',
+    ann_file=data_root + 'nuscenes_long_infos_val.pkl',
     metric='mAP',
     backend_args=backend_args)
 test_evaluator = val_evaluator
@@ -309,15 +300,25 @@ optim_wrapper = dict(
     clip_grad=dict(max_norm=5, norm_type=2))
 
 
-lr_config = dict(
-    policy='step',
-    warmup='linear',
-    warmup_iters=200,
-    warmup_ratio=0.001,
-    step=[24,])
+# learning policy
+param_scheduler = [
+    dict(
+        type='LinearLR',
+        start_factor=1.0 / 3,
+        by_epoch=False,
+        begin=0,
+        end=7000),
+    dict(
+        type='CosineAnnealingLR',
+        by_epoch=True,
+        begin=0,
+        end=24,
+        T_max=24,
+        eta_min=1e-6)
+]
 
 #runner = dict(type='EpochBasedRunner', max_epochs=24)
-train_cfg = dict(by_epoch=True, max_epochs=24, val_interval=6)
+train_cfg = dict(by_epoch=True, max_epochs=24, val_interval=12)
 val_cfg = dict(type='ValLoop')
 test_cfg = dict(type='TestLoop')
 
@@ -334,5 +335,4 @@ custom_hooks = [
 ]
 
 #load_from='checkpoints/BEVDet/epoch_1.pth'
-
-# fp16 = dict(loss_scale='dynamic')
+#fp16 = dict(loss_scale='dynamic')

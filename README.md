@@ -11,6 +11,7 @@ This repository implements Quantization Aware Training (QAT). However, it has no
 - See notes about recent changes/updates in this repository in [release notes](./docs/det3d_release_notes.md)
 - The original documentation of mmdetection3d is at the bottom of this page.
 
+<hr>
 
 ## Environment
 We have tested this on Ubuntu 22.04 OS and pyenv Python environment manager. Here are the setup instructions.
@@ -42,22 +43,46 @@ exec ${SHELL}
 From SDK/TIDL version 9.0, the Python version required is 3.10. Create a Python 3.10 environment if you don't have it and activate it before following the rest of the instructions.
 ```
 pyenv install 3.10
-pyenv virtualenv 3.10 mmdet3d
+pyenv virtualenv 3.10 edgeai-mmdet3d
 ```
 
 Note: Prior to SDK/TIDL version 9.0, the Python version required was 3.6
 
 Activation of Python environment - this activation step needs to be done everytime one starts a new terminal or shell. (Alternately, this also can be written to the .bashrc, so that this will be the default penv environment).
 ```
-pyenv activate mmdet3d
+pyenv activate edgeai-mmdet3d
 ```
 
+<hr>
 
 ## Installation Instructions
-After cloning this repository, install it as a Python package by running:
-```
-./setup.sh
-```
+After cloning this repository, install it as a Python package by follows:
+
+- Update line #49 of `setup.sh` to install `mmcv` depending on the type of system, CUDA version, PyTorch version. Refer to [MMCV Installation Instruction](https://mmcv.readthedocs.io/en/latest/get_started/installation.html). For example, to install mmcv 2.1.0 for cuda 12.1 and torch 2.1, 
+  
+  ```
+    pip install mmcv==2.1.0 -f https://download.openmmlab.com/mmcv/dist/cu121/torch2.1/index.html
+  ```
+
+- Run `setup.sh`
+
+  ```
+  ./setup.sh
+  ```
+  * Note: You may have the following error during setup, `mmdet3d 1.4.0 requires numpy==1.24.4, but you have numpy 1.26.1 which is incompatible.`, which can be ignored: 
+
+- Update line #17 of `~/.pyenv/versions/edgeai-mmdet3d/lib/python3.10/site-packages/mmdet/__init__.py` to use `mmdet`==3.3.0 along with `MMCV`==2.2.0.
+
+    ```
+    assert (mmcv_version >= digit_version(mmcv_minimum_version)
+            and mmcv_version <= digit_version(mmcv_maximum_version)), \
+    ```
+
+- Update line #61 of `~/.pyenv/versions/edgeai-mmdet3d/lib/python3.10/site-packages/mmseg/__init__.py` to use `mmseg`==1.2.2 along with `MMCV`=2.2.0
+
+  ```
+  assert (mmcv_min_version <= mmcv_version <= mmcv_max_version), \
+  ```
 
 ## Installation Troubleshooting
 
@@ -68,27 +93,57 @@ In case any issues happen during setup due to compatibility issues between mmdet
 
 There are a couple of issues that are encounterd most frequently.
 
-- ModuleNotFoundError: No module named 'mmcv._ext'
-
-    It can be resolved by reinstalling mmcv depending ont the type of systtem, CUDA version, PyTorch version. Refer to [MMCV Installation Instruction](https://mmcv.readthedocs.io/en/latest/get_started/installation.html). For example, to install mmcv 2.1.0 for cuda 12.1 and torch 2.1,
-
-    ```
-    pip uninstall mmcv
-    pip install mmcv==2.1.0 -f https://download.openmmlab.com/mmcv/dist/cu121/torch2.1/index.html
-    ```
-
 - You should set `PYTHONPATH` to make `sys.path` include the directory which contains your custom module
 
-    PYTHONPATH should be set to the edgeai-mmdetecion3d directory
+    `PYTHONPATH` should be set to the edgeai-mmdetecion3d directory
+
     ```
     export PYTHONPATH=/path/to/edgeai-mmdetection3d
     ```
 
 <hr>
 
-## PointPillars
+## Dataset Preparation
+
+### KITTI Dataset
+
+Prepare the KITTI dataset as per the MMDetection3D documentation [KITTI dataset preperation](../../docs/en/advanced_guides/datasets/kitti.md). 
+
+### NuScenes Dataset
+
+Prepare the nuScenes dataset as per the MMDetection3D documentation [NuScenes Dataset Preperation](./docs/en/advanced_guides/datasets/nuscenes.md)
+
+<hr>
+
+## Models Supported
+
+**Disclaimer**: The following models are supported in **EdgeAI-MMDetection3D** for training and inference testing. However, these models may not be supported yet in **TIDL**.
+
+### FastBEV
+
+FastBEV has been trained and validated with egdgeai-mmdetection3d. Data preparation, training and testing of them can be found in [FastBEV](./projects/FastBEV/README.md).
+
+### PETR / PETRv2
+
+PETR and PETRv2 have been trained and validated with egdgeai-mmdetection3d. Data preparation, training and testing of them can be found in [PETR/PETRv2](./projects/PETR/README.md).
+
+### BEVDet
+
+BEVDet has been trained and validated with egdgeai-mmdetection3d. Data preparation, training and testing of BEVDet can be found in [BEVDet](./projects/BEVDet/README.md).
+
+### BEVFormer
+
+BEVFormer has been trained and validated with egdgeai-mmdetection3d. Data preparation, training and testing of BEVFormer can be found in [BEVFormer](./projects/BEVFormer/README.md).
+
+### FCOS3D
+
+FCOS3D has been trained and validated with egdgeai-mmdetection3d. Data preparation, training and testing of them can be found in [FCOS3D](./projects/FCOS3D/README.md).
+
+
+### PointPillars
 
 PointPillars has been trained and validated with egdgeai-mmdetection3d. Data preparation, training and testing of PointPillars can be found in [PointPillars](./projects/PointPillars/README.md).
+
 
 <hr>
 
@@ -137,10 +192,7 @@ This package/toolbox is an extension of [MMDetection3D](https://github.com/open-
 ## References
 [1] MMDetection3D: https://github.com/open-mmlab/mmdetection3d
 
-[2] PointPillars: https://arxiv.org/abs/1812.05784
-
-[3] PointPainting: https://arxiv.org/abs/1911.10150
-
+<hr>
 
 # Original mmdetection documentation
 

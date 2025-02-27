@@ -1,14 +1,16 @@
-from typing import Dict, List, Optional
+from typing import Dict, List, Union, Optional
 
 import torch
 from torch import Tensor
 
 from mmdet3d.models.detectors.mvx_two_stage import MVXTwoStageDetector
+from mmdet3d.structures.det3d_data_sample import ForwardResults, OptSampleList
 from mmdet3d.registry import MODELS
 from mmdet3d.structures import Det3DDataSample
 from mmdet3d.structures.bbox_3d.utils import get_lidar2img
 from .grid_mask import GridMask
 
+from mmdet3d.models.detectors.onnx_export import export_DETR3D
 
 @MODELS.register_module()
 class DETR3D(MVXTwoStageDetector):
@@ -36,6 +38,7 @@ class DETR3D(MVXTwoStageDetector):
     def __init__(self,
                  data_preprocessor=None,
                  use_grid_mask=False,
+                 save_onnx_model=False,
                  img_backbone=None,
                  img_neck=None,
                  pts_bbox_head=None,
@@ -52,6 +55,76 @@ class DETR3D(MVXTwoStageDetector):
         self.grid_mask = GridMask(
             True, True, rotate=1, offset=False, ratio=0.5, mode=1, prob=0.7)
         self.use_grid_mask = use_grid_mask
+
+        # for onnx model export
+        self.save_onnx_model = save_onnx_model
+
+    def forward(self,
+                inputs: Union[dict, List[dict]],
+                data_samples: OptSampleList = None,
+                mode: str = 'tensor',
+                **kwargs) -> ForwardResults:
+        """The unified entry for a forward process in both training and test.
+
+        The method should accept three modes: "tensor", "predict" and "loss":
+
+        - "tensor": Forward the whole network and return tensor or tuple of
+        tensor without any post-processing, same as a common nn.Module.
+        - "predict": Forward and return the predictions, which are fully
+        processed to a list of :obj:`Det3DDataSample`.
+        - "loss": Forward and return a dict of losses according to the given
+        inputs and data samples.
+
+        Note that this method doesn't handle neither back propagation nor
+        optimizer updating, which are done in the :meth:`train_step`.
+
+        Args:
+            inputs  (dict | list[dict]): When it is a list[dict], the
+                outer list indicate the test time augmentation. Each
+                dict contains batch inputs
+                which include 'points' and 'imgs' keys.
+
+                - points (list[torch.Tensor]): Point cloud of each sample.
+                - imgs (torch.Tensor): Image tensor has shape (B, C, H, W).
+            data_samples (list[:obj:`Det3DDataSample`],
+                list[list[:obj:`Det3DDataSample`]], optional): The
+                annotation data of every samples. When it is a list[list], the
+                outer list indicate the test time augmentation, and the
+                inter list indicate the batch. Otherwise, the list simply
+                indicate the batch. Defaults to None.
+            mode (str): Return what kind of value. Defaults to 'tensor'.
+
+        Returns:
+            The return type depends on ``mode``.
+
+            - If ``mode="tensor"``, return a tensor or a tuple of tensor.
+            - If ``mode="predict"``, return a list of :obj:`Det3DDataSample`.
+            - If ``mode="loss"``, return a dict of tensor.
+        """
+        if mode == 'loss':
+            return self.loss(inputs, data_samples, **kwargs)
+        elif mode == 'predict':
+            if isinstance(data_samples[0], list):
+                # aug test
+                assert len(data_samples[0]) == 1, 'Only support ' \
+                                                  'batch_size 1 ' \
+                                                  'in mmdet3d when ' \
+                                                  'do the test' \
+                                                  'time augmentation.'
+                return self.aug_test(inputs, data_samples, **kwargs)
+            else:
+                if self.save_onnx_model is True:
+                    export_DETR3D(self, inputs, data_samples, **kwargs)
+                    # Export onnx only once
+                    self.save_onnx_model = False
+
+                return self.predict(inputs, data_samples, **kwargs)
+        elif mode == 'tensor':
+            return self._forward(inputs, data_samples, **kwargs)
+        else:
+            raise RuntimeError(f'Invalid mode "{mode}". '
+                               'Only supports loss, predict and tensor mode')
+
 
     def extract_img_feat(self, img: Tensor,
                          batch_input_metas: List[dict]) -> List[Tensor]:

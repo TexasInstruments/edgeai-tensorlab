@@ -164,6 +164,10 @@ class BEVFormerEncoder(TransformerLayerSequence):
                 valid_ratios=None,
                 prev_bev=None,
                 shift=0.,
+                reference_points_cam=None,
+                bev_mask_count=None,
+                bev_valid_indices=None,
+                bev_valid_indices_count=None,
                 **kwargs):
         """Forward function for `TransformerDecoder`.
         Args:
@@ -191,9 +195,13 @@ class BEVFormerEncoder(TransformerLayerSequence):
             bev_h, bev_w, self.pc_range[5]-self.pc_range[2], self.num_points_in_pillar, dim='3d', bs=bev_query.size(1),  device=bev_query.device, dtype=bev_query.dtype)
         ref_2d = self.get_reference_points(
             bev_h, bev_w, dim='2d', bs=bev_query.size(1), device=bev_query.device, dtype=bev_query.dtype)
+
         # Get image coors corresponding to ref_3d. bev_mask indicates valid coors
-        reference_points_cam, bev_mask = self.point_sampling(
-            ref_3d, self.pc_range, kwargs['img_metas'])
+        if reference_points_cam is None or bev_mask_count is None:
+            reference_points_cam, bev_mask = self.point_sampling(
+                ref_3d, self.pc_range, kwargs['img_metas'])
+        else:
+            bev_mask = None
 
         # bug: this code should be 'shift_ref_2d = ref_2d.clone()', we keep this bug for reproducing our results in paper.
         shift_ref_2d = ref_2d.clone()
@@ -227,7 +235,10 @@ class BEVFormerEncoder(TransformerLayerSequence):
                 spatial_shapes=spatial_shapes,
                 level_start_index=level_start_index,
                 reference_points_cam=reference_points_cam,
-                bev_mask=bev_mask,
+                bev_mask = bev_mask,
+                bev_mask_count=bev_mask_count,
+                bev_valid_indices=bev_valid_indices,
+                bev_valid_indices_count=bev_valid_indices_count,
                 prev_bev=prev_bev,
                 **kwargs)
 
@@ -301,7 +312,10 @@ class BEVFormerLayer(MyCustomBaseTransformerLayer):
                 bev_h=None,
                 bev_w=None,
                 reference_points_cam=None,
-                mask=None,
+                bev_mask = None,
+                bev_mask_count=None,
+                bev_valid_indices=None,
+                bev_valid_indices_count=None,
                 spatial_shapes=None,
                 level_start_index=None,
                 prev_bev=None,
@@ -380,7 +394,7 @@ class BEVFormerLayer(MyCustomBaseTransformerLayer):
                 query = self.norms[norm_index](query)
                 norm_index += 1
 
-            # spaital cross attention
+            # spatial cross attention
             elif layer == 'cross_attn':
                 query = self.attentions[attn_index](
                     query,
@@ -391,7 +405,10 @@ class BEVFormerLayer(MyCustomBaseTransformerLayer):
                     key_pos=key_pos,
                     reference_points=ref_3d,
                     reference_points_cam=reference_points_cam,
-                    mask=mask,
+                    bev_mask = bev_mask,
+                    bev_mask_count=bev_mask_count,
+                    bev_valid_indices=bev_valid_indices,
+                    bev_valid_indices_count=bev_valid_indices_count,
                     attn_mask=attn_masks[attn_index],
                     key_padding_mask=key_padding_mask,
                     spatial_shapes=spatial_shapes,
