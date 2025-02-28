@@ -58,7 +58,7 @@ CONFIG_FILE=${2:-"config_classification.yaml"}
 
 #################################################################################
 export PYTHONPATH=".:${PYTHONPATH}"
-export TIDL_TOOLS_PATH="../edgeai-benchmark/tools/${TARGET_SOC}/tidl_tools"
+export TIDL_TOOLS_PATH="../edgeai-benchmark/tools/tidl_tools_package/${TARGET_SOC}/tidl_tools"
 export LD_LIBRARY_PATH="${TIDL_TOOLS_PATH}:${LD_LIBRARY_PATH}"
 
 
