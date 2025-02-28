@@ -29,21 +29,19 @@ session:
   - 0.015625
   - 0.015625
   runtime_options:
+    advanced_options:quantization_scale_type: 1
     tensor_bits: 8
     accuracy_level: 0
     advanced_options:high_resolution_optimization: 0
     advanced_options:pre_batchnorm_fold: 1
-    advanced_options:calibration_frames: 1
+    advanced_options:calibration_frames: 12
     advanced_options:calibration_iterations: 1
-    advanced_options:quantization_scale_type: 1
     advanced_options:activation_clipping: 1
     advanced_options:weight_clipping: 1
     advanced_options:bias_calibration: 1
     advanced_options:output_feature_16bit_names_list: ''
     advanced_options:params_16bit_names_list: ''
     advanced_options:add_data_convert_ops: 3
-    info:
-      prequantized_model_type: 1
   model_path: tiad_dkaze_carla_768x384_model.onnx
   model_id: visloc-7500
   input_details: null
@@ -53,3 +51,5 @@ postprocess: {}
 model_info:
   metric_reference: {}
   model_shortlist: 10
+  compact_name: tiad-dkaze-carla-768x384
+  shortlisted: false

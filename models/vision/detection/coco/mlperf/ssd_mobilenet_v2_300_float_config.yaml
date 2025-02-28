@@ -29,21 +29,19 @@ session:
   - 0.007812
   - 0.007812
   runtime_options:
+    advanced_options:quantization_scale_type: 4
     tensor_bits: 8
     accuracy_level: 1
     advanced_options:high_resolution_optimization: 0
     advanced_options:pre_batchnorm_fold: 1
-    advanced_options:calibration_frames: 1
-    advanced_options:calibration_iterations: 1
-    advanced_options:quantization_scale_type: 4
+    advanced_options:calibration_frames: 12
+    advanced_options:calibration_iterations: 12
     advanced_options:activation_clipping: 1
     advanced_options:weight_clipping: 1
     advanced_options:bias_calibration: 1
     advanced_options:output_feature_16bit_names_list: ''
     advanced_options:params_16bit_names_list: ''
     advanced_options:add_data_convert_ops: 3
-    info:
-      prequantized_model_type: 0
   model_path: ssd_mobilenet_v2_300_float.tflite
   model_id: od-2010
   input_details: null
@@ -51,7 +49,6 @@ session:
   num_inputs: 1
 postprocess:
   detection_threshold: 0.3
-  save_output: false
   formatter:
     src_indices:
     - 1
@@ -168,3 +165,5 @@ model_info:
   metric_reference:
     accuracy_ap[.5:.95]%: 22.0
   model_shortlist: 20
+  compact_name: ssd-mobV2-coco-mlperf-300x300
+  shortlisted: true

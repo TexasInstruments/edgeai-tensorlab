@@ -29,21 +29,19 @@ session:
   - 0.017507
   - 0.017429
   runtime_options:
+    advanced_options:quantization_scale_type: 4
     tensor_bits: 8
     accuracy_level: 1
     advanced_options:high_resolution_optimization: 0
     advanced_options:pre_batchnorm_fold: 1
-    advanced_options:calibration_frames: 3
-    advanced_options:calibration_iterations: 3
-    advanced_options:quantization_scale_type: 4
+    advanced_options:calibration_frames: 10
+    advanced_options:calibration_iterations: 5
     advanced_options:activation_clipping: 1
     advanced_options:weight_clipping: 1
     advanced_options:bias_calibration: 1
     advanced_options:output_feature_16bit_names_list: ''
     advanced_options:params_16bit_names_list: ''
     advanced_options:add_data_convert_ops: 3
-    info:
-      prequantized_model_type: 0
     object_detection:meta_arch_type: 3
     object_detection:meta_layers_names_list: ssd_resnet34-ssd1200.prototxt
   model_path: ssd_resnet34-ssd1200.onnx
@@ -53,7 +51,6 @@ session:
   num_inputs: 1
 postprocess:
   detection_threshold: 0.3
-  save_output: false
   formatter: null
   resize_with_pad: false
   normalized_detections: true
@@ -147,4 +144,6 @@ metric:
 model_info:
   metric_reference:
     accuracy_ap[.5:.95]%: 20.0
-  model_shortlist: null
+  model_shortlist: 30
+  compact_name: ssd1200-resNet34-mlperf-coco-1200x1200
+  shortlisted: false
