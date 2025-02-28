@@ -73,7 +73,7 @@ MODEL_INFOS_DICT = \
     'od-8410': { 'model_id': 'od-8410', 'recommended': True, 'shortlisted': True, 'session_name': 'onnxrt', 'artifact_name': 'ONR-OD-8410-yolox-tiny-lite-mmdet-widerface-416x416', },
     'od-8420': { 'model_id': 'od-8420', 'recommended': True, 'shortlisted': True, 'session_name': 'onnxrt', 'artifact_name': 'ONR-OD-8420-yolox-s-lite-mmdet-widerface-640x640', },
     'od-9204': { 'model_id': 'od-9204', 'recommended': True, 'shortlisted': True, 'session_name': 'onnxrt', 'artifact_name': 'ONR-OD-9204-yolov9-s-lite-mmdet-coco-640x640', },
-    'od-9205': { 'model_id': 'od-9205', 'recommended': True, 'shortlisted': True, 'session_name': 'onnxrt', 'artifact_name': 'ONR-OD-9205-yolov9-s-mmdet-coco-640x640', },
+    'od-9205': { 'model_id': 'od-9205', 'recommended': True, 'shortlisted': True, 'session_name': 'onnxrt', 'artifact_name': 'ONR-OD-9205-yolov9-s-plus-mmdet-coco-640x640', },
     'ss-2580': { 'model_id': 'ss-2580', 'recommended': True, 'shortlisted': True, 'session_name': 'tflitert', 'artifact_name': 'TFL-SS-2580-deeplabv3_mobv2-ade20k32-mlperf-512x512', },
     'ss-5710': { 'model_id': 'ss-5710', 'recommended': True, 'shortlisted': True, 'session_name': 'tvmdlr', 'artifact_name': 'TVM-SS-5710-deeplabv3lite-mobv2-cocoseg21-512x512', },
     'ss-7618': { 'model_id': 'ss-7618', 'recommended': True, 'shortlisted': True, 'session_name': 'onnxrt', 'artifact_name': 'ONR-SS-7618-deeplabv3lite-mobv2-qat-robokit-768x432', },
