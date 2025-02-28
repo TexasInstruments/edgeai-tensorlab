@@ -111,7 +111,7 @@ class BenchmarkEvm():
         
         return status
 
-    def parse_test_run(self,response):
+    def parse_test_run(self, response):
         '''
         status = 0 [No run], 1 [Successful run], -1 [Critical error]
         '''
@@ -173,6 +173,8 @@ class BenchmarkEvm():
                 command = f'cd && ./model_infer.sh {self.soc} {timeout} {generate_report} {model_selection} {num_frames} {self.modelartifacts_path}'
             else:
                 command = f'cd && ./model_infer.sh {self.soc} {timeout} {generate_report} {model_selection} {num_frames}'
+
+            print(f"Sending command : {command}")
 
             infer_status = uart_interface.send_uart_command(command, "END_OF_MODEL_INFERENCE", timeout, True, 1)
             response = uart_interface.log_buffer

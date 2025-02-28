@@ -91,7 +91,7 @@ evm_config = { "soc" : args.soc,
 
 # Model artifacts folder
 if args.artifacts_folder is None:
-    artifacts_dir = os.path.join(edgeai_benchmark_path,"work_dirs","modelartifacts",evm_config["soc"],"8bits")
+    artifacts_dir = os.path.join(edgeai_benchmark_path, "work_dirs", "modelartifacts", evm_config["soc"], "8bits")
 else:
     artifacts_dir = args.artifacts_folder
 
@@ -189,6 +189,10 @@ if len(model_list) == 0:
     print(f"[ Error ] No model found for testing.")
     sys.exit(-1)
 
+# we need to send the relative path instead of absolute because it used in evm, without the 8bits in end
+artifacts_dir = './' + os.path.relpath(artifacts_dir, edgeai_benchmark_path)
+if artifacts_dir.endswith('/8bits'):
+    artifacts_dir = artifacts_dir[:-len('/8bits')]
 # Run the tests
 benchmark_evm = BenchmarkEvm(evm_config=evm_config,
                              edgeai_benchmark_path=edgeai_benchmark_path,
