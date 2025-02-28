@@ -195,7 +195,8 @@ benchmark_evm = BenchmarkEvm(evm_config=evm_config,
                              ip_address=ip_address,
                              reboot_type=args.reboot_type,
                              logs_dir=args.logs_dir,
-                             dataset_dir_path=args.dataset_dir)
+                             dataset_dir_path=args.dataset_dir,
+                             modelartifacts_path=artifacts_dir)
 
 status = benchmark_evm.init_setup()
 if status:

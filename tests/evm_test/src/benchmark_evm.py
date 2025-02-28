@@ -17,7 +17,7 @@ from src.relay_control import AnelRelayControl
 from src.uart_interface import UartInterface
 
 class BenchmarkEvm():
-    def __init__(self, evm_config, edgeai_benchmark_path, ip_address, reboot_type="soft", logs_dir=None, dataset_dir_path=None):
+    def __init__(self, evm_config, edgeai_benchmark_path, ip_address, reboot_type="soft", logs_dir=None, dataset_dir_path=None, modelartifacts_path=None):
         self.evm_config = evm_config
         self.soc = self.evm_config["soc"]
         self.eai_benchmark_mount_path = f"{ip_address}:{edgeai_benchmark_path}"
@@ -42,6 +42,8 @@ class BenchmarkEvm():
         self.logs_dir = logs_dir
         if self.logs_dir == None:
             self.logs_dir = "evm_test_logs"
+
+        self.modelartifacts_path = modelartifacts_path
 
         print(f"[ Info ] SOC : {self.soc}")
         print(f"[ Info ] EVM Reboot type : {self.reboot_type}")
@@ -167,7 +169,11 @@ class BenchmarkEvm():
         
         infer_status = False
         if status:
-            command = f'cd && ./model_infer.sh {self.soc} {timeout} {generate_report} {model_selection} {num_frames}'
+            if self.modelartifacts_path is not None:
+                command = f'cd && ./model_infer.sh {self.soc} {timeout} {generate_report} {model_selection} {num_frames} {self.modelartifacts_path}'
+            else:
+                command = f'cd && ./model_infer.sh {self.soc} {timeout} {generate_report} {model_selection} {num_frames}'
+
             infer_status = uart_interface.send_uart_command(command, "END_OF_MODEL_INFERENCE", timeout, True, 1)
             response = uart_interface.log_buffer
             print(f"\n\n*******************************\nLog Buffer : {response}\n*******************************\n\n")
