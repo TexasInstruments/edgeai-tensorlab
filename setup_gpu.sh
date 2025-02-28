@@ -117,7 +117,7 @@ pip uninstall --yes onnxruntime
 
 echo "installing: edgeai-benchmark"
 cd ../edgeai-benchmark
-TIDL_TOOLS_TYPE_SUFFIX="_gpu" ./setup_pc.sh r10.1
+TIDL_TOOLS_TYPE_SUFFIX="_gpu" ./setup_pc.sh
 
 ######################################################################
 echo "installing edgeai-modelmaker"
