@@ -25,7 +25,7 @@ Getting the correct functionality and accuracy with DNN Models is not easy. Seve
 ### New models
 We are in the process of adding support for several new models. Configs for models verified in this release are in this repository and the models are available in edgeai-modelzoo. The following new models have been verified:
 
-| Model name                    | Model Type                            | Source repository |
+| Model name                    | Model Type                            | Source repository      |
 |-------------------------------|---------------------------------------|------------------------|
 | swin_tiny_patch4_window7_224  | Image Clasifiation, Transformer       | edgeai-hf-transformers |
 | deit_tiny_patch16_224         | Image Clasifiation, Transformer       | edgeai-hf-transformers |
@@ -34,6 +34,8 @@ We are in the process of adding support for several new models. Configs for mode
 | YOLOv7 (mutliple flavours)    | Object Detection                      | edgeai-mmdetection     |
 | YOLOv9 (multiple flavours)    | Object Detection                      | edgeai-mmdetection     |
 | efficientdet_effb0_bifpn_lite | Object Detection                      | edgeai-mmdetection     |
+| YOLOXPose                     | Keypoint detection / Human Pose       | edgeai-mmpose          |
+
 
 ### Note
 The tidl_tools installed in this version is compatible with the publicly released version of 10.1 SDK. In order to take advantage of subsequent bugfixes, it is possible to set 'advanced_options:c7x_firmware_version' to a higher value than what is supported in the publicly released SDK. Two steps are required for this:
