@@ -30,8 +30,8 @@
 
 ######################################################################
 # change default tidl_tools version if needed
-# examples: latest stable 10.1.4 10.1.3 10.1 10.0
-TIDL_TOOLS_RELEASE_NAME=${1:-"latest"}
+# examples: 10.1 10.0
+TIDL_TOOLS_RELEASE_NAME=${1:-"10.1"}
 
 
 #######################################################################
@@ -52,7 +52,7 @@ sudo apt-get install -y cmake \
 
 
 pip3 install --no-input --upgrade pip==24.2 setuptools==73.0.0
-pip3 install --no-input cython wheel numpy==1.23.0 pyyaml tqdm
+pip3 install --no-input cython wheel numpy==1.23.0 scipy==1.10 pyyaml tqdm
 
 ######################################################################
 CURRENT_WORK_DIR=$(pwd)
