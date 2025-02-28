@@ -3,6 +3,28 @@
 
 Note: We follow the EdgeAI-SDK (Processor SDK Linux with Edge AI) release numbering. For example, the models compiled with 9.2.0 version (r9.2 branch) works in 09.02.00 (09_02_00) SDK release.
 
+## 10.1
+
+### Git branch name: r10.1
+
+### New Features
+- Updated to support TIDL & SDK version 10.1
+
+## New models in edgeai-modelmaker
+| Model name                    | Model Type                            | Source repository      |
+|-------------------------------|---------------------------------------|------------------------|
+| YOLOv7       | Object Detection                      | edgeai-mmdetection     |
+| YOLOv9       | Object Detection                      | edgeai-mmdetection     |
+| YOLOXPose                     | Keypoint detection / Human Pose       | edgeai-mmpose          |
+
+
+## 10.0
+
+### Git branch name: r10.0
+
+### New Features
+- Updated to support TIDL & SDK version 10.0
+
 ## 9.2.0
 
 ### Git branch name: r9.2

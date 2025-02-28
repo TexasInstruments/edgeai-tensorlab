@@ -39,7 +39,7 @@ training:
     enable: True #False
 
     # Object Detection model chosen can be changed here if needed
-    # options are: 'yolox_s_lite', 'yolox_tiny_lite', 'yolox_nano_lite', 'yolox_pico_lite', 'yolox_femto_lite'
+    # options are: 'yolox_s_lite', 'yolox_tiny_lite', 'yolox_nano_lite', 'yolox_pico_lite', 'yolox_femto_lite', 'yolov7_l_lite', 'yolov9_s_lite'
     model_name: 'yolox_nano_lite'
 
     # training_epochs: 15 #30
