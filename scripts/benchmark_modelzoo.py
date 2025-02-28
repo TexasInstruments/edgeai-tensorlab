@@ -68,6 +68,7 @@ def get_arg_parser():
     parser.add_argument('--additional_models', type=utils.str_to_bool)
     parser.add_argument('--detection_threshold', type=float)
     parser.add_argument('--detection_top_k', type=float)
+    parser.add_argument('--c7x_firmware_version', type=utils.str_or_none)
     parser.add_argument('--overall_timeout', type=utils.float_or_none)
     parser.add_argument('--instance_timeout', type=utils.float_or_none)
     return parser

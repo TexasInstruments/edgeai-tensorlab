@@ -129,38 +129,25 @@ class GetRuntimeOptions(config_dict.ConfigDict):
             #'advanced_options:max_num_subgraph_nodes': 2000,
             ##################################
             # additional options (internal / performance estimation)
-            #################################
             "ti_internal_nc_flag" : 83886080, #1601
         }
+
+        # additional options (firmware version)
+        if settings.c7x_firmware_version is not None and settings.c7x_firmware_version != "":
+            runtime_options.update({
+                'advanced_options:c7x_firmware_version': settings.c7x_firmware_version
+            })
+        #
 
         # set other runtime_options from kwargs
         runtime_options.update(kwargs)
 
-        ##################################
-        # use a specific firmware version if needed
-        #################################
-        tools_version_info_found = False
-        version_yaml = os.path.join(os.environ['TIDL_TOOLS_PATH'], 'version.yaml')
-        if os.path.exists(version_yaml):
-            with open(version_yaml) as fp:
-                tools_version_info = yaml.safe_load(fp)
-                if 'version' in tools_version_info:
-                    tools_version_info_found = True
-                    tools_version = Version(str(tools_version_info['version']))
-                    if tools_version == Version('10.1.4'):
-                        c7x_firmware_version = constants.TIDL_FIRMWARE_VERSION_10_01_04
-                        warnings.warn(f'INFO: tidl_tools version found - setting advanced_options:c7x_firmware_version to {c7x_firmware_version}')
-                        runtime_options.update({
-                            'advanced_options:c7x_firmware_version': c7x_firmware_version,
-                        })
-                    #
-                #
-            #
+        # check the firmware version of the tidl_tools_package and the settings used in his repo
+        if settings.c7x_firmware_version is not None and settings.c7x_firmware_version != "":
+            warnings.warn(f'INFO: advanced_options:c7x_firmware_version passed to tidl_tools from this repo for model compilation is: {settings.c7x_firmware_version}'
+                        f'\nINFO: for potential firmware update needed in SDK to run this model, see the SDK version compatibiltiy table: '
+                        f'\nINFO: https://github.com/TexasInstruments/edgeai-tidl-tools/blob/master/docs/version_compatibility_table.md')
         #
-        if not tools_version_info_found:
-            warnings.warn(f'WARNING: tidl_tools version could not be determined - will use the default value for advanced_options:c7x_firmware_version')
-        #
-
         return runtime_options
 
     def get_runtime_options(self, model_type_or_session_name=None, is_qat=False,

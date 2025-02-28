@@ -414,6 +414,11 @@ def _is_zip(filename: str) -> bool:
     return filename.endswith(".zip")
 
 
+def _is_archive(from_path):
+    return _is_tar(from_path) or _is_targz(from_path) or \
+           _is_gzip(from_path) or _is_zip(from_path) or _is_tgz(from_path)
+
+
 def extract_archive(from_path: str, to_path: Optional[str] = None, remove_finished: bool = False,
                     verbose: bool = True, mode: Optional[str] = None):
     if verbose:
@@ -488,11 +493,6 @@ def download_and_extract_archive(
         fpath = os.path.join(fpath, url_files[1])
     #
     return fpath
-
-
-def _is_archive(from_path):
-    return _is_tar(from_path) or _is_targz(from_path) or \
-           _is_gzip(from_path) or _is_zip(from_path) or _is_tgz(from_path)
 
 
 def iterable_to_str(iterable: Iterable) -> str:

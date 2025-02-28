@@ -80,21 +80,21 @@ def main():
         description='Edge AI Benchmark',
         long_description=long_description,
         long_description_content_type='text/markdown',
-        url='https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-benchmark/browse',
+        url='https://github.com/TexasInstruments/edgeai-tensorlab/edgeai-benchmark',
         author='EdgeAI, TIDL & Analytics Algo Teams',
         author_email='edgeai-devkit@list.ti.com',
         classifiers=[
             'Development Status :: 4 - Beta'
-            'Programming Language :: Python :: 3.7'
+            'Programming Language :: Python :: 3.10'
         ],
         keywords = 'artifical intelligence, deep learning, image classification, object detection, semantic segmentation, quantization',
-        python_requires='>=3.7',
+        python_requires='>=3.10',
         packages=find_packages(),
         include_package_data=True,
         install_requires=requirements,
         project_urls={
-            'Source': 'https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-benchmark/browse',
-            'Bug Reports': 'https://e2e.ti.com/support/processors/f/791/tags/jacinto_2D00_ai_2D00_devkit',
+            'Source': 'https://github.com/TexasInstruments/edgeai-tensorlab/edgeai-benchmark',
+            'Bug Reports': 'https://e2e.ti.com/support/processors-group/processors/tags/TIDL',
         },
     )
 

@@ -102,6 +102,8 @@ class ConfigDict(utils.AttrDict):
         self.include_files = None
         # execution pipeline type - currently only accuracy pipeline is defined
         self.pipeline_type = 'accuracy'
+        # firmware version of SDK
+        self.c7x_firmware_version = None
         # number of frames for inference
         self.num_frames = 1000 #10000 #50000
         # number of frames to be used for post training quantization / calibration

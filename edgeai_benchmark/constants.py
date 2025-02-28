@@ -37,9 +37,6 @@ TIDL_PLATFORM = "J7"
 TIDL_VERSION = (10,1,0)
 TIDL_VERSION_STR = '10.1.0'
 
-TIDL_FIRMWARE_VERSION_10_01_03 = '10_01_03_00' # Compatible with the publicly released SDK 10.1 - Version: 10.01.00.04 - Release date: Dec 18, 2024
-TIDL_FIRMWARE_VERSION_10_01_04 = '10_01_04_00' # Not automatically compatible with publicly released version of SDK 10.1 - needs firmware update.
-
 # data layout constants
 NCHW = 'NCHW'
 NHWC = 'NHWC'
@@ -167,7 +164,17 @@ TIDL_DETECTION_META_ARCH_TYPE_SSD_LIST = [
     TIDL_DETECTION_META_ARCH_TYPE_SSD_ONNX,
 ]
 
+
 # errors emitted in the log file to help identify a FATAL error
 # look for erros such as: VX_ZONE_ERROR:[tivxDeInit:245] De-Initialization Error !!!
 # but do not include genuine messages such as: VX_ZONE_ERROR:Enabled
 TIDL_FATAL_ERROR_LOGS_REGEX_LIST = [r'VX_ZONE_ERROR:\[.*\].*Error.*']
+
+
+# Compatible with the publicly released SDK 10.1 - Version: 10.01.00.04 - Release date: Dec 18, 2024
+TIDL_FIRMWARE_VERSION_10_01_03_00 = '10_01_03_00'
+TIDL_FIRMWARE_VERSION_SDK_DEFAULT = TIDL_FIRMWARE_VERSION_10_01_03_00
+
+# Not automatically enabled and also not compatible with publicly released version of SDK 10.1 - needs firmware update in SDK.
+TIDL_FIRMWARE_VERSION_10_01_04_00 = '10_01_04_00'
+TIDL_FIRMWARE_VERSION_TIDL_TOOLS_LATEST_BUGFIX = TIDL_FIRMWARE_VERSION_10_01_04_00
