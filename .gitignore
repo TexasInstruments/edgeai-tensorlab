@@ -14,10 +14,11 @@ work_dirs/
 !work_dirs/modelartifacts/readme.txt
 backup/*
 tutorials/.ipynb_checkpoints/
-/tools/
+/tools/tidl_tools_package/
+/tools/gcc-*
+
 /tools-*/
 /tools_*/
-!/tools/readme.txt
 /tidl_tools_backup/
 backup/
 temp_files/
