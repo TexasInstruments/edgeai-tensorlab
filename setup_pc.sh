@@ -50,6 +50,10 @@ sudo apt-get install -y cmake \
                         libjpeg-dev zlib1g-dev \
                         graphviz graphviz-dev protobuf-compiler
 
+
+pip3 install --no-input --upgrade pip==24.2 setuptools==73.0.0
+pip3 install --no-input cython wheel numpy==1.23.0 pyyaml tqdm
+
 ######################################################################
 CURRENT_WORK_DIR=$(pwd)
 TOOLS_BASE_PATH=${CURRENT_WORK_DIR}/tools

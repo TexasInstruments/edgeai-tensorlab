@@ -133,21 +133,19 @@ class GetRuntimeOptions(config_dict.ConfigDict):
         }
 
         # additional options (firmware version)
-        if settings.c7x_firmware_version is not None and settings.c7x_firmware_version != "":
+        if self.c7x_firmware_version is not None and self.c7x_firmware_version != "":
             runtime_options.update({
-                'advanced_options:c7x_firmware_version': settings.c7x_firmware_version
+                'advanced_options:c7x_firmware_version': self.c7x_firmware_version
             })
+
+            warnings.warn(f'\nINFO: advanced_options:c7x_firmware_version passed to tidl_tools from this repo for model compilation is: {self.c7x_firmware_version}'
+                          f'\nINFO: for potential firmware update needed in SDK to run this model, see the SDK version compatibiltiy table: '
+                          f'\nINFO: https://github.com/TexasInstruments/edgeai-tidl-tools/blob/master/docs/version_compatibility_table.md')
         #
 
         # set other runtime_options from kwargs
         runtime_options.update(kwargs)
 
-        # check the firmware version of the tidl_tools_package and the settings used in his repo
-        if settings.c7x_firmware_version is not None and settings.c7x_firmware_version != "":
-            warnings.warn(f'INFO: advanced_options:c7x_firmware_version passed to tidl_tools from this repo for model compilation is: {settings.c7x_firmware_version}'
-                        f'\nINFO: for potential firmware update needed in SDK to run this model, see the SDK version compatibiltiy table: '
-                        f'\nINFO: https://github.com/TexasInstruments/edgeai-tidl-tools/blob/master/docs/version_compatibility_table.md')
-        #
         return runtime_options
 
     def get_runtime_options(self, model_type_or_session_name=None, is_qat=False,

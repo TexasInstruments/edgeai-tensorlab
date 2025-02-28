@@ -38,7 +38,7 @@ TARGET_MACHINE=${2:-pc}
 #################################################################################
 # setup the environment
 # source run_setupenv_pc.sh
-export TIDL_TOOLS_PATH=$(pwd)/tools/${TARGET_SOC}/tidl_tools
+export TIDL_TOOLS_PATH=$(pwd)/tools/tidl_tools_package/${TARGET_SOC}/tidl_tools
 echo "TIDL_TOOLS_PATH=${TIDL_TOOLS_PATH}"
 
 export LD_LIBRARY_PATH="${TIDL_TOOLS_PATH}:${LD_LIBRARY_PATH}"

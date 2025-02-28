@@ -29,21 +29,10 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ##################################################################
+
 # target_device - use one of: TDA4VM AM62A AM68A AM69A AM67A AM62
 TARGET_SOC=${1-AM68A}
 
-# leave this as pc - no change needed
-# pc: for model compilation and inference on PC, evm: for model inference on EVM
-# after compilation, run_package_artifacts_evm.sh can be used to format and package the compiled artifacts for evm
-TARGET_MACHINE=pc
-
-# settigns model_shortlist will cause only selected models to be run
-# in ./configs folder, model configs have a model_shortlist associated with them
-# in this script, if --model_shortlist is set to 120, only those models with model_shortlist values <= 120 will run
-MODEL_SHORTLIST=120
-
-
 echo "TARGET_SOC:     ${TARGET_SOC}"
-echo "TARGET_MACHINE: ${TARGET_MACHINE}"
 
-./run_benchmarks_pc.sh ${TARGET_SOC} --c7x_firmware_version 10_01_04_00
+./run_benchmarks_pc.sh ${TARGET_SOC} --c7x_firmware_version 10_01_04_00 "${@:2}"
