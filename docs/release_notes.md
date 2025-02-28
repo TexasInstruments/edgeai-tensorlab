@@ -1,3 +1,37 @@
+<hr>
+
+## Release 10.1
+* Release name: **10.1**
+* git branch: **r10.1**
+* [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) git tag: [10_01_04_00](https://github.com/TexasInstruments/edgeai-tidl-tools/releases/tag/10_01_04_00)
+* tidl_tools version: **10_01_04_01**
+* Date: 2024 Dec ~ 2025 March
+
+### New models edgeai-benchmark / edgeai-modelzoo
+We are in the process of adding support for several new models. Configs for models verified in this release are in this repository and the models are available in edgeai-modelzoo. The following new models have been compiled using edgeai-benchmark and verified:
+
+| Model name                    | Model Type                            | Source repository      |
+|-------------------------------|---------------------------------------|------------------------|
+| swin_tiny_patch4_window7_224  | Image Clasifiation, Transformer       | edgeai-hf-transformers |
+| deit_tiny_patch16_224         | Image Clasifiation, Transformer       | edgeai-hf-transformers |
+| levit_128_224                 | Image Clasifiation, Transformer       | edgeai-hf-transformers |
+| segformer_b0                  | Semantic Segmentation, Transformer    | edgeai-hf-transformers |
+| YOLOv7 (mutliple flavours)    | Object Detection                      | edgeai-mmdetection     |
+| YOLOv9 (multiple flavours)    | Object Detection                      | edgeai-mmdetection     |
+| efficientdet_effb0_bifpn_lite | Object Detection                      | edgeai-mmdetection     |
+| YOLOXPose                     | Keypoint detection / Human Pose       | edgeai-mmpose          |
+
+### New models in edgeai-modelmaker
+| Model name                    | Model Type                            | Source repository      |
+|-------------------------------|---------------------------------------|------------------------|
+| YOLOv7       | Object Detection                      | edgeai-mmdetection     |
+| YOLOv9       | Object Detection                      | edgeai-mmdetection     |
+| YOLOXPose                     | Keypoint detection / Human Pose       | edgeai-mmpose          |
+
+### Tech reports
+New Tech report on 3D Object Detection - see the section on "Tech Reports"
+
+<hr>
 
 ## Release 10.0 (10_00)
 - Git branch: **r10.0**
