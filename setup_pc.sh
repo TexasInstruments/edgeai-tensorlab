@@ -69,14 +69,20 @@ if [ -d "${CURRENT_WORK_DIR}/../edgeai-tidl-tools" ]; then
   cd ${CURRENT_WORK_DIR}
 fi
 
-######################################################################
 echo "--------------------------------------------------------------------------------------------------------------"
 echo "INFO: installing tidl-tools-package version: ${TIDL_TOOLS_RELEASE_NAME}"
-cd ${TOOLS_BASE_PATH}
-python3 setup.py develop --tools_version=${TIDL_TOOLS_RELEASE_NAME} --tools_type=${TIDL_TOOLS_TYPE_SUFFIX}
+cd ${CURRENT_WORK_DIR}
+pip3 install -r ./tools/requirements/requirements_${TIDL_TOOLS_RELEASE_NAME}.txt
+python3 ./tools/setup.py develop --tools_version=${TIDL_TOOLS_RELEASE_NAME} --tools_type=${TIDL_TOOLS_TYPE_SUFFIX}
 
 cd ${CURRENT_WORK_DIR}
 echo 'INFO: installing local module using setup.py...'
+# there as issue with installing pillow-simd through requirements - force it here
+pip3 uninstall --yes pillow
+pip3 install --no-input -U --force-reinstall pillow-simd
+pip3 install --no-input onnx==1.14.0 protobuf
+pip3 install --no-input -r ./requirements/requirements_pc.txt
+pip3 install --no-input onnx_graphsurgeon==0.3.26 --extra-index-url https://pypi.ngc.nvidia.com
 python3 setup.py develop
 echo "--------------------------------------------------------------------------------------------------------------"
 
