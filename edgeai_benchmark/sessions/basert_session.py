@@ -203,14 +203,7 @@ class BaseRTSession(utils.ParamsBase):
         return outputs, info_dict
 
     def run(self, calib_data, inputs, info_dict=None):
-        # import / compile the model
-        info_dict = self.import_model(calib_data, info_dict)
-        # inference
-        outputs, info_dict = self.infer_frames(inputs, info_dict)
-        infer_stats_dict = self.infer_stats()
-        info_dict.update(infer_stats_dict)
-        # return
-        return outputs, info_dict
+        raise RuntimeError('ERROR: run not implemented - import and inference must be called separately')
 
     def close_interpreter(self):
         # optional: make sure that the interpreter is freed-up after inference
@@ -258,88 +251,6 @@ class BaseRTSession(utils.ParamsBase):
     def get_session_short_name(self):
         session_name = self.get_session_name()
         return constants.SESSION_NAMES_DICT[session_name]
-
-    def _get_input_output_details_tflite(self, interpreter):
-        properties = {'name':'name', 'shape':'shape', 'dtype':'type'}
-        if self.kwargs['input_details'] is None:
-            input_details = []
-            model_input_details = interpreter.get_input_details()
-            for inp_d in model_input_details:
-                inp_dict = {}
-                for p_key, p_val in properties.items():
-                    inp_d_val = inp_d[p_key]
-                    if p_key == 'dtype':
-                        inp_d_val = str(inp_d_val)
-                    #
-                    if p_key == 'shape':
-                        inp_d_val = [int(val) for val in inp_d_val]
-                    #
-                    inp_dict[p_val] = inp_d_val
-                #
-                input_details.append(inp_dict)
-            #
-            self.kwargs['input_details'] = input_details
-        #
-        if self.kwargs['output_details'] is None:
-            output_details = []
-            model_output_details = interpreter.get_output_details()
-            for oup_d in model_output_details:
-                oup_dict = {}
-                for p_key, p_val in properties.items():
-                    oup_d_val = oup_d[p_key]
-                    if p_key == 'dtype':
-                        oup_d_val = str(oup_d_val)
-                    #
-                    if p_key == 'shape':
-                        oup_d_val = [int(val) for val in oup_d_val]
-                    #
-                    oup_dict[p_val] = oup_d_val
-                #
-                output_details.append(oup_dict)
-            #
-            self.kwargs['output_details'] = output_details
-        #
-
-    def _get_input_output_details_onnx(self, interpreter):
-        properties = {'name':'name', 'shape':'shape', 'type':'type'}
-        if self.kwargs['input_details'] is None:
-            input_details = []
-            model_input_details = interpreter.get_inputs()
-            for inp_d in model_input_details:
-                inp_dict = {}
-                for p_key, p_val in properties.items():
-                    inp_d_val = getattr(inp_d, p_key)
-                    if p_key == 'type':
-                        inp_d_val = str(inp_d_val)
-                    #
-                    if p_key == 'shape':
-                        inp_d_val = list(inp_d_val)
-                    #
-                    inp_dict[p_val] = inp_d_val
-                #
-                input_details.append(inp_dict)
-            #
-            self.kwargs['input_details'] = input_details
-        #
-        if self.kwargs['output_details'] is None:
-            output_details = []
-            model_output_details = interpreter.get_outputs()
-            for oup_d in model_output_details:
-                oup_dict = {}
-                for p_key, p_val in properties.items():
-                    oup_d_val = getattr(oup_d, p_key)
-                    if p_key == 'type':
-                        oup_d_val = str(oup_d_val)
-                    #
-                    if p_key == 'shape':
-                        oup_d_val = list(oup_d_val)
-                    #
-                    oup_dict[p_val] = oup_d_val
-                #
-                output_details.append(oup_dict)
-            #
-            self.kwargs['output_details'] = output_details
-        #
 
     def _update_output_details(self, outputs):
         output_details = self.kwargs['output_details']

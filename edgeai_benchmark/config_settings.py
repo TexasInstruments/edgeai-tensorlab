@@ -36,6 +36,75 @@ class ConfigSettings(GetRuntimeOptions):
         # variable to pre-load datasets - so that it is not separately created for each config
         self.dataset_cache = datasets.initialize_datasets(self)
 
+
+    def runtime_options_onnx_np2(self, **kwargs):
+        kwargs['advanced_options:quantization_scale_type'] = self.runtime_options.get('advanced_options:quantization_scale_type', constants.QUANTScaleType.QUANT_SCALE_TYPE_NP2)
+        return self.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=False, **kwargs)
+
+    def runtime_options_tflite_np2(self, **kwargs):
+        kwargs['advanced_options:quantization_scale_type'] = self.runtime_options.get('advanced_options:quantization_scale_type', constants.QUANTScaleType.QUANT_SCALE_TYPE_NP2)
+        return self.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=False, **kwargs)
+
+    def runtime_options_mxnet_np2(self, **kwargs):
+        kwargs['advanced_options:quantization_scale_type'] = self.runtime_options.get('advanced_options:quantization_scale_type', constants.QUANTScaleType.QUANT_SCALE_TYPE_NP2)
+        return self.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=False, **kwargs)
+
+    def runtime_options_onnx_p2(self, **kwargs):
+        kwargs['advanced_options:quantization_scale_type'] = self.runtime_options.get('advanced_options:quantization_scale_type', constants.QUANTScaleType.QUANT_SCALE_TYPE_P2)
+        return self.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=False, **kwargs)
+
+    def runtime_options_tflite_p2(self, **kwargs):
+        kwargs['advanced_options:quantization_scale_type'] = self.runtime_options.get('advanced_options:quantization_scale_type', constants.QUANTScaleType.QUANT_SCALE_TYPE_P2)
+        return self.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=False, **kwargs)
+
+    def runtime_options_mxnet_p2(self, **kwargs):
+        kwargs['advanced_options:quantization_scale_type'] = self.runtime_options.get('advanced_options:quantization_scale_type', constants.QUANTScaleType.QUANT_SCALE_TYPE_P2)
+        return self.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=False, **kwargs)
+
+    def runtime_options_onnx_qat_v1(self, **kwargs):
+        kwargs['advanced_options:quantization_scale_type'] = constants.QUANTScaleType.QUANT_SCALE_TYPE_P2
+        # kwargs['advanced_options:prequantized_model'] = constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_CLIP
+        return self.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=True, **kwargs)
+
+    def runtime_options_tflite_qat_v1(self, **kwargs):
+        kwargs['advanced_options:quantization_scale_type'] = constants.QUANTScaleType.QUANT_SCALE_TYPE_P2
+        # kwargs['advanced_options:prequantized_model'] = constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_CLIP
+        return self.get_runtime_options(constants.MODEL_TYPE_TFLITE, is_qat=True, **kwargs)
+
+    def runtime_options_mxnet_qat_v1(self, **kwargs):
+        kwargs['advanced_options:quantization_scale_type'] = constants.QUANTScaleType.QUANT_SCALE_TYPE_P2
+        # kwargs['advanced_options:prequantized_model'] = constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_CLIP
+        return self.get_runtime_options(constants.MODEL_TYPE_MXNET, is_qat=True, **kwargs)
+
+    def runtime_options_onnx_qat_v2(self, **kwargs):
+        kwargs['advanced_options:quantization_scale_type'] = constants.QUANTScaleType.QUANT_SCALE_TYPE_NP2_PERCHAN
+        kwargs['advanced_options:prequantized_model'] = constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_QDQ
+        return self.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=True, **kwargs)
+
+    def runtime_options_onnx_qat_v2_p2(self, **kwargs):
+        kwargs['advanced_options:quantization_scale_type'] = constants.QUANTScaleType.QUANT_SCALE_TYPE_P2
+        kwargs['advanced_options:prequantized_model'] = constants.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_QDQ
+        return self.get_runtime_options(constants.MODEL_TYPE_ONNX, is_qat=True, **kwargs)
+
+    def get_session_name(self, model_type_or_session_name):
+        assert model_type_or_session_name in constants.MODEL_TYPES + constants.SESSION_NAMES, \
+            f'get_session_cfg: input must be one of model_types: {constants.MODEL_TYPES} ' \
+            f'or session_names: {constants.SESSION_NAMES}'
+        if model_type_or_session_name in constants.MODEL_TYPES:
+            model_type = model_type_or_session_name
+            session_name = self.session_type_dict[model_type]
+        else:
+            session_name = model_type_or_session_name
+        #
+        assert session_name in constants.SESSION_NAMES, \
+            f'get_session_cfg: invalid session_name: {session_name}'
+        return session_name
+
+    def get_session_type(self, model_type_or_session_name):
+        session_name = self.get_session_name(model_type_or_session_name)
+        return sessions.get_session_name_to_type_dict()[session_name]
+
+
 class CustomConfigSettings(ConfigSettings):
     def __init__(self, input, dataset_loading=False, **kwargs):
         super().__init__(input, dataset_loading=dataset_loading, **kwargs)

@@ -28,4 +28,93 @@
 
 
 class TIDLBaseRTRunner:
-    pass
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
+
+    def _get_input_details_onnx(self, interpreter, input_details=None):
+        properties = {'name':'name', 'shape':'shape', 'type':'type'}
+        if input_details is None:
+            input_details = []
+            model_input_details = interpreter.get_inputs()
+            for inp_d in model_input_details:
+                inp_dict = {}
+                for p_key, p_val in properties.items():
+                    inp_d_val = getattr(inp_d, p_key)
+                    if p_key == 'type':
+                        inp_d_val = str(inp_d_val)
+                    #
+                    if p_key == 'shape':
+                        inp_d_val = list(inp_d_val)
+                    #
+                    inp_dict[p_val] = inp_d_val
+                #
+                input_details.append(inp_dict)
+            #
+        #
+        return input_details
+
+    def _get_output_details_onnx(self, interpreter, output_details=None):
+        properties = {'name':'name', 'shape':'shape', 'type':'type'}
+        if output_details is None:
+            output_details = []
+            model_output_details = interpreter.get_outputs()
+            for oup_d in model_output_details:
+                oup_dict = {}
+                for p_key, p_val in properties.items():
+                    oup_d_val = getattr(oup_d, p_key)
+                    if p_key == 'type':
+                        oup_d_val = str(oup_d_val)
+                    #
+                    if p_key == 'shape':
+                        oup_d_val = list(oup_d_val)
+                    #
+                    oup_dict[p_val] = oup_d_val
+                #
+                output_details.append(oup_dict)
+            #
+        #
+        return output_details
+
+    def _get_input_details_tflite(self, interpreter, input_details):
+        properties = {'name':'name', 'shape':'shape', 'dtype':'type'}
+        if input_details is None:
+            input_details = []
+            model_input_details = interpreter.get_input_details()
+            for inp_d in model_input_details:
+                inp_dict = {}
+                for p_key, p_val in properties.items():
+                    inp_d_val = inp_d[p_key]
+                    if p_key == 'dtype':
+                        inp_d_val = str(inp_d_val)
+                    #
+                    if p_key == 'shape':
+                        inp_d_val = [int(val) for val in inp_d_val]
+                    #
+                    inp_dict[p_val] = inp_d_val
+                #
+                input_details.append(inp_dict)
+            #
+        #
+        return input_details
+
+    def _get_output_details_tflite(self, interpreter, output_details):
+        properties = {'name':'name', 'shape':'shape', 'dtype':'type'}
+        if output_details is None:
+            output_details = []
+            model_output_details = interpreter.get_output_details()
+            for oup_d in model_output_details:
+                oup_dict = {}
+                for p_key, p_val in properties.items():
+                    oup_d_val = oup_d[p_key]
+                    if p_key == 'dtype':
+                        oup_d_val = str(oup_d_val)
+                    #
+                    if p_key == 'shape':
+                        oup_d_val = [int(val) for val in oup_d_val]
+                    #
+                    oup_dict[p_val] = oup_d_val
+                #
+                output_details.append(oup_dict)
+            #
+        #
+        return output_details
