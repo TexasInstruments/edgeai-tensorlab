@@ -26,16 +26,13 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+
+from tidl_tools_runer.presets import *
+
+
 # TIDL platform to be used for compilation
 # This also depends on the tidl_tools that is installed.
 import enum
-
-TIDL_PLATFORM = "J7"
-
-# TIDL version that is supported by default - however this is not the only version that is supported.
-# This version actually depends on tidl_tools that is being used - so what is populated here is just for guidance.
-TIDL_VERSION = (10,1,0)
-TIDL_VERSION_STR = '10.1.0'
 
 # data layout constants
 NCHW = 'NCHW'
@@ -125,36 +122,6 @@ class PreQuantizedModelType:
 OBJECT_DETECTION_META_FILE_KEY = 'object_detection:meta_layers_names_list'
 ADVANCED_OPTIONS_QUANT_FILE_KEY = 'advanced_options:quant_params_proto_path'
 
-
-CALIBRATION_ITERATIONS_FACTOR_1X = 1.0
-CALIBRATION_ITERATIONS_FACTOR_NX = 2.0
-
-
-# runtime_options preferred - may not blindly apply for qat models
-TARGET_DEVICE_SETTINGS_PRESETS = {
-    TARGET_DEVICE_TDA4VM : {
-        'runtime_options': {'advanced_options:quantization_scale_type': 1},
-        # TDA4VM does not support the per-channel asymmetric quantization
-        # hence we may need more number calibration images and iterations
-        'calibration_iterations_factor': CALIBRATION_ITERATIONS_FACTOR_NX        
-    },
-    TARGET_DEVICE_AM62A : {
-        'runtime_options': {'advanced_options:quantization_scale_type': 4},
-    },
-    TARGET_DEVICE_AM67A: {
-        'runtime_options': {'advanced_options:quantization_scale_type': 4},
-    },
-    TARGET_DEVICE_AM68A : {
-        'runtime_options': {'advanced_options:quantization_scale_type': 4},
-    },
-    TARGET_DEVICE_AM69A : {
-        'runtime_options': {'advanced_options:quantization_scale_type': 4},
-    },
-    TARGET_DEVICE_AM62 : {
-        'runtime_options': {},
-        'tidl_offload': False,
-    },
-}
 
 # to handle speciall case for runtime_options['object_detection:xx']
 TIDL_DETECTION_META_ARCH_TYPE_SSD_TFLITE = 1

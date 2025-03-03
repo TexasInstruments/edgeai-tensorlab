@@ -151,7 +151,7 @@ class BaseRTSession(utils.ParamsBase):
 
         # _set_default_options requires to know the artifacts_folder
         # that's why this is not done in the constructor
-        self._set_default_options()
+        self.kwargs["runtime_options"] = self._set_default_options(self.kwargs["runtime_options"])
 
         # set the flag
         self.is_started = True

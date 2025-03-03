@@ -26,16 +26,42 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from tidl_tools_runner import GetRuntimeOptions
-from . import datasets
+
+TIDL_PLATFORM = "J7"
 
 
-class ConfigSettings(GetRuntimeOptions):
-    def __init__(self, input, **kwargs):
-        super().__init__(input, **kwargs)
-        # variable to pre-load datasets - so that it is not separately created for each config
-        self.dataset_cache = datasets.initialize_datasets(self)
+# TIDL version that is supported by default - however this is not the only version that is supported.
+# This version actually depends on tidl_tools that is being used - so what is populated here is just for guidance.
+TIDL_VERSION = (10,1,0)
+TIDL_VERSION_STR = '10.1.0'
 
-class CustomConfigSettings(ConfigSettings):
-    def __init__(self, input, dataset_loading=False, **kwargs):
-        super().__init__(input, dataset_loading=dataset_loading, **kwargs)
+
+CALIBRATION_ITERATIONS_FACTOR_1X = 1.0
+CALIBRATION_ITERATIONS_FACTOR_NX = 2.0
+
+
+# runtime_options preferred - may not blindly apply for qat models
+TARGET_DEVICE_SETTINGS_PRESETS = {
+    TARGET_DEVICE_TDA4VM : {
+        'runtime_options': {'advanced_options:quantization_scale_type': 1},
+        # TDA4VM does not support the per-channel asymmetric quantization
+        # hence we may need more number calibration images and iterations
+        'calibration_iterations_factor': CALIBRATION_ITERATIONS_FACTOR_NX
+    },
+    TARGET_DEVICE_AM62A : {
+        'runtime_options': {'advanced_options:quantization_scale_type': 4},
+    },
+    TARGET_DEVICE_AM67A: {
+        'runtime_options': {'advanced_options:quantization_scale_type': 4},
+    },
+    TARGET_DEVICE_AM68A : {
+        'runtime_options': {'advanced_options:quantization_scale_type': 4},
+    },
+    TARGET_DEVICE_AM69A : {
+        'runtime_options': {'advanced_options:quantization_scale_type': 4},
+    },
+    TARGET_DEVICE_AM62 : {
+        'runtime_options': {},
+        'tidl_offload': False,
+    },
+}

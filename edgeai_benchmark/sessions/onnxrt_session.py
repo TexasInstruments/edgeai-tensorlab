@@ -31,14 +31,17 @@ import time
 import numpy as np
 import warnings
 
+from tidl_tools_runner import TIDLONNXRTRunner
+
 from .. import utils
 from .. import constants
 from .basert_session import BaseRTSession
 
 
-class ONNXRTSession(BaseRTSession):
+class ONNXRTSession(BaseRTSession, TIDLONNXRTRunner):
     def __init__(self, session_name=constants.SESSION_NAME_ONNXRT, **kwargs):
-        super().__init__(session_name=session_name, **kwargs)
+        BaseRTSession.__init__(self, session_name=session_name, **kwargs)
+        TIDLONNXRTRunner.__init__(self)
         self.kwargs['input_data_layout'] = self.kwargs.get('input_data_layout', constants.NCHW)
 
     def start(self):
@@ -119,52 +122,4 @@ class ONNXRTSession(BaseRTSession):
 
     def get_runtime_option(self, option, default=None):
         return self.kwargs["runtime_options"].get(option, default)
-
-    def _create_interpreter(self, is_import):
-        # move the import inside the function, so that onnxruntime needs to be installed
-        # only if some one wants to use it
-        import onnxruntime
-        # pass options to pybind
-        if is_import:
-            self.kwargs["runtime_options"]["import"] = "yes"
-        else:
-            self.kwargs["runtime_options"]["import"] = "no"
-        #
-        runtime_options = self.kwargs["runtime_options"]
-        sess_options = onnxruntime.SessionOptions()
         
-        onnxruntime_graph_optimization_level = self.kwargs["runtime_options"].get('onnxruntime:graph_optimization_level', None)
-        if onnxruntime_graph_optimization_level is not None:
-            # for transformer models, it is necessary to set graph_optimization_level in session options for onnxruntime
-            # to onnxruntime.GraphOptimizationLevel.ORT_DISABLE_ALL so that TIDL can properly handle the model.
-            sess_options.graph_optimization_level = onnxruntime_graph_optimization_level
-        
-        # suppress warnings
-        sess_options.log_severity_level = 3
-
-        if self.kwargs['tidl_offload']:
-            ep_list = ['TIDLCompilationProvider', 'CPUExecutionProvider'] if is_import else \
-                      ['TIDLExecutionProvider', 'CPUExecutionProvider']
-            interpreter = onnxruntime.InferenceSession(self.kwargs['model_file'], providers=ep_list,
-                            provider_options=[runtime_options, {}], sess_options=sess_options)
-        else:
-            ep_list = ['CPUExecutionProvider']
-            interpreter = onnxruntime.InferenceSession(self.kwargs['model_file'], providers=ep_list,
-                            provider_options=[{}], sess_options=sess_options)
-        #
-        return interpreter
-
-    def _set_default_options(self):
-        runtime_options = self.kwargs.get("runtime_options", {})
-        default_options = {
-            "platform": constants.TIDL_PLATFORM,
-            "version": constants.TIDL_VERSION_STR,
-            "tidl_tools_path": self.kwargs["tidl_tools_path"],
-            "artifacts_folder": self.kwargs["artifacts_folder"],
-            "tensor_bits": self.kwargs.get("tensor_bits", 8),
-            "import": self.kwargs.get("import", 'no'),
-            # note: to add advanced options here, start it with 'advanced_options:'
-            # example 'advanced_options:pre_batchnorm_fold':1
-        }
-        default_options.update(runtime_options)
-        self.kwargs["runtime_options"] = default_options

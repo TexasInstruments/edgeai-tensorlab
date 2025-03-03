@@ -26,16 +26,6 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from tidl_tools_runner import GetRuntimeOptions
-from . import datasets
 
-
-class ConfigSettings(GetRuntimeOptions):
-    def __init__(self, input, **kwargs):
-        super().__init__(input, **kwargs)
-        # variable to pre-load datasets - so that it is not separately created for each config
-        self.dataset_cache = datasets.initialize_datasets(self)
-
-class CustomConfigSettings(ConfigSettings):
-    def __init__(self, input, dataset_loading=False, **kwargs):
-        super().__init__(input, dataset_loading=dataset_loading, **kwargs)
+class TIDLBaseRTRunner:
+    pass
