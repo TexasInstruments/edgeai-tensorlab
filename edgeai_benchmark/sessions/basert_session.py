@@ -149,10 +149,6 @@ class BaseRTSession(utils.ParamsBase):
         # download or copy the model and add any optimizations required
         self.get_model()
 
-        # _set_default_options requires to know the artifacts_folder
-        # that's why this is not done in the constructor
-        self.kwargs["runtime_options"] = self._set_default_options(self.kwargs["runtime_options"])
-
         # set the flag
         self.is_started = True
 
@@ -604,9 +600,6 @@ class BaseRTSession(utils.ParamsBase):
         with open(filename, 'w') as fp:
             fp.write('\n'.join(lines))
         #
-
-    def _set_default_options(self):
-        assert False, 'this function must be overridden in the derived class'
 
     def clear(self):
         # make sure that the artifacts_folder is cleanedup

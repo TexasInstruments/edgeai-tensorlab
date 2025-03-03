@@ -35,11 +35,9 @@ import warnings
 import cv2
 import numpy as np
 import yaml
-from packaging.version import Version
 
-from . import utils, preprocess, postprocess, constants, sessions
 from . import config_dict
-
+from . import presets
 
 class GetRuntimeOptions(config_dict.ConfigDict):
     def __init__(self, input, **kwargs):
@@ -51,7 +49,7 @@ class GetRuntimeOptions(config_dict.ConfigDict):
         if isinstance(self.target_device_preset, dict):
             preset_dict = self.target_device_preset
         elif self.target_device_preset and self.target_device:
-            preset_dict = constants.TARGET_DEVICE_SETTINGS_PRESETS[self.target_device]
+            preset_dict = presets.TARGET_DEVICE_SETTINGS_PRESETS[self.target_device]
         #
         if preset_dict:
             self.update(preset_dict)
@@ -184,7 +182,7 @@ class GetRuntimeOptions(config_dict.ConfigDict):
             runtime_options.update(det_options)
         elif det_options:
             # SSD models may need to have a high detection_threshold afor inference since thier runtime is sensitive to this threhold
-            is_ssd = det_options == 'SSD' or (det_options is True and object_detection_meta_arch_type in constants.TIDL_DETECTION_META_ARCH_TYPE_SSD_LIST)
+            is_ssd = det_options == 'SSD' or (det_options is True and object_detection_meta_arch_type in presets.TIDL_DETECTION_META_ARCH_TYPE_SSD_LIST)
             detection_threshold_default = (0.3 if is_ssd else 0.05)
             detection_top_k_default = (200 if is_ssd else 500)
             if self.detection_threshold:
@@ -229,5 +227,5 @@ class GetRuntimeOptions(config_dict.ConfigDict):
         if device_needs_more_iterations and model_needs_more_iterations:
             return self.calibration_iterations_factor
         else:
-            return constants.CALIBRATION_ITERATIONS_FACTOR_1X
+            return presets.CALIBRATION_ITERATIONS_FACTOR_1X
             

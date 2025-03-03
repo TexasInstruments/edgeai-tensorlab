@@ -383,24 +383,9 @@ down_tidl_tools_package_dict = {
 
 def main(tools_version, tools_type):
     assert tools_version in down_tidl_tools_package_dict.keys(), f"unknown tools_version provided: {tools_version} at {__file__}"
-    requirements_file = down_tidl_tools_package_dict[tools_version](tools_version, tools_type)
 
-    with open(requirements_file) as fp:
-        requirements_content = fp.read().splitlines()
-        requirements = []
-        for req in requirements_content:
-            if req.startswith("-r "):
-                reqfile = req.replace("-r ", "")
-                reqfile = os.path.join(os.path.dirname(__file__), "requirements", reqfile)
-                with open(reqfile) as reqfp:
-                    requirements += reqfp.read().splitlines()
-                #
-            else:
-                requirements += [req.strip()]
-            #
-        #
-        requirements = list(map(lambda x:x.strip(), requirements))
-    #
+    requirements_file = down_tidl_tools_package_dict[tools_version](tools_version, tools_type)
+    # os.system(f'pip install -r {requirements_file}')
 
     readme_file = os.path.realpath(os.path.join(os.path.dirname(__file__), 'README.md'))
     with open(readme_file,  encoding="utf8") as readme:
@@ -425,8 +410,8 @@ def main(tools_version, tools_type):
             packages=find_packages(),
             include_package_data=True,
             setup_rquires=["pip>=24.2", "setuptools>=73.0.0", "numpy==1.23.0", "wheel", "cython"],
-            install_requires=[r for r in requirements if not "://" in r],
-            dependency_links=[r for r in requirements if "://" in r],
+            install_requires=None,
+            dependency_links=None,
             project_urls={
                 'Source': 'https://github.com/TexasInstruments/edgeai-tensorlab/edgeai-benchmark/tools',
                 'Bug Reports': 'https://e2e.ti.com/support/processors-group/processors/tags/TIDL',
@@ -434,9 +419,9 @@ def main(tools_version, tools_type):
         )
     except:
         traceback.print_exc()
-        raise
-
-    print("INFO: setup done")
+        raise RuntimeError('tidl-tools-package - setup failed')
+    #
+    print("INFO: tidl-tools-package - setup done")
 
 
 def get_arg_parser():

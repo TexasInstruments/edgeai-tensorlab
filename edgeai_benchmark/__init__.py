@@ -29,6 +29,7 @@
 import os
 
 from .version import __version__
+from . import runners
 from . import constants
 from . import config_settings
 from . import pipelines, datasets, preprocess, sessions, postprocess, metrics, utils, interfaces

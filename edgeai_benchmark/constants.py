@@ -27,7 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-from tidl_tools_runer.presets import *
+from .runners.presets import *
 
 
 # TIDL platform to be used for compilation
@@ -87,14 +87,6 @@ SESSION_NAME_ONNXRT = 'onnxrt'
 SESSION_NAMES = [SESSION_NAME_ONNXRT, SESSION_NAME_TFLITERT, SESSION_NAME_TVMDLR]
 SESSION_NAMES_DICT = {SESSION_NAME_ONNXRT:'ONR', SESSION_NAME_TFLITERT:'TFL', SESSION_NAME_TVMDLR:'TVM'}
 
-# target devices/socs supported.
-TARGET_DEVICE_TDA4VM = 'TDA4VM'
-TARGET_DEVICE_AM62A = 'AM62A'
-TARGET_DEVICE_AM67A = 'AM67A'
-TARGET_DEVICE_AM68A = 'AM68A'
-TARGET_DEVICE_AM69A = 'AM69A'
-TARGET_DEVICE_AM62 = 'AM62'
-
 
 # compilation can only be run in PC as of now, but inference can be run in both PC and EVM
 # whether running in PC/Host Emulation or really running in EVM/device:
@@ -121,15 +113,6 @@ class PreQuantizedModelType:
 # some options in runtime_options
 OBJECT_DETECTION_META_FILE_KEY = 'object_detection:meta_layers_names_list'
 ADVANCED_OPTIONS_QUANT_FILE_KEY = 'advanced_options:quant_params_proto_path'
-
-
-# to handle speciall case for runtime_options['object_detection:xx']
-TIDL_DETECTION_META_ARCH_TYPE_SSD_TFLITE = 1
-TIDL_DETECTION_META_ARCH_TYPE_SSD_ONNX = 3
-TIDL_DETECTION_META_ARCH_TYPE_SSD_LIST = [
-    TIDL_DETECTION_META_ARCH_TYPE_SSD_TFLITE,
-    TIDL_DETECTION_META_ARCH_TYPE_SSD_ONNX,
-]
 
 
 # errors emitted in the log file to help identify a FATAL error

@@ -32,8 +32,17 @@ TIDL_PLATFORM = "J7"
 
 # TIDL version that is supported by default - however this is not the only version that is supported.
 # This version actually depends on tidl_tools that is being used - so what is populated here is just for guidance.
-TIDL_VERSION = (10,1,0)
-TIDL_VERSION_STR = '10.1.0'
+TIDL_VERSION = (10,1)
+TIDL_VERSION_STR = '10.1'
+
+
+# target devices/socs supported.
+TARGET_DEVICE_TDA4VM = 'TDA4VM'
+TARGET_DEVICE_AM62A = 'AM62A'
+TARGET_DEVICE_AM67A = 'AM67A'
+TARGET_DEVICE_AM68A = 'AM68A'
+TARGET_DEVICE_AM69A = 'AM69A'
+TARGET_DEVICE_AM62 = 'AM62'
 
 
 CALIBRATION_ITERATIONS_FACTOR_1X = 1.0
@@ -65,3 +74,13 @@ TARGET_DEVICE_SETTINGS_PRESETS = {
         'tidl_offload': False,
     },
 }
+
+
+# to handle speciall case for runtime_options['object_detection:xx']
+TIDL_DETECTION_META_ARCH_TYPE_SSD_TFLITE = 1
+TIDL_DETECTION_META_ARCH_TYPE_SSD_ONNX = 3
+TIDL_DETECTION_META_ARCH_TYPE_SSD_LIST = [
+    TIDL_DETECTION_META_ARCH_TYPE_SSD_TFLITE,
+    TIDL_DETECTION_META_ARCH_TYPE_SSD_ONNX,
+]
+

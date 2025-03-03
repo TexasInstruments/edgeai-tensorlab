@@ -26,16 +26,16 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from tidl_tools_runner import GetRuntimeOptions
-from . import datasets
+
+from . import runners
+from . import constants, datasets, sessions
 
 
-class ConfigSettings(GetRuntimeOptions):
+class ConfigSettings(runners.GetRuntimeOptions):
     def __init__(self, input, **kwargs):
         super().__init__(input, **kwargs)
         # variable to pre-load datasets - so that it is not separately created for each config
         self.dataset_cache = datasets.initialize_datasets(self)
-
 
     def runtime_options_onnx_np2(self, **kwargs):
         kwargs['advanced_options:quantization_scale_type'] = self.runtime_options.get('advanced_options:quantization_scale_type', constants.QUANTScaleType.QUANT_SCALE_TYPE_NP2)

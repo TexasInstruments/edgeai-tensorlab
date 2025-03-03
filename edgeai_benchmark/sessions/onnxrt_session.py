@@ -31,14 +31,13 @@ import time
 import numpy as np
 import warnings
 
-from tidl_tools_runner import TIDLONNXRTRunner
-
+from ..runners import TIDLONNXRTRunner
 from .. import utils
 from .. import constants
 from .basert_session import BaseRTSession
 
 
-class ONNXRTSession(TIDLONNXRTRunner, BaseRTSession):
+class ONNXRTSession(BaseRTSession, TIDLONNXRTRunner):
     def __init__(self, session_name=constants.SESSION_NAME_ONNXRT, **kwargs):
         TIDLONNXRTRunner.__init__(self)
         BaseRTSession.__init__(self, session_name=session_name, **kwargs)

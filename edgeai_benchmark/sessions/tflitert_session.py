@@ -26,7 +26,6 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from tidl_tools_runner import TIDLTFLiteRTRunner
 
 import os
 import time
@@ -35,6 +34,7 @@ import copy
 import struct
 import numpy as np
 
+from ..runners import TIDLTFLiteRTRunner
 from .. import constants
 from .. import utils
 from .basert_session import BaseRTSession

@@ -26,10 +26,10 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from . import config_utils
+from . import attr_dict
 from . import presets
 
 from .runtime_options import *
 from .onnxrt_runner import *
-from .tiflitert_runner import *
+from .tflitert_runner import *
 from .tvmdlr_runner import *

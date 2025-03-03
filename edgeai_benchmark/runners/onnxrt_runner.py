@@ -27,16 +27,23 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+from . import presets
 from .basert_runner import TIDLBaseRTRunner
 
 
-class TILTFLiteRTRunner(TIDLBaseRTRunner):
+class TIDLONNXRTRunner(TIDLBaseRTRunner):
     def prepare_for_import(self, *args, **kwargs):
+        self.kwargs["runtime_options"] = self._set_default_options(self.kwargs["runtime_options"])
         self.interpreter = self._create_interpreter(*args, is_import=True, **kwargs)
+        self.kwargs['input_details'] = self.get_input_details(self.interpreter, self.kwargs['input_details'])
+        self.kwargs['output_details'] = self.get_output_details(self.interpreter, self.kwargs['output_details'])
         return self.interpreter
 
     def prepare_for_infernce(self, *args, **kwargs):
+        self.kwargs["runtime_options"] = self._set_default_options(self.kwargs["runtime_options"])
         self.interpreter = self._create_interpreter(*args, is_import=False, **kwargs)
+        self.kwargs['input_details'] = self.get_input_details(self.interpreter, self.kwargs['input_details'])
+        self.kwargs['output_details'] = self.get_output_details(self.interpreter, self.kwargs['output_details'])
         return self.interpreter
 
     def run_for_import(self, *args, **kwargs):
@@ -45,63 +52,57 @@ class TILTFLiteRTRunner(TIDLBaseRTRunner):
     def run_for_inference(self, *args, **kwargs):
         return self._run(*args, **kwargs)
 
-    def _run(self, input_data):
+    def _run(self, input_data, output_keys=None):
         input_data = self._format_input_data(input_data)
-        for (input_detail, c_data_entry) in zip(self.get_input_details(), in_data):
-            self._set_tensor(input_detail, c_data_entry)
-        #
-        outputs = [self._get_tensor(output_detail) for output_detail in self.interpreter.get_output_details()]
+        # output_details is not mandatory, output_keys can be None
+        output_keys = output_keys or [getattr(d_info, 'name') for d_info in self.kwargs['output_details']]
+        # run the actual import step
+        outputs = self.interpreter.run(output_keys, input_data)
         return outputs
 
+    def _create_interpreter(self, is_import):
+        # move the import inside the function, so that onnxruntime needs to be installed
+        # only if some one wants to use it
+        import onnxruntime
+        # pass options to pybind
+        if is_import:
+            self.kwargs["runtime_options"]["import"] = "yes"
+        else:
+            self.kwargs["runtime_options"]["import"] = "no"
+        #
+        runtime_options = self.kwargs["runtime_options"]
+
+        sess_options = onnxruntime.SessionOptions()
+
+        onnxruntime_graph_optimization_level = runtime_options.get('onnxruntime:graph_optimization_level', None)
+        if onnxruntime_graph_optimization_level is not None:
+            # for transformer models, it is necessary to set graph_optimization_level in session options for onnxruntime
+            # to onnxruntime.GraphOptimizationLevel.ORT_DISABLE_ALL so that TIDL can properly handle the model.
+            sess_options.graph_optimization_level = onnxruntime_graph_optimization_level
+
+        # suppress warnings
+        sess_options.log_severity_level = 3
+
+        if self.kwargs['tidl_offload']:
+            ep_list = ['TIDLCompilationProvider', 'CPUExecutionProvider'] if is_import else \
+                      ['TIDLExecutionProvider', 'CPUExecutionProvider']
+            interpreter = onnxruntime.InferenceSession(self.kwargs['model_file'], providers=ep_list,
+                            provider_options=[runtime_options, {}], sess_options=sess_options)
+        else:
+            ep_list = ['CPUExecutionProvider']
+            interpreter = onnxruntime.InferenceSession(self.kwargs['model_file'], providers=ep_list,
+                            provider_options=[{}], sess_options=sess_options)
+        #
+        return interpreter
+
     def _format_input_data(self, input_data):
+        if isinstance(input_data, dict):
+            return input_data
+
         if not isinstance(input_data, (list,tuple)):
             input_data = (input_data, )
 
-        return input_data
-
-    def _set_tensor(self, model_input, tensor):
-        if model_input['dtype'] == np.int8:
-            # scale, zero_point = model_input['quantization']
-            # tensor = np.clip(np.round(tensor/scale + zero_point), -128, 127)
-            tensor = np.array(tensor, dtype=np.int8)
-        elif model_input['dtype'] == np.uint8:
-            # scale, zero_point = model_input['quantization']
-            # tensor = np.clip(np.round(tensor/scale + zero_point), 0, 255)
-            tensor = np.array(tensor, dtype=np.uint8)
-        #
-        self.interpreter.set_tensor(model_input['index'], tensor)
-
-    def _get_tensor(self, model_output):
-        tensor = self.interpreter.get_tensor(model_output['index'])
-        if model_output['dtype'] == np.int8 or model_output['dtype']  == np.uint8:
-            scale, zero_point = model_output['quantization']
-            tensor = np.array(tensor, dtype=np.float32)
-            tensor = (tensor - zero_point) / scale
-        #
-        return tensor
-
-    def _create_interpreter(self, is_import):
-        self.kwargs["runtime_options"] = self._set_default_options(self.kwargs["runtime_options"])
-        self.kwargs['input_details'] = self.get_input_details(self.interpreter, self.kwargs['input_details'])
-        self.kwargs['output_details'] = self.get_output_details(self.interpreter, self.kwargs['output_details'])
-
-        # move the import inside the function, so that tflite_runtime needs to be installed
-        # only if some one wants to use it
-        import tflite_runtime.interpreter as tflitert_interpreter
-        if self.kwargs['tidl_offload']:
-            if is_import:
-                self.kwargs["runtime_options"]["import"] = "yes"
-                tidl_delegate = [tflitert_interpreter.load_delegate('tidl_model_import_tflite.so', self.kwargs["runtime_options"])]
-            else:
-                self.kwargs["runtime_options"]["import"] = "no"
-                tidl_delegate = [tflitert_interpreter.load_delegate('libtidl_tfl_delegate.so', self.kwargs["runtime_options"])]
-            #
-            interpreter = tflitert_interpreter.Interpreter(model_path=self.kwargs['model_file'], experimental_delegates=tidl_delegate)
-        else:
-            interpreter = tflitert_interpreter.Interpreter(model_path=self.kwargs['model_file'])
-        #
-        interpreter.allocate_tensors()
-        return interpreter
+        return {getattr(d_info, 'name'):d for d_info, d in zip(self.get_input_details(),input_data)}
 
     def get_input_details(self, *args, **kwargs):
         return super()._get_input_details_tflite(self, self.interpreter, *args, **kwargs)
@@ -111,8 +112,8 @@ class TILTFLiteRTRunner(TIDLBaseRTRunner):
         
     def _set_default_options(self, runtime_options):
         default_options = {
-            "platform": constants.TIDL_PLATFORM,
-            "version": constants.TIDL_VERSION_STR,
+            "platform": presets.TIDL_PLATFORM,
+            "version": presets.TIDL_VERSION_STR,
             "tidl_tools_path": self.kwargs["tidl_tools_path"],
             "artifacts_folder": self.kwargs["artifacts_folder"],
             "tensor_bits": self.kwargs.get("tensor_bits", 8),

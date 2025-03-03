@@ -27,15 +27,45 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+from . import presets
 from .basert_runner import TIDLBaseRTRunner
 
 
 class TIDLTVMDLRRunner(TIDLBaseRTRunner):
     def prepare_for_import(self, *args, **kwargs):
         self.kwargs["runtime_options"] = self._set_default_options(self.kwargs["runtime_options"])
+        self.interpreter = self._create_interpreter(*args, is_import=True, **kwargs)
         self.kwargs['input_details'] = self.get_input_details(self.interpreter, self.kwargs['input_details'])
         self.kwargs['output_details'] = self.get_output_details(self.interpreter, self.kwargs['output_details'])
+        return self.interpreter
 
+    def prepare_for_infernce(self, *args, **kwargs):
+        self.kwargs["runtime_options"] = self._set_default_options(self.kwargs["runtime_options"])
+
+        # move the import inside the function, so that dlr needs to be installed
+        # only if some one wants to use it
+        from dlr import DLRModel
+        artifacts_folder = self.kwargs['artifacts_folder']
+        if not os.path.exists(artifacts_folder):
+            return False
+        #
+        self.interpreter = DLRModel(artifacts_folder, 'cpu')
+
+        self.kwargs['input_details'] = self.get_input_details(self.interpreter, self.kwargs['input_details'])
+        self.kwargs['output_details'] = self.get_output_details(self.interpreter, self.kwargs['output_details'])
+        return self.interpreter
+
+    def run_for_import(self, *args, **kwargs):
+        return self._run(*args, **kwargs)
+
+    def run_for_inference(self, *args, **kwargs):
+        return self._run(*args, **kwargs)
+
+    def _run(self):
+        outputs = self.interpreter.run(input_dict)
+        return outputs
+
+    def _create_interpreter(self, is_import):
         # onnx and tvm are required only for model import
         # so import inside the function so that inference can be done without it
         from tvm import relay
@@ -112,34 +142,7 @@ class TIDLTVMDLRRunner(TIDLBaseRTRunner):
                 fo.write(relay.save_param_dict(params))
             #
         #
-        return self.interpreter
 
-    def prepare_for_infernce(self, *args, **kwargs):
-        self.kwargs["runtime_options"] = self._set_default_options(self.kwargs["runtime_options"])
-        self.kwargs['input_details'] = self.get_input_details(self.interpreter, self.kwargs['input_details'])
-        self.kwargs['output_details'] = self.get_output_details(self.interpreter, self.kwargs['output_details'])
-        return self._run(*args, **kwargs)
-        # move the import inside the function, so that dlr needs to be installed
-        # only if some one wants to use it
-        from dlr import DLRModel
-        artifacts_folder = self.kwargs['artifacts_folder']
-        if not os.path.exists(artifacts_folder):
-            return False
-        #
-        self.interpreter = DLRModel(artifacts_folder, 'cpu')
-        return self.interpreter
-        return self.interpreter
-
-    def run_for_import(self, *args, **kwargs):
-        return self._run(*args, **kwargs)
-
-    def run_for_inference(self, *args, **kwargs):
-        return self._run(*args, **kwargs)
-
-    def _run(self):
-        outputs = self.interpreter.run(input_dict)
-        return outputs
-            
     def _format_input_data(self, input_data):
         if isinstance(input_data, dict):
             return input_data
