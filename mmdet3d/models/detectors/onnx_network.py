@@ -281,6 +281,136 @@ class StreamPETR_export_model(nn.Module):
         return bbox_list
 
 
+class Far3D_export_model(nn.Module):
+    def __init__(self,
+                 stride,
+                 use_grid_mask,
+                 with_img_neck,
+                 single_test,
+                 position_level,
+                 aux_2d_only,
+                 grid_mask,
+                 img_backbone,
+                 img_neck,
+                 pts_bbox_head,
+                 img_roi_head,
+                 prepare_location,
+                 forward_roi_head):
+        super().__init__()
+
+        self.grid_mask        = grid_mask
+        self.img_backbone     = img_backbone
+        self.img_neck         = img_neck
+        self.img_roi_head     = img_roi_head
+        self.pts_bbox_head    = pts_bbox_head
+
+        self.forward_roi_head = forward_roi_head
+
+        self.stride           = stride
+        self.use_grid_mask    = use_grid_mask
+        self.with_img_neck    = with_img_neck
+        self.single_test      = single_test
+        self.position_level   = position_level
+        self.aux_2d_only      = aux_2d_only
+
+        self.depth_branch     = None
+        self.prev_scene_token = None
+
+        # For locations()
+        # Depends on image backbone
+        self.img_feat_sizes = [[80, 120], [40, 60], [20, 30], [10, 15]]
+        self.B = 1
+        self.N = 6
+
+    def prepare_data(self, img, img_metas):
+        self.img_metas = img_metas
+
+        intrinsics = []
+        extrinsics = []
+        for img_meta in img_metas:
+            intrinsics.append(img_meta['intrinsics'])
+            extrinsics.append(img_meta['extrinsics'])
+        intrinsics = np.asarray(intrinsics)
+        extrinsics = np.asarray(extrinsics)
+        intrinsics = torch.from_numpy(intrinsics).to(img.device)
+        extrinsics = torch.from_numpy(extrinsics).to(img.device)
+
+        return intrinsics, extrinsics
+
+
+    def locations(self, feat_size, img, stride, pad_h, pad_w):
+        """
+        From projects.petr.utils.locations
+        """
+        h, w = feat_size
+        device = img.device
+
+        shifts_x = (torch.arange(
+            0, stride*w, step=stride,
+            dtype=torch.float32, device=device
+        ) + stride // 2 ) / pad_w
+        shifts_y = (torch.arange(
+            0, h * stride, step=stride,
+            dtype=torch.float32, device=device
+        ) + stride // 2) / pad_h
+        shift_y, shift_x = torch.meshgrid(shifts_y, shifts_x)
+        shift_x = shift_x.reshape(-1)
+        shift_y = shift_y.reshape(-1)
+        locations = torch.stack((shift_x, shift_y), dim=1)
+
+        locations = locations.reshape(h, w, 2)
+        return locations
+
+
+    def prepare_location(self, img):
+        pad_h, pad_w = self.img_metas[0]['pad_shape']
+
+        location_r = []
+        for i, img_feat_size in enumerate(self.img_feat_sizes):
+            bs, n = self.B, self.N
+            location = self.locations(img_feat_size, img, self.stride[i], pad_h, pad_w)[None].repeat(bs*n, 1, 1, 1)
+            location_r.append(location)
+
+        return location_r
+
+
+    def forward(self,
+                img,
+                location,
+                intrinsics,
+                extrinsics,
+                memory_embedding=None,
+                memory_reference_point=None,
+                memory_timestamp=None,
+                memory_egopose=None,
+                memory_velo=None):
+        B = self.B
+        if self.use_grid_mask:
+            img = self.grid_mask(img)
+
+        img_feats = self.img_backbone(img)
+        img_feats = self.img_neck(img_feats)
+
+        img_feats_reshaped = []
+        for i in self.position_level:
+            BN, C, H, W = img_feats[i].size()
+            img_feat_reshaped = img_feats[i].view(B, int(BN/B), C, H, W)
+            img_feats_reshaped.append(img_feat_reshaped)
+
+        outs_roi  = self.img_roi_head(location, img_feats_reshaped, intrinsics, extrinsics)
+        bbox_dict = self.img_roi_head.predict_by_feat(outs_roi)
+        bbox_roi  = bbox_dict['bbox_list']
+        outs_roi.update(bbox_dict)
+
+        outs = self.pts_bbox_head(img_feats_reshaped, self.img_metas, outs_roi,
+                                  memory_embedding, memory_reference_point, memory_timestamp,
+                                  memory_egopose, memory_velo)
+
+        bbox_list = self.pts_bbox_head.get_bboxes(outs, self.img_metas)
+
+        return bbox_list
+
+
 # BEVDet_R50 ONNX exporting model
 class BEVDet_export_model(nn.Module):
 

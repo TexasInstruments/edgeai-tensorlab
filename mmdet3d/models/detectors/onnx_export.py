@@ -5,6 +5,7 @@ from onnxsim import simplify
 import onnx
 
 from .onnx_network import PETR_export_model, StreamPETR_export_model, \
+                          Far3D_export_model, \
                           BEVFormer_export_model, \
                           BEVDet_export_model, FCOS3D_export_model, \
                           FastBEV_export_model, \
@@ -116,7 +117,76 @@ def export_StreamPETR(model, inputs=None, data_samples=None,
     onnx_model, _ = simplify(model_name)
     onnx.save(onnx_model, model_name)
 
-    print("!! ONNX model has been exported for {}}!!!\n\n".format(model_name))
+    print("!! ONNX model has been exported for {}!!!\n\n".format(model_name))
+
+
+def export_Far3D(model, inputs=None, data_samples=None,
+                      opset_version=20, **kwargs):
+
+    onnxModel = Far3D_export_model(model.stride,
+                                   model.use_grid_mask,
+                                   model.with_img_neck,
+                                   model.single_test,
+                                   model.position_level,
+                                   model.aux_2d_only,
+                                   model.grid_mask,
+                                   model.img_backbone,
+                                   model.img_neck,
+                                   model.pts_bbox_head,
+                                   model.img_roi_head,
+                                   model.prepare_location,
+                                   model.forward_roi_head)
+    onnxModel.eval()
+
+    # Should clone. Otherwise, when we run both export_model and self.predict,
+    # we have error PETRHead forward() - Don't know why
+    img = inputs['imgs'].clone()
+
+    batch_img_metas = [ds.metainfo for ds in data_samples]
+    intrinsics, extrinsics = onnxModel.prepare_data(img, batch_img_metas)
+    location = onnxModel.prepare_location(img)
+
+    batch_img_metas[0]['prev_exists'] = img.new_zeros(1)
+    x = batch_img_metas[0]['prev_exists'].to(img.device).to(torch.float32)
+    memory_embedding, memory_reference_point, memory_timestamp, \
+        memory_egopose, memory_velo = onnxModel.pts_bbox_head.init_memory(x)
+
+    # Passed the squeezed img
+    if img.dim() == 5 and img.size(0) == 1:
+        img.squeeze_()
+    elif img.dim() == 5 and img.size(0) > 1:
+        B, N, C, H, W = img.size()
+        img = img.view(B * N, C, H, W)
+
+    modelInput = []
+    modelInput.append(img)
+    modelInput.append(location)
+    modelInput.append(intrinsics)
+    modelInput.append(extrinsics)
+    modelInput.append(memory_embedding)
+    modelInput.append(memory_reference_point)
+    modelInput.append(memory_timestamp)
+    modelInput.append(memory_egopose)
+    modelInput.append(memory_velo)
+
+    model_name   = 'far3d.onnx'
+    input_names  = ["imgs", "location", "intrinsics", "extrinsics", "memory_embed", "memory_ref_point", "memory_ts", "memory_egopose", "memory_velo"]
+    #input_names  = ["imgs", "location", "intrinsics", "extrinsics"]
+    output_names = ["bboxes", "scores", "labels"]
+
+    torch.onnx.export(onnxModel,
+                      tuple(modelInput),
+                      model_name,
+                      input_names=input_names,
+                      output_names=output_names,
+                      opset_version=opset_version,
+                      verbose=False)
+
+    onnx_model, _ = simplify(model_name)
+    onnx.save(onnx_model, model_name)
+
+    print("!! ONNX model has been exported for {}!!!\n\n".format(model_name))
+    
 
 
 def export_BEVDet(model, inputs=None, data_samples=None, **kwargs):

@@ -118,7 +118,7 @@ class HungarianAssigner3D(BaseAssigner):
         # classification and bboxcost.
         cls_cost = self.cls_cost(cls_pred, gt_labels)
         # regression L1 cost
-        if self.model == 'PETR3D':
+        if self.model == 'PETR3D' or self.model == 'Far3D': 
             normalized_gt_bboxes = normalize_bbox_streampetr(gt_bboxes, self.pc_range)
         else:
             normalized_gt_bboxes = normalize_bbox(gt_bboxes, self.pc_range)

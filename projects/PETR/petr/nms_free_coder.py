@@ -71,7 +71,7 @@ class NMSFreeCoder(BaseBBoxCoder):
         bbox_index = indexes // self.num_classes
         bbox_preds = bbox_preds[bbox_index]
 
-        if self.model == 'PETR3D':
+        if self.model == 'PETR3D' or self.model == 'Far3D':
             final_box_preds = denormalize_bbox_streampetr(bbox_preds, self.pc_range)
         else:
             final_box_preds = denormalize_bbox(bbox_preds, self.pc_range)
