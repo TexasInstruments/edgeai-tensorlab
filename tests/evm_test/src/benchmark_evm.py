@@ -16,6 +16,12 @@ sys.path.append(os.path.dirname(CURRENT_DIR))
 from src.relay_control import AnelRelayControl
 from src.uart_interface import UartInterface
 
+def find_subdirectory(starting_string, root_dir='.'):
+    for dirs in os.listdir(root_dir):
+        if os.path.isdir(os.path.join(root_dir, dirs)) and dirs.startswith(starting_string):
+            return os.path.join(root_dir, dirs)
+    return None
+
 class BenchmarkEvm():
     def __init__(self, evm_config, edgeai_benchmark_path, ip_address, reboot_type="soft", logs_dir=None, dataset_dir_path=None, modelartifacts_path=None):
         self.evm_config = evm_config
@@ -177,7 +183,12 @@ class BenchmarkEvm():
             print(f"Sending command : {command}")
 
             infer_status = uart_interface.send_uart_command(command, "END_OF_MODEL_INFERENCE", timeout, True, 1)
-            response = uart_interface.log_buffer
+            # read response from run.log in instead of log_buffer
+            subdir_path = find_subdirectory(model_selection, os.path.join('../../' + self.modelartifacts_path, '8bits'))
+            with open(os.path.join(subdir_path, 'run.log'), 'r') as file:
+                response = file.read()
+
+            # response = uart_interface.log_buffer
             print(f"\n\n*******************************\nLog Buffer : {response}\n*******************************\n\n")
             response_status = self.parse_test_run(response)
         

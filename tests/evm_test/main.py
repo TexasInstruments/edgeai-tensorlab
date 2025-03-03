@@ -184,6 +184,21 @@ for i in os.listdir(artifacts_dir):
     if i.endswith('.tar.gz'):
         model_list.append(i.split('_')[0])
 
+# if run.log exists in the directory, move it to run_pc.log
+# Walk through the directory tree
+for root, dirs, files in os.walk(artifacts_dir):
+    if 'run.log' in files:
+        # Construct full file path
+        run_log_path = os.path.join(root, 'run.log')
+        # Construct new file path
+        run_pc_log_path = os.path.join(root, 'run_pc.log')
+        # Move the file
+        shutil.move(run_log_path, run_pc_log_path)
+        print(f"Moved {run_log_path} to {run_pc_log_path}")
+        break
+else:
+    print("run.log not found in any subdirectory")
+
 model_list = list(set(model_list))
 if len(model_list) == 0:
     print(f"[ Error ] No model found for testing.")
