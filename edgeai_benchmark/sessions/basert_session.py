@@ -231,9 +231,9 @@ class BaseRTSession(utils.ParamsBase):
         #
         try:
             perfsim_stats = self._infer_perfsim_stats()
-            stats.update(perfsim_stats)
-        except:
-            pass
+            stats_dict.update(perfsim_stats)
+        except Exception as e:
+            print(f'WARNING: perfsim stats could not be obtained: {e}')
         #
         return stats_dict
 
