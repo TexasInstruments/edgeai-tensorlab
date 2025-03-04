@@ -26,38 +26,39 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import numpy as np
 
 from . import presets
-from .basert_runner import TIDLBaseRTRunner
+from .basert_runtime import BaseRuntimeWrapper
 
 
-class TIDLTFLiteRTRunner(TIDLBaseRTRunner):
+class TFLiteRuntimeWrapper(BaseRuntimeWrapper):
+    def start(self):
+        self.kwargs["runtime_options"] = self._set_default_options(self.kwargs["runtime_options"])
+
     def prepare_for_import(self, *args, **kwargs):
-        self.kwargs["runtime_options"] = self._set_default_options(self.kwargs["runtime_options"])
+        self.is_import = True
         self.interpreter = self._create_interpreter(*args, is_import=True, **kwargs)
-        self.kwargs['input_details'] = self.get_input_details(self.interpreter, self.kwargs['input_details'])
-        self.kwargs['output_details'] = self.get_output_details(self.interpreter, self.kwargs['output_details'])
+        self.kwargs['input_details'] = self.get_input_details(self.interpreter, self.kwargs.get('input_details', None))
+        self.kwargs['output_details'] = self.get_output_details(self.interpreter, self.kwargs.get('output_details', None))
         return self.interpreter
 
-    def prepare_for_infernce(self, *args, **kwargs):
-        self.kwargs["runtime_options"] = self._set_default_options(self.kwargs["runtime_options"])
+    def prepare_for_inference(self, *args, **kwargs):
+        self.is_import = False
         self.interpreter = self._create_interpreter(*args, is_import=False, **kwargs)
-        self.kwargs['input_details'] = self.get_input_details(self.interpreter, self.kwargs['input_details'])
-        self.kwargs['output_details'] = self.get_output_details(self.interpreter, self.kwargs['output_details'])
+        self.kwargs['input_details'] = self.get_input_details(self.interpreter, self.kwargs.get('input_details', None))
+        self.kwargs['output_details'] = self.get_output_details(self.interpreter, self.kwargs.get('output_details', None))
         return self.interpreter
 
-    def run_for_import(self, *args, **kwargs):
-        return self._run(*args, **kwargs)
-
-    def run_for_inference(self, *args, **kwargs):
-        return self._run(*args, **kwargs)
-
-    def _run(self, input_data):
+    def run(self, input_data):
         input_data = self._format_input_data(input_data)
-        for (input_detail, c_data_entry) in zip(self.get_input_details(), in_data):
+        input_details = self.kwargs['input_details']
+        output_details = self.kwargs['output_details']
+        for (input_detail, c_data_entry) in zip(input_details, input_data):
             self._set_tensor(input_detail, c_data_entry)
         #
-        outputs = [self._get_tensor(output_detail) for output_detail in self.interpreter.get_output_details()]
+        self.interpreter.invoke()
+        outputs = [self._get_tensor(output_detail) for output_detail in output_details]
         return outputs
 
     def _create_interpreter(self, is_import):
@@ -86,11 +87,11 @@ class TIDLTFLiteRTRunner(TIDLBaseRTRunner):
         return input_data
 
     def _set_tensor(self, model_input, tensor):
-        if model_input['dtype'] == np.int8:
+        if model_input['type'] == np.int8:
             # scale, zero_point = model_input['quantization']
             # tensor = np.clip(np.round(tensor/scale + zero_point), -128, 127)
             tensor = np.array(tensor, dtype=np.int8)
-        elif model_input['dtype'] == np.uint8:
+        elif model_input['type'] == np.uint8:
             # scale, zero_point = model_input['quantization']
             # tensor = np.clip(np.round(tensor/scale + zero_point), 0, 255)
             tensor = np.array(tensor, dtype=np.uint8)
@@ -99,23 +100,23 @@ class TIDLTFLiteRTRunner(TIDLBaseRTRunner):
 
     def _get_tensor(self, model_output):
         tensor = self.interpreter.get_tensor(model_output['index'])
-        if model_output['dtype'] == np.int8 or model_output['dtype']  == np.uint8:
+        if model_output['type'] == np.int8 or model_output['type']  == np.uint8:
             scale, zero_point = model_output['quantization']
             tensor = np.array(tensor, dtype=np.float32)
             tensor = (tensor - zero_point) / scale
         #
         return tensor
 
-    def get_input_details(self, *args, **kwargs):
-        return super()._get_input_details_tflite(self, self.interpreter, *args, **kwargs)
+    def get_input_details(self, interpreter, input_details=None):
+        return super()._get_input_details_tflite(interpreter, input_details)
 
-    def get_output_details(self, *args, **kwargs):
-        return super()._get_output_details_tflite(self, self.interpreter, *args, **kwargs)
+    def get_output_details(self, interpreter, output_details=None):
+        return super()._get_output_details_tflite(interpreter, output_details)
 
     def _set_default_options(self, runtime_options):
         default_options = {
-            "platform": constants.TIDL_PLATFORM,
-            "version": constants.TIDL_VERSION_STR,
+            "platform": presets.TIDL_PLATFORM,
+            "version": presets.TIDL_VERSION_STR,
             "tidl_tools_path": self.kwargs["tidl_tools_path"],
             "artifacts_folder": self.kwargs["artifacts_folder"],
             "tensor_bits": self.kwargs.get("tensor_bits", 8),

@@ -33,7 +33,7 @@ TIDL_PLATFORM = "J7"
 # TIDL version that is supported by default - however this is not the only version that is supported.
 # This version actually depends on tidl_tools that is being used - so what is populated here is just for guidance.
 TIDL_VERSION = (10,1)
-TIDL_VERSION_STR = '10.1'
+TIDL_VERSION_STR = '10.1.0'
 
 
 # target devices/socs supported.

@@ -27,7 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-from .runners.presets import *
+from .runtimes.presets import *
 
 
 # TIDL platform to be used for compilation

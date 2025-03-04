@@ -26,7 +26,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from ..runners import TIDLTVMDLRRunner
+from ..runtimes import TVMDLRRuntimeWrapper
 
 import os
 import time
@@ -37,14 +37,18 @@ from ..import utils
 from .basert_session import BaseRTSession
 
 
-class TVMDLRSession(BaseRTSession, TIDLTVMDLRRunner):
+class TVMDLRSession(BaseRTSession, TVMDLRRuntimeWrapper):
     def __init__(self, session_name=constants.SESSION_NAME_TVMDLR, **kwargs):
-        TIDLTVMDLRRunner.__init__(self)
         BaseRTSession.__init__(self, session_name=session_name, **kwargs)
+        TVMDLRRuntimeWrapper.__init__(self)
         self.kwargs['input_data_layout'] = self.kwargs.get('input_data_layout', constants.NCHW)
         self.supported_machines = (constants.TARGET_MACHINE_PC_EMULATION, constants.TARGET_MACHINE_EVM)
         target_machine = self.kwargs['target_machine']
         assert target_machine in self.supported_machines, f'invalid target_machine {target_machine}'
+
+    def start(self):
+        super().start()
+        TVMDLRRuntimeWrapper.start(self)
 
     def import_model(self, calib_data, info_dict=None):
         # prepare for actual model import
@@ -89,7 +93,7 @@ class TVMDLRSession(BaseRTSession, TIDLTVMDLRRunner):
         #
 
         start_time = time.time()
-        outputs = self.run_for_inference(input_data)
+        outputs = self.run(input_data)
         info_dict['session_invoke_time'] = (time.time() - start_time)
         self._update_output_details(outputs)
         return outputs, info_dict

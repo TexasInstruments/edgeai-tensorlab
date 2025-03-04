@@ -28,20 +28,22 @@
 
 
 from . import presets
-from .basert_runner import TIDLBaseRTRunner
+from .basert_runtime import BaseRuntimeWrapper
 
 
-class TIDLTVMDLRRunner(TIDLBaseRTRunner):
-    def prepare_for_import(self, *args, **kwargs):
+class TVMDLRRuntimeWrapper(BaseRuntimeWrapper):
+    def start(self):
         self.kwargs["runtime_options"] = self._set_default_options(self.kwargs["runtime_options"])
-        self.interpreter = self._create_interpreter(*args, is_import=True, **kwargs)
-        self.kwargs['input_details'] = self.get_input_details(self.interpreter, self.kwargs['input_details'])
-        self.kwargs['output_details'] = self.get_output_details(self.interpreter, self.kwargs['output_details'])
+
+    def prepare_for_import(self, *args, **kwargs):
+        self.is_import = True
+        self.interpreter = self._create_interpreter_for_import(*args, is_import=True, **kwargs)
+        self.kwargs['input_details'] = self.get_input_details(self.interpreter, self.kwargs.get('input_details', None))
+        self.kwargs['output_details'] = self.get_output_details(self.interpreter, self.kwargs.get('output_details', None))
         return self.interpreter
 
-    def prepare_for_infernce(self, *args, **kwargs):
-        self.kwargs["runtime_options"] = self._set_default_options(self.kwargs["runtime_options"])
-
+    def prepare_for_inference(self, *args, **kwargs):
+        self.is_import = False
         # move the import inside the function, so that dlr needs to be installed
         # only if some one wants to use it
         from dlr import DLRModel
@@ -50,22 +52,15 @@ class TIDLTVMDLRRunner(TIDLBaseRTRunner):
             return False
         #
         self.interpreter = DLRModel(artifacts_folder, 'cpu')
-
-        self.kwargs['input_details'] = self.get_input_details(self.interpreter, self.kwargs['input_details'])
-        self.kwargs['output_details'] = self.get_output_details(self.interpreter, self.kwargs['output_details'])
+        self.kwargs['input_details'] = self.get_input_details(self.interpreter, self.kwargs.get('input_details', None))
+        self.kwargs['output_details'] = self.get_output_details(self.interpreter, self.kwargs.get('output_details', None))
         return self.interpreter
 
-    def run_for_import(self, *args, **kwargs):
-        return self._run(*args, **kwargs)
-
-    def run_for_inference(self, *args, **kwargs):
-        return self._run(*args, **kwargs)
-
-    def _run(self):
+    def run(self, input_dict):
         outputs = self.interpreter.run(input_dict)
         return outputs
 
-    def _create_interpreter(self, is_import):
+    def _create_interpreter_for_import(self, is_import):
         # onnx and tvm are required only for model import
         # so import inside the function so that inference can be done without it
         from tvm import relay
@@ -194,59 +189,67 @@ class TIDLTVMDLRRunner(TIDLBaseRTRunner):
         else:
             return self.kwargs["runtime_options"].get(option, default)
 
-    def get_input_details(self):
-        model_file = self.kwargs['model_file']
-        model_file0 = model_file[0] if isinstance(model_file, (list,tuple)) else model_file
-        model_type = self.kwargs.get('model_type',None) or os.path.splitext(model_file0)[1][1:]
-        if model_type == 'onnx':
-            import onnxruntime
-            sess_options = onnxruntime.SessionOptions()
-            ep_list = ['CPUExecutionProvider']
-            interpreter = onnxruntime.InferenceSession(model_file0, providers=ep_list,
-                            provider_options=[{}], sess_options=sess_options)
-            input_details = super().get_input_details_onnx(interpreter, input_details)
-            del interpreter
-        elif model_type == 'tflite':
-            import tflite_runtime.interpreter as tflitert_interpreter
-            runtime_options_temp = copy.deepcopy(self.kwargs["runtime_options"])
-            runtime_options_temp['artifacts_folder'] = os.path.join(runtime_options_temp['artifacts_folder'], '_temp_details')
-            self.kwargs["runtime_options"]["import"] = "yes"
-            os.makedirs(runtime_options_temp['artifacts_folder'], exist_ok=True)
-            self._clear_folder(runtime_options_temp['artifacts_folder'])
-            interpreter = tflitert_interpreter.Interpreter(model_file0)
-            input_details = self.get_input_details_tflite(interpreter, input_details)
-            self._clear_folder(runtime_options_temp['artifacts_folder'], remove_base_folder=True)
-            del interpreter
-            del runtime_options_temp
-        else:
-            raise RuntimeError('input_details can be obtained for onnx and tiflite models - for others, it must be provided')
+    def get_input_details(self, dlr_interpreter, input_details=None):
+        if input_details is None:
+            model_file = self.kwargs['model_file']
+            model_file0 = model_file[0] if isinstance(model_file, (list,tuple)) else model_file
+            model_type = self.kwargs.get('model_type',None) or os.path.splitext(model_file0)[1][1:]
+            if model_type == 'onnx':
+                import onnxruntime
+                sess_options = onnxruntime.SessionOptions()
+                ep_list = ['CPUExecutionProvider']
+                interpreter = onnxruntime.InferenceSession(model_file0, providers=ep_list,
+                                provider_options=[{}], sess_options=sess_options)
+                input_details = super().get_input_details_onnx(interpreter, input_details)
+                del interpreter
+            elif model_type == 'tflite':
+                import tflite_runtime.interpreter as tflitert_interpreter
+                runtime_options_temp = copy.deepcopy(self.kwargs["runtime_options"])
+                runtime_options_temp['artifacts_folder'] = os.path.join(runtime_options_temp['artifacts_folder'], '_temp_details')
+                self.kwargs["runtime_options"]["import"] = "yes"
+                os.makedirs(runtime_options_temp['artifacts_folder'], exist_ok=True)
+                self._clear_folder(runtime_options_temp['artifacts_folder'])
+                interpreter = tflitert_interpreter.Interpreter(model_file0)
+                input_details = self.get_input_details_tflite(interpreter, input_details)
+                self._clear_folder(runtime_options_temp['artifacts_folder'], remove_base_folder=True)
+                del interpreter
+                del runtime_options_temp
+            else:
+                raise RuntimeError('input_details can be obtained for onnx and tiflite models - for others, it must be provided')
+            #
+        #
+        return input_details
 
-    def get_output_details(self):
-        model_file = self.kwargs['model_file']
-        model_file0 = model_file[0] if isinstance(model_file, (list,tuple)) else model_file
-        model_type = self.kwargs.get('model_type',None) or os.path.splitext(model_file0)[1][1:]
-        if model_type == 'onnx':
-            import onnxruntime
-            sess_options = onnxruntime.SessionOptions()
-            ep_list = ['CPUExecutionProvider']
-            interpreter = onnxruntime.InferenceSession(model_file0, providers=ep_list,
-                            provider_options=[{}], sess_options=sess_options)
-            input_details = super().get_output_details_onnx(interpreter, input_details)
-            del interpreter
-        elif model_type == 'tflite':
-            import tflite_runtime.interpreter as tflitert_interpreter
-            runtime_options_temp = copy.deepcopy(self.kwargs["runtime_options"])
-            runtime_options_temp['artifacts_folder'] = os.path.join(runtime_options_temp['artifacts_folder'], '_temp_details')
-            self.kwargs["runtime_options"]["import"] = "yes"
-            os.makedirs(runtime_options_temp['artifacts_folder'], exist_ok=True)
-            self._clear_folder(runtime_options_temp['artifacts_folder'])
-            interpreter = tflitert_interpreter.Interpreter(model_file0)
-            input_details = self.get_output_details_tflite(interpreter, input_details)
-            self._clear_folder(runtime_options_temp['artifacts_folder'], remove_base_folder=True)
-            del interpreter
-            del runtime_options_temp
-        else:
-            raise RuntimeError('output_details can be obtained for onnx and tiflite models - for others, it must be provided')
+    def get_output_details(self, dlr_interpreter, output_details=None):
+        if output_details is None:
+            model_file = self.kwargs['model_file']
+            model_file0 = model_file[0] if isinstance(model_file, (list,tuple)) else model_file
+            model_type = self.kwargs.get('model_type',None) or os.path.splitext(model_file0)[1][1:]
+            if model_type == 'onnx':
+                import onnxruntime
+                sess_options = onnxruntime.SessionOptions()
+                ep_list = ['CPUExecutionProvider']
+                interpreter = onnxruntime.InferenceSession(model_file0, providers=ep_list,
+                                provider_options=[{}], sess_options=sess_options)
+                output_details = super().get_output_details_onnx(interpreter, input_details)
+                del interpreter
+            elif model_type == 'tflite':
+                import tflite_runtime.interpreter as tflitert_interpreter
+                runtime_options_temp = copy.deepcopy(self.kwargs["runtime_options"])
+                runtime_options_temp['artifacts_folder'] = os.path.join(runtime_options_temp['artifacts_folder'], '_temp_details')
+                self.kwargs["runtime_options"]["import"] = "yes"
+                os.makedirs(runtime_options_temp['artifacts_folder'], exist_ok=True)
+                self._clear_folder(runtime_options_temp['artifacts_folder'])
+                interpreter = tflitert_interpreter.Interpreter(model_file0)
+                output_details = self.get_output_details_tflite(interpreter, input_details)
+                self._clear_folder(runtime_options_temp['artifacts_folder'], remove_base_folder=True)
+                del interpreter
+                del runtime_options_temp
+            else:
+                raise RuntimeError('output_details can be obtained for onnx and tiflite models - for others, it must be provided')
+            #
+        #
+        return output_details
 
     def _load_mxnet_model(self, model_path):
         import mxnet

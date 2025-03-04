@@ -34,17 +34,21 @@ import copy
 import struct
 import numpy as np
 
-from ..runners import TIDLTFLiteRTRunner
+from ..runtimes import TFLiteRuntimeWrapper
 from .. import constants
 from .. import utils
 from .basert_session import BaseRTSession
 
 
-class TFLiteRTSession(BaseRTSession, TIDLTFLiteRTRunner):
+class TFLiteRTSession(BaseRTSession, TFLiteRuntimeWrapper):
     def __init__(self, session_name=constants.SESSION_NAME_TFLITERT, **kwargs):
-        TIDLTFLiteRTRunner.__init__(self)
         BaseRTSession.__init__(self, session_name=session_name, **kwargs)
+        TFLiteRuntimeWrapper.__init__(self)
         self.kwargs['input_data_layout'] = self.kwargs.get('input_data_layout', constants.NHWC)
+
+    def start(self):
+        super().start()
+        TFLiteRuntimeWrapper.start(self)
 
     def import_model(self, calib_data, info_dict=None):
         super().import_model(calib_data)

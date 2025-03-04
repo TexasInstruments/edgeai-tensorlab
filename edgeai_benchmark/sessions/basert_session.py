@@ -198,9 +198,6 @@ class BaseRTSession(utils.ParamsBase):
         #
         return outputs, info_dict
 
-    def run(self, calib_data, inputs, info_dict=None):
-        raise RuntimeError('ERROR: run not implemented - import and inference must be called separately')
-
     def close_interpreter(self):
         # optional: make sure that the interpreter is freed-up after inference
         if self.force_gc and self.interpreter:

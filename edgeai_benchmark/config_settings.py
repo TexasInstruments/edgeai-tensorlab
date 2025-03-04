@@ -27,11 +27,11 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-from . import runners
+from . import runtimes
 from . import constants, datasets, sessions
 
 
-class ConfigSettings(runners.GetRuntimeOptions):
+class ConfigSettings(runtimes.GetRuntimeOptions):
     def __init__(self, input, **kwargs):
         super().__init__(input, **kwargs)
         # variable to pre-load datasets - so that it is not separately created for each config

@@ -425,7 +425,7 @@ def main(tools_version, tools_type):
 
 
 def get_arg_parser():
-    tools_version_default="10.1.4"
+    tools_version_default="10.1"
     parser = argparse.ArgumentParser()
     parser.add_argument('setup_command', type=str, default=tools_version_default)
     parser.add_argument('--tools_version', type=str, default=tools_version_default)

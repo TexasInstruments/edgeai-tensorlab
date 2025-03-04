@@ -28,41 +28,38 @@
 
 
 from . import presets
-from .basert_runner import TIDLBaseRTRunner
+from .basert_runtime import BaseRuntimeWrapper
 
 
-class TIDLONNXRTRunner(TIDLBaseRTRunner):
+class ONNXRuntimeWrapper(BaseRuntimeWrapper):
+    def start(self):
+        self.kwargs["runtime_options"] = self._set_default_options(self.kwargs["runtime_options"])
+
     def prepare_for_import(self, *args, **kwargs):
-        self.kwargs["runtime_options"] = self._set_default_options(self.kwargs["runtime_options"])
-        self.interpreter = self._create_interpreter(*args, is_import=True, **kwargs)
-        self.kwargs['input_details'] = self.get_input_details(self.interpreter, self.kwargs['input_details'])
-        self.kwargs['output_details'] = self.get_output_details(self.interpreter, self.kwargs['output_details'])
+        self.is_import = True
+        self.interpreter = self._create_interpreter(*args, is_import=self.is_import, **kwargs)
+        self.kwargs['input_details'] = self.get_input_details(self.interpreter, self.kwargs.get('input_details', None))
+        self.kwargs['output_details'] = self.get_output_details(self.interpreter, self.kwargs.get('output_details', None))
         return self.interpreter
 
-    def prepare_for_infernce(self, *args, **kwargs):
-        self.kwargs["runtime_options"] = self._set_default_options(self.kwargs["runtime_options"])
-        self.interpreter = self._create_interpreter(*args, is_import=False, **kwargs)
-        self.kwargs['input_details'] = self.get_input_details(self.interpreter, self.kwargs['input_details'])
-        self.kwargs['output_details'] = self.get_output_details(self.interpreter, self.kwargs['output_details'])
+    def prepare_for_inference(self, *args, **kwargs):
+        self.is_import = False
+        self.interpreter = self._create_interpreter(*args, is_import=self.is_import, **kwargs)
+        self.kwargs['input_details'] = self.get_input_details(self.interpreter, self.kwargs.get('input_details', None))
+        self.kwargs['output_details'] = self.get_output_details(self.interpreter, self.kwargs.get('output_details', None))
         return self.interpreter
 
-    def run_for_import(self, *args, **kwargs):
-        return self._run(*args, **kwargs)
-
-    def run_for_inference(self, *args, **kwargs):
-        return self._run(*args, **kwargs)
-
-    def _run(self, input_data, output_keys=None):
+    def run(self, input_data, output_keys=None):
         input_data = self._format_input_data(input_data)
         # output_details is not mandatory, output_keys can be None
-        output_keys = output_keys or [getattr(d_info, 'name') for d_info in self.kwargs['output_details']]
+        output_keys = output_keys or [d_info['name'] for d_info in self.kwargs['output_details']]
         # run the actual import step
         outputs = self.interpreter.run(output_keys, input_data)
         return outputs
 
     def _create_interpreter(self, is_import):
         # move the import inside the function, so that onnxruntime needs to be installed
-        # only if some one wants to use it
+        # only if someone wants to use it
         import onnxruntime
         # pass options to pybind
         if is_import:
@@ -102,13 +99,14 @@ class TIDLONNXRTRunner(TIDLBaseRTRunner):
         if not isinstance(input_data, (list,tuple)):
             input_data = (input_data, )
 
-        return {getattr(d_info, 'name'):d for d_info, d in zip(self.get_input_details(),input_data)}
+        input_details = self.kwargs['input_details']
+        return {d_info['name']:dat for d_info, dat in zip(input_details,input_data)}
 
-    def get_input_details(self, *args, **kwargs):
-        return super()._get_input_details_tflite(self, self.interpreter, *args, **kwargs)
+    def get_input_details(self, interpreter, input_details=None):
+        return super()._get_input_details_onnx(interpreter, input_details)
 
-    def get_output_details(self, *args, **kwargs):
-        return super()._get_output_details_tflite(self, self.interpreter, *args, **kwargs)
+    def get_output_details(self, interpreter, output_details=None):
+        return super()._get_output_details_onnx(interpreter, output_details)
         
     def _set_default_options(self, runtime_options):
         default_options = {
@@ -117,7 +115,7 @@ class TIDLONNXRTRunner(TIDLBaseRTRunner):
             "tidl_tools_path": self.kwargs["tidl_tools_path"],
             "artifacts_folder": self.kwargs["artifacts_folder"],
             "tensor_bits": self.kwargs.get("tensor_bits", 8),
-            "import": self.kwargs.get("import", 'no'),
+            "import": self.kwargs.get("import", 'yes'),
             # note: to add advanced options here, start it with 'advanced_options:'
             # example 'advanced_options:pre_batchnorm_fold':1
         }

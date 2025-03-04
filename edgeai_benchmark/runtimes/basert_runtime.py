@@ -27,13 +27,16 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-class TIDLBaseRTRunner:
+class BaseRuntimeWrapper:
     def __init__(self, **kwargs):
-        self.kwargs = kwargs
+        if not hasattr(self, 'kwargs'):
+            self.kwargs = kwargs
+        else:
+            self.kwargs.update(kwargs)
 
     def _get_input_details_onnx(self, interpreter, input_details=None):
-        properties = {'name':'name', 'shape':'shape', 'type':'type'}
         if input_details is None:
+            properties = {'name':'name', 'shape':'shape', 'type':'type'}
             input_details = []
             model_input_details = interpreter.get_inputs()
             for inp_d in model_input_details:
@@ -54,8 +57,8 @@ class TIDLBaseRTRunner:
         return input_details
 
     def _get_output_details_onnx(self, interpreter, output_details=None):
-        properties = {'name':'name', 'shape':'shape', 'type':'type'}
         if output_details is None:
+            properties = {'name':'name', 'shape':'shape', 'type':'type'}
             output_details = []
             model_output_details = interpreter.get_outputs()
             for oup_d in model_output_details:
@@ -75,9 +78,9 @@ class TIDLBaseRTRunner:
         #
         return output_details
 
-    def _get_input_details_tflite(self, interpreter, input_details):
-        properties = {'name':'name', 'shape':'shape', 'dtype':'type'}
+    def _get_input_details_tflite(self, interpreter, input_details=None):
         if input_details is None:
+            properties = {'name':'name', 'shape':'shape', 'dtype':'type', 'index':'index'}
             input_details = []
             model_input_details = interpreter.get_input_details()
             for inp_d in model_input_details:
@@ -97,9 +100,9 @@ class TIDLBaseRTRunner:
         #
         return input_details
 
-    def _get_output_details_tflite(self, interpreter, output_details):
-        properties = {'name':'name', 'shape':'shape', 'dtype':'type'}
+    def _get_output_details_tflite(self, interpreter, output_details=None):
         if output_details is None:
+            properties = {'name':'name', 'shape':'shape', 'dtype':'type', 'index':'index'}
             output_details = []
             model_output_details = interpreter.get_output_details()
             for oup_d in model_output_details:

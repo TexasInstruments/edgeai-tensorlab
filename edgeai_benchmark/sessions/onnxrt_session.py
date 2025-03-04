@@ -31,20 +31,21 @@ import time
 import numpy as np
 import warnings
 
-from ..runners import TIDLONNXRTRunner
+from ..runtimes import ONNXRuntimeWrapper
 from .. import utils
 from .. import constants
 from .basert_session import BaseRTSession
 
 
-class ONNXRTSession(BaseRTSession, TIDLONNXRTRunner):
+class ONNXRTSession(BaseRTSession, ONNXRuntimeWrapper):
     def __init__(self, session_name=constants.SESSION_NAME_ONNXRT, **kwargs):
-        TIDLONNXRTRunner.__init__(self)
         BaseRTSession.__init__(self, session_name=session_name, **kwargs)
+        ONNXRuntimeWrapper.__init__(self)
         self.kwargs['input_data_layout'] = self.kwargs.get('input_data_layout', constants.NCHW)
 
     def start(self):
         super().start()
+        ONNXRuntimeWrapper.start(self)
 
     def import_model(self, calib_data, info_dict=None):
         super().import_model(calib_data)

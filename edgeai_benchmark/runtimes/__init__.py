@@ -30,6 +30,6 @@ from . import attr_dict
 from . import presets
 
 from .runtime_options import *
-from .onnxrt_runner import *
-from .tflitert_runner import *
-from .tvmdlr_runner import *
+from .onnxrt_runtime import *
+from .tflitert_runtime import *
+from .tvmdlr_runtime import *
