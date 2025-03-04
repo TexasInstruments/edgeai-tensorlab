@@ -195,9 +195,8 @@ for root, dirs, files in os.walk(artifacts_dir):
         # Move the file
         shutil.move(run_log_path, run_pc_log_path)
         print(f"Moved {run_log_path} to {run_pc_log_path}")
-        break
-else:
-    print("run.log not found in any subdirectory")
+    else:
+        print(f"run.log not found in {root} subdirectory")
 
 model_list = list(set(model_list))
 if len(model_list) == 0:
