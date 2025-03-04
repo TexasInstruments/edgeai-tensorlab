@@ -242,7 +242,8 @@ class COCOKeypointDetection(DatasetBase):
                 json.dump(detections_formatted_list, det_fp)
             #
             cocoKptDet = self.coco_dataset.loadRes(detection_file)
-            cocoEval = COCOeval(self.coco_dataset, cocoKptDet, iouType='keypoints', sigmas=(np.array([.89, ]*self.num_keypoints))/10.0, use_area=False)
+            # cocoEval = COCOeval(self.coco_dataset, cocoKptDet, iouType='keypoints', sigmas=(np.array([.89, ]*self.num_keypoints))/10.0, use_area=False)
+            cocoEval = COCOeval(self.coco_dataset, cocoKptDet, iouType='keypoints')
             cocoEval.evaluate()
             cocoEval.accumulate()
             cocoEval.summarize()
