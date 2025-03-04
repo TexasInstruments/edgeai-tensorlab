@@ -30,14 +30,6 @@
 from .runtimes.presets import *
 
 
-# TIDL platform to be used for compilation
-# This also depends on the tidl_tools that is installed.
-import enum
-
-# data layout constants
-NCHW = 'NCHW'
-NHWC = 'NHWC'
-
 # pipeline type constants
 PIPELINE_UNDEFINED = None
 PIPELINE_ACCURACY = 'accuracy'
@@ -86,12 +78,6 @@ SESSION_NAME_TFLITERT = 'tflitert'
 SESSION_NAME_ONNXRT = 'onnxrt'
 SESSION_NAMES = [SESSION_NAME_ONNXRT, SESSION_NAME_TFLITERT, SESSION_NAME_TVMDLR]
 SESSION_NAMES_DICT = {SESSION_NAME_ONNXRT:'ONR', SESSION_NAME_TFLITERT:'TFL', SESSION_NAME_TVMDLR:'TVM'}
-
-
-# compilation can only be run in PC as of now, but inference can be run in both PC and EVM
-# whether running in PC/Host Emulation or really running in EVM/device:
-TARGET_MACHINE_PC_EMULATION = 'pc'
-TARGET_MACHINE_EVM = 'evm'
 
 
 class QUANTScaleType:

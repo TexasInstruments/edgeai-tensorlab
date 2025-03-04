@@ -213,8 +213,10 @@ class ImageNormMeanScale(object):
         Returns:
             Tensor: Normalized Tensor image.
         """
-        if isinstance(tensor, (list,tuple)):
+        if isinstance(tensor, list):
             tensor = [F.normalize_mean_scale(t, self.mean, self.scale, self.data_layout, self.inplace) for t in tensor]
+        elif isinstance(tensor, tuple):
+            tensor = tuple([F.normalize_mean_scale(t, self.mean, self.scale, self.data_layout, self.inplace) for t in tensor])
         elif isinstance(tensor, dict):
             tensor = {name:F.normalize_mean_scale(t, self.mean, self.scale, self.data_layout, self.inplace) for name, t in tensor.items()}
         else:
@@ -268,7 +270,6 @@ class ImageResize():
                 info_dict['resize_shape'] = img[0].size[1],  img[0].size[0], len(img[0].getbands())
             #
             info_dict['resize_border'] = border
-
         else:        
             img, border = F.resize(img, self.size, *self.args, **self.kwargs)
             if isinstance(img, np.ndarray):

@@ -47,45 +47,48 @@ class TFLiteRTSession(BaseRTSession, TFLiteRuntimeWrapper):
         self.kwargs['input_data_layout'] = self.kwargs.get('input_data_layout', constants.NHWC)
 
     def start(self):
-        super().start()
+        BaseRTSession.start(self)
         TFLiteRuntimeWrapper.start(self)
 
     def import_model(self, calib_data, info_dict=None):
-        super().import_model(calib_data)
+        BaseRTSession._prepare_for_import(self)
+        TFLiteRuntimeWrapper._prepare_for_import(self)
 
-        # create the underlying interpreter
-        self.prepare_for_import()
-
-        for frame_id, in_data in enumerate(calib_data):
-            in_data = self._format_input_data(in_data)
-            if self.input_normalizer is not None:
-                in_data, _ = self.input_normalizer(in_data, {})
+        for frame_id, input_data in enumerate(calib_data):
+            # input_data = self._format_input_data(input_data)
+            if not isinstance(input_data, tuple):
+                input_data = (input_data,)
             #
-            outputs = self.run(in_data)
+            if self.input_normalizer is not None:
+                input_data, _ = self.input_normalizer(input_data, {})
+            #
+            outputs = self.run(input_data)
             self._update_output_details(outputs)
         #
         return info_dict
 
     def start_infer(self):
-        super().start_infer()
-        # now create the interpreter for inference
-        self.prepare_for_inference()
+        BaseRTSession._prepare_for_inference(self)
+        TFLiteRuntimeWrapper._prepare_for_inference(self)
         os.chdir(self.cwd)
         return True
 
-    def infer_frame(self, input, info_dict=None):
-        super().infer_frame(input, info_dict)
+    def infer_frame(self, input_data, info_dict=None):
+        super().infer_frame(input_data, info_dict)
 
-        in_data = self._format_input_data(input)
+        # input_data = self._format_input_data(input_data)
+        if not isinstance(input_data, tuple):
+            input_data = (input_data,)
+        #
 
         if self.input_normalizer is not None:
-            in_data, _ = self.input_normalizer(in_data, {})
+            input_data, _ = self.input_normalizer(input_data, {})
         #
 
         # measure the time across only interpreter.run
         # time for setting the tensor and other overheads would be optimized out in c-api
         start_time = time.time()
-        outputs = self.run(in_data)
+        outputs = self.run(input_data)
         info_dict['session_invoke_time'] = (time.time() - start_time)
         self._update_output_details(outputs)
         return outputs, info_dict

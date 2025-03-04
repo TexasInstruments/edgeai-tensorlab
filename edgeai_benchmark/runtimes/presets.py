@@ -27,13 +27,15 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+# TIDL platform to be used for compilation
+# This also depends on the tidl_tools that is installed.
 TIDL_PLATFORM = "J7"
 
 
 # TIDL version that is supported by default - however this is not the only version that is supported.
 # This version actually depends on tidl_tools that is being used - so what is populated here is just for guidance.
 TIDL_VERSION = (10,1)
-TIDL_VERSION_STR = '10.1.0'
+TIDL_VERSION_STR = '10.1'
 
 
 # target devices/socs supported.
@@ -43,6 +45,17 @@ TARGET_DEVICE_AM67A = 'AM67A'
 TARGET_DEVICE_AM68A = 'AM68A'
 TARGET_DEVICE_AM69A = 'AM69A'
 TARGET_DEVICE_AM62 = 'AM62'
+
+
+# compilation can only be run in PC as of now, but inference can be run in both PC and EVM
+# whether running in PC/Host Emulation or really running in EVM/device:
+TARGET_MACHINE_PC_EMULATION = 'pc'
+TARGET_MACHINE_EVM = 'evm'
+
+
+# data layout constants
+NCHW = 'NCHW'
+NHWC = 'NHWC'
 
 
 CALIBRATION_ITERATIONS_FACTOR_1X = 1.0

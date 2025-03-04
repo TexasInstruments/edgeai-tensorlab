@@ -27,6 +27,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+import os
+
 from . import presets
 from .basert_runtime import BaseRuntimeWrapper
 
@@ -35,27 +37,39 @@ class ONNXRuntimeWrapper(BaseRuntimeWrapper):
     def start(self):
         self.kwargs["runtime_options"] = self._set_default_options(self.kwargs["runtime_options"])
 
-    def prepare_for_import(self, *args, **kwargs):
+    def run_import(self, input_list, output_keys=None):
+        output_list = []
+        for input_data in input_list:
+            outputs = self.run(input_data, output_keys)
+            output_list.append(outputs)
+        #
+        return output_list
+
+    def run(self, input_data, output_keys=None):
+        input_data = self._format_input_data(input_data)
+        # if model needs additional inputs given in extra_inputs
+        if self.kwargs.get('extra_inputs'):
+            input_data.update(self.kwargs['extra_inputs'])
+        #
+        # output_details is not mandatory, output_keys can be None
+        output_keys = output_keys or [d_info['name'] for d_info in self.kwargs['output_details']]
+        # run the actual import step
+        outputs = self.interpreter.run(output_keys, input_data)
+        return outputs
+
+    def _prepare_for_import(self, *args, **kwargs):
         self.is_import = True
         self.interpreter = self._create_interpreter(*args, is_import=self.is_import, **kwargs)
         self.kwargs['input_details'] = self.get_input_details(self.interpreter, self.kwargs.get('input_details', None))
         self.kwargs['output_details'] = self.get_output_details(self.interpreter, self.kwargs.get('output_details', None))
         return self.interpreter
 
-    def prepare_for_inference(self, *args, **kwargs):
+    def _prepare_for_inference(self, *args, **kwargs):
         self.is_import = False
         self.interpreter = self._create_interpreter(*args, is_import=self.is_import, **kwargs)
         self.kwargs['input_details'] = self.get_input_details(self.interpreter, self.kwargs.get('input_details', None))
         self.kwargs['output_details'] = self.get_output_details(self.interpreter, self.kwargs.get('output_details', None))
         return self.interpreter
-
-    def run(self, input_data, output_keys=None):
-        input_data = self._format_input_data(input_data)
-        # output_details is not mandatory, output_keys can be None
-        output_keys = output_keys or [d_info['name'] for d_info in self.kwargs['output_details']]
-        # run the actual import step
-        outputs = self.interpreter.run(output_keys, input_data)
-        return outputs
 
     def _create_interpreter(self, is_import):
         # move the import inside the function, so that onnxruntime needs to be installed
@@ -96,8 +110,8 @@ class ONNXRuntimeWrapper(BaseRuntimeWrapper):
         if isinstance(input_data, dict):
             return input_data
 
-        if not isinstance(input_data, (list,tuple)):
-            input_data = (input_data, )
+        if not isinstance(input_data, tuple):
+            input_data = (input_data,)
 
         input_details = self.kwargs['input_details']
         return {d_info['name']:dat for d_info, dat in zip(input_details,input_data)}

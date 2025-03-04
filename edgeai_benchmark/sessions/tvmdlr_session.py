@@ -47,47 +47,43 @@ class TVMDLRSession(BaseRTSession, TVMDLRRuntimeWrapper):
         assert target_machine in self.supported_machines, f'invalid target_machine {target_machine}'
 
     def start(self):
-        super().start()
+        BaseRTSession.start(self)
         TVMDLRRuntimeWrapper.start(self)
 
     def import_model(self, calib_data, info_dict=None):
         # prepare for actual model import
-        super().import_model(calib_data, info_dict)
+        BaseRTSession._prepare_for_import(self)
 
         calib_list = []
-        for in_data in calib_data:
-            in_data = self._format_input_data(in_data)
-            if self.input_normalizer is not None:
-                in_data, _ = self.input_normalizer(in_data, {})
+        for input_data in calib_data:
+            # input_data = self._format_input_data(input_data)
+            if not isinstance(input_data, tuple):
+                input_data = (input_data,)
             #
-            c_dict = {d_name:d for d_name, d in zip(input_keys,in_data)}
-            calib_list.append(c_dict)
+            if self.input_normalizer is not None:
+                input_data, _ = self.input_normalizer(input_data, {})
+            #
+            calib_list.append(input_data)
         #
 
-        self.prepare_for_import(calib_list)
-
-        # create a symbolic link to the deploy_lib specified in target_machine
-        artifacts_folder = self.kwargs['artifacts_folder']
-        os.chdir(artifacts_folder)
-        target_machine = self.kwargs['target_machine']
-        artifact_files = [deploy_lib, deploy_graph, deploy_params]
-        for artifact_file in artifact_files:
-            os.symlink(f'{artifact_file}.{target_machine}', artifact_file)
-        #
+        TVMDLRRuntimeWrapper._prepare_for_import(self, calib_list)
         os.chdir(self.cwd)
         return info_dict
 
     def start_infer(self):
-        super().start_infer()
-        # create inference model
-        self.prepare_for_inference()
+        BaseRTSession._prepare_for_inference(self)
+        TVMDLRRuntimeWrapper._prepare_for_inference(self)
         os.chdir(self.cwd)
         return True
 
     def infer_frame(self, input_data, info_dict=None):
-        super().infer_frame(input, info_dict)
+        super().infer_frame(input_data, info_dict)
 
-        input_data = self._format_input_data(input_data)
+        # input_data = self._format_input_data(input_data)
+        if not isinstance(input_data, tuple):
+            input_data = (input_data,)
+        #
+
         if self.input_normalizer is not None:
             input_data, _ = self.input_normalizer(input_data, {})
         #

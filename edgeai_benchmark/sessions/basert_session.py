@@ -152,7 +152,7 @@ class BaseRTSession(utils.ParamsBase):
         # set the flag
         self.is_started = True
 
-    def import_model(self, calib_data, info_dict=None):
+    def _prepare_for_import(self):
         if not self.is_initialized:
             self.initialize()
         #
@@ -164,7 +164,7 @@ class BaseRTSession(utils.ParamsBase):
         self.clear()
         self.is_imported = True
 
-    def start_infer(self):
+    def _prepare_for_inference(self):
         artifacts_folder = self.kwargs['artifacts_folder']
         artifacts_folder_missing = not os.path.exists(artifacts_folder)
         if artifacts_folder_missing:
@@ -246,6 +246,9 @@ class BaseRTSession(utils.ParamsBase):
         return constants.SESSION_NAMES_DICT[session_name]
 
     def _update_output_details(self, outputs):
+        if outputs is None:
+            return
+        #
         output_details = self.kwargs['output_details']
         for (output, output_detail) in zip(outputs, output_details):
             output_shape = list(output.shape)

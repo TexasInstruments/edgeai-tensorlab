@@ -27,6 +27,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+import os
+
 from . import presets
 from .basert_runtime import BaseRuntimeWrapper
 
@@ -35,32 +37,46 @@ class TVMDLRRuntimeWrapper(BaseRuntimeWrapper):
     def start(self):
         self.kwargs["runtime_options"] = self._set_default_options(self.kwargs["runtime_options"])
 
-    def prepare_for_import(self, *args, **kwargs):
+    def run_import(self, input_list, output_keys=None):
+        output_list = None
+        self._prepare_for_import(input_list)
+        return output_list
+
+    def run(self, input_data, output_keys=None):
+        input_data = self._format_input_data(input_data)
+        # if model needs additional inputs given in extra_inputs
+        if self.kwargs.get('extra_inputs'):
+            input_data.update(self.kwargs['extra_inputs'])
+        #
+        outputs = self.interpreter.run(input_data)
+        return outputs
+
+    def _prepare_for_import(self, calib_list, *args, **kwargs):
         self.is_import = True
-        self.interpreter = self._create_interpreter_for_import(*args, is_import=True, **kwargs)
-        self.kwargs['input_details'] = self.get_input_details(self.interpreter, self.kwargs.get('input_details', None))
-        self.kwargs['output_details'] = self.get_output_details(self.interpreter, self.kwargs.get('output_details', None))
+        # tvm/dlr requires input shape in prepare_for_import - so moved this ahead
+        self.kwargs['input_details'] = self.get_input_details(None, self.kwargs.get('input_details', None))
+        self.kwargs['output_details'] = self.get_output_details(None, self.kwargs.get('output_details', None))
+        #_format_input_data was not called yet, as shapes were not available - call it here:
+        for in_idx, input_data in enumerate(calib_list):
+            calib_list[in_idx] = self._format_input_data(input_data)
+        #
+        self.interpreter = self._create_interpreter_for_import(calib_list, *args, **kwargs)
         return self.interpreter
 
-    def prepare_for_inference(self, *args, **kwargs):
+    def _prepare_for_inference(self, *args, **kwargs):
         self.is_import = False
-        # move the import inside the function, so that dlr needs to be installed
-        # only if some one wants to use it
+        self.kwargs['input_details'] = self.get_input_details(None, self.kwargs.get('input_details', None))
+        self.kwargs['output_details'] = self.get_output_details(None, self.kwargs.get('output_details', None))
+        # moved the import inside the function, so that dlr needs to be installed only if someone wants to use it
         from dlr import DLRModel
         artifacts_folder = self.kwargs['artifacts_folder']
         if not os.path.exists(artifacts_folder):
             return False
         #
         self.interpreter = DLRModel(artifacts_folder, 'cpu')
-        self.kwargs['input_details'] = self.get_input_details(self.interpreter, self.kwargs.get('input_details', None))
-        self.kwargs['output_details'] = self.get_output_details(self.interpreter, self.kwargs.get('output_details', None))
         return self.interpreter
 
-    def run(self, input_dict):
-        outputs = self.interpreter.run(input_dict)
-        return outputs
-
-    def _create_interpreter_for_import(self, is_import):
+    def _create_interpreter_for_import(self, calib_list):
         # onnx and tvm are required only for model import
         # so import inside the function so that inference can be done without it
         from tvm import relay
@@ -107,10 +123,10 @@ class TVMDLRRuntimeWrapper(BaseRuntimeWrapper):
         deploy_params = 'deploy_params.params'
 
         for target_machine in self.supported_machines:
-            if target_machine == constants.TARGET_MACHINE_EVM:
+            if target_machine == presets.TARGET_MACHINE_EVM:
                 build_target = 'llvm -device=arm_cpu -mtriple=aarch64-linux-gnu'
                 cross_cc_args = {'cc' : os.path.join(os.environ['ARM64_GCC_PATH'], 'bin', 'aarch64-none-linux-gnu-gcc')}
-            elif target_machine == constants.TARGET_MACHINE_PC_EMULATION:
+            elif target_machine == presets.TARGET_MACHINE_PC_EMULATION:
                 build_target = 'llvm'
                 cross_cc_args = {}
             else:
@@ -137,25 +153,35 @@ class TVMDLRRuntimeWrapper(BaseRuntimeWrapper):
                 fo.write(relay.save_param_dict(params))
             #
         #
+        # create a symbolic link to the deploy_lib specified in target_machine
+        artifacts_folder = self.kwargs['artifacts_folder']
+        target_machine = self.kwargs['target_machine']
+        cwd = os.getcwd()
+        os.chdir(artifacts_folder)
+        artifact_files = [deploy_lib, deploy_graph, deploy_params]
+        for artifact_file in artifact_files:
+            os.symlink(f'{artifact_file}.{target_machine}', artifact_file)
+        #
+        os.chdir(cwd)
 
     def _format_input_data(self, input_data):
         if isinstance(input_data, dict):
             return input_data
 
-        input_data = input_data if isinstance(input_data, (list,tuple)) else (input_data,)
+        if not isinstance(input_data, tuple):
+            input_data = (input_data,)
 
         input_details = self.kwargs['input_details']
         input_shape = {inp_d['name']:inp_d['shape'] for inp_d in input_details}
         input_keys = list(input_shape.keys())
-        input_dict = {d_name:d for d_name, d in zip(input_keys,input_data)}
-        return input_dict
+        input_data = {d_name:d for d_name, d in zip(input_keys,input_data)}
+        return input_data
 
-    def _set_default_options(self):
-        runtime_options = self.kwargs.get("runtime_options", {})
+    def _set_default_options(self, runtime_options):
         default_options = {
-            'platform':self.kwargs.get('platform', constants.TIDL_PLATFORM),
-            'version':self.kwargs.get('version', constants.TIDL_VERSION),
-            'data_layout':self.kwargs.get('data_layout', constants.NCHW),
+            'platform':self.kwargs.get('platform', presets.TIDL_PLATFORM),
+            'version':self.kwargs.get('version', presets.TIDL_VERSION),
+            'data_layout':self.kwargs.get('data_layout', presets.NCHW),
             "tidl_tools_path": self.kwargs["tidl_tools_path"],
             "artifacts_folder": self.kwargs["artifacts_folder"],
             'tensor_bits':self.kwargs.get('tensor_bits', 8),
@@ -171,7 +197,7 @@ class TVMDLRRuntimeWrapper(BaseRuntimeWrapper):
                             if k.startswith(advanced_options_prefix)}
         default_options = {k:v for k,v in default_options.items() if not k.startswith(advanced_options_prefix)}
         default_options.update(dict(advanced_options=advanced_options))
-        self.kwargs["runtime_options"] = default_options
+        return default_options
 
     def set_runtime_option(self, option, value):
         advanced_options_prefix = 'advanced_options:'
@@ -200,7 +226,7 @@ class TVMDLRRuntimeWrapper(BaseRuntimeWrapper):
                 ep_list = ['CPUExecutionProvider']
                 interpreter = onnxruntime.InferenceSession(model_file0, providers=ep_list,
                                 provider_options=[{}], sess_options=sess_options)
-                input_details = super().get_input_details_onnx(interpreter, input_details)
+                input_details = super()._get_input_details_onnx(interpreter, input_details)
                 del interpreter
             elif model_type == 'tflite':
                 import tflite_runtime.interpreter as tflitert_interpreter
@@ -210,7 +236,7 @@ class TVMDLRRuntimeWrapper(BaseRuntimeWrapper):
                 os.makedirs(runtime_options_temp['artifacts_folder'], exist_ok=True)
                 self._clear_folder(runtime_options_temp['artifacts_folder'])
                 interpreter = tflitert_interpreter.Interpreter(model_file0)
-                input_details = self.get_input_details_tflite(interpreter, input_details)
+                input_details = self._get_input_details_tflite(interpreter, input_details)
                 self._clear_folder(runtime_options_temp['artifacts_folder'], remove_base_folder=True)
                 del interpreter
                 del runtime_options_temp
@@ -231,7 +257,7 @@ class TVMDLRRuntimeWrapper(BaseRuntimeWrapper):
                 ep_list = ['CPUExecutionProvider']
                 interpreter = onnxruntime.InferenceSession(model_file0, providers=ep_list,
                                 provider_options=[{}], sess_options=sess_options)
-                output_details = super().get_output_details_onnx(interpreter, input_details)
+                output_details = super()._get_output_details_onnx(interpreter, output_details)
                 del interpreter
             elif model_type == 'tflite':
                 import tflite_runtime.interpreter as tflitert_interpreter
@@ -241,7 +267,7 @@ class TVMDLRRuntimeWrapper(BaseRuntimeWrapper):
                 os.makedirs(runtime_options_temp['artifacts_folder'], exist_ok=True)
                 self._clear_folder(runtime_options_temp['artifacts_folder'])
                 interpreter = tflitert_interpreter.Interpreter(model_file0)
-                output_details = self.get_output_details_tflite(interpreter, input_details)
+                output_details = self._get_output_details_tflite(interpreter, output_details)
                 self._clear_folder(runtime_options_temp['artifacts_folder'], remove_base_folder=True)
                 del interpreter
                 del runtime_options_temp

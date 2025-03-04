@@ -44,28 +44,24 @@ class ONNXRTSession(BaseRTSession, ONNXRuntimeWrapper):
         self.kwargs['input_data_layout'] = self.kwargs.get('input_data_layout', constants.NCHW)
 
     def start(self):
-        super().start()
+        BaseRTSession.start(self)
         ONNXRuntimeWrapper.start(self)
 
     def import_model(self, calib_data, info_dict=None):
-        super().import_model(calib_data)
-
-        # create the underlying interpreter
-        self.prepare_for_import()
+        BaseRTSession._prepare_for_import(self)
+        ONNXRuntimeWrapper._prepare_for_import(self)
 
         # provide the calibration data and run the import
-        for frame_idx, in_data in enumerate(calib_data):
-            calib_dict = self._format_input_data(in_data)
-
+        for frame_idx, input_data in enumerate(calib_data):
+            # input_data = self._format_input_data(input_data)
+            if not isinstance(input_data, tuple):
+                input_data = (input_data,)
+            #
             if self.input_normalizer is not None:
-                calib_dict, _ = self.input_normalizer(calib_dict, {})
-            
-            # model may need additional inputs given in extra_inputs
-            if self.kwargs['extra_inputs'] is not None:
-                calib_dict.update(self.kwargs['extra_inputs'])
-
+                input_data, _ = self.input_normalizer(input_data, {})
+            #
             # run the actual import step
-            outputs = self.run(calib_dict)
+            outputs = self.run(input_data)
             self._update_output_details(outputs)
         #
 
@@ -73,28 +69,25 @@ class ONNXRTSession(BaseRTSession, ONNXRuntimeWrapper):
         return info_dict
 
     def start_infer(self):
-        super().start_infer()
-        # create the underlying interpreter
-        self.prepare_for_inference()
+        BaseRTSession._prepare_for_inference(self)
+        ONNXRuntimeWrapper._prepare_for_inference(self)
         os.chdir(self.cwd)
         return True
 
-    def infer_frame(self, input, info_dict=None):
-        super().infer_frame(input, info_dict)
+    def infer_frame(self, input_data, info_dict=None):
+        super().infer_frame(input_data, info_dict)
 
-        input_dict = self._format_input_data(input)
+        # input_data = self._format_input_data(input_data)
+        if not isinstance(input_data, tuple):
+            input_data = (input_data,)
+        #
 
         if self.input_normalizer is not None:
-            input_dict, _ = self.input_normalizer(input_dict, {})
-
-        # model needs additional inputs given in extra_inputs
-        if self.kwargs['extra_inputs'] is not None:
-            input_dict.update(self.kwargs['extra_inputs'])
-        #
+            input_data, _ = self.input_normalizer(input_data, {})
 
         # run the actual inference
         start_time = time.time()
-        outputs = self.run(input_dict)
+        outputs = self.run(input_data)
         info_dict['session_invoke_time'] = (time.time() - start_time)
         self._update_output_details(outputs)
 

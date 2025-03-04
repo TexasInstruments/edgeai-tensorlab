@@ -26,7 +26,9 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import os
 import numpy as np
+import copy
 
 from . import presets
 from .basert_runtime import BaseRuntimeWrapper
@@ -36,22 +38,20 @@ class TFLiteRuntimeWrapper(BaseRuntimeWrapper):
     def start(self):
         self.kwargs["runtime_options"] = self._set_default_options(self.kwargs["runtime_options"])
 
-    def prepare_for_import(self, *args, **kwargs):
-        self.is_import = True
-        self.interpreter = self._create_interpreter(*args, is_import=True, **kwargs)
-        self.kwargs['input_details'] = self.get_input_details(self.interpreter, self.kwargs.get('input_details', None))
-        self.kwargs['output_details'] = self.get_output_details(self.interpreter, self.kwargs.get('output_details', None))
-        return self.interpreter
+    def run_import(self, input_list, output_keys=None):
+        output_list = []
+        for input_data in input_list:
+            outputs = self.run(input_data, output_keys)
+            output_list.append(outputs)
+        #
+        return output_list
 
-    def prepare_for_inference(self, *args, **kwargs):
-        self.is_import = False
-        self.interpreter = self._create_interpreter(*args, is_import=False, **kwargs)
-        self.kwargs['input_details'] = self.get_input_details(self.interpreter, self.kwargs.get('input_details', None))
-        self.kwargs['output_details'] = self.get_output_details(self.interpreter, self.kwargs.get('output_details', None))
-        return self.interpreter
-
-    def run(self, input_data):
+    def run(self, input_data, output_keys=None):
         input_data = self._format_input_data(input_data)
+        # if model needs additional inputs given in extra_inputs
+        if self.kwargs.get('extra_inputs'):
+            input_data.update(self.kwargs['extra_inputs'])
+        #
         input_details = self.kwargs['input_details']
         output_details = self.kwargs['output_details']
         for (input_detail, c_data_entry) in zip(input_details, input_data):
@@ -60,6 +60,20 @@ class TFLiteRuntimeWrapper(BaseRuntimeWrapper):
         self.interpreter.invoke()
         outputs = [self._get_tensor(output_detail) for output_detail in output_details]
         return outputs
+
+    def _prepare_for_import(self, *args, **kwargs):
+        self.is_import = True
+        self.interpreter = self._create_interpreter(*args, is_import=True, **kwargs)
+        self.kwargs['input_details'] = self.get_input_details(self.interpreter, self.kwargs.get('input_details', None))
+        self.kwargs['output_details'] = self.get_output_details(self.interpreter, self.kwargs.get('output_details', None))
+        return self.interpreter
+
+    def _prepare_for_inference(self, *args, **kwargs):
+        self.is_import = False
+        self.interpreter = self._create_interpreter(*args, is_import=False, **kwargs)
+        self.kwargs['input_details'] = self.get_input_details(self.interpreter, self.kwargs.get('input_details', None))
+        self.kwargs['output_details'] = self.get_output_details(self.interpreter, self.kwargs.get('output_details', None))
+        return self.interpreter
 
     def _create_interpreter(self, is_import):
         # move the import inside the function, so that tflite_runtime needs to be installed
@@ -81,8 +95,8 @@ class TFLiteRuntimeWrapper(BaseRuntimeWrapper):
         return interpreter
 
     def _format_input_data(self, input_data):
-        if not isinstance(input_data, (list,tuple)):
-            input_data = (input_data, )
+        if not isinstance(input_data, tuple):
+            input_data = (input_data,)
 
         return input_data
 
