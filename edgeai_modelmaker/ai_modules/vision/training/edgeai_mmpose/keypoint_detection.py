@@ -59,7 +59,7 @@ model_urls = {
     ],
     'yoloxpose_s_lite': [
         {
-            'download_url': f'../edgeai-modelzoo/models/vision/keypoint/coco/edgeai-mmpose/yoloxpose_s_lite_coco-640x640_20250119_checkpoint.pth',
+            'download_url': f'{www_modelzoo_path}/models/vision/keypoint/coco/edgeai-mmpose/yoloxpose_s_lite_coco-640x640_20250119_checkpoint.pth',
             'download_path': os.path.join('{download_path}', 'pretrained', 'yoloxpose_s_lite')
         },
     ],
@@ -219,8 +219,8 @@ class ModelTraining:
             'proc_error':[]
         }]
         task_entries = {self.params.training.model_name:task_list}
-        parallel_processes = (1 if self.params.compilation.capture_log else 0)
-        process_runner = edgeai_benchmark.utils.ProcessRunner(parallel_processes=parallel_processes)
+        parallel_processes = (1 if self.params.compilation.log_file else 0)
+        process_runner = edgeai_benchmark.utils.ParallelRunner(parallel_processes=parallel_processes)
         process_runner.run(task_entries)
         return self.params
 		
