@@ -1,18 +1,17 @@
-From 147fb2e6d9faa34b11ae608ead4effca5f7bb47f Mon Sep 17 00:00:00 2001
-From: Manu Mathew <a0393608@udtensorlab5>
-Date: Tue, 5 Apr 2022 14:38:06 +0530
-Subject: [PATCH 1/4] dataset_type_dict: for imagenet, imagenetv2c is used (as
- it is easy to download)
+From 35fe8e7b01f0e5088277abf33c66394ccdda9b42 Mon Sep 17 00:00:00 2001
+From: Manu <a0393608@udtensorlab9>
+Date: Wed, 5 Mar 2025 16:49:00 +0530
+Subject: [PATCH] dataset_type_dict for imagenet imagenetv2c
 
 ---
  settings_base.yaml | 5 +++++
  1 file changed, 5 insertions(+)
 
 diff --git a/settings_base.yaml b/settings_base.yaml
-index 3877ae3..a9934d1 100644
+index 2d83571..52f02ee 100644
 --- a/settings_base.yaml
 +++ b/settings_base.yaml
-@@ -112,3 +112,8 @@ target_device_preset : True
+@@ -116,3 +116,8 @@ additional_models : False
  
  # enable use of experimental models - these model files may not be available in modelzoo in some cases
  experimental_models : False
