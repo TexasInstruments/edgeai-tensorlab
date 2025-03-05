@@ -75,7 +75,7 @@ numpy==1.23.0
 #nvidia-nvtx-cu11==11.8.86
 oauthlib==3.2.2
 onnx==1.14.0
-onnx-graphsurgeon==0.3.26
+#onnx-graphsurgeon==0.3.26
 onnxruntime-tidl==1.15.0
 onnxscript==0.1.0
 onnxsim==0.4.35
