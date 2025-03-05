@@ -83,7 +83,7 @@ settings = edgeai_benchmark.config_settings.CustomConfigSettings('./settings_imp
 dataset_name='imagenetv2c'
 if not os.path.exists(f'{settings.datasets_path}/{dataset_name}'):
     print(f'INFO: downloading the dataset - {dataset_name}')
-    interfaces.run_download_dataset(settings, dataset_name=dataset_name)
+    edgeai_benchmark.interfaces.run_download_dataset(settings, dataset_name=dataset_name)
 else:
     print(f'INFO: dataset exists, will reuse - {dataset_name}')
 #
