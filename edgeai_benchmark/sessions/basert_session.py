@@ -149,14 +149,10 @@ class BaseRTSession(utils.ParamsBase):
         # download or copy the model and add any optimizations required
         self.get_model()
 
-        # _set_default_options requires to know the artifacts_folder
-        # that's why this is not done in the constructor
-        self._set_default_options()
-
         # set the flag
         self.is_started = True
 
-    def import_model(self, calib_data, info_dict=None):
+    def _prepare_for_import(self):
         if not self.is_initialized:
             self.initialize()
         #
@@ -168,7 +164,7 @@ class BaseRTSession(utils.ParamsBase):
         self.clear()
         self.is_imported = True
 
-    def start_infer(self):
+    def _prepare_for_inference(self):
         artifacts_folder = self.kwargs['artifacts_folder']
         artifacts_folder_missing = not os.path.exists(artifacts_folder)
         if artifacts_folder_missing:
@@ -200,16 +196,6 @@ class BaseRTSession(utils.ParamsBase):
             output, info_dict = self.infer_frame(input, info_dict)
             outputs.append(output)
         #
-        return outputs, info_dict
-
-    def run(self, calib_data, inputs, info_dict=None):
-        # import / compile the model
-        info_dict = self.import_model(calib_data, info_dict)
-        # inference
-        outputs, info_dict = self.infer_frames(inputs, info_dict)
-        infer_stats_dict = self.infer_stats()
-        info_dict.update(infer_stats_dict)
-        # return
         return outputs, info_dict
 
     def close_interpreter(self):
@@ -245,9 +231,9 @@ class BaseRTSession(utils.ParamsBase):
         #
         try:
             perfsim_stats = self._infer_perfsim_stats()
-            stats.update(perfsim_stats)
-        except:
-            pass
+            stats_dict.update(perfsim_stats)
+        except Exception as e:
+            print(f'WARNING: perfsim stats could not be obtained: {e}')
         #
         return stats_dict
 
@@ -259,89 +245,10 @@ class BaseRTSession(utils.ParamsBase):
         session_name = self.get_session_name()
         return constants.SESSION_NAMES_DICT[session_name]
 
-    def _get_input_output_details_tflite(self, interpreter):
-        properties = {'name':'name', 'shape':'shape', 'dtype':'type'}
-        if self.kwargs['input_details'] is None:
-            input_details = []
-            model_input_details = interpreter.get_input_details()
-            for inp_d in model_input_details:
-                inp_dict = {}
-                for p_key, p_val in properties.items():
-                    inp_d_val = inp_d[p_key]
-                    if p_key == 'dtype':
-                        inp_d_val = str(inp_d_val)
-                    #
-                    if p_key == 'shape':
-                        inp_d_val = [int(val) for val in inp_d_val]
-                    #
-                    inp_dict[p_val] = inp_d_val
-                #
-                input_details.append(inp_dict)
-            #
-            self.kwargs['input_details'] = input_details
-        #
-        if self.kwargs['output_details'] is None:
-            output_details = []
-            model_output_details = interpreter.get_output_details()
-            for oup_d in model_output_details:
-                oup_dict = {}
-                for p_key, p_val in properties.items():
-                    oup_d_val = oup_d[p_key]
-                    if p_key == 'dtype':
-                        oup_d_val = str(oup_d_val)
-                    #
-                    if p_key == 'shape':
-                        oup_d_val = [int(val) for val in oup_d_val]
-                    #
-                    oup_dict[p_val] = oup_d_val
-                #
-                output_details.append(oup_dict)
-            #
-            self.kwargs['output_details'] = output_details
-        #
-
-    def _get_input_output_details_onnx(self, interpreter):
-        properties = {'name':'name', 'shape':'shape', 'type':'type'}
-        if self.kwargs['input_details'] is None:
-            input_details = []
-            model_input_details = interpreter.get_inputs()
-            for inp_d in model_input_details:
-                inp_dict = {}
-                for p_key, p_val in properties.items():
-                    inp_d_val = getattr(inp_d, p_key)
-                    if p_key == 'type':
-                        inp_d_val = str(inp_d_val)
-                    #
-                    if p_key == 'shape':
-                        inp_d_val = list(inp_d_val)
-                    #
-                    inp_dict[p_val] = inp_d_val
-                #
-                input_details.append(inp_dict)
-            #
-            self.kwargs['input_details'] = input_details
-        #
-        if self.kwargs['output_details'] is None:
-            output_details = []
-            model_output_details = interpreter.get_outputs()
-            for oup_d in model_output_details:
-                oup_dict = {}
-                for p_key, p_val in properties.items():
-                    oup_d_val = getattr(oup_d, p_key)
-                    if p_key == 'type':
-                        oup_d_val = str(oup_d_val)
-                    #
-                    if p_key == 'shape':
-                        oup_d_val = list(oup_d_val)
-                    #
-                    oup_dict[p_val] = oup_d_val
-                #
-                output_details.append(oup_dict)
-            #
-            self.kwargs['output_details'] = output_details
-        #
-
     def _update_output_details(self, outputs):
+        if outputs is None:
+            return
+        #
         output_details = self.kwargs['output_details']
         for (output, output_detail) in zip(outputs, output_details):
             output_shape = list(output.shape)
@@ -693,9 +600,6 @@ class BaseRTSession(utils.ParamsBase):
         with open(filename, 'w') as fp:
             fp.write('\n'.join(lines))
         #
-
-    def _set_default_options(self):
-        assert False, 'this function must be overridden in the derived class'
 
     def clear(self):
         # make sure that the artifacts_folder is cleanedup

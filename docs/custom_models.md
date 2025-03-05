@@ -1,11 +1,25 @@
 # Compile custom models
 Note: Please read the [main documentation](../README.md) and also follow the [setup instructions](./setup_instructions.md) before attempting to compile custom models.
 
-The following Jupyter Notebooks shows how to compile a custom model: **[tutorials/tutorial_classification.ipynb](../tutorials/tutorial_classification.ipynb)**, **[tutorials/tutorial_detection.ipynb](../tutorials/tutorial_detection.ipynb)**. These Jupyter Notebooks can be invoked by running [run_tutorials_pc.sh](../run_tutorials_pc.sh)
+## Tutorials
+The following Jupyter Notebooks shows how to compile a custom model: 
+- **[tutorials/tutorial_classification.ipynb](../tutorials/tutorial_classification.ipynb)**
+- **[tutorials/tutorial_detection.ipynb](../tutorials/tutorial_detection.ipynb)**
+
+These Jupyter Notebooks can be invoked by running [run_tutorials_notebook_pc.sh](../run_tutorials_notebook_pc.sh)
+
 ```
-run_tutorials_pc.sh <SOC>
+run_tutorials_notebook_pc.sh <SOC>
 ```
 
+Or it can be run as a script by selecting the appropriate .py file in the following .sh script file and running it.
+
+```
+run_tutorials_script_pc.sh <SOC>
+```
+
+
+## Custom model examples
 The following script can be modified to run custom model compilation from command line: **[scripts/benchmark_custom.py](../scripts/benchmark_custom.py)**. This can be invoked by running [run_custom_pc.sh](../run_custom_pc.sh).
 ```
 run_custom_pc.sh <SOC>

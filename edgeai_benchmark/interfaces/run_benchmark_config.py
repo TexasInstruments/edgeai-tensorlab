@@ -31,7 +31,7 @@ import sys
 import argparse
 import functools
 
-from .. import utils, pipelines, config_settings, datasets, constants
+from .. import core, utils, pipelines, config_settings, datasets, constants
 from .get_configs import *
 
 __all__ = ['run_benchmark_config']
@@ -56,7 +56,7 @@ def run_benchmark_config_one_model_parallel(settings, entry_idx, proc_name, proc
         parallel_device = parallel_devices[entry_idx%num_devices]
         os.environ['CUDA_VISIBLE_DEVICES'] = str(parallel_device)
     #
-    proc = utils.ProcessWtihQueue(name=proc_name, target=proc_func, log_file=proc_log)
+    proc = utils.ProcessWithQueue(name=proc_name, target=proc_func, log_file=proc_log)
     proc.start()
     return proc
 

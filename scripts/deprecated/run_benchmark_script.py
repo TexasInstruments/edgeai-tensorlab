@@ -81,7 +81,9 @@ def run_benchmark_script_one_model(settings_file, entry_idx, cmd_kwargs, paralle
     os.makedirs(os.path.dirname(log_filename), exist_ok=True)
 
     if parallel_processes:
-        proc = subprocess.Popen(command)
+        with open(log_filename, 'a') as log_fp:
+            proc = subprocess.Popen(command, stdout=log_fp, stderr=log_fp)
+        #
     else:
         os.system(' '.join(command))
         proc = None

@@ -31,10 +31,10 @@ import yaml
 import re
 import copy
 
-from . import utils
+from . import attr_dict
 
 
-class ConfigDict(utils.AttrDict):
+class ConfigDict(attr_dict.AttrDict):
     def __init__(self, input=None, **kwargs):
         super().__init__()
 
@@ -250,7 +250,7 @@ class ConfigDict(utils.AttrDict):
 
     def _parse_include_files(self, include_files, include_base_path):
         input_dict = {}
-        include_files = utils.as_list(include_files)
+        include_files = include_files if isinstance(include_files, (list,tuple)) else include_files
         for include_file in include_files:
             append_base = not (include_file.startswith('/') and include_file.startswith('./'))
             include_file = os.path.join(include_base_path, include_file) if append_base else include_file

@@ -19,6 +19,18 @@ It uses parallel processing to compile multiple models in parallel and is especi
 
 **Model compilation can be run only on PC. The EVM/device does not support model compilation. However, the inference of a compiled model can be run on PC or on device.**
 
+
+## Firmware update
+Versions of tidl_tools released after an SDK release may come with improvements that may not be compatible - so those improvements are not enabled by default. In order to compile models with those improvements, another script is provided. Run using:
+```
+run_benchmarks_firmware_update_pc.sh <SOC>
+```
+
+But such models may require the SDK firmware to be updated - otherwise those compiled models may not run on EVM. See more details of compatibility in: 
+- [version compatibility table](https://github.com/TexasInstruments/edgeai-tidl-tools/blob/master/docs/version_compatibility_table.md)
+- [how to update the firmware](https://github.com/TexasInstruments/edgeai-tidl-tools/blob/master/docs/update_target.md)
+
+
 ## Compiling models in the Model Zoo
 * modelartifacts_path* in the [settings_base.yaml](../settings_base.yaml) file indicates the location where the artifacts are generated or expected. It currently points to work_dirs/modelartifacts/<SOC>/
 * Each model needs a set of side information for compilation. The [configs module](../configs) in this repository by default to understand this information. 
@@ -26,7 +38,7 @@ It uses parallel processing to compile multiple models in parallel and is especi
 
 
 ## Running inference / benchmark on *PC* using pre-compiled model artifacts
-* For the models in the Model Zoo, we provide (links to) pre-compiled artifacts in edgeai-modelzoo/modelartifacts. If you would like to use these pre-compiled compiled artifacts and only do inference, then you can create a symbolic link called modelartifacts to edgeai-modelzoo/modelartifacts under ./work_dirs of this repository (remove the modelartifacts folder under ./work_dirs before that).
+* For the models in the Model Zoo, links to pre-compiled artifacts may be provided in edgeai-modelzoo/modelartifacts. If you would like to use these pre-compiled compiled artifacts and only do inference, then create a symbolic link called modelartifacts to edgeai-modelzoo/modelartifacts under ./work_dirs of this repository (remove the modelartifacts folder under ./work_dirs before that).
 * While running this script, compilation of models in the model zoo will be performed as the first step before the inference. But if the pre-compiled model artifacts are present, model compilation will be skipped. 
 * param.yaml file present in each model artifacts folder indicates that the model compilation is complete.
 * **result.yaml file, if present in each model artifacts folder indicates that the model inference is complete. If result.yaml is present, inference is also skipped. Manually delete result.yaml if it is present (i.e. if you have done it once already) to do the inference - otherwise, the script will merely print the result information from result.yaml.**

@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # Copyright (c) 2018-2021, Texas Instruments
 # All Rights Reserved.
 #
@@ -26,23 +28,32 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+##################################################################
+# target_device - use one of: TDA4VM AM62A AM68A AM69A AM67A AM62
+TARGET_SOC=${1-AM68A}
 
-from .config_utils import *
+# leave this as pc - no change needed
+# pc: for model compilation and inference on PC, evm: for model inference on EVM
+# after compilation, run_package_artifacts_evm.sh can be used to format and package the compiled artifacts for evm
+TARGET_MACHINE=pc
 
-from .download_utils import *
-from .file_utils import *
-from .logger_utils import *
-from .environ_utils import *
-from .timer_utils import *
-from .metric_utils import *
-from .progress_step import *
-from .transforms_utils import *
-from .onnx_utils import *
-from .model_utils import *
-from .import_utils import *
 
-from .process_with_queue import *
-from .parallel_runner import *
-from .sequential_runner import *
+echo "TARGET_SOC:     ${TARGET_SOC}"
 
-from .artifacts_id_to_model_name import *
+
+##################################################################
+# set environment variables
+# also point to the right type of artifacts (pc or evm)
+source ./run_set_env.sh ${TARGET_SOC} ${TARGET_MACHINE}
+
+# in addition to the above environment settings, these scripts also look for the TARGET_SOC environemt variable
+# so set that while calling these scripts
+export TARGET_SOC=${TARGET_SOC}
+
+# run the high level benchmark script
+python3 ./tutorials/tutorial_classification.py
+# python3 ./tutorials/tutorial_detection.py
+
+# run the core runtime directly using edgeai_benchmark.core
+# python3 ./tutorials/tutorial_basic.py
+
