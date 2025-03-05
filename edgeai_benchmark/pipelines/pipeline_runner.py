@@ -32,7 +32,6 @@ import itertools
 import warnings
 import copy
 import traceback
-import wurlitzer
 
 from .. import utils
 from .. import datasets
@@ -174,6 +173,15 @@ class PipelineRunner():
         #
         return pipelines_final
 
+    def _get_log_file(self, pipeline_config):
+        if self.settings.log_file:
+            log_filename = self.settings.log_file if isinstance(self.settings.log_file, str) else 'run.log'
+            log_file = os.path.join(pipeline_config['session'].get_param('run_dir'), log_filename)
+        else:
+            log_file = None
+        #
+        return log_file
+
     def get_tasks(self, separate_import_inference=True, proc_error_regex_list=None):
         # get the cwd so that we can continue even if exception occurs
         cwd = os.getcwd()
@@ -185,8 +193,7 @@ class PipelineRunner():
         for pipeline_index, (model_id, pipeline_config) in enumerate(self.pipeline_configs.items()):
             os.chdir(cwd)
             description = f'{pipeline_index+1}/{total}' if total > 1 else ''
-            log_filename = 'run.log' if self.settings.log_file is True else self.settings.log_file
-            log_file = os.path.join(pipeline_config['session'].get_param('run_dir'), log_filename) if self.settings.log_file else None
+            log_file = self._get_log_file(pipeline_config)
             task_list_for_model = []
             if separate_import_inference:
                 # separate import and inference into two tasks - tidl import and inference to run in separate process
@@ -230,17 +237,7 @@ class PipelineRunner():
                     # data loader was not copied at initialization - make a copy of the whole proc_func
                     proc_func = copy.deepcopy(proc_func)
                 #
-                log_file = proc_entry.get('proc_log', None)
-                if log_file:
-                    os.makedirs(os.path.dirname(log_file), exist_ok=True)
-                    with open(log_file, 'a') as log_fp:
-                        with wurlitzer.pipes(stdout=log_fp, stderr=wurlitzer.STDOUT):
-                            result = proc_func()
-                        #
-                    #
-                else:
-                    result = proc_func()
-                #
+                result = proc_func()
                 results_list.append(result)
             #
         #
@@ -265,7 +262,7 @@ class PipelineRunner():
                 result.update(gen_config_result)
             #
         else:
-            assert False, f'unknown pipeline: {settings.pipeline_type}'
+            assert False, f'ERROR: unknown pipeline: {settings.pipeline_type}'
         #
         return result
 
@@ -273,8 +270,6 @@ class PipelineRunner():
     def _run_pipeline(cls, settings, pipeline_config, description=''):
         # capture cwd - to set it later
         cwd = os.getcwd()
-        result = {}
-
         try:
             run_dir = pipeline_config['session'].get_param('run_dir')
             print(utils.log_color('\nINFO', 'starting', os.path.basename(run_dir)))
@@ -284,7 +279,6 @@ class PipelineRunner():
             traceback.print_exc()
             print(str(e))
         #
-
         # make sure we are in cwd when we return.
         os.chdir(cwd)
         return result

@@ -272,8 +272,6 @@ class ParallelRunner:
         #     
 
     def _worker(self, task):
-        # in ParallelRunner, we cannot capture the log here
-        # It has to be captured inside the worker of the process - see the class utils.ProcessWithQueue
         proc = None
         try:
             proc = task()

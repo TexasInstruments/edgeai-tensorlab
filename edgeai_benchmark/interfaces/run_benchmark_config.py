@@ -31,7 +31,7 @@ import sys
 import argparse
 import functools
 
-from .. import utils, pipelines, config_settings, datasets, constants
+from .. import core, utils, pipelines, config_settings, datasets, constants
 from .get_configs import *
 
 __all__ = ['run_benchmark_config']

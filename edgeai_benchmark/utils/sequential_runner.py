@@ -35,7 +35,6 @@ import multiprocessing
 import tqdm
 import warnings
 import re
-import wurlitzer
 
 
 class SequentialRunner:
@@ -87,7 +86,7 @@ class SequentialRunner:
 
                 proc_dict['running'] = True
                 proc_dict['completed'] = False
-                proc_dict['proc'] = self._worker(proc_dict['proc_func'], proc_dict['proc_log'])
+                proc_dict['proc'] = self._worker(proc_dict['proc_func'])
                 if proc_dict['proc'] is not None:
                     proc_dict['proc'].communicate()
                 #
@@ -102,20 +101,10 @@ class SequentialRunner:
             self.tqdm_obj.update(num_completed - self.tqdm_obj.n)
         #
 
-    def _worker(self, task, log_file):
+    def _worker(self, task):
         proc = None
         try:
-            if log_file:
-                os.makedirs(os.path.dirname(log_file), exist_ok=True)
-                with open(log_file, 'a') as log_fp:
-                    with wurlitzer.pipes(stdout=log_fp, stderr=wurlitzer.STDOUT):
-                        result = task()
-                    #
-                #
-            else:
-                print(f"WARNING: log_file was not provided - running without capturing the log - {__file__}")
-                result = task()
-            #
+            result = task()
         except KeyboardInterrupt:
             print(f"KeyboardInterrupt occurred in worker: {e}")
             traceback.print_exc()
