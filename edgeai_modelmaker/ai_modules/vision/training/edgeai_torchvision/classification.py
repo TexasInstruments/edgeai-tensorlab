@@ -304,8 +304,8 @@ class ModelTraining:
             'proc_error':[]
         }]
         task_entries = {self.params.training.model_name:task_list}
-        parallel_processes = (1 if self.params.compilation.capture_log else 0)
-        process_runner = edgeai_benchmark.utils.ProcessRunner(parallel_processes=parallel_processes)
+        parallel_processes = (1 if self.params.compilation.log_file else 0)
+        process_runner = edgeai_benchmark.utils.ParallelRunner(parallel_processes=parallel_processes)
         process_runner.run(task_entries)
         return self.params
 
