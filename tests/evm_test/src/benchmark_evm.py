@@ -182,7 +182,7 @@ class BenchmarkEvm():
 
             print(f"Sending command : {command}")
 
-            infer_status = uart_interface.send_uart_command(command, "END_OF_MODEL_INFERENCE", timeout, True, 1)
+            infer_status = uart_interface.send_uart_command(command, "END_OF_MODEL_INFERENCE", int(timeout), True, 1)
             # read response from run.log in instead of log_buffer
             subdir_path = find_subdirectory(model_selection, os.path.join('../../' + self.modelartifacts_path, '8bits'))
             with open(os.path.join(subdir_path, 'run.log'), 'r') as file:

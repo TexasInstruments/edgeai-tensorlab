@@ -31,6 +31,7 @@ parser.add_argument('--relay_power_port', help='Anel power switch port number', 
 parser.add_argument('--pc_ip', help='IP address of the pc', type=str, default=None)
 parser.add_argument('--num_frames', help='The number of frames to run the evaluation', type=str, default=None)
 parser.add_argument('--dataset_dir', help='Optional path to get the dataset from pc, used with pc_ip', type=str, default=None)
+parser.add_argument('--evm_timeout', help='Optional argument to set the timeout for a single test', type=str, default='600')
 
 
 args = parser.parse_args()
@@ -219,6 +220,6 @@ benchmark_evm = BenchmarkEvm(evm_config=evm_config,
 status = benchmark_evm.init_setup()
 if status:
     print (f"[ Info ] Model under tests are {model_list}")
-    benchmark_evm.run_tests(model_list, num_frames=args.num_frames)
+    benchmark_evm.run_tests(model_list, num_frames=args.num_frames, timeout=args.evm_timeout)
 else:
     sys.exit(-1)
