@@ -28,6 +28,7 @@
 
 
 import os
+import copy
 
 from . import presets
 from .basert_runtime import BaseRuntimeWrapper

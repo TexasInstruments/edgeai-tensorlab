@@ -31,7 +31,7 @@ import time
 import numpy as np
 import warnings
 
-from ..runtimes import ONNXRuntimeWrapper
+from ..core import ONNXRuntimeWrapper
 from .. import utils
 from .. import constants
 from .basert_session import BaseRTSession

@@ -34,7 +34,7 @@ import copy
 import struct
 import numpy as np
 
-from ..runtimes import TFLiteRuntimeWrapper
+from ..core import TFLiteRuntimeWrapper
 from .. import constants
 from .. import utils
 from .basert_session import BaseRTSession

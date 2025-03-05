@@ -32,7 +32,7 @@ import copy
 import argparse
 import yaml
 
-from ..runtimes import config_dict
+from ..core import config_dict
 from .. import utils, preprocess, postprocess, pipelines, datasets, sessions, config_settings, constants
 
 __all__ = ['get_configs_from_file']

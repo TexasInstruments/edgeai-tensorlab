@@ -27,7 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-from .runtimes.presets import *
+from .core.presets import *
 
 
 # pipeline type constants
