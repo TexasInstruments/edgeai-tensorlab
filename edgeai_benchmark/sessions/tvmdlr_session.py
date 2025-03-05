@@ -89,7 +89,7 @@ class TVMDLRSession(BaseRTSession, TVMDLRRuntimeWrapper):
         #
 
         start_time = time.time()
-        outputs = self.run(input_data)
+        outputs = TVMDLRRuntimeWrapper._run(self, input_data)
         info_dict['session_invoke_time'] = (time.time() - start_time)
         self._update_output_details(outputs)
         return outputs, info_dict

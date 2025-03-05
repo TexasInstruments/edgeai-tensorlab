@@ -62,7 +62,7 @@ class TFLiteRTSession(BaseRTSession, TFLiteRuntimeWrapper):
             if self.input_normalizer is not None:
                 input_data, _ = self.input_normalizer(input_data, {})
             #
-            outputs = self.run(input_data)
+            outputs = TFLiteRuntimeWrapper._run(self, input_data)
             self._update_output_details(outputs)
         #
         return info_dict
@@ -88,7 +88,7 @@ class TFLiteRTSession(BaseRTSession, TFLiteRuntimeWrapper):
         # measure the time across only interpreter.run
         # time for setting the tensor and other overheads would be optimized out in c-api
         start_time = time.time()
-        outputs = self.run(input_data)
+        outputs = TFLiteRuntimeWrapper._run(self, input_data)
         info_dict['session_invoke_time'] = (time.time() - start_time)
         self._update_output_details(outputs)
         return outputs, info_dict

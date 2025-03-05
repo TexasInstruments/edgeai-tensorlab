@@ -41,7 +41,7 @@ from .progress_step import *
 from .logger_utils import *
 
 
-class ProcessWtihQueue(multiprocessing.Process):
+class ProcessWithQueue(multiprocessing.Process):
     def __init__(self, group=None, target=None, name=None, args=(), kwargs={},
         result_queue=multiprocessing.Queue(), log_file=None, **proc_kwargs):
         kwargs = copy.copy(kwargs)

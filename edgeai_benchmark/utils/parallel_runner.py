@@ -167,8 +167,8 @@ class ParallelRunner:
                     proc_dict['running'] = running
                     running_proc_name = proc_dict['proc_name']
                     running_time = time.time() - proc_dict['start_time']
-                    proc_log = proc_dict['proc_log']
-                    proc_error = proc_dict['proc_error']
+                    proc_log = proc_dict.get('proc_log', None)
+                    proc_error = proc_dict.get('proc_error', None)
                     proc_error = [proc_error] if not isinstance(proc_error, (list,tuple)) else proc_error
 
                     # look for processes to terminate forcefully

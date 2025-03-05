@@ -59,9 +59,6 @@ source ./run_set_env.sh ${TARGET_SOC} ${TARGET_MACHINE}
 # so set that while calling these scripts
 export TARGET_SOC=${TARGET_SOC}
 
-# run the script directly
-# python3 ./tutorials/tutorial_classification.py
-# python3 ./tutorials/tutorial_detection.py
 
 # run the jypyter notebook
 jupyter notebook --ip=localhost

@@ -61,7 +61,7 @@ class ONNXRTSession(BaseRTSession, ONNXRuntimeWrapper):
                 input_data, _ = self.input_normalizer(input_data, {})
             #
             # run the actual import step
-            outputs = self.run(input_data)
+            outputs = ONNXRuntimeWrapper._run(self, input_data)
             self._update_output_details(outputs)
         #
 
@@ -87,7 +87,7 @@ class ONNXRTSession(BaseRTSession, ONNXRuntimeWrapper):
 
         # run the actual inference
         start_time = time.time()
-        outputs = self.run(input_data)
+        outputs = ONNXRuntimeWrapper._run(self, input_data)
         info_dict['session_invoke_time'] = (time.time() - start_time)
         self._update_output_details(outputs)
 
