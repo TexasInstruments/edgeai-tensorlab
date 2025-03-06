@@ -82,9 +82,9 @@ CALIBRATION_ITERATIONS_FACTOR_NX = 2.0
 # runtime_options preferred - may not blindly apply for qat models
 TARGET_DEVICE_SETTINGS_PRESETS = {
     TARGET_DEVICE_TDA4VM : {
+        # TDA4VM does not support the per-channel asymmetric quantization - p2 can be used as default
         'runtime_options': {'advanced_options:quantization_scale_type': QUANTScaleType.QUANT_SCALE_TYPE_P2},
-        # TDA4VM does not support the per-channel asymmetric quantization
-        # hence we may need more number calibration images and iterations
+        # we may need more calibration images and iterations
         'calibration_iterations_factor': CALIBRATION_ITERATIONS_FACTOR_NX
     },
     TARGET_DEVICE_AM62A : {
