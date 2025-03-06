@@ -337,7 +337,7 @@ def download_tidl_tools(TIDL_TOOLS_VERSION_NAME, TIDL_TOOLS_RELEASE_LABEL, TIDL_
         #
         target_soc_version_dict.update({TARGET_SOC: version_dict})
     #
-    print(target_soc_version_dict)
+    #print(target_soc_version_dict)
     os.chdir(cwd)
     return None
 
