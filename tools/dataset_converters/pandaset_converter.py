@@ -281,25 +281,16 @@ def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img ):
     lidar_velocities = (np.linalg.inv(lidar2global[:3,:3]) @ world_velocities.T).T.tolist()
     cam_velocities = {name: dict(zip(filtered_cuboids[:,0].tolist(),(np.linalg.inv(cam2global[name][:3,:3]) @ world_velocities.T).T.tolist())) for name in CAMERA_NAMES}
     cuboids_data = {value[0]: value[1:] for value in filtered_cuboids}
-
-    lidar90_bboxes = []
-    """
+    
+    lidar_bboxes = []
     for cuboid in filtered_cuboids.tolist():
         bbox = cuboid[5:11] + [cuboid[2]]
         # print((cuboid),(bbox),sep='\n')
         corners = convert_bbox_to_corners_for_lidar(bbox)
         # we have to store in lidar90 reference not in lidar refrence, of current frame
-        #lidar90_corners = ( lidar2lidar90 @ np.linalg.inv(lidar2global) @ np.hstack([corners, np.ones((corners.shape[0], 1))]).T).T[:,:3]
-        lidar90_corners = ( np.linalg.inv(lidar2global) @ np.hstack([corners, np.ones((corners.shape[0], 1))]).T).T[:,:3]
-        lidar90_bboxes.append(convert_corners_to_bbox_for_lidar_box(lidar90_corners))
-    """
-    for cuboid in filtered_cuboids.tolist():
-        bbox = cuboid[5:11] + [cuboid[2]]
-        bbox_in_lidar = convert_bbox_to_lidar(bbox, np.linalg.inv(lidar2global))
-        bbox_in_lidar = bbox_in_lidar.center.tolist() + bbox_in_lidar.wlh[[1, 0, 2]].tolist() + \
-             [bbox_in_lidar.orientation.yaw_pitch_roll[0]]
-        lidar90_bboxes.append(bbox_in_lidar)
-
+        lidar_corners = ( np.linalg.inv(lidar2global) @ np.hstack([corners, np.ones((corners.shape[0], 1))]).T).T[:,:3]
+        lidar_bboxes.append(convert_corners_to_bbox_for_lidar_box(lidar_corners))
+        
     available_attrs = [attr for attr in ALL_ATTRIBUTES if f'attributes.{attr}' in cuboids.columns]
     columns_names = list(cuboids.columns)
     attribute_dicts = {}
@@ -324,7 +315,7 @@ def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img ):
             token=token,
             bbox_label=label,
             bbox_label_3d =label,
-            bbox_3d = lidar90_bboxes[i], # change to bbox_3d
+            bbox3d = lidar_bboxes[i],
             bbox_3d_isvalid = valid_flags[i],
             bbox_3d_isstationary = stationary,
             num_lidar_pts = num_lidar_points[i], # change to num_lidar_pts
@@ -377,6 +368,7 @@ def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img ):
                 'timestamp': cam_timestamp[name],
                 'lidar2cam' : lidar2cam[name].tolist(),
                 'cam2ego': cam2ego[name].tolist(),
+                'cam2global': cam2global[name].tolist(),
             } for name in CAMERA_NAMES
         },
         lidar_points = dict(
