@@ -39,10 +39,13 @@ import yaml
 from . import config_dict
 from . import presets
 
+
 class GetRuntimeOptions(config_dict.ConfigDict):
     def __init__(self, input, **kwargs):
         super().__init__(input, **kwargs)
-        self.runtime_options = {}
+        if not hasattr(self, 'runtime_options'):
+            self.runtime_options = {}
+        #
 
         # target device presets
         preset_dict = None
@@ -55,16 +58,15 @@ class GetRuntimeOptions(config_dict.ConfigDict):
             self.update(preset_dict)
         #
 
-    def _get_runtime_options_default(self, session_name=None, is_qat=False,
+    def _get_runtime_options_default(self, model_type_or_session_name=None, is_qat=False,
             min_options=None, max_options=None, fast_calibration=True, **kwargs):
         '''
         Default runtime options.
         Overiride this according to the needs of specific configs using methods below.
 
         Args:
-            session_name: onnxrt, tflitert or tvmdlr
-            qat_type: set appropriately for QAT models
-            det_options: True for detection models, False for other models. Can also be a dictionary.
+            model_type_or_session_name: onnxrt, tflitert or tvmdlr
+            is_qat: set appropriately for QAT models
 
         Returns: runtime_options
         '''
@@ -143,7 +145,6 @@ class GetRuntimeOptions(config_dict.ConfigDict):
 
         # set other runtime_options from kwargs
         runtime_options.update(kwargs)
-
         return runtime_options
 
     def get_runtime_options(self, model_type_or_session_name=None, is_qat=False,
@@ -153,15 +154,16 @@ class GetRuntimeOptions(config_dict.ConfigDict):
             settings.runtime_options_onnx_np2(max_options={'advanced_options:calibration_frames':25, 'advanced_options:calibration_iterations':25})
              similarly min_options can be used to set lower limit
              currently only calibration_frames and calibration_iterations are handled in this function.
+
+        model_type_or_session_name: runtime_params are currently common, so session_name is currently not needed here
+        det_options: True for detection models, False for other models. Can also be a dictionary.
         '''
-        # runtime_params are currently common, so session_name is currently optional
-        session_name = self.get_session_name(model_type_or_session_name) if \
-                model_type_or_session_name is not None else None
 
         runtime_options = copy.deepcopy(self.runtime_options or {})
 
         # this is the default runtime_options defined above
-        runtime_options_override = self._get_runtime_options_default(session_name=session_name, is_qat=is_qat,
+        runtime_options_override = self._get_runtime_options_default(
+            model_type_or_session_name=model_type_or_session_name, is_qat=is_qat,
             min_options=min_options, max_options=max_options, **kwargs)
 
         runtime_options.update(runtime_options_override)
@@ -228,4 +230,3 @@ class GetRuntimeOptions(config_dict.ConfigDict):
             return self.calibration_iterations_factor
         else:
             return presets.CALIBRATION_ITERATIONS_FACTOR_1X
-            

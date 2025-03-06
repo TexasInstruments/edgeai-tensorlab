@@ -58,6 +58,23 @@ NCHW = 'NCHW'
 NHWC = 'NHWC'
 
 
+# supported model types
+MODEL_TYPE_ONNX = 'onnx'
+MODEL_TYPE_TFLITE = 'tflite'
+MODEL_TYPE_MXNET = 'mxnet'
+MODEL_TYPES = [MODEL_TYPE_ONNX, MODEL_TYPE_TFLITE, MODEL_TYPE_MXNET]
+
+
+class QUANTScaleType:
+    QUANT_SCALE_TYPE_NP2 = 0              # 0 (non-power of 2, default)
+    QUANT_SCALE_TYPE_P2 = 1               # 1 (power of 2, might be helpful sometimes, needed for p2 qat models)
+    QUANT_SCALE_TYPE_UNUSED = 2           # 3 (non-power of 2 qat/prequantized model, supported in newer devices)
+    # these are not supported in TDA4VM, but for other SoCs, these are the recommended modes
+    QUANT_SCALE_TYPE_PREQUANT_TFLITE = 3  # 4 (non-power2 of 2, supported in newer devices)
+    # per-channel quantization is highy recommended if this feature is supported in hardware
+    QUANT_SCALE_TYPE_NP2_PERCHAN = 4      # per-channel quantization - supported in SoCs other than TDA4VM
+
+
 CALIBRATION_ITERATIONS_FACTOR_1X = 1.0
 CALIBRATION_ITERATIONS_FACTOR_NX = 2.0
 
@@ -65,22 +82,22 @@ CALIBRATION_ITERATIONS_FACTOR_NX = 2.0
 # runtime_options preferred - may not blindly apply for qat models
 TARGET_DEVICE_SETTINGS_PRESETS = {
     TARGET_DEVICE_TDA4VM : {
-        'runtime_options': {'advanced_options:quantization_scale_type': 1},
+        'runtime_options': {'advanced_options:quantization_scale_type': QUANTScaleType.QUANT_SCALE_TYPE_P2},
         # TDA4VM does not support the per-channel asymmetric quantization
         # hence we may need more number calibration images and iterations
         'calibration_iterations_factor': CALIBRATION_ITERATIONS_FACTOR_NX
     },
     TARGET_DEVICE_AM62A : {
-        'runtime_options': {'advanced_options:quantization_scale_type': 4},
+        'runtime_options': {'advanced_options:quantization_scale_type': QUANTScaleType.QUANT_SCALE_TYPE_NP2_PERCHAN},
     },
     TARGET_DEVICE_AM67A: {
-        'runtime_options': {'advanced_options:quantization_scale_type': 4},
+        'runtime_options': {'advanced_options:quantization_scale_type': QUANTScaleType.QUANT_SCALE_TYPE_NP2_PERCHAN},
     },
     TARGET_DEVICE_AM68A : {
-        'runtime_options': {'advanced_options:quantization_scale_type': 4},
+        'runtime_options': {'advanced_options:quantization_scale_type': QUANTScaleType.QUANT_SCALE_TYPE_NP2_PERCHAN},
     },
     TARGET_DEVICE_AM69A : {
-        'runtime_options': {'advanced_options:quantization_scale_type': 4},
+        'runtime_options': {'advanced_options:quantization_scale_type': QUANTScaleType.QUANT_SCALE_TYPE_NP2_PERCHAN},
     },
     TARGET_DEVICE_AM62 : {
         'runtime_options': {},
@@ -96,4 +113,3 @@ TIDL_DETECTION_META_ARCH_TYPE_SSD_LIST = [
     TIDL_DETECTION_META_ARCH_TYPE_SSD_TFLITE,
     TIDL_DETECTION_META_ARCH_TYPE_SSD_ONNX,
 ]
-

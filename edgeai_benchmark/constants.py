@@ -35,15 +35,18 @@ PIPELINE_UNDEFINED = None
 PIPELINE_ACCURACY = 'accuracy'
 PIPELINE_GEN_CONFIG = 'gen_config'
 
+
 # frequency of the core C7x/MMA processor that accelerates Deep Learning Tasks
 # this constant is used to convert cycles to time : time = cycles / DSP_FREQ
 DSP_FREQ = 1e9
+
 
 # other common constants
 MILLI_CONST = 1e3 # multiplication by 1000 is to convert seconds to milliseconds
 MEGA_CONST = 1e6  # convert raw data to mega : example bytes to mega bytes (MB)
 GIGA_CONST = 1e9
 ULTRA_CONST = 1e6
+
 
 # task_type
 TASK_TYPE_CLASSIFICATION = 'classification'
@@ -54,6 +57,7 @@ TASK_TYPE_DEPTH_ESTIMATION = 'depth_estimation'
 TASK_TYPE_DETECTION_3DOD = 'detection_3d'
 TASK_TYPE_OBJECT_6D_POSE_ESTIMATION = 'object_6d_pose_estimation'
 TASK_TYPE_VISUAL_LOCALIZATION = 'visual_localization'
+
 
 TASK_TYPES = [
     TASK_TYPE_CLASSIFICATION,
@@ -66,28 +70,12 @@ TASK_TYPES = [
     TASK_TYPE_VISUAL_LOCALIZATION
 ]
 
-# supported model types
-MODEL_TYPE_ONNX = 'onnx'
-MODEL_TYPE_TFLITE = 'tflite'
-MODEL_TYPE_MXNET = 'mxnet'
-MODEL_TYPES = [MODEL_TYPE_ONNX, MODEL_TYPE_TFLITE, MODEL_TYPE_MXNET]
-
 # supported session names
 SESSION_NAME_TVMDLR = 'tvmdlr'
 SESSION_NAME_TFLITERT = 'tflitert'
 SESSION_NAME_ONNXRT = 'onnxrt'
 SESSION_NAMES = [SESSION_NAME_ONNXRT, SESSION_NAME_TFLITERT, SESSION_NAME_TVMDLR]
 SESSION_NAMES_DICT = {SESSION_NAME_ONNXRT:'ONR', SESSION_NAME_TFLITERT:'TFL', SESSION_NAME_TVMDLR:'TVM'}
-
-
-class QUANTScaleType:
-    QUANT_SCALE_TYPE_NP2 = 0              # 0 (non-power of 2, default)
-    QUANT_SCALE_TYPE_P2 = 1               # 1 (power of 2, might be helpful sometimes, needed for p2 qat models)
-    QUANT_SCALE_TYPE_UNUSED = 2           # 3 (non-power of 2 qat/prequantized model, supported in newer devices)
-    # these are not supported in TDA4VM, but for other SoCs, these are the recommended modes
-    QUANT_SCALE_TYPE_PREQUANT_TFLITE = 3  # 4 (non-power2 of 2, supported in newer devices)
-    # per-channel quantization is highy recommended if this feature is supported in hardware
-    QUANT_SCALE_TYPE_NP2_PERCHAN = 4      # per-channel quantization - supported in SoCs other than TDA4VM
 
 
 class PreQuantizedModelType:
@@ -104,7 +92,10 @@ ADVANCED_OPTIONS_QUANT_FILE_KEY = 'advanced_options:quant_params_proto_path'
 # errors emitted in the log file to help identify a FATAL error
 # look for erros such as: VX_ZONE_ERROR:[tivxDeInit:245] De-Initialization Error !!!
 # but do not include genuine messages such as: VX_ZONE_ERROR:Enabled
-TIDL_FATAL_ERROR_LOGS_REGEX_LIST = [r'VX_ZONE_ERROR:\[.*\].*Error.*']
+TIDL_FATAL_ERROR_LOGS_REGEX_LIST = [
+    r'VX_ZONE_ERROR:\[.*\].*Error.*',
+    r'Invoke  : ERROR: Unable to open network file'
+    ]
 
 
 # Compatible with the publicly released SDK 10.1 - Version: 10.01.00.04 - Release date: Dec 18, 2024
