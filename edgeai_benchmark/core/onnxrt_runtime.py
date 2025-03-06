@@ -42,15 +42,14 @@ class ONNXRuntimeWrapper(BaseRuntimeWrapper):
 
     def start(self):
         self.kwargs["runtime_options"] = self._set_default_options(self.kwargs["runtime_options"])
+        self._start_done = True
 
     def run_import(self, input_list, output_keys=None):
         if not self._start_done:
             self.start()
-            self._start_done = True
         #
         if not self._prepare_for_import_done:
             self._prepare_for_import()
-            self._prepare_for_import_done = True
         #
         output_list = []
         for input_data in input_list:
@@ -66,9 +65,24 @@ class ONNXRuntimeWrapper(BaseRuntimeWrapper):
         #
         if not self._prepare_for_inference_done:
             self._prepare_for_inference()
-            self._prepare_for_inference_done = True
         #
         return self._run(input_data, output_keys)
+
+    def _prepare_for_import(self, *args, **kwargs):
+        self.is_import = True
+        self.interpreter = self._create_interpreter(*args, is_import=self.is_import, **kwargs)
+        self.kwargs['input_details'] = self.get_input_details(self.interpreter, self.kwargs.get('input_details', None))
+        self.kwargs['output_details'] = self.get_output_details(self.interpreter, self.kwargs.get('output_details', None))
+        self._prepare_for_import_done = True
+        return self.interpreter
+
+    def _prepare_for_inference(self, *args, **kwargs):
+        self.is_import = False
+        self.interpreter = self._create_interpreter(*args, is_import=self.is_import, **kwargs)
+        self.kwargs['input_details'] = self.get_input_details(self.interpreter, self.kwargs.get('input_details', None))
+        self.kwargs['output_details'] = self.get_output_details(self.interpreter, self.kwargs.get('output_details', None))
+        self._prepare_for_inference_done = True
+        return self.interpreter
 
     def _run(self, input_data, output_keys=None):
         input_data = self._format_input_data(input_data)
@@ -81,20 +95,6 @@ class ONNXRuntimeWrapper(BaseRuntimeWrapper):
         # run the actual import step
         outputs = self.interpreter.run(output_keys, input_data)
         return outputs
-
-    def _prepare_for_import(self, *args, **kwargs):
-        self.is_import = True
-        self.interpreter = self._create_interpreter(*args, is_import=self.is_import, **kwargs)
-        self.kwargs['input_details'] = self.get_input_details(self.interpreter, self.kwargs.get('input_details', None))
-        self.kwargs['output_details'] = self.get_output_details(self.interpreter, self.kwargs.get('output_details', None))
-        return self.interpreter
-
-    def _prepare_for_inference(self, *args, **kwargs):
-        self.is_import = False
-        self.interpreter = self._create_interpreter(*args, is_import=self.is_import, **kwargs)
-        self.kwargs['input_details'] = self.get_input_details(self.interpreter, self.kwargs.get('input_details', None))
-        self.kwargs['output_details'] = self.get_output_details(self.interpreter, self.kwargs.get('output_details', None))
-        return self.interpreter
 
     def _create_interpreter(self, is_import):
         # move the import inside the function, so that onnxruntime needs to be installed

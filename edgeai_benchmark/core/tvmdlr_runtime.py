@@ -43,15 +43,14 @@ class TVMDLRRuntimeWrapper(BaseRuntimeWrapper):
 
     def start(self):
         self.kwargs["runtime_options"] = self._set_default_options(self.kwargs["runtime_options"])
+        self._start_done = True
 
     def run_import(self, input_list, output_keys=None):
         if not self._start_done:
             self.start()
-            self._start_done = True
         #
         if not self._prepare_for_import_done:
             self._prepare_for_import()
-            self._prepare_for_import_done = True
         #
         output_list = None
         self._prepare_for_import(input_list)
@@ -64,18 +63,8 @@ class TVMDLRRuntimeWrapper(BaseRuntimeWrapper):
         #
         if not self._prepare_for_inference_done:
             self._prepare_for_inference()
-            self._prepare_for_inference_done = True
         #
         return self._run(input_data, output_keys)
-
-    def _run(self, input_data, output_keys=None):
-        input_data = self._format_input_data(input_data)
-        # if model needs additional inputs given in extra_inputs
-        if self.kwargs.get('extra_inputs'):
-            input_data.update(self.kwargs['extra_inputs'])
-        #
-        outputs = self.interpreter.run(input_data)
-        return outputs
 
     def _prepare_for_import(self, calib_list, *args, **kwargs):
         self.is_import = True
@@ -87,6 +76,7 @@ class TVMDLRRuntimeWrapper(BaseRuntimeWrapper):
             calib_list[in_idx] = self._format_input_data(input_data)
         #
         self.interpreter = self._create_interpreter_for_import(calib_list, *args, **kwargs)
+        self._prepare_for_import_done = True
         return self.interpreter
 
     def _prepare_for_inference(self, *args, **kwargs):
@@ -100,7 +90,17 @@ class TVMDLRRuntimeWrapper(BaseRuntimeWrapper):
             return False
         #
         self.interpreter = DLRModel(artifacts_folder, 'cpu')
+        self._prepare_for_inference_done = True
         return self.interpreter
+
+    def _run(self, input_data, output_keys=None):
+        input_data = self._format_input_data(input_data)
+        # if model needs additional inputs given in extra_inputs
+        if self.kwargs.get('extra_inputs'):
+            input_data.update(self.kwargs['extra_inputs'])
+        #
+        outputs = self.interpreter.run(input_data)
+        return outputs
 
     def _create_interpreter_for_import(self, calib_list):
         # onnx and tvm are required only for model import
