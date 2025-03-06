@@ -22,25 +22,32 @@ class AnelRelayControl():
         if self.relay_number < 1 and self.relay_number > 8:
             print(f"[ Error ] Relay number invalid")
             sys.exit(-1)
-        if not os.path.exists(self.relay_exe):
-            print(f"[ Error ] {self.relay_exe} does not exist. Please provide a valid executable")
-            sys.exit(-1)
+        # if not os.path.exists(self.relay_exe):
+        #     print(f"[ Error ] {self.relay_exe} does not exist. Please provide a valid executable")
+        #     sys.exit(-1)
 
     def switch_relay(self, operation="toggle"):
         print(f"[ Info ] Switching realy [operatopn={operation}]")
         if operation == "off":
-            print(f"Running command {self.relay_exe} {self.relay_ip},75,77,rel,{self.relay_number},off,admin,anel")
-            os.system(f"{self.relay_exe} {self.relay_ip},75,77,rel,{self.relay_number},off,admin,anel")
+            os.system(f"pypwrctrl -d -i 12347 -o 12345 off {self.relay_ip} {self.relay_number}")
         elif operation == "on":
-            print(f"Running command {self.relay_exe} {self.relay_ip},75,77,rel,{self.relay_number},on,admin,anel")
-            os.system(f"{self.relay_exe} {self.relay_ip},75,77,rel,{self.relay_number},on,admin,anel")
+            os.system(f"pypwrctrl -d -i 12347 -o 12345 on {self.relay_ip} {self.relay_number}")
         elif operation == "toggle":
-            print(f"Running toggle command:\n \
-             {self.relay_exe} {self.relay_ip},75,77,rel,{self.relay_number},off,admin,anel \n \
-             followed by : \n \
-             {self.relay_exe} {self.relay_ip},75,77,rel,{self.relay_number},on,admin,anel")
-            os.system(f"{self.relay_exe} {self.relay_ip},75,77,rel,{self.relay_number},off,admin,anel")
+            os.system(f"pypwrctrl -d -i 12347 -o 12345 off {self.relay_ip} {self.relay_number}")
             time.sleep(5)
-            os.system(f"{self.relay_exe} {self.relay_ip},75,77,rel,{self.relay_number},on,admin,anel")
+            os.system(f"pypwrctrl -d -i 12347 -o 12345 on {self.relay_ip} {self.relay_number}")
         else:
             print(f"[ Error ] Invalid operation value for relay. Allowed values are (off,on,toggle)")
+
+    # def __switch_relay(self, operation="toggle"):
+    #     print(f"[ Info ] Switching realy [operatopn={operation}]")
+    #     if operation == "off":
+    #         os.system(f"{self.relay_exe} {self.relay_ip},12345,12347,rel,{self.relay_number},off,admin,anel")
+    #     elif operation == "on":
+    #         os.system(f"{self.relay_exe} {self.relay_ip},12345,12347,rel,{self.relay_number},on,admin,anel")
+    #     elif operation == "toggle":
+    #         os.system(f"{self.relay_exe} {self.relay_ip},12345,12347,rel,{self.relay_number},off,admin,anel")
+    #         time.sleep(5)
+    #         os.system(f"{self.relay_exe} {self.relay_ip},12345,12347,rel,{self.relay_number},on,admin,anel")
+    #     else:
+    #         print(f"[ Error ] Invalid operation value for relay. Allowed values are (off,on,toggle)")

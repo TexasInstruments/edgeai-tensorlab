@@ -61,10 +61,10 @@ if not os.path.exists(args.uart):
     sys.exit(-1)
 
 if args.reboot_type == "hard":
-    if args.relay_exe_path == None:
-        print(f"[ Error ] Please provide relay executable path")
-        sys.exit(-1)
-    elif args.relay_ip_address == None:
+    # if args.relay_exe_path == None:
+    #     print(f"[ Error ] Please provide relay executable path")
+    #     sys.exit(-1)
+    if args.relay_ip_address == None:
         print(f"[ Error ] Please provide relay IP address")
         sys.exit(-1)
     elif args.relay_power_port == None:
