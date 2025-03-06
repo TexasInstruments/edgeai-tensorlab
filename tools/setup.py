@@ -358,7 +358,7 @@ def download_tidl_tools_package_10_00_08_00(tools_version, tools_type):
 
 
 def download_tidl_tools_package_10_01_04_01(tools_version, tools_type):
-    expected_tools_version=("latest","stable","10.1.4","10.1")
+    expected_tools_version=("10.1",)
     assert tools_version in expected_tools_version, f"ERROR: incorrect tools_version passed:{tools_version} - expected:{expected_tools_version}"
     TIDL_TOOLS_VERSION_NAME=tools_version
     TIDL_TOOLS_RELEASE_LABEL="r10.1"
