@@ -26,8 +26,11 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from . import attr_dict
+
 from . import presets
+
+from .attr_dict import *
+from .config_dict import *
 
 from .runtime_options import *
 from .onnxrt_runtime import *

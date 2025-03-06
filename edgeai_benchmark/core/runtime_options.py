@@ -230,3 +230,52 @@ class GetRuntimeOptions(config_dict.ConfigDict):
             return self.calibration_iterations_factor
         else:
             return presets.CALIBRATION_ITERATIONS_FACTOR_1X
+
+    def runtime_options_onnx_np2(self, **kwargs):
+        kwargs['advanced_options:quantization_scale_type'] = self.runtime_options.get('advanced_options:quantization_scale_type', presets.QUANTScaleType.QUANT_SCALE_TYPE_NP2)
+        return self.get_runtime_options(presets.MODEL_TYPE_ONNX, is_qat=False, **kwargs)
+
+    def runtime_options_tflite_np2(self, **kwargs):
+        kwargs['advanced_options:quantization_scale_type'] = self.runtime_options.get('advanced_options:quantization_scale_type', presets.QUANTScaleType.QUANT_SCALE_TYPE_NP2)
+        return self.get_runtime_options(presets.MODEL_TYPE_TFLITE, is_qat=False, **kwargs)
+
+    def runtime_options_mxnet_np2(self, **kwargs):
+        kwargs['advanced_options:quantization_scale_type'] = self.runtime_options.get('advanced_options:quantization_scale_type', presets.QUANTScaleType.QUANT_SCALE_TYPE_NP2)
+        return self.get_runtime_options(presets.MODEL_TYPE_MXNET, is_qat=False, **kwargs)
+
+    def runtime_options_onnx_p2(self, **kwargs):
+        kwargs['advanced_options:quantization_scale_type'] = self.runtime_options.get('advanced_options:quantization_scale_type', presets.QUANTScaleType.QUANT_SCALE_TYPE_P2)
+        return self.get_runtime_options(presets.MODEL_TYPE_ONNX, is_qat=False, **kwargs)
+
+    def runtime_options_tflite_p2(self, **kwargs):
+        kwargs['advanced_options:quantization_scale_type'] = self.runtime_options.get('advanced_options:quantization_scale_type', presets.QUANTScaleType.QUANT_SCALE_TYPE_P2)
+        return self.get_runtime_options(presets.MODEL_TYPE_TFLITE, is_qat=False, **kwargs)
+
+    def runtime_options_mxnet_p2(self, **kwargs):
+        kwargs['advanced_options:quantization_scale_type'] = self.runtime_options.get('advanced_options:quantization_scale_type', presets.QUANTScaleType.QUANT_SCALE_TYPE_P2)
+        return self.get_runtime_options(presets.MODEL_TYPE_MXNET, is_qat=False, **kwargs)
+
+    def runtime_options_onnx_qat_v1(self, **kwargs):
+        kwargs['advanced_options:quantization_scale_type'] = presets.QUANTScaleType.QUANT_SCALE_TYPE_P2
+        # kwargs['advanced_options:prequantized_model'] = presets.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_CLIP
+        return self.get_runtime_options(presets.MODEL_TYPE_ONNX, is_qat=True, **kwargs)
+
+    def runtime_options_tflite_qat_v1(self, **kwargs):
+        kwargs['advanced_options:quantization_scale_type'] = presets.QUANTScaleType.QUANT_SCALE_TYPE_P2
+        # kwargs['advanced_options:prequantized_model'] = presets.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_CLIP
+        return self.get_runtime_options(presets.MODEL_TYPE_TFLITE, is_qat=True, **kwargs)
+
+    def runtime_options_mxnet_qat_v1(self, **kwargs):
+        kwargs['advanced_options:quantization_scale_type'] = presets.QUANTScaleType.QUANT_SCALE_TYPE_P2
+        # kwargs['advanced_options:prequantized_model'] = presets.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_CLIP
+        return self.get_runtime_options(presets.MODEL_TYPE_MXNET, is_qat=True, **kwargs)
+
+    def runtime_options_onnx_qat_v2(self, **kwargs):
+        kwargs['advanced_options:quantization_scale_type'] = presets.QUANTScaleType.QUANT_SCALE_TYPE_NP2_PERCHAN
+        kwargs['advanced_options:prequantized_model'] = presets.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_QDQ
+        return self.get_runtime_options(presets.MODEL_TYPE_ONNX, is_qat=True, **kwargs)
+
+    def runtime_options_onnx_qat_v2_p2(self, **kwargs):
+        kwargs['advanced_options:quantization_scale_type'] = presets.QUANTScaleType.QUANT_SCALE_TYPE_P2
+        kwargs['advanced_options:prequantized_model'] = presets.PreQuantizedModelType.PREQUANTIZED_MODEL_TYPE_QDQ
+        return self.get_runtime_options(presets.MODEL_TYPE_ONNX, is_qat=True, **kwargs)

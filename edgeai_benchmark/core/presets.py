@@ -106,6 +106,12 @@ TARGET_DEVICE_SETTINGS_PRESETS = {
 }
 
 
+class PreQuantizedModelType:
+    PREQUANTIZED_MODEL_TYPE_NONE = None
+    PREQUANTIZED_MODEL_TYPE_CLIP = 0
+    PREQUANTIZED_MODEL_TYPE_QDQ = 1
+
+
 # to handle speciall case for runtime_options['object_detection:xx']
 TIDL_DETECTION_META_ARCH_TYPE_SSD_TFLITE = 1
 TIDL_DETECTION_META_ARCH_TYPE_SSD_ONNX = 3
