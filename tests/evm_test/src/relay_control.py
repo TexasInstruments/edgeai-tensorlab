@@ -29,10 +29,16 @@ class AnelRelayControl():
     def switch_relay(self, operation="toggle"):
         print(f"[ Info ] Switching realy [operatopn={operation}]")
         if operation == "off":
+            print(f"Running command {self.relay_exe} {self.relay_ip},75,77,rel,{self.relay_number},off,admin,anel")
             os.system(f"{self.relay_exe} {self.relay_ip},75,77,rel,{self.relay_number},off,admin,anel")
         elif operation == "on":
+            print(f"Running command {self.relay_exe} {self.relay_ip},75,77,rel,{self.relay_number},on,admin,anel")
             os.system(f"{self.relay_exe} {self.relay_ip},75,77,rel,{self.relay_number},on,admin,anel")
         elif operation == "toggle":
+            print(f"Running toggle command:\n \
+             {self.relay_exe} {self.relay_ip},75,77,rel,{self.relay_number},off,admin,anel \n \
+             followed by : \n \
+             {self.relay_exe} {self.relay_ip},75,77,rel,{self.relay_number},on,admin,anel")
             os.system(f"{self.relay_exe} {self.relay_ip},75,77,rel,{self.relay_number},off,admin,anel")
             time.sleep(5)
             os.system(f"{self.relay_exe} {self.relay_ip},75,77,rel,{self.relay_number},on,admin,anel")
