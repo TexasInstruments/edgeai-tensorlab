@@ -72,7 +72,8 @@ class GetRuntimeOptions(config_dict.ConfigDict):
         '''
         # pop advanced_options:quantization_scale_type out and set it - just to be clear
         advanced_options_quantization_scale_type = kwargs.pop('advanced_options:quantization_scale_type',
-            self.runtime_options.get('advanced_options:quantization_scale_type', None))
+            self.runtime_options.get('advanced_options:quantization_scale_type', presets.QUANTScaleType.QUANT_SCALE_TYPE_P2)
+        )
 
         calibration_iterations_factor = self._get_calibration_iterations_factor(fast_calibration)
 
@@ -232,27 +233,51 @@ class GetRuntimeOptions(config_dict.ConfigDict):
             return presets.CALIBRATION_ITERATIONS_FACTOR_1X
 
     def runtime_options_onnx_np2(self, **kwargs):
-        kwargs['advanced_options:quantization_scale_type'] = self.runtime_options.get('advanced_options:quantization_scale_type', presets.QUANTScaleType.QUANT_SCALE_TYPE_NP2)
+        advanced_options_quantization_scale_type_default = self.runtime_options.get('advanced_options:quantization_scale_type', None)
+        # do not modify the scale type if per channel quantization is supported in the device
+        if advanced_options_quantization_scale_type_default != presets.QUANTScaleType.QUANT_SCALE_TYPE_NP2_PERCHAN:
+            kwargs['advanced_options:quantization_scale_type'] = presets.QUANTScaleType.QUANT_SCALE_TYPE_NP2
+        #
         return self.get_runtime_options(presets.MODEL_TYPE_ONNX, is_qat=False, **kwargs)
 
     def runtime_options_tflite_np2(self, **kwargs):
-        kwargs['advanced_options:quantization_scale_type'] = self.runtime_options.get('advanced_options:quantization_scale_type', presets.QUANTScaleType.QUANT_SCALE_TYPE_NP2)
+        advanced_options_quantization_scale_type_default = self.runtime_options.get('advanced_options:quantization_scale_type', None)
+        # do not modify the scale type if per channel quantization is supported in the device
+        if advanced_options_quantization_scale_type_default != presets.QUANTScaleType.QUANT_SCALE_TYPE_NP2_PERCHAN:
+            kwargs['advanced_options:quantization_scale_type'] = presets.QUANTScaleType.QUANT_SCALE_TYPE_NP2
+        #
         return self.get_runtime_options(presets.MODEL_TYPE_TFLITE, is_qat=False, **kwargs)
 
     def runtime_options_mxnet_np2(self, **kwargs):
-        kwargs['advanced_options:quantization_scale_type'] = self.runtime_options.get('advanced_options:quantization_scale_type', presets.QUANTScaleType.QUANT_SCALE_TYPE_NP2)
+        advanced_options_quantization_scale_type_default = self.runtime_options.get('advanced_options:quantization_scale_type', None)
+        # do not modify the scale type if per channel quantization is supported in the device
+        if advanced_options_quantization_scale_type_default != presets.QUANTScaleType.QUANT_SCALE_TYPE_NP2_PERCHAN:
+            kwargs['advanced_options:quantization_scale_type'] = presets.QUANTScaleType.QUANT_SCALE_TYPE_NP2
+        #
         return self.get_runtime_options(presets.MODEL_TYPE_MXNET, is_qat=False, **kwargs)
 
     def runtime_options_onnx_p2(self, **kwargs):
-        kwargs['advanced_options:quantization_scale_type'] = self.runtime_options.get('advanced_options:quantization_scale_type', presets.QUANTScaleType.QUANT_SCALE_TYPE_P2)
+        advanced_options_quantization_scale_type_default = self.runtime_options.get('advanced_options:quantization_scale_type', None)
+        # do not modify the scale type if per channel quantization is supported in the device
+        if advanced_options_quantization_scale_type_default != presets.QUANTScaleType.QUANT_SCALE_TYPE_NP2_PERCHAN:
+            kwargs['advanced_options:quantization_scale_type'] = presets.QUANTScaleType.QUANT_SCALE_TYPE_P2
+        #
         return self.get_runtime_options(presets.MODEL_TYPE_ONNX, is_qat=False, **kwargs)
 
     def runtime_options_tflite_p2(self, **kwargs):
-        kwargs['advanced_options:quantization_scale_type'] = self.runtime_options.get('advanced_options:quantization_scale_type', presets.QUANTScaleType.QUANT_SCALE_TYPE_P2)
+        advanced_options_quantization_scale_type_default = self.runtime_options.get('advanced_options:quantization_scale_type', None)
+        # do not modify the scale type if per channel quantization is supported in the device
+        if advanced_options_quantization_scale_type_default != presets.QUANTScaleType.QUANT_SCALE_TYPE_NP2_PERCHAN:
+            kwargs['advanced_options:quantization_scale_type'] = presets.QUANTScaleType.QUANT_SCALE_TYPE_P2
+        #
         return self.get_runtime_options(presets.MODEL_TYPE_TFLITE, is_qat=False, **kwargs)
 
     def runtime_options_mxnet_p2(self, **kwargs):
-        kwargs['advanced_options:quantization_scale_type'] = self.runtime_options.get('advanced_options:quantization_scale_type', presets.QUANTScaleType.QUANT_SCALE_TYPE_P2)
+        advanced_options_quantization_scale_type_default = self.runtime_options.get('advanced_options:quantization_scale_type', None)
+        # do not modify the scale type if per channel quantization is supported in the device
+        if advanced_options_quantization_scale_type_default != presets.QUANTScaleType.QUANT_SCALE_TYPE_NP2_PERCHAN:
+            kwargs['advanced_options:quantization_scale_type'] = presets.QUANTScaleType.QUANT_SCALE_TYPE_P2
+        #
         return self.get_runtime_options(presets.MODEL_TYPE_MXNET, is_qat=False, **kwargs)
 
     def runtime_options_onnx_qat_v1(self, **kwargs):
