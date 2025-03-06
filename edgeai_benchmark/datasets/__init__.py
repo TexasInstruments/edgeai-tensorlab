@@ -31,6 +31,8 @@ import warnings
 from .. import constants
 
 from .onnx_backend_dataset import *
+from .tidl_unit_dataset import *
+
 from .image_cls import *
 from .image_seg import *
 from .image_det import *
