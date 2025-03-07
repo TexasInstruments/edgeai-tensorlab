@@ -50,7 +50,7 @@ The tidl_tools that are installed by the setup file in this repository need to c
 ### Specify firmware version while model compilation
 
 ### Firmware update
-New versions of fimrware often comes with improvements and fixes - hence it is recommended to sue that. If you you would like to use the new firmware in system, the EVM/device can be updated by using the script [update_target.sh in edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools/blob/master/update_target.sh)
+New versions of firmware often comes with improvements and fixes - hence it is recommended to use that. If you you would like to use the new firmware in system, the EVM/device can be updated by using the script [update_target.sh in edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools/blob/master/update_target.sh)
 
 ### Targeting previous versions of SDK
 If you are targeting an older version of SDK, checkout the corresponding git branch in this repository and use that. For example, branch r10 for SDK version 10.0
