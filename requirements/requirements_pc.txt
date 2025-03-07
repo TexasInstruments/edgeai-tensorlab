@@ -13,5 +13,5 @@ h5py
 #onnx==1.14.0
 graphviz
 colored
-#git+https://github.com/TexasInstruments/edgeai-tidl-tools.git@10_01_04_00#subdirectory=osrt-model-tools
-git+ssh://git@bitbucket.itg.ti.com/processor-sdk-vision/edgeai-tidl-tools.git@master#subdirectory=osrt-model-tools
+#git+ssh://git@bitbucket.itg.ti.com/processor-sdk-vision/edgeai-tidl-tools.git@master#subdirectory=osrt-model-tools
+git+https://github.com/TexasInstruments/edgeai-tidl-tools.git@10_01_04_00#subdirectory=osrt-model-tools
