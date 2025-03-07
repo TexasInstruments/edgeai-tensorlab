@@ -13,15 +13,13 @@ If you have not visited the following landing pages, please do so before attempt
 - Important Note: The models in this repository are being made available for experimentation and development  - they are not meant for deployment in production.
 
 <hr>
+<hr>
 
-## Model Selection Tool
-
-[Edge AI Studio: Model Selection Tool](https://www.ti.com/tool/EDGE-AI-STUDIO) - Understand the performance statistics such as FPS, Latency, Accuracy & DDR bandwidth of models in the Model Zoo. Find a model that best meets your performance and accuracy goals on TI Processor from TI Model Zoo.
-
+## Models & Documentation
 
 <hr>
 
-## Pre-trained models collection & documentation
+### Pre-trained models collection & documentation
 
 Pretrained models are located in the **[models](models)** folder. Following are the broad categories  of models included. Go through each section to understand details of the models and how they are trained. 
  
@@ -47,11 +45,44 @@ Pretrained models are located in the **[models](models)** folder. Following are 
 #### Public benchmarks
 - [MLPerf Machine Learning Models](./models/docs/mlperf/)
 
+
+<hr>
 <hr>
 
-## Compiled Model Artifacts
+## Compiled models - performance / accuracy / artifacts
 
-Pre-compiled model artifacts that are provided with this repository is in [Compiled Model Artifacts](modelartifacts). See additional notes [for precompiled model artifacts](./docs/precompiled_modelartifacts.md) 
+#### Tools & versions
+- This model compilation report is generated using edgeai-tensorlab/edgeai-benchmark, branch r10.1, which uses 10.1 version of tidl-tools
+- uses firmware update 10_01_04_00 as described in edgeai-benchmark, using the script run_benchmarks_firmware_update_pc.sh
+- edgeai-tidl-tools describes the supported tidl-tools versions and firmware updates required.
+
+#### Notes on accuracy measurements
+- Note: Since there are multiple models and devices, our report uses accuracy measured using **only on 1000 frames**. It is likely that this reported accuracy is similar to the accuracy on the entire validation set, but may not be exactly same. For accurate measurements, it is recommended to use the entire validation set.
+- Note: Measuring accuracy of object detection models requires to use a low detection threshold, that is not suitable for real-time inference. Because, in real inference, we are only interested in high confidence detections - including too many unnecessary low confidence detections also will affect inference time. Hence, we have separate report for performance/inference time and accuracy.
+- "Model Selection Tool - Performance Visualization" uses a high performance setting that focuses on reporting the best inference time. 
+- However, the report in "Model Compilation / Accuracy report" focuses on a setting that is suitable for accuracy measurement.
+
+<hr>
+
+### Model Selection Tool - Performance Visualization
+
+[Edge AI Studio: Model Selection Tool](https://www.ti.com/tool/EDGE-AI-STUDIO) - Understand the performance statistics such as FPS, Latency, Accuracy & DDR bandwidth of models in the Model Zoo. Find a model that best meets your performance and accuracy goals on TI Processor from TI Model Zoo.
+
+
+<hr>
+<hr>
+
+
+### Model Compilation / Accuracy report
+
+[See the accuracy report, with measurements on PC emulation](./reports/accuracy_report_20250307-161945_pc.md) and the corresponding [csv file](./reports/accuracy_report_20250307-161945_pc.csv)
+
+
+<hr>
+
+### Pre-compiled Model Artifacts
+
+Pre-compiled model artifacts that are provided with this repository is in [modelartifacts](modelartifacts) folder. See additional notes [for precompiled model artifacts](./docs/precompiled_modelartifacts.md) 
 
 
 <hr>
