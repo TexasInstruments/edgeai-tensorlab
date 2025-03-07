@@ -31,7 +31,7 @@ from . import core
 from . import constants, datasets, sessions
 
 
-class ConfigSettings(core.GetRuntimeOptions):
+class ConfigSettings(core.ConfigRuntimeOptions):
     def __init__(self, input, **kwargs):
         super().__init__(input, **kwargs)
 

@@ -40,7 +40,7 @@ from . import config_dict
 from . import presets
 
 
-class GetRuntimeOptions(config_dict.ConfigDict):
+class ConfigRuntimeOptions(config_dict.ConfigDict):
     def __init__(self, input, **kwargs):
         super().__init__(input, **kwargs)
         if not hasattr(self, 'runtime_options'):
