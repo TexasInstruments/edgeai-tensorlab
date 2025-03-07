@@ -200,6 +200,10 @@ class ConfigSettings(core.ConfigRuntimeOptions):
         self.check_errors = True
         # can use this file as template to cleanup model config file
         self.param_template_file = None
+        # auto generate code for C7x DSP - can be used via tvm.
+        self.c7x_codegen = False
+        # additional models to test tvm backend
+        self.c7x_codegen_models = False
 
     def basic_settings(self):
         '''this only returns the basic settings.
