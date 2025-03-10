@@ -1,5 +1,0 @@
-Model: inception_v1_224_quant
-Input: input
-Output: InceptionV1/Logits/Predictions/Softmax
-Top-1 accuracy: 69.63%
-Top-5 accuracy: 89.94%
