@@ -1,0 +1,50 @@
+task_type: classification
+preprocess:
+  add_flip_image: false
+  crop: 224
+  data_layout: NCHW
+  pad_color: 0
+  resize: 256
+  resize_with_pad: false
+  reverse_channels: false
+session:
+  artifacts_folder: artifacts
+  input_data_layout: NCHW
+  input_mean: null
+  input_scale: null
+  input_optimization: true
+  input_details:
+  - name: input.1Net_IN
+    shape:
+    - 1
+    - 3
+    - 224
+    - 224
+    type: tensor(uint8)
+  output_details:
+  - name: '466'
+    shape:
+    - 1
+    - 1000
+    type: tensor(float)
+  model_path: model/mobilenet_v2_tv.onnx
+  session_name: onnxrt
+  target_device: AM68A
+postprocess:
+  label_offset_pred: 0
+  formatter:
+    dst_indices:
+    - 4
+    - 5
+    name: DetectionBoxSL2BoxLS
+    src_indices:
+    - 5
+    - 4
+  ignore_index: null
+  normalized_detections: false
+  resize_with_pad: false
+  shuffle_indices: null
+  squeeze_axis: null
+  logits_bbox_to_bbox_ls: false
+metric:
+  label_offset_pred: null

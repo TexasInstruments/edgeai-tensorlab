@@ -1,0 +1,116 @@
+task_type: detection
+dataset_category: coco  # Optional
+calibration_dataset:    # Optional
+  num_classes: 90       # Optional
+input_dataset:
+  num_classes: 90
+  # dataset_info: yolox_nano_lite_416x416_20220214_model_dataset.yaml
+preprocess:
+  resize: 416
+  crop: 416
+  data_layout: NCHW
+  reverse_channels: true
+  backend: cv2
+  interpolation: null
+  # add_flip_image: false
+  resize_with_pad:
+  - true
+  - corner
+  pad_color:
+  - 114
+  - 114
+  - 114
+session:
+  session_name: onnxrt
+  target_device: null
+  input_optimization: false
+  input_data_layout: NCHW
+  input_mean:
+  - 0.0
+  - 0.0
+  - 0.0
+  input_scale:
+  - 1.0
+  - 1.0
+  - 1.0
+  runtime_options:
+    object_detection:meta_arch_type: 6
+    object_detection:meta_layers_names_list: yolox_nano_lite_416x416_20220214_model.prototxt
+    advanced_options:output_feature_16bit_names_list: 1033, 711, 712, 713, 727, 728, 729, 743, 744, 745
+    advanced_options:params_16bit_names_list: ''
+    # these commented options may needed to be used at TIDL compilation time, and the user can use appropriate values by consulting the documentation in https://github.com/TexasInstruments/edgeai-tidl-tools
+    platform: J7
+    version: 9.2.0
+    tensor_bits: 8
+    accuracy_level: 1
+    advanced_options:high_resolution_optimization: 0
+    advanced_options:pre_batchnorm_fold: 1
+    advanced_options:calibration_frames: 25
+    advanced_options:calibration_iterations: 25
+    advanced_options:quantization_scale_type: 4  # 4 for all SoCs other than TDA4VM indicating per-chall weight quantization, 0 or 1 for TDA4VM
+    advanced_options:activation_clipping: 1
+    advanced_options:weight_clipping: 1
+    advanced_options:bias_calibration: 1
+    advanced_options:add_data_convert_ops: 3    # optimize data conversion options by moving them from arm to c7x
+    advanced_options:prequantized_model: 0
+    onnxruntime:graph_optimization_level: null
+    info: null # Optional
+  model_path: yolox_nano_lite_416x416_20220214_model.onnx
+  model_id: od-8200
+  input_details:
+  - name: input
+    shape:
+    - 1
+    - 3
+    - 416
+    - 416
+    type: tensor(float)
+  output_details:
+  - name: dets
+    shape:
+    - 1
+    - 1
+    - 1
+    - 1
+    - 200
+    - 5
+    type: tensor(float)
+  - name: labels
+    shape:
+    - 1
+    - 1
+    - 1
+    - 1
+    - 1
+    - 200
+    type: tensor(int64)
+  num_inputs: 1
+  # artifacts_folder: artifacts
+postprocess:
+  detection_threshold: 0.3
+  save_output: false
+  formatter:
+    src_indices:
+    - 5
+    - 4
+    dst_indices:
+    - 4
+    - 5
+    name: DetectionBoxSL2BoxLS
+  resize_with_pad: true
+  normalized_detections: false
+  shuffle_indices: null
+  squeeze_axis: null
+  ignore_index: null
+  logits_bbox_to_bbox_ls: false
+metric:
+  label_offset_pred: 0
+model_info:
+  metric_reference:
+    accuracy_top1%: 71.676
+    accuracy_ap[.5:.95]%: 38.3
+    accuracy_mean_iou%: 50.55
+  model_shortlist: 10  # options - just to sort models in terms of importance
+  compact_name: None
+  shortlisted: None
+  recommended: None

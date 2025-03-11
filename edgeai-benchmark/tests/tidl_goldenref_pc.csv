@@ -1,0 +1,12 @@
+model,quick_sanity_acc_data,quick_sanity_perf_data,sanity_acc_data,sanity_perf_data
+TVM-SS-5720-deeplabv3lite-regnetx800mf-cocoseg21-512x512,55.451813,13376.0487,0,0
+ONR-SS-8610-deeplabv3lite-mobv2-ade20k32-512x512,53.395633,6344.184542,0,0
+TFL-SS-2580-deeplabv3_mobv2-ade20k32-mlperf-512x512,31.566429,11050.72002,0,0
+TVM-OD-5020-yolov3-mobv1-gluon-mxnet-coco-416x416,25.329114,11228.15936,0,0
+ONR-OD-8050-ssd-lite-regNetX-800mf-fpn-bgr-mmdet-coco-512x512,37.741731,10902.2484,0,0
+ONR-OD-8220-yolox-s-lite-mmdet-coco-640x640,33.536216,14098.96793,0,0
+ONR-OD-8420-yolox-s-lite-mmdet-widerface-640x640,11.457913,13991.02944,0,0
+TFL-OD-2020-ssdLite-mobDet-DSP-coco-320x320,43.678632,3696.545477,0,0
+TVM-CL-3410-gluoncv-mxnet-mobv2,72.2,648.619698,0,0
+ONR-CL-6360-regNetx-200mf,68.3,401.950405,0,0
+TFL-CL-0000-mobileNetV1-mlperf,66.5,1070.807927,0,0
