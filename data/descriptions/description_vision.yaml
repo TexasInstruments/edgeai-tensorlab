@@ -24,19 +24,19 @@ help_descriptions: "\n## Overview\nThis is a tool for collecting data, training 
   * Product information: https://www.ti.com/product/TDA4VM\n* Development board: https://www.ti.com/tool/SK-TDA4VM\n\
   * Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM\n\
   * SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM\n\
-  * SDK release: 09_02_00\n\n### AM62A\n* Product information: https://www.ti.com/product/AM62A7\n\
+  * SDK release: 10_01_00\n\n### AM62A\n* Product information: https://www.ti.com/product/AM62A7\n\
   * Development board: https://www.ti.com/tool/SK-AM62A-LP\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\n\
   * SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\n\
-  * SDK release: 09_02_00\n\n### AM68A\n* Product information: https://www.ti.com/product/AM68A\n\
+  * SDK release: 10_01_00\n\n### AM68A\n* Product information: https://www.ti.com/product/AM68A\n\
   * Development board: https://www.ti.com/tool/SK-AM68\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A\n\
   * SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A\n\
-  * SDK release: 09_02_00\n\n### AM69A\n* Product information: https://www.ti.com/product/AM69A\n\
+  * SDK release: 10_01_00\n\n### AM69A\n* Product information: https://www.ti.com/product/AM69A\n\
   * Development board: https://www.ti.com/tool/SK-AM69\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM69A\n\
   * SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM69A\n\
-  * SDK release: 09_02_00\n\n### AM62\n* Product information: https://www.ti.com/product/AM625\n\
+  * SDK release: 10_01_00\n\n### AM62\n* Product information: https://www.ti.com/product/AM625\n\
   * Development board: https://www.ti.com/tool/SK-AM62\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62X\n\
   * SDK documentation & board setup: See analytics application and Edge AI documentation\
-  \ at https://www.ti.com/tool/SK-AM62#order-start-development\n* SDK release: 09_02_00\n\
+  \ at https://www.ti.com/tool/SK-AM62#order-start-development\n* SDK release: 10_01_00\n\
   \n## Additional information\n* Edge AI introduction: https://ti.com/edgeai\n* Edge\
   \ AI model development information: https://github.com/TexasInstruments/edgeai\n\
   * Edge AI tools introduction: https://dev.ti.com/edgeai/\n\n\n## Dataset format\n\
@@ -117,19 +117,19 @@ model_descriptions:
       projects_path: ./data/projects
       run_name: '{date-time}/{model_name}'
       target_device: null
-      target_machine: evm
+      target_machine: pc
       target_module: vision
       task_type: segmentation
       verbose_mode: true
     compilation:
       calibration_frames: 10
       calibration_iterations: 10
-      capture_log: true
       compilation_path: null
-      detection_threshold: 0.6
+      detection_threshold: 0.3
       detection_top_k: 200
       enable: true
       input_optimization: true
+      log_file: true
       log_file_path: null
       log_summary_regex: null
       metric:
@@ -194,6 +194,7 @@ model_descriptions:
       num_gpus: 0
       num_last_epochs: 5
       pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/segmentation/cocoseg21/edgeai-tv/deeplabv3plus_mobilenetv2_edgeailite_512x512_20210405_checkpoint.pth
+      pretrained_weight_state_dict_name: null
       project_path: null
       summary_file_path: null
       target_devices:
@@ -209,6 +210,12 @@ model_descriptions:
           model_selection_factor: 0
           performance_fps: 237
           performance_infer_time_ms: 12.658227848101266
+        AM67A:
+          accuracy_factor: 77.04
+          accuracy_unit: MeanIoU%
+          model_selection_factor: 0
+          performance_fps: 237
+          performance_infer_time_ms: 12.658227848101266 (with 1/2 device capability)
         AM68A:
           accuracy_factor: 77.04
           accuracy_unit: MeanIoU%
@@ -227,7 +234,7 @@ model_descriptions:
           model_selection_factor: 1
           performance_fps: 237
           performance_infer_time_ms: 4.219409282700422
-      training_backend: edgeai_torchvision
+      training_backend: edgeai_tensorvision
       training_device: null
       training_devices:
         cpu: true
@@ -246,19 +253,19 @@ model_descriptions:
       projects_path: ./data/projects
       run_name: '{date-time}/{model_name}'
       target_device: null
-      target_machine: evm
+      target_machine: pc
       target_module: vision
       task_type: segmentation
       verbose_mode: true
     compilation:
       calibration_frames: 10
       calibration_iterations: 10
-      capture_log: true
       compilation_path: null
-      detection_threshold: 0.6
+      detection_threshold: 0.3
       detection_top_k: 200
       enable: true
       input_optimization: true
+      log_file: true
       log_file_path: null
       log_summary_regex: null
       metric:
@@ -323,6 +330,7 @@ model_descriptions:
       num_gpus: 0
       num_last_epochs: 5
       pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/segmentation/cocoseg21/edgeai-tv/fpn_aspp_regnetx800mf_edgeailite_512x512_20210405_checkpoint.pth
+      pretrained_weight_state_dict_name: null
       project_path: null
       summary_file_path: null
       target_devices:
@@ -350,7 +358,7 @@ model_descriptions:
           model_selection_factor: 2
           performance_fps: 272
           performance_infer_time_ms: 3.676470588235294
-      training_backend: edgeai_torchvision
+      training_backend: edgeai_tensorvision
       training_device: null
       training_devices:
         cpu: true
@@ -369,19 +377,19 @@ model_descriptions:
       projects_path: ./data/projects
       run_name: '{date-time}/{model_name}'
       target_device: null
-      target_machine: evm
+      target_machine: pc
       target_module: vision
       task_type: classification
       verbose_mode: true
     compilation:
       calibration_frames: 10
       calibration_iterations: 10
-      capture_log: true
       compilation_path: null
-      detection_threshold: 0.6
+      detection_threshold: 0.3
       detection_top_k: 200
       enable: true
       input_optimization: true
+      log_file: true
       log_file_path: null
       log_summary_regex: null
       metric:
@@ -444,6 +452,7 @@ model_descriptions:
       pretrained_checkpoint_path:
         download_path: '{download_path}/pretrained/mobilenet_v2_lite'
         download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth
+      pretrained_weight_state_dict_name: state_dict
       project_path: null
       summary_file_path: null
       target_devices:
@@ -459,6 +468,12 @@ model_descriptions:
           model_selection_factor: 2
           performance_fps: null
           performance_infer_time_ms: 4.03
+        AM67A:
+          accuracy_factor: 72.13
+          accuracy_unit: Accuracy Top-1%
+          model_selection_factor: 2
+          performance_fps: null
+          performance_infer_time_ms: 4.03 (with 1/2 device capability)
         AM68A:
           accuracy_factor: 72.13
           accuracy_unit: Accuracy Top-1%
@@ -496,19 +511,19 @@ model_descriptions:
       projects_path: ./data/projects
       run_name: '{date-time}/{model_name}'
       target_device: null
-      target_machine: evm
+      target_machine: pc
       target_module: vision
       task_type: classification
       verbose_mode: true
     compilation:
       calibration_frames: 10
       calibration_iterations: 10
-      capture_log: true
       compilation_path: null
-      detection_threshold: 0.6
+      detection_threshold: 0.3
       detection_top_k: 200
       enable: true
       input_optimization: true
+      log_file: true
       log_file_path: null
       log_summary_regex: null
       metric:
@@ -571,6 +586,7 @@ model_descriptions:
       pretrained_checkpoint_path:
         download_path: '{download_path}/pretrained/torch/hub/checkpoints'
         download_url: https://download.pytorch.org/models/regnet_x_400mf-62229a5f.pth
+      pretrained_weight_state_dict_name: model
       project_path: null
       summary_file_path: null
       target_devices:
@@ -586,6 +602,12 @@ model_descriptions:
           model_selection_factor: 1
           performance_fps: null
           performance_infer_time_ms: 5.25
+        AM67A:
+          accuracy_factor: 72.834
+          accuracy_unit: Accuracy Top-1%
+          model_selection_factor: 1
+          performance_fps: null
+          performance_infer_time_ms: 5.25 (with 1/2 device capability)
         AM68A:
           accuracy_factor: 72.834
           accuracy_unit: Accuracy Top-1%
@@ -623,19 +645,19 @@ model_descriptions:
       projects_path: ./data/projects
       run_name: '{date-time}/{model_name}'
       target_device: null
-      target_machine: evm
+      target_machine: pc
       target_module: vision
       task_type: classification
       verbose_mode: true
     compilation:
       calibration_frames: 10
       calibration_iterations: 10
-      capture_log: true
       compilation_path: null
-      detection_threshold: 0.6
+      detection_threshold: 0.3
       detection_top_k: 200
       enable: true
       input_optimization: true
+      log_file: true
       log_file_path: null
       log_summary_regex: null
       metric:
@@ -698,6 +720,7 @@ model_descriptions:
       pretrained_checkpoint_path:
         download_path: '{download_path}/pretrained/torch/hub/checkpoints'
         download_url: https://download.pytorch.org/models/regnet_x_800mf-ad17e45c.pth
+      pretrained_weight_state_dict_name: model
       project_path: null
       summary_file_path: null
       target_devices:
@@ -707,6 +730,12 @@ model_descriptions:
           model_selection_factor: 0
           performance_fps: null
           performance_infer_time_ms: 5.95
+        AM67A:
+          accuracy_factor: 75.212
+          accuracy_unit: Accuracy Top-1%
+          model_selection_factor: 0
+          performance_fps: null
+          performance_infer_time_ms: 5.95 (with 1/2 device capability)
         AM68A:
           accuracy_factor: 75.212
           accuracy_unit: Accuracy Top-1%
@@ -744,19 +773,19 @@ model_descriptions:
       projects_path: ./data/projects
       run_name: '{date-time}/{model_name}'
       target_device: null
-      target_machine: evm
+      target_machine: pc
       target_module: vision
       task_type: segmentation
       verbose_mode: true
     compilation:
       calibration_frames: 10
       calibration_iterations: 10
-      capture_log: true
       compilation_path: null
-      detection_threshold: 0.6
+      detection_threshold: 0.3
       detection_top_k: 200
       enable: true
       input_optimization: true
+      log_file: true
       log_file_path: null
       log_summary_regex: null
       metric:
@@ -821,6 +850,7 @@ model_descriptions:
       num_gpus: 0
       num_last_epochs: 5
       pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/segmentation/cocoseg21/edgeai-tv/unet_aspp_mobilenetv2_edgeailite_512x512_20210407_checkpoint.pth
+      pretrained_weight_state_dict_name: null
       project_path: null
       summary_file_path: null
       target_devices:
@@ -848,7 +878,7 @@ model_descriptions:
           model_selection_factor: 0
           performance_fps: 237
           performance_infer_time_ms: 4.219409282700422
-      training_backend: edgeai_torchvision
+      training_backend: edgeai_tensorvision
       training_device: null
       training_devices:
         cpu: true
@@ -859,6 +889,250 @@ model_descriptions:
       warmup_epochs: 1
       weight_decay: 0.0001
       with_background_class: true
+  yolov7_l_lite:
+    common:
+      download_path: ./data/downloads
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: '{date-time}/{model_name}'
+      target_device: null
+      target_machine: pc
+      target_module: vision
+      task_type: detection
+      verbose_mode: true
+    compilation:
+      calibration_frames: 10
+      calibration_iterations: 10
+      compilation_path: null
+      detection_threshold: 0.3
+      detection_top_k: 200
+      enable: true
+      input_optimization: false
+      log_file: true
+      log_file_path: null
+      log_summary_regex: null
+      metric:
+        label_offset_pred: 1
+      model_compilation_id: od-9202
+      model_compiled_path: null
+      model_packaged_path: null
+      model_visualization_path: null
+      num_frames: null
+      num_output_frames: 50
+      output_tensors_path: null
+      preset_name: null
+      save_output: true
+      summary_file_path: null
+      tensor_bits: 8
+      tidl_offload: true
+    dataset:
+      annotation_dir: annotations
+      annotation_format: coco_json
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: 10000
+      split_factor: 0.8
+      split_names:
+      - train
+      - val
+    download:
+    - download_path: '{download_path}/pretrained/yolov7_l_lite'
+      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolov7_l_coco_lite_640x640_20250109_checkpoint.pth
+    training:
+      batch_size: 8
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize: 640
+      input_resize: 640
+      learning_rate: 0.002
+      log_file_path: null
+      log_summary_regex: null
+      model_architecture: yolov7
+      model_checkpoint_path: null
+      model_export_path: null
+      model_name: yolov7_l_lite
+      model_packaged_path: null
+      model_proto_path: null
+      model_training_id: yolov7_l_coco_lite
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint_path:
+        download_path: '{download_path}/pretrained/yolov7_l_lite'
+        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolov7_l_coco_lite_640x640_20250109_checkpoint.pth
+      pretrained_weight_state_dict_name: null
+      project_path: null
+      summary_file_path: null
+      target_devices:
+        AM68A:
+          accuracy_factor: 65.1
+          accuracy_factor2: 45.9
+          accuracy_unit: AP50%
+          accuracy_unit2: AP[.5:.95]%
+          model_selection_factor: 0
+          performance_fps: null
+          performance_infer_time_ms: 33.56
+        AM69A:
+          accuracy_factor: 65.1
+          accuracy_factor2: 45.9
+          accuracy_unit: AP50%
+          accuracy_unit2: AP[.5:.95]%
+          model_selection_factor: 0
+          performance_fps: null
+          performance_infer_time_ms: 33.56 (with 1/4th device capability)
+        TDA4VM:
+          accuracy_factor: 65.1
+          accuracy_factor2: 45.9
+          accuracy_unit: AP50%
+          accuracy_unit2: AP[.5:.95]%
+          model_selection_factor: null
+          performance_fps: null
+          performance_infer_time_ms: null
+      training_backend: edgeai_mmdetection
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 15
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
+      with_background_class: null
+  yolov9_s_lite:
+    common:
+      download_path: ./data/downloads
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: '{date-time}/{model_name}'
+      target_device: null
+      target_machine: pc
+      target_module: vision
+      task_type: detection
+      verbose_mode: true
+    compilation:
+      calibration_frames: 10
+      calibration_iterations: 10
+      compilation_path: null
+      detection_threshold: 0.3
+      detection_top_k: 200
+      enable: true
+      input_optimization: false
+      log_file: true
+      log_file_path: null
+      log_summary_regex: null
+      metric:
+        label_offset_pred: 1
+      model_compilation_id: od-9204
+      model_compiled_path: null
+      model_packaged_path: null
+      model_visualization_path: null
+      num_frames: null
+      num_output_frames: 50
+      output_tensors_path: null
+      preset_name: null
+      save_output: true
+      summary_file_path: null
+      tensor_bits: 8
+      tidl_offload: true
+    dataset:
+      annotation_dir: annotations
+      annotation_format: coco_json
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: 10000
+      split_factor: 0.8
+      split_names:
+      - train
+      - val
+    download:
+    - download_path: '{download_path}/pretrained/yolov9_s_lite'
+      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolov9_s_coco_lite_640x640_20250219_checkpoint.pth
+    training:
+      batch_size: 8
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize: 640
+      input_resize: 640
+      learning_rate: 0.002
+      log_file_path: null
+      log_summary_regex: null
+      model_architecture: yolov9
+      model_checkpoint_path: null
+      model_export_path: null
+      model_name: yolov9_s_lite
+      model_packaged_path: null
+      model_proto_path: null
+      model_training_id: yolov9_s_coco_lite
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint_path:
+        download_path: '{download_path}/pretrained/yolov9_s_lite'
+        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolov9_s_coco_lite_640x640_20250219_checkpoint.pth
+      pretrained_weight_state_dict_name: null
+      project_path: null
+      summary_file_path: null
+      target_devices:
+        AM68A:
+          accuracy_factor: 54.0
+          accuracy_factor2: 38.3
+          accuracy_unit: AP50%
+          accuracy_unit2: AP[.5:.95]%
+          model_selection_factor: null
+          performance_fps: null
+          performance_infer_time_ms: null
+        AM69A:
+          accuracy_factor: 54.0
+          accuracy_factor2: 38.3
+          accuracy_unit: AP50%
+          accuracy_unit2: AP[.5:.95]%
+          model_selection_factor: null
+          performance_fps: null
+          performance_infer_time_ms: null
+        TDA4VM:
+          accuracy_factor: 54.0
+          accuracy_factor2: 38.3
+          accuracy_unit: AP50%
+          accuracy_unit2: AP[.5:.95]%
+          model_selection_factor: null
+          performance_fps: null
+          performance_infer_time_ms: null
+      training_backend: edgeai_mmdetection
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 15
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
+      with_background_class: null
   yolox_nano_lite:
     common:
       download_path: ./data/downloads
@@ -867,19 +1141,19 @@ model_descriptions:
       projects_path: ./data/projects
       run_name: '{date-time}/{model_name}'
       target_device: null
-      target_machine: evm
+      target_machine: pc
       target_module: vision
       task_type: detection
       verbose_mode: true
     compilation:
       calibration_frames: 10
       calibration_iterations: 10
-      capture_log: true
       compilation_path: null
-      detection_threshold: 0.6
+      detection_threshold: 0.3
       detection_top_k: 200
       enable: true
-      input_optimization: true
+      input_optimization: false
+      log_file: true
       log_file_path: null
       log_summary_regex: null
       metric:
@@ -948,6 +1222,7 @@ model_descriptions:
       pretrained_checkpoint_path:
         download_path: '{download_path}/pretrained/yolox_nano_lite'
         download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth
+      pretrained_weight_state_dict_name: null
       project_path: null
       summary_file_path: null
       target_devices:
@@ -967,12 +1242,20 @@ model_descriptions:
           model_selection_factor: 2
           performance_fps: null
           performance_infer_time_ms: 8.87
-        AM68A:
+        AM67A:
           accuracy_factor: 40.1
           accuracy_factor2: 24.8
           accuracy_unit: AP50%
           accuracy_unit2: AP[.5:.95]%
           model_selection_factor: 2
+          performance_fps: null
+          performance_infer_time_ms: 8.87 (with 1/2 device capability)
+        AM68A:
+          accuracy_factor: 40.1
+          accuracy_factor2: 24.8
+          accuracy_unit: AP50%
+          accuracy_unit2: AP[.5:.95]%
+          model_selection_factor: 3
           performance_fps: null
           performance_infer_time_ms: 3.73
         AM69A:
@@ -980,7 +1263,7 @@ model_descriptions:
           accuracy_factor2: 24.8
           accuracy_unit: AP50%
           accuracy_unit2: AP[.5:.95]%
-          model_selection_factor: 2
+          model_selection_factor: 3
           performance_fps: null
           performance_infer_time_ms: 3.64 (with 1/4th device capability)
         TDA4VM:
@@ -1010,19 +1293,19 @@ model_descriptions:
       projects_path: ./data/projects
       run_name: '{date-time}/{model_name}'
       target_device: null
-      target_machine: evm
+      target_machine: pc
       target_module: vision
       task_type: detection
       verbose_mode: true
     compilation:
       calibration_frames: 10
       calibration_iterations: 10
-      capture_log: true
       compilation_path: null
-      detection_threshold: 0.6
+      detection_threshold: 0.3
       detection_top_k: 200
       enable: true
-      input_optimization: true
+      input_optimization: false
+      log_file: true
       log_file_path: null
       log_summary_regex: null
       metric:
@@ -1091,6 +1374,7 @@ model_descriptions:
       pretrained_checkpoint_path:
         download_path: '{download_path}/pretrained/yolox_pico_lite'
         download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_pico_lite_320x320_20230410_checkpoint.pth
+      pretrained_weight_state_dict_name: null
       project_path: null
       summary_file_path: null
       target_devices:
@@ -1113,147 +1397,6 @@ model_descriptions:
       warmup_epochs: 1
       weight_decay: 0.0001
       with_background_class: null
-  yolox_s_keypoint:
-    common:
-      download_path: ./data/downloads
-      project_path: null
-      project_run_path: null
-      projects_path: ./data/projects
-      run_name: '{date-time}/{model_name}'
-      target_device: null
-      target_machine: evm
-      target_module: vision
-      task_type: keypoint_detection
-      verbose_mode: true
-    compilation:
-      calibration_frames: 10
-      calibration_iterations: 10
-      capture_log: true
-      compilation_path: null
-      detection_threshold: 0.6
-      detection_top_k: 200
-      enable: true
-      input_optimization: false
-      log_file_path: null
-      log_summary_regex: null
-      metric:
-        label_offset_pred: 0
-      model_compilation_id: kd-7060
-      model_compiled_path: null
-      model_packaged_path: null
-      model_visualization_path: null
-      num_frames: null
-      num_output_frames: 50
-      output_tensors_path: null
-      preset_name: null
-      runtime_options:
-        advanced_options:output_feature_16bit_names_list: /0/head/cls_preds.0/Conv_output_0,
-          /0/head/reg_preds.0/Conv_output_0, /0/head/obj_preds.0/Conv_output_0, /0/head/kpts_preds.0/Conv_output_0,
-          /0/head/cls_preds.1/Conv_output_0, /0/head/reg_preds.1/Conv_output_0, /0/head/obj_preds.1/Conv_output_0,
-          /0/head/kpts_preds.1/Conv_output_0, /0/head/cls_preds.2/Conv_output_0, /0/head/reg_preds.2/Conv_output_0,
-          /0/head/obj_preds.2/Conv_output_0, /0/head/kpts_preds.2/Conv_output_0
-      save_output: true
-      summary_file_path: null
-      tensor_bits: 8
-      tidl_offload: true
-    dataset:
-      annotation_dir: annotations
-      annotation_format: coco_json
-      annotation_path_splits: null
-      annotation_prefix: instances
-      data_dir: images
-      data_path_splits: null
-      dataset_download: true
-      dataset_name: null
-      dataset_path: null
-      dataset_reload: false
-      enable: true
-      extract_path: null
-      input_annotation_path: null
-      input_data_path: null
-      max_num_files: 10000
-      split_factor: 0.8
-      split_names:
-      - train
-      - val
-    download:
-    - download_path: '{download_path}/pretrained/yolox_s_keypoint'
-      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/keypoint/coco/edgeai-yolox/yolox_s_pose_ti_lite_640_20220301_checkpoint.pth
-    training:
-      batch_size: 8
-      dataset_path: null
-      distributed: true
-      enable: true
-      input_cropsize: 640
-      input_resize: 640
-      learning_rate: 0.002
-      log_file_path: null
-      log_summary_regex: null
-      model_architecture: yolox
-      model_checkpoint_path: null
-      model_export_path: null
-      model_name: yolox_s_keypoint
-      model_packaged_path: null
-      model_proto_path: null
-      model_training_id: yolox-s-human-pose-ti-lite
-      num_classes: null
-      num_gpus: 0
-      num_last_epochs: 5
-      pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/keypoint/coco/edgeai-yolox/yolox_s_pose_ti_lite_640_20220301_checkpoint.pth
-      project_path: null
-      summary_file_path: null
-      target_devices:
-        AM62:
-          accuracy_factor: 78.0
-          accuracy_factor2: 49.6
-          accuracy_unit: AP50%
-          accuracy_unit2: AP[.5:.95]%
-          model_selection_factor: 0
-          performance_fps: 0.389
-          performance_infer_time_ms: 2570.694087403599
-        AM62A:
-          accuracy_factor: 78.0
-          accuracy_factor2: 49.6
-          accuracy_unit: AP50%
-          accuracy_unit2: AP[.5:.95]%
-          model_selection_factor: 0
-          performance_fps: 15.17
-          performance_infer_time_ms: 65.91957811470007
-        AM68A:
-          accuracy_factor: 78.0
-          accuracy_factor2: 49.6
-          accuracy_unit: AP50%
-          accuracy_unit2: AP[.5:.95]%
-          model_selection_factor: 0
-          performance_fps: 68.89
-          performance_infer_time_ms: 14.515894904920888
-        AM69A:
-          accuracy_factor: 78.0
-          accuracy_factor2: 49.6
-          accuracy_unit: AP50%
-          accuracy_unit2: AP[.5:.95]%
-          model_selection_factor: 0
-          performance_fps: 68.89
-          performance_infer_time_ms: 14.515894904920888 (with 1/4th device capability)
-        TDA4VM:
-          accuracy_factor: 78.0
-          accuracy_factor2: 49.6
-          accuracy_unit: AP50%
-          accuracy_unit2: AP[.5:.95]%
-          model_selection_factor: 0
-          performance_fps: 77.8
-          performance_infer_time_ms: 12.853470437017995
-      training_backend: edgeai_yolox
-      training_device: null
-      training_devices:
-        cpu: true
-        cuda: true
-      training_epochs: 15
-      training_master_port: 29500
-      training_path: null
-      warmup_epochs: 1
-      weight_decay: 0.0001
-      with_background_class: null
   yolox_s_lite:
     common:
       download_path: ./data/downloads
@@ -1262,19 +1405,19 @@ model_descriptions:
       projects_path: ./data/projects
       run_name: '{date-time}/{model_name}'
       target_device: null
-      target_machine: evm
+      target_machine: pc
       target_module: vision
       task_type: detection
       verbose_mode: true
     compilation:
       calibration_frames: 10
       calibration_iterations: 10
-      capture_log: true
       compilation_path: null
-      detection_threshold: 0.6
+      detection_threshold: 0.3
       detection_top_k: 200
       enable: true
-      input_optimization: true
+      input_optimization: false
+      log_file: true
       log_file_path: null
       log_summary_regex: null
       metric:
@@ -1343,6 +1486,7 @@ model_descriptions:
       pretrained_checkpoint_path:
         download_path: '{download_path}/pretrained/yolox_s_lite'
         download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth
+      pretrained_weight_state_dict_name: null
       project_path: null
       summary_file_path: null
       target_devices:
@@ -1354,12 +1498,20 @@ model_descriptions:
           model_selection_factor: 0
           performance_fps: null
           performance_infer_time_ms: 43.94
-        AM68A:
+        AM67A:
           accuracy_factor: 56.9
           accuracy_factor2: 38.3
           accuracy_unit: AP50%
           accuracy_unit2: AP[.5:.95]%
           model_selection_factor: 0
+          performance_fps: null
+          performance_infer_time_ms: 43.94 (with 1/2 device capability)
+        AM68A:
+          accuracy_factor: 56.9
+          accuracy_factor2: 38.3
+          accuracy_unit: AP50%
+          accuracy_unit2: AP[.5:.95]%
+          model_selection_factor: 1
           performance_fps: null
           performance_infer_time_ms: 10.22
         AM69A:
@@ -1367,7 +1519,7 @@ model_descriptions:
           accuracy_factor2: 38.3
           accuracy_unit: AP50%
           accuracy_unit2: AP[.5:.95]%
-          model_selection_factor: 0
+          model_selection_factor: 1
           performance_fps: null
           performance_infer_time_ms: 9.82 (with 1/4th device capability)
         TDA4VM:
@@ -1397,19 +1549,19 @@ model_descriptions:
       projects_path: ./data/projects
       run_name: '{date-time}/{model_name}'
       target_device: null
-      target_machine: evm
+      target_machine: pc
       target_module: vision
       task_type: detection
       verbose_mode: true
     compilation:
       calibration_frames: 10
       calibration_iterations: 10
-      capture_log: true
       compilation_path: null
-      detection_threshold: 0.6
+      detection_threshold: 0.3
       detection_top_k: 200
       enable: true
-      input_optimization: true
+      input_optimization: false
+      log_file: true
       log_file_path: null
       log_summary_regex: null
       metric:
@@ -1422,12 +1574,7 @@ model_descriptions:
       num_output_frames: 50
       output_tensors_path: null
       preset_name: null
-      runtime_options:
-        advanced_options:output_feature_16bit_names_list: /multi_level_conv_obj.2/Conv_output_0,
-          /multi_level_conv_reg.2/Conv_output_0, /multi_level_conv_cls.2/Conv_output_0,
-          /multi_level_conv_obj.1/Conv_output_0, /multi_level_conv_reg.1/Conv_output_0,
-          /multi_level_conv_cls.1/Conv_output_0, /multi_level_conv_obj.0/Conv_output_0,
-          /multi_level_conv_reg.0/Conv_output_0, /multi_level_conv_cls.0/Conv_output_0
+      runtime_options: {}
       save_output: true
       summary_file_path: null
       tensor_bits: 8
@@ -1478,6 +1625,7 @@ model_descriptions:
       pretrained_checkpoint_path:
         download_path: '{download_path}/pretrained/yolox_tiny_lite'
         download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth
+      pretrained_weight_state_dict_name: null
       project_path: null
       summary_file_path: null
       target_devices:
@@ -1497,12 +1645,20 @@ model_descriptions:
           model_selection_factor: 1
           performance_fps: null
           performance_infer_time_ms: 15.35
-        AM68A:
+        AM67A:
           accuracy_factor: 47.4
           accuracy_factor2: 30.5
           accuracy_unit: AP50%
           accuracy_unit2: AP[.5:.95]%
           model_selection_factor: 1
+          performance_fps: null
+          performance_infer_time_ms: 15.35 (with 1/2 device capability)
+        AM68A:
+          accuracy_factor: 47.4
+          accuracy_factor2: 30.5
+          accuracy_unit: AP50%
+          accuracy_unit2: AP[.5:.95]%
+          model_selection_factor: 2
           performance_fps: null
           performance_infer_time_ms: 4.82
         AM69A:
@@ -1510,7 +1666,7 @@ model_descriptions:
           accuracy_factor2: 30.5
           accuracy_unit: AP50%
           accuracy_unit2: AP[.5:.95]%
-          model_selection_factor: 1
+          model_selection_factor: 2
           performance_fps: null
           performance_infer_time_ms: 4.73 (with 1/4th device capability)
         TDA4VM:
@@ -1522,6 +1678,254 @@ model_descriptions:
           performance_fps: null
           performance_infer_time_ms: 4.84
       training_backend: edgeai_mmdetection
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 15
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
+      with_background_class: null
+  yoloxpose_s_lite:
+    common:
+      download_path: ./data/downloads
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: '{date-time}/{model_name}'
+      target_device: null
+      target_machine: pc
+      target_module: vision
+      task_type: keypoint_detection
+      verbose_mode: true
+    compilation:
+      calibration_frames: 10
+      calibration_iterations: 10
+      compilation_path: null
+      detection_threshold: 0.3
+      detection_top_k: 200
+      enable: true
+      input_optimization: false
+      log_file: true
+      log_file_path: null
+      log_summary_regex: null
+      metric:
+        label_offset_pred: 1
+      model_compilation_id: kd-7080
+      model_compiled_path: null
+      model_packaged_path: null
+      model_visualization_path: null
+      num_frames: null
+      num_output_frames: 50
+      output_tensors_path: null
+      preset_name: null
+      runtime_options:
+        advanced_options:output_feature_16bit_names_list: '3'
+      save_output: true
+      summary_file_path: null
+      tensor_bits: 8
+      tidl_offload: true
+    dataset:
+      annotation_dir: annotations
+      annotation_format: coco_json
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: 10000
+      split_factor: 0.8
+      split_names:
+      - train
+      - val
+    download:
+    - download_path: '{download_path}/pretrained/yoloxpose_s_lite'
+      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/10_01_00/models/vision/keypoint/coco/edgeai-mmpose/yoloxpose_s_lite_coco-640x640_20250119_checkpoint.pth
+    training:
+      batch_size: 8
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize: 640
+      input_resize: 640
+      learning_rate: 0.002
+      log_file_path: null
+      log_summary_regex: null
+      model_architecture: yolox
+      model_checkpoint_path: null
+      model_export_path: null
+      model_name: yoloxpose_s_lite
+      model_packaged_path: null
+      model_proto_path: null
+      model_training_id: yoloxpose_s_lite_coco-640
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint_path:
+        download_path: '{download_path}/pretrained/yoloxpose_s_lite'
+        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/10_01_00/models/vision/keypoint/coco/edgeai-mmpose/yoloxpose_s_lite_coco-640x640_20250119_checkpoint.pth
+      pretrained_weight_state_dict_name: null
+      project_path: null
+      summary_file_path: null
+      target_devices:
+        AM62A:
+          accuracy_factor: 83.6
+          accuracy_factor2: 56.4
+          accuracy_unit: AP50%
+          accuracy_unit2: AP[.5:.95]%
+          model_selection_factor: 1
+          performance_fps: null
+          performance_infer_time_ms: -1
+        AM68A:
+          accuracy_factor: 83.6
+          accuracy_factor2: 56.4
+          accuracy_unit: AP50%
+          accuracy_unit2: AP[.5:.95]%
+          model_selection_factor: 1
+          performance_fps: null
+          performance_infer_time_ms: -1
+        TDA4VM:
+          accuracy_factor: 83.6
+          accuracy_factor2: 56.4
+          accuracy_unit: AP50%
+          accuracy_unit2: AP[.5:.95]%
+          model_selection_factor: 1
+          performance_fps: null
+          performance_infer_time_ms: -1
+      training_backend: edgeai_mmpose
+      training_device: null
+      training_devices:
+        cpu: true
+        cuda: true
+      training_epochs: 15
+      training_master_port: 29500
+      training_path: null
+      warmup_epochs: 1
+      weight_decay: 0.0001
+      with_background_class: null
+  yoloxpose_tiny_lite:
+    common:
+      download_path: ./data/downloads
+      project_path: null
+      project_run_path: null
+      projects_path: ./data/projects
+      run_name: '{date-time}/{model_name}'
+      target_device: null
+      target_machine: pc
+      target_module: vision
+      task_type: keypoint_detection
+      verbose_mode: true
+    compilation:
+      calibration_frames: 10
+      calibration_iterations: 10
+      compilation_path: null
+      detection_threshold: 0.3
+      detection_top_k: 200
+      enable: true
+      input_optimization: false
+      log_file: true
+      log_file_path: null
+      log_summary_regex: null
+      metric:
+        label_offset_pred: 1
+      model_compilation_id: kd-7070
+      model_compiled_path: null
+      model_packaged_path: null
+      model_visualization_path: null
+      num_frames: null
+      num_output_frames: 50
+      output_tensors_path: null
+      preset_name: null
+      runtime_options:
+        advanced_options:output_feature_16bit_names_list: 3,201,224,177
+      save_output: true
+      summary_file_path: null
+      tensor_bits: 8
+      tidl_offload: true
+    dataset:
+      annotation_dir: annotations
+      annotation_format: coco_json
+      annotation_path_splits: null
+      annotation_prefix: instances
+      data_dir: images
+      data_path_splits: null
+      dataset_download: true
+      dataset_name: null
+      dataset_path: null
+      dataset_reload: false
+      enable: true
+      extract_path: null
+      input_annotation_path: null
+      input_data_path: null
+      max_num_files: 10000
+      split_factor: 0.8
+      split_names:
+      - train
+      - val
+    download:
+    - download_path: '{download_path}/pretrained/yoloxpose_tiny_lite'
+      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/10_01_00/models/vision/keypoint/coco/edgeai-mmpose/yoloxpose_tiny_lite_416x416_20240808_checkpoint.pth
+    training:
+      batch_size: 8
+      dataset_path: null
+      distributed: true
+      enable: true
+      input_cropsize: 416
+      input_resize: 416
+      learning_rate: 0.002
+      log_file_path: null
+      log_summary_regex: null
+      model_architecture: yolox
+      model_checkpoint_path: null
+      model_export_path: null
+      model_name: yoloxpose_tiny_lite
+      model_packaged_path: null
+      model_proto_path: null
+      model_training_id: yoloxpose_tiny_lite_coco-416
+      num_classes: null
+      num_gpus: 0
+      num_last_epochs: 5
+      pretrained_checkpoint_path:
+        download_path: '{download_path}/pretrained/yoloxpose_tiny_lite'
+        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/10_01_00/models/vision/keypoint/coco/edgeai-mmpose/yoloxpose_tiny_lite_416x416_20240808_checkpoint.pth
+      pretrained_weight_state_dict_name: null
+      project_path: null
+      summary_file_path: null
+      target_devices:
+        AM62A:
+          accuracy_factor: 76.1
+          accuracy_factor2: 47.2
+          accuracy_unit: AP50%
+          accuracy_unit2: AP[.5:.95]%
+          model_selection_factor: 0
+          performance_fps: null
+          performance_infer_time_ms: -1
+        AM68A:
+          accuracy_factor: 76.1
+          accuracy_factor2: 47.2
+          accuracy_unit: AP50%
+          accuracy_unit2: AP[.5:.95]%
+          model_selection_factor: 0
+          performance_fps: null
+          performance_infer_time_ms: -1
+        TDA4VM:
+          accuracy_factor: 76.1
+          accuracy_factor2: 47.2
+          accuracy_unit: AP50%
+          accuracy_unit2: AP[.5:.95]%
+          model_selection_factor: 0
+          performance_fps: null
+          performance_infer_time_ms: -1
+      training_backend: edgeai_mmpose
       training_device: null
       training_devices:
         cpu: true
@@ -1588,7 +1992,7 @@ preset_descriptions:
         compilation:
           calibration_frames: 1
           calibration_iterations: 1
-          detection_threshold: 0.6
+          detection_threshold: 0.3
           detection_top_k: 200
           tensor_bits: 32
           tidl_offload: false
@@ -1596,7 +2000,7 @@ preset_descriptions:
         compilation:
           calibration_frames: 1
           calibration_iterations: 1
-          detection_threshold: 0.6
+          detection_threshold: 0.3
           detection_top_k: 200
           tensor_bits: 32
           tidl_offload: false
@@ -1604,54 +2008,59 @@ preset_descriptions:
         compilation:
           calibration_frames: 1
           calibration_iterations: 1
-          detection_threshold: 0.6
-          detection_top_k: 200
+          detection_threshold: 0.05
+          detection_top_k: 500
           tensor_bits: 32
           tidl_offload: false
       high_speed_preset:
         compilation:
           calibration_frames: 1
           calibration_iterations: 1
-          detection_threshold: 0.6
+          detection_threshold: 0.3
           detection_top_k: 200
           tensor_bits: 32
           tidl_offload: false
     keypoint_detection:
       best_accuracy_preset:
         compilation:
-          calibration_frames: 10
-          calibration_iterations: 10
+          calibration_frames: 1
+          calibration_iterations: 1
           detection_threshold: 0.05
           detection_top_k: 500
           tensor_bits: 32
+          tidl_offload: false
       best_speed_preset:
         compilation:
-          calibration_frames: 3
-          calibration_iterations: 3
-          detection_threshold: 0.6
+          calibration_frames: 1
+          calibration_iterations: 1
+          detection_threshold: 0.3
           detection_top_k: 200
           tensor_bits: 32
+          tidl_offload: false
       default_preset:
         compilation:
-          calibration_frames: 10
-          calibration_iterations: 10
-          detection_threshold: 0.6
+          calibration_frames: 1
+          calibration_iterations: 1
+          detection_threshold: 0.3
           detection_top_k: 200
           tensor_bits: 32
+          tidl_offload: false
       high_accuracy_preset:
         compilation:
-          calibration_frames: 25
-          calibration_iterations: 25
-          detection_threshold: 0.6
-          detection_top_k: 200
+          calibration_frames: 1
+          calibration_iterations: 1
+          detection_threshold: 0.05
+          detection_top_k: 500
           tensor_bits: 32
+          tidl_offload: false
       high_speed_preset:
         compilation:
-          calibration_frames: 5
-          calibration_iterations: 5
-          detection_threshold: 0.6
+          calibration_frames: 1
+          calibration_iterations: 1
+          detection_threshold: 0.3
           detection_top_k: 200
           tensor_bits: 32
+          tidl_offload: false
     segmentation:
       best_accuracy_preset:
         compilation:
@@ -1697,144 +2106,289 @@ preset_descriptions:
     classification:
       best_accuracy_preset:
         compilation:
-          calibration_frames: 10
-          calibration_iterations: 10
+          calibration_frames: 12
+          calibration_iterations: 12
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 16
       best_speed_preset:
         compilation:
-          calibration_frames: 3
-          calibration_iterations: 3
+          calibration_frames: 4
+          calibration_iterations: 4
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 8
       default_preset:
         compilation:
-          calibration_frames: 10
-          calibration_iterations: 10
+          calibration_frames: 8
+          calibration_iterations: 8
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 8
       high_accuracy_preset:
         compilation:
-          calibration_frames: 25
-          calibration_iterations: 25
+          calibration_frames: 12
+          calibration_iterations: 12
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 8
       high_speed_preset:
         compilation:
-          calibration_frames: 5
-          calibration_iterations: 5
+          calibration_frames: 6
+          calibration_iterations: 6
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 8
     detection:
       best_accuracy_preset:
         compilation:
-          calibration_frames: 10
-          calibration_iterations: 10
+          calibration_frames: 12
+          calibration_iterations: 12
           detection_threshold: 0.05
           detection_top_k: 500
           tensor_bits: 16
       best_speed_preset:
         compilation:
-          calibration_frames: 3
-          calibration_iterations: 3
-          detection_threshold: 0.6
+          calibration_frames: 4
+          calibration_iterations: 4
+          detection_threshold: 0.3
           detection_top_k: 200
           tensor_bits: 8
       default_preset:
         compilation:
-          calibration_frames: 10
-          calibration_iterations: 10
-          detection_threshold: 0.6
+          calibration_frames: 8
+          calibration_iterations: 8
+          detection_threshold: 0.3
           detection_top_k: 200
           tensor_bits: 8
       high_accuracy_preset:
         compilation:
-          calibration_frames: 25
-          calibration_iterations: 25
-          detection_threshold: 0.6
-          detection_top_k: 200
+          calibration_frames: 12
+          calibration_iterations: 12
+          detection_threshold: 0.05
+          detection_top_k: 500
           tensor_bits: 8
       high_speed_preset:
         compilation:
-          calibration_frames: 5
-          calibration_iterations: 5
-          detection_threshold: 0.6
+          calibration_frames: 6
+          calibration_iterations: 6
+          detection_threshold: 0.3
           detection_top_k: 200
           tensor_bits: 8
     keypoint_detection:
       best_accuracy_preset:
         compilation:
-          calibration_frames: 10
-          calibration_iterations: 10
+          calibration_frames: 12
+          calibration_iterations: 12
           detection_threshold: 0.05
           detection_top_k: 500
           tensor_bits: 16
       best_speed_preset:
         compilation:
-          calibration_frames: 3
-          calibration_iterations: 3
-          detection_threshold: 0.6
+          calibration_frames: 4
+          calibration_iterations: 4
+          detection_threshold: 0.3
           detection_top_k: 200
           tensor_bits: 8
       default_preset:
         compilation:
-          calibration_frames: 10
-          calibration_iterations: 10
-          detection_threshold: 0.6
+          calibration_frames: 8
+          calibration_iterations: 8
+          detection_threshold: 0.3
           detection_top_k: 200
           tensor_bits: 8
       high_accuracy_preset:
         compilation:
-          calibration_frames: 25
-          calibration_iterations: 25
-          detection_threshold: 0.6
-          detection_top_k: 200
+          calibration_frames: 12
+          calibration_iterations: 12
+          detection_threshold: 0.05
+          detection_top_k: 500
           tensor_bits: 8
       high_speed_preset:
         compilation:
-          calibration_frames: 5
-          calibration_iterations: 5
-          detection_threshold: 0.6
+          calibration_frames: 6
+          calibration_iterations: 6
+          detection_threshold: 0.3
           detection_top_k: 200
           tensor_bits: 8
     segmentation:
       best_accuracy_preset:
         compilation:
-          calibration_frames: 25
-          calibration_iterations: 25
+          calibration_frames: 12
+          calibration_iterations: 12
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 16
       best_speed_preset:
         compilation:
-          calibration_frames: 3
-          calibration_iterations: 3
+          calibration_frames: 4
+          calibration_iterations: 4
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 8
       default_preset:
         compilation:
-          calibration_frames: 10
-          calibration_iterations: 10
+          calibration_frames: 8
+          calibration_iterations: 8
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 8
       high_accuracy_preset:
         compilation:
-          calibration_frames: 25
-          calibration_iterations: 25
+          calibration_frames: 12
+          calibration_iterations: 12
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 8
       high_speed_preset:
         compilation:
-          calibration_frames: 5
-          calibration_iterations: 5
+          calibration_frames: 6
+          calibration_iterations: 6
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 8
+  AM67A:
+    classification:
+      best_accuracy_preset:
+        compilation:
+          calibration_frames: 12
+          calibration_iterations: 12
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 16
+      best_speed_preset:
+        compilation:
+          calibration_frames: 4
+          calibration_iterations: 4
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 8
+      default_preset:
+        compilation:
+          calibration_frames: 8
+          calibration_iterations: 8
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 8
+      high_accuracy_preset:
+        compilation:
+          calibration_frames: 12
+          calibration_iterations: 12
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 8
+      high_speed_preset:
+        compilation:
+          calibration_frames: 6
+          calibration_iterations: 6
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 8
+    detection:
+      best_accuracy_preset:
+        compilation:
+          calibration_frames: 12
+          calibration_iterations: 12
+          detection_threshold: 0.05
+          detection_top_k: 500
+          tensor_bits: 16
+      best_speed_preset:
+        compilation:
+          calibration_frames: 4
+          calibration_iterations: 4
+          detection_threshold: 0.3
+          detection_top_k: 200
+          tensor_bits: 8
+      default_preset:
+        compilation:
+          calibration_frames: 8
+          calibration_iterations: 8
+          detection_threshold: 0.3
+          detection_top_k: 200
+          tensor_bits: 8
+      high_accuracy_preset:
+        compilation:
+          calibration_frames: 12
+          calibration_iterations: 12
+          detection_threshold: 0.05
+          detection_top_k: 500
+          tensor_bits: 8
+      high_speed_preset:
+        compilation:
+          calibration_frames: 6
+          calibration_iterations: 6
+          detection_threshold: 0.3
+          detection_top_k: 200
+          tensor_bits: 8
+    keypoint_detection:
+      best_accuracy_preset:
+        compilation:
+          calibration_frames: 12
+          calibration_iterations: 12
+          detection_threshold: 0.05
+          detection_top_k: 500
+          tensor_bits: 16
+      best_speed_preset:
+        compilation:
+          calibration_frames: 4
+          calibration_iterations: 4
+          detection_threshold: 0.3
+          detection_top_k: 200
+          tensor_bits: 8
+      default_preset:
+        compilation:
+          calibration_frames: 8
+          calibration_iterations: 8
+          detection_threshold: 0.3
+          detection_top_k: 200
+          tensor_bits: 8
+      high_accuracy_preset:
+        compilation:
+          calibration_frames: 12
+          calibration_iterations: 12
+          detection_threshold: 0.05
+          detection_top_k: 500
+          tensor_bits: 8
+      high_speed_preset:
+        compilation:
+          calibration_frames: 6
+          calibration_iterations: 6
+          detection_threshold: 0.3
+          detection_top_k: 200
+          tensor_bits: 8
+    segmentation:
+      best_accuracy_preset:
+        compilation:
+          calibration_frames: 12
+          calibration_iterations: 12
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 16
+      best_speed_preset:
+        compilation:
+          calibration_frames: 4
+          calibration_iterations: 4
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 8
+      default_preset:
+        compilation:
+          calibration_frames: 8
+          calibration_iterations: 8
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 8
+      high_accuracy_preset:
+        compilation:
+          calibration_frames: 12
+          calibration_iterations: 12
+          detection_threshold: null
+          detection_top_k: null
+          tensor_bits: 8
+      high_speed_preset:
+        compilation:
+          calibration_frames: 6
+          calibration_iterations: 6
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 8
@@ -1842,144 +2396,144 @@ preset_descriptions:
     classification:
       best_accuracy_preset:
         compilation:
-          calibration_frames: 10
-          calibration_iterations: 10
+          calibration_frames: 12
+          calibration_iterations: 12
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 16
       best_speed_preset:
         compilation:
-          calibration_frames: 3
-          calibration_iterations: 3
+          calibration_frames: 4
+          calibration_iterations: 4
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 8
       default_preset:
         compilation:
-          calibration_frames: 10
-          calibration_iterations: 10
+          calibration_frames: 8
+          calibration_iterations: 8
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 8
       high_accuracy_preset:
         compilation:
-          calibration_frames: 25
-          calibration_iterations: 25
+          calibration_frames: 12
+          calibration_iterations: 12
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 8
       high_speed_preset:
         compilation:
-          calibration_frames: 5
-          calibration_iterations: 5
+          calibration_frames: 6
+          calibration_iterations: 6
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 8
     detection:
       best_accuracy_preset:
         compilation:
-          calibration_frames: 10
-          calibration_iterations: 10
+          calibration_frames: 12
+          calibration_iterations: 12
           detection_threshold: 0.05
           detection_top_k: 500
           tensor_bits: 16
       best_speed_preset:
         compilation:
-          calibration_frames: 3
-          calibration_iterations: 3
-          detection_threshold: 0.6
+          calibration_frames: 4
+          calibration_iterations: 4
+          detection_threshold: 0.3
           detection_top_k: 200
           tensor_bits: 8
       default_preset:
         compilation:
-          calibration_frames: 10
-          calibration_iterations: 10
-          detection_threshold: 0.6
+          calibration_frames: 8
+          calibration_iterations: 8
+          detection_threshold: 0.3
           detection_top_k: 200
           tensor_bits: 8
       high_accuracy_preset:
         compilation:
-          calibration_frames: 25
-          calibration_iterations: 25
-          detection_threshold: 0.6
-          detection_top_k: 200
+          calibration_frames: 12
+          calibration_iterations: 12
+          detection_threshold: 0.05
+          detection_top_k: 500
           tensor_bits: 8
       high_speed_preset:
         compilation:
-          calibration_frames: 5
-          calibration_iterations: 5
-          detection_threshold: 0.6
+          calibration_frames: 6
+          calibration_iterations: 6
+          detection_threshold: 0.3
           detection_top_k: 200
           tensor_bits: 8
     keypoint_detection:
       best_accuracy_preset:
         compilation:
-          calibration_frames: 10
-          calibration_iterations: 10
+          calibration_frames: 12
+          calibration_iterations: 12
           detection_threshold: 0.05
           detection_top_k: 500
           tensor_bits: 16
       best_speed_preset:
         compilation:
-          calibration_frames: 3
-          calibration_iterations: 3
-          detection_threshold: 0.6
+          calibration_frames: 4
+          calibration_iterations: 4
+          detection_threshold: 0.3
           detection_top_k: 200
           tensor_bits: 8
       default_preset:
         compilation:
-          calibration_frames: 10
-          calibration_iterations: 10
-          detection_threshold: 0.6
+          calibration_frames: 8
+          calibration_iterations: 8
+          detection_threshold: 0.3
           detection_top_k: 200
           tensor_bits: 8
       high_accuracy_preset:
         compilation:
-          calibration_frames: 25
-          calibration_iterations: 25
-          detection_threshold: 0.6
-          detection_top_k: 200
+          calibration_frames: 12
+          calibration_iterations: 12
+          detection_threshold: 0.05
+          detection_top_k: 500
           tensor_bits: 8
       high_speed_preset:
         compilation:
-          calibration_frames: 5
-          calibration_iterations: 5
-          detection_threshold: 0.6
+          calibration_frames: 6
+          calibration_iterations: 6
+          detection_threshold: 0.3
           detection_top_k: 200
           tensor_bits: 8
     segmentation:
       best_accuracy_preset:
         compilation:
-          calibration_frames: 25
-          calibration_iterations: 25
+          calibration_frames: 12
+          calibration_iterations: 12
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 16
       best_speed_preset:
         compilation:
-          calibration_frames: 3
-          calibration_iterations: 3
+          calibration_frames: 4
+          calibration_iterations: 4
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 8
       default_preset:
         compilation:
-          calibration_frames: 10
-          calibration_iterations: 10
+          calibration_frames: 8
+          calibration_iterations: 8
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 8
       high_accuracy_preset:
         compilation:
-          calibration_frames: 25
-          calibration_iterations: 25
+          calibration_frames: 12
+          calibration_iterations: 12
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 8
       high_speed_preset:
         compilation:
-          calibration_frames: 5
-          calibration_iterations: 5
+          calibration_frames: 6
+          calibration_iterations: 6
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 8
@@ -1987,144 +2541,144 @@ preset_descriptions:
     classification:
       best_accuracy_preset:
         compilation:
-          calibration_frames: 10
-          calibration_iterations: 10
+          calibration_frames: 12
+          calibration_iterations: 12
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 16
       best_speed_preset:
         compilation:
-          calibration_frames: 3
-          calibration_iterations: 3
+          calibration_frames: 4
+          calibration_iterations: 4
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 8
       default_preset:
         compilation:
-          calibration_frames: 10
-          calibration_iterations: 10
+          calibration_frames: 8
+          calibration_iterations: 8
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 8
       high_accuracy_preset:
         compilation:
-          calibration_frames: 25
-          calibration_iterations: 25
+          calibration_frames: 12
+          calibration_iterations: 12
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 8
       high_speed_preset:
         compilation:
-          calibration_frames: 5
-          calibration_iterations: 5
+          calibration_frames: 6
+          calibration_iterations: 6
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 8
     detection:
       best_accuracy_preset:
         compilation:
-          calibration_frames: 10
-          calibration_iterations: 10
+          calibration_frames: 12
+          calibration_iterations: 12
           detection_threshold: 0.05
           detection_top_k: 500
           tensor_bits: 16
       best_speed_preset:
         compilation:
-          calibration_frames: 3
-          calibration_iterations: 3
-          detection_threshold: 0.6
+          calibration_frames: 4
+          calibration_iterations: 4
+          detection_threshold: 0.3
           detection_top_k: 200
           tensor_bits: 8
       default_preset:
         compilation:
-          calibration_frames: 10
-          calibration_iterations: 10
-          detection_threshold: 0.6
+          calibration_frames: 8
+          calibration_iterations: 8
+          detection_threshold: 0.3
           detection_top_k: 200
           tensor_bits: 8
       high_accuracy_preset:
         compilation:
-          calibration_frames: 25
-          calibration_iterations: 25
-          detection_threshold: 0.6
-          detection_top_k: 200
+          calibration_frames: 12
+          calibration_iterations: 12
+          detection_threshold: 0.05
+          detection_top_k: 500
           tensor_bits: 8
       high_speed_preset:
         compilation:
-          calibration_frames: 5
-          calibration_iterations: 5
-          detection_threshold: 0.6
+          calibration_frames: 6
+          calibration_iterations: 6
+          detection_threshold: 0.3
           detection_top_k: 200
           tensor_bits: 8
     keypoint_detection:
       best_accuracy_preset:
         compilation:
-          calibration_frames: 10
-          calibration_iterations: 10
+          calibration_frames: 12
+          calibration_iterations: 12
           detection_threshold: 0.05
           detection_top_k: 500
           tensor_bits: 16
       best_speed_preset:
         compilation:
-          calibration_frames: 3
-          calibration_iterations: 3
-          detection_threshold: 0.6
+          calibration_frames: 4
+          calibration_iterations: 4
+          detection_threshold: 0.3
           detection_top_k: 200
           tensor_bits: 8
       default_preset:
         compilation:
-          calibration_frames: 10
-          calibration_iterations: 10
-          detection_threshold: 0.6
+          calibration_frames: 8
+          calibration_iterations: 8
+          detection_threshold: 0.3
           detection_top_k: 200
           tensor_bits: 8
       high_accuracy_preset:
         compilation:
-          calibration_frames: 25
-          calibration_iterations: 25
-          detection_threshold: 0.6
-          detection_top_k: 200
+          calibration_frames: 12
+          calibration_iterations: 12
+          detection_threshold: 0.05
+          detection_top_k: 500
           tensor_bits: 8
       high_speed_preset:
         compilation:
-          calibration_frames: 5
-          calibration_iterations: 5
-          detection_threshold: 0.6
+          calibration_frames: 6
+          calibration_iterations: 6
+          detection_threshold: 0.3
           detection_top_k: 200
           tensor_bits: 8
     segmentation:
       best_accuracy_preset:
         compilation:
-          calibration_frames: 25
-          calibration_iterations: 25
+          calibration_frames: 12
+          calibration_iterations: 12
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 16
       best_speed_preset:
         compilation:
-          calibration_frames: 3
-          calibration_iterations: 3
+          calibration_frames: 4
+          calibration_iterations: 4
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 8
       default_preset:
         compilation:
-          calibration_frames: 10
-          calibration_iterations: 10
+          calibration_frames: 8
+          calibration_iterations: 8
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 8
       high_accuracy_preset:
         compilation:
-          calibration_frames: 25
-          calibration_iterations: 25
+          calibration_frames: 12
+          calibration_iterations: 12
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 8
       high_speed_preset:
         compilation:
-          calibration_frames: 5
-          calibration_iterations: 5
+          calibration_frames: 6
+          calibration_iterations: 6
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 8
@@ -2132,144 +2686,144 @@ preset_descriptions:
     classification:
       best_accuracy_preset:
         compilation:
-          calibration_frames: 10
-          calibration_iterations: 10
+          calibration_frames: 12
+          calibration_iterations: 12
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 16
       best_speed_preset:
         compilation:
-          calibration_frames: 3
-          calibration_iterations: 3
+          calibration_frames: 4
+          calibration_iterations: 4
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 8
       default_preset:
         compilation:
-          calibration_frames: 10
-          calibration_iterations: 10
+          calibration_frames: 8
+          calibration_iterations: 8
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 8
       high_accuracy_preset:
         compilation:
-          calibration_frames: 25
-          calibration_iterations: 25
+          calibration_frames: 12
+          calibration_iterations: 12
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 8
       high_speed_preset:
         compilation:
-          calibration_frames: 5
-          calibration_iterations: 5
+          calibration_frames: 6
+          calibration_iterations: 6
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 8
     detection:
       best_accuracy_preset:
         compilation:
-          calibration_frames: 10
-          calibration_iterations: 10
+          calibration_frames: 12
+          calibration_iterations: 12
           detection_threshold: 0.05
           detection_top_k: 500
           tensor_bits: 16
       best_speed_preset:
         compilation:
-          calibration_frames: 3
-          calibration_iterations: 3
-          detection_threshold: 0.6
+          calibration_frames: 4
+          calibration_iterations: 4
+          detection_threshold: 0.3
           detection_top_k: 200
           tensor_bits: 8
       default_preset:
         compilation:
-          calibration_frames: 10
-          calibration_iterations: 10
-          detection_threshold: 0.6
+          calibration_frames: 8
+          calibration_iterations: 8
+          detection_threshold: 0.3
           detection_top_k: 200
           tensor_bits: 8
       high_accuracy_preset:
         compilation:
-          calibration_frames: 25
-          calibration_iterations: 25
-          detection_threshold: 0.6
-          detection_top_k: 200
+          calibration_frames: 12
+          calibration_iterations: 12
+          detection_threshold: 0.05
+          detection_top_k: 500
           tensor_bits: 8
       high_speed_preset:
         compilation:
-          calibration_frames: 5
-          calibration_iterations: 5
-          detection_threshold: 0.6
+          calibration_frames: 6
+          calibration_iterations: 6
+          detection_threshold: 0.3
           detection_top_k: 200
           tensor_bits: 8
     keypoint_detection:
       best_accuracy_preset:
         compilation:
-          calibration_frames: 10
-          calibration_iterations: 10
+          calibration_frames: 12
+          calibration_iterations: 12
           detection_threshold: 0.05
           detection_top_k: 500
           tensor_bits: 16
       best_speed_preset:
         compilation:
-          calibration_frames: 3
-          calibration_iterations: 3
-          detection_threshold: 0.6
+          calibration_frames: 4
+          calibration_iterations: 4
+          detection_threshold: 0.3
           detection_top_k: 200
           tensor_bits: 8
       default_preset:
         compilation:
-          calibration_frames: 10
-          calibration_iterations: 10
-          detection_threshold: 0.6
+          calibration_frames: 8
+          calibration_iterations: 8
+          detection_threshold: 0.3
           detection_top_k: 200
           tensor_bits: 8
       high_accuracy_preset:
         compilation:
-          calibration_frames: 25
-          calibration_iterations: 25
-          detection_threshold: 0.6
-          detection_top_k: 200
+          calibration_frames: 12
+          calibration_iterations: 12
+          detection_threshold: 0.05
+          detection_top_k: 500
           tensor_bits: 8
       high_speed_preset:
         compilation:
-          calibration_frames: 5
-          calibration_iterations: 5
-          detection_threshold: 0.6
+          calibration_frames: 6
+          calibration_iterations: 6
+          detection_threshold: 0.3
           detection_top_k: 200
           tensor_bits: 8
     segmentation:
       best_accuracy_preset:
         compilation:
-          calibration_frames: 25
-          calibration_iterations: 25
+          calibration_frames: 12
+          calibration_iterations: 12
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 16
       best_speed_preset:
         compilation:
-          calibration_frames: 3
-          calibration_iterations: 3
+          calibration_frames: 4
+          calibration_iterations: 4
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 8
       default_preset:
         compilation:
-          calibration_frames: 10
-          calibration_iterations: 10
+          calibration_frames: 8
+          calibration_iterations: 8
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 8
       high_accuracy_preset:
         compilation:
-          calibration_frames: 25
-          calibration_iterations: 25
+          calibration_frames: 12
+          calibration_iterations: 12
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 8
       high_speed_preset:
         compilation:
-          calibration_frames: 5
-          calibration_iterations: 5
+          calibration_frames: 6
+          calibration_iterations: 6
           detection_threshold: null
           detection_top_k: null
           tensor_bits: 8
@@ -2346,14 +2900,14 @@ target_device_descriptions:
       * Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62X\n\
       * SDK documentation & board setup: See analytics application and Edge AI documentation\
       \ at https://www.ti.com/tool/SK-AM62#order-start-development\n* SDK release:\
-      \ 09_02_00\n\nAdditional information:\n* Edge AI introduction: https://ti.com/edgeai\n\
+      \ 10_01_00\n\nAdditional information:\n* Edge AI introduction: https://ti.com/edgeai\n\
       * Edge AI model development information: https://github.com/TexasInstruments/edgeai\n\
       * Edge AI tools introduction: https://dev.ti.com/edgeai/\n"
     device_name: AM62
     device_selection_factor: 0
     device_type: MPU
-    sdk_release: 09_02_00
-    sdk_version: 9.2.0
+    sdk_release: '10_01_00'
+    sdk_version: 10.1.0
   AM62A:
     device_details: "Efficient 2 TOPS AI capability at edge\nSpecification:\n* 2 TOPS\
       \ Deep Learning accelerator\n* Quad Arm\xAE Cortex\xAE-A53\n* Integrated ISP\n\
@@ -2361,14 +2915,29 @@ target_device_descriptions:
       \ information: https://www.ti.com/product/AM62A7\n* Development board: https://www.ti.com/tool/SK-AM62A-LP\n\
       * Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\n\
       * SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\n\
-      * SDK release: 09_02_00\n\nAdditional information:\n* Edge AI introduction:\
+      * SDK release: 10_01_00\n\nAdditional information:\n* Edge AI introduction:\
       \ https://ti.com/edgeai\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n\
       * Edge AI tools introduction: https://dev.ti.com/edgeai/\n"
     device_name: AM62A
     device_selection_factor: 1
     device_type: MPU
-    sdk_release: 09_02_00
-    sdk_version: 9.2.0
+    sdk_release: '10_01_00'
+    sdk_version: 10.1.0
+  AM67A:
+    device_details: "Efficient 4 TOPS AI capability at edge\nSpecification:\n* 4 TOPS\
+      \ Deep Learning accelerator\n* Quad Arm\xAE Cortex\xAE-A53\n* Integrated ISP\n\
+      * More details : https://www.ti.com/product/AM67A\n\nImportant links:\n* Product\
+      \ information: https://www.ti.com/product/AM67A\n* Development board: https://www.ti.com/tool/J722SXH01EVM\n\
+      * Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM67A\n\
+      * SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM67A\n\
+      * SDK release: 10_01_00\n\nAdditional information:\n* Edge AI introduction:\
+      \ https://ti.com/edgeai\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n\
+      * Edge AI tools introduction: https://dev.ti.com/edgeai/\n"
+    device_name: AM67A
+    device_selection_factor: 1
+    device_type: MPU
+    sdk_release: '10_01_00'
+    sdk_version: 10.1.0
   AM68A:
     device_details: "Efficient 8 TOPS AI capability at edge\nSpecification:\n* 8 TOPS\
       \ Deep Learning accelerator\n* Dual Arm\xAE Cortex\xAE-A72\n* Integrated ISP\n\
@@ -2376,14 +2945,14 @@ target_device_descriptions:
       \ information: https://www.ti.com/product/AM68A\n* Development board: https://www.ti.com/tool/SK-AM68\n\
       * Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A\n\
       * SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A\n\
-      * SDK release: 09_02_00\n\nAdditional information:\n* Edge AI introduction:\
+      * SDK release: 10_01_00\n\nAdditional information:\n* Edge AI introduction:\
       \ https://ti.com/edgeai\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n\
       * Edge AI tools introduction: https://dev.ti.com/edgeai/\n"
     device_name: AM68A
     device_selection_factor: 3
     device_type: MPU
-    sdk_release: 09_02_00
-    sdk_version: 9.2.0
+    sdk_release: '10_01_00'
+    sdk_version: 10.1.0
   AM69A:
     device_details: "Efficient 32 TOPS AI capability at edge\nSpecification:\n* 32\
       \ TOPS Deep Learning accelerator\n* 8 Arm\xAE Cortex\xAE-A72\n* Integrated ISP\n\
@@ -2391,14 +2960,14 @@ target_device_descriptions:
       \ information: https://www.ti.com/product/AM69A\n* Development board: https://www.ti.com/tool/SK-AM69\n\
       * Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM69A\n\
       * SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM69A\n\
-      * SDK release: 09_02_00\n\nAdditional information:\n* Edge AI introduction:\
+      * SDK release: 10_01_00\n\nAdditional information:\n* Edge AI introduction:\
       \ https://ti.com/edgeai\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n\
       * Edge AI tools introduction: https://dev.ti.com/edgeai/\n"
     device_name: AM69A
     device_selection_factor: 4
     device_type: MPU
-    sdk_release: 09_02_00
-    sdk_version: 9.2.0
+    sdk_release: '10_01_00'
+    sdk_version: 10.1.0
   TDA4VM:
     device_details: "Efficient 8 TOPS AI capability at edge\nSpecification:\n* 8 TOPS\
       \ Deep Learning accelerator\n* Dual Arm\xAE Cortex\xAE-A72\n* Integrated ISP\n\
@@ -2406,14 +2975,14 @@ target_device_descriptions:
       \ information: https://www.ti.com/product/TDA4VM\n* Development board: https://www.ti.com/tool/SK-TDA4VM\n\
       * Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM\n\
       * SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM\n\
-      * SDK release: 09_02_00\n\nAdditional information:\n* Edge AI introduction:\
+      * SDK release: 10_01_00\n\nAdditional information:\n* Edge AI introduction:\
       \ https://ti.com/edgeai\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n\
       * Edge AI tools introduction: https://dev.ti.com/edgeai/\n"
     device_name: TDA4VM
     device_selection_factor: 2
     device_type: MPU
-    sdk_release: 09_02_00
-    sdk_version: 9.2.0
+    sdk_release: '10_01_00'
+    sdk_version: 10.1.0
 task_descriptions:
   classification:
     stages:
@@ -2423,6 +2992,7 @@ task_descriptions:
     target_devices: &id001
     - AM62
     - AM62A
+    - AM67A
     - TDA4VM
     - AM68A
     - AM69A
@@ -2521,12 +3091,13 @@ tooltip_descriptions:
 training_module_descriptions:
   edgeai_mmdetection:
   - detection
+  edgeai_mmpose:
+  - keypoint_detection
+  edgeai_tensorvision:
+  - segmentation
   edgeai_torchvision:
   - classification
-  - segmentation
-  edgeai_yolox:
-  - keypoint_detection
 version_descriptions:
-  sdk_release: 09_02_00
-  sdk_version: 9.2.0
-  version: 9.2.0
+  sdk_release: '10_01_00'
+  sdk_version: 10.1.0
+  version: 10.1.0
