@@ -202,10 +202,7 @@ class PandaSetDataset(NuScenesDataset):
         self.get_label_func = (lambda x : orig_class_mapping[x]) if orig_class_mapping else (lambda x: x)
         self.max_dist_thr = max_dist_thr
         super().__init__(data_root, ann_file, pipeline, box_type_3d, load_type, modality, filter_empty_gt, test_mode, with_velocity, use_valid_flag, **kwargs)
-        
-    def filter_data(self):
-        return super().filter_data()
-    
+            
     def _filter_with_mask(self, ann_info):
         if self.max_dist_thr:
             filtered_ann_info = {}
@@ -214,7 +211,7 @@ class PandaSetDataset(NuScenesDataset):
                 translations = gt_bboxes_3d[:,[0,2]]
             else:
                 translations = gt_bboxes_3d[:,:2]
-            filtered_indices = np.where(np.sqrt(np.sum(np.square(translations),axis=-1))<self.max_dist_thr)[0].tolist()
+            filtered_indices = np.where(np.linalg.norm(np.array(translations),axis=-1)<self.max_dist_thr)[0].tolist()
             for key, value in ann_info.items():
                 if key == 'instances':
                     value = value

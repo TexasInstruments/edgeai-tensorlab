@@ -59,6 +59,7 @@ class PandaSetMetric(NuScenesMetric):
     
     def __init__(self, data_root, ann_file, metric = 'bbox', modality = None, prefix = None, format_only = False, jsonfile_prefix = None, eval_version = 'detection_cvpr_2019', collect_device = 'cpu', backend_args = None, max_dists=None):
         super().__init__(data_root, ann_file, metric, modality, prefix, format_only, jsonfile_prefix, eval_version, collect_device, backend_args)
+        self.default_prefix = 'PandaSet metric'
         if max_dists is None:
             self.max_dist_func = lambda cls: float('inf')
         elif isinstance(max_dists, dict):
@@ -339,7 +340,7 @@ class PandaSetMetric(NuScenesMetric):
         detail = dict()
 
         metrics = self.pandaset_evaluate(result_path)
-        metric_prefix = f'{result_name}_PandaSet'
+        metric_prefix = f'{result_name}'
         for name in classes:
             for k, v in metrics['mean_dist_aps'][name].items():
                 val = float(f'{v:.4f}')

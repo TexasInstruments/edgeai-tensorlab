@@ -31,7 +31,7 @@ env_cfg = dict(
     dist_cfg = dict(timeout=3600)
 )
 
-train_cfg = dict(max_epochs=2)
+train_cfg = dict(max_epochs=5)
 
 backend_args = None
 
@@ -45,7 +45,7 @@ train_pipeline = [
         with_bbox_3d=True,
         with_label_3d=True,
         with_bbox_depth=True),
-    dict(type='mmdet.Resize', scale=(1600, 900), keep_ratio=True),
+    dict(type='Resize3D', scale=(1600, 900), keep_ratio=True),
     dict(type='RandomFlip3D', flip_ratio_bev_horizontal=0.5),
     dict(
         type='Pack3DDetInputs',
@@ -57,7 +57,7 @@ train_pipeline = [
 test_pipeline = [
     dict(type='LoadImageFromFileMono3D', backend_args=backend_args),
     # dict(type='mmdet.Resize', scale=(1600, 900), keep_ratio=True),
-    dict(type='mmdet.Resize', scale_factor=1.0),
+    dict(type='Resize3D', scale_factor=1.0),
     dict(type='Pack3DDetInputs', keys=['img'])
 ]
 

@@ -46,27 +46,12 @@ def intrinsic_to_mat(instrinsic:ps.sensors.Intrinsics):
 
 def get_bbox_2d(bbox_corners_image, image_size,):
     w,h = image_size
-    temp = []
-    if isinstance(bbox_corners_image,np.ndarray):
-        bbox_corners_image = bbox_corners_image.tolist()
-    for a,b in (bbox_corners_image):
-        if a>=0 and a<=w and b>=0 and b<=h:
-            temp.append([a,b]) 
-            continue
-        if a < 0:
-            a = 0
-        elif a > w:
-            a = w
-        if b < 0:
-            b = 0
-        elif b > h:
-            b = h
-        temp.append([a,b])
-    bbox_corners_image = np.array(temp)
+    bbox_corners_image[:,0] = np.clip(bbox_corners_image[:,0], 0, w)
+    bbox_corners_image[:,1] = np.clip(bbox_corners_image[:,1], 0, h)
     min_coords = np.min(bbox_corners_image, axis=0)
     max_coords = np.max(bbox_corners_image, axis=0)
     bbox_2d = [min_coords[0], min_coords[1], max_coords[0], max_coords[1]]  # [xmin, ymin, xmax, ymax]
-    center = np.mean([bbox_2d[:2],bbox_2d[2:]], axis=-1).tolist()
+    center = np.mean([bbox_2d[0::2],bbox_2d[1::2]], axis=-1).tolist()
     return bbox_2d, center
 
 def compute_valid_flag_for_bboxes(cuboids, lidar_data):
@@ -288,7 +273,7 @@ def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img ):
         # print((cuboid),(bbox),sep='\n')
         corners = convert_bbox_to_corners_for_lidar(bbox)
         # we have to store in lidar90 reference not in lidar refrence, of current frame
-        lidar_corners = ( np.linalg.inv(lidar2global) @ np.hstack([corners, np.ones((corners.shape[0], 1))]).T).T[:,:3]
+        lidar_corners: np.ndarray[os.Any, np.dtype[np.floating[os.Any]]] = ( np.linalg.inv(lidar2global) @ np.hstack([corners, np.ones((corners.shape[0], 1))]).T).T[:,:3]
         lidar_bboxes.append(convert_corners_to_bbox_for_lidar_box(lidar_corners))
         
     available_attrs = [attr for attr in ALL_ATTRIBUTES if f'attributes.{attr}' in cuboids.columns]
@@ -361,15 +346,15 @@ def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img ):
         timestamp=timestamp,
         ego2global=ego2global.tolist(),
         images={
-            name: {
-                'sample_data_token':cam_token[name],
-                'img_path': image_files[name],
-                'cam2img': cam2img[name].tolist(),
-                'timestamp': cam_timestamp[name],
-                'lidar2cam' : lidar2cam[name].tolist(),
-                'cam2ego': cam2ego[name].tolist(),
-                'cam2global': cam2global[name].tolist(),
-            } for name in CAMERA_NAMES
+            name: dict(
+                sample_data_token=cam_token[name],
+                img_path=image_files[name],
+                cam2img=cam2img[name].tolist(),
+                timestamp=cam_timestamp[name],
+                lidar2cam=lidar2cam[name].tolist(),
+                cam2ego=cam2ego[name].tolist(),
+                cam2global=cam2global[name].tolist(),
+             ) for name in CAMERA_NAMES
         },
         lidar_points = dict(
             num_pts_feats=4,
@@ -442,7 +427,8 @@ def create_pickle_file( dataset, scenes, output_dir=None, info_prefix=None, vers
     output_file = os.path.join(output_dir, file_name)
     data_list = []
 
-    for scene_id in scenes:
+    for i, scene_id in enumerate(scenes):
+        print(f"Scene({i+1}/{len(scenes)}): ",end='')
         data_list.extend(create_datalist_per_scene(scene_id, dataset,))
     
     for i, frame in enumerate(data_list):
@@ -497,4 +483,8 @@ def main(args=None):
     create_pickle_files(args.dataset_path, args.output_dir, args.info_prefix, args.version, args.dataset_name, args.with_semseg, args.train_split)
 
 if __name__ == '__main__':
-    main(['--dataset-path', '/data/ssd/files/a0507161/edgeai/edgeai-mmdetection3d/data/pandaset/data/', '--output-dir', '/data/ssd/files/a0507161/edgeai/edgeai-mmdetection3d/data/pandaset/data/'])
+
+    # from edgeai-mmdetection3d path
+    # main(['--dataset-path', './data/pandaset/data/', '--output-dir', './data/pandaset/data/'])
+    # from any path with correct path to dataset
+    main()

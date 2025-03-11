@@ -39,7 +39,7 @@ train_pipeline = [
         with_bbox_3d=True,
         with_label_3d=True,
         with_bbox_depth=True),
-    dict(type='Resize', scale=(1600, 900), keep_ratio=True),
+    dict(type='Resize3D', scale=(1600, 900), keep_ratio=True),
     dict(type='RandomFlip3D', flip_ratio_bev_horizontal=0.5),
     dict(
         type='Pack3DDetInputs',
@@ -51,7 +51,7 @@ train_pipeline = [
 
 test_pipeline = [
     dict(type='LoadImageFromFileMono3D', backend_args=backend_args),
-    dict(type='mmdet.Resize', scale=(1600, 900), keep_ratio=True),
+    dict(type='Resize3D', scale=(1600, 900), keep_ratio=True),
     dict(type='Pack3DDetInputs', keys=['img'])
 ]
 
@@ -72,8 +72,8 @@ train_dataloader = dict(
             left_camera='camera/left_camera', 
             right_camera='camera/right_camera'
             ),
-        ann_file='pandaset_infos_train.pkl',
-        # ann_file='pandaset_mini_infos_val.pkl', # mini
+        # ann_file='pandaset_infos_train.pkl',
+        ann_file='pandaset_mini_infos_val.pkl', # mini
         load_type='mv_image_based',
         pipeline=train_pipeline,
         metainfo=metainfo,
@@ -104,8 +104,8 @@ val_dataloader = dict(
             right_camera='camera/right_camera'
             ),
 
-        ann_file='pandaset_infos_val.pkl', 
-        # ann_file='pandaset_mini_infos_val.pkl', #mini
+        # ann_file='pandaset_infos_val.pkl', 
+        ann_file='pandaset_mini_infos_val.pkl', #mini
         load_type='mv_image_based',
         pipeline=test_pipeline,
         modality=input_modality,
@@ -121,8 +121,8 @@ val_evaluator = dict(
     type='PandaSetMetric',
     data_root=data_root,
     max_dists = 50,
-    ann_file=data_root + 'pandaset_infos_val.pkl', 
-    # ann_file=data_root + 'pandaset_mini_infos_val.pkl', # mini
+    # ann_file=data_root + 'pandaset_infos_val.pkl', 
+    ann_file=data_root + 'pandaset_mini_infos_val.pkl', # mini
     metric='bbox',
     backend_args=backend_args)
 
