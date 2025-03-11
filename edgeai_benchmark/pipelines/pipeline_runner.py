@@ -260,8 +260,6 @@ class PipelineRunner():
         # capture cwd - to set it later
         cwd = os.getcwd()
         try:
-            run_dir = pipeline_config['session'].get_param('run_dir')
-            print(utils.log_color('\nINFO', 'starting', os.path.basename(run_dir)))
             if log_file:
                 os.makedirs(os.path.dirname(log_file), exist_ok=True)
                 with open(log_file, 'a') as log_fp:
@@ -295,6 +293,8 @@ class PipelineRunner():
     # error during pickling, involved in the launch of a process is parallel run. make it classmethod
     @classmethod
     def _run_pipeline_impl(cls, settings, pipeline_config, description=''):
+        run_dir = pipeline_config['session'].get_param('run_dir')
+        print(utils.log_color('\nINFO', 'starting', os.path.basename(run_dir)))
         result = {}
         if settings.pipeline_type == constants.PIPELINE_ACCURACY:
             # use with statement, so that the logger and other file resources are cleaned up
