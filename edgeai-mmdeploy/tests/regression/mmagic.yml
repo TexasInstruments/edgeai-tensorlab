@@ -1,0 +1,188 @@
+globals:
+  repo_url: https://github.com/open-mmlab/mmagic/tree/main
+  codebase_dir: ../mmagic
+  checkpoint_force_download: False
+  images:
+    img_face: &img_face ../mmagic/tests/data/image/face/000001.png
+    img_bg: &img_bg ../mmagic/tests/data/image/gt/baboon.png
+  metric_info: &metric_info
+    Set14 PSNR: # named after metafile.Results.Metrics
+      metric_key: Set14/PSNR # eval log key name
+      tolerance: 4 # metric ±n%
+    Set14 SSIM:
+      metric_key: Set14/SSIM
+      tolerance: 0.02 # metric ±n
+    Set5 PSNR: # named after metafile.Results.Metrics
+      metric_key: Set5/PSNR # eval log key name
+      tolerance: 4 # metric ±n%
+    Set5 SSIM:
+      metric_key: Set5/SSIM
+      tolerance: 0.02 # metric ±n
+    DIV2K PSNR: # named after metafile.Results.Metrics
+      metric_key: DIV2K/PSNR # eval log key name
+      tolerance: 4 # metric ±n%
+    DIV2K SSIM:
+      metric_key: DIV2K/SSIM
+      tolerance: 0.02 # metric ±n
+    PSNR: # named after metafile.Results.Metrics
+      metric_key: PSNR # eval log key name
+      tolerance: 4 # metric ±n%
+    SSIM:
+      metric_key: SSIM
+      tolerance: 0.02 # metric ±n
+  convert_image: &convert_image
+    input_img: *img_face
+    test_img: *img_bg
+  backend_test: &default_backend_test True
+  sdk:
+    sdk_dynamic: &sdk_dynamic configs/mmagic/super-resolution/super-resolution_sdk_dynamic.py
+
+onnxruntime:
+  pipeline_ort_static_fp32: &pipeline_ort_static_fp32
+    convert_image: *convert_image
+    deploy_config: configs/mmagic/super-resolution/super-resolution_onnxruntime_static.py
+
+  pipeline_ort_dynamic_fp32: &pipeline_ort_dynamic_fp32
+    convert_image: *convert_image
+    deploy_config: configs/mmagic/super-resolution/super-resolution_onnxruntime_dynamic.py
+
+  pipeline_ort_dynamic_fp16: &pipeline_ort_dynamic_fp16
+    convert_image: *convert_image
+    deploy_config: configs/mmagic/super-resolution/super-resolution_onnxruntime-fp16_dynamic.py
+
+
+tensorrt:
+  pipeline_trt_static_fp32: &pipeline_trt_static_fp32
+    convert_image: *convert_image
+    backend_test: *default_backend_test
+    sdk_config: *sdk_dynamic
+    deploy_config: configs/mmagic/super-resolution/super-resolution_tensorrt_static-256x256.py
+
+  pipeline_trt_static_fp16: &pipeline_trt_static_fp16
+    convert_image: *convert_image
+    backend_test: *default_backend_test
+    sdk_config: *sdk_dynamic
+    deploy_config: configs/mmagic/super-resolution/super-resolution_tensorrt-fp16_static-256x256.py
+
+  pipeline_trt_static_int8: &pipeline_trt_static_int8
+    convert_image: *convert_image
+    backend_test: *default_backend_test
+    sdk_config: *sdk_dynamic
+    deploy_config: configs/mmagic/super-resolution/super-resolution_tensorrt-int8_static-256x256.py
+
+  pipeline_trt_dynamic_fp32: &pipeline_trt_dynamic_fp32
+    convert_image: *convert_image
+    backend_test: *default_backend_test
+    sdk_config: *sdk_dynamic
+    deploy_config: configs/mmagic/super-resolution/super-resolution_tensorrt_dynamic-32x32-512x512.py
+
+  pipeline_trt_dynamic_fp16: &pipeline_trt_dynamic_fp16
+    convert_image: *convert_image
+    backend_test: *default_backend_test
+    sdk_config: *sdk_dynamic
+    deploy_config: configs/mmagic/super-resolution/super-resolution_tensorrt-fp16_dynamic-32x32-512x512.py
+
+  pipeline_trt_dynamic_int8: &pipeline_trt_dynamic_int8
+    convert_image: *convert_image
+    backend_test: *default_backend_test
+    sdk_config: *sdk_dynamic
+    deploy_config: configs/mmagic/super-resolution/super-resolution_tensorrt-int8_dynamic-32x32-512x512.py
+
+openvino:
+  pipeline_openvino_dynamic_fp32: &pipeline_openvino_dynamic_fp32
+    convert_image: *convert_image
+    backend_test: False
+    deploy_config: configs/mmagic/super-resolution/super-resolution_openvino_dynamic-256x256.py
+
+ncnn:
+  pipeline_ncnn_dynamic_fp32: &pipeline_ncnn_dynamic_fp32
+    convert_image: *convert_image
+    backend_test: False
+    deploy_config: configs/mmagic/super-resolution/super-resolution_ncnn_dynamic.py
+
+pplnn:
+  pipeline_pplnn_dynamic_fp32: &pipeline_pplnn_dynamic_fp32
+    convert_image: *convert_image
+    backend_test: False
+    deploy_config: configs/mmagic/super-resolution/super-resolution_pplnn_dynamic-32x32.py
+
+torchscript:
+  pipeline_ts_fp32: &pipeline_ts_fp32
+    convert_image: *convert_image
+    backend_test: False
+    deploy_config: configs/mmagic/super-resolution/super-resolution_torchscript.py
+
+models:
+  - name: SRCNN
+    metafile: configs/srcnn/metafile.yml
+    model_configs:
+      - configs/srcnn/srcnn_x4k915_1xb16-1000k_div2k.py
+    pipelines:
+      - *pipeline_ts_fp32
+      - *pipeline_ort_dynamic_fp32
+#      - *pipeline_trt_dynamic_fp32
+      - *pipeline_trt_dynamic_fp16
+#      - *pipeline_trt_dynamic_int8
+      - *pipeline_ncnn_dynamic_fp32
+      # - *pipeline_pplnn_dynamic_fp32
+      # - *pipeline_openvino_dynamic_fp32
+
+  - name: ESRGAN
+    metafile: configs/esrgan/metafile.yml
+    model_configs:
+      - configs/esrgan/esrgan_x4c64b23g32_1xb16-400k_div2k.py
+      - configs/esrgan/esrgan_psnr-x4c64b23g32_1xb16-1000k_div2k.py
+    pipelines:
+      - *pipeline_ts_fp32
+      - *pipeline_ort_dynamic_fp32
+      - *pipeline_trt_dynamic_fp16
+      - *pipeline_ncnn_dynamic_fp32
+      # - *pipeline_pplnn_dynamic_fp32
+      # - *pipeline_openvino_dynamic_fp32
+
+  - name: SRGAN
+    metafile: configs/srgan_resnet/metafile.yml
+    model_configs:
+      - configs/srgan_resnet/srgan_x4c64b16_1xb16-1000k_div2k.py
+      - configs/srgan_resnet/msrresnet_x4c64b16_1xb16-1000k_div2k.py
+    pipelines:
+      - *pipeline_ts_fp32
+      - *pipeline_ort_dynamic_fp32
+      - *pipeline_trt_dynamic_fp16
+      - *pipeline_ncnn_dynamic_fp32
+      # - *pipeline_pplnn_dynamic_fp32
+      # - *pipeline_openvino_dynamic_fp32
+
+  - name: Real-ESRGAN
+    metafile: configs/real_esrgan/metafile.yml
+    model_configs:
+      - configs/real_esrgan/realesrgan_c64b23g32_4xb12-lr1e-4-400k_df2k-ost.py
+    pipelines:
+      - *pipeline_ts_fp32
+      - *pipeline_ort_dynamic_fp32
+      - *pipeline_trt_dynamic_fp16
+      - *pipeline_ncnn_dynamic_fp32
+      # - *pipeline_pplnn_dynamic_fp32
+      # - *pipeline_openvino_dynamic_fp32
+
+  - name: EDSR
+    metafile: configs/edsr/metafile.yml
+    model_configs:
+      - configs/edsr/edsr_x2c64b16_1xb16-300k_div2k.py
+    pipelines:
+      - *pipeline_ts_fp32
+      - *pipeline_ort_dynamic_fp32
+      - *pipeline_trt_dynamic_fp16
+      # - *pipeline_ncnn_dynamic_fp32
+      # - *pipeline_openvino_dynamic_fp32
+
+  - name: RDN
+    metafile: configs/rdn/metafile.yml
+    model_configs:
+      - configs/rdn/rdn_x2c64b16_1xb16-1000k_div2k.py
+    pipelines:
+      - *pipeline_ts_fp32
+      - *pipeline_ort_dynamic_fp32
+      - *pipeline_trt_dynamic_fp16
+      # - *pipeline_ncnn_dynamic_fp32
+      # - *pipeline_openvino_dynamic_fp32

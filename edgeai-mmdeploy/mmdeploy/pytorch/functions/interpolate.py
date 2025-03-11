@@ -1,0 +1,136 @@
+# Copyright (c) OpenMMLab. All rights reserved.
+from typing import Optional, Tuple, Union
+
+import torch
+from torch.autograd import Function
+
+from mmdeploy.core import FUNCTION_REWRITER
+from mmdeploy.utils import Backend, get_root_logger
+
+
+@FUNCTION_REWRITER.register_rewriter(
+    func_name='torch.nn.functional.interpolate', backend='ncnn')
+def interpolate__ncnn(input: torch.Tensor,
+                      size: Optional[Union[int, Tuple[int], Tuple[int, int],
+                                           Tuple[int, int, int]]] = None,
+                      scale_factor: Optional[Union[float,
+                                                   Tuple[float]]] = None,
+                      mode: str = 'nearest',
+                      align_corners: Optional[bool] = None,
+                      recompute_scale_factor: Optional[bool] = None):
+    """Rewrite `interpolate` for ncnn backend.
+
+    ncnn require `size` should be constant in ONNX Node. We use `scale_factor`
+    instead of `size` to avoid dynamic size.
+    """
+    ctx = FUNCTION_REWRITER.get_context()
+
+    input_size = input.shape
+    if scale_factor is None:
+        scale_factor = [
+            s_out / s_in for s_out, s_in in zip(size, input_size[2:])
+        ]
+
+    return ctx.origin_func(
+        input,
+        None,
+        scale_factor,
+        mode=mode,
+        align_corners=align_corners,
+        recompute_scale_factor=recompute_scale_factor)
+
+
+@FUNCTION_REWRITER.register_rewriter(
+    func_name='torch.nn.functional.interpolate', backend='rknn')
+def interpolate__rknn(input: torch.Tensor,
+                      size: Optional[Union[int, Tuple[int], Tuple[int, int],
+                                           Tuple[int, int, int]]] = None,
+                      scale_factor: Optional[Union[float,
+                                                   Tuple[float]]] = None,
+                      mode: str = 'nearest',
+                      align_corners: Optional[bool] = None,
+                      recompute_scale_factor: Optional[bool] = None):
+    """Rewrite `interpolate` for rknn backend.
+
+    rknn require `size` should be constant in ONNX Node. We use `scale_factor`
+    instead of `size` to avoid dynamic size.
+    """
+    ctx = FUNCTION_REWRITER.get_context()
+    input_size = input.shape
+    if scale_factor is None:
+        scale_factor = [(s_out / s_in)
+                        for s_out, s_in in zip(size, input_size[2:])]
+        if isinstance(scale_factor[0], torch.Tensor):
+            scale_factor = [i.item() for i in scale_factor]
+
+    return ctx.origin_func(
+        input,
+        None,
+        scale_factor,
+        mode=mode,
+        align_corners=align_corners,
+        recompute_scale_factor=recompute_scale_factor)
+
+
+@FUNCTION_REWRITER.register_rewriter(
+    'torch.nn.functional.interpolate',
+    is_pytorch=True,
+    backend=Backend.TENSORRT.value)
+def interpolate__tensorrt(
+    input: torch.Tensor,
+    size: Optional[Union[int, Tuple[int], Tuple[int, int], Tuple[int, int,
+                                                                 int]]] = None,
+    scale_factor: Optional[Union[float, Tuple[float]]] = None,
+    mode: str = 'nearest',
+    align_corners: Optional[bool] = None,
+    recompute_scale_factor: Optional[bool] = None,
+):
+    """Register default symbolic function for `interpolate`."""
+    ctx = FUNCTION_REWRITER.get_context()
+
+    class BicubicInterpolate(Function):
+
+        def __init__(self) -> None:
+            super().__init__()
+
+        @staticmethod
+        def symbolic(g, input, scale_factor, align_corners):
+            """Symbolic function for creating onnx op."""
+            return g.op(
+                'mmdeploy::TRTBicubicInterpolate',
+                input,
+                scale_factor_f=scale_factor,
+                align_corners_i=align_corners)
+
+        @staticmethod
+        def forward(g, input, scale_factor, align_corners):
+            """Run forward."""
+            return ctx.origin_func(
+                input,
+                scale_factor=scale_factor,
+                mode='bicubic',
+                align_corners=align_corners)
+
+    if 'bicubic' == mode:
+        input_size = input.shape
+        if isinstance(scale_factor, float):
+            scale_factor = [scale_factor, scale_factor]
+        if scale_factor is None:
+            logger = get_root_logger()
+            logger.warning(
+                'ResizeLayer in TensorRT allow dynamic input shape with shape '
+                'tensor. Which is not available for custom ops. Computed scale'
+                '_factor might be the right way to get final shape.')
+            scale_factor = [
+                float(s_out / s_in)
+                for s_out, s_in in zip(size, input_size[2:])
+            ]
+        return BicubicInterpolate.apply(input, scale_factor, align_corners)
+    else:
+        return ctx.origin_func(
+            input,
+            size=size,
+            scale_factor=scale_factor,
+            mode=mode,
+            align_corners=align_corners,
+            recompute_scale_factor=recompute_scale_factor)
