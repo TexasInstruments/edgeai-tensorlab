@@ -77,7 +77,7 @@ Technical documentation can be found in the documentation of each repository. He
 <hr>
 
 ## Acknowledgements
-This umbrella repository is created using [git subrepo](https://github.com/ingydotnet/git-subrepo) - it doesn't preserve the intermediate git commits of individual sub-repositories/sub-directories here. The following table can be used to navigate to the source of the original repositories and see the contributors.
+This umbrella repository uses and modifies several source repositories. The following table can be used to navigate to the source of the original repositories and see the contents & contributors.
 
 | Sub-repository/Sub-directory     | Original source repository   |
 |----------------------------------|------------------------------| 
