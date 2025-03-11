@@ -325,44 +325,44 @@ _model_descriptions = {
             metric=dict(label_offset_pred=1)
         )
     ),
-    'yolov9_s_lite': dict(
-        common=dict(
-            task_type=constants.TASK_TYPE_DETECTION,
-        ),
-        download=model_urls['yolov9_s_lite'],
-        training=dict(
-            training_backend='edgeai_mmdetection',
-            model_name='yolov9_s_lite',
-            model_training_id='yolov9_s_coco_lite',
-            model_architecture='yolov9',
-            input_resize=640,
-            input_cropsize=640,
-            pretrained_checkpoint_path=model_urls['yolov9_s_lite'][0],
-            batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_DETECTION], #TODO: performance_infer_time_ms to be updated
-            target_devices={
-                constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=None, performance_infer_time_ms=None,
-                                                     accuracy_factor=54.0, accuracy_unit='AP50%', accuracy_factor2=38.3, accuracy_unit2='AP[.5:.95]%'),
-                #constants.TARGET_DEVICE_AM62A: dict(performance_fps=None, performance_infer_time_ms=None,
-                #                                     accuracy_factor=54.0, accuracy_unit='AP50%', accuracy_factor2=38.3, accuracy_unit2='AP[.5:.95]%'),
-                #constants.TARGET_DEVICE_AM67A: dict(performance_fps=None, performance_infer_time_ms=None,
-                #                                    accuracy_factor=54.0, accuracy_unit='AP50%', accuracy_factor2=38.3,
-                #                                    accuracy_unit2='AP[.5:.95]%'),
-                constants.TARGET_DEVICE_AM68A: dict(performance_fps=None, performance_infer_time_ms=None,
-                                                     accuracy_factor=54.0, accuracy_unit='AP50%', accuracy_factor2=38.3, accuracy_unit2='AP[.5:.95]%'), #TODO: this has to be corrected
-                constants.TARGET_DEVICE_AM69A: dict(performance_fps=None, performance_infer_time_ms=None,
-                                                     accuracy_factor=54.0, accuracy_unit='AP50%', accuracy_factor2=38.3, accuracy_unit2='AP[.5:.95]%'),
-            },
-            training_devices={
-                constants.TRAINING_DEVICE_CPU: True,
-                constants.TRAINING_DEVICE_CUDA: True,
-            }
-        ),
-        compilation=dict(
-            model_compilation_id='od-9204',
-            input_optimization=False,
-            metric=dict(label_offset_pred=1)
-        )
-    ),
+    # 'yolov9_s_lite': dict(
+    #     common=dict(
+    #         task_type=constants.TASK_TYPE_DETECTION,
+    #     ),
+    #     download=model_urls['yolov9_s_lite'],
+    #     training=dict(
+    #         training_backend='edgeai_mmdetection',
+    #         model_name='yolov9_s_lite',
+    #         model_training_id='yolov9_s_coco_lite',
+    #         model_architecture='yolov9',
+    #         input_resize=640,
+    #         input_cropsize=640,
+    #         pretrained_checkpoint_path=model_urls['yolov9_s_lite'][0],
+    #         batch_size=constants.TRAINING_BATCH_SIZE_DEFAULT[constants.TASK_TYPE_DETECTION], #TODO: performance_infer_time_ms to be updated
+    #         target_devices={
+    #             constants.TARGET_DEVICE_TDA4VM: dict(performance_fps=None, performance_infer_time_ms=92.74,
+    #                                                  accuracy_factor=54.0, accuracy_unit='AP50%', accuracy_factor2=38.3, accuracy_unit2='AP[.5:.95]%'),
+    #             #constants.TARGET_DEVICE_AM62A: dict(performance_fps=None, performance_infer_time_ms=None,
+    #             #                                     accuracy_factor=54.0, accuracy_unit='AP50%', accuracy_factor2=38.3, accuracy_unit2='AP[.5:.95]%'),
+    #             #constants.TARGET_DEVICE_AM67A: dict(performance_fps=None, performance_infer_time_ms=None,
+    #             #                                    accuracy_factor=54.0, accuracy_unit='AP50%', accuracy_factor2=38.3,
+    #             #                                    accuracy_unit2='AP[.5:.95]%'),
+    #             constants.TARGET_DEVICE_AM68A: dict(performance_fps=None, performance_infer_time_ms=92.74,
+    #                                                  accuracy_factor=54.0, accuracy_unit='AP50%', accuracy_factor2=38.3, accuracy_unit2='AP[.5:.95]%'), #TODO: this has to be corrected
+    #             constants.TARGET_DEVICE_AM69A: dict(performance_fps=None, performance_infer_time_ms='92.74 (with 1/4th device capability)',
+    #                                                  accuracy_factor=54.0, accuracy_unit='AP50%', accuracy_factor2=38.3, accuracy_unit2='AP[.5:.95]%'),
+    #         },
+    #         training_devices={
+    #             constants.TRAINING_DEVICE_CPU: True,
+    #             constants.TRAINING_DEVICE_CUDA: True,
+    #         }
+    #     ),
+    #     compilation=dict(
+    #         model_compilation_id='od-9204',
+    #         input_optimization=False,
+    #         metric=dict(label_offset_pred=1)
+    #     )
+    # ),
 }
 
 
