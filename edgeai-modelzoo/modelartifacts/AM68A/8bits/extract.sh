@@ -1,0 +1,1 @@
+find . -name "*.tar.gz" -exec tar --one-top-level -zxvf "{}" \;

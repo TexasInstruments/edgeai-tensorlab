@@ -1,0 +1,76 @@
+From 15c71b7d256911ed6f51253255ecc723a316e2fa Mon Sep 17 00:00:00 2001
+From: Debapriya Maji <d-maji@ti.com>
+Date: Wed, 10 Aug 2022 23:30:54 +0530
+Subject: [PATCH] Disable pre-processing.
+
+---
+ efficientdet/inference.py | 26 ++++++++++++++------------
+ 1 file changed, 14 insertions(+), 12 deletions(-)
+
+diff --git a/efficientdet/inference.py b/efficientdet/inference.py
+index bb0910a..a8dd700 100644
+--- a/efficientdet/inference.py
++++ b/efficientdet/inference.py
+@@ -49,21 +49,23 @@ def image_preprocess(image, image_size, mean_rgb, stddev_rgb):
+     (image, scale): a tuple of processed image and its scale.
+   """
+   input_processor = dataloader.DetectionInputProcessor(image, image_size)
+-  input_processor.normalize_image(mean_rgb, stddev_rgb)
+-  input_processor.set_scale_factors_to_output_size()
+-  image = input_processor.resize_and_crop_image()
++  #input_processor.normalize_image(mean_rgb, stddev_rgb)
++  #input_processor.set_scale_factors_to_output_size()
++  #image = input_processor.resize_and_crop_image()
+   image_scale = input_processor.image_scale_to_original
+   return image, image_scale
+ 
+ 
+ @tf.autograph.to_graph
+ def batch_image_files_decode(image_files):
+-  raw_images = tf.TensorArray(tf.uint8, size=0, dynamic_size=True)
+-  for i in tf.range(tf.shape(image_files)[0]):
+-    image = tf.io.decode_image(image_files[i])
+-    image.set_shape([None, None, None])
+-    raw_images = raw_images.write(i, image)
+-  return raw_images.stack()
++  #raw_images = tf.TensorArray(tf.float32, size=0, dynamic_size=True)
++  #for i in tf.range(tf.shape(image_files)[0]):
++  image = tf.io.decode_image(image_files[0], dtype=tf.float32)
++  #image.set_shape([None, None, None])
++  image.set_shape([1, 512, 512, 3])
++  #raw_images = raw_images.write(i, image)
++  #return raw_images.stack()
++  return image
+ 
+ 
+ def batch_image_preprocess(raw_images,
+@@ -94,7 +96,7 @@ def batch_image_preprocess(raw_images,
+         mean_rgb=mean_rgb,
+         stddev_rgb=stddev_rgb)
+     images, scales = tf.vectorized_map(map_fn, raw_images)
+-    images = tf.stop_gradient(tf.cast(images, tf.float32))
++    #images = tf.stop_gradient(tf.cast(images, tf.float32))
+     scales = tf.stop_gradient(tf.cast(scales, tf.float32))
+     return (images, scales)
+ 
+@@ -107,7 +109,7 @@ def batch_image_preprocess(raw_images,
+     images.append(image)
+   images = tf.stack(images)
+   scales = tf.stack(scales)
+-  return (images, scales)
++  return (raw_images, scales)
+ 
+ 
+ def build_inputs(
+@@ -449,7 +451,7 @@ class ServingDriver(object):
+     with self.sess.graph.as_default():
+       image_files = tf.placeholder(tf.string, name='image_files', shape=[None])
+       raw_images = batch_image_files_decode(image_files)
+-      raw_images = tf.identity(raw_images, name='image_arrays')
++      #raw_images = tf.identity(raw_images, name='image_arrays')
+       images, scales = batch_image_preprocess(raw_images, params['image_size'],
+                                               params['mean_rgb'],
+                                               params['stddev_rgb'],
+-- 
+2.17.1
+

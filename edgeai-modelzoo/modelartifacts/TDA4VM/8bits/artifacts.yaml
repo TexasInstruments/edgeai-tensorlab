@@ -1,0 +1,128 @@
+6dpose-7200_onnxrt:
+  model_name: ONR-6DPOSE-7200-yolox-s-6d-object_pose-640x480
+  recommended: false
+  run_dir: 6dpose-7200_onnxrt_ycbv_edgeai-yolox_yolox_s_object_pose_ti_lite_640x480_57p75_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 50918884
+  task_type: object_6d_pose_estimation
+cl-0000_tflitert:
+  model_name: TFL-CL-0000-mobileNetV1-mlperf
+  recommended: true
+  run_dir: cl-0000_tflitert_imagenet1k_mlperf_mobilenet_v1_1.0_224_tflite
+  session_name: tflitert
+  shortlisted: true
+  size: 18623464
+  task_type: classification
+cl-3090_tvmdlr:
+  model_name: TVM-CL-3090-mobileNetV2-tv
+  recommended: true
+  run_dir: cl-3090_tvmdlr_imagenet1k_torchvision_mobilenet_v2_tv_onnx
+  session_name: tvmdlr
+  shortlisted: true
+  size: 45376523
+  task_type: classification
+cl-6360_onnxrt:
+  model_name: ONR-CL-6360-regNetx-200mf
+  recommended: true
+  run_dir: cl-6360_onnxrt_imagenet1k_fbr-pycls_regnetx-200mf_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 11954266
+  task_type: classification
+kd-7060_onnxrt:
+  model_name: ONR-KD-7060-human-pose-yolox-s-640x640
+  recommended: true
+  run_dir: kd-7060_onnxrt_coco_edgeai-yolox_yolox_s_pose_ti_lite_640_20220301_model_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 44015652
+  task_type: keypoint_detection
+od-2020_tflitert:
+  model_name: TFL-OD-2020-ssdLite-mobDet-DSP-coco-320x320
+  recommended: true
+  run_dir: od-2020_tflitert_coco_tf1-models_ssdlite_mobiledet_dsp_320x320_coco_20200519_tflite
+  session_name: tflitert
+  shortlisted: true
+  size: 31532685
+  task_type: detection
+od-5120_tvmdlr:
+  model_name: TVM-OD-5120-ssdLite-mobDet-DSP-coco-320x320
+  recommended: true
+  run_dir: od-5120_tvmdlr_coco_tf1-models_ssdlite_mobiledet_dsp_320x320_coco_20200519_tflite
+  session_name: tvmdlr
+  shortlisted: true
+  size: 90937129
+  task_type: detection
+od-8020_onnxrt:
+  model_name: ONR-OD-8020-ssd-lite-mobv2-mmdet-coco-512x512
+  recommended: true
+  run_dir: od-8020_onnxrt_coco_edgeai-mmdet_ssd_mobilenetv2_lite_512x512_20201214_model_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 14433985
+  task_type: detection
+od-8200_onnxrt:
+  model_name: ONR-OD-8200-yolox-nano-lite-mmdet-coco-416x416
+  recommended: true
+  run_dir: od-8200_onnxrt_coco_edgeai-mmdet_yolox_nano_lite_416x416_20220214_model_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 10233768
+  task_type: detection
+od-8220_onnxrt:
+  model_name: ONR-OD-8220-yolox-s-lite-mmdet-coco-640x640
+  recommended: true
+  run_dir: od-8220_onnxrt_coco_edgeai-mmdet_yolox_s_lite_640x640_20220221_model_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 39376064
+  task_type: detection
+od-8420_onnxrt:
+  model_name: ONR-OD-8420-yolox-s-lite-mmdet-widerface-640x640
+  recommended: true
+  run_dir: od-8420_onnxrt_widerface_edgeai-mmdet_yolox_s_lite_640x640_20220307_model_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 40014609
+  task_type: detection
+ss-2580_tflitert:
+  model_name: TFL-SS-2580-deeplabv3_mobv2-ade20k32-mlperf-512x512
+  recommended: true
+  run_dir: ss-2580_tflitert_ade20k32_mlperf_deeplabv3_mnv2_ade20k32_float_tflite
+  session_name: tflitert
+  shortlisted: true
+  size: 10249755
+  task_type: segmentation
+ss-5710_tvmdlr:
+  model_name: TVM-SS-5710-deeplabv3lite-mobv2-cocoseg21-512x512
+  recommended: true
+  run_dir: ss-5710_tvmdlr_cocoseg21_edgeai-tv_deeplabv3plus_mobilenetv2_edgeailite_512x512_20210405_onnx
+  session_name: tvmdlr
+  shortlisted: true
+  size: 31802702
+  task_type: segmentation
+ss-7618_onnxrt:
+  model_name: ONR-SS-7618-deeplabv3lite-mobv2-qat-robokit-768x432
+  recommended: true
+  run_dir: ss-7618_onnxrt_ti-robokit_edgeai-tv_deeplabv3plus_mnetv2_edgeailite_robokit_768x432_qat-p2_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 5541003
+  task_type: segmentation
+ss-8610_onnxrt:
+  model_name: ONR-SS-8610-deeplabv3lite-mobv2-ade20k32-512x512
+  recommended: true
+  run_dir: ss-8610_onnxrt_ade20k32_edgeai-tv_deeplabv3plus_mobilenetv2_edgeailite_512x512_20210308_outby4_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 11172450
+  task_type: segmentation
+visloc-7500_onnxrt:
+  model_name: ONR-VISLOC-7500-tiad-dkaze-carla-768x384
+  recommended: false
+  run_dir: visloc-7500_onnxrt_carla_edgeai-tv_tiad_dkaze_carla_768x384_model_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 5458692
+  task_type: visual_localization

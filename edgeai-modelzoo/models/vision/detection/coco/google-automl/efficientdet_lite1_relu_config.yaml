@@ -1,0 +1,188 @@
+task_type: detection
+dataset_category: coco
+calibration_dataset: coco
+input_dataset: coco
+preprocess:
+  resize:
+  - 384
+  - 384
+  crop:
+  - 384
+  - 384
+  data_layout: NHWC
+  reverse_channels: false
+  backend: cv2
+  interpolation: null
+  resize_with_pad: true
+  pad_color:
+  - 127
+  - 127
+  - 127
+session:
+  session_name: tflitert
+  target_device: null
+  input_optimization: false
+  input_data_layout: NHWC
+  input_mean:
+  - 127.0
+  - 127.0
+  - 127.0
+  input_scale:
+  - 0.007812
+  - 0.007812
+  - 0.007812
+  runtime_options:
+    advanced_options:quantization_scale_type: 4
+    tensor_bits: 8
+    accuracy_level: 1
+    advanced_options:high_resolution_optimization: 0
+    advanced_options:pre_batchnorm_fold: 1
+    advanced_options:calibration_frames: 12
+    advanced_options:calibration_iterations: 12
+    advanced_options:activation_clipping: 1
+    advanced_options:weight_clipping: 1
+    advanced_options:bias_calibration: 1
+    advanced_options:output_feature_16bit_names_list: efficientnet-lite1/stem/Relu;efficientnet-lite1/stem/tpu_batch_normalization/FusedBatchNormV3;efficientnet-lite1/blocks_0/tpu_batch_normalization/FusedBatchNormV3;efficientnet-lite1/blocks_0/depthwise_conv2d/depthwise;efficientnet-lite1/stem/conv2d/Conv2D,
+      box_net/box-predict/BiasAdd;box_net/box-predict_4/separable_conv2d;box_net/box-predict/separable_conv2d;box_net/box-predict/bias,
+      class_net/class-predict/BiasAdd;class_net/class-predict_4/separable_conv2d;class_net/class-predict/separable_conv2d;class_net/class-predict/bias,
+      box_net/box-predict_1/BiasAdd;box_net/box-predict_4/separable_conv2d;box_net/box-predict_1/separable_conv2d;box_net/box-predict/bias,
+      class_net/class-predict_1/BiasAdd;class_net/class-predict_4/separable_conv2d;class_net/class-predict_1/separable_conv2d;class_net/class-predict/bias,
+      box_net/box-predict_2/BiasAdd;box_net/box-predict_4/separable_conv2d;box_net/box-predict_2/separable_conv2d;box_net/box-predict/bias,
+      class_net/class-predict_2/BiasAdd;class_net/class-predict_4/separable_conv2d;class_net/class-predict_2/separable_conv2d;class_net/class-predict/bias,
+      box_net/box-predict_3/BiasAdd;box_net/box-predict_4/separable_conv2d;box_net/box-predict_3/separable_conv2d;box_net/box-predict/bias,
+      class_net/class-predict_3/BiasAdd;class_net/class-predict_4/separable_conv2d;class_net/class-predict_3/separable_conv2d;class_net/class-predict/bias,
+      box_net/box-predict_4/BiasAdd;box_net/box-predict_4/separable_conv2d;box_net/box-predict/bias1,
+      class_net/class-predict_4/BiasAdd;class_net/class-predict_4/separable_conv2d;class_net/class-predict/bias1
+    advanced_options:params_16bit_names_list: ''
+    advanced_options:add_data_convert_ops: 3
+    object_detection:meta_arch_type: 5
+    object_detection:meta_layers_names_list: efficientdet_lite1_relu.prototxt
+  model_path: efficientdet_lite1_relu.tflite
+  model_id: od-2150
+  input_details: null
+  output_details: null
+  num_inputs: 1
+postprocess:
+  detection_threshold: 0.3
+  formatter:
+    src_indices:
+    - 1
+    - 0
+    - 3
+    - 2
+    - 5
+    - 4
+    dst_indices:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    name: DetectionFormatting
+  resize_with_pad: true
+  normalized_detections: false
+  shuffle_indices: null
+  squeeze_axis: 0
+  ignore_index: 0
+  logits_bbox_to_bbox_ls: false
+metric:
+  label_offset_pred:
+    1: 1
+    2: 2
+    3: 3
+    4: 4
+    5: 5
+    6: 6
+    7: 7
+    8: 8
+    9: 9
+    10: 10
+    11: 11
+    12: 12
+    13: 13
+    14: 14
+    15: 15
+    16: 16
+    17: 17
+    18: 18
+    19: 19
+    20: 20
+    21: 21
+    22: 22
+    23: 23
+    24: 24
+    25: 25
+    26: 26
+    27: 27
+    28: 28
+    29: 29
+    30: 30
+    31: 31
+    32: 32
+    33: 33
+    34: 34
+    35: 35
+    36: 36
+    37: 37
+    38: 38
+    39: 39
+    40: 40
+    41: 41
+    42: 42
+    43: 43
+    44: 44
+    45: 45
+    46: 46
+    47: 47
+    48: 48
+    49: 49
+    50: 50
+    51: 51
+    52: 52
+    53: 53
+    54: 54
+    55: 55
+    56: 56
+    57: 57
+    58: 58
+    59: 59
+    60: 60
+    61: 61
+    62: 62
+    63: 63
+    64: 64
+    65: 65
+    66: 66
+    67: 67
+    68: 68
+    69: 69
+    70: 70
+    71: 71
+    72: 72
+    73: 73
+    74: 74
+    75: 75
+    76: 76
+    77: 77
+    78: 78
+    79: 79
+    80: 80
+    81: 81
+    82: 82
+    83: 83
+    84: 84
+    85: 85
+    86: 86
+    87: 87
+    88: 88
+    89: 89
+    90: 90
+    -1: -1
+    0: 0
+model_info:
+  metric_reference:
+    accuracy_ap[.5:.95]%: 31.79
+  model_shortlist: 30
+  compact_name: efficientDet-lite1-relu-coco-384x384
+  shortlisted: false

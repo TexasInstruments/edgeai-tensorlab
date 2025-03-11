@@ -1,0 +1,57 @@
+task_type: segmentation
+dataset_category: cocoseg21
+calibration_dataset: cocoseg21
+input_dataset: cocoseg21
+preprocess:
+  resize:
+  - 512
+  - 512
+  crop:
+  - 512
+  - 512
+  data_layout: NCHW
+  reverse_channels: false
+  backend: cv2
+  interpolation: 1
+  resize_with_pad: false
+  pad_color: 0
+session:
+  session_name: onnxrt
+  target_device: null
+  input_optimization: false
+  input_data_layout: NCHW
+  input_mean:
+  - 128.0
+  - 128.0
+  - 128.0
+  input_scale:
+  - 0.015625
+  - 0.015625
+  - 0.015625
+  runtime_options:
+    advanced_options:quantization_scale_type: 4
+    tensor_bits: 8
+    accuracy_level: 1
+    advanced_options:high_resolution_optimization: 0
+    advanced_options:pre_batchnorm_fold: 1
+    advanced_options:calibration_frames: 12
+    advanced_options:calibration_iterations: 12
+    advanced_options:activation_clipping: 1
+    advanced_options:weight_clipping: 1
+    advanced_options:bias_calibration: 1
+    advanced_options:output_feature_16bit_names_list: ''
+    advanced_options:params_16bit_names_list: ''
+    advanced_options:add_data_convert_ops: 3
+  model_path: fpn_aspp_regnetx800mf_edgeailite_512x512_20210405.onnx
+  model_id: ss-8720
+  input_details: null
+  output_details: null
+  num_inputs: 1
+postprocess:
+  save_output: false
+model_info:
+  metric_reference:
+    accuracy_mean_iou%: 61.09
+  model_shortlist: 20
+  compact_name: deeplabv3lite-regnetx800mf-cocoseg21-512x512
+  shortlisted: true

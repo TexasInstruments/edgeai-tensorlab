@@ -1,0 +1,4 @@
+Name: mobilenet_v2_float_1.4_224.tflite
+Source: https://github.com/tensorflow/models/tree/master/research/slim
+Source: https://github.com/tensorflow/models/tree/master/research/slim/nets/mobilenet
+License: https://github.com/tensorflow/models/blob/master/LICENSE
