@@ -196,6 +196,10 @@ for root, dirs, files in os.walk(artifacts_dir):
         # Move the file
         shutil.move(run_log_path, run_pc_log_path)
         print(f"Moved {run_log_path} to {run_pc_log_path}")
+        # Make a new run.log file 
+        with open(run_log_path, "w") as file:
+            file.write("The EVM Logs will be here. \n")
+        continue
     else:
         print(f"run.log not found in {root} subdirectory")
 
