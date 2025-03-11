@@ -155,6 +155,7 @@ parent_directory
     |--edgeai-torchvision
     |--edgeai-mmdetection
     |--edgeai-mmpose
+    |--edgeai-tensorvision
     |--edgeai-benchmark
     |--edgeai-modelmaker
 </pre>
@@ -191,47 +192,24 @@ Image classification example
 Where TDA4VM above is an example of target_device supported. 
 
 #### Target devices supported
-The list of target devices supported depends on the tidl-tools installed by [edgeai-benchmark](https://github.com/TexasInstruments/edgeai-benchmark). Currently **TDA4VM, AM68A, AM62A and AM69A** are supported.
+The list of target devices supported depends on the tidl-tools installed by [edgeai-benchmark](https://github.com/TexasInstruments/edgeai-benchmark). Currently **TDA4VM, AM68A, AM69A, AM62A, AM67A & AM62** are supported.
 
 
-### Step 4: Prepare your own dataset with your own images and object types (Data annotation)
-- This section explains how to create and annotate your own dataset with your own object classes.
-- Data Annotation can be done in any suitable tool as long as the format of the annotated is supported in this repository. The following description to use Label Studio is just an example.
-- The annotation file must be in [COCO JSON](https://cocodataset.org/#format-data) format. LabelStudio supports exporting the dataset to COCO JSON format for Object Detection. For Image Classification, Label Studio can export in JSOM-Min format and this tool provides a converter script to convert to COCO JSON like format.
+### Step 4: Prepare your own dataset with your own images and annotations
+#### Step 4.1 Using TI Edge AI SUDIO Model Composer
+- We recommend [TI Edge AI SUDIO Model Composer](https://dev.ti.com/edgeaistudio/) for annotating the images to create the dataset in supported format. 
+- Download an example dataset from there are to understand the exact format. 
+- In our example config yaml files also, we have given urls of example datasets that can be downloaded and used as reference.
 
-#### Step 4.1: Install LabelStudio
-- Label Studio can be installed using the following command:
-```bash
-pip install -r requirements/labelstudio.txt
-```
-
-#### Step 4.2: Run LabelStudio
-- Once installed, it can be launched by running
-```bash
-./run_labelstudio.sh
-```
-
-#### Step 4.3: How to use Label Studio for data annotation
-- Create a new project in Label Studio and give it a name in the "Project Name" tab. 
-- In the Data Import tab upload your images. (You can upload multiple times if your images are located in various folders in the source location).
-- In the tab named "Labelling Setup" choose "Object Detction with Bounding Boxes" or "Image classification" depending on the task that you would like to annotate for.
-- Remove the existing "Choices" and add your Label Choices (Object Types) that you would like to annotate. Clip on Save.
-- Now the "project page" is shown with list of images and their previews. 
-- Now click on an image listed to go to the "Labelling" page. Select the object category for the given image. For Object detection also draw boxes around the objects of interest. (Before drawing a box make sure the correct label choice below the mage is selected).
-- Do not forget to click "Submit" before moving on to the next image. The annotations done for an image is saved only when "Submit" is clicked.
-- After annotating the required images, go back to the "project page", by clicking ont he project name displayed on top. From this page we can export the annotation.
-- Export the annotation in COCO-JSON (For Object Detection) of JSON-MIN (For Image Classification). Do not export using the JSON format. COCO-JSON format exported by Label Studio can be directly accepted by this ModelMaker tool. 
-- However, the JSON-MIN format has to be converted to the COCO-JSON format by using an example given in [run_convert_dataset.sh](./run_convert_dataset.sh). For Image Classification task, use source_format as labelstudio_classification. Label Studio can also export into JSON-MIN for Object detection. In case you did that, use source_format as labelstudio_detection for the converter script.
-
-
-### Step 5: Dataset format
+#### Step 4.2: Dataset format (Optional)
+- If you already have a dataset, you can convert to the format that is supported by TI Edge AI SUDIO Model Composer.
 - The dataset format is similar to that of the [COCO](https://cocodataset.org/) dataset, but there are some changes as explained below.
 - The annotated json file and images must be under a suitable folder with the dataset name. 
 - Under the folder with dataset name, the following folders must exist: 
 - (1) there must be an "images" folder containing the images
 - (2) there must be an annotations folder containing the annotation json file with the name given below.
 
-#### Object Detection dataset format
+##### Object Detection dataset format
 An object detection dataset should have the following structure. 
 
 <pre>
@@ -251,7 +229,7 @@ data/datasets/dataset_name
 - In the config file, provide the name of the dataset (dataset_name in this example) in the field dataset_name and provide the path or URL in the field input_data_path.
 - Then the ModelMaker tool can be invoked with the config file.
 
-#### Image Classification dataset format
+##### Image Classification dataset format
 An image classification dataset should have the following structure. (Use a suitable dataset name instead of dataset_name).
 
 <pre>
@@ -272,7 +250,7 @@ data/datasets/dataset_name
 - Then the ModelMaker tool can be invoked with the config file.
 
 
-#### Semantic Segmentation dataset format
+##### Semantic Segmentation dataset format
 An object detection dataset should have the following structure. 
 
 <pre>
@@ -303,7 +281,7 @@ If you have a dataset in another format, use the script provided to convert it i
 The config file can be in .yaml or in .json format
 
 
-## Step 6: Accelerated Training using GPUs (Optional) 
+## Step 5: Accelerated Training using GPUs (Optional) 
 
 Note: **This section is for advanced users only**. Familiarity with NVIDIA GPU and CUDA driver installation is assumed.
 
@@ -326,7 +304,7 @@ Enabling CUDA GPU support inside a docker environment requires several additiona
 
 Once CUDA is installed, you will be able to model training much faster.
 
-## Step 7: Model deployment
+## Step 6: Model deployment
 The compiled model has all the side information required to run the model on our Edge AI StarterKit EVM and SDK.
 - Purchase the Edge AI StarterKit EVM and download the [Edge AI StarterKit SDK](https://github.com/TexasInstruments/edgeai/blob/master/readme_sdk.md) to use our model deployment tools.
 - For more information, see this link: https://www.ti.com/edgeai 
