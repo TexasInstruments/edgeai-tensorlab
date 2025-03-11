@@ -1,0 +1,8 @@
+user,date,time,surgery_rules,sparsity_ratio,sparsity_type,quantization,accuracy,flops,params
+
+mob1,31/Jan/2024,11:18:10 PM,None,0.15,Channel,Disabled,88.28025477707007,299541194.0,2236682.0
+mob1,31/Jan/2024,11:22:37 PM,None,0.15,Channel,Disabled,89.27388535031847,299541194.0,2236682.0
+xyz,01/Feb/2024,10:41:37 AM,None,0.03,Unstructured,Disabled,88.81528662420382,299541194.0,2236682.0
+xyz,01/Feb/2024,10:45:59 AM,{'ReLU6': 'ReLU'},0.03,Unstructured,Disabled,88.94267515923566,299541194.0,2236682.0
+XYZ,02/Feb/2024,04:17:48 PM,None,0.4,Unstructured,Disabled,87.94904458598727,299541194.0,2236682.0
+xyz1,06/Feb/2024,02:54:22 PM,{'ReLU6': 'ReLU'},0.24,Unstructured,Disabled,88.5859872611465,46922.0,2236682.0
