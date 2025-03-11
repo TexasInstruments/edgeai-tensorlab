@@ -38,8 +38,8 @@ import re
 
 
 class ParallelRunner:
-    def __init__(self, parallel_processes, desc='TASKS', mininterval=0.25, maxinterval=60.0, tqdm_obj=None,
-            overall_timeout=None, instance_timeout=None, verbose=False):
+    def __init__(self, parallel_processes, desc='TASKS', mininterval=0.2, maxinterval=30.0, tqdm_obj=None,
+            overall_timeout=None, instance_timeout=None, check_errors=False, verbose=False):
         self.parallel_processes = parallel_processes
         self.desc = desc
         self.queued_tasks = dict()
@@ -54,6 +54,8 @@ class ParallelRunner:
         self.task_index = 0
         self.start_time = None
         self.terminate_all_flag = False
+        self.result_entries = None
+        self.check_errors = check_errors
         if verbose:
             warnings.warn('''
             ParallelSubProcess is for tasks that are started with subprocess.Popen()
@@ -66,6 +68,7 @@ class ParallelRunner:
         self.queued_tasks = task_entries
         self.num_queued_tasks = len(task_entries)
         self.task_index = 0
+        self.result_entries = {}
 
         self.start_time = time.time()
         desc = self.desc + f' TOTAL={self.num_queued_tasks}, NUM_RUNNING={0}'
@@ -89,7 +92,7 @@ class ParallelRunner:
         if not self.terminate_all_flag:
             self._wait_in_loop(0)
         #
-        return True
+        return self.result_entries
 
     def _find_proc_dict_to_start(self):
         proc_dict_to_start = None
@@ -118,6 +121,7 @@ class ParallelRunner:
     def _check_proc_complete(self, proc_dict):
         proc = proc_dict.get('proc', None)
         running_proc_name = proc_dict['proc_name']
+        out_ret = None
         if proc is not None:
             completed = False
             exit_code = proc.returncode
@@ -128,7 +132,7 @@ class ParallelRunner:
                     print(f"ERROR: Error occurred: {running_proc_name} - Error Code: {err_code} at {__file__}")
                     proc.terminate()
                     completed = True
-                    return completed
+                    return completed, out_ret
                 #
             except subprocess.TimeoutExpired as ex:
                 pass
@@ -143,7 +147,7 @@ class ParallelRunner:
             # especially happens if a ParallelProcess is not lanched, but is a simple task that returns None as proc.
             completed = True
         #
-        return completed
+        return completed, out_ret
 
     def _check_running_status(self, check_errors):
         running_tasks = []
@@ -161,19 +165,21 @@ class ParallelRunner:
                 # check running processes                         
                 if running:
                     # try to update the completed status for running processes
-                    completed = self._check_proc_complete(proc_dict)
+                    completed, result = self._check_proc_complete(proc_dict)
                     running = (not completed)
                     proc_dict['completed'] = completed
                     proc_dict['running'] = running
+                    proc_dict['result'] = result
+                    self.result_entries[task_name] = result
                     running_proc_name = proc_dict['proc_name']
                     running_time = time.time() - proc_dict['start_time']
                     proc_log = proc_dict.get('proc_log', None)
                     proc_error = proc_dict.get('proc_error', None)
-                    proc_error = [proc_error] if not isinstance(proc_error, (list,tuple)) else proc_error
 
                     # look for processes to terminate forcefully
                     # proc_dict entry of terminated process will eventually get removed - don't keep trying  to terminate it again and again    
-                    if check_errors and (not terminated):
+                    if check_errors and (not terminated) and proc_error:
+                        proc_error = [proc_error] if not isinstance(proc_error, (list,tuple)) else proc_error
                         proc_terminate = False
                         proc_term_msgs = []
                         if proc_log and os.path.exists(proc_log):
@@ -229,7 +235,7 @@ class ParallelRunner:
         # wait in a loop until the number of running processes come down        
         num_processes = num_processes or 0
         last_check_time = time.time()        
-        check_errors = True
+        check_errors = self.check_errors
         num_completed, num_running = self._check_running_status(check_errors=check_errors)
         while num_running > 0 and num_running >= num_processes and (not self.terminate_all_flag):
             num_completed, num_running = self._check_running_status(check_errors=check_errors)

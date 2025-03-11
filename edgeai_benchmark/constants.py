@@ -88,9 +88,18 @@ ADVANCED_OPTIONS_QUANT_FILE_KEY = 'advanced_options:quant_params_proto_path'
 # but do not include genuine messages such as: VX_ZONE_ERROR:Enabled
 TIDL_FATAL_ERROR_LOGS_REGEX_LIST = [
     r'VX_ZONE_ERROR:\[.*\].*Error.*',
-    r'Invoke  : ERROR: Unable to open network file'
+    r'Invoke  : ERROR: Unable to open network file',
+    r'Status Message: TIDL Compute Import Failed',
+    r'TIDL_RT_OVX: ERROR: Verifying TIDL graph ... Failed',
+    r'[TIDL Import] [PARSER] ERROR: Unable to create TIDL subgraph',
+    r'[TIDL Import] ERROR: Could not open',
+    r'System command failed with return code',
     ]
 
+TIDL_FATAL_ERROR_LOGS_REGEX_LIST_TENSOR_BITS_NOT_32 = [
+    r'Network compiler returned with error',
+    r'not expected to work on target/EVM'
+]
 
 # Compatible with the publicly released SDK 10.1 - Version: 10.01.00.04 - Release date: Dec 18, 2024
 TIDL_FIRMWARE_VERSION_10_01_03_00 = '10_01_03_00'

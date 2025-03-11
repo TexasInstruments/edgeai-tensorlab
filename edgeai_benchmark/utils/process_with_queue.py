@@ -35,7 +35,6 @@ import traceback
 import queue
 import copy
 import functools
-import wurlitzer
 
 from .progress_step import *
 from .logger_utils import *
@@ -88,17 +87,7 @@ class ProcessWithQueue(multiprocessing.Process):
         result = {}
         exception_e = None
         try:
-            if self.log_file:
-                os.makedirs(os.path.dirname(self.log_file), exist_ok=True)
-                with open(self.log_file, 'a') as log_fp:
-                    with wurlitzer.pipes(stdout=log_fp, stderr=wurlitzer.STDOUT):
-                        result = task()
-                    #
-                #
-            else:
-                print(f"WARNING: log_file was not provided - running without capturing the log - {__file__}")
-                result = task()
-            #
+            result = task()
         except KeyboardInterrupt:
             print(f"KeyboardInterrupt occurred in worker process: {__file__}")
             traceback.print_exc()

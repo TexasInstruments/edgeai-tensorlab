@@ -71,7 +71,9 @@ def get_arg_parser():
     parser.add_argument('--c7x_firmware_version', type=utils.str_or_none)
     parser.add_argument('--overall_timeout', type=utils.float_or_none)
     parser.add_argument('--instance_timeout', type=utils.float_or_none)
+    parser.add_argument('--log_file', type=utils.str_to_bool)
     return parser
+
 
 if __name__ == '__main__':
     print(f'argv: {sys.argv}')

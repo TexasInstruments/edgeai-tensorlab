@@ -32,6 +32,8 @@ import itertools
 import warnings
 import copy
 import traceback
+import re
+import wurlitzer
 
 from .. import utils
 from .. import datasets
@@ -187,7 +189,11 @@ class PipelineRunner():
         cwd = os.getcwd()
         results_list = []
         total = len(self.pipeline_configs)
+
         proc_error_regex_list = proc_error_regex_list or constants.TIDL_FATAL_ERROR_LOGS_REGEX_LIST
+        if self.settings.tensor_bits != 32:
+            proc_error_regex_list += constants.TIDL_FATAL_ERROR_LOGS_REGEX_LIST_TENSOR_BITS_NOT_32
+        #
         
         task_entries = {}
         for pipeline_index, (model_id, pipeline_config) in enumerate(self.pipeline_configs.items()):
@@ -201,14 +207,14 @@ class PipelineRunner():
                     proc_name = model_id + ':import'
                     basic_settings = self.settings.basic_settings()
                     basic_settings.run_inference = False
-                    run_task = functools.partial(self._run_pipeline, basic_settings, pipeline_config, description=description)
+                    run_task = functools.partial(self._run_pipeline, basic_settings, pipeline_config, description=description, log_file=log_file)
                     task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_task, 'proc_log':log_file, 'proc_error':proc_error_regex_list})
                 #
                 if self.settings.run_inference:
                     proc_name = model_id + ':infer'
                     basic_settings = self.settings.basic_settings()
                     basic_settings.run_import = False
-                    run_task = functools.partial(self._run_pipeline, basic_settings, pipeline_config, description=description)
+                    run_task = functools.partial(self._run_pipeline, basic_settings, pipeline_config, description=description, log_file=log_file)
                     task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_task, 'proc_log':log_file, 'proc_error':proc_error_regex_list})
                 #
             else:
@@ -216,7 +222,7 @@ class PipelineRunner():
                 # note that this basic_settings() copies only the basic settings.
                 # sometimes, there is no need to copy the entire settings which includes the dataset_cache
                 basic_settings = self.settings.basic_settings()
-                run_task = functools.partial(self._run_pipeline, basic_settings, pipeline_config, description=description)
+                run_task = functools.partial(self._run_pipeline, basic_settings, pipeline_config, description=description, log_file=log_file)
                 task_list_for_model.append({'proc_name':proc_name, 'proc_func':run_task, 'proc_log':log_file, 'proc_error':proc_error_regex_list})
             #
             task_entries.update({model_id:task_list_for_model})
@@ -228,20 +234,62 @@ class PipelineRunner():
             task_entries = self.get_tasks()
         #
         cwd = os.getcwd()
-        results_list = []
+        result_entries = {}
         for task_name, task_list in task_entries.items():
             for proc_entry in task_list:
                 os.chdir(cwd)
                 proc_func = proc_entry['proc_func']
+                # data loader was not copied at initialization - make a copy of the whole proc_func
                 if not self.copy_dataloader:
-                    # data loader was not copied at initialization - make a copy of the whole proc_func
                     proc_func = copy.deepcopy(proc_func)
                 #
                 result = proc_func()
-                results_list.append(result)
+                result_entries.update({task_name:result})
             #
         #
-        return results_list
+        return result_entries
+
+    @classmethod
+    def _run_pipeline(cls, settings, pipeline_config, description='', log_file=None):
+        # proc_errors to check
+        proc_errors_regex_list = constants.TIDL_FATAL_ERROR_LOGS_REGEX_LIST
+        if settings.tensor_bits != 32:
+            proc_errors_regex_list += constants.TIDL_FATAL_ERROR_LOGS_REGEX_LIST_TENSOR_BITS_NOT_32
+        #
+
+        # capture cwd - to set it later
+        cwd = os.getcwd()
+        try:
+            run_dir = pipeline_config['session'].get_param('run_dir')
+            print(utils.log_color('\nINFO', 'starting', os.path.basename(run_dir)))
+            if log_file:
+                os.makedirs(os.path.dirname(log_file), exist_ok=True)
+                with open(log_file, 'a') as log_fp:
+                    with wurlitzer.pipes(stdout=log_fp, stderr=wurlitzer.STDOUT):
+                        result = cls._run_pipeline_impl(settings, pipeline_config, description)
+                    #
+                #
+                if settings.check_errors:
+                    with open(log_file) as log_fp:
+                        proc_log_content = log_fp.read()
+                        regex_match =  any([re.search(proc_error_entry, proc_log_content) for proc_error_entry in proc_errors_regex_list])
+                        if regex_match:
+                            result = None
+                        #
+                    #
+                #
+            else:
+                result = cls._run_pipeline_impl(settings, pipeline_config, description)
+            #
+        except Exception as e:
+            result = None
+            traceback.print_exc()
+            model_id = pipeline_config['session'].kwargs['model_id']
+            print(f'model_id:{model_id} - ', str(e))
+        #
+        # make sure we are in cwd when we return.
+        os.chdir(cwd)
+        return result
 
     # this function cannot be an instance method of PipelineRunner, as it causes an
     # error during pickling, involved in the launch of a process is parallel run. make it classmethod
@@ -251,36 +299,17 @@ class PipelineRunner():
         if settings.pipeline_type == constants.PIPELINE_ACCURACY:
             # use with statement, so that the logger and other file resources are cleaned up
             with AccuracyPipeline(settings, pipeline_config) as accuracy_pipeline:
-                accuracy_result = accuracy_pipeline(description)
-                result.update(accuracy_result)
+                result = accuracy_pipeline(description)
             #
         elif settings.pipeline_type == constants.PIPELINE_GEN_CONFIG:
             # this is just an example of how other pipelines can be implemented.
             # 'something' used here is not real and it is not supported
             with GenConfigPipeline(settings, pipeline_config) as gen_config_pipeline:
-                gen_config_result = gen_config_pipeline(description)
-                result.update(gen_config_result)
+                result = gen_config_pipeline(description)
             #
         else:
             assert False, f'ERROR: unknown pipeline: {settings.pipeline_type}'
         #
-        return result
-
-    @classmethod
-    def _run_pipeline(cls, settings, pipeline_config, description=''):
-        # capture cwd - to set it later
-        cwd = os.getcwd()
-        try:
-            run_dir = pipeline_config['session'].get_param('run_dir')
-            print(utils.log_color('\nINFO', 'starting', os.path.basename(run_dir)))
-            result = cls._run_pipeline_impl(settings, pipeline_config, description)
-        except Exception as e:
-            result = {"error" : str(e)}
-            traceback.print_exc()
-            print(str(e))
-        #
-        # make sure we are in cwd when we return.
-        os.chdir(cwd)
         return result
 
     def _str_match_any(self, k, x_list):

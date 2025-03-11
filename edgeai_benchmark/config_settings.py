@@ -196,7 +196,9 @@ class ConfigSettings(core.ConfigRuntimeOptions):
         self.overall_timeout = None
         # sort model configs based on model_shortlist parameter provided for each model
         self.sort_pipeline_configs = True
-        # cna use this file as template to cleanup model config file
+        # check_errors
+        self.check_errors = True
+        # can use this file as template to cleanup model config file
         self.param_template_file = None
 
     def basic_settings(self):

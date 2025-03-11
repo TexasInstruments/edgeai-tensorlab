@@ -124,12 +124,23 @@ def run_benchmark_config(settings, work_dir, pipeline_configs=None, modify_pipel
             #
             parallel_runner = utils.ParallelRunner(parallel_processes=settings.parallel_processes,
                 overall_timeout=overall_timeout, instance_timeout=instance_timeout)
-            return parallel_runner.run(task_entries)
+            result_entries = parallel_runner.run(task_entries)
         else:
-            return pipeline_runner.run(task_entries)
+            result_entries = pipeline_runner.run(task_entries)
         #
+        result = all(result_entries.values())
+        num_results = len(result_entries)
+        num_success = len([res for res in result_entries.values() if res is not None])
+        num_errors = len([res for res in result_entries.values() if res is None])
+        if result:
+            print(f'\nSUCCESS: Benchmark - completed: {num_success}/{num_results}')
+        else:
+            print(f'\nWARNING: Benchmark - completed: {num_success}/{num_results}')
+        #
+        return num_success
     except KeyboardInterrupt:
         if parallel_runner:
             parallel_runner.terminate_all(term_mesage="KeyboardInterrupt")
         #
-        sys.exit(f"KeyboardInterrupt received: {__file__}")
+        print('\nERROR: Benchmark - completed with errors.')
+        return None
