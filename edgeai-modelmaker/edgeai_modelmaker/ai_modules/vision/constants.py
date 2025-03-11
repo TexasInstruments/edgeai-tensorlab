@@ -261,7 +261,7 @@ TARGET_DEVICE_DESCRIPTIONS = {
     TARGET_DEVICE_AM67A: {
         'device_name': TARGET_DEVICE_AM67A,
         'device_type': TARGET_DEVICE_TYPE_MPU,
-        'device_selection_factor': 1,
+        'device_selection_factor': 2,
         'device_details': TARGET_DEVICE_DETAILS_AM67A,
         'sdk_version': TARGET_SDK_VERSION,
         'sdk_release': TARGET_SDK_RELEASE,
@@ -269,7 +269,7 @@ TARGET_DEVICE_DESCRIPTIONS = {
     TARGET_DEVICE_TDA4VM: {
         'device_name': TARGET_DEVICE_TDA4VM,
         'device_type': TARGET_DEVICE_TYPE_MPU,
-        'device_selection_factor': 2,
+        'device_selection_factor': 3,
         'device_details': TARGET_DEVICE_DETAILS_TDA4VM,
         'sdk_version': TARGET_SDK_VERSION,
         'sdk_release': TARGET_SDK_RELEASE,
@@ -277,7 +277,7 @@ TARGET_DEVICE_DESCRIPTIONS = {
     TARGET_DEVICE_AM68A: {
         'device_name': TARGET_DEVICE_AM68A,
         'device_type': TARGET_DEVICE_TYPE_MPU,
-        'device_selection_factor': 3,
+        'device_selection_factor': 4,
         'device_details': TARGET_DEVICE_DETAILS_AM68A,
         'sdk_version': TARGET_SDK_VERSION,
         'sdk_release': TARGET_SDK_RELEASE,
@@ -285,7 +285,7 @@ TARGET_DEVICE_DESCRIPTIONS = {
     TARGET_DEVICE_AM69A: {
         'device_name': TARGET_DEVICE_AM69A,
         'device_type': TARGET_DEVICE_TYPE_MPU,
-        'device_selection_factor': 4,
+        'device_selection_factor': 5,
         'device_details': TARGET_DEVICE_DETAILS_AM69A,
         'sdk_version': TARGET_SDK_VERSION,
         'sdk_release': TARGET_SDK_RELEASE,

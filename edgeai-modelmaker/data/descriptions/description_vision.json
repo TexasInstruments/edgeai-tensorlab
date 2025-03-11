@@ -1,13 +1,15 @@
 {
   "training_module_descriptions":{
     "edgeai_torchvision":[
-      "classification",
+      "classification"
+    ],
+    "edgeai_tensorvision":[
       "segmentation"
     ],
     "edgeai_mmdetection":[
       "detection"
     ],
-    "edgeai_yolox":[
+    "edgeai_mmpose":[
       "keypoint_detection"
     ]
   },
@@ -20,7 +22,7 @@
         "project_path":null,
         "project_run_path":null,
         "task_type":"classification",
-        "target_machine":"evm",
+        "target_machine":"pc",
         "target_device":null,
         "run_name":"{date-time}/{model_name}",
         "target_module":"vision"
@@ -60,6 +62,7 @@
           "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth",
           "download_path":"{download_path}/pretrained/mobilenet_v2_lite"
         },
+        "pretrained_weight_state_dict_name":"state_dict",
         "target_devices":{
           "TDA4VM":{
             "performance_fps":null,
@@ -71,6 +74,13 @@
           "AM62A":{
             "performance_fps":null,
             "performance_infer_time_ms":4.03,
+            "accuracy_factor":72.13,
+            "accuracy_unit":"Accuracy Top-1%",
+            "model_selection_factor":2
+          },
+          "AM67A":{
+            "performance_fps":null,
+            "performance_infer_time_ms":"4.03 (with 1/2 device capability)",
             "accuracy_factor":72.13,
             "accuracy_unit":"Accuracy Top-1%",
             "model_selection_factor":2
@@ -144,12 +154,12 @@
         "calibration_iterations":10,
         "num_frames":null,
         "num_output_frames":50,
-        "detection_threshold":0.6,
+        "detection_threshold":0.3,
         "detection_top_k":200,
         "save_output":true,
         "tidl_offload":true,
         "input_optimization":true,
-        "capture_log":true,
+        "log_file":true,
         "metric":{
           "label_offset_pred":1
         }
@@ -163,7 +173,7 @@
         "project_path":null,
         "project_run_path":null,
         "task_type":"classification",
-        "target_machine":"evm",
+        "target_machine":"pc",
         "target_device":null,
         "run_name":"{date-time}/{model_name}",
         "target_module":"vision"
@@ -203,6 +213,7 @@
           "download_url":"https://download.pytorch.org/models/regnet_x_400mf-62229a5f.pth",
           "download_path":"{download_path}/pretrained/torch/hub/checkpoints"
         },
+        "pretrained_weight_state_dict_name":"model",
         "target_devices":{
           "TDA4VM":{
             "performance_fps":null,
@@ -214,6 +225,13 @@
           "AM62A":{
             "performance_fps":null,
             "performance_infer_time_ms":5.25,
+            "accuracy_factor":72.834,
+            "accuracy_unit":"Accuracy Top-1%",
+            "model_selection_factor":1
+          },
+          "AM67A":{
+            "performance_fps":null,
+            "performance_infer_time_ms":"5.25 (with 1/2 device capability)",
             "accuracy_factor":72.834,
             "accuracy_unit":"Accuracy Top-1%",
             "model_selection_factor":1
@@ -287,12 +305,12 @@
         "calibration_iterations":10,
         "num_frames":null,
         "num_output_frames":50,
-        "detection_threshold":0.6,
+        "detection_threshold":0.3,
         "detection_top_k":200,
         "save_output":true,
         "tidl_offload":true,
         "input_optimization":true,
-        "capture_log":true,
+        "log_file":true,
         "metric":{
           "label_offset_pred":1
         }
@@ -306,7 +324,7 @@
         "project_path":null,
         "project_run_path":null,
         "task_type":"classification",
-        "target_machine":"evm",
+        "target_machine":"pc",
         "target_device":null,
         "run_name":"{date-time}/{model_name}",
         "target_module":"vision"
@@ -346,6 +364,7 @@
           "download_url":"https://download.pytorch.org/models/regnet_x_800mf-ad17e45c.pth",
           "download_path":"{download_path}/pretrained/torch/hub/checkpoints"
         },
+        "pretrained_weight_state_dict_name":"model",
         "target_devices":{
           "TDA4VM":{
             "performance_fps":null,
@@ -357,6 +376,13 @@
           "AM62A":{
             "performance_fps":null,
             "performance_infer_time_ms":5.95,
+            "accuracy_factor":75.212,
+            "accuracy_unit":"Accuracy Top-1%",
+            "model_selection_factor":0
+          },
+          "AM67A":{
+            "performance_fps":null,
+            "performance_infer_time_ms":"5.95 (with 1/2 device capability)",
             "accuracy_factor":75.212,
             "accuracy_unit":"Accuracy Top-1%",
             "model_selection_factor":0
@@ -423,12 +449,12 @@
         "calibration_iterations":10,
         "num_frames":null,
         "num_output_frames":50,
-        "detection_threshold":0.6,
+        "detection_threshold":0.3,
         "detection_top_k":200,
         "save_output":true,
         "tidl_offload":true,
         "input_optimization":true,
-        "capture_log":true,
+        "log_file":true,
         "metric":{
           "label_offset_pred":1
         }
@@ -442,7 +468,7 @@
         "project_path":null,
         "project_run_path":null,
         "task_type":"segmentation",
-        "target_machine":"evm",
+        "target_machine":"pc",
         "target_device":null,
         "run_name":"{date-time}/{model_name}",
         "target_module":"vision"
@@ -474,8 +500,9 @@
         "enable":true,
         "model_name":"fpn_aspp_regnetx800mf_edgeailite",
         "model_training_id":"fpn_aspp_regnetx800mf_edgeailite",
-        "training_backend":"edgeai_torchvision",
+        "training_backend":"edgeai_tensorvision",
         "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/segmentation/cocoseg21/edgeai-tv/fpn_aspp_regnetx800mf_edgeailite_512x512_20210405_checkpoint.pth",
+        "pretrained_weight_state_dict_name":null,
         "target_devices":{
           "TDA4VM":{
             "performance_fps":272,
@@ -559,12 +586,12 @@
         "calibration_iterations":10,
         "num_frames":null,
         "num_output_frames":50,
-        "detection_threshold":0.6,
+        "detection_threshold":0.3,
         "detection_top_k":200,
         "save_output":true,
         "tidl_offload":true,
         "input_optimization":true,
-        "capture_log":true,
+        "log_file":true,
         "metric":{
           "label_offset_pred":1
         },
@@ -581,7 +608,7 @@
         "project_path":null,
         "project_run_path":null,
         "task_type":"segmentation",
-        "target_machine":"evm",
+        "target_machine":"pc",
         "target_device":null,
         "run_name":"{date-time}/{model_name}",
         "target_module":"vision"
@@ -613,8 +640,9 @@
         "enable":true,
         "model_name":"unet_aspp_mobilenetv2_tv_edgeailite",
         "model_training_id":"unet_aspp_mobilenetv2_tv_edgeailite",
-        "training_backend":"edgeai_torchvision",
+        "training_backend":"edgeai_tensorvision",
         "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/segmentation/cocoseg21/edgeai-tv/unet_aspp_mobilenetv2_edgeailite_512x512_20210407_checkpoint.pth",
+        "pretrained_weight_state_dict_name":null,
         "target_devices":{
           "TDA4VM":{
             "performance_fps":237,
@@ -698,12 +726,12 @@
         "calibration_iterations":10,
         "num_frames":null,
         "num_output_frames":50,
-        "detection_threshold":0.6,
+        "detection_threshold":0.3,
         "detection_top_k":200,
         "save_output":true,
         "tidl_offload":true,
         "input_optimization":true,
-        "capture_log":true,
+        "log_file":true,
         "metric":{
           "label_offset_pred":1
         },
@@ -720,7 +748,7 @@
         "project_path":null,
         "project_run_path":null,
         "task_type":"segmentation",
-        "target_machine":"evm",
+        "target_machine":"pc",
         "target_device":null,
         "run_name":"{date-time}/{model_name}",
         "target_module":"vision"
@@ -752,8 +780,9 @@
         "enable":true,
         "model_name":"deeplabv3plus_mobilenetv2_tv_edgeailite",
         "model_training_id":"deeplabv3plus_mobilenetv2_tv_edgeailite",
-        "training_backend":"edgeai_torchvision",
+        "training_backend":"edgeai_tensorvision",
         "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/segmentation/cocoseg21/edgeai-tv/deeplabv3plus_mobilenetv2_edgeailite_512x512_20210405_checkpoint.pth",
+        "pretrained_weight_state_dict_name":null,
         "target_devices":{
           "TDA4VM":{
             "performance_fps":237,
@@ -765,6 +794,13 @@
           "AM62A":{
             "performance_fps":237,
             "performance_infer_time_ms":12.658227848101266,
+            "accuracy_factor":77.04,
+            "accuracy_unit":"MeanIoU%",
+            "model_selection_factor":0
+          },
+          "AM67A":{
+            "performance_fps":237,
+            "performance_infer_time_ms":"12.658227848101266 (with 1/2 device capability)",
             "accuracy_factor":77.04,
             "accuracy_unit":"MeanIoU%",
             "model_selection_factor":0
@@ -844,12 +880,12 @@
         "calibration_iterations":10,
         "num_frames":null,
         "num_output_frames":50,
-        "detection_threshold":0.6,
+        "detection_threshold":0.3,
         "detection_top_k":200,
         "save_output":true,
         "tidl_offload":true,
         "input_optimization":true,
-        "capture_log":true,
+        "log_file":true,
         "metric":{
           "label_offset_pred":1
         },
@@ -866,7 +902,7 @@
         "project_path":null,
         "project_run_path":null,
         "task_type":"detection",
-        "target_machine":"evm",
+        "target_machine":"pc",
         "target_device":null,
         "run_name":"{date-time}/{model_name}",
         "target_module":"vision"
@@ -908,6 +944,7 @@
           "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_pico_lite_320x320_20230410_checkpoint.pth",
           "download_path":"{download_path}/pretrained/yolox_pico_lite"
         },
+        "pretrained_weight_state_dict_name":null,
         "target_devices":{
           "AM62":{
             "performance_fps":null,
@@ -966,12 +1003,12 @@
         "calibration_iterations":10,
         "num_frames":null,
         "num_output_frames":50,
-        "detection_threshold":0.6,
+        "detection_threshold":0.3,
         "detection_top_k":200,
         "save_output":true,
         "tidl_offload":true,
-        "input_optimization":true,
-        "capture_log":true,
+        "input_optimization":false,
+        "log_file":true,
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":"/multi_level_conv_obj.2/Conv_output_0, /multi_level_conv_reg.2/Conv_output_0, /multi_level_conv_cls.2/Conv_output_0, /multi_level_conv_obj.1/Conv_output_0, /multi_level_conv_reg.1/Conv_output_0, /multi_level_conv_cls.1/Conv_output_0, /multi_level_conv_obj.0/Conv_output_0, /multi_level_conv_reg.0/Conv_output_0, /multi_level_conv_cls.0/Conv_output_0"
         },
@@ -988,7 +1025,7 @@
         "project_path":null,
         "project_run_path":null,
         "task_type":"detection",
-        "target_machine":"evm",
+        "target_machine":"pc",
         "target_device":null,
         "run_name":"{date-time}/{model_name}",
         "target_module":"vision"
@@ -1030,6 +1067,7 @@
           "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth",
           "download_path":"{download_path}/pretrained/yolox_nano_lite"
         },
+        "pretrained_weight_state_dict_name":null,
         "target_devices":{
           "TDA4VM":{
             "performance_fps":null,
@@ -1049,6 +1087,15 @@
             "accuracy_unit2":"AP[.5:.95]%",
             "model_selection_factor":2
           },
+          "AM67A":{
+            "performance_fps":null,
+            "performance_infer_time_ms":"8.87 (with 1/2 device capability)",
+            "accuracy_factor":40.1,
+            "accuracy_unit":"AP50%",
+            "accuracy_factor2":24.8,
+            "accuracy_unit2":"AP[.5:.95]%",
+            "model_selection_factor":2
+          },
           "AM68A":{
             "performance_fps":null,
             "performance_infer_time_ms":3.73,
@@ -1056,7 +1103,7 @@
             "accuracy_unit":"AP50%",
             "accuracy_factor2":24.8,
             "accuracy_unit2":"AP[.5:.95]%",
-            "model_selection_factor":2
+            "model_selection_factor":3
           },
           "AM69A":{
             "performance_fps":null,
@@ -1065,7 +1112,7 @@
             "accuracy_unit":"AP50%",
             "accuracy_factor2":24.8,
             "accuracy_unit2":"AP[.5:.95]%",
-            "model_selection_factor":2
+            "model_selection_factor":3
           },
           "AM62":{
             "performance_fps":null,
@@ -1124,12 +1171,12 @@
         "calibration_iterations":10,
         "num_frames":null,
         "num_output_frames":50,
-        "detection_threshold":0.6,
+        "detection_threshold":0.3,
         "detection_top_k":200,
         "save_output":true,
         "tidl_offload":true,
-        "input_optimization":true,
-        "capture_log":true,
+        "input_optimization":false,
+        "log_file":true,
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":"/multi_level_conv_obj.2/Conv_output_0, /multi_level_conv_reg.2/Conv_output_0, /multi_level_conv_cls.2/Conv_output_0, /multi_level_conv_obj.1/Conv_output_0, /multi_level_conv_reg.1/Conv_output_0, /multi_level_conv_cls.1/Conv_output_0, /multi_level_conv_obj.0/Conv_output_0, /multi_level_conv_reg.0/Conv_output_0, /multi_level_conv_cls.0/Conv_output_0"
         },
@@ -1146,7 +1193,7 @@
         "project_path":null,
         "project_run_path":null,
         "task_type":"detection",
-        "target_machine":"evm",
+        "target_machine":"pc",
         "target_device":null,
         "run_name":"{date-time}/{model_name}",
         "target_module":"vision"
@@ -1188,6 +1235,7 @@
           "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth",
           "download_path":"{download_path}/pretrained/yolox_tiny_lite"
         },
+        "pretrained_weight_state_dict_name":null,
         "target_devices":{
           "TDA4VM":{
             "performance_fps":null,
@@ -1207,6 +1255,15 @@
             "accuracy_unit2":"AP[.5:.95]%",
             "model_selection_factor":1
           },
+          "AM67A":{
+            "performance_fps":null,
+            "performance_infer_time_ms":"15.35 (with 1/2 device capability)",
+            "accuracy_factor":47.4,
+            "accuracy_unit":"AP50%",
+            "accuracy_factor2":30.5,
+            "accuracy_unit2":"AP[.5:.95]%",
+            "model_selection_factor":1
+          },
           "AM68A":{
             "performance_fps":null,
             "performance_infer_time_ms":4.82,
@@ -1214,7 +1271,7 @@
             "accuracy_unit":"AP50%",
             "accuracy_factor2":30.5,
             "accuracy_unit2":"AP[.5:.95]%",
-            "model_selection_factor":1
+            "model_selection_factor":2
           },
           "AM69A":{
             "performance_fps":null,
@@ -1223,7 +1280,7 @@
             "accuracy_unit":"AP50%",
             "accuracy_factor2":30.5,
             "accuracy_unit2":"AP[.5:.95]%",
-            "model_selection_factor":1
+            "model_selection_factor":2
           },
           "AM62":{
             "performance_fps":null,
@@ -1282,15 +1339,13 @@
         "calibration_iterations":10,
         "num_frames":null,
         "num_output_frames":50,
-        "detection_threshold":0.6,
+        "detection_threshold":0.3,
         "detection_top_k":200,
         "save_output":true,
         "tidl_offload":true,
-        "input_optimization":true,
-        "capture_log":true,
-        "runtime_options":{
-          "advanced_options:output_feature_16bit_names_list":"/multi_level_conv_obj.2/Conv_output_0, /multi_level_conv_reg.2/Conv_output_0, /multi_level_conv_cls.2/Conv_output_0, /multi_level_conv_obj.1/Conv_output_0, /multi_level_conv_reg.1/Conv_output_0, /multi_level_conv_cls.1/Conv_output_0, /multi_level_conv_obj.0/Conv_output_0, /multi_level_conv_reg.0/Conv_output_0, /multi_level_conv_cls.0/Conv_output_0"
-        },
+        "input_optimization":false,
+        "log_file":true,
+        "runtime_options":{},
         "metric":{
           "label_offset_pred":0
         }
@@ -1304,7 +1359,7 @@
         "project_path":null,
         "project_run_path":null,
         "task_type":"detection",
-        "target_machine":"evm",
+        "target_machine":"pc",
         "target_device":null,
         "run_name":"{date-time}/{model_name}",
         "target_module":"vision"
@@ -1346,6 +1401,7 @@
           "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth",
           "download_path":"{download_path}/pretrained/yolox_s_lite"
         },
+        "pretrained_weight_state_dict_name":null,
         "target_devices":{
           "TDA4VM":{
             "performance_fps":null,
@@ -1365,6 +1421,15 @@
             "accuracy_unit2":"AP[.5:.95]%",
             "model_selection_factor":0
           },
+          "AM67A":{
+            "performance_fps":null,
+            "performance_infer_time_ms":"43.94 (with 1/2 device capability)",
+            "accuracy_factor":56.9,
+            "accuracy_unit":"AP50%",
+            "accuracy_factor2":38.3,
+            "accuracy_unit2":"AP[.5:.95]%",
+            "model_selection_factor":0
+          },
           "AM68A":{
             "performance_fps":null,
             "performance_infer_time_ms":10.22,
@@ -1372,7 +1437,7 @@
             "accuracy_unit":"AP50%",
             "accuracy_factor2":38.3,
             "accuracy_unit2":"AP[.5:.95]%",
-            "model_selection_factor":0
+            "model_selection_factor":1
           },
           "AM69A":{
             "performance_fps":null,
@@ -1381,7 +1446,7 @@
             "accuracy_unit":"AP50%",
             "accuracy_factor2":38.3,
             "accuracy_unit2":"AP[.5:.95]%",
-            "model_selection_factor":0
+            "model_selection_factor":1
           }
         },
         "project_path":null,
@@ -1431,12 +1496,12 @@
         "calibration_iterations":10,
         "num_frames":null,
         "num_output_frames":50,
-        "detection_threshold":0.6,
+        "detection_threshold":0.3,
         "detection_top_k":200,
         "save_output":true,
         "tidl_offload":true,
-        "input_optimization":true,
-        "capture_log":true,
+        "input_optimization":false,
+        "log_file":true,
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":"/multi_level_conv_obj.2/Conv_output_0, /multi_level_conv_reg.2/Conv_output_0, /multi_level_conv_cls.2/Conv_output_0, /multi_level_conv_obj.1/Conv_output_0, /multi_level_conv_reg.1/Conv_output_0, /multi_level_conv_cls.1/Conv_output_0, /multi_level_conv_obj.0/Conv_output_0, /multi_level_conv_reg.0/Conv_output_0, /multi_level_conv_cls.0/Conv_output_0"
         },
@@ -1445,23 +1510,23 @@
         }
       }
     },
-    "yolox_s_keypoint":{
+    "yolov7_l_lite":{
       "common":{
         "verbose_mode":true,
         "download_path":"./data/downloads",
         "projects_path":"./data/projects",
         "project_path":null,
         "project_run_path":null,
-        "task_type":"keypoint_detection",
-        "target_machine":"evm",
+        "task_type":"detection",
+        "target_machine":"pc",
         "target_device":null,
         "run_name":"{date-time}/{model_name}",
         "target_module":"vision"
       },
       "download":[
         {
-          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/keypoint/coco/edgeai-yolox/yolox_s_pose_ti_lite_640_20220301_checkpoint.pth",
-          "download_path":"{download_path}/pretrained/yolox_s_keypoint"
+          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolov7_l_coco_lite_640x640_20250109_checkpoint.pth",
+          "download_path":"{download_path}/pretrained/yolov7_l_lite"
         }
       ],
       "dataset":{
@@ -1488,55 +1553,458 @@
       },
       "training":{
         "enable":true,
-        "model_name":"yolox_s_keypoint",
-        "model_training_id":"yolox-s-human-pose-ti-lite",
-        "training_backend":"edgeai_yolox",
-        "pretrained_checkpoint_path":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/keypoint/coco/edgeai-yolox/yolox_s_pose_ti_lite_640_20220301_checkpoint.pth",
+        "model_name":"yolov7_l_lite",
+        "model_training_id":"yolov7_l_coco_lite",
+        "training_backend":"edgeai_mmdetection",
+        "pretrained_checkpoint_path":{
+          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolov7_l_coco_lite_640x640_20250109_checkpoint.pth",
+          "download_path":"{download_path}/pretrained/yolov7_l_lite"
+        },
+        "pretrained_weight_state_dict_name":null,
         "target_devices":{
           "TDA4VM":{
-            "performance_fps":77.8,
-            "performance_infer_time_ms":12.853470437017995,
-            "accuracy_factor":78.0,
+            "performance_fps":null,
+            "performance_infer_time_ms":null,
+            "accuracy_factor":65.1,
             "accuracy_unit":"AP50%",
-            "accuracy_factor2":49.6,
+            "accuracy_factor2":45.9,
             "accuracy_unit2":"AP[.5:.95]%",
-            "model_selection_factor":0
+            "model_selection_factor":null
           },
           "AM68A":{
-            "performance_fps":68.89,
-            "performance_infer_time_ms":14.515894904920888,
-            "accuracy_factor":78.0,
+            "performance_fps":null,
+            "performance_infer_time_ms":33.56,
+            "accuracy_factor":65.1,
             "accuracy_unit":"AP50%",
-            "accuracy_factor2":49.6,
+            "accuracy_factor2":45.9,
             "accuracy_unit2":"AP[.5:.95]%",
             "model_selection_factor":0
           },
           "AM69A":{
-            "performance_fps":68.89,
-            "performance_infer_time_ms":"14.515894904920888 (with 1/4th device capability)",
-            "accuracy_factor":78.0,
+            "performance_fps":null,
+            "performance_infer_time_ms":"33.56 (with 1/4th device capability)",
+            "accuracy_factor":65.1,
             "accuracy_unit":"AP50%",
-            "accuracy_factor2":49.6,
+            "accuracy_factor2":45.9,
+            "accuracy_unit2":"AP[.5:.95]%",
+            "model_selection_factor":0
+          }
+        },
+        "project_path":null,
+        "dataset_path":null,
+        "training_path":null,
+        "log_file_path":null,
+        "log_summary_regex":null,
+        "summary_file_path":null,
+        "model_checkpoint_path":null,
+        "model_export_path":null,
+        "model_proto_path":null,
+        "model_packaged_path":null,
+        "training_epochs":15,
+        "warmup_epochs":1,
+        "num_last_epochs":5,
+        "batch_size":8,
+        "learning_rate":0.002,
+        "num_classes":null,
+        "weight_decay":0.0001,
+        "input_resize":640,
+        "input_cropsize":640,
+        "training_device":null,
+        "num_gpus":0,
+        "distributed":true,
+        "training_master_port":29500,
+        "with_background_class":null,
+        "model_architecture":"yolov7",
+        "training_devices":{
+          "cpu":true,
+          "cuda":true
+        }
+      },
+      "compilation":{
+        "enable":true,
+        "preset_name":null,
+        "model_compilation_id":"od-9202",
+        "compilation_path":null,
+        "model_compiled_path":null,
+        "log_file_path":null,
+        "log_summary_regex":null,
+        "summary_file_path":null,
+        "output_tensors_path":null,
+        "model_packaged_path":null,
+        "model_visualization_path":null,
+        "tensor_bits":8,
+        "calibration_frames":10,
+        "calibration_iterations":10,
+        "num_frames":null,
+        "num_output_frames":50,
+        "detection_threshold":0.3,
+        "detection_top_k":200,
+        "save_output":true,
+        "tidl_offload":true,
+        "input_optimization":false,
+        "log_file":true,
+        "metric":{
+          "label_offset_pred":1
+        }
+      }
+    },
+    "yolov9_s_lite":{
+      "common":{
+        "verbose_mode":true,
+        "download_path":"./data/downloads",
+        "projects_path":"./data/projects",
+        "project_path":null,
+        "project_run_path":null,
+        "task_type":"detection",
+        "target_machine":"pc",
+        "target_device":null,
+        "run_name":"{date-time}/{model_name}",
+        "target_module":"vision"
+      },
+      "download":[
+        {
+          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolov9_s_coco_lite_640x640_20250219_checkpoint.pth",
+          "download_path":"{download_path}/pretrained/yolov9_s_lite"
+        }
+      ],
+      "dataset":{
+        "enable":true,
+        "dataset_name":null,
+        "dataset_path":null,
+        "extract_path":null,
+        "split_factor":0.8,
+        "split_names":[
+          "train",
+          "val"
+        ],
+        "max_num_files":10000,
+        "input_data_path":null,
+        "input_annotation_path":null,
+        "data_path_splits":null,
+        "data_dir":"images",
+        "annotation_path_splits":null,
+        "annotation_dir":"annotations",
+        "annotation_prefix":"instances",
+        "annotation_format":"coco_json",
+        "dataset_download":true,
+        "dataset_reload":false
+      },
+      "training":{
+        "enable":true,
+        "model_name":"yolov9_s_lite",
+        "model_training_id":"yolov9_s_coco_lite",
+        "training_backend":"edgeai_mmdetection",
+        "pretrained_checkpoint_path":{
+          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolov9_s_coco_lite_640x640_20250219_checkpoint.pth",
+          "download_path":"{download_path}/pretrained/yolov9_s_lite"
+        },
+        "pretrained_weight_state_dict_name":null,
+        "target_devices":{
+          "TDA4VM":{
+            "performance_fps":null,
+            "performance_infer_time_ms":null,
+            "accuracy_factor":54.0,
+            "accuracy_unit":"AP50%",
+            "accuracy_factor2":38.3,
+            "accuracy_unit2":"AP[.5:.95]%",
+            "model_selection_factor":null
+          },
+          "AM68A":{
+            "performance_fps":null,
+            "performance_infer_time_ms":null,
+            "accuracy_factor":54.0,
+            "accuracy_unit":"AP50%",
+            "accuracy_factor2":38.3,
+            "accuracy_unit2":"AP[.5:.95]%",
+            "model_selection_factor":null
+          },
+          "AM69A":{
+            "performance_fps":null,
+            "performance_infer_time_ms":null,
+            "accuracy_factor":54.0,
+            "accuracy_unit":"AP50%",
+            "accuracy_factor2":38.3,
+            "accuracy_unit2":"AP[.5:.95]%",
+            "model_selection_factor":null
+          }
+        },
+        "project_path":null,
+        "dataset_path":null,
+        "training_path":null,
+        "log_file_path":null,
+        "log_summary_regex":null,
+        "summary_file_path":null,
+        "model_checkpoint_path":null,
+        "model_export_path":null,
+        "model_proto_path":null,
+        "model_packaged_path":null,
+        "training_epochs":15,
+        "warmup_epochs":1,
+        "num_last_epochs":5,
+        "batch_size":8,
+        "learning_rate":0.002,
+        "num_classes":null,
+        "weight_decay":0.0001,
+        "input_resize":640,
+        "input_cropsize":640,
+        "training_device":null,
+        "num_gpus":0,
+        "distributed":true,
+        "training_master_port":29500,
+        "with_background_class":null,
+        "model_architecture":"yolov9",
+        "training_devices":{
+          "cpu":true,
+          "cuda":true
+        }
+      },
+      "compilation":{
+        "enable":true,
+        "preset_name":null,
+        "model_compilation_id":"od-9204",
+        "compilation_path":null,
+        "model_compiled_path":null,
+        "log_file_path":null,
+        "log_summary_regex":null,
+        "summary_file_path":null,
+        "output_tensors_path":null,
+        "model_packaged_path":null,
+        "model_visualization_path":null,
+        "tensor_bits":8,
+        "calibration_frames":10,
+        "calibration_iterations":10,
+        "num_frames":null,
+        "num_output_frames":50,
+        "detection_threshold":0.3,
+        "detection_top_k":200,
+        "save_output":true,
+        "tidl_offload":true,
+        "input_optimization":false,
+        "log_file":true,
+        "metric":{
+          "label_offset_pred":1
+        }
+      }
+    },
+    "yoloxpose_tiny_lite":{
+      "common":{
+        "verbose_mode":true,
+        "download_path":"./data/downloads",
+        "projects_path":"./data/projects",
+        "project_path":null,
+        "project_run_path":null,
+        "task_type":"keypoint_detection",
+        "target_machine":"pc",
+        "target_device":null,
+        "run_name":"{date-time}/{model_name}",
+        "target_module":"vision"
+      },
+      "download":[
+        {
+          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/10_01_00/models/vision/keypoint/coco/edgeai-mmpose/yoloxpose_tiny_lite_416x416_20240808_checkpoint.pth",
+          "download_path":"{download_path}/pretrained/yoloxpose_tiny_lite"
+        }
+      ],
+      "dataset":{
+        "enable":true,
+        "dataset_name":null,
+        "dataset_path":null,
+        "extract_path":null,
+        "split_factor":0.8,
+        "split_names":[
+          "train",
+          "val"
+        ],
+        "max_num_files":10000,
+        "input_data_path":null,
+        "input_annotation_path":null,
+        "data_path_splits":null,
+        "data_dir":"images",
+        "annotation_path_splits":null,
+        "annotation_dir":"annotations",
+        "annotation_prefix":"instances",
+        "annotation_format":"coco_json",
+        "dataset_download":true,
+        "dataset_reload":false
+      },
+      "training":{
+        "enable":true,
+        "model_name":"yoloxpose_tiny_lite",
+        "model_training_id":"yoloxpose_tiny_lite_coco-416",
+        "training_backend":"edgeai_mmpose",
+        "pretrained_checkpoint_path":{
+          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/10_01_00/models/vision/keypoint/coco/edgeai-mmpose/yoloxpose_tiny_lite_416x416_20240808_checkpoint.pth",
+          "download_path":"{download_path}/pretrained/yoloxpose_tiny_lite"
+        },
+        "pretrained_weight_state_dict_name":null,
+        "target_devices":{
+          "TDA4VM":{
+            "performance_fps":null,
+            "performance_infer_time_ms":-1,
+            "accuracy_factor":76.1,
+            "accuracy_unit":"AP50%",
+            "accuracy_factor2":47.2,
             "accuracy_unit2":"AP[.5:.95]%",
             "model_selection_factor":0
           },
           "AM62A":{
-            "performance_fps":15.17,
-            "performance_infer_time_ms":65.91957811470007,
-            "accuracy_factor":78.0,
+            "performance_fps":null,
+            "performance_infer_time_ms":-1,
+            "accuracy_factor":76.1,
             "accuracy_unit":"AP50%",
-            "accuracy_factor2":49.6,
+            "accuracy_factor2":47.2,
             "accuracy_unit2":"AP[.5:.95]%",
             "model_selection_factor":0
           },
-          "AM62":{
-            "performance_fps":0.389,
-            "performance_infer_time_ms":2570.694087403599,
-            "accuracy_factor":78.0,
+          "AM68A":{
+            "performance_fps":null,
+            "performance_infer_time_ms":-1,
+            "accuracy_factor":76.1,
             "accuracy_unit":"AP50%",
-            "accuracy_factor2":49.6,
+            "accuracy_factor2":47.2,
             "accuracy_unit2":"AP[.5:.95]%",
             "model_selection_factor":0
+          }
+        },
+        "project_path":null,
+        "dataset_path":null,
+        "training_path":null,
+        "log_file_path":null,
+        "log_summary_regex":null,
+        "summary_file_path":null,
+        "model_checkpoint_path":null,
+        "model_export_path":null,
+        "model_proto_path":null,
+        "model_packaged_path":null,
+        "training_epochs":15,
+        "warmup_epochs":1,
+        "num_last_epochs":5,
+        "batch_size":8,
+        "learning_rate":0.002,
+        "num_classes":null,
+        "weight_decay":0.0001,
+        "input_resize":416,
+        "input_cropsize":416,
+        "training_device":null,
+        "num_gpus":0,
+        "distributed":true,
+        "training_master_port":29500,
+        "with_background_class":null,
+        "model_architecture":"yolox",
+        "training_devices":{
+          "cpu":true,
+          "cuda":true
+        }
+      },
+      "compilation":{
+        "enable":true,
+        "preset_name":null,
+        "model_compilation_id":"kd-7070",
+        "compilation_path":null,
+        "model_compiled_path":null,
+        "log_file_path":null,
+        "log_summary_regex":null,
+        "summary_file_path":null,
+        "output_tensors_path":null,
+        "model_packaged_path":null,
+        "model_visualization_path":null,
+        "tensor_bits":8,
+        "calibration_frames":10,
+        "calibration_iterations":10,
+        "num_frames":null,
+        "num_output_frames":50,
+        "detection_threshold":0.3,
+        "detection_top_k":200,
+        "save_output":true,
+        "tidl_offload":true,
+        "input_optimization":false,
+        "log_file":true,
+        "runtime_options":{
+          "advanced_options:output_feature_16bit_names_list":"3,201,224,177"
+        },
+        "metric":{
+          "label_offset_pred":1
+        }
+      }
+    },
+    "yoloxpose_s_lite":{
+      "common":{
+        "verbose_mode":true,
+        "download_path":"./data/downloads",
+        "projects_path":"./data/projects",
+        "project_path":null,
+        "project_run_path":null,
+        "task_type":"keypoint_detection",
+        "target_machine":"pc",
+        "target_device":null,
+        "run_name":"{date-time}/{model_name}",
+        "target_module":"vision"
+      },
+      "download":[
+        {
+          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/10_01_00/models/vision/keypoint/coco/edgeai-mmpose/yoloxpose_s_lite_coco-640x640_20250119_checkpoint.pth",
+          "download_path":"{download_path}/pretrained/yoloxpose_s_lite"
+        }
+      ],
+      "dataset":{
+        "enable":true,
+        "dataset_name":null,
+        "dataset_path":null,
+        "extract_path":null,
+        "split_factor":0.8,
+        "split_names":[
+          "train",
+          "val"
+        ],
+        "max_num_files":10000,
+        "input_data_path":null,
+        "input_annotation_path":null,
+        "data_path_splits":null,
+        "data_dir":"images",
+        "annotation_path_splits":null,
+        "annotation_dir":"annotations",
+        "annotation_prefix":"instances",
+        "annotation_format":"coco_json",
+        "dataset_download":true,
+        "dataset_reload":false
+      },
+      "training":{
+        "enable":true,
+        "model_name":"yoloxpose_s_lite",
+        "model_training_id":"yoloxpose_s_lite_coco-640",
+        "training_backend":"edgeai_mmpose",
+        "pretrained_checkpoint_path":{
+          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/10_01_00/models/vision/keypoint/coco/edgeai-mmpose/yoloxpose_s_lite_coco-640x640_20250119_checkpoint.pth",
+          "download_path":"{download_path}/pretrained/yoloxpose_s_lite"
+        },
+        "pretrained_weight_state_dict_name":null,
+        "target_devices":{
+          "TDA4VM":{
+            "performance_fps":null,
+            "performance_infer_time_ms":-1,
+            "accuracy_factor":83.6,
+            "accuracy_unit":"AP50%",
+            "accuracy_factor2":56.4,
+            "accuracy_unit2":"AP[.5:.95]%",
+            "model_selection_factor":1
+          },
+          "AM62A":{
+            "performance_fps":null,
+            "performance_infer_time_ms":-1,
+            "accuracy_factor":83.6,
+            "accuracy_unit":"AP50%",
+            "accuracy_factor2":56.4,
+            "accuracy_unit2":"AP[.5:.95]%",
+            "model_selection_factor":1
+          },
+          "AM68A":{
+            "performance_fps":null,
+            "performance_infer_time_ms":-1,
+            "accuracy_factor":83.6,
+            "accuracy_unit":"AP50%",
+            "accuracy_factor2":56.4,
+            "accuracy_unit2":"AP[.5:.95]%",
+            "model_selection_factor":1
           }
         },
         "project_path":null,
@@ -1572,7 +2040,7 @@
       "compilation":{
         "enable":true,
         "preset_name":null,
-        "model_compilation_id":"kd-7060",
+        "model_compilation_id":"kd-7080",
         "compilation_path":null,
         "model_compiled_path":null,
         "log_file_path":null,
@@ -1586,17 +2054,17 @@
         "calibration_iterations":10,
         "num_frames":null,
         "num_output_frames":50,
-        "detection_threshold":0.6,
+        "detection_threshold":0.3,
         "detection_top_k":200,
         "save_output":true,
         "tidl_offload":true,
         "input_optimization":false,
-        "capture_log":true,
+        "log_file":true,
         "runtime_options":{
-          "advanced_options:output_feature_16bit_names_list":"/0/head/cls_preds.0/Conv_output_0, /0/head/reg_preds.0/Conv_output_0, /0/head/obj_preds.0/Conv_output_0, /0/head/kpts_preds.0/Conv_output_0, /0/head/cls_preds.1/Conv_output_0, /0/head/reg_preds.1/Conv_output_0, /0/head/obj_preds.1/Conv_output_0, /0/head/kpts_preds.1/Conv_output_0, /0/head/cls_preds.2/Conv_output_0, /0/head/reg_preds.2/Conv_output_0, /0/head/obj_preds.2/Conv_output_0, /0/head/kpts_preds.2/Conv_output_0"
+          "advanced_options:output_feature_16bit_names_list":"3"
         },
         "metric":{
-          "label_offset_pred":0
+          "label_offset_pred":1
         }
       }
     }
@@ -1606,8 +2074,8 @@
       "classification":{
         "best_accuracy_preset":{
           "compilation":{
-            "calibration_frames":10,
-            "calibration_iterations":10,
+            "calibration_frames":12,
+            "calibration_iterations":12,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":16
@@ -1615,8 +2083,8 @@
         },
         "high_accuracy_preset":{
           "compilation":{
-            "calibration_frames":25,
-            "calibration_iterations":25,
+            "calibration_frames":12,
+            "calibration_iterations":12,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":8
@@ -1624,8 +2092,8 @@
         },
         "default_preset":{
           "compilation":{
-            "calibration_frames":10,
-            "calibration_iterations":10,
+            "calibration_frames":8,
+            "calibration_iterations":8,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":8
@@ -1633,8 +2101,8 @@
         },
         "high_speed_preset":{
           "compilation":{
-            "calibration_frames":5,
-            "calibration_iterations":5,
+            "calibration_frames":6,
+            "calibration_iterations":6,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":8
@@ -1642,8 +2110,8 @@
         },
         "best_speed_preset":{
           "compilation":{
-            "calibration_frames":3,
-            "calibration_iterations":3,
+            "calibration_frames":4,
+            "calibration_iterations":4,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":8
@@ -1653,8 +2121,8 @@
       "detection":{
         "best_accuracy_preset":{
           "compilation":{
-            "calibration_frames":10,
-            "calibration_iterations":10,
+            "calibration_frames":12,
+            "calibration_iterations":12,
             "detection_threshold":0.05,
             "detection_top_k":500,
             "tensor_bits":16
@@ -1662,36 +2130,36 @@
         },
         "high_accuracy_preset":{
           "compilation":{
-            "calibration_frames":25,
-            "calibration_iterations":25,
-            "detection_threshold":0.6,
-            "detection_top_k":200,
+            "calibration_frames":12,
+            "calibration_iterations":12,
+            "detection_threshold":0.05,
+            "detection_top_k":500,
             "tensor_bits":8
           }
         },
         "default_preset":{
           "compilation":{
-            "calibration_frames":10,
-            "calibration_iterations":10,
-            "detection_threshold":0.6,
+            "calibration_frames":8,
+            "calibration_iterations":8,
+            "detection_threshold":0.3,
             "detection_top_k":200,
             "tensor_bits":8
           }
         },
         "high_speed_preset":{
           "compilation":{
-            "calibration_frames":5,
-            "calibration_iterations":5,
-            "detection_threshold":0.6,
+            "calibration_frames":6,
+            "calibration_iterations":6,
+            "detection_threshold":0.3,
             "detection_top_k":200,
             "tensor_bits":8
           }
         },
         "best_speed_preset":{
           "compilation":{
-            "calibration_frames":3,
-            "calibration_iterations":3,
-            "detection_threshold":0.6,
+            "calibration_frames":4,
+            "calibration_iterations":4,
+            "detection_threshold":0.3,
             "detection_top_k":200,
             "tensor_bits":8
           }
@@ -1700,8 +2168,8 @@
       "segmentation":{
         "best_accuracy_preset":{
           "compilation":{
-            "calibration_frames":25,
-            "calibration_iterations":25,
+            "calibration_frames":12,
+            "calibration_iterations":12,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":16
@@ -1709,8 +2177,8 @@
         },
         "high_accuracy_preset":{
           "compilation":{
-            "calibration_frames":25,
-            "calibration_iterations":25,
+            "calibration_frames":12,
+            "calibration_iterations":12,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":8
@@ -1718,8 +2186,8 @@
         },
         "default_preset":{
           "compilation":{
-            "calibration_frames":10,
-            "calibration_iterations":10,
+            "calibration_frames":8,
+            "calibration_iterations":8,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":8
@@ -1727,8 +2195,8 @@
         },
         "high_speed_preset":{
           "compilation":{
-            "calibration_frames":5,
-            "calibration_iterations":5,
+            "calibration_frames":6,
+            "calibration_iterations":6,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":8
@@ -1736,8 +2204,8 @@
         },
         "best_speed_preset":{
           "compilation":{
-            "calibration_frames":3,
-            "calibration_iterations":3,
+            "calibration_frames":4,
+            "calibration_iterations":4,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":8
@@ -1747,8 +2215,8 @@
       "keypoint_detection":{
         "best_accuracy_preset":{
           "compilation":{
-            "calibration_frames":10,
-            "calibration_iterations":10,
+            "calibration_frames":12,
+            "calibration_iterations":12,
             "detection_threshold":0.05,
             "detection_top_k":500,
             "tensor_bits":16
@@ -1756,36 +2224,36 @@
         },
         "high_accuracy_preset":{
           "compilation":{
-            "calibration_frames":25,
-            "calibration_iterations":25,
-            "detection_threshold":0.6,
-            "detection_top_k":200,
+            "calibration_frames":12,
+            "calibration_iterations":12,
+            "detection_threshold":0.05,
+            "detection_top_k":500,
             "tensor_bits":8
           }
         },
         "default_preset":{
           "compilation":{
-            "calibration_frames":10,
-            "calibration_iterations":10,
-            "detection_threshold":0.6,
+            "calibration_frames":8,
+            "calibration_iterations":8,
+            "detection_threshold":0.3,
             "detection_top_k":200,
             "tensor_bits":8
           }
         },
         "high_speed_preset":{
           "compilation":{
-            "calibration_frames":5,
-            "calibration_iterations":5,
-            "detection_threshold":0.6,
+            "calibration_frames":6,
+            "calibration_iterations":6,
+            "detection_threshold":0.3,
             "detection_top_k":200,
             "tensor_bits":8
           }
         },
         "best_speed_preset":{
           "compilation":{
-            "calibration_frames":3,
-            "calibration_iterations":3,
-            "detection_threshold":0.6,
+            "calibration_frames":4,
+            "calibration_iterations":4,
+            "detection_threshold":0.3,
             "detection_top_k":200,
             "tensor_bits":8
           }
@@ -1796,8 +2264,8 @@
       "classification":{
         "best_accuracy_preset":{
           "compilation":{
-            "calibration_frames":10,
-            "calibration_iterations":10,
+            "calibration_frames":12,
+            "calibration_iterations":12,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":16
@@ -1805,8 +2273,8 @@
         },
         "high_accuracy_preset":{
           "compilation":{
-            "calibration_frames":25,
-            "calibration_iterations":25,
+            "calibration_frames":12,
+            "calibration_iterations":12,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":8
@@ -1814,8 +2282,8 @@
         },
         "default_preset":{
           "compilation":{
-            "calibration_frames":10,
-            "calibration_iterations":10,
+            "calibration_frames":8,
+            "calibration_iterations":8,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":8
@@ -1823,8 +2291,8 @@
         },
         "high_speed_preset":{
           "compilation":{
-            "calibration_frames":5,
-            "calibration_iterations":5,
+            "calibration_frames":6,
+            "calibration_iterations":6,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":8
@@ -1832,8 +2300,8 @@
         },
         "best_speed_preset":{
           "compilation":{
-            "calibration_frames":3,
-            "calibration_iterations":3,
+            "calibration_frames":4,
+            "calibration_iterations":4,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":8
@@ -1843,8 +2311,8 @@
       "detection":{
         "best_accuracy_preset":{
           "compilation":{
-            "calibration_frames":10,
-            "calibration_iterations":10,
+            "calibration_frames":12,
+            "calibration_iterations":12,
             "detection_threshold":0.05,
             "detection_top_k":500,
             "tensor_bits":16
@@ -1852,36 +2320,36 @@
         },
         "high_accuracy_preset":{
           "compilation":{
-            "calibration_frames":25,
-            "calibration_iterations":25,
-            "detection_threshold":0.6,
-            "detection_top_k":200,
+            "calibration_frames":12,
+            "calibration_iterations":12,
+            "detection_threshold":0.05,
+            "detection_top_k":500,
             "tensor_bits":8
           }
         },
         "default_preset":{
           "compilation":{
-            "calibration_frames":10,
-            "calibration_iterations":10,
-            "detection_threshold":0.6,
+            "calibration_frames":8,
+            "calibration_iterations":8,
+            "detection_threshold":0.3,
             "detection_top_k":200,
             "tensor_bits":8
           }
         },
         "high_speed_preset":{
           "compilation":{
-            "calibration_frames":5,
-            "calibration_iterations":5,
-            "detection_threshold":0.6,
+            "calibration_frames":6,
+            "calibration_iterations":6,
+            "detection_threshold":0.3,
             "detection_top_k":200,
             "tensor_bits":8
           }
         },
         "best_speed_preset":{
           "compilation":{
-            "calibration_frames":3,
-            "calibration_iterations":3,
-            "detection_threshold":0.6,
+            "calibration_frames":4,
+            "calibration_iterations":4,
+            "detection_threshold":0.3,
             "detection_top_k":200,
             "tensor_bits":8
           }
@@ -1890,8 +2358,8 @@
       "segmentation":{
         "best_accuracy_preset":{
           "compilation":{
-            "calibration_frames":25,
-            "calibration_iterations":25,
+            "calibration_frames":12,
+            "calibration_iterations":12,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":16
@@ -1899,8 +2367,8 @@
         },
         "high_accuracy_preset":{
           "compilation":{
-            "calibration_frames":25,
-            "calibration_iterations":25,
+            "calibration_frames":12,
+            "calibration_iterations":12,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":8
@@ -1908,8 +2376,8 @@
         },
         "default_preset":{
           "compilation":{
-            "calibration_frames":10,
-            "calibration_iterations":10,
+            "calibration_frames":8,
+            "calibration_iterations":8,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":8
@@ -1917,8 +2385,8 @@
         },
         "high_speed_preset":{
           "compilation":{
-            "calibration_frames":5,
-            "calibration_iterations":5,
+            "calibration_frames":6,
+            "calibration_iterations":6,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":8
@@ -1926,8 +2394,8 @@
         },
         "best_speed_preset":{
           "compilation":{
-            "calibration_frames":3,
-            "calibration_iterations":3,
+            "calibration_frames":4,
+            "calibration_iterations":4,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":8
@@ -1937,8 +2405,8 @@
       "keypoint_detection":{
         "best_accuracy_preset":{
           "compilation":{
-            "calibration_frames":10,
-            "calibration_iterations":10,
+            "calibration_frames":12,
+            "calibration_iterations":12,
             "detection_threshold":0.05,
             "detection_top_k":500,
             "tensor_bits":16
@@ -1946,36 +2414,226 @@
         },
         "high_accuracy_preset":{
           "compilation":{
-            "calibration_frames":25,
-            "calibration_iterations":25,
-            "detection_threshold":0.6,
-            "detection_top_k":200,
+            "calibration_frames":12,
+            "calibration_iterations":12,
+            "detection_threshold":0.05,
+            "detection_top_k":500,
             "tensor_bits":8
           }
         },
         "default_preset":{
           "compilation":{
-            "calibration_frames":10,
-            "calibration_iterations":10,
-            "detection_threshold":0.6,
+            "calibration_frames":8,
+            "calibration_iterations":8,
+            "detection_threshold":0.3,
             "detection_top_k":200,
             "tensor_bits":8
           }
         },
         "high_speed_preset":{
           "compilation":{
-            "calibration_frames":5,
-            "calibration_iterations":5,
-            "detection_threshold":0.6,
+            "calibration_frames":6,
+            "calibration_iterations":6,
+            "detection_threshold":0.3,
             "detection_top_k":200,
             "tensor_bits":8
           }
         },
         "best_speed_preset":{
           "compilation":{
-            "calibration_frames":3,
-            "calibration_iterations":3,
-            "detection_threshold":0.6,
+            "calibration_frames":4,
+            "calibration_iterations":4,
+            "detection_threshold":0.3,
+            "detection_top_k":200,
+            "tensor_bits":8
+          }
+        }
+      }
+    },
+    "AM67A":{
+      "classification":{
+        "best_accuracy_preset":{
+          "compilation":{
+            "calibration_frames":12,
+            "calibration_iterations":12,
+            "detection_threshold":null,
+            "detection_top_k":null,
+            "tensor_bits":16
+          }
+        },
+        "high_accuracy_preset":{
+          "compilation":{
+            "calibration_frames":12,
+            "calibration_iterations":12,
+            "detection_threshold":null,
+            "detection_top_k":null,
+            "tensor_bits":8
+          }
+        },
+        "default_preset":{
+          "compilation":{
+            "calibration_frames":8,
+            "calibration_iterations":8,
+            "detection_threshold":null,
+            "detection_top_k":null,
+            "tensor_bits":8
+          }
+        },
+        "high_speed_preset":{
+          "compilation":{
+            "calibration_frames":6,
+            "calibration_iterations":6,
+            "detection_threshold":null,
+            "detection_top_k":null,
+            "tensor_bits":8
+          }
+        },
+        "best_speed_preset":{
+          "compilation":{
+            "calibration_frames":4,
+            "calibration_iterations":4,
+            "detection_threshold":null,
+            "detection_top_k":null,
+            "tensor_bits":8
+          }
+        }
+      },
+      "detection":{
+        "best_accuracy_preset":{
+          "compilation":{
+            "calibration_frames":12,
+            "calibration_iterations":12,
+            "detection_threshold":0.05,
+            "detection_top_k":500,
+            "tensor_bits":16
+          }
+        },
+        "high_accuracy_preset":{
+          "compilation":{
+            "calibration_frames":12,
+            "calibration_iterations":12,
+            "detection_threshold":0.05,
+            "detection_top_k":500,
+            "tensor_bits":8
+          }
+        },
+        "default_preset":{
+          "compilation":{
+            "calibration_frames":8,
+            "calibration_iterations":8,
+            "detection_threshold":0.3,
+            "detection_top_k":200,
+            "tensor_bits":8
+          }
+        },
+        "high_speed_preset":{
+          "compilation":{
+            "calibration_frames":6,
+            "calibration_iterations":6,
+            "detection_threshold":0.3,
+            "detection_top_k":200,
+            "tensor_bits":8
+          }
+        },
+        "best_speed_preset":{
+          "compilation":{
+            "calibration_frames":4,
+            "calibration_iterations":4,
+            "detection_threshold":0.3,
+            "detection_top_k":200,
+            "tensor_bits":8
+          }
+        }
+      },
+      "segmentation":{
+        "best_accuracy_preset":{
+          "compilation":{
+            "calibration_frames":12,
+            "calibration_iterations":12,
+            "detection_threshold":null,
+            "detection_top_k":null,
+            "tensor_bits":16
+          }
+        },
+        "high_accuracy_preset":{
+          "compilation":{
+            "calibration_frames":12,
+            "calibration_iterations":12,
+            "detection_threshold":null,
+            "detection_top_k":null,
+            "tensor_bits":8
+          }
+        },
+        "default_preset":{
+          "compilation":{
+            "calibration_frames":8,
+            "calibration_iterations":8,
+            "detection_threshold":null,
+            "detection_top_k":null,
+            "tensor_bits":8
+          }
+        },
+        "high_speed_preset":{
+          "compilation":{
+            "calibration_frames":6,
+            "calibration_iterations":6,
+            "detection_threshold":null,
+            "detection_top_k":null,
+            "tensor_bits":8
+          }
+        },
+        "best_speed_preset":{
+          "compilation":{
+            "calibration_frames":4,
+            "calibration_iterations":4,
+            "detection_threshold":null,
+            "detection_top_k":null,
+            "tensor_bits":8
+          }
+        }
+      },
+      "keypoint_detection":{
+        "best_accuracy_preset":{
+          "compilation":{
+            "calibration_frames":12,
+            "calibration_iterations":12,
+            "detection_threshold":0.05,
+            "detection_top_k":500,
+            "tensor_bits":16
+          }
+        },
+        "high_accuracy_preset":{
+          "compilation":{
+            "calibration_frames":12,
+            "calibration_iterations":12,
+            "detection_threshold":0.05,
+            "detection_top_k":500,
+            "tensor_bits":8
+          }
+        },
+        "default_preset":{
+          "compilation":{
+            "calibration_frames":8,
+            "calibration_iterations":8,
+            "detection_threshold":0.3,
+            "detection_top_k":200,
+            "tensor_bits":8
+          }
+        },
+        "high_speed_preset":{
+          "compilation":{
+            "calibration_frames":6,
+            "calibration_iterations":6,
+            "detection_threshold":0.3,
+            "detection_top_k":200,
+            "tensor_bits":8
+          }
+        },
+        "best_speed_preset":{
+          "compilation":{
+            "calibration_frames":4,
+            "calibration_iterations":4,
+            "detection_threshold":0.3,
             "detection_top_k":200,
             "tensor_bits":8
           }
@@ -1986,8 +2644,8 @@
       "classification":{
         "best_accuracy_preset":{
           "compilation":{
-            "calibration_frames":10,
-            "calibration_iterations":10,
+            "calibration_frames":12,
+            "calibration_iterations":12,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":16
@@ -1995,8 +2653,8 @@
         },
         "high_accuracy_preset":{
           "compilation":{
-            "calibration_frames":25,
-            "calibration_iterations":25,
+            "calibration_frames":12,
+            "calibration_iterations":12,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":8
@@ -2004,8 +2662,8 @@
         },
         "default_preset":{
           "compilation":{
-            "calibration_frames":10,
-            "calibration_iterations":10,
+            "calibration_frames":8,
+            "calibration_iterations":8,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":8
@@ -2013,8 +2671,8 @@
         },
         "high_speed_preset":{
           "compilation":{
-            "calibration_frames":5,
-            "calibration_iterations":5,
+            "calibration_frames":6,
+            "calibration_iterations":6,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":8
@@ -2022,8 +2680,8 @@
         },
         "best_speed_preset":{
           "compilation":{
-            "calibration_frames":3,
-            "calibration_iterations":3,
+            "calibration_frames":4,
+            "calibration_iterations":4,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":8
@@ -2033,8 +2691,8 @@
       "detection":{
         "best_accuracy_preset":{
           "compilation":{
-            "calibration_frames":10,
-            "calibration_iterations":10,
+            "calibration_frames":12,
+            "calibration_iterations":12,
             "detection_threshold":0.05,
             "detection_top_k":500,
             "tensor_bits":16
@@ -2042,36 +2700,36 @@
         },
         "high_accuracy_preset":{
           "compilation":{
-            "calibration_frames":25,
-            "calibration_iterations":25,
-            "detection_threshold":0.6,
-            "detection_top_k":200,
+            "calibration_frames":12,
+            "calibration_iterations":12,
+            "detection_threshold":0.05,
+            "detection_top_k":500,
             "tensor_bits":8
           }
         },
         "default_preset":{
           "compilation":{
-            "calibration_frames":10,
-            "calibration_iterations":10,
-            "detection_threshold":0.6,
+            "calibration_frames":8,
+            "calibration_iterations":8,
+            "detection_threshold":0.3,
             "detection_top_k":200,
             "tensor_bits":8
           }
         },
         "high_speed_preset":{
           "compilation":{
-            "calibration_frames":5,
-            "calibration_iterations":5,
-            "detection_threshold":0.6,
+            "calibration_frames":6,
+            "calibration_iterations":6,
+            "detection_threshold":0.3,
             "detection_top_k":200,
             "tensor_bits":8
           }
         },
         "best_speed_preset":{
           "compilation":{
-            "calibration_frames":3,
-            "calibration_iterations":3,
-            "detection_threshold":0.6,
+            "calibration_frames":4,
+            "calibration_iterations":4,
+            "detection_threshold":0.3,
             "detection_top_k":200,
             "tensor_bits":8
           }
@@ -2080,8 +2738,8 @@
       "segmentation":{
         "best_accuracy_preset":{
           "compilation":{
-            "calibration_frames":25,
-            "calibration_iterations":25,
+            "calibration_frames":12,
+            "calibration_iterations":12,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":16
@@ -2089,8 +2747,8 @@
         },
         "high_accuracy_preset":{
           "compilation":{
-            "calibration_frames":25,
-            "calibration_iterations":25,
+            "calibration_frames":12,
+            "calibration_iterations":12,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":8
@@ -2098,8 +2756,8 @@
         },
         "default_preset":{
           "compilation":{
-            "calibration_frames":10,
-            "calibration_iterations":10,
+            "calibration_frames":8,
+            "calibration_iterations":8,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":8
@@ -2107,8 +2765,8 @@
         },
         "high_speed_preset":{
           "compilation":{
-            "calibration_frames":5,
-            "calibration_iterations":5,
+            "calibration_frames":6,
+            "calibration_iterations":6,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":8
@@ -2116,8 +2774,8 @@
         },
         "best_speed_preset":{
           "compilation":{
-            "calibration_frames":3,
-            "calibration_iterations":3,
+            "calibration_frames":4,
+            "calibration_iterations":4,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":8
@@ -2127,8 +2785,8 @@
       "keypoint_detection":{
         "best_accuracy_preset":{
           "compilation":{
-            "calibration_frames":10,
-            "calibration_iterations":10,
+            "calibration_frames":12,
+            "calibration_iterations":12,
             "detection_threshold":0.05,
             "detection_top_k":500,
             "tensor_bits":16
@@ -2136,36 +2794,36 @@
         },
         "high_accuracy_preset":{
           "compilation":{
-            "calibration_frames":25,
-            "calibration_iterations":25,
-            "detection_threshold":0.6,
-            "detection_top_k":200,
+            "calibration_frames":12,
+            "calibration_iterations":12,
+            "detection_threshold":0.05,
+            "detection_top_k":500,
             "tensor_bits":8
           }
         },
         "default_preset":{
           "compilation":{
-            "calibration_frames":10,
-            "calibration_iterations":10,
-            "detection_threshold":0.6,
+            "calibration_frames":8,
+            "calibration_iterations":8,
+            "detection_threshold":0.3,
             "detection_top_k":200,
             "tensor_bits":8
           }
         },
         "high_speed_preset":{
           "compilation":{
-            "calibration_frames":5,
-            "calibration_iterations":5,
-            "detection_threshold":0.6,
+            "calibration_frames":6,
+            "calibration_iterations":6,
+            "detection_threshold":0.3,
             "detection_top_k":200,
             "tensor_bits":8
           }
         },
         "best_speed_preset":{
           "compilation":{
-            "calibration_frames":3,
-            "calibration_iterations":3,
-            "detection_threshold":0.6,
+            "calibration_frames":4,
+            "calibration_iterations":4,
+            "detection_threshold":0.3,
             "detection_top_k":200,
             "tensor_bits":8
           }
@@ -2176,8 +2834,8 @@
       "classification":{
         "best_accuracy_preset":{
           "compilation":{
-            "calibration_frames":10,
-            "calibration_iterations":10,
+            "calibration_frames":12,
+            "calibration_iterations":12,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":16
@@ -2185,8 +2843,8 @@
         },
         "high_accuracy_preset":{
           "compilation":{
-            "calibration_frames":25,
-            "calibration_iterations":25,
+            "calibration_frames":12,
+            "calibration_iterations":12,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":8
@@ -2194,8 +2852,8 @@
         },
         "default_preset":{
           "compilation":{
-            "calibration_frames":10,
-            "calibration_iterations":10,
+            "calibration_frames":8,
+            "calibration_iterations":8,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":8
@@ -2203,8 +2861,8 @@
         },
         "high_speed_preset":{
           "compilation":{
-            "calibration_frames":5,
-            "calibration_iterations":5,
+            "calibration_frames":6,
+            "calibration_iterations":6,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":8
@@ -2212,8 +2870,8 @@
         },
         "best_speed_preset":{
           "compilation":{
-            "calibration_frames":3,
-            "calibration_iterations":3,
+            "calibration_frames":4,
+            "calibration_iterations":4,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":8
@@ -2223,8 +2881,8 @@
       "detection":{
         "best_accuracy_preset":{
           "compilation":{
-            "calibration_frames":10,
-            "calibration_iterations":10,
+            "calibration_frames":12,
+            "calibration_iterations":12,
             "detection_threshold":0.05,
             "detection_top_k":500,
             "tensor_bits":16
@@ -2232,36 +2890,36 @@
         },
         "high_accuracy_preset":{
           "compilation":{
-            "calibration_frames":25,
-            "calibration_iterations":25,
-            "detection_threshold":0.6,
-            "detection_top_k":200,
+            "calibration_frames":12,
+            "calibration_iterations":12,
+            "detection_threshold":0.05,
+            "detection_top_k":500,
             "tensor_bits":8
           }
         },
         "default_preset":{
           "compilation":{
-            "calibration_frames":10,
-            "calibration_iterations":10,
-            "detection_threshold":0.6,
+            "calibration_frames":8,
+            "calibration_iterations":8,
+            "detection_threshold":0.3,
             "detection_top_k":200,
             "tensor_bits":8
           }
         },
         "high_speed_preset":{
           "compilation":{
-            "calibration_frames":5,
-            "calibration_iterations":5,
-            "detection_threshold":0.6,
+            "calibration_frames":6,
+            "calibration_iterations":6,
+            "detection_threshold":0.3,
             "detection_top_k":200,
             "tensor_bits":8
           }
         },
         "best_speed_preset":{
           "compilation":{
-            "calibration_frames":3,
-            "calibration_iterations":3,
-            "detection_threshold":0.6,
+            "calibration_frames":4,
+            "calibration_iterations":4,
+            "detection_threshold":0.3,
             "detection_top_k":200,
             "tensor_bits":8
           }
@@ -2270,8 +2928,8 @@
       "segmentation":{
         "best_accuracy_preset":{
           "compilation":{
-            "calibration_frames":25,
-            "calibration_iterations":25,
+            "calibration_frames":12,
+            "calibration_iterations":12,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":16
@@ -2279,8 +2937,8 @@
         },
         "high_accuracy_preset":{
           "compilation":{
-            "calibration_frames":25,
-            "calibration_iterations":25,
+            "calibration_frames":12,
+            "calibration_iterations":12,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":8
@@ -2288,8 +2946,8 @@
         },
         "default_preset":{
           "compilation":{
-            "calibration_frames":10,
-            "calibration_iterations":10,
+            "calibration_frames":8,
+            "calibration_iterations":8,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":8
@@ -2297,8 +2955,8 @@
         },
         "high_speed_preset":{
           "compilation":{
-            "calibration_frames":5,
-            "calibration_iterations":5,
+            "calibration_frames":6,
+            "calibration_iterations":6,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":8
@@ -2306,8 +2964,8 @@
         },
         "best_speed_preset":{
           "compilation":{
-            "calibration_frames":3,
-            "calibration_iterations":3,
+            "calibration_frames":4,
+            "calibration_iterations":4,
             "detection_threshold":null,
             "detection_top_k":null,
             "tensor_bits":8
@@ -2317,8 +2975,8 @@
       "keypoint_detection":{
         "best_accuracy_preset":{
           "compilation":{
-            "calibration_frames":10,
-            "calibration_iterations":10,
+            "calibration_frames":12,
+            "calibration_iterations":12,
             "detection_threshold":0.05,
             "detection_top_k":500,
             "tensor_bits":16
@@ -2326,36 +2984,36 @@
         },
         "high_accuracy_preset":{
           "compilation":{
-            "calibration_frames":25,
-            "calibration_iterations":25,
-            "detection_threshold":0.6,
-            "detection_top_k":200,
+            "calibration_frames":12,
+            "calibration_iterations":12,
+            "detection_threshold":0.05,
+            "detection_top_k":500,
             "tensor_bits":8
           }
         },
         "default_preset":{
           "compilation":{
-            "calibration_frames":10,
-            "calibration_iterations":10,
-            "detection_threshold":0.6,
+            "calibration_frames":8,
+            "calibration_iterations":8,
+            "detection_threshold":0.3,
             "detection_top_k":200,
             "tensor_bits":8
           }
         },
         "high_speed_preset":{
           "compilation":{
-            "calibration_frames":5,
-            "calibration_iterations":5,
-            "detection_threshold":0.6,
+            "calibration_frames":6,
+            "calibration_iterations":6,
+            "detection_threshold":0.3,
             "detection_top_k":200,
             "tensor_bits":8
           }
         },
         "best_speed_preset":{
           "compilation":{
-            "calibration_frames":3,
-            "calibration_iterations":3,
-            "detection_threshold":0.6,
+            "calibration_frames":4,
+            "calibration_iterations":4,
+            "detection_threshold":0.3,
             "detection_top_k":200,
             "tensor_bits":8
           }
@@ -2430,8 +3088,8 @@
           "compilation":{
             "calibration_frames":1,
             "calibration_iterations":1,
-            "detection_threshold":0.6,
-            "detection_top_k":200,
+            "detection_threshold":0.05,
+            "detection_top_k":500,
             "tensor_bits":32,
             "tidl_offload":false
           }
@@ -2440,7 +3098,7 @@
           "compilation":{
             "calibration_frames":1,
             "calibration_iterations":1,
-            "detection_threshold":0.6,
+            "detection_threshold":0.3,
             "detection_top_k":200,
             "tensor_bits":32,
             "tidl_offload":false
@@ -2450,7 +3108,7 @@
           "compilation":{
             "calibration_frames":1,
             "calibration_iterations":1,
-            "detection_threshold":0.6,
+            "detection_threshold":0.3,
             "detection_top_k":200,
             "tensor_bits":32,
             "tidl_offload":false
@@ -2460,7 +3118,7 @@
           "compilation":{
             "calibration_frames":1,
             "calibration_iterations":1,
-            "detection_threshold":0.6,
+            "detection_threshold":0.3,
             "detection_top_k":200,
             "tensor_bits":32,
             "tidl_offload":false
@@ -2522,47 +3180,52 @@
       "keypoint_detection":{
         "best_accuracy_preset":{
           "compilation":{
-            "calibration_frames":10,
-            "calibration_iterations":10,
+            "calibration_frames":1,
+            "calibration_iterations":1,
             "detection_threshold":0.05,
             "detection_top_k":500,
-            "tensor_bits":32
+            "tensor_bits":32,
+            "tidl_offload":false
           }
         },
         "high_accuracy_preset":{
           "compilation":{
-            "calibration_frames":25,
-            "calibration_iterations":25,
-            "detection_threshold":0.6,
-            "detection_top_k":200,
-            "tensor_bits":32
+            "calibration_frames":1,
+            "calibration_iterations":1,
+            "detection_threshold":0.05,
+            "detection_top_k":500,
+            "tensor_bits":32,
+            "tidl_offload":false
           }
         },
         "default_preset":{
           "compilation":{
-            "calibration_frames":10,
-            "calibration_iterations":10,
-            "detection_threshold":0.6,
+            "calibration_frames":1,
+            "calibration_iterations":1,
+            "detection_threshold":0.3,
             "detection_top_k":200,
-            "tensor_bits":32
+            "tensor_bits":32,
+            "tidl_offload":false
           }
         },
         "high_speed_preset":{
           "compilation":{
-            "calibration_frames":5,
-            "calibration_iterations":5,
-            "detection_threshold":0.6,
+            "calibration_frames":1,
+            "calibration_iterations":1,
+            "detection_threshold":0.3,
             "detection_top_k":200,
-            "tensor_bits":32
+            "tensor_bits":32,
+            "tidl_offload":false
           }
         },
         "best_speed_preset":{
           "compilation":{
-            "calibration_frames":3,
-            "calibration_iterations":3,
-            "detection_threshold":0.6,
+            "calibration_frames":1,
+            "calibration_iterations":1,
+            "detection_threshold":0.3,
             "detection_top_k":200,
-            "tensor_bits":32
+            "tensor_bits":32,
+            "tidl_offload":false
           }
         }
       }
@@ -2573,41 +3236,49 @@
       "device_name":"AM62",
       "device_type":"MPU",
       "device_selection_factor":0,
-      "device_details":"Human-machine-interaction SoC\nSpecification:\n* Arm\u00ae Cortex\u00ae-A53-based edge AI and full-HD dual display\n* Up to Quad Arm\u00ae Cortex\u00ae-A53 at up to 1.4 GHz\n* 3D Graphics Processing Unit\nMHz\n* More details : https://www.ti.com/product/AM625\n\nImportant links:\n* Product information: https://www.ti.com/product/AM625\n* Development board: https://www.ti.com/tool/SK-AM62\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62X\n* SDK documentation & board setup: See analytics application and Edge AI documentation at https://www.ti.com/tool/SK-AM62#order-start-development\n* SDK release: 09_02_00\n\nAdditional information:\n* Edge AI introduction: https://ti.com/edgeai\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n",
-      "sdk_version":"9.2.0",
-      "sdk_release":"09_02_00"
+      "device_details":"Human-machine-interaction SoC\nSpecification:\n* Arm\u00ae Cortex\u00ae-A53-based edge AI and full-HD dual display\n* Up to Quad Arm\u00ae Cortex\u00ae-A53 at up to 1.4 GHz\n* 3D Graphics Processing Unit\nMHz\n* More details : https://www.ti.com/product/AM625\n\nImportant links:\n* Product information: https://www.ti.com/product/AM625\n* Development board: https://www.ti.com/tool/SK-AM62\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62X\n* SDK documentation & board setup: See analytics application and Edge AI documentation at https://www.ti.com/tool/SK-AM62#order-start-development\n* SDK release: 10_01_00\n\nAdditional information:\n* Edge AI introduction: https://ti.com/edgeai\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n",
+      "sdk_version":"10.1.0",
+      "sdk_release":"10_01_00"
     },
     "AM62A":{
       "device_name":"AM62A",
       "device_type":"MPU",
       "device_selection_factor":1,
-      "device_details":"Efficient 2 TOPS AI capability at edge\nSpecification:\n* 2 TOPS Deep Learning accelerator\n* Quad Arm\u00ae Cortex\u00ae-A53\n* Integrated ISP\n* More details : https://www.ti.com/product/AM62A7\n\nImportant links:\n* Product information: https://www.ti.com/product/AM62A7\n* Development board: https://www.ti.com/tool/SK-AM62A-LP\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\n* SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\n* SDK release: 09_02_00\n\nAdditional information:\n* Edge AI introduction: https://ti.com/edgeai\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n",
-      "sdk_version":"9.2.0",
-      "sdk_release":"09_02_00"
+      "device_details":"Efficient 2 TOPS AI capability at edge\nSpecification:\n* 2 TOPS Deep Learning accelerator\n* Quad Arm\u00ae Cortex\u00ae-A53\n* Integrated ISP\n* More details : https://www.ti.com/product/AM62A7\n\nImportant links:\n* Product information: https://www.ti.com/product/AM62A7\n* Development board: https://www.ti.com/tool/SK-AM62A-LP\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\n* SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\n* SDK release: 10_01_00\n\nAdditional information:\n* Edge AI introduction: https://ti.com/edgeai\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n",
+      "sdk_version":"10.1.0",
+      "sdk_release":"10_01_00"
+    },
+    "AM67A":{
+      "device_name":"AM67A",
+      "device_type":"MPU",
+      "device_selection_factor":1,
+      "device_details":"Efficient 4 TOPS AI capability at edge\nSpecification:\n* 4 TOPS Deep Learning accelerator\n* Quad Arm\u00ae Cortex\u00ae-A53\n* Integrated ISP\n* More details : https://www.ti.com/product/AM67A\n\nImportant links:\n* Product information: https://www.ti.com/product/AM67A\n* Development board: https://www.ti.com/tool/J722SXH01EVM\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM67A\n* SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM67A\n* SDK release: 10_01_00\n\nAdditional information:\n* Edge AI introduction: https://ti.com/edgeai\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n",
+      "sdk_version":"10.1.0",
+      "sdk_release":"10_01_00"
     },
     "TDA4VM":{
       "device_name":"TDA4VM",
       "device_type":"MPU",
       "device_selection_factor":2,
-      "device_details":"Efficient 8 TOPS AI capability at edge\nSpecification:\n* 8 TOPS Deep Learning accelerator\n* Dual Arm\u00ae Cortex\u00ae-A72\n* Integrated ISP\n* More details : https://www.ti.com/product/TDA4VM\n\nImportant links:\n* Product information: https://www.ti.com/product/TDA4VM\n* Development board: https://www.ti.com/tool/SK-TDA4VM\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM\n* SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM\n* SDK release: 09_02_00\n\nAdditional information:\n* Edge AI introduction: https://ti.com/edgeai\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n",
-      "sdk_version":"9.2.0",
-      "sdk_release":"09_02_00"
+      "device_details":"Efficient 8 TOPS AI capability at edge\nSpecification:\n* 8 TOPS Deep Learning accelerator\n* Dual Arm\u00ae Cortex\u00ae-A72\n* Integrated ISP\n* More details : https://www.ti.com/product/TDA4VM\n\nImportant links:\n* Product information: https://www.ti.com/product/TDA4VM\n* Development board: https://www.ti.com/tool/SK-TDA4VM\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM\n* SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM\n* SDK release: 10_01_00\n\nAdditional information:\n* Edge AI introduction: https://ti.com/edgeai\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n",
+      "sdk_version":"10.1.0",
+      "sdk_release":"10_01_00"
     },
     "AM68A":{
       "device_name":"AM68A",
       "device_type":"MPU",
       "device_selection_factor":3,
-      "device_details":"Efficient 8 TOPS AI capability at edge\nSpecification:\n* 8 TOPS Deep Learning accelerator\n* Dual Arm\u00ae Cortex\u00ae-A72\n* Integrated ISP\n* More details : https://www.ti.com/product/AM68A\n\nImportant links:\n* Product information: https://www.ti.com/product/AM68A\n* Development board: https://www.ti.com/tool/SK-AM68\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A\n* SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A\n* SDK release: 09_02_00\n\nAdditional information:\n* Edge AI introduction: https://ti.com/edgeai\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n",
-      "sdk_version":"9.2.0",
-      "sdk_release":"09_02_00"
+      "device_details":"Efficient 8 TOPS AI capability at edge\nSpecification:\n* 8 TOPS Deep Learning accelerator\n* Dual Arm\u00ae Cortex\u00ae-A72\n* Integrated ISP\n* More details : https://www.ti.com/product/AM68A\n\nImportant links:\n* Product information: https://www.ti.com/product/AM68A\n* Development board: https://www.ti.com/tool/SK-AM68\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A\n* SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A\n* SDK release: 10_01_00\n\nAdditional information:\n* Edge AI introduction: https://ti.com/edgeai\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n",
+      "sdk_version":"10.1.0",
+      "sdk_release":"10_01_00"
     },
     "AM69A":{
       "device_name":"AM69A",
       "device_type":"MPU",
       "device_selection_factor":4,
-      "device_details":"Efficient 32 TOPS AI capability at edge\nSpecification:\n* 32 TOPS Deep Learning accelerator\n* 8 Arm\u00ae Cortex\u00ae-A72\n* Integrated ISP\n* More details : https://www.ti.com/product/AM69A\n\nImportant links:\n* Product information: https://www.ti.com/product/AM69A\n* Development board: https://www.ti.com/tool/SK-AM69\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM69A\n* SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM69A\n* SDK release: 09_02_00\n\nAdditional information:\n* Edge AI introduction: https://ti.com/edgeai\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n",
-      "sdk_version":"9.2.0",
-      "sdk_release":"09_02_00"
+      "device_details":"Efficient 32 TOPS AI capability at edge\nSpecification:\n* 32 TOPS Deep Learning accelerator\n* 8 Arm\u00ae Cortex\u00ae-A72\n* Integrated ISP\n* More details : https://www.ti.com/product/AM69A\n\nImportant links:\n* Product information: https://www.ti.com/product/AM69A\n* Development board: https://www.ti.com/tool/SK-AM69\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM69A\n* SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM69A\n* SDK release: 10_01_00\n\nAdditional information:\n* Edge AI introduction: https://ti.com/edgeai\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n",
+      "sdk_version":"10.1.0",
+      "sdk_release":"10_01_00"
     }
   },
   "task_descriptions":{
@@ -2617,6 +3288,7 @@
       "target_devices":[
         "AM62",
         "AM62A",
+        "AM67A",
         "TDA4VM",
         "AM68A",
         "AM69A"
@@ -2633,6 +3305,7 @@
       "target_devices":[
         "AM62",
         "AM62A",
+        "AM67A",
         "TDA4VM",
         "AM68A",
         "AM69A"
@@ -2649,6 +3322,7 @@
       "target_devices":[
         "AM62",
         "AM62A",
+        "AM67A",
         "TDA4VM",
         "AM68A",
         "AM69A"
@@ -2665,6 +3339,7 @@
       "target_devices":[
         "AM62",
         "AM62A",
+        "AM67A",
         "TDA4VM",
         "AM68A",
         "AM69A"
@@ -2751,9 +3426,9 @@
     }
   },
   "version_descriptions":{
-    "version":"9.2.0",
-    "sdk_version":"9.2.0",
-    "sdk_release":"09_02_00"
+    "version":"10.1.0",
+    "sdk_version":"10.1.0",
+    "sdk_release":"10_01_00"
   },
   "tooltip_descriptions":{
     "common":{},
@@ -2813,5 +3488,5 @@
       }
     }
   },
-  "help_descriptions":"\n## Overview\nThis is a tool for collecting data, training and compiling AI models for use on TI's embedded processors. The compiled models can be deployed on a local development board. A live preview/demo is also provided to inspect the quality of the developed model while it runs on the development board.\n\n## Development flow\nBring your own data (BYOD): Retrain models from TI Model Zoo to fine-tune with your own data.\n\n## Tasks supported\n* Image Classification\n* Object Detection\n\n## Target device setup overview\nIn order to perform data capture from device, live preview or model deployment, a local area network connection (LAN) to the development board is required. To do this, please follow the steps below:\n* Step 1: Make sure that you have a physical development board (of the specific device) with you. Refer the details below to understand how to procure it.\n* Step 2: Download the SDK binary and flash an SD card as explained in the SDK.\n* Step 3: Make sure that the development board is put in the same local area network (via ethernet or WiFI) as the computer where you are running the browser to use this service. Also connect the development board to the computer via USB serial connection - this is required to detect the IP address of the development board.\n* Step 4: Connect a USB camera to the development board.\n* Step 5: Power ON the development board.\n* Step 6: On the top bar of the GUI of this service, click on Options | Serial port settings and follow the instructions to do TI Cloud Agent setup.\n* Step 7: On the \"Connect Device Camera\" pop-up, click on the search icon to detect the IP address of the development board and connect to it.\n\n## Supported target devices\nThese are the devices that are supported currently. As additional devices are supported, this section will be updated.\n\n### TDA4VM\n* Product information: https://www.ti.com/product/TDA4VM\n* Development board: https://www.ti.com/tool/SK-TDA4VM\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM\n* SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM\n* SDK release: 09_02_00\n\n### AM62A\n* Product information: https://www.ti.com/product/AM62A7\n* Development board: https://www.ti.com/tool/SK-AM62A-LP\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\n* SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\n* SDK release: 09_02_00\n\n### AM68A\n* Product information: https://www.ti.com/product/AM68A\n* Development board: https://www.ti.com/tool/SK-AM68\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A\n* SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A\n* SDK release: 09_02_00\n\n### AM69A\n* Product information: https://www.ti.com/product/AM69A\n* Development board: https://www.ti.com/tool/SK-AM69\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM69A\n* SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM69A\n* SDK release: 09_02_00\n\n### AM62\n* Product information: https://www.ti.com/product/AM625\n* Development board: https://www.ti.com/tool/SK-AM62\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62X\n* SDK documentation & board setup: See analytics application and Edge AI documentation at https://www.ti.com/tool/SK-AM62#order-start-development\n* SDK release: 09_02_00\n\n## Additional information\n* Edge AI introduction: https://ti.com/edgeai\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n\n\n## Dataset format\n- The dataset format is similar to that of the [COCO](https://cocodataset.org/) dataset, but there are some changes as explained below.\n- The annotated json file and images must be under a suitable folder with the dataset name. \n- Under the folder with dataset name, the following folders must exist: \n- (1) there must be an \"images\" folder containing the images\n- (2) there must be an \"annotations\" folder containing the annotation json file with the name given below.\n- Notes on preparing the dataset zip file:\n- (1) To prepare the dataset zip for your dataset in a windows PC, navigate inside that folder with the dataset name, select the folders images and annotations, right-click and then click on Sent to Compressed (zipped) folder.\n- (2) To prepare the dataset zip file for your dataset in a Linux PC, navigate inside that folder with the dataset name, select the folders images and annotations, right-click and then select Compress.\n- (3) Do not click on the folder with the dataset name to zip it - instead, go inside the folder and zip it, so that the images and annotations folders will be directly at the base of the zip file.\n\n#### Object Detection dataset format\nAn object detection dataset should have the following structure. \n```\nimages/the image files should be here\nannotations/instances.json\n```\n\n- The default annotation file name for object detection is instances.json\n- The format of the annotation file is similar to that of the [COCO dataset 2017 Train/Val annotations](https://cocodataset.org/#download) - a json file containing 'info', 'images', 'categories' and 'annotations'.\n- Look at the example dataset [animal_detection](https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/animal_detection.zip) to understand more.\n\n#### Image Classification dataset format\nAn image classification dataset should have the following structure. (Use a suitable dataset name instead of dataset_name).\n```\nimages/the image files should be here\nannotations/instances.json\n```\n\n- The default annotation file name for image classification is instances.json\n- The format of the annotation file is similar to that of the COCO dataset - a json file containing 'info', 'images', 'categories' and 'annotations'. However, one difference is that the bounding box information is not used for classification task and need not be present. The category information in each annotation (called the 'id' field) is needed.\n- Look at the example dataset [animal_classification](https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/animal_classification.zip) to understand more.\n\n## Model deployment\n- The deploy page provides a button to download the compiled model artifacts to the development board. \n- The downloaded model artifacts are located in a folder inside /opt/projects. It can be used with edgeai-gst-apps included in the SDK to run inference. \n- Please see the section \"Edge AI sample apps\" in the SDK documentation for more information.\n\n## Glossary of terms\n\n### TRAINING\n#### Epochs\nEpoch is a term that is used to indicate a pass over the entire training dataset. It is a hyper parameter that can be tuned to get best accuracy. Eg. A model trained for 30 Epochs may give better accuracy than a model trained for 15 Epochs.\n#### Learning rate\nLearning Rate determines the step size used by the optimization algorithm at each iteration while moving towards the optimal solution. It is a hyper parameter that can be tuned to get best accuracy. Eg. A small Learning Rate typically gives good accuracy while fine tuning a model for a different task.\n#### Batch size\nBatch size specifies the number of inputs that are propagated through the neural network in one iteration. Several such iterations make up one Epoch.Higher batch size require higher memory and too low batch size can typically impact the accuracy.\n#### Weight decay\nWeight decay is a regularization technique that can improve stability and generalization of a machine learning algorithm. It is typically done using L2 regularization that penalizes parameters (weights, biases) according to their L2 norm.\n### COMPILATION\n#### Calibration frames\nCalibration is a process of improving the accuracy during fixed point quantization. Typically, higher number of Calibration Frames give higher accuracy, but it can also be time consuming.\n#### Calibration iterations\nCalibration is a process of improving the accuracy during fixed point quantization. Calibration happens in iterations. Typically, higher number of Calibration Iterations give higher accuracy, but it can also be time consuming.\n#### Tensor bits\nBitdepth used to quantize the weights and activations in the neural network. The neural network inference happens at this bit precision. \n#### Detection threshold\nAlso called Confidence Threshold. A threshold used to select good detection boxes. This is typically applied before a before the Non Max Suppression. Higher Detection Threshold means less false detections (False Positives), but may also result in misses (False Negatives). \n#### Detection topK\nNumber of detection boxes to be selected during the initial shortlisting before the Non Max Suppression.A higher number is typically used while measuring accuracy, but may impact the performance. \n### DEPLOY\n#### Download trained model\nTrained model can be downloaded to the PC for inspection.\n#### Download compiled model artifacts to PC\nCompiled model can be downloaded to the PC for inspection.\n#### Download compiled model artifacts to EVM\nCompiled model can be downloaded into the EVM for running model inference in SDK. Instructions are given in the help section.\n"
+  "help_descriptions":"\n## Overview\nThis is a tool for collecting data, training and compiling AI models for use on TI's embedded processors. The compiled models can be deployed on a local development board. A live preview/demo is also provided to inspect the quality of the developed model while it runs on the development board.\n\n## Development flow\nBring your own data (BYOD): Retrain models from TI Model Zoo to fine-tune with your own data.\n\n## Tasks supported\n* Image Classification\n* Object Detection\n\n## Target device setup overview\nIn order to perform data capture from device, live preview or model deployment, a local area network connection (LAN) to the development board is required. To do this, please follow the steps below:\n* Step 1: Make sure that you have a physical development board (of the specific device) with you. Refer the details below to understand how to procure it.\n* Step 2: Download the SDK binary and flash an SD card as explained in the SDK.\n* Step 3: Make sure that the development board is put in the same local area network (via ethernet or WiFI) as the computer where you are running the browser to use this service. Also connect the development board to the computer via USB serial connection - this is required to detect the IP address of the development board.\n* Step 4: Connect a USB camera to the development board.\n* Step 5: Power ON the development board.\n* Step 6: On the top bar of the GUI of this service, click on Options | Serial port settings and follow the instructions to do TI Cloud Agent setup.\n* Step 7: On the \"Connect Device Camera\" pop-up, click on the search icon to detect the IP address of the development board and connect to it.\n\n## Supported target devices\nThese are the devices that are supported currently. As additional devices are supported, this section will be updated.\n\n### TDA4VM\n* Product information: https://www.ti.com/product/TDA4VM\n* Development board: https://www.ti.com/tool/SK-TDA4VM\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM\n* SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM\n* SDK release: 10_01_00\n\n### AM62A\n* Product information: https://www.ti.com/product/AM62A7\n* Development board: https://www.ti.com/tool/SK-AM62A-LP\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\n* SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62A\n* SDK release: 10_01_00\n\n### AM68A\n* Product information: https://www.ti.com/product/AM68A\n* Development board: https://www.ti.com/tool/SK-AM68\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A\n* SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A\n* SDK release: 10_01_00\n\n### AM69A\n* Product information: https://www.ti.com/product/AM69A\n* Development board: https://www.ti.com/tool/SK-AM69\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM69A\n* SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM69A\n* SDK release: 10_01_00\n\n### AM62\n* Product information: https://www.ti.com/product/AM625\n* Development board: https://www.ti.com/tool/SK-AM62\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM62X\n* SDK documentation & board setup: See analytics application and Edge AI documentation at https://www.ti.com/tool/SK-AM62#order-start-development\n* SDK release: 10_01_00\n\n## Additional information\n* Edge AI introduction: https://ti.com/edgeai\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n\n\n## Dataset format\n- The dataset format is similar to that of the [COCO](https://cocodataset.org/) dataset, but there are some changes as explained below.\n- The annotated json file and images must be under a suitable folder with the dataset name. \n- Under the folder with dataset name, the following folders must exist: \n- (1) there must be an \"images\" folder containing the images\n- (2) there must be an \"annotations\" folder containing the annotation json file with the name given below.\n- Notes on preparing the dataset zip file:\n- (1) To prepare the dataset zip for your dataset in a windows PC, navigate inside that folder with the dataset name, select the folders images and annotations, right-click and then click on Sent to Compressed (zipped) folder.\n- (2) To prepare the dataset zip file for your dataset in a Linux PC, navigate inside that folder with the dataset name, select the folders images and annotations, right-click and then select Compress.\n- (3) Do not click on the folder with the dataset name to zip it - instead, go inside the folder and zip it, so that the images and annotations folders will be directly at the base of the zip file.\n\n#### Object Detection dataset format\nAn object detection dataset should have the following structure. \n```\nimages/the image files should be here\nannotations/instances.json\n```\n\n- The default annotation file name for object detection is instances.json\n- The format of the annotation file is similar to that of the [COCO dataset 2017 Train/Val annotations](https://cocodataset.org/#download) - a json file containing 'info', 'images', 'categories' and 'annotations'.\n- Look at the example dataset [animal_detection](https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/animal_detection.zip) to understand more.\n\n#### Image Classification dataset format\nAn image classification dataset should have the following structure. (Use a suitable dataset name instead of dataset_name).\n```\nimages/the image files should be here\nannotations/instances.json\n```\n\n- The default annotation file name for image classification is instances.json\n- The format of the annotation file is similar to that of the COCO dataset - a json file containing 'info', 'images', 'categories' and 'annotations'. However, one difference is that the bounding box information is not used for classification task and need not be present. The category information in each annotation (called the 'id' field) is needed.\n- Look at the example dataset [animal_classification](https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/animal_classification.zip) to understand more.\n\n## Model deployment\n- The deploy page provides a button to download the compiled model artifacts to the development board. \n- The downloaded model artifacts are located in a folder inside /opt/projects. It can be used with edgeai-gst-apps included in the SDK to run inference. \n- Please see the section \"Edge AI sample apps\" in the SDK documentation for more information.\n\n## Glossary of terms\n\n### TRAINING\n#### Epochs\nEpoch is a term that is used to indicate a pass over the entire training dataset. It is a hyper parameter that can be tuned to get best accuracy. Eg. A model trained for 30 Epochs may give better accuracy than a model trained for 15 Epochs.\n#### Learning rate\nLearning Rate determines the step size used by the optimization algorithm at each iteration while moving towards the optimal solution. It is a hyper parameter that can be tuned to get best accuracy. Eg. A small Learning Rate typically gives good accuracy while fine tuning a model for a different task.\n#### Batch size\nBatch size specifies the number of inputs that are propagated through the neural network in one iteration. Several such iterations make up one Epoch.Higher batch size require higher memory and too low batch size can typically impact the accuracy.\n#### Weight decay\nWeight decay is a regularization technique that can improve stability and generalization of a machine learning algorithm. It is typically done using L2 regularization that penalizes parameters (weights, biases) according to their L2 norm.\n### COMPILATION\n#### Calibration frames\nCalibration is a process of improving the accuracy during fixed point quantization. Typically, higher number of Calibration Frames give higher accuracy, but it can also be time consuming.\n#### Calibration iterations\nCalibration is a process of improving the accuracy during fixed point quantization. Calibration happens in iterations. Typically, higher number of Calibration Iterations give higher accuracy, but it can also be time consuming.\n#### Tensor bits\nBitdepth used to quantize the weights and activations in the neural network. The neural network inference happens at this bit precision. \n#### Detection threshold\nAlso called Confidence Threshold. A threshold used to select good detection boxes. This is typically applied before a before the Non Max Suppression. Higher Detection Threshold means less false detections (False Positives), but may also result in misses (False Negatives). \n#### Detection topK\nNumber of detection boxes to be selected during the initial shortlisting before the Non Max Suppression.A higher number is typically used while measuring accuracy, but may impact the performance. \n### DEPLOY\n#### Download trained model\nTrained model can be downloaded to the PC for inspection.\n#### Download compiled model artifacts to PC\nCompiled model can be downloaded to the PC for inspection.\n#### Download compiled model artifacts to EVM\nCompiled model can be downloaded into the EVM for running model inference in SDK. Instructions are given in the help section.\n"
 }
