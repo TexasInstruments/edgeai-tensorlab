@@ -33,7 +33,7 @@ RELEASE_BRANCH=${1-"r10.1"}
 
 GIT_REPOS=( edgeai-docs edgeai-modelzoo edgeai-modelmaker edgeai-modeloptimization edgeai-benchmark edgeai-torchvision edgeai-tensorvision edgeai-yolox edgeai-mmdetection edgeai-mmdetection3d edgeai-mmpose edgeai-hf-transformers edgeai-mmdeploy )
 # removed repositories
-# edgeai-modelutils edgeai-datasets edgeai-mmrazor
+# edgeai-modelutils edgeai-datasets edgeai-mmrazor edgeai-yolox
 
 for GIT_REPO in "${GIT_REPOS[@]}"
 do
