@@ -1,0 +1,6 @@
+tensorboard==2.11.2
+progiter
+numpy==1.23.0
+torchinfo
+pycocotools
+opencv-python
