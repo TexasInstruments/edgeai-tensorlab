@@ -392,6 +392,7 @@ class ModelTraining:
 
     def __init__(self, *args, **kwargs):
         self.params = self.init_params(*args, **kwargs)
+        self.result = None
 
         # num_classes
         self.train_ann_file = f'{self.params.dataset.dataset_path}/annotations/{self.params.dataset.annotation_prefix}_train.json'
@@ -443,8 +444,12 @@ class ModelTraining:
         task_entries = {self.params.training.model_name:task_list}
         parallel_processes = (1 if self.params.compilation.log_file else 0)
         process_runner = edgeai_benchmark.utils.ParallelRunner(parallel_processes=parallel_processes)
-        process_runner.run(task_entries)
+        self.result = None
+        self.result = process_runner.run(task_entries)
         return self.params
+
+    def get_result(self):
+        return self.result
 
     def _proc_func(self, **kwargs):
         ''''

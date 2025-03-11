@@ -58,6 +58,7 @@ class ModelCompilation():
         self.params = self.init_params(*args, **kwargs)
         self.quit_event = quit_event
         self.artifact_ext = '.tar.gz'
+        self.result = None
 
         # prepare for model compilation
         self._prepare_pipeline_config()
@@ -152,30 +153,8 @@ class ModelCompilation():
         ''''
         The actual compilation function.
         '''
-        # invoking edgeai-benchmark via run_benchmark_script uses subprocess and python script / config file
-        # that needs the pipeline config to be written out here and then read back in edgeai-benchmark
-        # that is a quite involved process and needs some work to be completed.
-        with_subprocess = False
-        if with_subprocess: #self.params.compilation.capture_log:
-            # when capture_log, detailed log will only be in the log file - so print this info
-            print(edgeai_benchmark.utils.log_color('\nINFO', 'model compilation is in progress', 'please see the log file for status.'))
-
-            os.makedirs(self.work_dir, exist_ok=True)
-
-            settings_path = os.path.join(self.work_dir, 'settings.yaml')
-            with open(settings_path, "w") as fp:
-                yaml.safe_dump(edgeai_benchmark.utils.pretty_object(self.settings), fp)
-            #
-            configs_path = os.path.join(self.work_dir, 'configs.yaml')
-            with open(configs_path, "w") as fp:
-                yaml.safe_dump(edgeai_benchmark.utils.pretty_object(self.pipeline_configs), fp)
-            #
-
-            model_entries = [f"{list(self.pipeline_configs.keys())[0]} {self.run_dir}"]
-            edgeai_benchmark.interfaces.run_benchmark_script(self.settings, model_entries, settings_path, cmd_kwargs={'configs_path':configs_path})
-        else:
-            edgeai_benchmark.interfaces.run_benchmark_config(self.settings, self.work_dir, self.pipeline_configs)
-        #
+        self.result = None
+        self.result = edgeai_benchmark.interfaces.run_benchmark_config(self.settings, self.work_dir, self.pipeline_configs)
 
         # remove special characters
         utils.cleanup_special_chars(self.params.compilation.log_file_path)
@@ -188,8 +167,10 @@ class ModelCompilation():
         # for use outside, create symlink to a more descriptive file
         packaged_artifact_path = self._get_packaged_artifact_path()
         utils.make_symlink(packaged_artifact_path, self.params.compilation.model_packaged_path)
-        
         return self.params
+
+    def get_result(self):
+        return self.result
 
     def _get_benchmark_settings(self, model_selection, calib_dataset, val_dataset):
         settings_file = edgeai_benchmark.get_settings_file(target_machine=self.params.common.target_machine, with_model_import=True)
