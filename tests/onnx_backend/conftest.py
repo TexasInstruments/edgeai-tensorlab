@@ -23,11 +23,13 @@ def pytest_runtest_makereport(item, call):
     outcome = yield
     report = outcome.get_result()
     if(report.when == "teardown"):
-        regex_result = re.search("Offloaded Nodes - ([0-9]*)", report.capstdout)
-        if(regex_result is None):
-            report.tidl_subgraphs = "Not detected in test output"
-        else:
-            report.tidl_subgraphs = regex_result[1]
+        regex1_result = re.search("Offloaded Nodes - ([0-9]*)", report.capstdout)
+        if(regex1_result is None):
+            regex2_result = re.search(r"\|\s*C7x\s*\|\s*\d+\s*\|\s*(\d+|x)\s*\|", report.capstdout)
+            if (regex2_result is None):
+                report.tidl_subgraphs = "Not detected in test output"
+            else:
+                report.tidl_subgraphs = regex2_result[1]
 
 
 # Inserts the TIDL Subgraphs table header

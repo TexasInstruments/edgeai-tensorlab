@@ -1,7 +1,7 @@
 include_files : ['../../settings_base.yaml']
 num_frames : 1
 calibration_frames : 1
-calibration_iterations : 5
+calibration_iterations : 1
 input_optimization : False
 runtime_selection : ['onnxrt']
 parallel_processes : null
