@@ -46,6 +46,12 @@ class ConfigRuntimeOptions(config_dict.ConfigDict):
         if not hasattr(self, 'runtime_options'):
             self.runtime_options = {}
         #
+        if not hasattr(self, 'calibration_iterations_factor'):
+            self.calibration_iterations_factor = 1.0
+        #
+        if not hasattr(self, 'c7x_firmware_version'):
+            self.c7x_firmware_version = None
+        #
 
         # target device presets
         preset_dict = None
