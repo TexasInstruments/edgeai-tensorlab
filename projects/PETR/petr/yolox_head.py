@@ -257,7 +257,7 @@ class YOLOXHeadCustom(BaseDenseHead):
 
         return cls_score, bbox_pred, objectness, centers2d_offset
 
-    def forward(self, locations, img_feats, intrinsics, extrinsics):
+    def forward(self, img_feats, locations=None, intrinsics=None, extrinsics=None):
         """Forward features from the upstream network.
         Args:
             feats (tuple[Tensor]): Features from the upstream network, each is
@@ -401,6 +401,7 @@ class YOLOXHeadCustom(BaseDenseHead):
         objectnesses = preds_dicts['objectnesses']      # shape 3x(BN 1 Hi Wi)
         num_imgs = cls_scores[0].shape[0]
         featmap_sizes = [cls_score.shape[2:] for cls_score in cls_scores]
+        # [9600, 4], [2400, 4], [600, 4], [1500, 4]
         mlvl_priors = self.prior_generator.grid_priors(featmap_sizes, dtype=cls_scores[0].dtype, device=cls_scores[0].device, with_stride=True)       # 3x(Hi*Wi, 4)
         
         assert len(cls_scores) == len(bbox_preds) == len(objectnesses)
@@ -465,12 +466,27 @@ class YOLOXHeadCustom(BaseDenseHead):
         #         bbox = bbox_xyxy_to_cxcywh(bbox[..., :4])
         #     result_list.append(bbox)
 
-        bbox2d_scores = flatten_sample_weight[valid_indices].reshape(-1, 1)  # (M, 1)
-        outs = {
-            'bbox_list': result_list,
-            'bbox2d_scores': bbox2d_scores,
-            'valid_indices': valid_indices
-        }
+        if self.sample_with_score:
+            bbox2d_scores = flatten_sample_weight[valid_indices].reshape(-1, 1)  # (M, 1)
+        else:
+            bbox2d_scores = torch.gather(flatten_sample_weight, 1, topk_indexes).reshape(-1, 1)  # (M, 1)
+            # Update valid_indices for topK
+            #valid_indices = torch.zeros_like(valid_indices)
+            #valid_indices.scatter_(1, topk_indexes, 1)
+            #valid_indices = valid_indices.to(torch.bool)
+
+        if self.sample_with_score:
+            outs = {
+                'bbox_list': result_list,
+                'bbox2d_scores': bbox2d_scores,
+                'valid_indices': valid_indices
+            }
+        else:
+            outs = {
+                'bbox_list': result_list,
+                'bbox2d_scores': bbox2d_scores,
+                'valid_indices': topk_indexes
+            }
         # if self.return_context_feat:
         #     # filter context feature and return
         #     _dim = fpn_feats.shape[-1]

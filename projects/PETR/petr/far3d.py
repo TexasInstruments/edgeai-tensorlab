@@ -22,7 +22,7 @@ from .utils import locations
 
 import numpy as np
 
-from mmdet3d.models.detectors.onnx_export import export_Far3D
+from mmdet3d.models.detectors.onnx_export import export_Far3D, export_Far3D_combined
 
 
 @MODELS.register_module()
@@ -131,7 +131,7 @@ class Far3D(MVXTwoStageDetector):
                 return self.aug_test(inputs, data_samples, **kwargs)
             else:
                 if self.save_onnx_model is True:
-                    export_Far3D(self, inputs, data_samples, opset_version=18, **kwargs)
+                    export_Far3D_combined(self, inputs, data_samples, opset_version=18, **kwargs)
                     # Export onnx only once
                     self.save_onnx_model = False
 
@@ -385,7 +385,7 @@ class Far3D(MVXTwoStageDetector):
         intrinsics = torch.from_numpy(intrinsics).to(img_feats[0].device)
         extrinsics = torch.from_numpy(extrinsics).to(img_feats[0].device)
 
-        outs_roi = self.img_roi_head(location, img_feats, intrinsics, extrinsics)
+        outs_roi = self.img_roi_head(img_feats, location, intrinsics, extrinsics)
         return outs_roi
 
     def forward_pts_train(self,

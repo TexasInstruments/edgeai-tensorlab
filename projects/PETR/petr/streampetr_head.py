@@ -336,14 +336,6 @@ class StreamPETRHead(AnchorFreeHead):
                           memory_timestamp=None,
                           memory_egopose=None,
                           memory_velo=None):
-        # When memory_embedding is None, all memory_xxx should be None
-        # Add check
-        if memory_embedding is not None:
-            self.memory_embedding       = memory_embedding
-            self.memory_reference_point = memory_reference_point
-            self.memory_timestamp       = memory_timestamp
-            self.memory_egopose         = memory_egopose
-            self.memory_velo            = memory_velo
 
         x = []
         for img_meta in img_metas:
@@ -352,35 +344,44 @@ class StreamPETRHead(AnchorFreeHead):
         #x = img_metas[0]['prev_exists'].to(img_feats.device).to(torch.float32)
         B = x.size(0)
 
-        # refresh the memory when the scene changes
-        if self.memory_embedding is None:
-            #self.memory_embedding = x.new_zeros(B, self.memory_len, self.embed_dims)
-            #self.memory_reference_point = x.new_zeros(B, self.memory_len, 3)
-            #self.memory_timestamp = x.new_zeros(B, self.memory_len, 1)
-            #self.memory_egopose = x.new_zeros(B, self.memory_len, 4, 4)
-            #self.memory_velo = x.new_zeros(B, self.memory_len, 2)
-            self.memory_embedding, self.memory_reference_point, self.memory_timestamp, \
-                self.memory_egopose, self.memory_velo = self.init_memory(x)
+        # When memory_embedding is None, all memory_xxx should be None
+        # Add check
+        if memory_embedding is not None:
+            self.memory_embedding       = memory_embedding
+            self.memory_reference_point = memory_reference_point
+            self.memory_timestamp       = memory_timestamp
+            self.memory_egopose         = memory_egopose
+            self.memory_velo            = memory_velo
         else:
-            # For multiple batch
-            ego_pose_inv = []
-            timestamp = []
-            for img_meta in img_metas:
-                ego_pose_inv.append(img_meta['ego_pose_inv'])
-                timestamp.append(img_meta['timestamp'])
-            ego_pose_inv = np.asarray(ego_pose_inv)
-            ego_pose_inv = torch.from_numpy(ego_pose_inv).to(img_feats.device).to(torch.float32)
-            timestamp = np.asarray(timestamp)
-            timestamp = torch.from_numpy(timestamp).to(img_feats.device)
+            # refresh the memory when the scene changes
+            if self.memory_embedding is None:
+                #self.memory_embedding = x.new_zeros(B, self.memory_len, self.embed_dims)
+                #self.memory_reference_point = x.new_zeros(B, self.memory_len, 3)
+                #self.memory_timestamp = x.new_zeros(B, self.memory_len, 1)
+                #self.memory_egopose = x.new_zeros(B, self.memory_len, 4, 4)
+                #self.memory_velo = x.new_zeros(B, self.memory_len, 2)
+                self.memory_embedding, self.memory_reference_point, self.memory_timestamp, \
+                    self.memory_egopose, self.memory_velo = self.init_memory(x)
+            else:
+                # For multiple batch
+                ego_pose_inv = []
+                timestamp = []
+                for img_meta in img_metas:
+                    ego_pose_inv.append(img_meta['ego_pose_inv'])
+                    timestamp.append(img_meta['timestamp'])
+                ego_pose_inv = np.asarray(ego_pose_inv)
+                ego_pose_inv = torch.from_numpy(ego_pose_inv).to(img_feats.device).to(torch.float32)
+                timestamp = np.asarray(timestamp)
+                timestamp = torch.from_numpy(timestamp).to(img_feats.device)
 
-            self.memory_timestamp += timestamp.unsqueeze(-1).unsqueeze(-1)
-            self.memory_egopose = ego_pose_inv.unsqueeze(1) @ self.memory_egopose
-            self.memory_reference_point = transform_reference_points(self.memory_reference_point, ego_pose_inv, reverse=False)
-            self.memory_timestamp = memory_refresh(self.memory_timestamp[:, :self.memory_len], x)
-            self.memory_reference_point = memory_refresh(self.memory_reference_point[:, :self.memory_len], x)
-            self.memory_embedding = memory_refresh(self.memory_embedding[:, :self.memory_len], x)
-            self.memory_egopose = memory_refresh(self.memory_egopose[:, :self.memory_len], x)
-            self.memory_velo = memory_refresh(self.memory_velo[:, :self.memory_len], x)
+                self.memory_timestamp += timestamp.unsqueeze(-1).unsqueeze(-1)
+                self.memory_egopose = ego_pose_inv.unsqueeze(1) @ self.memory_egopose
+                self.memory_reference_point = transform_reference_points(self.memory_reference_point, ego_pose_inv, reverse=False)
+                self.memory_timestamp = memory_refresh(self.memory_timestamp[:, :self.memory_len], x)
+                self.memory_reference_point = memory_refresh(self.memory_reference_point[:, :self.memory_len], x)
+                self.memory_embedding = memory_refresh(self.memory_embedding[:, :self.memory_len], x)
+                self.memory_egopose = memory_refresh(self.memory_egopose[:, :self.memory_len], x)
+                self.memory_velo = memory_refresh(self.memory_velo[:, :self.memory_len], x)
 
         # for the first frame, padding pseudo_reference_points (non-learnable)
         if self.num_propagated > 0:

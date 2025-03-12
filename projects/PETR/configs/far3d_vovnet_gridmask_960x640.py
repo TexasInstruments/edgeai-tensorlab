@@ -27,6 +27,7 @@ queue_length = 1
 num_frame_losses = 1
 collect_keys=['lidar2img', 'intrinsics', 'extrinsics','timestamp', 'img_timestamp', 'ego_pose', 'ego_pose_inv']
 depthnet_config = {'type': 0, 'hidden_dim': 256, 'num_depth_bins': 50, 'depth_min': 1e-1, 'depth_max': 110, 'stride': 8}
+sample_with_score = False
 
 input_modality = dict(
     use_lidar=False,
@@ -78,9 +79,11 @@ model = dict(
         reg_depth_level='p3',
         pred_depth_var=False,    # note 2d depth uncertainty
         loss_depth2d=dict(type='mmdet.L1Loss', loss_weight=1.0),
-        sample_with_score=True,  # note threshold
+        #sample_with_score=True,  # note threshold
+        sample_with_score=sample_with_score,
         threshold_score=0.1,
-        topk_proposal=None,
+        #topk_proposal=None,
+        topk_proposal=10,
         return_context_feat=True,
     ),
     pts_bbox_head=dict(
@@ -98,6 +101,7 @@ model = dict(
         offset=0.5,
         offset_p=0.0,
         num_smp_per_gt=3,
+        sample_with_score = sample_with_score,
         with_dn=True,
         with_ego_pos=True,
         add_query_from_2d=True,

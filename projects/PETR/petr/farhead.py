@@ -61,6 +61,7 @@ class FarHead(AnchorFreeHead):
                  memory_len=1024,
                  topk_proposals=256,
                  num_propagated=256,
+                 sample_with_score=False,
                  with_dn=True,
                  with_ego_pos=True,
                  add_query_from_2d=False,
@@ -166,7 +167,8 @@ class FarHead(AnchorFreeHead):
         self.bbox_noise_scale = noise_scale
         self.bbox_noise_trans = noise_trans
         self.dn_weight = dn_weight
-        self.split = split 
+        self.split = split
+        self.sample_with_score = sample_with_score
         self.with_dn = with_dn
         self.num_query = num_query
         self.num_classes = num_classes
@@ -475,49 +477,50 @@ class FarHead(AnchorFreeHead):
                           memory_egopose=None,
                           memory_velo=None):
 
-        if memory_embedding is not None:
-            self.memory_embedding       = memory_embedding
-            self.memory_reference_point = memory_reference_point
-            self.memory_timestamp       = memory_timestamp
-            self.memory_egopose         = memory_egopose
-            self.memory_velo            = memory_velo
-
         x = []
         for img_meta in img_metas:
             x.append(img_meta['prev_exists'])
         x = img_feats[0].new_tensor(x)
         B = x.size(0)
 
-        # refresh the memory when the scene changes
-        if self.memory_embedding is None:
-            self.memory_embedding, self.memory_reference_point, self.memory_timestamp, \
-                self.memory_egopose, self.memory_velo = self.init_memory(x)
+        if memory_embedding is not None:
+            self.memory_embedding       = memory_embedding
+            self.memory_reference_point = memory_reference_point
+            self.memory_timestamp       = memory_timestamp
+            self.memory_egopose         = memory_egopose
+            self.memory_velo            = memory_velo
         else:
-            # For multiple batch
-            ego_pose_inv = []
-            timestamp = []
-            for img_meta in img_metas:
-                ego_pose_inv.append(img_meta['ego_pose_inv'])
-                timestamp.append(img_meta['timestamp'])
-            ego_pose_inv = np.asarray(ego_pose_inv)
-            ego_pose_inv = torch.from_numpy(ego_pose_inv).to(img_feats[0].device).to(torch.float32)
-            timestamp = np.asarray(timestamp)
-            timestamp = torch.from_numpy(timestamp).to(img_feats[0].device)
+            # refresh the memory when the scene changes
+            if self.memory_embedding is None:
+                self.memory_embedding, self.memory_reference_point, self.memory_timestamp, \
+                    self.memory_egopose, self.memory_velo = self.init_memory(x)
+            else:
+                # For multiple batch
+                ego_pose_inv = []
+                timestamp = []
+                for img_meta in img_metas:
+                    ego_pose_inv.append(img_meta['ego_pose_inv'])
+                    timestamp.append(img_meta['timestamp'])
+                ego_pose_inv = np.asarray(ego_pose_inv)
+                ego_pose_inv = torch.from_numpy(ego_pose_inv).to(img_feats[0].device).to(torch.float32)
+                timestamp = np.asarray(timestamp)
+                timestamp = torch.from_numpy(timestamp).to(img_feats[0].device)
 
-            self.memory_timestamp += timestamp.unsqueeze(-1).unsqueeze(-1)
-            self.memory_egopose = ego_pose_inv.unsqueeze(1) @ self.memory_egopose
-            self.memory_reference_point = transform_reference_points(self.memory_reference_point, ego_pose_inv, reverse=False)
-            self.memory_timestamp = memory_refresh(self.memory_timestamp[:, :self.memory_len], x)
-            self.memory_reference_point = memory_refresh(self.memory_reference_point[:, :self.memory_len], x)
-            self.memory_embedding = memory_refresh(self.memory_embedding[:, :self.memory_len], x)
-            self.memory_egopose = memory_refresh(self.memory_egopose[:, :self.memory_len], x)
-            self.memory_velo = memory_refresh(self.memory_velo[:, :self.memory_len], x)
-        
+                self.memory_timestamp += timestamp.unsqueeze(-1).unsqueeze(-1)
+                self.memory_egopose = ego_pose_inv.unsqueeze(1) @ self.memory_egopose
+                self.memory_reference_point = transform_reference_points(self.memory_reference_point, ego_pose_inv, reverse=False)
+                self.memory_timestamp = memory_refresh(self.memory_timestamp[:, :self.memory_len], x)
+                self.memory_reference_point = memory_refresh(self.memory_reference_point[:, :self.memory_len], x)
+                self.memory_embedding = memory_refresh(self.memory_embedding[:, :self.memory_len], x)
+                self.memory_egopose = memory_refresh(self.memory_egopose[:, :self.memory_len], x)
+                self.memory_velo = memory_refresh(self.memory_velo[:, :self.memory_len], x)
+
         # for the first frame, padding pseudo_reference_points (non-learnable)
         if self.num_propagated > 0:
             pseudo_reference_points = self.pseudo_reference_points.weight * (self.pc_range[3:6] - self.pc_range[0:3]) + self.pc_range[0:3]
             self.memory_reference_point[:, :self.num_propagated]  = self.memory_reference_point[:, :self.num_propagated] + (1 - x).view(B, 1, 1) * pseudo_reference_points
             self.memory_egopose[:, :self.num_propagated]  = self.memory_egopose[:, :self.num_propagated] + (1 - x).view(B, 1, 1, 1) * torch.eye(4, device=x.device)
+
 
     def post_update_memory(self, img_metas, rec_ego_pose, all_cls_scores, all_bbox_preds, outs_dec, mask_dict):
         if self.training and mask_dict and mask_dict['pad_size'] > 0:
@@ -590,7 +593,11 @@ class FarHead(AnchorFreeHead):
                 memory_reference_point=None,
                 memory_timestamp=None,
                 memory_egopose=None,
-                memory_velo=None):
+                memory_velo=None,
+                intrinsics=None,
+                extrinsics=None,
+                lidar2imgs=None,
+                img2lidars=None):
         """Forward function.
         Args:
             mlvl_feats (tuple[Tensor]): Features from the upstream
@@ -611,22 +618,23 @@ class FarHead(AnchorFreeHead):
         B, N, _, _, _ = mlvl_feats[0].shape
 
         # convert intrinsics and extrinsics to tensor
-        intrinsics = []
-        extrinsics = []
-        for img_meta in img_metas:
-            intrinsics.append(img_meta['intrinsics'])
-            extrinsics.append(img_meta['extrinsics'])
-        intrinsics = np.asarray(intrinsics)
-        extrinsics = np.asarray(extrinsics)
-        intrinsics = torch.from_numpy(intrinsics).to(img_feats[0].device).to(torch.float32)
-        extrinsics = torch.from_numpy(extrinsics).to(img_feats[0].device).to(torch.float32)
+        if intrinsics is None:
+            intrinsics = []
+            extrinsics = []
+            for img_meta in img_metas:
+                intrinsics.append(img_meta['intrinsics'])
+                extrinsics.append(img_meta['extrinsics'])
+            intrinsics = np.asarray(intrinsics)
+            extrinsics = np.asarray(extrinsics)
+            intrinsics = torch.from_numpy(intrinsics).to(img_feats[0].device).to(torch.float32)
+            extrinsics = torch.from_numpy(extrinsics).to(img_feats[0].device).to(torch.float32)
+            intrinsics = intrinsics / 1e3
+            extrinsics = extrinsics[..., :3, :]
 
         reference_points = self.reference_points.weight
         dtype = reference_points.dtype
         #intrinsics = data['intrinsics'] / 1e3
         #extrinsics = data['extrinsics'][..., :3, :]
-        intrinsics = intrinsics / 1e3
-        extrinsics = extrinsics[..., :3, :]
         mln_input = torch.cat([intrinsics[..., 0,0:1], intrinsics[..., 1,1:2], extrinsics.flatten(-2)], dim=-1)
         mln_input = mln_input.flatten(0, 1).unsqueeze(1)
         feat_flatten = []
@@ -637,28 +645,29 @@ class FarHead(AnchorFreeHead):
             mlvl_feat = self.spatial_alignment(mlvl_feat, mln_input)
             feat_flatten.append(mlvl_feat.to(dtype))
             spatial_flatten.append((H, W))
-        feat_flatten = torch.cat(feat_flatten, dim=1)
+        feat_flatten = torch.cat(feat_flatten, dim=1) # 6x12750x256
         spatial_flatten = torch.as_tensor(spatial_flatten, dtype=torch.long, device=mlvl_feats[0].device)
         level_start_index = torch.cat((spatial_flatten.new_zeros((1, )), spatial_flatten.prod(1).cumsum(0)[:-1]))
         reference_points, attn_mask, mask_dict = self.prepare_for_dn(B, reference_points, img_metas)
         query_pos = self.query_embedding(pos2posemb3d(reference_points))
 
         # img2lidar, lidar2img array build
-        lidar2imgs = []
-        img2lidars = []
-        for img_meta in img_metas:
-            lidar2img = []
-            img2lidar = []
-            for i in range(len(img_meta['lidar2img'])):
-                lidar2img.append(img_meta['lidar2img'][i])
-                img2lidar.append(np.linalg.inv(img_meta['lidar2img'][i]))
-            lidar2imgs.append(np.asarray(lidar2img))
-            img2lidars.append(np.asarray(img2lidar))
-        lidar2imgs = np.asarray(lidar2imgs)
-        lidar2imgs = img_feats[0].new_tensor(lidar2imgs)  # (B, N, 4, 4)
-        img2lidars = np.asarray(img2lidars)
-        img2lidars = img_feats[0].new_tensor(img2lidars)  # (B, N, 4, 4)
-        
+        if lidar2imgs is None:
+            lidar2imgs = []
+            img2lidars = []
+            for img_meta in img_metas:
+                lidar2img = []
+                img2lidar = []
+                for i in range(len(img_meta['lidar2img'])):
+                    lidar2img.append(img_meta['lidar2img'][i])
+                    img2lidar.append(np.linalg.inv(img_meta['lidar2img'][i]))
+                lidar2imgs.append(np.asarray(lidar2img))
+                img2lidars.append(np.asarray(img2lidar))
+            lidar2imgs = np.asarray(lidar2imgs)
+            lidar2imgs = img_feats[0].new_tensor(lidar2imgs)  # (B, N, 4, 4)
+            img2lidars = np.asarray(img2lidars)
+            img2lidars = img_feats[0].new_tensor(img2lidars)  # (B, N, 4, 4)
+
         if self.add_query_from_2d:
             # pred depth processs
             pred_depth = outs_roi['pred_depth'].detach()
@@ -667,8 +676,10 @@ class FarHead(AnchorFreeHead):
             if self.return_context_feat:
                 _dim = feat_flatten.shape[-1]
                 valid_indices = outs_roi['valid_indices']
-                context_feat = feat_flatten[valid_indices.repeat(1, 1, _dim)].reshape(-1, _dim)
-
+                if self.sample_with_score:
+                    context_feat = feat_flatten[valid_indices.repeat(1, 1, _dim)].reshape(-1, _dim)
+                else:
+                    context_feat = torch.gather(feat_flatten, 1, valid_indices.repeat(1, 1, _dim)).reshape(-1, _dim)
                 context2d_feat = context_feat.detach()
             else:
                 context2d_feat =  None # 2D context (M, C)
@@ -691,8 +702,9 @@ class FarHead(AnchorFreeHead):
             else:
                 pred_bbox_list = [it.detach() for it in outs_roi['bbox_list']]     # list, BN*(Mi, 4), sometimes Mi=0
             _pred_depth_var = outs_roi['pred_depth_var'].detach() if ('pred_depth_var' in outs_roi) else None
-            pred_bbox_list = [it.detach() for it in outs_roi['bbox_list']]     # list, BN*(Mi, 4), sometimes Mi=0
-            _pred_depth_var = outs_roi['pred_depth_var'].detach() if ('pred_depth_var' in outs_roi) else None
+            # Redundant codes
+            #pred_bbox_list = [it.detach() for it in outs_roi['bbox_list']]     # list, BN*(Mi, 4), sometimes Mi=0
+            #_pred_depth_var = outs_roi['pred_depth_var'].detach() if ('pred_depth_var' in outs_roi) else None
             # depth input: specific bins or depth logits
             input_depth_logits = self.multi_depth_config.get('topk', -1) != -1 and not flag_use_gt_depth
             depth_input = pred_depth_ if not input_depth_logits else pred_depth.permute(0, 2, 3, 1)
@@ -830,7 +842,8 @@ class FarHead(AnchorFreeHead):
                 cur_center2d[:, 0][cur_center2d[:, 0] >= w_max] = w_max - 1
                 cur_center2d[:, 1][cur_center2d[:, 1] >= h_max] = h_max - 1
 
-                cur_center2d = cur_center2d.flip(dims=(-1, ))   # to obtain depth, obtain (h, w)
+                #cur_center2d = cur_center2d.flip(dims=(-1, ))   # to obtain depth, obtain (h, w)
+                cur_center2d = cur_center2d[:, [1, 0]]
                 cur_center2d_ = cur_center2d[:, 0] * (pad_w/depth_downsample) + cur_center2d[:, 1]
                 if input_depth_logits:
                     cur_depth = torch.gather(cur_depthmap, 0, cur_center2d_.long().unsqueeze(1)
@@ -851,14 +864,20 @@ class FarHead(AnchorFreeHead):
                 range_min_bin = self._convert_bin_depth_to_specific(torch.tensor([range_min]), inverse=True).item()
                 topk_values, topk_indices = torch.topk(depths, topk, dim=1)  # (M, K)
                 valid_indices = topk_indices[:, 0] >= range_min_bin          # (M)
-                bboxes_extra = bboxes.repeat(topk-1, 1)
-                bboxes = torch.cat([bboxes, bboxes_extra[valid_indices.repeat(topk-1)]], dim=0) # (M', 4)
-                depths_extra = topk_indices[:, 1:][valid_indices]   # (M, topk-1)
-                depths_extra = depths_extra.transpose(1, 0).flatten().unsqueeze(-1)     # (M*(topk-1), 1)
-                depths = torch.cat([topk_indices[:, 0:1], depths_extra], dim=0)
+                # top k for bbox (pred_bbox_list)
+                if topk > 1:
+                    bboxes_extra = bboxes.repeat(topk-1, 1)
+                    bboxes = torch.cat([bboxes, bboxes_extra[valid_indices.repeat(topk-1)]], dim=0) # (M', 4)
+
+                if topk > 1:
+                    depths_extra = topk_indices[:, 1:][valid_indices]   # (M, topk-1)
+                    depths_extra = depths_extra.transpose(1, 0).flatten().unsqueeze(-1)     # (M*(topk-1), 1)
+                    depths = torch.cat([topk_indices[:, 0:1], depths_extra], dim=0)
+                else:
+                    depths = topk_indices
 
                 # expand context2d feat
-                if context2d_feat is not None:
+                if context2d_feat is not None and topk > 1:
                     context2d_feat_extra = context2d_feat.repeat(topk-1, 1)
                     context2d_feat = torch.cat([context2d_feat, context2d_feat_extra[valid_indices.repeat(topk-1)]], dim=0)
 
@@ -867,11 +886,14 @@ class FarHead(AnchorFreeHead):
                 log_odds = torch.log(bbox2d_scores / (1 - bbox2d_scores)) - torch.log(thr / (1 - thr))  # (M, 1)
                 if input_depth_logits and self.multi_depth_config.get('topk', -1) != -1:
                     # softmax depth logits, select topk, and rescale their weight
-                    topk_values = topk_values / topk_values[:, 0:1]   # rescale, (M, topk)
-                    dscores_extra = topk_values[:, 1:][valid_indices].transpose(1, 0).flatten().unsqueeze(-1) # (M*(topk-1), 1)
-                    dscores = torch.cat([topk_values[:, 0:1], dscores_extra], dim=0)    # (M', 1)
-                    log_odds = torch.cat([log_odds, log_odds[valid_indices].repeat(topk-1, 1)], dim=0)
-                    log_odds = log_odds * dscores
+                    # only when topk > 1
+                    if topk > 1:
+                        topk_values = topk_values / topk_values[:, 0:1]   # rescale, (M, topk)
+                        dscores_extra = topk_values[:, 1:][valid_indices].transpose(1, 0).flatten().unsqueeze(-1) # (M*(topk-1), 1)
+                        dscores = torch.cat([topk_values[:, 0:1], dscores_extra], dim=0)    # (M', 1)
+                        log_odds = torch.cat([log_odds, log_odds[valid_indices].repeat(topk-1, 1)], dim=0)
+                        log_odds = log_odds * dscores
+
                 if context2d_feat is not None:
                     context2d_feat = torch.cat([context2d_feat, log_odds], dim=-1)  # check dim cat
                 else:
@@ -890,7 +912,7 @@ class FarHead(AnchorFreeHead):
         img2lidars = img2lidars.view(B*N, 1, 4, 4) # (BN, 1, 4, 4)
         img2lidars_ = torch.cat([img2lidars[kth].repeat(num, 1, 1) for kth, num in enumerate(bbox_nums)], dim=0)    # (M, 4, 4)
         if self.add_multi_depth_proposal:
-            if input_depth_logits and self.multi_depth_config.get('topk', -1) != -1:
+            if input_depth_logits and self.multi_depth_config.get('topk', -1) > 1:
                 img2lidars_extra = img2lidars_.repeat(topk - 1, 1, 1)
                 img2lidars_extra = img2lidars_extra[valid_indices.repeat(topk - 1)]
                 img2lidars_ = torch.cat([img2lidars_, img2lidars_extra], dim=0)
