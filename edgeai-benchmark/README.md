@@ -114,6 +114,12 @@ See [pre-compiled model artifacts](./docs/precompiled_modelartifacts.md)
 The compiled models can be used for inference on development board/EVM. See **[setup and usage instruction for EVM](./docs/usage_evm.md)**
 
 <hr>
+
+## Tutorials
+See the [tutorials](./docs/tutorials.md)
+
+
+<hr>
 <hr>
 
 ## References

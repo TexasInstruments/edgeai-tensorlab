@@ -45,9 +45,7 @@ But such models may require the SDK firmware to be updated - otherwise those com
 
 
 ## Compiling with a custom model or custom configuration
-* For a simple example of setting up a custom compilation configuration, reference `tutorials/tutorial_classification.ipynb` or `tutorials/tutorial_detection.ipynb`.
 * To compile a custom model or a custom pipeline configuration, have look at examples custom configurations in `scripts/benchmark_custom.py`.
-
 
 Launch the custom configuration by calling 
 ```

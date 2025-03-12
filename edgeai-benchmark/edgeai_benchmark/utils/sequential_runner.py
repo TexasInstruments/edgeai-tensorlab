@@ -38,7 +38,7 @@ import re
 
 
 class SequentialRunner:
-    def __init__(self, parallel_processes=None, desc='TASKS', mininterval=1.0, maxinterval=60.0, tqdm_obj=None,
+    def __init__(self, parallel_processes=None, desc='TASKS', mininterval=0.15, maxinterval=2.0, tqdm_obj=None,
             overall_timeout=None, instance_timeout=None, verbose=False):
         self.parallel_processes = parallel_processes
         self.desc = desc
