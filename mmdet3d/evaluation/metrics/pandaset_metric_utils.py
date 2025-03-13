@@ -9,7 +9,7 @@ def velocity_l2(gt_box, pred_box):
     return np.linalg.norm(np.array(gt_box['velocity']) - np.array(pred_box['velocity']))
 
 def yaw_diff(gt_box, pred_box, period=2 * np.pi):
-    diff = (gt_box['yaw'] - pred_box['yaw'][0])
+    diff = (gt_box['yaw'] - pred_box['yaw'])
     diff = (diff + period / 2) % period - period / 2
     if diff > np.pi:
         diff = diff - (2 * np.pi)  

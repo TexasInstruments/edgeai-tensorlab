@@ -168,7 +168,7 @@ class PandaSetMetric(NuScenesMetric):
                     sample_token=sample_token,
                     translation=box[0:3].tolist(),
                     size=box[3:6].tolist(),
-                    yaw=box[6:7].tolist(),
+                    yaw=box[6].tolist(),
                     velocity=box[7:9].tolist(),
                     detection_name=name,
                     detection_score=scores[i],
@@ -241,6 +241,7 @@ class PandaSetMetric(NuScenesMetric):
             sample_token = info['token']
             annos = []
             boxes = det['bboxes_3d']
+            # boxes.tensor[:,1] = boxes.tensor[:,1] - boxes.tensor[:,4] * 0.5
             ego_corners, velocities = cam_bbox_to_ego_corners3d(boxes, info, camera_type)
             attrs = det['attr_labels'].to(self.collect_device).numpy().tolist()
             scores = det['scores_3d'].to(self.collect_device).numpy().tolist()
@@ -297,6 +298,7 @@ class PandaSetMetric(NuScenesMetric):
             labels = det['labels_3d'].to(self.collect_device).tolist()
             ego_corners , velocities = cam_bbox_to_ego_corners3d(boxes, info, camera_type)
             boxes = ego_corners3d_to_ego_bbox(ego_corners, velocities, )
+            boxes.tensor[:, 2] = boxes.tensor[:, 2] + boxes.tensor[:, 5] * 0.5
             
             for i in range(boxes.tensor.shape[0]):
                 box = boxes.tensor[i]
@@ -374,9 +376,6 @@ class PandaSetMetric(NuScenesMetric):
     def load_gt_bboxes(self, classes, class_mapping):
         def create_instance_list(instances, sample_token, info=None, cam_type=None):
             res_instances = []
-
-            lidar2ego = np.array(info['lidar_points']['lidar2ego'])
-            ego2global = np.array(info['ego2global'])
             for instance in instances:
                 if not instance['bbox_3d_isvalid']:
                     continue
