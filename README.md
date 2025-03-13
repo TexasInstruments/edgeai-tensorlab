@@ -45,12 +45,41 @@ Our documentation landing pages are the following:
 <hr>
 <hr>
 
+## How to get started
+
+Want do use Edge AI on TI's MPU devices - but don't know where to start? We have multiple solutions to help develop and deploy models.
+
+### Develop your model
+
+#### [EDGE-AI-STUDIO](https://www.ti.com/tool/EDGE-AI-STUDIO) - easy to use GUI tools 
+* Model Composer: Capture images, annotate them, train and compile models using GUI.
+* Model Analyzer: Use our hosted Jupyter notebooks to try model compilation online.
+
+#### [edgeai-modelmaker](edgeai-modelmaker) - a commandline tool that supports Bring Your Own Data (BYOD) development flow 
+* Use EDGE-AI-STUDIO Model Composer (above GUI tool) to collect and annotate data to create a dataset
+* Export the dataset on to your machine.
+* Use edgeai-modelmaker to train a model using the dataset. edgeai-modelmaker allows you to tweak more parameters than what is supported in the GUI tool
+* It is fully customizable, so you can look at how models and tasks are integrated and even add your own model or tasks.
+
+#### [edgeai-modelzoo](edgeai-modelzoo) - for advanced users
+* Navigagte to [edgeai-modelzoo](edgeai-modelzoo) to see see example models, their documentation and performance benchmarks.
+* Browse to the respositories that were used to train those models and try to train your own model using one of those.
+
+
+### Deploy your model
+* Use [edgeai-benchmark](edgeai-benchmark) or [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) to compile models and create compiled artifacts.
+* Run the compiled models using [Edge AI SDK](https://github.com/TexasInstruments/edgeai/blob/main/edgeai-mpu/readme_sdk.md)
+
+<hr>
+<hr>
+
+
 ## Components
 * The subcomponents have detailed documentation. In the browser, navigate into the sub-folders to see detailed documentation. Here is a high level overview.
 
 | Category                                | ToolLink                                     | Purpose                                          | IS NOT    |
 |-----------------------------------------|----------------------------------------------|--------------------------------------------------|-----------|
-| Model Zoo / Models collection      | [edgeai-modelzoo](edgeai-modelzoo)           | provides collection of pretrained models         |           |
+| Model Zoo / Models collection      | [edgeai-modelzoo](edgeai-modelzoo)           | provides collection of pretrained models, documentation & benchmark information         |           |
 |Model compilation & benchmarking     | [edgeai-benchmark](edgeai-benchmark)         | Wrapper on top of [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) for easy model compilation and speed/accuracy benchmarking<br>- Bring your own model and compile, benchmark and generate artifacts for deployment on SDK with camera, inference and display (using edgeai-gst-apps)<br>- Comprehends inference pipeline including dataset loading, pre-processing and post-processing<br>- Benchmarking of accuracy and latency with large data sets<br>- Post training quantization<br>- Docker for easy development environment setup |  |
 |Model training tools                 | [edgeai-modeloptimization](edgeai-modeloptimization)    | **Model optimization tools** for improved model training, tools to train TIDL friendly models.<br>- **Model surgery**: Modifies models with minimal loss in accuracy and makes it suitable for TI device (replaces unsupported operators)<br>- **QAT**: **Quantization Aware Training** to improve accuracy with fixed point quantization<br>- Model Pruning/sparsity: Induces sparsity during training – only applicable for specific devices - this is in development.<br> |- Does not support Tensorflow   |
 |Model training code    | [**edgeai-torchvision**](edgeai-torchvision)<br>[**edgeai-mmdetection**](edgeai-mmdetection)<br>[edgeai-mmdetection3d](edgeai-mmdetection3d)<br>[edgeai-hf-transformers](edgeai-hf-transformers)<br>[edgeai-mmpose](edgeai-mmpose)<br>[edgeai-tensorvision](edgeai-tensorvision) | Training repositories for various tasks<br>- Provides extensions of popular training repositories (like mmdetection, torchvision) with lite version of models |- Does not support Tensorflow |
