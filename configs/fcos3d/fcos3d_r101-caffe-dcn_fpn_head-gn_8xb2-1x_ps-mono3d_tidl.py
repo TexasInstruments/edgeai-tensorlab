@@ -32,6 +32,9 @@ env_cfg = dict(
 )
 
 train_cfg = dict(max_epochs=5)
+default_hooks = dict(
+    logger=dict(interval=10)
+)
 
 backend_args = None
 
@@ -45,7 +48,7 @@ train_pipeline = [
         with_bbox_3d=True,
         with_label_3d=True,
         with_bbox_depth=True),
-    dict(type='Resize3D', scale=(1600, 900), keep_ratio=True),
+    dict(type='Resize3D', scale=(1920, 1080), keep_ratio=True),
     dict(type='RandomFlip3D', flip_ratio_bev_horizontal=0.5),
     dict(
         type='Pack3DDetInputs',
@@ -68,7 +71,7 @@ val_dataloader = dict(batch_size=1, dataset=dict(pipeline=test_pipeline))
 
 # optimizer
 optim_wrapper = dict(
-    optimizer=dict(lr=0.002),
+    optimizer=dict(lr=0.0002),
     paramwise_cfg=dict(bias_lr_mult=2., bias_decay_mult=0.),
     clip_grad=dict(max_norm=35, norm_type=2))
 

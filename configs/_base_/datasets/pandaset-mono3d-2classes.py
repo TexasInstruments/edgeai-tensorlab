@@ -1,14 +1,10 @@
 dataset_type = 'PandaSetDataset'
 data_root = 'data/pandaset/data/'
 class_names = [
-            'Car', 'Semi-truck', 'Other Vehicle - Construction Vehicle', 'Pedestrian with Object', 
-            'Train', 'Animals - Bird', 'Bicycle', 'Rolling Containers', 'Pylons', 'Signs', 
-            'Emergency Vehicle', 'Towed Object', 'Personal Mobility Device', 'Motorcycle', 
-            'Tram / Subway', 'Other Vehicle - Uncommon', 'Other Vehicle - Pedicab', 
-            'Temporary Construction Barriers', 'Animals - Other', 'Bus', 'Motorized Scooter', 
-            'Pickup Truck', 'Road Barriers', 'Pedestrian', 'Construction Signs', 'Cones', 'Medium-sized Truck'
+            'Car','Temporary Construction Barriers',
         ]
-metainfo = dict(classes=class_names) # full
+class_mapping = [0]+[1]*26
+metainfo = dict(classes=class_names, class_mapping=class_mapping) # full
 # metainfo = dict(classes=class_names, version='v1.0-mini') # mini
 # Input modality for nuScenes dataset, this is consistent with the submission
 # format which requires the information in input_modality.
@@ -72,8 +68,8 @@ train_dataloader = dict(
             left_camera='camera/left_camera', 
             right_camera='camera/right_camera'
             ),
-        ann_file='pandaset_infos_train.pkl',
-        # ann_file='pandaset_mini_infos_val.pkl', # mini
+        # ann_file='pandaset_infos_train.pkl',
+        ann_file='pandaset_mini_infos_val.pkl', # mini
         load_type='mv_image_based',
         pipeline=train_pipeline,
         metainfo=metainfo,
@@ -83,8 +79,9 @@ train_dataloader = dict(
         # detection task
         box_type_3d='Camera',
         use_valid_flag=True,
-        max_dist_thr = 50,
-        backend_args=backend_args))
+        backend_args=backend_args
+        )
+    )
 val_dataloader = dict(
     batch_size=1,
     num_workers=2,
@@ -103,8 +100,8 @@ val_dataloader = dict(
             left_camera='camera/left_camera', 
             right_camera='camera/right_camera'
             ),
-        ann_file='pandaset_infos_val.pkl', 
-        # ann_file='pandaset_mini_infos_val.pkl', #mini
+        # ann_file='pandaset_infos_val.pkl', 
+        ann_file='pandaset_mini_infos_val.pkl', #mini
         load_type='mv_image_based',
         pipeline=test_pipeline,
         modality=input_modality,
@@ -112,16 +109,16 @@ val_dataloader = dict(
         test_mode=True,
         box_type_3d='Camera',
         use_valid_flag=True,
-        max_dist_thr = 50,
-        backend_args=backend_args))
+        backend_args=backend_args,
+    ))
 test_dataloader = val_dataloader
 
 val_evaluator = dict(
     type='PandaSetMetric',
     data_root=data_root,
     max_dists = 50,
-    ann_file=data_root + 'pandaset_infos_val.pkl', 
-    # ann_file=data_root + 'pandaset_mini_infos_val.pkl', # mini
+    # ann_file=data_root + 'pandaset_infos_val.pkl', 
+    ann_file=data_root + 'pandaset_mini_infos_val.pkl', # mini
     metric='bbox',
     backend_args=backend_args)
 

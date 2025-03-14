@@ -273,7 +273,7 @@ def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img ):
         # print((cuboid),(bbox),sep='\n')
         corners = convert_bbox_to_corners_for_lidar(bbox)
         # we have to store in lidar90 reference not in lidar refrence, of current frame
-        lidar_corners: np.ndarray[os.Any, np.dtype[np.floating[os.Any]]] = ( np.linalg.inv(lidar2global) @ np.hstack([corners, np.ones((corners.shape[0], 1))]).T).T[:,:3]
+        lidar_corners = ( np.linalg.inv(lidar2global) @ np.hstack([corners, np.ones((corners.shape[0], 1))]).T).T[:,:3]
         lidar_bboxes.append(convert_corners_to_bbox_for_lidar_box(lidar_corners))
         
     available_attrs = [attr for attr in ALL_ATTRIBUTES if f'attributes.{attr}' in cuboids.columns]
@@ -300,7 +300,7 @@ def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img ):
             token=token,
             bbox_label=label,
             bbox_label_3d =label,
-            bbox3d = lidar_bboxes[i],
+            bbox_3d = lidar_bboxes[i],
             bbox_3d_isvalid = valid_flags[i],
             bbox_3d_isstationary = stationary,
             num_lidar_pts = num_lidar_points[i], # change to num_lidar_pts

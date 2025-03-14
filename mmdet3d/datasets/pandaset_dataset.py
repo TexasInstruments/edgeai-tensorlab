@@ -26,7 +26,6 @@ ALL_ATTRIBUTES =  [
     'object_motion', 'pedestrian_behavior', 'pedestrian_age', 'rider_status', 'emergency_vehicle_lights'
 ]
 
-"""
 CLASSES = [
     'Car', 
     'Semi-truck', 
@@ -56,9 +55,9 @@ CLASSES = [
     'Cones', 
     'Medium-sized Truck'
 ]
-"""
 
-CLASSES = [
+
+'''CLASSES = [
     'Car',
     'Pedestrian with Object',
     'Rolling Containers',
@@ -70,7 +69,7 @@ CLASSES = [
     'Cones',
     'Medium-sized Truck'
 ]
-
+'''
 get_original_label = lambda x: (CLASSES.index(x) if x in CLASSES else -1)
 
 
@@ -196,13 +195,78 @@ class PandaSetDataset(NuScenesDataset):
                  **kwargs):
         if 'metainfo' in kwargs:
             orig_class_mapping = kwargs['metainfo'].get('class_mapping', None)
+            if not isinstance(orig_class_mapping,(dict, list, tuple)):
+                print(f"Wrong class mepping of type {type(orig_class_mapping).__name__} provided! No mapping is used!")
+                print("Please provide a mapping of type dict, list or tuple")
+                orig_class_mapping = None
         else:
             orig_class_mapping = None
+        if orig_class_mapping :
+            if len(orig_class_mapping) != len(self.METAINFO['classes']):
+                print(f"Wrong class mepping of Length {len(orig_class_mapping)} provided! No mapping is used!")
+                print("Please provide a mapping of length", len(self.METAINFO['classes']))
+                orig_class_mapping = None
+            else:
+                if isinstance(orig_class_mapping, dict):
+                    temp = [0]*len(orig_class_mapping)
+                    for k,v in orig_class_mapping.items():
+                        if isinstance(k, str):
+                            if k not in self.METAINFO['classes']:
+                                print(f"Wrong key {k} provided for class mepping! No mapping is used!")
+                                print(f"Please provide a key avilable in \n\t{self.METAINFO['classes']}\n")
+                                temp = None
+                                break
+                            temp[self.METAINFO['classes'].index(k)] = v
+                        elif isinstance(k, int):
+                            if (k<0) or (k>=len(self.METAINFO['classes'])):
+                                print(f"Wrong key {k} provided for class mepping! No mapping is used!")
+                                print(f"Please provide a key avilable between 0 and {len(self.METAINFO['classes'])-1}\n")
+                                temp = None
+                                break
+                            temp[k]=v
+                        else:
+                            print(f"Wrong key {k} of type {type(k).__name__} provided for class mepping! No mapping is used!")
+                            print("Please provide a key of type int or string")
+                            temp = None
+                            break
+                    orig_class_mapping = temp
+                temp = [0]*len(orig_class_mapping)
+                for i, k in enumerate(orig_class_mapping):
+                    if isinstance(k, str):
+                        if k not in kwargs['metainfo']['classes']:
+                            print(f"Wrong key {k} provided for class mepping! No mapping is used!")
+                            print(f"Please provide a key avilable in \n\t{kwargs['metainfo']['classes']}\n")
+                            temp = None
+                            break
+                        temp[i] = kwargs['metainfo']['classes'].index(k)
+                    elif isinstance(k, int):
+                        if (k<0) or (k>=len(kwargs['metainfo']['classes'])):
+                            print(f"Wrong key {k} provided for class mepping! No mapping is used!")
+                            print(f"Please provide a key avilable between 0 and {len(kwargs['metainfo']['classes'])-1}\n")
+                            temp = None
+                            break
+                        temp[i]=k
+                    else:
+                        print(f"Wrong key {k} of type {type(k).__name__} provided for class mepping! No mapping is used!")
+                        print("Please provide a key of type int or string")
+                        temp = None
+                        break
+                    orig_class_mapping = temp
+                orig_class_mapping = [max(min(x,len(kwargs['metainfo']['classes'])),0) for x in orig_class_mapping ]
+            kwargs['metainfo']['class_mapping'] = orig_class_mapping
         self._orig_data_prefix = copy.deepcopy(kwargs.get('data_prefix',{}))
         self.get_label_func = (lambda x : orig_class_mapping[x]) if orig_class_mapping else (lambda x: x)
         self.max_dist_thr = max_dist_thr
+        self.label_mapping_changed = False
         super().__init__(data_root, ann_file, pipeline, box_type_3d, load_type, modality, filter_empty_gt, test_mode, with_velocity, use_valid_flag, **kwargs)
-            
+
+    def full_init(self):
+        if not self.label_mapping_changed:
+            for k in self.label_mapping:
+                self.label_mapping[k] = self.get_label_func(k)
+            self.label_mapping_changed = True
+        return super().full_init()
+
     def _filter_with_mask(self, ann_info):
         if self.max_dist_thr:
             filtered_ann_info = {}

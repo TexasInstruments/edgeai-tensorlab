@@ -1,9 +1,13 @@
 _base_ = [
-    '../_base_/datasets/pandaset-mono3d.py', '../_base_/models/fcos3d.py',
+    '../_base_/datasets/pandaset-mono3d-2classes.py', '../_base_/models/fcos3d.py',
     '../_base_/schedules/mmdet-schedule-1x.py', '../_base_/default_runtime.py'
 ]
 # model settings
+custom_imports = dict(imports=['projects.FCOS3D.fcos3d'])
+
+# model settings
 model = dict(
+    save_onnx_model=False,
     data_preprocessor=dict(
         type='Det3DDataPreprocessor',
         mean=[103.530, 116.280, 123.675],
@@ -11,13 +15,26 @@ model = dict(
         bgr_to_rgb=False,
         pad_size_divisor=32),
     backbone=dict(
-        dcn=dict(type='DCNv2', deform_groups=1, fallback_on_stride=False),
+        dcn=dict(type='DCNv2_tidl', deform_groups=1, fallback_on_stride=False),
         stage_with_dcn=(False, False, True, True)),
-    bbox_head = dict(num_classes=27, num_attrs=22),
-    # test_cfg=dict(score_thr=0.0025,),
-    )
+    bbox_head=dict(
+        type='CustomFCOSMono3DHead',
+        dcn_on_last_conv=True,
+        num_classes=2, 
+        num_attrs=22,),
+    test_cfg=dict(
+        use_rotate_nms=False,
+        # score_thr=0.0025,
+        ))
 
-train_cfg = dict(max_epochs=20)
+env_cfg = dict(
+    dist_cfg = dict(timeout=3600)
+)
+
+train_cfg = dict(max_epochs=5)
+default_hooks = dict(
+    logger=dict(interval=10)
+)
 
 backend_args = None
 
@@ -43,18 +60,18 @@ train_pipeline = [
 test_pipeline = [
     dict(type='LoadImageFromFileMono3D', backend_args=backend_args),
     # dict(type='mmdet.Resize', scale=(1600, 900), keep_ratio=True),
-    dict(type='Resize3D ', scale_factor=1.0),
+    dict(type='Resize3D', scale_factor=1.0),
     dict(type='Pack3DDetInputs', keys=['img'])
 ]
 
 train_dataloader = dict(
-    batch_size=2, num_workers=2, dataset=dict(pipeline=train_pipeline, ))
+    batch_size=2, num_workers=4, dataset=dict(pipeline=train_pipeline, ))
 test_dataloader = dict(batch_size=1, dataset=dict(pipeline=test_pipeline))
 val_dataloader = dict(batch_size=1, dataset=dict(pipeline=test_pipeline))
 
 # optimizer
 optim_wrapper = dict(
-    optimizer=dict(lr=0.002),
+    optimizer=dict(lr=0.0002),
     paramwise_cfg=dict(bias_lr_mult=2., bias_decay_mult=0.),
     clip_grad=dict(max_norm=35, norm_type=2))
 

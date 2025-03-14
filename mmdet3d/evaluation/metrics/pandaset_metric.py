@@ -364,8 +364,12 @@ class PandaSetMetric(NuScenesMetric):
         pred_boxes = data['results']
         meta = data['meta']
         classes =self.dataset_meta['classes']
-        class_mapping = self.dataset_meta.get('class_mapping', list(range(len(self.dataset_meta['classes']))))
-        gt_boxes = self.load_gt_bboxes(classes, class_mapping)
+        class_mapping = self.dataset_meta.get('class_mapping', None)
+        if class_mapping:
+            class_mapping_func = lambda x: class_mapping[x]
+        else:
+            class_mapping_func = lambda x: x
+        gt_boxes = self.load_gt_bboxes(classes, class_mapping_func)
 
         gt_boxes = filter_eval_boxes(gt_boxes, self.max_dist_func)
         pred_boxes = filter_eval_boxes(pred_boxes, self.max_dist_func)
@@ -373,15 +377,15 @@ class PandaSetMetric(NuScenesMetric):
         metrics = pandaset_evaluate_metrics(pred_boxes, gt_boxes, classes, dist_ths, 2.0)
         return metrics
 
-    def load_gt_bboxes(self, classes, class_mapping):
+    def load_gt_bboxes(self, classes, class_mapping_func):
         def create_instance_list(instances, sample_token, info=None, cam_type=None):
             res_instances = []
             for instance in instances:
                 if not instance['bbox_3d_isvalid']:
                     continue
                 box = instance['bbox_3d']
-                name = classes[class_mapping[instance['bbox_label_3d']]]
-                label = class_mapping[instance['bbox_label_3d']]
+                name = classes[class_mapping_func(instance['bbox_label_3d'])]
+                label = class_mapping_func(instance['bbox_label_3d'])
                 attr = self.get_attr_name(instance['attr_label'], name)
                 name = classes[label]
                 velocity = instance['velocity']
