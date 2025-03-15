@@ -38,22 +38,22 @@ class PandaSetMetric(NuScenesMetric):
         'Train':'vehicle.Parked', 
         'Trolley':'vehicle.Parked', 
         'Tram / Subway':'vehicle.Parked',
-        'Emergency Vehicle':'emergency_vehicle.Parked.Lights not Flashing',
-        'Pedestrian':'Adult.Standing', 
-        'Pedestrian with Object':'Adult.Standing',
+        'Emergency Vehicle':'emergency_vehicle.Parked',
+        'Pedestrian':'pedestrian.Standing', 
+        'Pedestrian with Object':'pedestrian.Standing',
         'Motorcycle':'vehicle.Parked', 
         'Personal Mobility Device':'vehicle.Parked', 
         'Motorized Scooter':'vehicle.Parked',
         'Bicycle':'vehicle.Parked', 
         'Animals - Other':'vehicle.Parked',
-        'Animals - Bird': 'vehiche.Parked',
-        'Rolling Containers': 'vehicle.Parked',
-        'Pylons': 'object.standing',
-        'Signs' : 'object.standing',
-        'Temporary Construction Barriers' : 'object.standing',
-        'Road Barriers' : 'object.standing',
-        'Construction Signs' : 'object.standing',
-        'Cones': 'object.standing',
+        'Animals - Bird': 'None',
+        'Rolling Containers': 'None',
+        'Pylons': 'None',
+        'Signs' : 'None',
+        'Temporary Construction Barriers' : 'None',
+        'Road Barriers' : 'None',
+        'Construction Signs' : 'None',
+        'Cones': 'None',
     }
 
     
@@ -80,23 +80,23 @@ class PandaSetMetric(NuScenesMetric):
                 'Towed Object', 'Other Vehicle - Construction Vehicle',
                 'Other Vehicle - Uncommon', 'Other Vehicle - Pedicab',
                 'Bus', 'Train', 'Trolley', 'Tram / Subway',):
-            if attr_idx in list(range(13,22)):
+            if attr_idx in list(range(9, 18)):
                 return attr_mapping[attr_idx]
             return self.default_attributes[label_name]
         
         if label_name == 'Emergency Vehicle':
-            if attr_idx in list(range(9,13)):
+            if attr_idx in list(range(5,9)):
                 return attr_mapping[attr_idx]
             return self.default_attributes[label_name]
         
         if label_name in ('Pedestrian', 'Pedestrian with Object'):
-            if attr_idx in list(range(8)):
+            if attr_idx in list(range(4)):
                 return attr_mapping[attr_idx]
             return self.default_attributes[label_name]
         
         if label_name in ('Motorcycle', 'Personal Mobility Device', 'Motorized Scooter',
                         'Bicycle', 'Animals - Other',):
-            if attr_idx in list(range(13,22)):
+            if attr_idx in list(range(9,18)):
                 return attr_mapping[attr_idx]
             return self.default_attributes[label_name]
         
@@ -121,17 +121,6 @@ class PandaSetMetric(NuScenesMetric):
             sample_idx = sample_idx_list[i]
             sample_token = self.data_infos[sample_idx]['token']
 
-            """
-            if boxes.tensor.shape[0] > 0:
-                # Move box from LiDAR CS to ego CS 
-                lidar2ego = np.array(self.data_infos[sample_idx]['lidar_points']['lidar2ego'])
-                boxes.rotate(lidar2ego[:3, :3])
-                boxes.translate(lidar2ego[:3, 3])
-                # Move box from ego CS to Global CS
-                ego2global = np.array(self.data_infos[sample_idx]['ego2global'])
-                boxes.rotate(ego2global[:3, :3])
-                boxes.translate(ego2global[:3, 3])
-            """
 
             for i in range(boxes.tensor.shape[0]):
                 box = boxes.tensor[i]
@@ -141,24 +130,31 @@ class PandaSetMetric(NuScenesMetric):
                 elif np.linalg.norm(box[7:9]) > 0.2:
                     if name in [
                             'Car',
-                            'Semi-truck',
-                            'Other Vehicle - Construction Vehicle',
-                            'Bicycle',
-                            'Emergency Vehicle',
-                            'Motorcycle',
+                            'Pickup Truck'
                             'Medium-sized Truck',
+                            'Semi-truck',
+                            'Towed Object',
+                            'Other Vehicle - Construction Vehicle',
                             'Other Vehicle - Uncommon',
                             'Other Vehicle - Pedicab',
                             'Bus',
+                            'Train',
+                            'Trolley',
+                            'Tram / Subway',
+                            'Motorcycle',
+                            'Personal Mobility Device',
                             'Motorized Scooter',
-                            'Pickup Truck',
+                            'Bicycle',
+                            'Animals - Other',
                     ]:
-                        attr = 'vehicle.moving'
+                        attr = 'vehicle.Moving'
+                    elif name in ['Emergency Vehicle']:
+                        attr = 'emergency_vehicle.Moving'
                     elif name in [
                             'Pedestrian',
                             'Pedestrian with Object'
                     ]:
-                        attr = 'Adult.moving'
+                        attr = 'pedestrian.Walking'
                     else:
                         attr = self.default_attributes[name]
                 else:
@@ -389,14 +385,6 @@ class PandaSetMetric(NuScenesMetric):
                 attr = self.get_attr_name(instance['attr_label'], name)
                 name = classes[label]
                 velocity = instance['velocity']
-
-                #box = LiDARInstance3DBoxes(torch.Tensor(instance['bbox_3d']+instance['velocity'][0:2]).unsqueeze(0), box_dim=9)
-                #box.rotate(lidar2ego[:3, :3])
-                #box.translate(lidar2ego[:3, 3])
-                #box.rotate(ego2global[:3, :3])
-                #box.translate(ego2global[:3, 3])
-                #box = box.tensor[0]
-                #velocity=box[7:9]
 
                 if self.bbox_type_3d == CameraInstance3DBoxes:
                     assert info is not None and cam_type is not None, 'info and cam_type should be provided for CameraInstance3DBoxes'

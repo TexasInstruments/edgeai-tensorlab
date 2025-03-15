@@ -22,8 +22,9 @@ CAMERA_NAMES = [
     'right_camera',
 ]
 
+# BEV networks do not detect emergency vehicle light, age and rider status
 ALL_ATTRIBUTES =  [
-    'object_motion', 'pedestrian_behavior', 'pedestrian_age', 'rider_status', 'emergency_vehicle_lights'
+    'object_motion', 'pedestrian_behavior'
 ]
 
 CLASSES = [
@@ -74,14 +75,10 @@ get_original_label = lambda x: (CLASSES.index(x) if x in CLASSES else -1)
 
 
 UNIQUE_ATTRIBUTE_LABELS = [
-    'Adult.Lying',
-    'Adult.Sitting',
-    'Adult.Standing',
-    'Adult.Walking',
-    'Child.Sitting',
-    'Child.Standing',
-    'Child.Walking',
-    'Child.Lying',
+    'pedestrian.Lying',
+    'pedestrian.Sitting',
+    'pedestrian.Standing',
+    'pedestrian.Walking',
     'None',
     'emergency_vehicle.Moving.Lights not Flashing',
     'emergency_vehicle.Parked.Lights Flashing',

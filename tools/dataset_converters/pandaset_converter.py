@@ -126,6 +126,11 @@ def calculate_velocities(all_cuboids, timestamps):
         next_timestamp = timestamps[next] if next is not None else None
         curr_timestamp = timestamps[index]
         for token, label, yaw, stationary, camera_used, x, y, z, width, length, height, *others in cuboids:
+            # For the objects with static attribute
+            if others[0] != 'Moving' and (len(others) < 5 or others[4] != 'Walking'):
+                velocities += [[0,0,0]]
+                continue
+
             prev_cuboid = next_cuboid = None
             velocity = None
             if prev is not None:
@@ -185,6 +190,7 @@ def filter_siblings(cuboids,sibling_idx):
     return non_removed_bboxes
 
 def filter_unused_labels(cuboids):
+    columns = cuboids.columns
     if isinstance(cuboids, pd.DataFrame):
         cuboids = cuboids.values
     elif isinstance(cuboids, (list, tuple)):
@@ -196,8 +202,9 @@ def filter_unused_labels(cuboids):
             valid_index.append(i)
 
     cuboids=cuboids[valid_index]
-    return pd.DataFrame(cuboids)
-
+    cuboids=pd.DataFrame(cuboids)
+    cuboids.columns = columns
+    return cuboids
 
 
 def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img ):
