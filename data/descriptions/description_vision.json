@@ -1648,144 +1648,6 @@
         }
       }
     },
-    "yolov9_s_lite":{
-      "common":{
-        "verbose_mode":true,
-        "download_path":"./data/downloads",
-        "projects_path":"./data/projects",
-        "project_path":null,
-        "project_run_path":null,
-        "task_type":"detection",
-        "target_machine":"pc",
-        "target_device":null,
-        "run_name":"{date-time}/{model_name}",
-        "target_module":"vision"
-      },
-      "download":[
-        {
-          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolov9_s_coco_lite_640x640_20250219_checkpoint.pth",
-          "download_path":"{download_path}/pretrained/yolov9_s_lite"
-        }
-      ],
-      "dataset":{
-        "enable":true,
-        "dataset_name":null,
-        "dataset_path":null,
-        "extract_path":null,
-        "split_factor":0.8,
-        "split_names":[
-          "train",
-          "val"
-        ],
-        "max_num_files":10000,
-        "input_data_path":null,
-        "input_annotation_path":null,
-        "data_path_splits":null,
-        "data_dir":"images",
-        "annotation_path_splits":null,
-        "annotation_dir":"annotations",
-        "annotation_prefix":"instances",
-        "annotation_format":"coco_json",
-        "dataset_download":true,
-        "dataset_reload":false
-      },
-      "training":{
-        "enable":true,
-        "model_name":"yolov9_s_lite",
-        "model_training_id":"yolov9_s_coco_lite",
-        "training_backend":"edgeai_mmdetection",
-        "pretrained_checkpoint_path":{
-          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolov9_s_coco_lite_640x640_20250219_checkpoint.pth",
-          "download_path":"{download_path}/pretrained/yolov9_s_lite"
-        },
-        "pretrained_weight_state_dict_name":null,
-        "target_devices":{
-          "TDA4VM":{
-            "performance_fps":null,
-            "performance_infer_time_ms":null,
-            "accuracy_factor":54.0,
-            "accuracy_unit":"AP50%",
-            "accuracy_factor2":38.3,
-            "accuracy_unit2":"AP[.5:.95]%",
-            "model_selection_factor":null
-          },
-          "AM68A":{
-            "performance_fps":null,
-            "performance_infer_time_ms":null,
-            "accuracy_factor":54.0,
-            "accuracy_unit":"AP50%",
-            "accuracy_factor2":38.3,
-            "accuracy_unit2":"AP[.5:.95]%",
-            "model_selection_factor":null
-          },
-          "AM69A":{
-            "performance_fps":null,
-            "performance_infer_time_ms":null,
-            "accuracy_factor":54.0,
-            "accuracy_unit":"AP50%",
-            "accuracy_factor2":38.3,
-            "accuracy_unit2":"AP[.5:.95]%",
-            "model_selection_factor":null
-          }
-        },
-        "project_path":null,
-        "dataset_path":null,
-        "training_path":null,
-        "log_file_path":null,
-        "log_summary_regex":null,
-        "summary_file_path":null,
-        "model_checkpoint_path":null,
-        "model_export_path":null,
-        "model_proto_path":null,
-        "model_packaged_path":null,
-        "training_epochs":15,
-        "warmup_epochs":1,
-        "num_last_epochs":5,
-        "batch_size":8,
-        "learning_rate":0.002,
-        "num_classes":null,
-        "weight_decay":0.0001,
-        "input_resize":640,
-        "input_cropsize":640,
-        "training_device":null,
-        "num_gpus":0,
-        "distributed":true,
-        "training_master_port":29500,
-        "with_background_class":null,
-        "model_architecture":"yolov9",
-        "training_devices":{
-          "cpu":true,
-          "cuda":true
-        }
-      },
-      "compilation":{
-        "enable":true,
-        "preset_name":null,
-        "model_compilation_id":"od-9204",
-        "compilation_path":null,
-        "model_compiled_path":null,
-        "log_file_path":null,
-        "log_summary_regex":null,
-        "summary_file_path":null,
-        "output_tensors_path":null,
-        "model_packaged_path":null,
-        "model_visualization_path":null,
-        "tensor_bits":8,
-        "calibration_frames":10,
-        "calibration_iterations":10,
-        "num_frames":null,
-        "num_output_frames":50,
-        "detection_threshold":0.3,
-        "detection_top_k":200,
-        "save_output":true,
-        "tidl_offload":true,
-        "input_optimization":false,
-        "log_file":true,
-        "metric":{
-          "label_offset_pred":1
-        }
-      }
-    },
     "yoloxpose_tiny_lite":{
       "common":{
         "verbose_mode":true,
@@ -3251,7 +3113,7 @@
     "AM67A":{
       "device_name":"AM67A",
       "device_type":"MPU",
-      "device_selection_factor":1,
+      "device_selection_factor":2,
       "device_details":"Efficient 4 TOPS AI capability at edge\nSpecification:\n* 4 TOPS Deep Learning accelerator\n* Quad Arm\u00ae Cortex\u00ae-A53\n* Integrated ISP\n* More details : https://www.ti.com/product/AM67A\n\nImportant links:\n* Product information: https://www.ti.com/product/AM67A\n* Development board: https://www.ti.com/tool/J722SXH01EVM\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM67A\n* SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM67A\n* SDK release: 10_01_00\n\nAdditional information:\n* Edge AI introduction: https://ti.com/edgeai\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n",
       "sdk_version":"10.1.0",
       "sdk_release":"10_01_00"
@@ -3259,7 +3121,7 @@
     "TDA4VM":{
       "device_name":"TDA4VM",
       "device_type":"MPU",
-      "device_selection_factor":2,
+      "device_selection_factor":3,
       "device_details":"Efficient 8 TOPS AI capability at edge\nSpecification:\n* 8 TOPS Deep Learning accelerator\n* Dual Arm\u00ae Cortex\u00ae-A72\n* Integrated ISP\n* More details : https://www.ti.com/product/TDA4VM\n\nImportant links:\n* Product information: https://www.ti.com/product/TDA4VM\n* Development board: https://www.ti.com/tool/SK-TDA4VM\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM\n* SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-SK-TDA4VM\n* SDK release: 10_01_00\n\nAdditional information:\n* Edge AI introduction: https://ti.com/edgeai\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n",
       "sdk_version":"10.1.0",
       "sdk_release":"10_01_00"
@@ -3267,7 +3129,7 @@
     "AM68A":{
       "device_name":"AM68A",
       "device_type":"MPU",
-      "device_selection_factor":3,
+      "device_selection_factor":4,
       "device_details":"Efficient 8 TOPS AI capability at edge\nSpecification:\n* 8 TOPS Deep Learning accelerator\n* Dual Arm\u00ae Cortex\u00ae-A72\n* Integrated ISP\n* More details : https://www.ti.com/product/AM68A\n\nImportant links:\n* Product information: https://www.ti.com/product/AM68A\n* Development board: https://www.ti.com/tool/SK-AM68\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A\n* SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM68A\n* SDK release: 10_01_00\n\nAdditional information:\n* Edge AI introduction: https://ti.com/edgeai\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n",
       "sdk_version":"10.1.0",
       "sdk_release":"10_01_00"
@@ -3275,7 +3137,7 @@
     "AM69A":{
       "device_name":"AM69A",
       "device_type":"MPU",
-      "device_selection_factor":4,
+      "device_selection_factor":5,
       "device_details":"Efficient 32 TOPS AI capability at edge\nSpecification:\n* 32 TOPS Deep Learning accelerator\n* 8 Arm\u00ae Cortex\u00ae-A72\n* Integrated ISP\n* More details : https://www.ti.com/product/AM69A\n\nImportant links:\n* Product information: https://www.ti.com/product/AM69A\n* Development board: https://www.ti.com/tool/SK-AM69\n* Edge AI Linux SDK: https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM69A\n* SDK documentation & board setup: See Edge AI documentation at https://www.ti.com/tool/download/PROCESSOR-SDK-LINUX-AM69A\n* SDK release: 10_01_00\n\nAdditional information:\n* Edge AI introduction: https://ti.com/edgeai\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n* Edge AI tools introduction: https://dev.ti.com/edgeai/\n",
       "sdk_version":"10.1.0",
       "sdk_release":"10_01_00"

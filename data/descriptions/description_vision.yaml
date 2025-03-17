@@ -1011,128 +1011,6 @@ model_descriptions:
       warmup_epochs: 1
       weight_decay: 0.0001
       with_background_class: null
-  yolov9_s_lite:
-    common:
-      download_path: ./data/downloads
-      project_path: null
-      project_run_path: null
-      projects_path: ./data/projects
-      run_name: '{date-time}/{model_name}'
-      target_device: null
-      target_machine: pc
-      target_module: vision
-      task_type: detection
-      verbose_mode: true
-    compilation:
-      calibration_frames: 10
-      calibration_iterations: 10
-      compilation_path: null
-      detection_threshold: 0.3
-      detection_top_k: 200
-      enable: true
-      input_optimization: false
-      log_file: true
-      log_file_path: null
-      log_summary_regex: null
-      metric:
-        label_offset_pred: 1
-      model_compilation_id: od-9204
-      model_compiled_path: null
-      model_packaged_path: null
-      model_visualization_path: null
-      num_frames: null
-      num_output_frames: 50
-      output_tensors_path: null
-      preset_name: null
-      save_output: true
-      summary_file_path: null
-      tensor_bits: 8
-      tidl_offload: true
-    dataset:
-      annotation_dir: annotations
-      annotation_format: coco_json
-      annotation_path_splits: null
-      annotation_prefix: instances
-      data_dir: images
-      data_path_splits: null
-      dataset_download: true
-      dataset_name: null
-      dataset_path: null
-      dataset_reload: false
-      enable: true
-      extract_path: null
-      input_annotation_path: null
-      input_data_path: null
-      max_num_files: 10000
-      split_factor: 0.8
-      split_names:
-      - train
-      - val
-    download:
-    - download_path: '{download_path}/pretrained/yolov9_s_lite'
-      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolov9_s_coco_lite_640x640_20250219_checkpoint.pth
-    training:
-      batch_size: 8
-      dataset_path: null
-      distributed: true
-      enable: true
-      input_cropsize: 640
-      input_resize: 640
-      learning_rate: 0.002
-      log_file_path: null
-      log_summary_regex: null
-      model_architecture: yolov9
-      model_checkpoint_path: null
-      model_export_path: null
-      model_name: yolov9_s_lite
-      model_packaged_path: null
-      model_proto_path: null
-      model_training_id: yolov9_s_coco_lite
-      num_classes: null
-      num_gpus: 0
-      num_last_epochs: 5
-      pretrained_checkpoint_path:
-        download_path: '{download_path}/pretrained/yolov9_s_lite'
-        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolov9_s_coco_lite_640x640_20250219_checkpoint.pth
-      pretrained_weight_state_dict_name: null
-      project_path: null
-      summary_file_path: null
-      target_devices:
-        AM68A:
-          accuracy_factor: 54.0
-          accuracy_factor2: 38.3
-          accuracy_unit: AP50%
-          accuracy_unit2: AP[.5:.95]%
-          model_selection_factor: null
-          performance_fps: null
-          performance_infer_time_ms: null
-        AM69A:
-          accuracy_factor: 54.0
-          accuracy_factor2: 38.3
-          accuracy_unit: AP50%
-          accuracy_unit2: AP[.5:.95]%
-          model_selection_factor: null
-          performance_fps: null
-          performance_infer_time_ms: null
-        TDA4VM:
-          accuracy_factor: 54.0
-          accuracy_factor2: 38.3
-          accuracy_unit: AP50%
-          accuracy_unit2: AP[.5:.95]%
-          model_selection_factor: null
-          performance_fps: null
-          performance_infer_time_ms: null
-      training_backend: edgeai_mmdetection
-      training_device: null
-      training_devices:
-        cpu: true
-        cuda: true
-      training_epochs: 15
-      training_master_port: 29500
-      training_path: null
-      warmup_epochs: 1
-      weight_decay: 0.0001
-      with_background_class: null
   yolox_nano_lite:
     common:
       download_path: ./data/downloads
@@ -2934,7 +2812,7 @@ target_device_descriptions:
       \ https://ti.com/edgeai\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n\
       * Edge AI tools introduction: https://dev.ti.com/edgeai/\n"
     device_name: AM67A
-    device_selection_factor: 1
+    device_selection_factor: 2
     device_type: MPU
     sdk_release: '10_01_00'
     sdk_version: 10.1.0
@@ -2949,7 +2827,7 @@ target_device_descriptions:
       \ https://ti.com/edgeai\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n\
       * Edge AI tools introduction: https://dev.ti.com/edgeai/\n"
     device_name: AM68A
-    device_selection_factor: 3
+    device_selection_factor: 4
     device_type: MPU
     sdk_release: '10_01_00'
     sdk_version: 10.1.0
@@ -2964,7 +2842,7 @@ target_device_descriptions:
       \ https://ti.com/edgeai\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n\
       * Edge AI tools introduction: https://dev.ti.com/edgeai/\n"
     device_name: AM69A
-    device_selection_factor: 4
+    device_selection_factor: 5
     device_type: MPU
     sdk_release: '10_01_00'
     sdk_version: 10.1.0
@@ -2979,7 +2857,7 @@ target_device_descriptions:
       \ https://ti.com/edgeai\n* Edge AI model development information: https://github.com/TexasInstruments/edgeai\n\
       * Edge AI tools introduction: https://dev.ti.com/edgeai/\n"
     device_name: TDA4VM
-    device_selection_factor: 2
+    device_selection_factor: 3
     device_type: MPU
     sdk_release: '10_01_00'
     sdk_version: 10.1.0
