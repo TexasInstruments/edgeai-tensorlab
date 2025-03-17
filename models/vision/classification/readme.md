@@ -39,7 +39,7 @@ The models are grouped in terms of repositories used to train them or the reposi
 ### EdgeAI-TorchVision
 EdgeAI-TorchVision is our extension of Torchvision that can be used to train embedded friendly Lite models.
 - [Models Link](./imagenet1k/edgeai-tv/)
-- **[Training Source Code](https://github.com/TexasInstruments/edgeai-torchvision)**
+- **[Training source code](https://github.com/TexasInstruments/edgeai-torchvision)**
 - [More Information](https://github.com/TexasInstruments/edgeai-torchvision/blob/master/docs/pixel2pixel/Image_Classification.md)
 
 |Dataset  |Model Name             |Input Size|GigaMACs|Top-1 Accuracy%|Available|Notes    |
@@ -66,7 +66,7 @@ Torchvision from Pytorch is one of the most popular packages for DNN training us
 - [Models Link](./imagenet1k/torchvision/)
 - [Additional information](https://pytorch.org/vision/stable/models.html)
 - [Models Source Code](https://github.com/pytorch/vision)
-- [**Training Source Code**](https://github.com/pytorch/examples/tree/master/imagenet)
+- [**Training source code**](https://github.com/pytorch/examples/tree/master/imagenet)
 
 |Dataset  |Model Name          |Input Size|GigaMACs|Top-1 Accuracy%|Available|Notes |
 |---------|----------          |----------|--------|--------       |---------|------|
@@ -87,8 +87,10 @@ Torchvision from Pytorch is one of the most popular packages for DNN training us
 ---
 
 <div id="EdgeAI-HF-Transformers"></div>
+
+### Hugging Face Transformers
 - [Models Link](./imagenet1k/hf-transformers/)
-- **[Training Source Code](https://github.com/TexasInstruments/edgeai-tensorlab/edgeai-hf-transformers)**
+- [Training source code is in **edgeai-hf-transformers**](https://github.com/TexasInstruments/edgeai-tensorlab/edgeai-hf-transformers)
 - Note: the above repository is forked and modified from: https://github.com/huggingface/transformers
 
 |Dataset  | Model Name                               | Input Size | GigaMACs | Top-1 Accuracy% | Available |Notes    |
@@ -116,7 +118,7 @@ Torchvision from Pytorch is one of the most popular packages for DNN training us
 ### Facebookresearch/pycls
 - [Models Link](./imagenet1k/fbr-pycls/)
 - [Pretrained Models](https://github.com/facebookresearch/pycls/blob/master/MODEL_ZOO.md)
-- [Training Source Code](https://github.com/facebookresearch/pycls/)
+- [Training source code](https://github.com/facebookresearch/pycls/)
 
 |Dataset  |Model Name       |Input Size|GigaMACs|Top-1 Accuracy%|Available|Notes |
 |---------|----------       |----------|--------|--------       |---------|------|
@@ -134,8 +136,8 @@ Torchvision from Pytorch is one of the most popular packages for DNN training us
 
 ### Tensorflow TPU Models
 - [Models Link](./imagenet1k/tf-tpu/)
-- [Training Source Code](https://github.com/tensorflow/tpu/tree/master/models/official)
-- [Training Source Code for EfficientNet](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet)
+- [Training source code](https://github.com/tensorflow/tpu/tree/master/models/official)
+- [Training source code for EfficientNet](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet)
 
 |Dataset  |Model Name                   |Input Size|GigaMACs|Top-1 Accuracy%|Available|Notes |
 |---------|----------                   |----------|--------|--------       |---------|------|
@@ -156,7 +158,7 @@ Torchvision from Pytorch is one of the most popular packages for DNN training us
 
 ### TensorFlow Model Garden - Models Using Tensorflow 1.0 APIs
 - [Models Link](./imagenet1k/tf1-models/)
-- [Training Source Code](https://github.com/tensorflow/models)
+- [Training source code](https://github.com/tensorflow/models)
 - [More Information - Hosted Models](https://www.tensorflow.org/lite/models)
 - [More Information - Slim Models](https://github.com/tensorflow/models/tree/master/research/slim)
 
@@ -182,7 +184,7 @@ Torchvision from Pytorch is one of the most popular packages for DNN training us
 
 ### TensorFlow Model Garden - Models Using Tensorflow 2.0 Keras APIs
 - [Models Link](./imagenet1k/tf2-models/)
-- [Training Source Code](https://github.com/tensorflow/models)
+- [Training source code](https://github.com/tensorflow/models)
 - [More Information - Official Models](https://github.com/tensorflow/models/tree/master/official)
 - [More Information - Keras Models](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/python/keras/applications)
 
