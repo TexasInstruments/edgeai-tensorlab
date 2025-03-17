@@ -57,7 +57,7 @@ echo "SOURCE_LOCATION="${SOURCE_LOCATION}
 # clone
 if [[ ${CLONE_GIT_REPOS} -ne 0 ]]; then
     echo "cloning git repositories. this may take some time..."
-    echo "if there is any issue, please remove these folders and try again ../edgeai-benchmark ../edgeai-mmdetection ../edgeai-torchvision ../edgeai-modelzoo ../edgeai-yolox"
+    echo "if there is any issue, please remove these folders and try again ../edgeai-benchmark ../edgeai-mmdetection ../edgeai-torchvision ../edgeai-modelzoo"
     if [[ ! -d ../edgeai-benchmark ]]; then git clone --branch r10.0 ${SOURCE_LOCATION}edgeai-benchmark.git ../edgeai-benchmark; fi
     if [[ ! -d ../edgeai-mmdetection ]]; then git clone --branch r10.0 ${SOURCE_LOCATION}edgeai-mmdetection.git ../edgeai-mmdetection; fi
     if [[ ! -d ../edgeai-mmpose ]]; then git clone --branch r10.0 ${SOURCE_LOCATION}edgeai-mmpose.git ../edgeai-mmpose; fi

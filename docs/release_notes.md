@@ -14,7 +14,6 @@ Note: We follow the EdgeAI-SDK (Processor SDK Linux with Edge AI) release number
 | Model name                    | Model Type                            | Source repository      |
 |-------------------------------|---------------------------------------|------------------------|
 | YOLOv7       | Object Detection                      | edgeai-mmdetection     |
-| YOLOv9       | Object Detection                      | edgeai-mmdetection     |
 | YOLOXPose                     | Keypoint detection / Human Pose       | edgeai-mmpose          |
 
 
@@ -42,7 +41,7 @@ Note: We follow the EdgeAI-SDK (Processor SDK Linux with Edge AI) release number
 ### New Features
 ##### Task Types
 - Support for Key point detection task has added. It is enabled by using the repository https://github.com/TexasInstruments/edgeai-yolox which implements the [YOLO-pose](https://arxiv.org/abs/2204.06806) method.
-- Example dataset for Keypoint detection is yet to be added, but will be added in r9.1 branch itself in about a month or so.
+- Example dataset for Keypoint detection is yet to be added.
 
 ##### Devices
 - Support for [AM62](https://www.ti.com/product/AM625) SoC and it's starter kit [SK-AM62](https://www.ti.com/tool/SK-AM62) is enabled. Note 1: Unlike other Analytics SoCs, AM62 does not have a DSP or Matrix Multiplier Acceletator; so the model inference runs on the ARM CPU itself. Note 2: Currently we use floating point models in AM62, but we have a desire to use INT8 models to speedup inference in the future.
