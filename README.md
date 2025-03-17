@@ -22,6 +22,8 @@ We are in the process of adding support for several new models. Configs for mode
 | efficientdet_effb0_bifpn_lite | Object Detection                      | edgeai-mmdetection     |
 | YOLOXPose                     | Keypoint detection / Human Pose       | edgeai-mmpose          |
 
+**Note**: some of these models don't work natively in 10.1, but require a **firmware update** in the SDK and model compilation with firmware version set corresponding to that in tidl-tools. A separate script called  run_benchmarks_firmware_update_pc.sh is provided in edgeai-benchmark to compile models with newer firmware.
+
 ### New models in edgeai-modelmaker
 | Model name                    | Model Type                            | Source repository      |
 |-------------------------------|---------------------------------------|------------------------|
