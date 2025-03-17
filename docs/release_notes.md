@@ -31,6 +31,9 @@ We are in the process of adding support for several new models. Configs for mode
 ### Tech reports
 New Tech report on 3D Object Detection - see the section on "Tech Reports"
 
+### Deprecations
+edgeai-yolox is being deprecated - use [edgeai-mmpose](edgeai-mmpose) for Keypoint detection and [edgeai-mmdetection](edgeai-mmdetection) for Object Detection. The previous version of edgeai-yolox is still available in the previous branches of this repository or [here](https://github.com/TexasInstruments/edgeai-yolox)
+
 <hr>
 
 ## Release 10.0 (10_00)
