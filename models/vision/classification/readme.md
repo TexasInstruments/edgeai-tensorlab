@@ -14,11 +14,11 @@ Image classification is one of the most popular problems in Computer Vision. It 
 ## Models 
 The models are grouped in terms of repositories used to train them or the repositories through they are made available. Models from the following repositories are currently part of TI model zoo.
 
-[EdgeAI-TorchVision](#EdgeAI-TorchVision)
+[edgeai-torchvision](#edgeai-torchvision)
 
-[Torchvision](#Torchvision-models)
+[torchvision](#torchvision-models)
 
-[EdgeAI-HF-Transformers](#EdgeAI-HF-Transformers) Transformer models repository forked from https://github.com/huggingface/transformers
+[edgeai-hf-transformers](#edgeai-hf-transformers) Transformer models repository forked from https://github.com/huggingface/transformers
 
 [Facebookresearch/pycls](#Facebookresearch/pycls)
 
@@ -34,13 +34,12 @@ The models are grouped in terms of repositories used to train them or the reposi
 
 ---
 
-<div id="EdgeAI-TorchVision"></div>
+<div id="edgeai-torchvision"></div>
 
-### EdgeAI-TorchVision
-EdgeAI-TorchVision is our extension of Torchvision that can be used to train embedded friendly Lite models.
+### edgeai-torchvision
+edgeai-torchvision is our extension of torchvision that can be used to train embedded friendly Lite models.
 - [Models Link](./imagenet1k/edgeai-tv/)
-- **[Training source code](https://github.com/TexasInstruments/edgeai-torchvision)**
-- [More Information](https://github.com/TexasInstruments/edgeai-torchvision/blob/master/docs/pixel2pixel/Image_Classification.md)
+- **[Training source code](https://github.com/TexasInstruments/edgeai-tensorlab/edgeai-torchvision)**
 
 |Dataset  |Model Name             |Input Size|GigaMACs|Top-1 Accuracy%|Available|Notes    |
 |---------|----------             |----------|--------|--------       |---------|------   |
@@ -59,10 +58,10 @@ EdgeAI-TorchVision is our extension of Torchvision that can be used to train emb
 
 ---
 
-<div id="Torchvision-models"></div>
+<div id="torchvision-models"></div>
 
-### Torchvision models
-Torchvision from Pytorch is one of the most popular packages for DNN training using PyTorch.
+### torchvision models
+torchvision from Pytorch is one of the most popular packages for DNN training using PyTorch.
 - [Models Link](./imagenet1k/torchvision/)
 - [Additional information](https://pytorch.org/vision/stable/models.html)
 - [Models Source Code](https://github.com/pytorch/vision)
@@ -86,7 +85,7 @@ Torchvision from Pytorch is one of the most popular packages for DNN training us
 
 ---
 
-<div id="EdgeAI-HF-Transformers"></div>
+<div id="edgeai-hf-transformers"></div>
 
 ### Hugging Face Transformers
 - [Models Link](./imagenet1k/hf-transformers/)

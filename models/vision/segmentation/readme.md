@@ -23,11 +23,11 @@ COCO dataset: Microsoft COCO: Common Objects in Context, Tsung-Yi Lin, Michael M
 Note: **Transformer models have been added using the edgeai-hf-transformers repository (see below)**
 
 
-### EdgeAI-Torchvision
+### edgeai-tensorvision
 - [Models Link - COCOSeg21](./cocoseg21/edgeai-tv/)
 - [Models Link - ADE20K32](./ade20k32/edgeai-tv/)
-- [Additional information](https://github.com/TexasInstruments/edgeai-torchvision/blob/master/docs/pixel2pixel/Semantic_Segmentation.md)
-- [Training Code](https://github.com/TexasInstruments/edgeai-torchvision)
+- [Additional information](https://github.com/TexasInstruments/edgeai-tensorlab/edgeai-tensorvision/blob/master/docs/pixel2pixel/Semantic_Segmentation.md)
+- [Training Code](https://github.com/TexasInstruments/edgeai-tensorlab/edgeai-tensorvision)
 
 
 |Dataset    |Model Name                     |Input Size |GigaMACs  |MeanIoU%       |Available|Notes |
@@ -64,9 +64,12 @@ Note: **Transformer models have been added using the edgeai-hf-transformers repo
 *- Quantization Aware Training using 8b precision
 
 
-### Torchvision Models
+### edgeai-torchvision / torchvision Models
+- [Models Link - COCOSeg21](./cocoseg21/edgeai-tv/)
+- [Models Link - ADE20K32](./ade20k32/edgeai-tv/)
+- [Training Code](https://github.com/TexasInstruments/edgeai-tensorlab/edgeai-torchvision)
+- [Original Training source code](https://github.com/pytorch/vision/tree/master/references)
 - [Additional information](https://pytorch.org/vision/stable/models.html)
-- [Training Source Code](https://github.com/pytorch/vision/tree/master/references)
 
 |Dataset    |Model Name                     |Input Size |GigaMACs  |MeanIoU%       |Available|Notes |
 |---------- |-------------------------------|-----------|----------|---------------|---------|------|
@@ -79,9 +82,9 @@ Note: **Transformer models have been added using the edgeai-hf-transformers repo
 |Cityscapes |ResNet50+DeepLabV3[5,11]       |1040x520   |337.5     |73.5           |         |      |
 
 
-### EdgeAI-HF-Transformers
+### edgeai-hf-transformers
 - [Models Link](./coco/hf-transformers/)
-- **[Training Source Code](https://github.com/TexasInstruments/edgeai-tensorlab/edgeai-hf-transformers)**
+- **[Training source code](https://github.com/TexasInstruments/edgeai-tensorlab/edgeai-hf-transformers)**
 - Note: the above repository is forked and modified from: https://github.com/huggingface/transformers
 
 |Dataset | Model Name                                 | Input Size | GigaMACS | MeanIoU% | Available |Notes |
@@ -92,7 +95,7 @@ Note: **Transformer models have been added using the edgeai-hf-transformers repo
 
 ### Tensorflow DeepLab Models
 - [Models Link](./voc2012/tf1-models/)
-- [Training Source Code](https://github.com/tensorflow/models/tree/master/research/deeplab)
+- [Training source code](https://github.com/tensorflow/models/tree/master/research/deeplab)
 - [**Additional Information**](./utils/tf-deeplab)
 
 |Dataset    |Model Name                     |Input Size |GigaMACs  |MeanIoU%    |Available|Notes |

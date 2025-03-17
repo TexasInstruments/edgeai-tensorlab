@@ -14,17 +14,43 @@ The models are grouped in terms of repositories used to train them or the reposi
 Note: **Transformer models have been added using the edgeai-hf-transformers repository (see below)**
 
 
-### EdgeAI-MMDetection
+### edgeai-mmdetection
 - [Models Link](./coco/edgeai-mmdet/)
-- [**Training Source Code**](https://github.com/TexasInstruments/edgeai-mmdetection)
+- [**Training Source Code**](https://github.com/TexasInstruments/edgeai-tensorlab/edgeai-mmdetection)
 
-This is our fork of the popular mmdetection training framework for object detection. We provide several optimized, embedded friendly configurations that provide high throughput on our SoCs. One can train and export models to onnx format, and can then be used in our fork of onnxruntime. Most of the models listed here have been trained using configs in [edgeai-mmdetection/configs/edgeailite](https://github.com/TexasInstruments/edgeai-mmdetection/tree/master/configs/edgeailite). Please visit the link above for more information.
+This is our fork of the popular mmdetection training framework for object detection. We provide several optimized, embedded friendly configurations that provide high throughput on our SoCs. One can train and export models to onnx format, and can then be used in our fork of onnxruntime. Most of the models listed here have been trained using configs in [edgeai-mmdetection/configs/edgeailite](https://github.com/TexasInstruments/edgeai-tensorlab/edgeai-mmdetection/tree/master/configs/edgeailite). Please visit the link above for more information.
 
 #### Newer models
-| Dataset | Model Name                         | Input Size | GigaMACS  | AP[0.5:0.95]%, AP50% |Available|Notes |
-|---------|------------------------------------|------------|-----------|----------------------|---------|----- |
-|         | **Transformer models**
-| COCO    | DETR                               |(1333,800) |           |*39.9*              |         |      |
+
+| Dataset | Model             | Input Size  | AP[0.5:0.95]%, AP50% | config file | Notes |
+|---------|-------------------|-------------|----------------------|-------------|-------|
+|         | **YOLOX models** 
+| COCO    | YOLOX-tiny-lite     | 416x416     | 24.8, 40.1        | configs_edgeailite/yolox/yolox_tiny_8xb8-300e_coco.py|       |
+| COCO    | YOLOX-nano-lite     | 416x416     | 30.5, 47.4        | configs_edgeailite/yolox/yolox_nano_8xb8-300e_coco.py|       |
+| COCO    | YOLOX-s-lite       | 640x640     | 38.3, 56.9         | configs_edgeailite/yolox/yolox_s_8xb8-300e_coco.py|       |
+| COCO    | YOLOX-m-lite       | 640x640     | 44.4, 62.9         | configs_edgeailite/yolox/yolox_m_8xb8-300e_coco.py|       |
+| COCO    | YOLOX-l-lite      | 640x640     | -                   | configs_edgeailite/yolox/yolox_l_8xb8-300e_coco.py|       |
+| COCO    | YOLOX-x-lite       | 640x640     | -                  | configs_edgeailite/yolox/yolox_x_8xb8-300e_coco.py|       |
+| COCO    | YOLOv7-l-lite       | 640x640     | 45.9, 65.1        | configs_edgeailite/yolov7/yolov7_l_coco_lite.py |       |
+| COCO    | YOLOv7-l-orig       | 640x640     | 50.6, 69.3        | configs_edgeailite/yolov7/yolov7_l_coco_orig.py |       |
+| COCO    | YOLOv9-s-lite       | 640x640     | 38.3, 54.0        | configs_edgeailite/yolov9/yolov9_s_coco_lite.py |       |
+| COCO    | YOLOv9-s-plus       | 640x640     | 40.0, 55.9        | configs_edgeailite/yolov9/yolov9_s_coco_plus.py |       |
+|         | **FCOS models** 
+| COCO    | FCOS-r50-lite       | 512x512     | 36.6, 56.0          | configs_edgeailite/fcos/fcos_r50-caffe_fpn_bn-head_1x_coco.py|       |
+|         | **Centernet models** 
+| COCO    | Centernet-r18     | 512x512     | 25.9, 42.6          | configs/centernet/centernet_r18_8xb16-crop512-140e_coco.py|       |
+|         | **Efficientdet models** 
+| COCO    | Efficientdet-b0-lite    | 512x512     | 28.0, 45.9           | configs_edgeailite/efficientdet/efficientdet_effb0_bifpn_8xb16-crop512-300e_coco.py|      |
+| COCO    | Efficientdet-b1-lite    | 640x640     | -                    | configs_edgeailite/efficientdet/efficientdet_effb1_bifpn_8xb16-crop512-300e_coco.py|      |
+
+
+### Very small models (not recommended for general use)
+
+| Dataset | Model             | Input Size  | AP[0.5:0.95]%, AP50% | config file | Notes |
+|---------|-------------------|-------------|----------------------|-------------|-------|
+|         | **YOLOX models** 
+| COCO    | YOLOX-femto-lite    | 320x320     |	12.7, 21.9        | configs_edgeailite/yolox/yolox_femto_8xb8-300e_coco.py|       |
+| COCO    | YOLOX-pico-lite       | 320x320     | 17.9, 29.4      | configs_edgeailite/yolox/yolox_pico_8xb8-300e_coco.py|       |
 
 
 #### Other models
@@ -69,13 +95,14 @@ This is our fork of the popular mmdetection training framework for object detect
 
 ### MMYOLO Models
 - See this information thread: https://github.com/TexasInstruments/edgeai-tensorlab/issues/7
+- This repository is not maintained anymore - we do not recommend this - use edgeai-mmdetection listed above. 
 
 
-### EdgeAI-YOLOv5 Models
+### edgeai-yolov5 Models
 - [Models & Training Source Code](https://github.com/TexasInstruments/edgeai-yolov5)
+- This repository is not maintained anymore - we do not recommend this - use edgeai-mmdetection listed above.  
 
-
-### EdgeAI-HF-Transformers
+### edgeai-hf-transformers
 - [Models Link](./coco/hf-transformers/)
 - **[Training Source Code](https://github.com/TexasInstruments/edgeai-tensorlab/edgeai-hf-transformers)**
 - Note: the above repository is forked and modified from: https://github.com/huggingface/transformers
