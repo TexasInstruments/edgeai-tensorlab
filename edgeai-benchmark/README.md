@@ -67,7 +67,7 @@ If you are targeting an older version of SDK, checkout the corresponding git bra
 <hr>
 
 ## Supported SOCs
-At the moment, this repository supports compilation and inference for the following SoCs: **TDA4VM**, **AM68A**, **AM62A**, *AM67A**, **AM69A**, **AM62**
+At the moment, this repository supports compilation and inference for the following SoCs: **TDA4VM**, **AM68A**, **AM62A**, **AM67A**, **AM69A**, **AM62**
 
 A reference to <SOC> in this repository as commandline argument to the scripts refer to one of these SoCs.
 
