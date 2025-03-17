@@ -4,7 +4,17 @@
 Multi person 2D pose-estimation is the task of understanding humans in an image. Given an input image, target is to detect each person and localize their body joints. This page describes two approaches of solving this problem.
 
 
-### YOLO-Pose
+## edgeai-mmpose
+- [Training source code is in edgeai-mmpose](https://github.com/TexasInstruments/edgeai-tensorlab/edgeai-mmpose)
+
+| Dataset | Model                  | Input Size  | AP[0.5:0.95]%, AP50% | config file | Notes |
+|---------|------------------------|-------------|----------------------|-------------|-------|
+|         | **YOLOXPose models** 
+| COCO    | YOLOXPose-tiny-lite    | 416x416     | 47.2, 76.1     | configs_edgeailite/yoloxpose/yoloxpose_tiny_lite_coco-416.py |       |
+| COCO    | YOLOXPose-small-lite   | 640x640     | 56.4, 83.6     | configs_edgeailite/yoloxpose/yoloxpose_s_lite_coco-640.py    |       |
+
+
+### edgeai-yolox (deprecated)
 It is a novel heatmap free approach for joint detection and 2D multi-person pose estimation in an image based on the popular YOLOv5 and YOLOX object detection framework. This approach jointly infers bounding boxes for multiple persons and their corresponding 2D poses in a single forward pass without any post-processing. These models are completely accelerated in TIDL. For more details about the architecture and training details, refer to these repositories of [YOLOv5](https://github.com/TexasInstruments/edgeai-yolov5) and [YOLOX](https://github.com/TexasInstruments/edgeai-yolox).
 
 |Dataset |Model Name                       |Input Size |GigaMACS  |AP[0.5:0.95]%, AP50%|Notes |
@@ -14,7 +24,7 @@ It is a novel heatmap free approach for joint detection and 2D multi-person pose
 |COCO    |Yolox_s_pose_ti_lite_640         |640x640    |**15.88**  |**51.2**, 80.7      |      |
 
 
-### Bottom-up Approaches Based on Associative Embedding
+### Bottom-up Approaches Based on Associative Embedding (deprecated)
 Bottom-up approaches find out identity free keypoints for all the person in an image in single shot followed by grouping them into individual person instances. In associative embedding, the newtwork predict keypoint heatmap and tag values for each joint. The loss function is defined to predict similar tag values for joint belonging to same person and different tag values for joint belonging to different person. Models listed here are trained using mmpose repository. All results listed here are without any Test Time Augmentation (TTA) like flip-test or multi-scale testing. Currently, the base model without the post-processing can be accelerated in TIDL. 
 
 |Dataset |Model Name                       |Input Size |GigaMACS  |AP[0.5:0.95]%, AP50%|Notes |

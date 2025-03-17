@@ -9,7 +9,7 @@ installed by:
 pip install nvidia-pyindex
 pip install onnx-graphsurgeon
 
-or by using: https://github.com/TexasInstruments/edgeai-mmdetection/blob/r8.6/mmdet/utils/onnx_utils.py#L38
+or by using: https://github.com/TexasInstruments/edgeai-tensorlab/edgeai-mmdetection/blob/r8.6/mmdet/utils/onnx_utils.py#L38
 
 ```
 onnx_load_path = 'model.onnx'
