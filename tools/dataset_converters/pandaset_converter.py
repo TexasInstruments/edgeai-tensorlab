@@ -292,7 +292,15 @@ def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img ):
         # we have to store in lidar90 reference not in lidar refrence, of current frame
         lidar_corners = ( np.linalg.inv(lidar2global) @ np.hstack([corners, np.ones((corners.shape[0], 1))]).T).T[:,:3]
         lidar_bboxes.append(convert_corners_to_bbox_for_lidar_box(lidar_corners))
-        
+    """
+    for cuboid in filtered_cuboids.tolist():
+        bbox = cuboid[5:11] + [cuboid[2]]
+        bbox_in_lidar = convert_bbox_to_lidar(bbox, np.linalg.inv(lidar2global))
+        bbox_in_lidar = bbox_in_lidar.center.tolist() + bbox_in_lidar.wlh[[1, 0, 2]].tolist() + \
+             [bbox_in_lidar.orientation.yaw_pitch_roll[0]]
+        lidar_bboxes.append(bbox_in_lidar)
+    """
+
     available_attrs = [attr for attr in ALL_ATTRIBUTES if f'attributes.{attr}' in cuboids.columns]
     columns_names = list(cuboids.columns)
     attribute_dicts = {}
@@ -405,6 +413,7 @@ def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img ):
         next= f'{scene_id}_{next:02}' if next is not None else None,
         scene_token = scene_token,
         gps = gps,
+        can_bus = np.zeros(18, dtype=float),
         instances= instances,
         cam_instances=cam_instances,
     )
@@ -459,7 +468,7 @@ def create_pickle_file( dataset, scenes, output_dir=None, info_prefix=None, vers
     )
 
     prefix = info_prefix + '_' if len(info_prefix) else ''
-    file_name = prefix + f'pandaset_infos_{"train" if train_split else "val"}.pkl'
+    file_name = prefix + f'infos_{"train" if train_split else "val"}.pkl'
     os.makedirs(output_dir, exist_ok=True)
     output_file = os.path.join(output_dir, file_name)
     data_list = []

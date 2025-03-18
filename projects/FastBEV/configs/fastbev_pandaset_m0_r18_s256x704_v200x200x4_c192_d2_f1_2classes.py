@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 _base_ = [
-    'mmdet3d::_base_/datasets/nus-3d.py',
+    'mmdet3d::_base_/datasets/pandaset-3d-2classes.py',
     'mmdet3d::_base_/default_runtime.py',
 ]
 
@@ -54,7 +54,7 @@ model = dict(
     bbox_head=dict(
         type='CustomFreeAnchor3DHead',
         is_transpose=True,
-        num_classes=10,
+        num_classes=2,
         in_channels=192,
         feat_channels=192,
         use_direction_classifier=True,
@@ -116,31 +116,24 @@ model = dict(
         min_bbox_size=0,
         nms_pre=1000,
         max_num=500,
-        use_scale_nms=False,
+        use_scale_nms=True,
         # Normal-NMS
         nms_across_levels=False,
         use_rotate_nms=False,
         nms_thr=0.2,
         # Scale-NMS
         nms_type_list=[
-            'circle', 'circle', 'circle', 'circle', 'circle', 'circle', 'circle', 'circle', 'circle', 'circle'],
-        nms_thr_list=[0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.5, 0.5, 0.2],
-        #nms_thr_list=[0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5,  0.5],
-        nms_radius_thr_list=[4, 12, 10, 10, 12, 0.85, 0.85, 0.175, 0.175, 1],
-        nms_rescale_factor=[1.0, 0.7, 0.55, 0.4, 0.7, 1.0, 1.0, 4.5, 9.0, 1.0],
+            'circle', 'circle'],
+        nms_thr_list=[0.2, 0.2],
+        nms_radius_thr_list=[4, 1.0],
+        nms_rescale_factor=[1.0, 1.0],
     )
 )
 
 # If point cloud range is changed, the models should also change their point cloud range accordingly
 point_cloud_range = [-50, -50, -5, 50, 50, 3]
-# For nuScenes we usually do 10-class detection
 class_names = [
-    'Car', 'Semi-truck', 'Other Vehicle - Construction Vehicle', 'Pedestrian with Object', 
-    'Train', 'Animals - Bird', 'Bicycle', 'Rolling Containers', 'Pylons', 'Signs', 
-    'Emergency Vehicle', 'Towed Object', 'Personal Mobility Device', 'Motorcycle', 
-    'Tram / Subway', 'Other Vehicle - Uncommon', 'Other Vehicle - Pedicab', 
-    'Temporary Construction Barriers', 'Animals - Other', 'Bus', 'Motorized Scooter', 
-    'Pickup Truck', 'Road Barriers', 'Pedestrian', 'Construction Signs', 'Cones', 'Medium-sized Truck'
+    'Car', 'Temporary Construction Barriers'
 ]
 dataset_type = 'CustomPandaSetDataset'
 data_root = './data/pandaset/'
@@ -155,13 +148,17 @@ input_modality = dict(
     use_external=True)
 
 data_config = {
-    'src_size': (900, 1600),
+    'src_size': (1080, 1920),
     'input_size': (256, 704),
     # train-aug
     'resize': (-0.06, 0.11),
     'crop': (-0.05, 0.05),
     'rot': (-5.4, 5.4),
     'flip': True,
+    #'resize': (0.0, 0.0),
+    #'crop': (0.0, 0.0),
+    #'rot': (0.0, 0.0),
+    #'flip': False,
     # test-aug
     'test_input_size': (256, 704),
     'test_resize': 0.0,
@@ -198,12 +195,18 @@ train_pipeline = [
         flip_ratio_bev_horizontal=0.5,
         flip_ratio_bev_vertical=0.5,
         flip_box3d=True,
+        #flip_ratio_bev_horizontal=0.0,
+        #flip_ratio_bev_vertical=0.0,
+        #flip_box3d=False,
         update_img2lidar=True),
     dict(
         type='CustomGlobalRotScaleTrans',
         rot_range=[-0.3925, 0.3925],
         scale_ratio_range=[0.95, 1.05],
         translation_std=[0.05, 0.05, 0.05],
+        #rot_range=[0.0, 0.0],
+        #scale_ratio_range=[1.0, 1.0],
+        #translation_std=[0.0, 0.0, 0.0],
         update_img2lidar=True),
     dict(type='RandomAugImageMultiViewImage', data_config=data_config),
     dict(type='ObjectRangeFilter', point_cloud_range=point_cloud_range),
@@ -222,7 +225,8 @@ test_pipeline = [
     dict(type='CustomPack3DDetInputs', keys=['img'])
     ]
 
-metainfo = dict(classes=class_names)
+class_mapping = [0]+[1]*26
+metainfo = dict(classes=class_names, class_mapping=class_mapping)
 data_prefix = dict(
     pts='',
     front_camera='camera/front_camera',
@@ -249,7 +253,7 @@ train_dataloader = dict(
             test_mode=False,
             with_box2d=False,
             box_type_3d='LiDAR',
-            ann_file='pandaset_infos_train.pkl',
+            ann_file='pandaset_infos_train_fastbev.pkl',
             sequential=sequential,
             n_times=n_times,
             train_adj_ids=[1, 3, 5],
@@ -261,7 +265,9 @@ train_dataloader = dict(
             test_adj='prev',
             test_adj_ids=[1, 3, 5],
             test_time_id=None,
-        )))
+            #max_dist_thr=[50,50]
+        ))
+    )
 
 val_dataloader = dict(
     batch_size=1,
@@ -287,6 +293,7 @@ val_dataloader = dict(
         test_adj='prev',
         test_adj_ids=[1, 3, 5],  # not needed
         test_time_id=None,
+        #max_dist_thr=[50,50]
     ))
 
 test_dataloader = val_dataloader
@@ -294,6 +301,7 @@ test_dataloader = val_dataloader
 val_evaluator = dict(
     type='CustomPandaSetMetric',
     data_root=data_root,
+    max_dists=[50, 50],
     ann_file=data_root + 'pandaset_infos_val.pkl',
     metric='mAP',
     backend_args=None)
@@ -308,6 +316,8 @@ optim_wrapper = dict(
     }),
     clip_grad=dict(max_norm=35, norm_type=2))
 
+total_epochs = 24
+
 # learning policy
 param_scheduler = [
     dict(
@@ -320,12 +330,10 @@ param_scheduler = [
         type='CosineAnnealingLR',
         by_epoch=True,
         begin=0,
-        end=24,
-        T_max=24,
+        end=total_epochs,
+        T_max=total_epochs,
         eta_min_ratio=1e-3)
 ]
-
-total_epochs = 24
 
 train_cfg = dict(by_epoch=True, max_epochs=total_epochs, val_interval=total_epochs)
 val_cfg = dict(type='ValLoop')
@@ -336,7 +344,8 @@ default_hooks = dict(
         type='CheckpointHook', interval=1, max_keep_ckpts=4, save_last=True))
 
 
-load_from = 'pretrained/cascade_mask_rcnn_r18_fpn_coco-mstrain_3x_20e_nuim_bbox_mAP_0.5110_segm_mAP_0.4070.pth'
+#load_from = 'pretrained/cascade_mask_rcnn_r18_fpn_coco-mstrain_3x_20e_nuim_bbox_mAP_0.5110_segm_mAP_0.4070.pth'
+load_from = 'checkpoints/fastbev/edgeai_fastbev_m0_r18_s256x704_v200x200x4_c192_d2_f1.pth'
 resume_from = None
 
 # fp16 settings, the loss scale is specifically tuned to avoid Nan
