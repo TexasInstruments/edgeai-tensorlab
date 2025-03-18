@@ -558,19 +558,19 @@ class ModelTraining:
         os.chdir(edgeai_mmdetection_path)
 
         # invoke the distributed training
-        if self.params.training.distributed and self.params.training.num_gpus > 0:
+        if self.params.training.distributed and self.params.training.num_gpus > 1:
             # launcher for the training
             run_launcher = distributed_run.__file__
             run_script = os.path.join(edgeai_mmdetection_tools_path,'train.py')
             argv = [f'--nproc_per_node={self.params.training.num_gpus}',
                     f'--nnodes=1',
                     f'--master_port={self.params.training.training_master_port}',
-                    train_module_path,
+                    run_script,
                     f'--launcher=pytorch',
                     config_file
                     ]
             run_args = [str(arg) for arg in argv]
-            run_command = ['python3', run_launcher, run_script] + run_args
+            run_command = ['python3', run_launcher] + run_args
         else:
             # Non-cuda mode is currently supported only with non-distributed training
             # os.environ['CUDA_VISIBLE_DEVICES'] = "-1"
