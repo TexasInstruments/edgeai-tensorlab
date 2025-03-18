@@ -238,11 +238,11 @@ class PandaSetMetric(NuScenesMetric):
             annos = []
             boxes = det['bboxes_3d']
             # boxes.tensor[:,1] = boxes.tensor[:,1] - boxes.tensor[:,4] * 0.5
-            ego_corners, velocities = cam_bbox_to_ego_corners3d(boxes, info, camera_type)
+            global_corners, velocities = cam_bbox_to_global_corners3d(boxes, info, camera_type)
             attrs = det['attr_labels'].to(self.collect_device).numpy().tolist()
             scores = det['scores_3d'].to(self.collect_device).numpy().tolist()
             labels = det['labels_3d'].to(self.collect_device).numpy().tolist()
-            corners_per_frame.extend(ego_corners.tolist())
+            corners_per_frame.extend(global_corners.tolist())
             velocities_per_frame.extend(velocities.tolist())
             attrs_per_frame.extend(attrs)
             labels_per_frame.extend(labels)
@@ -258,9 +258,9 @@ class PandaSetMetric(NuScenesMetric):
             indices = labels.new_tensor(list(range(scores.shape[0])))
             nms_scores[indices,labels] = scores
             scores = nms_scores
-            ego_corners= np.array(corners_per_frame)
+            global_corners= np.array(corners_per_frame)
             velocities = velocities_per_frame
-            cam_boxes3d = ego_corners3d_to_cam_bbox(ego_corners, velocities, info)
+            cam_boxes3d = global_corners3d_to_cam_bbox(global_corners, velocities, info)
             
             # box nms 3d over 6 images in a frame
             # TODO: move this global setting into config
@@ -292,8 +292,8 @@ class PandaSetMetric(NuScenesMetric):
             attrs = det['attr_labels'].to(self.collect_device).tolist()
             scores = det['scores_3d'].to(self.collect_device).tolist()
             labels = det['labels_3d'].to(self.collect_device).tolist()
-            ego_corners , velocities = cam_bbox_to_ego_corners3d(boxes, info, camera_type)
-            boxes = ego_corners3d_to_ego_bbox(ego_corners, velocities, )
+            global_corners , velocities = cam_bbox_to_global_corners3d(boxes, info, 'front_camera')
+            boxes = global_corners3d_to_global_bbox(global_corners, velocities, )
             boxes.tensor[:, 2] = boxes.tensor[:, 2] + boxes.tensor[:, 5] * 0.5
             
             for i in range(boxes.tensor.shape[0]):
@@ -390,10 +390,10 @@ class PandaSetMetric(NuScenesMetric):
                     assert info is not None and cam_type is not None, 'info and cam_type should be provided for CameraInstance3DBoxes'
                     velocity = np.array(velocity)
                     corners = convert_bbox_to_corners_for_camera(box)
-                    cam2ego = np.array(info['images'][cam_type]['cam2ego'])
-                    ego_corners = corners @ cam2ego[:3,:3].T + cam2ego[:3,3]
-                    velocity = velocity @ cam2ego[:3,:3].T
-                    box = convert_corners_to_bbox_for_lidar_box(ego_corners)
+                    cam2global = np.array(info['images'][cam_type]['cam2global'])
+                    global_corners = corners @ cam2global[:3,:3].T + cam2global[:3,3]
+                    velocity = velocity @ cam2global[:3,:3].T
+                    box = convert_corners_to_bbox_for_lidar_box(global_corners)
                 if isinstance(velocity, list):
                     velocity = velocity[:2]
                 else:
@@ -433,7 +433,7 @@ class PandaSetMetric(NuScenesMetric):
         
         return gt_boxes
 
-def cam_bbox_to_ego_corners3d(boxes, info, camera_type):
+def cam_bbox_to_global_corners3d(boxes, info, camera_type):
     if isinstance(boxes, CameraInstance3DBoxes):
         curr_corners = convert_bbox_to_corners_for_camera(boxes)
     else:
@@ -441,30 +441,30 @@ def cam_bbox_to_ego_corners3d(boxes, info, camera_type):
     velocities = (boxes.tensor[:,7:] if boxes.tensor.shape[1] > 7 else boxes.tensor.new_tensor(torch.zeros([boxes.tensor.shape[0],2]))).numpy()
     availabe_camera_types = list(info['images'].keys())
     assert camera_type in availabe_camera_types, f'camera type {camera_type} not in available camera types \n\t{availabe_camera_types}' 
-    cam2ego = np.array(info['images'][camera_type]['cam2ego'])
-    ego_corners = curr_corners @ cam2ego[:3,:3].T + cam2ego[:3,3]
+    cam2global = np.array(info['images'][camera_type]['cam2global'])
+    global_corners = curr_corners @ cam2global[:3,:3].T + cam2global[:3,3]
     
     velocities3d = np.zeros((velocities.shape[0],3))
     velocities3d[:,[0,2]] = velocities
-    ego_velocities = velocities3d @ cam2ego[:3,:3].T
+    global_velocities = velocities3d @ cam2global[:3,:3].T
     
-    return ego_corners, ego_velocities[:,:2]
+    return global_corners, global_velocities[:,:2]
 
-def ego_corners3d_to_cam_bbox(corners, velocities, info):
-    cam2ego =np.array( info['images']['front_camera']['cam2ego'])
-    ego2cam = np.linalg.inv(cam2ego)
+def global_corners3d_to_cam_bbox(corners, velocities, info):
+    cam2global =np.array( info['images']['front_camera']['cam2global'])
+    global2cam = np.linalg.inv(cam2global)
     corners = np.array(corners)
     velocities = np.array(velocities)
     velocities3d = np.zeros((velocities.shape[0],3))
     velocities3d[:,[0,1]] = velocities
-    velocities = (velocities3d @ ego2cam[:3,:3].T)[:,::2].tolist()
-    corners = corners @ ego2cam[:3,:3].T + ego2cam[:3,3]
+    velocities = (velocities3d @ global2cam[:3,:3].T)[:,::2].tolist()
+    corners = corners @ global2cam[:3,:3].T + global2cam[:3,3]
     boxes = [convert_corners_to_bbox_for_cam_box(corner) for corner in corners]
     bboxes = [bbox+velocities[i] for i,bbox in enumerate(boxes)]
     return CameraInstance3DBoxes(tensor=bboxes, box_dim=9, origin=(0.5,0.5,0.5))
 
-def ego_corners3d_to_ego_bbox(corners, velocities,):
-    # corners = corners @ ego2cam[:3,:3].T + ego2cam[:3,3]
+def global_corners3d_to_global_bbox(corners, velocities,):
+    # corners = corners @ global2cam[:3,:3].T + global2cam[:3,3]
     boxes = [convert_corners_to_bbox_for_lidar_box(corner) for corner in corners]
     bboxes = [bbox+velocities[i].tolist() for i,bbox in enumerate(boxes)]
     return LiDARInstance3DBoxes(tensor=torch.Tensor(bboxes), box_dim=9, origin=(0.5,0.5,0.5))

@@ -51,8 +51,7 @@ def get_bbox_2d(bbox_corners_image, image_size,):
     min_coords = np.min(bbox_corners_image, axis=0)
     max_coords = np.max(bbox_corners_image, axis=0)
     bbox_2d = [min_coords[0], min_coords[1], max_coords[0], max_coords[1]]  # [xmin, ymin, xmax, ymax]
-    center = np.mean([bbox_2d[0::2],bbox_2d[1::2]], axis=-1).tolist()
-    return bbox_2d, center
+    return bbox_2d
 
 def compute_valid_flag_for_bboxes(cuboids, lidar_data):
     if isinstance(cuboids, pd.DataFrame):
@@ -99,7 +98,6 @@ def compute_camera_bboxes(cuboids, camera, frame_index):
         corners =convert_bbox_to_corners_for_lidar(bbox)
         corners = np.array(corners)
         projected_points2d, camera_points_3d, inner_indices = ps.projection(corners, data, camera_pose, cam_intrinsics,filter_outliers=False)
-        # center = np.mean(camera_points_3d,axis=1)
         condition1 = camera_points_3d[ 2,:] > 0.0
         if np.all(condition1 == False):
             continue
@@ -265,6 +263,7 @@ def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img ):
     filtered_cuboids = filter_siblings(cuboids,sibling_column_index)
     world_velocities = [velocities[i] for i in range(len(cuboids)) if cuboids.to_numpy()[i][0] in filtered_cuboids[:,0]]
     valid_flags, lidar_points_within_bboxes = compute_valid_flag_for_bboxes(filtered_cuboids, seq.lidar.data[frame_idx])
+    valid_flags = dict(zip(filtered_cuboids[:,0].tolist(),valid_flags))
     num_lidar_points = [len(points) for i,points in enumerate(lidar_points_within_bboxes) ]
     # filtered_cuboids = filtered_cuboids[valid_flags]
     # world_velocities = [world_velocities[i] for i in range(len(valid_flags)) if valid_flags[i]]
@@ -308,7 +307,7 @@ def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img ):
             bbox_label=label,
             bbox_label_3d =label,
             bbox_3d = lidar_bboxes[i],
-            bbox_3d_isvalid = valid_flags[i],
+            bbox_3d_isvalid = valid_flags[token],
             bbox_3d_isstationary = stationary,
             num_lidar_pts = num_lidar_points[i], # change to num_lidar_pts
             velocity = lidar_velocities[i],
@@ -321,17 +320,37 @@ def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img ):
     for name, camera in seq.camera.items():
         camera_cuboids = compute_camera_bboxes(filtered_cuboids, camera, frame_idx)
         bboxes = []
+        camera_intrinsics = camera.intrinsics
+        K = np.eye(3, dtype=np.float64)
+        K[0, 0] = camera_intrinsics.fx
+        K[1, 1] = camera_intrinsics.fy
+        K[0, 2] = camera_intrinsics.cx
+        K[1, 2] = camera_intrinsics.cy
         image_size = camera[frame_idx].size
+        width,height = image_size
         for token, projected_points2d, camera_points_3d in camera_cuboids:
-            bbox_2d, center = get_bbox_2d(projected_points2d, image_size,)
+            bbox_2d= get_bbox_2d(projected_points2d, image_size,)
             bbox3d = convert_corners_to_bbox_for_cam_box(camera_points_3d.T)
-            bboxes.append((token, bbox_2d, center, bbox3d))
+            center3d = bbox3d[:3]
+            center = K @ np.array(center3d)
+            center[:2]/=center[2]
+            center = center.tolist()
+            x1,y1,x2,y2 = bbox_2d
+            w = x2-x1
+            h = y2-y1
+            if w<1 or h<1 :
+                continue
+            inter_w = max(0, min(x2, width) - max(x1, 0))
+            inter_h = max(0, min(y2, height) - max(y1, 0))
+            if inter_w * inter_h == 0:
+                continue
+            bboxes.append((token, center, bbox_2d, bbox3d))
         camera_bboxes[name] = bboxes
     
     cam_instances:dict[str,list] = {}
     for name, bboxes in camera_bboxes.items():
         cam_instances[name] = []
-        for token, bbox2d, center, bbox3d in bboxes:
+        for token, center, bbox2d, bbox3d in bboxes:
             label= cuboids_data[token][0]
             attr_label = get_attribute_labels(label, attribute_dicts[token])
             label = get_original_label(label)
@@ -341,9 +360,9 @@ def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img ):
                 bbox_label_3d=label,
                 bbox=bbox2d,
                 bbox_3d=bbox3d,
-                depth=bbox3d[2],
-                bbox_3d_isvalid=True,
-                center_2d=center,
+                depth=center[2],
+                bbox_3d_isvalid=valid_flags[token],
+                center_2d=center[:2],
                 velocity=cam_velocities[name][token],
                 attr_label=attr_label,
             ))
@@ -462,11 +481,14 @@ def create_pickle_files(dataset_path, output_dir, info_prefix, version, dataset_
     else:
         train_scenes = random.sample(scenes, k=int(len(scenes)*train_split))
         test_scenes  = [scene for scene in scenes if scene not in train_scenes]
+    
 
     if with_semseg:
         pass
     else:
+        print(f"Creating a test dataset of {len(test_scenes)} scenes")
         create_pickle_file(dataset, test_scenes, output_dir, info_prefix, version, dataset_name, train_split=False)
+        print(f"Creating a train dataset of {len(train_scenes)} scenes")
         create_pickle_file(dataset, train_scenes,  output_dir, info_prefix, version, dataset_name,)
 
 def create_pandaset_infos(root_path,
@@ -492,6 +514,6 @@ def main(args=None):
 if __name__ == '__main__':
 
     # from edgeai-mmdetection3d path
-    # main(['--dataset-path', './data/pandaset/data/', '--output-dir', './data/pandaset/data/'])
+    main(['--dataset-path', './data/pandaset/data/', '--output-dir', './data/pandaset/data/'])
     # from any path with correct path to dataset
-    main()
+    # main()

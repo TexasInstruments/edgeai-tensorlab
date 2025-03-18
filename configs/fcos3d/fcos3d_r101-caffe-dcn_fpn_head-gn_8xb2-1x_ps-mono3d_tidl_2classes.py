@@ -21,7 +21,7 @@ model = dict(
         type='CustomFCOSMono3DHead',
         dcn_on_last_conv=True,
         num_classes=2, 
-        num_attrs=22,),
+        num_attrs=18,),
     test_cfg=dict(
         use_rotate_nms=False,
         # score_thr=0.0025,
@@ -33,7 +33,7 @@ env_cfg = dict(
 
 train_cfg = dict(max_epochs=5)
 default_hooks = dict(
-    logger=dict(interval=10)
+    logger=dict(interval=50)
 )
 
 backend_args = None
@@ -92,6 +92,6 @@ param_scheduler = [
         gamma=0.1)
 ]
 # TODO remove this
-load_from = './checkpoints/fcos3d/fcos3d_r101_caffe_fpn_gn-head_dcn_2x8_1x_ps-mono3d_finetune_20210717_095645-8d806dc2_adjusted.pth'
+load_from = './checkpoints/fcos3d/fcos3d_r101_caffe_fpn_gn-head_dcn_2x8_1x_ps-mono3d_finetune_20210717_095645-8d806dc2_adjusted_2classes.pth'
 
 find_unused_parameters = True

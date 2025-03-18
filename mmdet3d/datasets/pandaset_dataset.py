@@ -119,11 +119,7 @@ def get_attribute_labels(cls_label, attributes):
         result = f'emergency_vehicle{label}' if label != '' else None
             
     if cls_label in ('Pedestrian', 'Pedestrian with Object'):
-        if 'pedestrian_age' in attributes:
-            if attributes['pedestrian_age']:
-                label += f'{attributes["pedestrian_age"]}'
-        if label == '':
-            label = 'pedestrian'
+        label = 'pedestrian'
         if 'pedestrian_behavior' in attributes:
             if attributes['pedestrian_behavior']:
                 label += f'.{attributes["pedestrian_behavior"]}'

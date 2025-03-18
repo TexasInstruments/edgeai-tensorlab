@@ -13,7 +13,7 @@ model = dict(
     backbone=dict(
         dcn=dict(type='DCNv2', deform_groups=1, fallback_on_stride=False),
         stage_with_dcn=(False, False, True, True)),
-    bbox_head = dict(num_classes=27, num_attrs=22),
+    bbox_head = dict(num_classes=27, num_attrs=18),
     # test_cfg=dict(score_thr=0.0025,),
     )
 

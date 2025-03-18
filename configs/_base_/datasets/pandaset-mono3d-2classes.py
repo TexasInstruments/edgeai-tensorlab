@@ -68,8 +68,8 @@ train_dataloader = dict(
             left_camera='camera/left_camera', 
             right_camera='camera/right_camera'
             ),
-        # ann_file='pandaset_infos_train.pkl',
-        ann_file='pandaset_mini_infos_val.pkl', # mini
+        ann_file='pandaset_infos_train.pkl',
+        # ann_file='pandaset_mini_infos_val.pkl', # mini
         load_type='mv_image_based',
         pipeline=train_pipeline,
         metainfo=metainfo,
@@ -79,7 +79,8 @@ train_dataloader = dict(
         # detection task
         box_type_3d='Camera',
         use_valid_flag=True,
-        backend_args=backend_args
+        backend_args=backend_args,
+        max_dist_thr=50
         )
     )
 val_dataloader = dict(
@@ -100,8 +101,8 @@ val_dataloader = dict(
             left_camera='camera/left_camera', 
             right_camera='camera/right_camera'
             ),
-        # ann_file='pandaset_infos_val.pkl', 
-        ann_file='pandaset_mini_infos_val.pkl', #mini
+        ann_file='pandaset_infos_val.pkl', 
+        # ann_file='pandaset_mini_infos_val.pkl', #mini
         load_type='mv_image_based',
         pipeline=test_pipeline,
         modality=input_modality,
@@ -117,8 +118,8 @@ val_evaluator = dict(
     type='PandaSetMetric',
     data_root=data_root,
     max_dists = 50,
-    # ann_file=data_root + 'pandaset_infos_val.pkl', 
-    ann_file=data_root + 'pandaset_mini_infos_val.pkl', # mini
+    ann_file=data_root + 'pandaset_infos_val.pkl', 
+    # ann_file=data_root + 'pandaset_mini_infos_val.pkl', # mini
     metric='bbox',
     backend_args=backend_args)
 
