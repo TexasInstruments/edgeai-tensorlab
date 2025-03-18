@@ -57,7 +57,7 @@ pip3 install --no-input mmcv-full==1.4.8 -f https://download.openmmlab.com/mmcv/
 
 ######################################################################
 # can we move this inside the requirements file is used.
-pip3 install --no-input protobuf==3.20.2 onnx==1.13.0
+pip3 install --no-input onnx==1.14.0 protobuf
 
 ######################################################################
 echo 'installing the python package...'
