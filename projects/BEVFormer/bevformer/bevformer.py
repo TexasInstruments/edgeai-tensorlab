@@ -77,6 +77,8 @@ class BEVFormer(MVXTwoStageDetector):
             'prev_angle': 0,
         }
 
+        self.prev_lidar2img=None
+
     def forward(self,
                 inputs: Union[dict, List[dict]],
                 data_samples: OptSampleList = None,
@@ -303,12 +305,24 @@ class BEVFormer(MVXTwoStageDetector):
                 contains a tensor with shape (num_instances, 9).
         """
         batch_input_metas = [item.metainfo for item in batch_data_samples]
-        # 'lidar2img' already in metainfo. Do don't need to call
+        # 'lidar2img' already in metainfo. Don't need to call
         #batch_input_metas = self.add_lidar2img(batch_input_metas)
+
+        if batch_input_metas[0]['scene_token'] == self.prev_frame_info['scene_token']:
+            batch_input_metas[0]['lidar2img'] = copy.deepcopy(self.prev_lidar2img)
+        else:
+            self.prev_lidar2img = copy.deepcopy(batch_input_metas[0]['lidar2img'])
+            ## for debugging
+            #with open("Nuscens_cam2img.txt", "a") as file:
+            #    file.write("{},\n {},\n {},\n {},\n {},\n {},\n {}\n".format(batch_input_metas[0]['scene_token'], \
+            #     batch_input_metas[0]['cam2img'][0], batch_input_metas[0]['cam2img'][1], \
+            #     batch_input_metas[0]['cam2img'][2], batch_input_metas[0]['cam2img'][3], \
+            #     batch_input_metas[0]['cam2img'][4], batch_input_metas[0]['cam2img'][5]))
 
         if batch_input_metas[0]['scene_token'] != self.prev_frame_info['scene_token']:
             # the first sample of each scene is truncated
             self.prev_frame_info['prev_bev'] = None
+
         # update idx
         self.prev_frame_info['scene_token'] = batch_input_metas[0]['scene_token']
 

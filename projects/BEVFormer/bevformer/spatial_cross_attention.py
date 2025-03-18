@@ -217,6 +217,24 @@ class SpatialCrossAttention(BaseModule):
             #       Because it is finally averaged using count, the difference could be negligible
             slots = slots.squeeze(0)
             queries = queries.squeeze(0)
+
+            # To remove indices - Add one more (2501-th) tensor
+            slots = torch.cat((slots,  slots.new_zeros(1, self.embed_dims)), dim = 0)
+
+            for i, index_query_per_img in enumerate(indexes):
+                # Note: When len(index_query_per_img) == 2500 (i.e. max query num),
+                #       we don't need slicing like  queries[i, :len(index_query_per_img)]
+                #slots[index_query_per_img] += queries[i, :len(index_query_per_img)]
+                if i == 0:
+                    all_indices = index_query_per_img
+                    all_queries = queries[i]
+                else:
+                    all_indices = torch.cat((all_indices, index_query_per_img), dim = 0)
+                    all_queries = torch.cat((all_queries, queries[i]), dim = 0)
+
+            slots.index_put_(tuple([all_indices]), all_queries, accumulate=True)
+            slots = slots[:-1].unsqueeze(0)
+            """
             for i, index_query_per_img in enumerate(indexes):
                 # Note: When len(index_query_per_img) == 2500 (i.e. max query num),
                 #       we don't need slicing like  queries[i, :len(index_query_per_img)]
@@ -229,8 +247,8 @@ class SpatialCrossAttention(BaseModule):
                     all_queries = torch.cat((all_queries, queries[i, :indexes_count[i]]), dim = 0)
 
             slots.index_put_(tuple([all_indices]), all_queries, accumulate=True)
-            
             slots = slots.unsqueeze(0)
+            """
         else:
             queries = self.deformable_attention(query=queries_rebatch.view(bs*self.num_cams, max_len, self.embed_dims), key=key, value=value,
                                                 reference_points=reference_points_rebatch.view(bs*self.num_cams, max_len, D, 2), spatial_shapes=spatial_shapes,

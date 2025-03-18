@@ -244,7 +244,7 @@ class BEVFormerHead(AnchorFreeHead):
    
     def forward(self, mlvl_feats, img_metas, prev_bev=None,
                 rotation_grid = None,
-                reference_points_cam=None, 
+                reference_points_cam=None,
                 bev_mask_count=None,
                 bev_valid_indices=None,
                 bev_valid_indices_count=None,

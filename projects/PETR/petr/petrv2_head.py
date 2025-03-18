@@ -24,22 +24,9 @@ from mmengine.structures import InstanceData
 from mmdet3d.registry import MODELS, TASK_UTILS
 from projects.PETR.petr.utils import normalize_bbox
 from .positional_encoding import pos2posemb3d
+from .utils import SELayer
 import copy
 
-
-class SELayer(nn.Module):
-    def __init__(self, channels, act_layer=nn.ReLU, gate_layer=nn.Sigmoid):
-        super().__init__()
-        self.conv_reduce = nn.Conv2d(channels, channels, 1, bias=True)
-        self.act1 = act_layer()
-        self.conv_expand = nn.Conv2d(channels, channels, 1, bias=True)
-        self.gate = gate_layer()
-
-    def forward(self, x, x_se):
-        x_se = self.conv_reduce(x_se)
-        x_se = self.act1(x_se)
-        x_se = self.conv_expand(x_se)
-        return x * self.gate(x_se)
 
 class RegLayer(nn.Module):
     def __init__(self,  embed_dims=256, 

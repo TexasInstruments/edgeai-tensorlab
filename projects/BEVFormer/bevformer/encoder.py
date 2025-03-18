@@ -205,7 +205,8 @@ class BEVFormerEncoder(TransformerLayerSequence):
 
         # bug: this code should be 'shift_ref_2d = ref_2d.clone()', we keep this bug for reproducing our results in paper.
         shift_ref_2d = ref_2d.clone()
-        shift_ref_2d += shift[:, None, None, :]  # account for ego motion
+        if shift is not None:
+            shift_ref_2d += shift[:, None, None, :]  # account for ego motion
 
         # (num_query, bs, embed_dims) -> (bs, num_query, embed_dims)
         bev_query = bev_query.permute(1, 0, 2)
