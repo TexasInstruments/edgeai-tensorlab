@@ -12,12 +12,14 @@ from .onnx_network import PETR_export_model, StreamPETR_export_model, \
                           DETR3D_export_model
 
 
-def export_PETR(model, inputs=None, data_samples=None, **kwargs):
+def export_PETR(model, inputs=None, data_samples=None, 
+                quantized_model=False, opset_version=20, **kwargs):
 
     onnxModel = PETR_export_model(model.img_backbone,
                                   model.img_neck,
                                   model.pts_bbox_head)
-    onnxModel.eval()
+    if not quantized_model:
+        onnxModel.eval()
 
     # Should clone. Otherwise, when we run both export_model and self.predict,
     # we have error PETRHead forward() - Don't know why
@@ -34,9 +36,16 @@ def export_PETR(model, inputs=None, data_samples=None, **kwargs):
     #masks_np.tofile('petrv1_masks.dat')
     #coords3d_np.tofile('petrv1_coords3d.dat')
 
-    modelInput = []
-    modelInput.append(img)
-    modelInput.append(coords3d)
+    model_input = []
+    model_input.append(img)
+    model_input.append(coords3d)
+
+    if quantized_model:
+        model_name = 'petrv1_quantized.onnx'
+        from edgeai_torchmodelopt import xmodelopt
+        xmodelopt.quantization.v3.quant_utils.register_onnx_symbolics(opset_version=opset_version)
+    else:
+        model_name = 'petrv1.onnx'
 
     # Passed the squeezed img
     if img.dim() == 5 and img.size(0) == 1:
@@ -45,14 +54,20 @@ def export_PETR(model, inputs=None, data_samples=None, **kwargs):
         B, N, C, H, W = img.size()
         img = img.view(B * N, C, H, W)
 
+    input_names  = ["imgs", "coords3d"]
+    output_names = ["bboxes", "scores", "labels"]
+
     torch.onnx.export(onnxModel,
-                      tuple(modelInput),
-                     'petrv1.onnx',
-                      opset_version=16,
+                      tuple(model_input),
+                      model_name,
+                      input_names=input_names,
+                      output_names=output_names,
+                      opset_version=opset_version,
+                      training=torch._C._onnx.TrainingMode.PRESERVE,
                       verbose=False)
 
-    onnx_model, _ = simplify('petrv1.onnx')
-    onnx.save(onnx_model, 'petrv1.onnx')
+    onnx_model, _ = simplify(model_name)
+    onnx.save(onnx_model, model_name)
 
     print("!! ONNX model has been exported for PETR!!!\n\n")
 
@@ -630,21 +645,10 @@ def export_FastBEV(onnxModel, inputs=None, data_samples=None,
     model_input.append(prev_feats_map)
 
     if quantized_model:
-        modelInput = []
-        modelInput.append(img)
-        modelInput.append(xy_coors)
-        modelInput.append(prev_feats_map)
-
         from edgeai_torchmodelopt import xmodelopt
         xmodelopt.quantization.v3.quant_utils.register_onnx_symbolics(opset_version=opset_version)
-
         model_name = 'fastbev_quantized.onnx'
     else:
-        modelInput = []
-        modelInput.append(img)
-        modelInput.append(xy_coors)
-        modelInput.append(prev_feats_map)
-
         model_name = 'fastbev.onnx'
 
     input_names  = ["imgs", "xy_coor", "prev_img_feats"]
