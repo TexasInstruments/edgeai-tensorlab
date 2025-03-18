@@ -15,7 +15,9 @@ Multi person 2D pose-estimation is the task of understanding humans in an image.
 
 
 ### edgeai-yolox (deprecated)
-It is a novel heatmap free approach for joint detection and 2D multi-person pose estimation in an image based on the popular YOLOv5 and YOLOX object detection framework. This approach jointly infers bounding boxes for multiple persons and their corresponding 2D poses in a single forward pass without any post-processing. These models are completely accelerated in TIDL. For more details about the architecture and training details, refer to these repositories of [YOLOv5](https://github.com/TexasInstruments/edgeai-yolov5) and [YOLOX](https://github.com/TexasInstruments/edgeai-yolox).
+Note: edgeai-yolox is being deprecated - use edgeaimmpose instead
+
+YOLO-Pose is a novel heatmap free approach for joint detection and 2D multi-person pose estimation in an image based on the popular YOLOv5 and YOLOX object detection framework. This approach jointly infers bounding boxes for multiple persons and their corresponding 2D poses in a single forward pass without any post-processing. These models are completely accelerated in TIDL. For more details about the architecture and training details, refer to these repositories of [YOLOv5](https://github.com/TexasInstruments/edgeai-yolov5) and [YOLOX](https://github.com/TexasInstruments/edgeai-yolox).
 
 |Dataset |Model Name                       |Input Size |GigaMACS  |AP[0.5:0.95]%, AP50%|Notes |
 |--------|---------------------------------|-----------|----------|--------------------|----- | 
