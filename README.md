@@ -57,7 +57,7 @@ Pretrained models are located in the **[models](models)** folder. Following are 
 - edgeai-tidl-tools describes the supported tidl-tools versions and firmware updates required.
 
 #### Notes on accuracy measurements
-- Note: Since there are multiple models and devices, our report uses accuracy measured using **only on 1000 frames**. It is likely that this reported accuracy is similar to the accuracy on the entire validation set, but may not be exactly same. For accurate measurements, it is recommended to use the entire validation set.
+- Note: Since there are multiple models and devices, our report uses accuracy measured using **only on 1000 frames** to reduce the benchmark time. It is likely that this reported accuracy using smaller set of frames is similar to the accuracy on the entire validation set, but may not be exactly same. For accurate measurements, it is recommended to use the entire validation set.
 - Note: Measuring accuracy of object detection models requires to use a low detection threshold, that is not suitable for real-time inference. Because, in real inference, we are only interested in high confidence detections - including too many unnecessary low confidence detections also will affect inference time. Hence, we have separate report for performance/inference time and accuracy.
 - "Model Selection Tool - Performance Visualization" uses a high performance setting that focuses on reporting the best inference time. 
 - However, the report in "Model Compilation / Accuracy report" focuses on a setting that is suitable for accuracy measurement.
