@@ -96,7 +96,7 @@ Want do use Edge AI on TI's MPU devices - but don't know where to start? We have
 ### Deprecations
 | Category                                | ToolLink                                     | Purpose                                          | IS NOT    |
 |-----------------------------------------|----------------------------------------------|--------------------------------------------------|-----------|
-| Model training code     | edgeai-yolox is being deprecated - use [edgeai-mmpose](edgeai-mmpose) for Keypoint detection and [edgeai-mmdetection](edgeai-mmdetection) for Object Detection. The previous version of edgeai-yolox is still available in the previous branches of this repository or [here](https://github.com/TexasInstruments/edgeai-yolox) |  |  |
+| Model training code     | [edgeai-yolox](edgeai-yolox) is being deprecated - use [edgeai-mmpose](edgeai-mmpose) for Keypoint detection and [edgeai-mmdetection](edgeai-mmdetection) for Object Detection |  |  |
 
 
 <hr>
