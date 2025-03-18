@@ -1,3 +1,9 @@
+## Notice
+* Read the documentation landing page before using this repository: [https://github.com/TexasInstruments/edgeai](https://github.com/TexasInstruments/edgeai)
+* Specifically the section: [edgeai-mpu](https://github.com/TexasInstruments/edgeai/tree/main/edgeai-mpu)
+
+<hr>
+
 # edgeai-tensorlab 
 Edge AI model training, quantization, compilation/benchmark & Model Zoo
 
