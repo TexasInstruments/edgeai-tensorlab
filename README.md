@@ -1,10 +1,14 @@
-### Notice
-- This repository is not maintained and the setup may not readily work. 
-- Recommend the following alternatives instead of this - for Object Detection, **edgeai-mmdetection** can be used and for Keypoint Detection **edgeai-mmpose** can be used.
+# edgeai-yolox
+
+### Notice: This repository is not maintained and the setup may not readily work.
+
+Recommend the following alternatives instead of this:
+* For Object Detection, **edgeai-mmdetection** can be used.
+* For Keypoint Detection **edgeai-mmpose** can be used.
 
 <hr>
 
-# YOLOX based Models
+## YOLOX based Models
 This repository is a fork of [YOLOX](https://github.com/Megvii-BaseDetection/YOLOX). This contains the enhancements of the YOLOX repository for supporting additional tasks and embedded friendly ti_lite models. 
 
 
