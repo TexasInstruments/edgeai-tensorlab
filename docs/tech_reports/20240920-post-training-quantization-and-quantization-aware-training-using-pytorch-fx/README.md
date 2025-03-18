@@ -170,6 +170,24 @@ The TI torch model optimization toolkit provides an easy way of incorporating qu
 4. The toolkit also provides the option of experimenting with different qconfigs.
 5. The toolkit ensures that the quantization parameter constraints required for execution on the mobile devices are applied.
 
+### Installation
+
+The module has been tested with pytorch 2.4.0 and we would recommend using the version to avoid falling into any unknown issuses. 
+
+#### Package installation
+Install the package for usage
+
+```
+pip3 install "git+https://github.com/TexasInstruments/edgeai-modeloptimization.git#subdirectory=torchmodelopt"
+```
+
+#### Source Installation
+Install this repository as a local editable Python package (for development)
+
+```
+cd edgeai-modeloptimization/torchmodelopt
+./setup.sh
+```
 
 ### Quantization Configurations
 
