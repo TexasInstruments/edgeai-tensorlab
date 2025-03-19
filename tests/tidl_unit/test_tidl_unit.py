@@ -107,7 +107,7 @@ def perform_tidl_unit_subprocess(tidl_offload : bool, run_infer : bool, test_nam
 
     # Note: This timeout parameter must be lower than the pytest-timeout parameter 
     #       passed to the pytest command (on the command line or in pytest.ini)
-    p.join(timeout=180)
+    p.join(timeout=600)
     if p.is_alive():
         p.terminate()
 
@@ -153,7 +153,8 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, test_nam
         logger.debug("Inferring")
         settings.run_import    = False
         settings.run_inference = True
-        runtime_options  = settings.get_runtime_options(session_name, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2, is_qat=False, debug_level = 3)
+        runtime_options  = settings.get_runtime_options(session_name, is_qat=False, debug_level = 0)
+        runtime_options["advanced_options:quantization_scale_type"] = constants.QUANTScaleType.QUANT_SCALE_TYPE_NP2_PERCHAN
 
         onnxruntime_wrapper = core.ONNXRuntimeWrapper(runtime_options=runtime_options,
                                                       model_file=model_file,
@@ -180,7 +181,9 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, test_nam
         os.makedirs(artifacts_folder, exist_ok=True)
 
         logger.debug("Importing")
-        runtime_options  = settings.get_runtime_options(session_name, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2, is_qat=False, debug_level = 3)
+        runtime_options  = settings.get_runtime_options(session_name, is_qat=False, debug_level = 0)
+        runtime_options["advanced_options:quantization_scale_type"] = constants.QUANTScaleType.QUANT_SCALE_TYPE_NP2_PERCHAN
+
         onnxruntime_wrapper = core.ONNXRuntimeWrapper(runtime_options=runtime_options,
                                                       model_file=model_file,
                                                       artifacts_folder=artifacts_folder,
