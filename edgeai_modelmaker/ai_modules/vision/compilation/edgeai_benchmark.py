@@ -220,11 +220,12 @@ class ModelCompilation():
         #
 
         # can use any suitable data loader provided in datasets folder of edgeai-benchmark or write another
+        calibration_frames_nx = int(self.params.compilation.calibration_frames * edgeai_benchmark.constants.CALIBRATION_ITERATIONS_FACTOR_NX)
         calib_dataset = dataset_loader(
             path=self.params.dataset.dataset_path,
             split=self.params.dataset.split_names[0],
             shuffle=True,
-            num_frames=self.params.compilation.calibration_frames, # num_frames is not critical here,
+            num_frames=calibration_frames_nx, # num_frames is not critical here,
             annotation_prefix=self.params.dataset.annotation_prefix,
             **dataset_kwargs
         )
