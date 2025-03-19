@@ -82,6 +82,7 @@ class BenchmarkEvm():
             if status:
                 break
             if cnt>10 and not status:
+                # TODO handle this case better, see when is this actually happening
                 sys.exit(-1)
 
         # login as root
@@ -175,6 +176,7 @@ class BenchmarkEvm():
         
         infer_status = False
         if status:
+            #TODO deal with timeout in better way
             if self.modelartifacts_path is not None:
                 command = f'cd && ./model_infer.sh {self.soc} {timeout} {generate_report} {model_selection} {num_frames} {self.modelartifacts_path}'
             else:

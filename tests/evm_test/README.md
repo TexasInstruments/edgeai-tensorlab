@@ -7,6 +7,7 @@ The purpose of these scripts are to automate the process of running benchmark pi
 1. Make sure you have EVM flashed with appropriate image and booted.
 2. Connect the UART cable and note the serial port. You can use minicom to figure this out.
 3. Copy the all the scripts under ``evm_scripts`` to ``~`` directory of the EVM. You can use ssh to copy or copy it over by mounting the SD card as well.
+4. If setting up AM62A, it is recommended to set the clock freq to 1 Ghz. For that, edit the uEnv.txt file in boot partition (/run/media/B<tab>), by setting name_overlays=ti/k3-am62a7-sk-e3-max-opp.dtbo 
 
 ## PC SETUP
 1. Install the dependencies under ``requirements_pc.txt``
