@@ -60,16 +60,7 @@ class PandaSetMetric(NuScenesMetric):
     def __init__(self, data_root, ann_file, metric = 'bbox', modality = None, prefix = None, format_only = False, jsonfile_prefix = None, eval_version = 'detection_cvpr_2019', collect_device = 'cpu', backend_args = None, max_dists=None):
         super().__init__(data_root, ann_file, metric, modality, prefix, format_only, jsonfile_prefix, eval_version, collect_device, backend_args)
         self.default_prefix = 'PandaSet metric'
-        if max_dists is None:
-            self.max_dist_func = lambda cls: float('inf')
-        elif isinstance(max_dists, dict):
-            self.max_dist_func = lambda cls: max_dists.get(cls, 50)
-        elif isinstance (max_dists, (int, float)):
-            self.max_dist_func = lambda cls: max_dists
-        elif isinstance(max_dists, (tuple, list)):
-            max_dists = dict(zip(self.dataset_meta['classes'],max_dists))
-            self.max_dist_func = lambda cls: max_dists.get(cls, 50)
-            
+        self.max_dists = max_dists
     
     def get_attr_name(self, attr_idx, label_name):
         attr_mapping = UNIQUE_ATTRIBUTE_LABELS
@@ -366,7 +357,17 @@ class PandaSetMetric(NuScenesMetric):
         else:
             class_mapping_func = lambda x: x
         gt_boxes = self.load_gt_bboxes(classes, class_mapping_func)
-
+        if self.max_dists is None:
+            self.max_dist_func = lambda cls: float('inf')
+        elif isinstance(self.max_dists, dict):
+            self.max_dists = {((classes[key]) if isinstance(key, int)else key):val for key, val in self.max_dists.items()}
+            self.max_dist_func = lambda cls: self.max_dists.get(cls, 50)
+        elif isinstance (self.max_dists, (int, float)):
+            self.max_dist_func = lambda cls: self.max_dists
+        elif isinstance(self.max_dists, (tuple, list)):
+            self.max_dists = dict(zip(classes,self.max_dists))
+            self.max_dist_func = lambda cls: self.max_dists.get(cls, 50)
+            
         gt_boxes = filter_eval_boxes(gt_boxes, self.max_dist_func)
         pred_boxes = filter_eval_boxes(pred_boxes, self.max_dist_func)
         dist_ths = [0.5, 1.0, 2.0, 4.0]

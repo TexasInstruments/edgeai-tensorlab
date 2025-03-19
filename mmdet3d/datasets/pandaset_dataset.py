@@ -186,17 +186,16 @@ class PandaSetDataset(NuScenesDataset):
                  use_valid_flag = False,
                  max_dist_thr = None,
                  **kwargs):
-        if 'metainfo' in kwargs:
-            orig_class_mapping = kwargs['metainfo'].get('class_mapping', None)
+        if 'metainfo' in kwargs and (orig_class_mapping := kwargs['metainfo'].get('class_mapping', None)) is not None:
             if not isinstance(orig_class_mapping,(dict, list, tuple)):
-                print(f"Wrong class mepping of type {type(orig_class_mapping).__name__} provided! No mapping is used!")
+                print(f"Wrong class mapping of type {type(orig_class_mapping).__name__} provided! No mapping is used!")
                 print("Please provide a mapping of type dict, list or tuple")
                 orig_class_mapping = None
         else:
             orig_class_mapping = None
         if orig_class_mapping :
             if len(orig_class_mapping) != len(self.METAINFO['classes']):
-                print(f"Wrong class mepping of Length {len(orig_class_mapping)} provided! No mapping is used!")
+                print(f"Wrong class mapping of Length {len(orig_class_mapping)} provided! No mapping is used!")
                 print("Please provide a mapping of length", len(self.METAINFO['classes']))
                 orig_class_mapping = None
             else:
@@ -205,20 +204,20 @@ class PandaSetDataset(NuScenesDataset):
                     for k,v in orig_class_mapping.items():
                         if isinstance(k, str):
                             if k not in self.METAINFO['classes']:
-                                print(f"Wrong key {k} provided for class mepping! No mapping is used!")
+                                print(f"Wrong key {k} provided for class mapping! No mapping is used!")
                                 print(f"Please provide a key avilable in \n\t{self.METAINFO['classes']}\n")
                                 temp = None
                                 break
                             temp[self.METAINFO['classes'].index(k)] = v
                         elif isinstance(k, int):
                             if (k<0) or (k>=len(self.METAINFO['classes'])):
-                                print(f"Wrong key {k} provided for class mepping! No mapping is used!")
+                                print(f"Wrong key {k} provided for class mapping! No mapping is used!")
                                 print(f"Please provide a key avilable between 0 and {len(self.METAINFO['classes'])-1}\n")
                                 temp = None
                                 break
                             temp[k]=v
                         else:
-                            print(f"Wrong key {k} of type {type(k).__name__} provided for class mepping! No mapping is used!")
+                            print(f"Wrong key {k} of type {type(k).__name__} provided for class mapping! No mapping is used!")
                             print("Please provide a key of type int or string")
                             temp = None
                             break
@@ -227,20 +226,20 @@ class PandaSetDataset(NuScenesDataset):
                 for i, k in enumerate(orig_class_mapping):
                     if isinstance(k, str):
                         if k not in kwargs['metainfo']['classes']:
-                            print(f"Wrong key {k} provided for class mepping! No mapping is used!")
+                            print(f"Wrong key {k} provided for class mapping! No mapping is used!")
                             print(f"Please provide a key avilable in \n\t{kwargs['metainfo']['classes']}\n")
                             temp = None
                             break
                         temp[i] = kwargs['metainfo']['classes'].index(k)
                     elif isinstance(k, int):
                         if (k<0) or (k>=len(kwargs['metainfo']['classes'])):
-                            print(f"Wrong key {k} provided for class mepping! No mapping is used!")
+                            print(f"Wrong key {k} provided for class mapping! No mapping is used!")
                             print(f"Please provide a key avilable between 0 and {len(kwargs['metainfo']['classes'])-1}\n")
                             temp = None
                             break
                         temp[i]=k
                     else:
-                        print(f"Wrong key {k} of type {type(k).__name__} provided for class mepping! No mapping is used!")
+                        print(f"Wrong key {k} of type {type(k).__name__} provided for class mapping! No mapping is used!")
                         print("Please provide a key of type int or string")
                         temp = None
                         break
@@ -251,6 +250,7 @@ class PandaSetDataset(NuScenesDataset):
         self.get_label_func = (lambda x : orig_class_mapping[x]) if orig_class_mapping else (lambda x: x)
         self.max_dist_thr = max_dist_thr
         self.label_mapping_changed = False
+        self.new_num_ins_per_cat = [0]*len(kwargs['metainfo']['classes'] if 'metainfo' in kwargs and 'classes' in kwargs['metainfo'] else self.METAINFO['classes'])
         super().__init__(data_root, ann_file, pipeline, box_type_3d, load_type, modality, filter_empty_gt, test_mode, with_velocity, use_valid_flag, **kwargs)
 
     def full_init(self):
@@ -258,23 +258,39 @@ class PandaSetDataset(NuScenesDataset):
             for k in self.label_mapping:
                 self.label_mapping[k] = self.get_label_func(k)
             self.label_mapping_changed = True
-        return super().full_init()
+        result = super().full_init()
+        self.num_ins_per_cat = self.new_num_ins_per_cat
+        return result
 
     def _filter_with_mask(self, ann_info):
         if self.max_dist_thr:
             filtered_ann_info = {}
             gt_bboxes_3d = ann_info['gt_bboxes_3d']
+            labels = ann_info['gt_labels_3d']
+            if isinstance(self.max_dist_thr,(int, float)):
+                max_dist_thr = self.max_dist_thr
+            elif isinstance(self.max_dist_thr, (list, tuple)):
+                max_dist_thr = np.array([self.max_dist_thr[i] for i in labels])
+            elif isinstance(self.max_dist_thr, dict):
+                max_dist_thr = [0]*len(self.metainfo['classes'])
+                for key, val in self.max_dist_thr.items():
+                    if isinstance(key, int):
+                        max_dist_thr[key] = val
+                    elif isinstance(key,str) and key in self.metainfo['classes']:
+                        max_dist_thr[self.metainfo['classes'].index(key)] = val
+                    else:
+                        max_dist_thr = [50]*len(max_dist_thr)
+                        break
+                max_dist_thr = np.array([max_dist_thr[i] for i in labels])
+            else:
+                max_dist_thr = 50
             if self.load_type == 'mv_image_based':
                 translations = gt_bboxes_3d[:,[0,2]]
             else:
                 translations = gt_bboxes_3d[:,:2]
-            filtered_indices = np.where(np.linalg.norm(np.array(translations),axis=-1)<self.max_dist_thr)[0].tolist()
+            filtered_indices = np.where(np.linalg.norm(np.array(translations),axis=-1)<max_dist_thr)[0].tolist()
             for key, value in ann_info.items():
-                if key == 'instances':
-                    value = value
-                elif isinstance(value,np.ndarray):
-                    value = value[filtered_indices]
-                elif isinstance(value, torch.Tensor):
+                if isinstance(value,np.ndarray):
                     value = value[filtered_indices]
                 elif isinstance(value, (list,tuple)):
                     value = [v for i,v in enumerate(value) if i in filtered_indices]
@@ -295,7 +311,9 @@ class PandaSetDataset(NuScenesDataset):
                 instance['bbox_label_3d'] = self.get_label_func(instance['bbox_label_3d'])
                 instance['velocity'] = instance['velocity'] [::2]
         ann_info =  super().parse_ann_info(info)
-        
+        for label in ann_info['gt_labels_3d']:
+            if label != -1:
+                self.new_num_ins_per_cat[label] += 1
         return ann_info
     
     def _join_prefix(self, scene_id=None):

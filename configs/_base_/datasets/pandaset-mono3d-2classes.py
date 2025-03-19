@@ -80,7 +80,7 @@ train_dataloader = dict(
         box_type_3d='Camera',
         use_valid_flag=True,
         backend_args=backend_args,
-        max_dist_thr=50
+        max_dist_thr=[50,50]
         )
     )
 val_dataloader = dict(
@@ -111,13 +111,14 @@ val_dataloader = dict(
         box_type_3d='Camera',
         use_valid_flag=True,
         backend_args=backend_args,
+        max_dist_thr=[50,50]
     ))
 test_dataloader = val_dataloader
 
 val_evaluator = dict(
     type='PandaSetMetric',
     data_root=data_root,
-    max_dists = 50,
+    max_dists = [50,50],
     ann_file=data_root + 'pandaset_infos_val.pkl', 
     # ann_file=data_root + 'pandaset_mini_infos_val.pkl', # mini
     metric='bbox',
