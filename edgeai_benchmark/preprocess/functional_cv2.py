@@ -197,3 +197,17 @@ def resize(img, size, **kwargs):
             img = cv2.resize(img, dsize=size[::-1], interpolation=interpolation)
             return img, border
     #
+
+
+def pad(img, padding, fill=0, padding_mode="constant"):
+    left   = padding[0]
+    top    = padding[1]
+    right  = padding[2]
+    bottom = padding[3]
+
+    if padding_mode not in ["constant"]:
+        raise ValueError("Padding mode should be constant")
+
+    img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=fill)
+    return img
+

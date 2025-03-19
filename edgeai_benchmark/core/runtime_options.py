@@ -155,7 +155,7 @@ class ConfigRuntimeOptions(config_dict.ConfigDict):
         return runtime_options
 
     def get_runtime_options(self, model_type_or_session_name=None, is_qat=False,
-            det_options=None, ext_options=None, min_options=None, max_options=None, **kwargs):
+            det_options=None, ext_options=None, min_options=None, max_options=None, bev_options= None, **kwargs):
         '''
         example usage for min_options and max_options to set the limit
             settings.runtime_options_onnx_np2(max_options={'advanced_options:calibration_frames':25, 'advanced_options:calibration_iterations':25})
@@ -181,7 +181,10 @@ class ConfigRuntimeOptions(config_dict.ConfigDict):
                 f'runtime_options provided via kwargs must be dict, got {type(ext_options)}'
             runtime_options.update(ext_options)
         #
-
+        if bev_options is not None:
+            assert isinstance(bev_options, dict), \
+                f'runtime_options provided via kwargs must be dict, got {type(bev_options)}'
+            runtime_options.update(bev_options)
         object_detection_meta_arch_type = runtime_options.get('object_detection:meta_arch_type', None)
 
         # for tflite models, these options are directly processed inside tidl

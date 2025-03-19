@@ -29,6 +29,7 @@
 from .. import constants
 from .. import utils
 from .transforms import *
+from .bev_detection import *
 
 
 class PreProcessTransforms(utils.TransformsCompose):
@@ -53,7 +54,7 @@ class PreProcessTransforms(utils.TransformsCompose):
                          add_flip_image=False, pad_color=0):
         if resize is None:
             transforms_list = [
-                ImageRead(backend=backend),                
+                ImageRead(backend=backend),
                 ImageCenterCrop(crop),
                 ImageToNPTensor4D(data_layout=data_layout)
             ]
@@ -112,6 +113,116 @@ class PreProcessTransforms(utils.TransformsCompose):
         transforms = PreProcessTransforms(None, transforms_list)
 
         return transforms
+
+    """
+    def get_bev_base_transform(self, imsize=256, resize=256, crop=224, data_layout=constants.NCHW, 
+                        backend='cv2', interpolation=cv2.INTER_AREA, resize_with_pad=False, pad_color=0):
+        transforms_list = [
+            BEVSensorsRead(imsize, resize, crop),
+            ImageRead(backend=backend, bgr_to_rgb=False),
+            ImageResize(resize, interpolation=interpolation, resize_with_pad=resize_with_pad, pad_color=pad_color),
+            ImageCrop(crop),
+            ImageToNPTensor4D(data_layout=data_layout),
+        ]
+
+        return transforms_list
+    """
+
+    def get_transform_bev_petr(self, imsize=256, resize=256, crop=224, data_layout=constants.NCHW, reverse_channels=False,
+                        backend='cv2', interpolation=cv2.INTER_AREA, resize_with_pad=False, pad_color=0):
+        transforms_list = [
+            BEVSensorsRead(imsize, resize, crop),
+            ImageRead(backend=backend, bgr_to_rgb=False),
+            ImageResize(resize, interpolation=interpolation, resize_with_pad=resize_with_pad, pad_color=pad_color),
+            ImageCrop(crop),
+            ImageToNPTensor4D(data_layout=data_layout),
+            GetPETRGeometry(crop)
+        ]
+
+        transforms = PreProcessTransforms(None, transforms_list,
+                                          imsize=imsize, resize=resize, crop=crop,
+                                          data_layout=data_layout, reverse_channels=reverse_channels,
+                                          backend=backend, interpolation=interpolation,
+                                          resize_with_pad=resize_with_pad, pad_color=pad_color)
+        return transforms
+
+
+    def get_transform_bev_bevdet(self, imsize=256, resize=256, crop=224, data_layout=constants.NCHW, reverse_channels=False,
+                        backend='cv2', interpolation=cv2.INTER_AREA, resize_with_pad=False, pad_color=0):
+        transforms_list = [
+            BEVSensorsRead(imsize, resize, crop),
+            ImageRead(backend=backend, bgr_to_rgb=False),
+            ImageResize(resize, interpolation=interpolation, resize_with_pad=resize_with_pad, pad_color=pad_color),
+            ImageCrop(crop),
+            ImageToNPTensor4D(data_layout=data_layout),
+            GetBEVDetGeometry(crop)
+        ]
+
+        transforms = PreProcessTransforms(None, transforms_list,
+                                          imsize=imsize, resize=resize, crop=crop,
+                                          data_layout=data_layout, reverse_channels=reverse_channels,
+                                          backend=backend, interpolation=interpolation,
+                                          resize_with_pad=resize_with_pad, pad_color=pad_color)
+        return transforms
+
+
+    def get_transform_bev_bevformer(self, imsize=256, resize=256, pad=224, data_layout=constants.NCHW, reverse_channels=False,
+                        backend='cv2', interpolation=cv2.INTER_AREA, resize_with_pad=False, pad_color=0):
+        transforms_list = [
+            BEVSensorsRead(imsize, resize, (0, 0, resize[1]+pad[2], resize[0]+pad[3])),
+            ImageRead(backend=backend, bgr_to_rgb=True),
+            ImageResize(resize, interpolation=interpolation, resize_with_pad=resize_with_pad, pad_color=pad_color),
+            ImagePad(pad),
+            ImageToNPTensor4D(data_layout=data_layout),
+            GetBEVFormerGeometry(pad)
+        ]
+
+        transforms = PreProcessTransforms(None, transforms_list,
+                                          imsize=imsize, resize=resize, pad=pad,
+                                          data_layout=data_layout, reverse_channels=reverse_channels,
+                                          backend=backend, interpolation=interpolation,
+                                          resize_with_pad=resize_with_pad, pad_color=pad_color)
+        return transforms
+
+
+    def get_transform_fcos3d(self, imsize=256, resize=256, pad=224, data_layout=constants.NCHW, reverse_channels=False,
+                        backend='cv2', interpolation=cv2.INTER_AREA, resize_with_pad=False, pad_color=0):
+
+        transforms_list = [
+            BEVSensorsRead(imsize, resize, (0, 0, resize[1]+pad[2], resize[0]+pad[3]), load_type='mv_image_based'),
+            ImageRead(backend=backend, bgr_to_rgb=False),
+            ImagePad(pad),
+            ImageToNPTensor4D(data_layout=data_layout),
+            GetFCOS3DGeometry()
+        ]
+
+        transforms = PreProcessTransforms(None, transforms_list,
+                                          imsize=imsize, resize=resize, pad=pad,
+                                          data_layout=data_layout, reverse_channels=reverse_channels,
+                                          backend=backend, interpolation=interpolation,
+                                          resize_with_pad=resize_with_pad, pad_color=pad_color)
+        return transforms
+
+
+
+    def get_transform_bev_fastbev(self, imsize=256, resize=256, crop=224, data_layout=constants.NCHW, reverse_channels=False,
+                        backend='cv2', interpolation=cv2.INTER_AREA, resize_with_pad=False, pad_color=0):
+        transforms_list = [
+            BEVSensorsRead(imsize, resize, crop),
+            ImageRead(backend=backend, bgr_to_rgb=True),
+            ImageResize(resize, interpolation=interpolation, resize_with_pad=resize_with_pad, pad_color=pad_color),
+            ImageCrop(crop),
+            ImageToNPTensor4D(data_layout=data_layout),
+            GetFastBEVGeometry(crop)
+        ]
+
+        transforms = PreProcessTransforms(None, transforms_list,
+                                          imsize=imsize, resize=resize, crop=crop,
+                                          data_layout=data_layout, reverse_channels=reverse_channels,
+                                          backend=backend, interpolation=interpolation,
+                                          resize_with_pad=resize_with_pad, pad_color=pad_color)
+        return transforms
+
 
     def get_transform_none(self):
         return PreProcessTransforms(self.settings, transforms=[])

@@ -82,9 +82,10 @@ _pil_interpolation_to_str = {
 
 
 class ImageRead(object):
-    def __init__(self, backend='pil'):
+    def __init__(self, backend='pil', bgr_to_rgb=True):
         assert backend in ('pil', 'cv2'), f'backend must be one of pil or cv2. got {backend}'
         self.backend = backend
+        self.bgr_to_rgb = bgr_to_rgb
 
     def __call__(self, path, info_dict):
         if isinstance(path, str):
@@ -99,9 +100,10 @@ class ImageRead(object):
                     img_data = cv2.cvtColor(img_data, cv2.COLOR_GRAY2BGR)
                 elif img_data.shape[-1] == 4:
                     img_data = cv2.cvtColor(img_data, cv2.COLOR_BGRA2BGR)
-                #
-                # always return in RGB format
-                img_data = img_data[:,:,::-1]
+
+                # Convert to RGB format
+                if self.bgr_to_rgb == True:
+                    img_data = img_data[:,:,::-1]
                 info_dict['data_shape'] = img_data.shape
             #
             info_dict['data'] = img_data
@@ -113,25 +115,28 @@ class ImageRead(object):
             info_dict['data_path'] = './'
         elif isinstance(path, tuple):
             img_data = []
-            for i in range(len(path)):
+            data_path = []
+            for i, img_path in enumerate(path):
+                data_path.append(img_path)
                 if self.backend == 'pil':
-                    img_data.append(PIL.Image.open(path[i]))
+                    img_data.append(PIL.Image.open(img_path))
                     img_data[i] = img_data[i].convert('RGB')
-                    info_dict['data_shape'] = img_data.size[1], img_data.size[0], len(img_data.getbands())
                 elif self.backend == 'cv2':
-                    img_data.append(cv2.imread(path[i]))
+                    img_data.append(cv2.imread(img_path))
                     if img_data[i].shape[-1] == 1:
                         img_data[i] = cv2.cvtColor(img_data[i], cv2.COLOR_GRAY2BGR)
                     elif img_data[i].shape[-1] == 4:
                         img_data[i] = cv2.cvtColor(img_data[i], cv2.COLOR_BGRA2BGR)
-                    #
-                    # always return in RGB format
-                    img_data[i] = img_data[i][:,:,::-1]
 
+                    # Convert to RGB format
+                    if self.bgr_to_rgb == True:
+                        img_data[i] = img_data[i][:,:,::-1]
+
+            info_dict['data_path'] = data_path
             if self.backend == 'pil':
                 info_dict['data_shape'] = img_data[0].size[1], img_data[0].size[0], len(img_data[0].getbands())
             else:
-                info_dict['data_shape'] = img_data[0].shape            
+                info_dict['data_shape'] = img_data[0].shape
         else:
             assert False, 'invalid input'
         #
@@ -216,13 +221,27 @@ class ImageNormMeanScale(object):
         if isinstance(tensor, list):
             tensor = [F.normalize_mean_scale(t, self.mean, self.scale, self.data_layout, self.inplace) for t in tensor]
         elif isinstance(tensor, tuple):
-            tensor = tuple([F.normalize_mean_scale(t, self.mean, self.scale, self.data_layout, self.inplace) for t in tensor])
+            #tensor = tuple([F.normalize_mean_scale(t, self.mean, self.scale, self.data_layout, self.inplace) for t in tensor])
+            tensor_ = []
+            for t in tensor[0]:
+                # only for image tensor (ndim = 4, RGB channel)
+                if t.ndim == 4 and t.shape[1] == 3:
+                    tensor_.append(F.normalize_mean_scale(t, self.mean, self.scale, self.data_layout, self.inplace))
+                else:
+                    tensor_.append(t)
+            tensor_ = tuple(tensor_)
         elif isinstance(tensor, dict):
-            tensor = {name:F.normalize_mean_scale(t, self.mean, self.scale, self.data_layout, self.inplace) for name, t in tensor.items()}
+            tensor_ = {}
+            for name, t in tensor.items():
+                # only for image tensor
+                if t.ndim == 4 and t.shape[1] == 3:
+                    tensor_[name] = F.normalize_mean_scale(t, self.mean, self.scale, self.data_layout, self.inplace)
+                else:
+                    tensor_[name] = t
         else:
-            tensor = F.normalize_mean_scale(tensor, self.mean, self.scale, self.data_layout, self.inplace)
-        #
-        return tensor, info_dict
+            tensor_ = F.normalize_mean_scale(tensor, self.mean, self.scale, self.data_layout, self.inplace)
+
+        return tensor_, info_dict
 
     def __repr__(self):
         return self.__class__.__name__ + '(mean={0}, scale={1})'.format(self.mean, self.scale)
@@ -270,7 +289,7 @@ class ImageResize():
                 info_dict['resize_shape'] = img[0].size[1],  img[0].size[0], len(img[0].getbands())
             #
             info_dict['resize_border'] = border
-        else:        
+        else:
             img, border = F.resize(img, self.size, *self.args, **self.kwargs)
             if isinstance(img, np.ndarray):
                 info_dict['resize_shape'] = img.shape
@@ -332,9 +351,9 @@ class ImageCenterCrop():
         if self.size is not None:
             if isinstance(img, list):
                 for i in range(len(img)):
-                    img[i] = F.center_crop(img[i], self.size)          
-            else:        
-                img = F.center_crop(img, self.size)            
+                    img[i] = F.center_crop(img[i], self.size)
+            else:
+                img = F.center_crop(img, self.size)
 
         return img, info_dict
         #return F.center_crop(img, self.size) if self.size is not None else img, info_dict
@@ -533,7 +552,7 @@ class Voxelization(object):
 
                 scratch_1  = indx_write
 
-            num_points = np.zeros(self.nw_max_num_voxels,dtype=int)
+            num_points = np.zeros(self.nw_max_num_voxels, dtype=int)
 
             # Find unique indices
             # There will be voxel which doesnt have any 3d point, hence collecting the voxel ids for valid voxels*/
