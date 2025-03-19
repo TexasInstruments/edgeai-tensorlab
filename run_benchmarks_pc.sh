@@ -40,7 +40,7 @@ TARGET_MACHINE=pc
 # settigns model_shortlist will cause only selected models to be run
 # in ./configs folder, model configs have a model_shortlist associated with them
 # in this script, if --model_shortlist is set to 120, only those models with model_shortlist values <= 120 will run
-MODEL_SHORTLIST=120
+MODEL_SHORTLIST=${MODEL_SHORTLIST:-120}
 
 
 echo "TARGET_SOC:     ${TARGET_SOC}"

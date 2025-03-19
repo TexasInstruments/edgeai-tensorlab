@@ -56,6 +56,12 @@ class PipelineRunner():
         #
         self.pipeline_configs = self._filter_pipeline_configs(self.pipeline_configs)
 
+        if settings.model_shortlist is not None or len(self.pipeline_configs) == 0:
+            print(utils.log_color('WARNING', f'model_shortlist={settings.model_shortlist}', 'this will cause only a subset of models to be selected for run'))
+            print(utils.log_color('WARNING', 'if the model that you wish is not being selected for run, then remove this model_shortlist'))
+            print(utils.log_color('WARNING', 'this model_shortlist could be being set in settings_base.yaml or passed inside run_benchmarks_pc.sh'))
+        #
+
     def get_pipeline_configs(self):
         return self.pipeline_configs
 
