@@ -187,8 +187,6 @@ def main(args=None):
         #     torch.nn.functional._interpolate_orig = torch.nn.functional.interpolate
         #     torch.nn.functional.interpolate = xnn.layers.resize_with_scale_factor
 
-        # model surgery
-
         is_wrapped = False
         if is_model_wrapper(runner.model):
             runner.model = runner.model.module
@@ -199,12 +197,12 @@ def main(args=None):
         # can we one unified transfomration_dict for all models?
         if cfg.get("model")['type'] == 'FCOSMono3D':
             transformation_dict = dict(backbone=None, neck=None, bbox_head=xmodelopt.utils.TransformationWrapper(wrap_fn_for_bbox_head))
-        elif cfg.get("model")['type'] == 'FastBEV'
+        elif cfg.get("model")['type'] == 'FastBEV':
             transformation_dict = dict(backbone=None, neck=None, neck_fuse_0=None, neck_3d=None, bbox_head=xmodelopt.utils.TransformationWrapper(wrap_fn_for_bbox_head))
-        elif cfg.get("model")['type'] == 'PETR'
+        elif cfg.get("model")['type'] == 'PETR':
             transformation_dict = dict(img_neck=None, img_backbone=None, grid_mask=None, pts_bbox_head=xmodelopt.utils.TransformationWrapper(wrap_fn_for_bbox_head))
         else:
-            raise RuntimeError(f'Quantization is NOT supporte for "{cfg.get("model")['type']}")
+            raise RuntimeError('Quantization is NOT supported for this model')
 
 
         copy_attrs=['train_step', 'val_step', 'test_step', 'data_preprocessor', 'parse_losses', 'bbox_head', '_run_forward']

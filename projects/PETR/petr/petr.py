@@ -10,8 +10,10 @@
 
 from typing import Dict, List, Union, Optional
 import torch
+from torch import Tensor
 from mmengine.structures import InstanceData
 from mmdet3d.models.detectors.mvx_two_stage import MVXTwoStageDetector
+from mmdet3d.structures import Det3DDataSample
 from mmdet3d.structures.det3d_data_sample import ForwardResults, OptSampleList
 from mmdet3d.registry import MODELS
 from mmdet3d.structures.ops import bbox3d2result

@@ -29,7 +29,7 @@ class PETR_export_model(nn.Module):
         #self.img_neck       = img_neck
         #self.pts_bbox_head  = pts_bbox_head
         self.img_backbone    = img_backbone.convert(make_copy=True) if hasattr(img_backbone, "convert") else img_backbone
-        self.img_neckeck     = img_neck.convert(make_copy=True) if hasattr(img_neck, "convert") else img_neck
+        self.img_neck        = img_neck.convert(make_copy=True) if hasattr(img_neck, "convert") else img_neck
         if hasattr(pts_bbox_head, "new_bbox_head"):
             self.pts_bbox_head = copy.deepcopy(pts_bbox_head)
             # self.bbox_head.new_bbox_head loses the convert function after deepcopy so using the original

@@ -385,11 +385,11 @@ def main():
     # log_file_link = osp.join(cfg.work_dir, f'run.log')
     # xnn.utils.make_symlink(log_file, log_file_link)
 
-    # Model optimization is applied only to FCOS3D
     # Need to validate it for other models
-    if cfg.get("model")['type'] == 'FCOSMono3D' or \
-       cfg.get("model")['type'] == 'FastBEV' or \
-       cfg.get("model")['type'] == 'PETR':
+    if args.quantization and \
+       (cfg.get("model")['type'] == 'FCOSMono3D' or \
+        cfg.get("model")['type'] == 'FastBEV' or \
+        cfg.get("model")['type'] == 'PETR'):
 
         model_surgery = args.model_surgery
         if args.model_surgery is None:
@@ -421,11 +421,10 @@ def main():
             transformation_dict = dict(backbone=None, neck=None, bbox_head=xmodelopt.utils.TransformationWrapper(wrap_fn_for_bbox_head))
         elif cfg.get("model")['type'] == 'FastBEV':
             transformation_dict = dict(backbone=None, neck=None, neck_fuse_0=None, neck_3d=None, bbox_head=xmodelopt.utils.TransformationWrapper(wrap_fn_for_bbox_head))
-        elif cfg.get("model")['type'] == 'PETR'
+        elif cfg.get("model")['type'] == 'PETR':
             transformation_dict = dict(img_neck=None, img_backbone=None, grid_mask=None, pts_bbox_head=xmodelopt.utils.TransformationWrapper(wrap_fn_for_bbox_head))
         else:
-            raise RuntimeError(f'Quantization is NOT supporte for "{cfg.get("model")['type']}")
-
+            raise RuntimeError('Quantization is NOT supported for the model')
 
         copy_attrs=['train_step', 'val_step', 'test_step', 'data_preprocessor', 'parse_losses', 'bbox_head', '_run_forward']
 
