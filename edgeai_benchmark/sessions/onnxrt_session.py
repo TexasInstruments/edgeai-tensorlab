@@ -43,15 +43,12 @@ class ONNXRTSession(BaseRTSession, ONNXRuntimeWrapper):
         ONNXRuntimeWrapper.__init__(self)
         self.kwargs['input_data_layout'] = self.kwargs.get('input_data_layout', constants.NCHW)
 
-    def start(self):
-        BaseRTSession.start(self)
-        ONNXRuntimeWrapper.start(self)
+    def start_import(self):
+        BaseRTSession.start_import(self)
+        return ONNXRuntimeWrapper.start_import(self)
 
-    def import_model(self, input_data, info_dict=None):
-        if not self._prepare_for_import_done:
-            BaseRTSession._prepare_for_import(self)
-            ONNXRuntimeWrapper._prepare_for_import(self)
-        #
+    def run_import(self, input_data, info_dict=None):
+        super().run_import(input_data, info_dict)
         # provide the calibration data and run the import
         # input_data = self._format_input_data(input_data)
         if not isinstance(input_data, tuple):
@@ -64,16 +61,15 @@ class ONNXRTSession(BaseRTSession, ONNXRuntimeWrapper):
         # run the actual import step
         output = ONNXRuntimeWrapper.run_import(self, input_data)
         self._update_output_details(output)
-        return info_dict
+        return output, info_dict
 
-    def start_infer(self):
-        BaseRTSession._prepare_for_inference(self)
-        ONNXRuntimeWrapper._prepare_for_inference(self)
+    def start_inference(self):
         os.chdir(self.cwd)
-        return True
+        BaseRTSession.start_inference(self)
+        return ONNXRuntimeWrapper.start_inference(self)
 
-    def infer_frame(self, input_data, info_dict=None):
-        super().infer_frame(input_data, info_dict)
+    def run_inference(self, input_data, info_dict=None):
+        super().run_inference(input_data, info_dict)
 
         # input_data = self._format_input_data(input_data)
         if not isinstance(input_data, tuple):
@@ -85,7 +81,7 @@ class ONNXRTSession(BaseRTSession, ONNXRuntimeWrapper):
 
         # run the actual inference
         start_time = time.time()
-        outputs = ONNXRuntimeWrapper._run(self, input_data)
+        outputs = ONNXRuntimeWrapper.run_inference(self, input_data)
         info_dict['session_invoke_time'] = (time.time() - start_time)
         self._update_output_details(outputs)
 

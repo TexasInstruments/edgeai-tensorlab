@@ -64,9 +64,6 @@ class AccuracyPipeline(BasePipeline):
         #
 
         ##################################################################
-        # start() must be called to create the required directories
-        self.session.start()
-
         # log some info
         self.write_log(utils.log_color('\nINFO', 'running', os.path.basename(self.run_dir)))
         self.write_log(utils.log_color('\nINFO', 'pipeline_config', self.pipeline_config))
@@ -158,13 +155,17 @@ class AccuracyPipeline(BasePipeline):
         assert len(calibration_dataset) >= calibration_frames, \
             utils.log_color('\nERROR', 'import', f'too few calibration data - calibration dataset size ({len(calibration_dataset)}) '
                                                  f'should be >= calibration_frames ({calibration_frames})')
+        run_dir_base = os.path.split(session.get_param('run_dir'))[-1]
+
+        is_ok = session.start_import()
+        assert is_ok, utils.log_color('\nERROR', f'start_import() did not succeed for:', run_dir_base)
 
         for data_index in range(calibration_frames):
             info_dict = {'dataset_info': self.dataset_info, 'label_offset_pred': self.pipeline_config.get('metric',{}).get('label_offset_pred',None)}
             input_data = calibration_dataset[data_index]
             input_data, info_dict = preprocess(input_data, info_dict)
             # this is the actual import
-            output = session.import_model(input_data)
+            output, info_dict = session.run_import(input_data, info_dict)
         #
 
         # close the interpreter
@@ -180,7 +181,7 @@ class AccuracyPipeline(BasePipeline):
         num_frames = self.pipeline_config.get('num_frames', self.settings.num_frames)
         num_frames = min(len(input_dataset), num_frames) if num_frames else len(input_dataset)
 
-        is_ok = session.start_infer()
+        is_ok = session.start_inference()
         assert is_ok, utils.log_color('\nERROR', f'start_infer() did not succeed for:', run_dir_base)
 
         if self.settings.target_machine == constants.TARGET_MACHINE_EVM:
@@ -197,7 +198,7 @@ class AccuracyPipeline(BasePipeline):
             info_dict = {'dataset_info': self.dataset_info, 'label_offset_pred': self.pipeline_config.get('metric',{}).get('label_offset_pred',None)}
             data = input_dataset[data_index]
             data, info_dict = preprocess(data, info_dict)
-            output, info_dict = session.infer_frame(data, info_dict)
+            output, info_dict = session.run_inference(data, info_dict)
 
             stats_dict = session.infer_stats()
             if self.settings.target_machine == constants.TARGET_MACHINE_EVM:
@@ -210,7 +211,7 @@ class AccuracyPipeline(BasePipeline):
                #
            #
             if self.settings.flip_test:
-                outputs_flip, info_dict = session.infer_frame(info_dict['flip_img'], info_dict)
+                outputs_flip, info_dict = session.run_inference(info_dict['flip_img'], info_dict)
                 info_dict['outputs_flip'] = outputs_flip
 
                 stats_dict = session.infer_stats()

@@ -36,59 +36,51 @@ from .basert_runtime import BaseRuntimeWrapper
 class ONNXRuntimeWrapper(BaseRuntimeWrapper):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._start_done = False
-        self._prepare_for_import_done = False
-        self._prepare_for_inference_done = False
+        self._start_import_done = False
+        self._start_inference_done = False
         self._num_run_import = 0
 
-    def start(self):
-        self.calibration_frames = self.kwargs["runtime_options"]["advanced_options:calibration_frames"]
+    def start_import(self):
+        self.is_import = True
+        self._calibration_frames = self.kwargs["runtime_options"]["advanced_options:calibration_frames"]
         self.kwargs["runtime_options"] = self._set_default_options(self.kwargs["runtime_options"])
-        self._start_done = True
+        self.interpreter = self._create_interpreter(is_import=True)
+        self.kwargs['input_details'] = self.get_input_details(self.interpreter, self.kwargs.get('input_details', None))
+        self.kwargs['output_details'] = self.get_output_details(self.interpreter, self.kwargs.get('output_details', None))
+        self._start_import_done = True
+        return self.interpreter
 
     def run_import(self, input_data, output_keys=None):
-        if not self._start_done:
-            self.start()
+        if not self._start_import_done:
+            self.start_import()
         #
-        if not self._prepare_for_import_done:
-            self._prepare_for_import()
-        #
+        input_data = self._format_input_data(input_data)
         output = self._run(input_data, output_keys)
-        self._num_run_import += 1
 
-        if self._num_run_import > self.calibration_frames:
-            print(f"WARNING: not need to call run_import more than calibration_frames = {self.calibration_frames}")
+        self._num_run_import += 1
+        if self._num_run_import > self._calibration_frames:
+            print(f"WARNING: not need to call run_import more than calibration_frames = {self._calibration_frames}")
         #
         return output
 
+    def start_inference(self):
+        self.is_import = False
+        self._calibration_frames = self.kwargs["runtime_options"]["advanced_options:calibration_frames"]
+        self.kwargs["runtime_options"] = self._set_default_options(self.kwargs["runtime_options"])
+        self.interpreter = self._create_interpreter(is_import=False)
+        self.kwargs['input_details'] = self.get_input_details(self.interpreter, self.kwargs.get('input_details', None))
+        self.kwargs['output_details'] = self.get_output_details(self.interpreter, self.kwargs.get('output_details', None))
+        self._start_inference_done = True
+        return self.interpreter
+
     def run_inference(self, input_data, output_keys=None):
-        if not self._start_done:
-            self.start()
-            self._start_done = True
+        if not self._start_inference_done:
+            self.start_inference()
         #
-        if not self._prepare_for_inference_done:
-            self._prepare_for_inference()
-        #
+        input_data = self._format_input_data(input_data)
         return self._run(input_data, output_keys)
 
-    def _prepare_for_import(self, *args, **kwargs):
-        self.is_import = True
-        self.interpreter = self._create_interpreter(*args, is_import=self.is_import, **kwargs)
-        self.kwargs['input_details'] = self.get_input_details(self.interpreter, self.kwargs.get('input_details', None))
-        self.kwargs['output_details'] = self.get_output_details(self.interpreter, self.kwargs.get('output_details', None))
-        self._prepare_for_import_done = True
-        return self.interpreter
-
-    def _prepare_for_inference(self, *args, **kwargs):
-        self.is_import = False
-        self.interpreter = self._create_interpreter(*args, is_import=self.is_import, **kwargs)
-        self.kwargs['input_details'] = self.get_input_details(self.interpreter, self.kwargs.get('input_details', None))
-        self.kwargs['output_details'] = self.get_output_details(self.interpreter, self.kwargs.get('output_details', None))
-        self._prepare_for_inference_done = True
-        return self.interpreter
-
     def _run(self, input_data, output_keys=None):
-        input_data = self._format_input_data(input_data)
         # if model needs additional inputs given in extra_inputs
         if self.kwargs.get('extra_inputs'):
             input_data.update(self.kwargs['extra_inputs'])

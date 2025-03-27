@@ -46,17 +46,12 @@ class TVMDLRSession(BaseRTSession, TVMDLRRuntimeWrapper):
         target_machine = self.kwargs['target_machine']
         assert target_machine in self.supported_machines, f'invalid target_machine {target_machine}'
 
-    def start(self):
-        BaseRTSession.start(self)
-        TVMDLRRuntimeWrapper.start(self)
+    def start_import(self):
+        BaseRTSession.start_import(self)
+        return TVMDLRRuntimeWrapper.start_import(self)
 
-    def import_model(self, input_data, info_dict=None):
-        # prepare for actual model import
-        if not self._prepare_for_import_done:
-            BaseRTSession._prepare_for_import(self)
-            TVMDLRRuntimeWrapper._prepare_for_import(self)
-        #
-
+    def run_import(self, input_data, info_dict=None):
+        super().run_import(input_data, info_dict)
         # input_data = self._format_input_data(input_data)
         if not isinstance(input_data, tuple):
             input_data = (input_data,)
@@ -67,16 +62,15 @@ class TVMDLRSession(BaseRTSession, TVMDLRRuntimeWrapper):
 
         output = TVMDLRRuntimeWrapper.run_import(self, input_data)
         os.chdir(self.cwd)
-        return info_dict
+        return output, info_dict
 
-    def start_infer(self):
-        BaseRTSession._prepare_for_inference(self)
-        TVMDLRRuntimeWrapper._prepare_for_inference(self)
+    def start_inference(self):
         os.chdir(self.cwd)
-        return True
+        BaseRTSession.start_inference(self)
+        return TVMDLRRuntimeWrapper.start_inference(self)
 
-    def infer_frame(self, input_data, info_dict=None):
-        super().infer_frame(input_data, info_dict)
+    def run_inference(self, input_data, info_dict=None):
+        super().run_inference(input_data, info_dict)
 
         # input_data = self._format_input_data(input_data)
         if not isinstance(input_data, tuple):
@@ -88,7 +82,7 @@ class TVMDLRSession(BaseRTSession, TVMDLRRuntimeWrapper):
         #
 
         start_time = time.time()
-        outputs = TVMDLRRuntimeWrapper._run(self, input_data)
+        outputs = TVMDLRRuntimeWrapper.run_inference(self, input_data)
         info_dict['session_invoke_time'] = (time.time() - start_time)
         self._update_output_details(outputs)
         return outputs, info_dict

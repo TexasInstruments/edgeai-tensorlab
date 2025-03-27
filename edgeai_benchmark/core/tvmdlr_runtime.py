@@ -37,60 +37,44 @@ from .basert_runtime import BaseRuntimeWrapper
 class TVMDLRRuntimeWrapper(BaseRuntimeWrapper):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._start_done = False
-        self._prepare_for_import_done = False
-        self._prepare_for_inference_done = False
+        self._start_import_done = False
+        self._start_inference_done = False
         self._num_run_import = 0
         self._input_list = []
 
-    def start(self):
-        self.calibration_frames = self.kwargs["runtime_options"]["advanced_options:calibration_frames"]
+    def start_import(self):
+        self.is_import = True
+        self._calibration_frames = self.kwargs["runtime_options"]["advanced_options:calibration_frames"]
         self.kwargs["runtime_options"] = self._set_default_options(self.kwargs["runtime_options"])
-        self._start_done = True
+       # tvm/dlr requires input shape in prepare_for_import - so moved this ahead
+        self.kwargs['input_details'] = self.get_input_details(None, self.kwargs.get('input_details', None))
+        self.kwargs['output_details'] = self.get_output_details(None, self.kwargs.get('output_details', None))
+        self._input_list = []
+        self._start_import_done = True
+        return True
 
     def run_import(self, input_data, output_keys=None):
-        if not self._start_done:
-            self.start()
+        if not self._start_import_done:
+            self.start_import()
         #
-        self._input_list.append(input_data)
         self._num_run_import += 1
 
+        #_format_input_data was not called yet, as shapes were not available - call it here:
+        input_data = self._format_input_data(input_data)
+        self._input_list.append(input_data)
+
         output = None
-        if self._num_run_import == calibration_frames:
-            if not self._prepare_for_import_done:
-                self._prepare_for_import()
-            #
-            self._prepare_for_import(input_list)
-        elif self._num_run_import > self.calibration_frames:
-            print(f"WARNING: not need to call run_import more than calibration_frames = {self.calibration_frames}")
+        if len(self._input_list) == self._calibration_frames:
+            self.interpreter = self._create_interpreter_for_import(self._input_list)
+        elif len(self._input_list) > self._calibration_frames:
+            print(f"WARNING: not need to call run_import more than calibration_frames = {self._calibration_frames}")
         #
         return output
 
-    def run_inference(self, input_data, output_keys=None):
-        if not self._start_done:
-            self.start()
-            self._start_done = True
-        #
-        if not self._prepare_for_inference_done:
-            self._prepare_for_inference()
-        #
-        return self._run(input_data, output_keys)
-
-    def _prepare_for_import(self, calib_list, *args, **kwargs):
-        self.is_import = True
-        # tvm/dlr requires input shape in prepare_for_import - so moved this ahead
-        self.kwargs['input_details'] = self.get_input_details(None, self.kwargs.get('input_details', None))
-        self.kwargs['output_details'] = self.get_output_details(None, self.kwargs.get('output_details', None))
-        #_format_input_data was not called yet, as shapes were not available - call it here:
-        for in_idx, input_data in enumerate(calib_list):
-            calib_list[in_idx] = self._format_input_data(input_data)
-        #
-        self.interpreter = self._create_interpreter_for_import(calib_list, *args, **kwargs)
-        self._prepare_for_import_done = True
-        return self.interpreter
-
-    def _prepare_for_inference(self, *args, **kwargs):
+    def start_inference(self):
         self.is_import = False
+        self._calibration_frames = self.kwargs["runtime_options"]["advanced_options:calibration_frames"]
+        self.kwargs["runtime_options"] = self._set_default_options(self.kwargs["runtime_options"])
         self.kwargs['input_details'] = self.get_input_details(None, self.kwargs.get('input_details', None))
         self.kwargs['output_details'] = self.get_output_details(None, self.kwargs.get('output_details', None))
         # moved the import inside the function, so that dlr needs to be installed only if someone wants to use it
@@ -100,11 +84,17 @@ class TVMDLRRuntimeWrapper(BaseRuntimeWrapper):
             return False
         #
         self.interpreter = DLRModel(artifacts_folder, 'cpu')
-        self._prepare_for_inference_done = True
+        self._start_inference_done = True
         return self.interpreter
 
-    def _run(self, input_data, output_keys=None):
+    def run_inference(self, input_data, output_keys=None):
+        if not self._start_inference_done:
+            self.start_inference()
+        #
         input_data = self._format_input_data(input_data)
+        return self._run(input_data, output_keys)
+
+    def _run(self, input_data, output_keys=None):
         # if model needs additional inputs given in extra_inputs
         if self.kwargs.get('extra_inputs'):
             input_data.update(self.kwargs['extra_inputs'])
