@@ -40,24 +40,27 @@ class TFLiteRuntimeWrapper(BaseRuntimeWrapper):
         self._start_done = False
         self._prepare_for_import_done = False
         self._prepare_for_inference_done = False
+        self._num_run_import = 0
 
     def start(self):
+        self.calibration_frames = self.kwargs["runtime_options"]["advanced_options:calibration_frames"]
         self.kwargs["runtime_options"] = self._set_default_options(self.kwargs["runtime_options"])
         self._start_done = True
 
-    def run_import(self, input_list, output_keys=None):
+    def run_import(self, input_data, output_keys=None):
         if not self._start_done:
             self.start()
         #
         if not self._prepare_for_import_done:
             self._prepare_for_import()
         #
-        output_list = []
-        for input_data in input_list:
-            outputs = self._run(input_data, output_keys)
-            output_list.append(outputs)
+        output = self._run(input_data, output_keys)
+        self._num_run_import += 1
+
+        if self._num_run_import > self.calibration_frames:
+            print(f"WARNING: not need to call run_import more than calibration_frames = {self.calibration_frames}")
         #
-        return output_list
+        return output
 
     def run_inference(self, input_data, output_keys=None):
         if not self._start_done:

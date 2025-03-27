@@ -47,25 +47,23 @@ class ONNXRTSession(BaseRTSession, ONNXRuntimeWrapper):
         BaseRTSession.start(self)
         ONNXRuntimeWrapper.start(self)
 
-    def import_model(self, calib_data, info_dict=None):
-        BaseRTSession._prepare_for_import(self)
-        ONNXRuntimeWrapper._prepare_for_import(self)
-
+    def import_model(self, input_data, info_dict=None):
+        if not self._prepare_for_import_done:
+            BaseRTSession._prepare_for_import(self)
+            ONNXRuntimeWrapper._prepare_for_import(self)
+        #
         # provide the calibration data and run the import
-        for frame_idx, input_data in enumerate(calib_data):
-            # input_data = self._format_input_data(input_data)
-            if not isinstance(input_data, tuple):
-                input_data = (input_data,)
-            #
-            if self.input_normalizer is not None:
-                input_data, _ = self.input_normalizer(input_data, {})
-            #
-            # run the actual import step
-            outputs = ONNXRuntimeWrapper._run(self, input_data)
-            self._update_output_details(outputs)
+        # input_data = self._format_input_data(input_data)
+        if not isinstance(input_data, tuple):
+            input_data = (input_data,)
+        #
+        if self.input_normalizer is not None:
+            input_data, _ = self.input_normalizer(input_data, {})
         #
 
-        print("================================ import model =============")
+        # run the actual import step
+        output = ONNXRuntimeWrapper.run_import(self, input_data)
+        self._update_output_details(output)
         return info_dict
 
     def start_infer(self):

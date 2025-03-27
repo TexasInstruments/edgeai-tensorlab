@@ -50,23 +50,22 @@ class TVMDLRSession(BaseRTSession, TVMDLRRuntimeWrapper):
         BaseRTSession.start(self)
         TVMDLRRuntimeWrapper.start(self)
 
-    def import_model(self, calib_data, info_dict=None):
+    def import_model(self, input_data, info_dict=None):
         # prepare for actual model import
-        BaseRTSession._prepare_for_import(self)
-
-        calib_list = []
-        for input_data in calib_data:
-            # input_data = self._format_input_data(input_data)
-            if not isinstance(input_data, tuple):
-                input_data = (input_data,)
-            #
-            if self.input_normalizer is not None:
-                input_data, _ = self.input_normalizer(input_data, {})
-            #
-            calib_list.append(input_data)
+        if not self._prepare_for_import_done:
+            BaseRTSession._prepare_for_import(self)
+            TVMDLRRuntimeWrapper._prepare_for_import(self)
         #
 
-        TVMDLRRuntimeWrapper._prepare_for_import(self, calib_list)
+        # input_data = self._format_input_data(input_data)
+        if not isinstance(input_data, tuple):
+            input_data = (input_data,)
+        #
+        if self.input_normalizer is not None:
+            input_data, _ = self.input_normalizer(input_data, {})
+        #
+
+        output = TVMDLRRuntimeWrapper.run_import(self, input_data)
         os.chdir(self.cwd)
         return info_dict
 

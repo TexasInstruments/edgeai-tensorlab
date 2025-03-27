@@ -40,21 +40,31 @@ class TVMDLRRuntimeWrapper(BaseRuntimeWrapper):
         self._start_done = False
         self._prepare_for_import_done = False
         self._prepare_for_inference_done = False
+        self._num_run_import = 0
+        self._input_list = []
 
     def start(self):
+        self.calibration_frames = self.kwargs["runtime_options"]["advanced_options:calibration_frames"]
         self.kwargs["runtime_options"] = self._set_default_options(self.kwargs["runtime_options"])
         self._start_done = True
 
-    def run_import(self, input_list, output_keys=None):
+    def run_import(self, input_data, output_keys=None):
         if not self._start_done:
             self.start()
         #
-        if not self._prepare_for_import_done:
-            self._prepare_for_import()
+        self._input_list.append(input_data)
+        self._num_run_import += 1
+
+        output = None
+        if self._num_run_import == calibration_frames:
+            if not self._prepare_for_import_done:
+                self._prepare_for_import()
+            #
+            self._prepare_for_import(input_list)
+        elif self._num_run_import > self.calibration_frames:
+            print(f"WARNING: not need to call run_import more than calibration_frames = {self.calibration_frames}")
         #
-        output_list = None
-        self._prepare_for_import(input_list)
-        return output_list
+        return output
 
     def run_inference(self, input_data, output_keys=None):
         if not self._start_done:

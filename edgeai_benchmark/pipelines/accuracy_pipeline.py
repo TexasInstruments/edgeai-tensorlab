@@ -159,16 +159,14 @@ class AccuracyPipeline(BasePipeline):
             utils.log_color('\nERROR', 'import', f'too few calibration data - calibration dataset size ({len(calibration_dataset)}) '
                                                  f'should be >= calibration_frames ({calibration_frames})')
 
-        calib_data = []
         for data_index in range(calibration_frames):
             info_dict = {'dataset_info': self.dataset_info, 'label_offset_pred': self.pipeline_config.get('metric',{}).get('label_offset_pred',None)}
-            data = calibration_dataset[data_index]
-            data, info_dict = preprocess(data, info_dict)
-            calib_data.append(data)
+            input_data = calibration_dataset[data_index]
+            input_data, info_dict = preprocess(input_data, info_dict)
+            # this is the actual import
+            output = session.import_model(input_data)
         #
 
-        # this is the actual import
-        session.import_model(calib_data)
         # close the interpreter
         session.close_interpreter()
 

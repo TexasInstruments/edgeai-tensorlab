@@ -50,21 +50,21 @@ class TFLiteRTSession(BaseRTSession, TFLiteRuntimeWrapper):
         BaseRTSession.start(self)
         TFLiteRuntimeWrapper.start(self)
 
-    def import_model(self, calib_data, info_dict=None):
-        BaseRTSession._prepare_for_import(self)
-        TFLiteRuntimeWrapper._prepare_for_import(self)
-
-        for frame_id, input_data in enumerate(calib_data):
-            # input_data = self._format_input_data(input_data)
-            if not isinstance(input_data, tuple):
-                input_data = (input_data,)
-            #
-            if self.input_normalizer is not None:
-                input_data, _ = self.input_normalizer(input_data, {})
-            #
-            outputs = TFLiteRuntimeWrapper._run(self, input_data)
-            self._update_output_details(outputs)
+    def import_model(self, input_data, info_dict=None):
+        if not self._prepare_for_import_done:
+            BaseRTSession._prepare_for_import(self)
+            TFLiteRuntimeWrapper._prepare_for_import(self)
         #
+        # input_data = self._format_input_data(input_data)
+        if not isinstance(input_data, tuple):
+            input_data = (input_data,)
+        #
+        if self.input_normalizer is not None:
+            input_data, _ = self.input_normalizer(input_data, {})
+        #
+
+        output = TFLiteRuntimeWrapper.run_import(self, input_data)
+        self._update_output_details(output)
         return info_dict
 
     def start_infer(self):
