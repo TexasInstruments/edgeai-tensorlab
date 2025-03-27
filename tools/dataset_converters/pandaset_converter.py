@@ -53,6 +53,17 @@ def get_bbox_2d(bbox_corners_image, image_size,):
     bbox_2d = [min_coords[0], min_coords[1], max_coords[0], max_coords[1]]  # [xmin, ymin, xmax, ymax]
     return bbox_2d
 
+
+def convert_bbox_to_corners_for_globals(bbox):
+    x, y, z, w, l, h, yaw = bbox
+    new_yaw = yaw-np.pi/2
+    if new_yaw > np.pi:
+        new_yaw -= 2*np.pi
+    if new_yaw < np.pi:
+        new_yaw += 2*np.pi
+    return convert_bbox_to_corners_for_lidar([ x, y, z, l, w, h, new_yaw])
+
+
 def compute_valid_flag_for_bboxes(cuboids, lidar_data):
     if isinstance(cuboids, pd.DataFrame):
         bboxes = cuboids.values.tolist()
@@ -95,7 +106,7 @@ def compute_camera_bboxes(cuboids, camera, frame_index):
     filtered_cuboids = []
     for value in cuboids:
         bbox = value[5:11] + [value[2]]
-        corners =convert_bbox_to_corners_for_lidar(bbox)
+        corners =convert_bbox_to_corners_for_globals(bbox)
         corners = np.array(corners)
         projected_points2d, camera_points_3d, inner_indices = ps.projection(corners, data, camera_pose, cam_intrinsics,filter_outliers=False)
         condition1 = camera_points_3d[ 2,:] > 0.0
@@ -277,7 +288,7 @@ def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img ):
     for cuboid in filtered_cuboids.tolist():
         bbox = cuboid[5:11] + [cuboid[2]]
         # print((cuboid),(bbox),sep='\n')
-        corners = convert_bbox_to_corners_for_lidar(bbox)
+        corners = convert_bbox_to_corners_for_globals(bbox)
         # we have to store in lidar90 reference not in lidar refrence, of current frame
         lidar_corners = ( np.linalg.inv(lidar2global) @ np.hstack([corners, np.ones((corners.shape[0], 1))]).T).T[:,:3]
         lidar_bboxes.append(convert_corners_to_bbox_for_lidar_box(lidar_corners))

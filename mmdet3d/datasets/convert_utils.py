@@ -476,14 +476,15 @@ def convert_bbox_to_corners_for_lidar(bbox, origin = None):
     origin = origin or (0.5, 0.5, 0.5)
     if isinstance(bbox, (LiDARInstance3DBoxes)):
         bbox= bbox
-        corners = bbox.corners[:,[6,2,1,5,7,3,0,4]].numpy()
+        corners = bbox.corners.numpy()
+        # corners = corners[:,[6,2,1,5,7,3,0,4]]
     else:
         assert len(bbox) == 7
         bbox = np.array(bbox)
         bbox = bbox.reshape(1, 7)
         bbox = LiDARInstance3DBoxes(bbox, box_dim=7, with_yaw=True, origin=origin)
         corners = bbox.corners.reshape([8,3]).numpy()
-        corners = corners[[6,2,1,5,7,3,0,4]]
+        # corners = corners[[6,2,1,5,7,3,0,4]]
     return corners
 
 
@@ -526,14 +527,15 @@ def convert_bbox_to_corners_for_camera(bbox, origin = None):
     origin = origin or (0.5, 0.5, 0.5)
     if isinstance(bbox, (CameraInstance3DBoxes)):
         bbox= bbox
-        corners = bbox.corners[:,[5,1,0,4,6,2,3,7]].numpy()
+        corners = bbox.corners.numpy()
+        # corners = corners[:,[5,1,0,4,6,2,3,7]]
     else:
         assert len(bbox) == 7
         bbox = np.array(bbox)
         bbox = bbox.reshape(1, 7)
         bbox = CameraInstance3DBoxes(bbox, box_dim=7, with_yaw=True, origin=origin)
         corners = bbox.corners.reshape([8,3]).numpy()
-        corners = corners[[5,1,0,4,6,2,3,7]]
+        # corners = corners[[5,1,0,4,6,2,3,7]]
     return corners
 
 
@@ -551,10 +553,10 @@ def convert_corners_to_bbox_for_lidar_box(corners):
     '''
     corners = np.array(corners)
     x,y,z = np.mean(corners, axis=0)
-    width = np.linalg.norm(corners[0] - corners[1])
+    width = np.linalg.norm(corners[0] - corners[4])
     length = np.linalg.norm(corners[0] - corners[3])
-    height = np.linalg.norm(corners[0] - corners[4])
-    vector = corners[0] - corners[1]
+    height = np.linalg.norm(corners[0] - corners[1])
+    vector = corners[4] - corners[0]
     yaw = np.arctan2(vector[1], vector[0])
     return [x, y, z, width, length, height, yaw]
 
@@ -576,9 +578,9 @@ def convert_corners_to_bbox_for_cam_box(corners):
     '''
     corners = np.array(corners)
     x,y,z = np.mean(corners, axis=0)
-    width = np.linalg.norm(corners[0] - corners[1])
-    length = np.linalg.norm(corners[0] - corners[4])
-    height = np.linalg.norm(corners[0] - corners[3])
-    vector = corners[0] - corners[1]
+    width = np.linalg.norm(corners[0] - corners[4])
+    height = np.linalg.norm(corners[0] - corners[1])
+    length = np.linalg.norm(corners[0] - corners[3])
+    vector = corners[4] - corners[0]
     yaw = -np.arctan2(vector[2], vector[0])
     return [x, y, z, width, length, height, yaw]
