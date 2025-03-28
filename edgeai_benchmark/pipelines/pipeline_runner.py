@@ -287,9 +287,9 @@ class PipelineRunner():
             #
         except Exception as e:
             result = None
-            traceback.print_exc()
             model_id = pipeline_config['session'].kwargs['model_id']
-            print(f'model_id:{model_id} - ', str(e))
+            print(utils.log_color('\nERROR', f'model_id:{model_id} run_import:{settings.run_import} run_inference:{settings.run_inference}', str(e)))
+            traceback.print_exc()
         #
         # make sure we are in cwd when we return.
         os.chdir(cwd)
