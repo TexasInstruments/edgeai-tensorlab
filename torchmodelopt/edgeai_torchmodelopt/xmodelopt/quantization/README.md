@@ -6,14 +6,18 @@
 
 
 ## How to quantize models
-### Option 1: TIDL Post Training Quantization (PTQ)
+### Option 1: TIDL Post Training Quantization (**PTQ**)
 * On all the supported devices, TIDL supports PTQ using float models. For more details of TIDL PTQ, see the documentation of [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) and some additional notes are available in [PTQ usage for TIDL](./v1/docs/tidl_ptq.md). 
 * Using edgeai-benchmark wrapper: [edgeai-benchmark](https://github.com/TexasInstruments/edgeai-benchmark) is a wrapper over edgeai-tidl-tools and it is used to compile models in our Model Zoo. The compilation parameters for each model is listed in the [config file published along with the models](https://github.com/TexasInstruments/edgeai-modelzoo/blob/main/models/configs.yaml). This is a yaml representation of [edgeai-benchmark/configs](https://github.com/TexasInstruments/edgeai-benchmark/configs).
 
-### Option 2: Quantization Aware Training (QAT) & Post Training Calibration (PTC) using this repository
+### Option 2: Quantization Aware Training (**QAT**) & Post Training Calibration ((**PTC**) using this repository
 * QAT is typically introduced into the training loop and actively learns the quantization parameters and the model weights. However, PTC is a quick and easy way to find the quantization parameters without using backpropagation or training loop.
 
 * This repository uses Pytorch Quantization tools for QAT and PTC. This repository can be used to create pre-quantized models which can then be imported in TIDL. Pre-quantized models can help to get better accuracy or to make the TIDL compilation faster. [Pytorch Quantization documentation](https://pytorch.org/docs/stable/quantization.html) may be helpful to understand details of the quantization tools supported in Pytorch.
+
+
+## Important Guidelines
+In this repository, we have  [**guidelines**](./docs/guidelines.md) on how to choose models and how train them to get the best accuracy with Quantization. It is unlikely that there will be significant accuracy drop with PTQ if these guidelines are followed. In spite of this, if there are models that have significant accuracy drop with quantization, it is possible to improve the accuracy using QAT.
 
 
 ## How to create pre-quantized models using this repository
