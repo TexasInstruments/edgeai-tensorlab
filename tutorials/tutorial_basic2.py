@@ -62,7 +62,7 @@ def main(target_device, run_type):
 
     #########################################################################
     num_frames = 1
-    calibrtion_frames = 5 #12
+    calibration_frames = 5 #12
     calibration_iterations = 5 #12
     parallel_processes = 1
     run_type = 'ALL'
@@ -80,19 +80,22 @@ def main(target_device, run_type):
     #########################################################################
     if use_config_settings:
         settings = edgeai_benchmark.config_settings.CustomConfigSettings('./settings_import_on_pc.yaml',
-                        target_device=os.environ['TARGET_SOC'],
+                        target_device=target_device,
                         modelartifacts_path=modelartifacts_custom,
                         model_selection=None, model_shortlist=None,
+                        calibration_frames=calibration_frames,
+                        calibration_iterations=calibration_iterations,
                         num_frames=100)
     else:
         settings = edgeai_benchmark.core.ConfigRuntimeOptions('./settings_import_on_pc.yaml',
-                        target_device=os.environ['TARGET_SOC'],
+                        target_device=target_device,
                         target_machine='pc',
                         modelartifacts_path=modelartifacts_custom,
                         model_selection=None, model_shortlist=None,
+                        calibration_frames=calibration_frames,
+                        calibration_iterations=calibration_iterations,
                         num_frames=100)
     #
-
 
     #########################################################################
     # download dataset if it doesn't exist
@@ -125,9 +128,7 @@ def main(target_device, run_type):
 
 
     #########################################################################
-    runtime_options = settings.get_runtime_options(
-            calibrtion_frames=calibrtion_frames,
-            calibration_iterations=calibration_iterations)
+    runtime_options = settings.get_runtime_options()
     print(f'INFO: runtime_options - {runtime_options}')
 
 
@@ -167,8 +168,6 @@ def main(target_device, run_type):
             calib_dataset = glob.glob(f'{images_path}/*/*.*')
         #
 
-        calib_list = [preprocess_input(calib_dataset[input_index]) for input_index in range(calibrtion_frames)]
-
         onnxruntime_wrapper = edgeai_benchmark.core.ONNXRuntimeWrapper(
                 runtime_options=runtime_options,
                 model_file=model_file,
@@ -176,7 +175,9 @@ def main(target_device, run_type):
                 tidl_tools_path=os.environ['TIDL_TOOLS_PATH'],
                 tidl_offload=True)
 
-        onnxruntime_wrapper.run_import(calib_list)
+        for input_index in range(calibration_frames):
+            input_data = preprocess_input(calib_dataset[input_index])
+            onnxruntime_wrapper.run_import(input_data)
         print(f'INFO: model import done')
 
 

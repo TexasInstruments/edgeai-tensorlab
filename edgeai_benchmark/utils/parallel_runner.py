@@ -121,27 +121,25 @@ class ParallelRunner:
     def _check_proc_complete(self, proc_dict):
         proc = proc_dict.get('proc', None)
         running_proc_name = proc_dict['proc_name']
+        completed = False
         out_ret = None
         if proc is not None:
-            completed = False
-            exit_code = proc.returncode
             try:
-                err_code = proc.wait(timeout=self.epsinterval)
-                if err_code:
-                    # raise subprocess.CalledProcessError(err_code, "Error occurred")
-                    print(f"ERROR: Error occurred: {running_proc_name} - Error Code: {err_code} at {__file__}")
+                out_ret, err_ret = proc.communicate(timeout=self.epsinterval)
+                completed = True
+                if proc.returncode:
                     proc.terminate()
-                    completed = True
-                    return completed, out_ret
+                    # raise subprocess.CalledProcessError(proc.returncode, "Error occurred")
+                    print(f"ERROR: Error occurred: {running_proc_name} - Error Code: {proc.returncode} at {__file__}")
                 #
             except subprocess.TimeoutExpired as ex:
                 pass
             except multiprocessing.TimeoutError as ex:
                 pass
-            else:
-                out_ret, err_ret = proc.communicate(timeout=self.epsinterval)
+            except Exception as e:
                 completed = True
-            #
+                proc.terminate()
+                print(f"ERROR: Error occurred: {running_proc_name} - Error Code: {e} at {__file__}")
         else:
             # proc = None indicates a completed task
             # especially happens if a ParallelProcess is not lanched, but is a simple task that returns None as proc.
