@@ -108,11 +108,11 @@ if __name__ == '__main__':
             proc = subprocess.Popen([nvidia_smi_command], stdout=subprocess.PIPE, shell=True)
             out_ret, err_ret = proc.communicate()
             num_cuda_gpus = int(out_ret)
-            print(f'INFO: - setting parallel_devices to the number of cuda gpus found: {num_cuda_gpus}')
+            print(f'INFO: setting parallel_devices to the number of cuda gpus found - {num_cuda_gpus}')
             settings.parallel_devices = kwargs['parallel_devices'] = num_cuda_gpus
         #
     except:
-        print("INFO: - could not find cuda gpus - parallel_devices will not be used.")
+        print("INFO: could not find cuda gpus - parallel_devices will not be used.")
         settings.parallel_devices = kwargs['parallel_devices'] = None
     #
 

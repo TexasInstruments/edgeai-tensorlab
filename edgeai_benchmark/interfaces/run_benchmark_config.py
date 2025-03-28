@@ -99,9 +99,9 @@ def run_benchmark_config(settings, work_dir, pipeline_configs=None, modify_pipel
     #
 
     num_pipeline_configs = len(pipeline_runner.pipeline_configs)
-    print(f'INFO: number of configs: {num_pipeline_configs}')
+    print(utils.log_color('\nINFO', 'number of configs', f'{num_pipeline_configs}'))
     if num_pipeline_configs == 0:
-        print(f"WARNING: no pipeline_configs were loaded - please check settings: model_selection ({settings.model_selection}), model_shortlist ({settings.model_shortlist}): ")
+        print(utils.log_color('\nWARNING', 'no pipeline_configs were loaded, please check settings', f'model_selection:{settings.model_selection}, model_shortlist:{settings.model_shortlist} '))
     #
     sys.stdout.flush()
 

@@ -46,35 +46,31 @@ class TFLiteRTSession(BaseRTSession, TFLiteRuntimeWrapper):
         TFLiteRuntimeWrapper.__init__(self)
         self.kwargs['input_data_layout'] = self.kwargs.get('input_data_layout', constants.NHWC)
 
-    def start(self):
-        BaseRTSession.start(self)
-        TFLiteRuntimeWrapper.start(self)
+    def start_import(self):
+        BaseRTSession.start_import(self)
+        return TFLiteRuntimeWrapper.start_import(self)
 
-    def import_model(self, calib_data, info_dict=None):
-        BaseRTSession._prepare_for_import(self)
-        TFLiteRuntimeWrapper._prepare_for_import(self)
-
-        for frame_id, input_data in enumerate(calib_data):
-            # input_data = self._format_input_data(input_data)
-            if not isinstance(input_data, tuple):
-                input_data = (input_data,)
-            #
-            if self.input_normalizer is not None:
-                input_data, _ = self.input_normalizer(input_data, {})
-            #
-            outputs = TFLiteRuntimeWrapper._run(self, input_data)
-            self._update_output_details(outputs)
+    def run_import(self, input_data, info_dict=None):
+        super().run_import(input_data, info_dict)
+        # input_data = self._format_input_data(input_data)
+        if not isinstance(input_data, tuple):
+            input_data = (input_data,)
         #
-        return info_dict
+        if self.input_normalizer is not None:
+            input_data, _ = self.input_normalizer(input_data, {})
+        #
 
-    def start_infer(self):
-        BaseRTSession._prepare_for_inference(self)
-        TFLiteRuntimeWrapper._prepare_for_inference(self)
+        output = TFLiteRuntimeWrapper.run_import(self, input_data)
+        self._update_output_details(output)
+        return output, info_dict
+
+    def start_inference(self):
         os.chdir(self.cwd)
-        return True
+        BaseRTSession.start_inference(self)
+        return TFLiteRuntimeWrapper.start_inference(self)
 
-    def infer_frame(self, input_data, info_dict=None):
-        super().infer_frame(input_data, info_dict)
+    def run_inference(self, input_data, info_dict=None):
+        super().run_inference(input_data, info_dict)
 
         # input_data = self._format_input_data(input_data)
         if not isinstance(input_data, tuple):
@@ -88,7 +84,7 @@ class TFLiteRTSession(BaseRTSession, TFLiteRuntimeWrapper):
         # measure the time across only interpreter.run
         # time for setting the tensor and other overheads would be optimized out in c-api
         start_time = time.time()
-        outputs = TFLiteRuntimeWrapper._run(self, input_data)
+        outputs = TFLiteRuntimeWrapper.run_inference(self, input_data)
         info_dict['session_invoke_time'] = (time.time() - start_time)
         self._update_output_details(outputs)
         return outputs, info_dict
