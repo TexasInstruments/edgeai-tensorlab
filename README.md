@@ -116,8 +116,9 @@ The compiled models can be used for inference on development board/EVM. See **[s
 <hr>
 
 ## Tutorials
-See the [tutorials](./docs/tutorials.md)
+See the [tutorials](./docs/tutorials.md) documentation.
 
+[edgeai_benchmark/core](edgeai_benchmark/core) contains simplified wrapper apis that are easy to use and understand over the core runtimes. See [run_tutorials_script_pc.sh](run_tutorials_script_pc.sh) and [tutorials](tutorials) to understand the usage of these core apis.
 
 <hr>
 <hr>
