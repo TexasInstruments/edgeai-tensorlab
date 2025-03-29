@@ -7,6 +7,9 @@
 * tidl_tools version: **10_01_04_01**
 * Date: 2024 Dec ~ 2025 March
 
+### edgeai-benchmark core runtime apis
+[2025-03-29 update] edgai-benchmark/edgeai_benchmark/core contains simplified wrapper apis that are easy to use and understand over the core runtimes. See edgeai-benchmark/run_tutorials_script_pc.sh and edgeai-benchmark/tutorials to understand the usage of these core apis.
+
 ### New models edgeai-benchmark / edgeai-modelzoo
 We are in the process of adding support for several new models. Configs for models verified in this release are in this repository and the models are available in edgeai-modelzoo. The following new models have been compiled using edgeai-benchmark and verified:
 

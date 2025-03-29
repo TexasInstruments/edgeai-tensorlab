@@ -14,6 +14,9 @@ Edge AI model training, quantization, compilation/benchmark & Model Zoo
 * Git branch: **r10.1**
 * tidl_tools version: **10_01_04_01**
 
+### edgeai-benchmark core runtime apis
+[2025-03-29 update] edgai-benchmark/edgeai_benchmark/core contains simplified wrapper apis over the core runtimes that are easy to use and understand. See edgeai-benchmark/run_tutorials_script_pc.sh and edgeai-benchmark/tutorials to understand the usage of these core apis.
+
 ### New models in edgeai-modelzoo / edgeai-benchmark
 We are in the process of adding support for several new models. Configs for models verified in this release are in this repository and the models are available in edgeai-modelzoo. The following new models have been verified:
 
