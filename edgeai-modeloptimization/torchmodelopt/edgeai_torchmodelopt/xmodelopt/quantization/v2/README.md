@@ -16,12 +16,13 @@ If you are getting accuracy degradation with 8-bit inference, the first thing to
 This module is an easy-to-use wrapper around Pytorch FX mode static quantization. Please read the documentation on [Pytorch FX mode quantization](https://pytorch.org/docs/stable/quantization.html#prototype-maintenance-mode-fx-graph-mode-quantization) and [Pytorch FX static PTQ](https://pytorch.org/tutorials/prototype/fx_graph_mode_ptq_static.html) to understand more. Please read that document to get a background. To use our wrapper, there is no need to understand all the details there, as we have tried to make the interface as simple as possible.
 
 ## Quantization schemes supported in this module
-In this repository, we have  [**guidelines**](./docs/guidelines.md) on how to choose models and how train them to get the best accuracy with Quantization. It is unlikely that there will be significant accuracy drop with PTC if these guidelines are followed. In spite of this, if there are models that have significant accuracy drop with quantization, it is possible to improve the accuracy using QAT.
-
 **Post Training Calibration (PTC)**: Post Training Calibration involves range estimation for weights and activations and also minor tweaks to the model (such as bias adjustments). It can be used to ensure that the model is getting properly quantized and the expected accuracy can be evaluated. It is easy to incorporate into an existing PyTorch training code. More details are in [Post Training Calibration(**PTC**) documentation](./docs/ptc.md).
 
 **Quantization Aware Training (QAT)**: This is needed only if the accuracy obtained with PTC is not satisfactory. QAT operates as a second phase after the initial training in floating point, in the training framework. More details are in [Quantization Aware Training (**QAT**) documentation](./docs/qat.md).
 
+**torch.fx friendly code**: It is important to refactor your code such that it is symbolically traceable and properly quantizable (observers are inserted at proper locations). More information about symbolic tracing support can be found [here](https://pytorch.org/docs/stable/fx.html#limitations-of-symbolic-tracing). Few common suggestions could be :
+1. Removing the assert statements in the code because the symbolic tracing step could have issues.
+2. If some module is not supported to be quantized, it can be wrapped with @torch.fx.wrap
 
 ## Results
 
