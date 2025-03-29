@@ -36,6 +36,8 @@ import tqdm
 import warnings
 import re
 
+from .logger_utils import log_color
+
 
 class ParallelRunner:
     def __init__(self, parallel_processes, desc='TASKS', mininterval=0.15, maxinterval=2.0, tqdm_obj=None,
@@ -121,6 +123,7 @@ class ParallelRunner:
     def _check_proc_complete(self, proc_dict):
         proc = proc_dict.get('proc', None)
         running_proc_name = proc_dict['proc_name']
+        completed = False
         out_ret = None
         if proc is not None:
             completed = False
@@ -129,7 +132,7 @@ class ParallelRunner:
                 err_code = proc.wait(timeout=self.epsinterval)
                 if err_code:
                     # raise subprocess.CalledProcessError(err_code, "Error occurred")
-                    print(f"ERROR: Error occurred: {running_proc_name} - Error Code: {err_code} at {__file__}")
+                    print(log_color("\nERROR", f"Error occurred: {running_proc_name}", f"Error Code: {err_code} at {__file__}"))
                     proc.terminate()
                     completed = True
                     return completed, out_ret
@@ -138,6 +141,10 @@ class ParallelRunner:
                 pass
             except multiprocessing.TimeoutError as ex:
                 pass
+            except Exception as ex:
+                completed = True
+                proc.terminate()
+                print(log_color("\nERROR", f"Error occurred: {running_proc_name}", f"Error Code: {ex} at {__file__}"))
             else:
                 out_ret, err_ret = proc.communicate(timeout=self.epsinterval)
                 completed = True

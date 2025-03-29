@@ -51,12 +51,12 @@ source ./run_set_env.sh ${TARGET_SOC} ${TARGET_MACHINE}
 export TARGET_SOC=${TARGET_SOC}
 
 # run the core runtime wrappers directly using only edgeai_benchmark.core
-#python3 ./tutorials/tutorial_basic1.py --run_type="IMPORT"
-#python3 ./tutorials/tutorial_basic1.py --run_type="INFERENCE"
+python3 ./tutorials/tutorial_basic1.py --run_type="IMPORT"
+python3 ./tutorials/tutorial_basic1.py --run_type="INFERENCE"
 
 # run the core runtime wrappers directly using edgeai_benchmark.core
 # but use some functionality (such as dataset loader and ParallelRunner) from outside the core
-python3 ./tutorials/tutorial_basic2.py
+#python3 ./tutorials/tutorial_basic2.py
 
 # run the high level benchmark script
 # python3 ./tutorials/tutorial_classification.py

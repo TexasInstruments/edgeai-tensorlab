@@ -52,9 +52,9 @@ class BaseRTSession(utils.ParamsBase):
         self.kwargs = kwargs
         self.tempfiles = []
         self.is_initialized = False
-        self.is_started = False
-        self.is_imported = False
-        self.is_start_infer_done = False
+        self.is_start_import_done = False
+        self.is_import_done = False
+        self.is_start_inference_done = False
         self.input_normalizer = None
         self.force_gc = force_gc
 
@@ -121,8 +121,9 @@ class BaseRTSession(utils.ParamsBase):
         self.kwargs['artifacts_folder'] = os.path.join(self.kwargs['run_dir'], 'artifacts')
         self.kwargs['model_folder'] = os.path.join(self.kwargs['run_dir'], 'model')
         super().initialize()
+        self.is_initialized = True
 
-    def start(self):
+    def _prepare_model(self):
         if not self.is_initialized:
             self.initialize()
         #
@@ -148,23 +149,22 @@ class BaseRTSession(utils.ParamsBase):
         os.makedirs(self.kwargs['model_folder'], exist_ok=True)
         # download or copy the model and add any optimizations required
         self.get_model()
-
         # set the flag
-        self.is_started = True
+        self.is_start_import_done = True
 
-    def _prepare_for_import(self):
-        if not self.is_initialized:
-            self.initialize()
-        #
-        if not self.is_started:
-            self.start()
-        #
+    def start_import(self):
+        self._prepare_model()
         os.makedirs(self.kwargs['artifacts_folder'], exist_ok=True)
-
         self.clear()
-        self.is_imported = True
 
-    def _prepare_for_inference(self):
+    def run_import(self, *args, **kwargs):
+        if not self.is_start_import_done:
+            self.start_import(self)
+        #
+        self.is_import_done = True
+
+    def start_inference(self):
+        self._prepare_model()
         artifacts_folder = self.kwargs['artifacts_folder']
         artifacts_folder_missing = not os.path.exists(artifacts_folder)
         if artifacts_folder_missing:
@@ -173,16 +173,14 @@ class BaseRTSession(utils.ParamsBase):
         #
         # import may not be being done now - but artifacts folder exists,
         # we assume that it is proper and import is done
-        self.is_imported = True
-        self.is_start_infer_done = True
+        self.is_start_inference_done = True
 
     def __call__(self, input, info_dict):
-        return self.infer_frame(input, info_dict)
+        return self.run_inference(input, info_dict)
 
-    def infer_frame(self, input, info_dict=None):
-        assert self.is_imported, 'import_model() must be called before infer_frame()'
-        if not self.is_start_infer_done:
-            self.start_infer()
+    def run_inference(self, input, info_dict=None):
+        if not self.is_start_inference_done:
+            self.start_inference()
         #
         if info_dict is not None:
             info_dict['run_dir'] = self.get_param('run_dir')
@@ -193,7 +191,7 @@ class BaseRTSession(utils.ParamsBase):
     def infer_frames(self, inputs, info_dict=None):
         outputs = []
         for input in inputs:
-            output, info_dict = self.infer_frame(input, info_dict)
+            output, info_dict = self.run_inference(input, info_dict)
             outputs.append(output)
         #
         return outputs, info_dict
@@ -257,7 +255,6 @@ class BaseRTSession(utils.ParamsBase):
         self.kwargs['output_details'] = output_details
 
     def _tidl_infer_stats(self):
-        assert self.is_imported is True, 'the given model must be an imported one.'
         benchmark_dict = self.interpreter.get_TI_benchmark_data()
         subgraph_time = copy_time = 0
         cp_in_time = cp_out_time = 0
@@ -306,7 +303,6 @@ class BaseRTSession(utils.ParamsBase):
         return stats
 
     def _infer_perfsim_stats(self):
-        assert self.is_imported == True, 'the given model must be an imported one.'
         artifacts_folder = self.kwargs['artifacts_folder']
         subgraph_root = os.path.join(artifacts_folder, 'tempDir') \
             if os.path.isdir(os.path.join(artifacts_folder, 'tempDir')) else artifacts_folder
@@ -621,7 +617,6 @@ class BaseRTSession(utils.ParamsBase):
         assert False, 'this function must be overridden'
 
     def layer_info(self):
-        # assert self.is_imported is True, 'the given model must be an imported one.'
         artifacts_folder = self.kwargs['artifacts_folder']
         subgraph_root = os.path.join(artifacts_folder, 'tempDir') \
             if os.path.isdir(os.path.join(artifacts_folder, 'tempDir')) else artifacts_folder
