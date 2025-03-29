@@ -67,6 +67,7 @@ class ProcessWithQueue(multiprocessing.Process):
         if self.exitcode is None:
             raise multiprocessing.TimeoutError
         #
+        self.returncode = self.exitcode
         return self.exitcode
 
     def communicate(self, input=None, timeout=None):
