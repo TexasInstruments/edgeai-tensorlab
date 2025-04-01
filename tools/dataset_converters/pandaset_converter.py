@@ -56,7 +56,7 @@ def get_bbox_2d(bbox_corners_image, image_size,):
 
 def convert_bbox_to_corners_for_globals(bbox):
     x, y, z, w, l, h, yaw = bbox
-    new_yaw = yaw-np.pi/2
+    new_yaw = yaw+np.pi/2
     if new_yaw > np.pi:
         new_yaw -= 2*np.pi
     if new_yaw < np.pi:
@@ -107,7 +107,7 @@ def compute_camera_bboxes(cuboids, camera, frame_index):
     for value in cuboids:
         bbox = value[5:11] + [value[2]]
         corners =convert_bbox_to_corners_for_globals(bbox)
-        corners = np.array(corners)
+        corners = corners[[1,2,3,0,5,6,7,4]]
         projected_points2d, camera_points_3d, inner_indices = ps.projection(corners, data, camera_pose, cam_intrinsics,filter_outliers=False)
         condition1 = camera_points_3d[ 2,:] > 0.0
         if np.all(condition1 == False):

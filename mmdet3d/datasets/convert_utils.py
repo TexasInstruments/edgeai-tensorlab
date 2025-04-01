@@ -459,20 +459,20 @@ def convert_bbox_to_corners_for_lidar(bbox, origin = None):
                left y    | / origin    |  /
                  <------ + ----------- + 3
                        0 
-    
-    Permuted order
-                          front x
-                               /
-                   up z  ^    /
-                         | 3 + -----------  + 0
-                         |  /|            / |
-                         | / |           /  |
-                      2  + ----------- + 1  + 4
-                         |  / 7    .   |   /
-                left y   | / origin    |  /
-                 <------ + ----------- + 5
-                       6 
     """
+    
+    # Permuted order
+    #                       front x
+    #                            /
+    #                up z  ^    /
+    #                      | 3 + -----------  + 0
+    #                      |  /|            / |
+    #                      | / |           /  |
+    #                   2  + ----------- + 1  + 4
+    #                      |  / 7    .   |   /
+    #             left y   | / origin    |  /
+    #              <------ + ----------- + 5
+    #                    6 
     origin = origin or (0.5, 0.5, 0.5)
     if isinstance(bbox, (LiDARInstance3DBoxes)):
         bbox= bbox
@@ -506,24 +506,24 @@ def convert_bbox_to_corners_for_camera(bbox, origin = None):
                          |
                          v
                     down y
-
-    Permuted order
-
-                         front z
-                              /
-                             /
-                          1 + -----------  + 0
-                           /|            / |
-                          / |           /  |
-                       2 + ----------- + 3 + 4
-                         |  / 5    .   |  /
-                         | / origin    | /
-                       6 + ----------- + -------> right x
-                         |             7
-                         |
-                         v
-                    down y
     """
+
+    # Permuted order
+
+    #                      front z
+    #                           /
+    #                          /
+    #                       1 + -----------  + 0
+    #                        /|            / |
+    #                       / |           /  |
+    #                    2 + ----------- + 3 + 4
+    #                      |  / 5    .   |  /
+    #                      | / origin    | /
+    #                    6 + ----------- + -------> right x
+    #                      |             7
+    #                      |
+    #                      v
+    #                 down y
     origin = origin or (0.5, 0.5, 0.5)
     if isinstance(bbox, (CameraInstance3DBoxes)):
         bbox= bbox
@@ -553,11 +553,18 @@ def convert_corners_to_bbox_for_lidar_box(corners):
     '''
     corners = np.array(corners)
     x,y,z = np.mean(corners, axis=0)
+    vector = corners[4] - corners[0]
+    yaw = np.arctan2(vector[1], vector[0])
+    corners = corners-np.array([[x,y,z]])
+    rot_matrix = np.array([
+        [np.cos(yaw), -np.sin(yaw), 0],
+        [np.sin(yaw), np.cos(yaw), 0],
+        [0, 0, 1]
+    ])
+    corners = (rot_matrix @ corners.T).T
     width = np.linalg.norm(corners[0] - corners[4])
     length = np.linalg.norm(corners[0] - corners[3])
     height = np.linalg.norm(corners[0] - corners[1])
-    vector = corners[4] - corners[0]
-    yaw = np.arctan2(vector[1], vector[0])
     return [x, y, z, width, length, height, yaw]
 
 
@@ -578,9 +585,18 @@ def convert_corners_to_bbox_for_cam_box(corners):
     '''
     corners = np.array(corners)
     x,y,z = np.mean(corners, axis=0)
-    width = np.linalg.norm(corners[0] - corners[4])
-    height = np.linalg.norm(corners[0] - corners[1])
-    length = np.linalg.norm(corners[0] - corners[3])
     vector = corners[4] - corners[0]
     yaw = -np.arctan2(vector[2], vector[0])
+    corners = corners-np.array([[x,y,z]])
+    corners = corners[:,[2,0,1]]
+    rot_matrix = np.array([
+        [np.cos(yaw), -np.sin(yaw), 0],
+        [np.sin(yaw), np.cos(yaw), 0],
+        [0, 0, 1]
+    ])
+    corners = (rot_matrix @ corners.T).T
+    corners = corners[:,[1,2,0]]
+    width = np.linalg.norm(corners[0] - corners[4])
+    length = np.linalg.norm(corners[0] - corners[3])
+    height = np.linalg.norm(corners[0] - corners[1])
     return [x, y, z, width, length, height, yaw]

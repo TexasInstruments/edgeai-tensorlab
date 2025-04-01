@@ -56,10 +56,10 @@ class PandaSetMetric(NuScenesMetric):
         'Cones': 'None',
     }
 
-    
+    default_prefix: Optional[str] = 'PandaSet metric'
     def __init__(self, data_root, ann_file, metric = 'bbox', modality = None, prefix = None, format_only = False, jsonfile_prefix = None, eval_version = 'detection_cvpr_2019', collect_device = 'cpu', backend_args = None, max_dists=None):
         super().__init__(data_root, ann_file, metric, modality, prefix, format_only, jsonfile_prefix, eval_version, collect_device, backend_args)
-        self.default_prefix = 'PandaSet metric'
+        self.prefix = prefix or self.default_prefix
         self.max_dists = max_dists
     
     def get_attr_name(self, attr_idx, label_name):
