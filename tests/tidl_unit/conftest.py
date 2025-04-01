@@ -22,15 +22,13 @@ def pytest_configure(config):
 def pytest_runtest_makereport(item, call):
     outcome = yield
     report = outcome.get_result()
-    if(report.when == "teardown"):
+    report.tidl_subgraphs = "Not detected"
+    if report.when == 'call':
         regex1_result = re.search("Offloaded Nodes - ([0-9]*)", report.capstdout)
         if(regex1_result is None):
             regex2_result = re.search(r"\|\s*C7x\s*\|\s*\d+\s*\|\s*(\d+|x)\s*\|", report.capstdout)
-            if (regex2_result is None):
-                report.tidl_subgraphs = "Not detected in test output"
-            else:
+            if (regex2_result is not None):
                 report.tidl_subgraphs = regex2_result[1]
-
         else:
             report.tidl_subgraphs = regex1_result[1]
 
@@ -41,6 +39,5 @@ def pytest_html_results_table_header(cells):
 
 # Inserts the number of TIDL subgraphs for each row
 def pytest_html_results_table_row(report, cells):
-    if(hasattr(report,"tidl_subgraphs")):
+    if(hasattr(report,'tidl_subgraphs')):
         cells.insert(2, html.td(report.tidl_subgraphs))
-

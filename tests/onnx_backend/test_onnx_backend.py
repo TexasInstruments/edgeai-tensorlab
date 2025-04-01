@@ -201,29 +201,28 @@ def perform_onnx_backend_oneprocess(tidl_offload : bool, run_infer : bool, test_
     artifacts_folder = os.path.join(run_dir, 'artifacts')
 
     # Declare dataset
-    ob_dataset  = datasets.ONNXBackendDataset(path = test_dir)
-    input_list = [ob_dataset[0]]
+    backend_dataset  = datasets.ONNXBackendDataset(path = test_dir)
 
     #Run infer
     if(run_infer):
         logger.debug("Inferring")
         settings.run_import    = False
         settings.run_inference = True
-        runtime_options  = settings.get_runtime_options(session_name, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2, is_qat=False, debug_level = 3)
+        runtime_options  = settings.get_runtime_options(session_name, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2, is_qat=False, debug_level = 0)
 
         onnxruntime_wrapper = core.ONNXRuntimeWrapper(runtime_options=runtime_options,
                                                       model_file=model_file,
                                                       artifacts_folder=artifacts_folder,
                                                       tidl_tools_path=os.environ['TIDL_TOOLS_PATH'],
                                                       tidl_offload=tidl_offload)
-        results_list = onnxruntime_wrapper.run_inference(input_list[0])
+        results_list = onnxruntime_wrapper.run_inference(backend_dataset[0])
 
         assert len(results_list) > 0, " Results not found!!!! "
 
         logger.debug(results_list)
 
         threshold = settings.inference_nmse_thresholds.get(test_name) or settings.inference_nmse_thresholds.get("default")
-        max_nmse = ob_dataset([results_list])['max_nmse']
+        max_nmse = backend_dataset([results_list])['max_nmse']
         print(f"MAX_NMSE:{max_nmse}")
         if(max_nmse > threshold):
             pytest.fail(f" max_nmse of {max_nmse} is higher than threshold {threshold}")
@@ -242,5 +241,5 @@ def perform_onnx_backend_oneprocess(tidl_offload : bool, run_infer : bool, test_
                                                       artifacts_folder=artifacts_folder,
                                                       tidl_tools_path=os.environ['TIDL_TOOLS_PATH'],
                                                       tidl_offload=tidl_offload)
-        results_list = onnxruntime_wrapper.run_import(input_list)
+        results_list = onnxruntime_wrapper.run_import(backend_dataset[0])
         assert len(results_list) > 0, " Results not found!!!! "

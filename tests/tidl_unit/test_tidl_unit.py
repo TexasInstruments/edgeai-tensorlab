@@ -145,8 +145,7 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, test_nam
     artifacts_folder = os.path.join(run_dir, 'artifacts')
 
     # Declare dataset
-    ob_dataset  = datasets.TIDLUnitDataset(path = test_dir)
-    input_list = [ob_dataset[0]]
+    tidl_unit_dataset  = datasets.TIDLUnitDataset(path = test_dir)
 
     #Run infer
     if(run_infer):
@@ -161,14 +160,14 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, test_nam
                                                       artifacts_folder=artifacts_folder,
                                                       tidl_tools_path=os.environ['TIDL_TOOLS_PATH'],
                                                       tidl_offload=tidl_offload)
-        results_list = onnxruntime_wrapper.run_inference(input_list[0])
+        results_list = onnxruntime_wrapper.run_inference(tidl_unit_dataset[0])
 
         assert len(results_list) > 0, " Results not found!!!! "
 
         logger.debug(results_list)
 
         threshold = settings.inference_nmse_thresholds.get(test_name) or settings.inference_nmse_thresholds.get("default")
-        max_nmse = ob_dataset([results_list])['max_nmse']
+        max_nmse = tidl_unit_dataset([results_list])['max_nmse']
         print(f"MAX_NMSE:{max_nmse}")
         if(max_nmse > threshold):
             pytest.fail(f" max_nmse of {max_nmse} is higher than threshold {threshold}")
@@ -189,5 +188,5 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, test_nam
                                                       artifacts_folder=artifacts_folder,
                                                       tidl_tools_path=os.environ['TIDL_TOOLS_PATH'],
                                                       tidl_offload=tidl_offload)
-        results_list = onnxruntime_wrapper.run_import(input_list)
+        results_list = onnxruntime_wrapper.run_import(tidl_unit_dataset[0])
         assert len(results_list) > 0, " Results not found!!!! "
