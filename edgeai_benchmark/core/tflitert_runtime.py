@@ -115,7 +115,7 @@ class TFLiteRuntimeWrapper(BaseRuntimeWrapper):
         return interpreter
 
     def _format_input_data(self, input_data):
-        if not isinstance(input_data, tuple):
+        if not isinstance(input_data, (list,tuple)):
             input_data = (input_data,)
 
         return input_data
