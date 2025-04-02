@@ -194,7 +194,7 @@ class TVMDLRRuntimeWrapper(BaseRuntimeWrapper):
         if isinstance(input_data, dict):
             return input_data
 
-        if not isinstance(input_data, tuple):
+        if not isinstance(input_data, (list,tuple)):
             input_data = (input_data,)
 
         input_details = self.kwargs['input_details']
