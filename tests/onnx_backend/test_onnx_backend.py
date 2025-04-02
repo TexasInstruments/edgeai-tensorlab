@@ -235,7 +235,7 @@ def perform_onnx_backend_oneprocess(tidl_offload : bool, run_infer : bool, test_
         os.makedirs(artifacts_folder, exist_ok=True)
 
         logger.debug("Importing")
-        runtime_options  = settings.get_runtime_options(session_name, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2, is_qat=False, debug_level = 3)
+        runtime_options  = settings.get_runtime_options(session_name, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2, is_qat=False, debug_level = 0)
         onnxruntime_wrapper = core.ONNXRuntimeWrapper(runtime_options=runtime_options,
                                                       model_file=model_file,
                                                       artifacts_folder=artifacts_folder,

@@ -70,9 +70,10 @@ def test_tidl_unit_operator(no_subprocess : bool, tidl_offload : bool, run_infer
                       tidl_offload    = tidl_offload, 
                       run_infer       = run_infer, 
                       test_name       = test_name,
+                      test_suite      = "operator",
                       testdir_parent  = testdir_parent)
 
-def perform_tidl_unit(no_subprocess : bool, tidl_offload : bool, run_infer : bool, testdir_parent : str, test_name : str):
+def perform_tidl_unit(no_subprocess : bool, tidl_offload : bool, run_infer : bool, testdir_parent : str, test_name : str, test_suite : str):
     '''
     Performs an tidl unit test
     '''
@@ -81,16 +82,18 @@ def perform_tidl_unit(no_subprocess : bool, tidl_offload : bool, run_infer : boo
         perform_tidl_unit_oneprocess(tidl_offload    = tidl_offload, 
                                      run_infer       = run_infer, 
                                      test_name       = test_name,
+                                     test_suite      = test_suite,
                                      testdir_parent  = testdir_parent)
     else:
         perform_tidl_unit_subprocess(tidl_offload    = tidl_offload, 
                                      run_infer       = run_infer, 
                                      test_name       = test_name,
+                                     test_suite      = test_suite,
                                      testdir_parent  = testdir_parent)
         
 
 
-def perform_tidl_unit_subprocess(tidl_offload : bool, run_infer : bool, test_name : str, testdir_parent : str):
+def perform_tidl_unit_subprocess(tidl_offload : bool, run_infer : bool, test_name : str, test_suite : str, testdir_parent : str):
     '''
     Perform an tidl unit test using a subprocess (in order to properly capture output for fatal errors)
     Called by perform_tidl_unit
@@ -99,6 +102,7 @@ def perform_tidl_unit_subprocess(tidl_offload : bool, run_infer : bool, test_nam
     kwargs = {"tidl_offload"   : tidl_offload, 
               "run_infer"      : run_infer, 
               "test_name"      : test_name,
+              "test_suite"     : test_suite,
               "testdir_parent" : testdir_parent}
     
     p = Process(target=perform_tidl_unit_oneprocess, kwargs=kwargs)
@@ -118,7 +122,7 @@ def perform_tidl_unit_subprocess(tidl_offload : bool, run_infer : bool, test_nam
     assert p.exitcode == 0, f"Received nonzero exit code: {p.exitcode}"
 
 # Utility function to perform tidl unit test
-def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, test_name : str, testdir_parent : str):
+def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, test_name : str, test_suite : str, testdir_parent : str):
     '''
     Perform an tidl unit test using without a subprocess wrapper
     Called by perform_tidl_unit_subprocess or directly by perform_tidl_unit if no_subprocess is specified
@@ -127,7 +131,6 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, test_nam
 
     # Check environment is set up correctly
     assert os.path.exists(test_dir), f"test path {test_dir} doesn't exist"
-    assert os.environ.get('TIDL_RT_AVX_REF') is not None, "Make sure to source run_set_env.sh"
     assert os.path.exists(os.environ['TIDL_TOOLS_PATH'])
 
     # Declare config object

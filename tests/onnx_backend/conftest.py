@@ -23,8 +23,8 @@ def pytest_runtest_makereport(item, call):
     outcome = yield
     report = outcome.get_result()
     report.tidl_subgraphs = "Not detected"
-    if report.when == 'call':
-        regex1_result = re.search("Offloaded Nodes - ([0-9]*)", report.capstdout)
+    if report.when == 'call' or report.when == 'teardown':
+        regex1_result = re.search("Final number of subgraphs created are : ([0-9]*)", report.capstdout)
         if(regex1_result is None):
             regex2_result = re.search(r"\|\s*C7x\s*\|\s*\d+\s*\|\s*(\d+|x)\s*\|", report.capstdout)
             if (regex2_result is not None):
