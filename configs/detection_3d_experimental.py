@@ -106,6 +106,7 @@ def get_configs(settings, work_dir):
             preprocess=preproc_transforms.get_transform_bev_petr((900, 1600), (450, 800), (0, 130, 800, 320), backend='cv2', interpolation=cv2.INTER_CUBIC),
             # Check RGB vs BGR
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=(103.530, 116.280, 123.675), input_scale=(0.017429, 0.017507, 0.017125),
+                                                                        input_optimization=False,
                                                                         deny_list_from_start_end_node = {'/pts_bbox_head/Concat_102':None,
                                                                                                          '/pts_bbox_head/Concat_101':None,
                                                                                                          '/pts_bbox_head/transformer/Transpose_2':'/pts_bbox_head/transformer/Transpose_2',
@@ -129,6 +130,7 @@ def get_configs(settings, work_dir):
             # crop = (left, top, width, height)
             preprocess=preproc_transforms.get_transform_bev_bevdet((900, 1600), (396, 704), (0, 140, 704, 256), backend='cv2', interpolation=cv2.INTER_CUBIC),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=(123.675, 116.280, 103.530), input_scale=(0.017125, 0.017507, 0.017429)),
+                input_optimization=False,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
                     {'advanced_options:output_feature_16bit_names_list':''}),
                 model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/bevdet/edgeai_bevdet_tiny_res50_256x704.onnx'),
@@ -142,6 +144,7 @@ def get_configs(settings, work_dir):
             # pad = (left, top, right, bottom) = (0, 0, 0, 30)
             preprocess=preproc_transforms.get_transform_bev_bevformer((900, 1600), (450, 800), (0, 0, 0, 30), backend='cv2', interpolation=cv2.INTER_CUBIC),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=(123.675, 116.280, 103.530), input_scale=(0.017125, 0.017507, 0.017429)),
+                input_optimization=False,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
                     {'advanced_options:output_feature_16bit_names_list':''}),
                 model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/bevformer/edgeai_bevformer_tiny_480x800.onnx'),
@@ -155,6 +158,7 @@ def get_configs(settings, work_dir):
             # pad = (left, top, right, bottom) = (0, 0, 0, 28)
             preprocess=preproc_transforms.get_transform_fcos3d((900, 1600), (900, 1600), (0, 0, 0, 28), backend='cv2', interpolation=cv2.INTER_CUBIC),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=(103.530, 116.280, 123.675), input_scale=(1.0, 1.0, 1.0)),
+                input_optimization=False,
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
                     {'advanced_options:output_feature_16bit_names_list':''}),
                 model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/fcos3d/fcos3d_r101_928x1600.onnx'),
@@ -168,6 +172,7 @@ def get_configs(settings, work_dir):
             # crop = (left, top, width, height)
             preprocess=preproc_transforms.get_transform_bev_fastbev((900, 1600), (396, 704), (0, 70, 704, 256), backend='cv2', interpolation=cv2.INTER_CUBIC),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=(123.675, 116.280, 103.530), input_scale=(0.017125, 0.017507, 0.017429),
+                                                                        input_optimization=False,
                                                                         deny_list_from_start_end_node = {'/TopK':None,
                                                                                                          '/Concat_20':'/Concat_20', 
                                                                                                          '/Gather_9':'/Gather_9'}),
@@ -184,6 +189,7 @@ def get_configs(settings, work_dir):
             # crop = (left, top, width, height)
             preprocess=preproc_transforms.get_transform_bev_fastbev((900, 1600), (396, 704), (0, 70, 704, 256), backend='cv2', interpolation=cv2.INTER_CUBIC),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=(123.675, 116.280, 103.530), input_scale=(0.017125, 0.017507, 0.017429),
+                                                                        input_optimization=False,
                                                                         deny_list_from_start_end_node = {'/TopK':None,
                                                                                                          '/Concat_7':'Concat_7',
                                                                                                          '/Gather_2':'/Gather_2',
