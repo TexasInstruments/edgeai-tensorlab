@@ -67,8 +67,10 @@ from collections.abc import Sequence
 import numpy as np
 import PIL
 import cv2
+import copy
 
 from PIL import Image
+
 from . import functional as F
 
 _pil_interpolation_to_str = {
@@ -219,7 +221,15 @@ class ImageNormMeanScale(object):
             Tensor: Normalized Tensor image.
         """
         if isinstance(tensor, list):
-            tensor = [F.normalize_mean_scale(t, self.mean, self.scale, self.data_layout, self.inplace) for t in tensor]
+            if isinstance(self.mean, list) and isinstance(self.scale, list):
+                tensor_ = copy.deepcopy(tensor)
+                num_norm = min(len(tensor), len(self.mean))
+                for t_idx in range(num_norm):
+                    tensor_[t_idx] = F.normalize_mean_scale(tensor[t_idx], self.mean[t_idx], self.scale[t_idx], self.data_layout, self.inplace)
+                #
+            else:
+                tensor_ = [F.normalize_mean_scale(t, self.mean, self.scale, self.data_layout, self.inplace) for t in tensor]
+            #
         elif isinstance(tensor, tuple):
             #tensor = tuple([F.normalize_mean_scale(t, self.mean, self.scale, self.data_layout, self.inplace) for t in tensor])
             tensor_ = []

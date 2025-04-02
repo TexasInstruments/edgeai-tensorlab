@@ -167,7 +167,7 @@ def get_configs(settings, work_dir):
             task_name='FastBEV_f1',
             # crop = (left, top, width, height)
             preprocess=preproc_transforms.get_transform_bev_fastbev((900, 1600), (396, 704), (0, 70, 704, 256), backend='cv2', interpolation=cv2.INTER_CUBIC),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=(123.675, 116.280, 103.530), input_scale=(0.017125, 0.017507, 0.017429), input_optimization=False,
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=[(123.675, 116.280, 103.530)], input_scale=[(0.017125, 0.017507, 0.017429)], input_optimization=False,
                                                                         deny_list_from_start_end_node = {'/TopK':None,
                                                                                                          '/Concat_20':'/Concat_20', 
                                                                                                          '/Gather_9':'/Gather_9'}),
@@ -183,7 +183,7 @@ def get_configs(settings, work_dir):
             task_name='FastBEV_f4',
             # crop = (left, top, width, height)
             preprocess=preproc_transforms.get_transform_bev_fastbev((900, 1600), (396, 704), (0, 70, 704, 256), backend='cv2', interpolation=cv2.INTER_CUBIC),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=(123.675, 116.280, 103.530), input_scale=(0.017125, 0.017507, 0.017429), input_optimization=False,
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=[(123.675, 116.280, 103.530)], input_scale=[(0.017125, 0.017507, 0.017429)], input_optimization=False,
                                                                         deny_list_from_start_end_node = {'/TopK':None,
                                                                                                          '/Concat_7':'Concat_7',
                                                                                                          '/Gather_2':'/Gather_2',
