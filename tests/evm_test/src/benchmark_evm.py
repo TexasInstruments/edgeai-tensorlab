@@ -104,7 +104,7 @@ class BenchmarkEvm():
             else:
                 command = f"cd && ./setup_eai_benchmark.sh {self.eai_benchmark_mount_path}"
 
-            status = uart_interface.send_uart_command(command, "SCRIPT_EXECUTED_SUCCESSFULLY", 60, True)
+            status = uart_interface.send_uart_command(command, "SCRIPT_EXECUTED_SUCCESSFULLY", 200, True)
             response = uart_interface.log_buffer
             print(f"\n\n*******************************\nLog Buffer : {response}\n*******************************\n\n")
 
