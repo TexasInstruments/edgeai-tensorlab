@@ -49,6 +49,8 @@ class BenchmarkEvm():
         if self.logs_dir == None:
             self.logs_dir = "evm_test_logs"
 
+        self.setup_iter = 0
+
         self.modelartifacts_path = modelartifacts_path
 
         print(f"[ Info ] SOC : {self.soc}")
@@ -60,7 +62,8 @@ class BenchmarkEvm():
 
         status = True
 
-        log_file_path = f'{self.logs_dir}/{self.soc}/dut_firmware_update_uart.log'
+        log_file_path = f'{self.logs_dir}/{self.soc}/dut_firmware_update_uart_{self.setup_iter}.log'
+        self.setup_iter += 1
         uart_interface = UartInterface(self.evm_config["dut_uart_info"],
                                        self.evm_config["dut_uart_info"],
                                        log_file_path)

@@ -11,7 +11,7 @@ cd ~
 
 counter=1
 ip_fetched=0
-while [ $counter -le 50 ];
+while [ $counter -le 100 ];
 do
     ip_addr=`ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p'`
     if [ "$ip_addr" != "" ]; then
@@ -20,7 +20,7 @@ do
         break
     fi
     sleep 5
-    echo "Trying to get IP. Attempt ${counter}/50"
+    echo "Trying to get IP. Attempt ${counter}/100"
     counter=$((counter+1))
 done
 
