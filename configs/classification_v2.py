@@ -294,5 +294,116 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/timm/fastvit_sa12.apple_in1k_reparam_simp.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':78.59}, model_shortlist=110, compact_name='FastViT-s12-transformer-256', shortlisted=False)
         ),
+        # MAX-VIT
+        'cl-6900':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(224,224),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True),
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/hf-transformers/maxvit_tiny_tf_224.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':83.49}, model_shortlist=110, compact_name='MaxVit-tiny-transformer-224', shortlisted=False)
+        ),
+        'cl-6910':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(224,224),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True),
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/hf-transformers/maxvit_small_tf_224.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':84.46}, model_shortlist=110, compact_name='MaxVit-small-transformer-224', shortlisted=False)
+        ),
+        # Intern-Image
+        'cl-6950':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(224,224),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True),
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/hf-transformers/internimage_t_1k_224.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':83.24}, model_shortlist=110, compact_name='InternImage-tiny', shortlisted=False)
+        ),
+        'cl-6960':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(224,224),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True),
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/hf-transformers/internimage_s_1k_224.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':83.96}, model_shortlist=110, compact_name='InternImage-small', shortlisted=False)
+        ),
+        # Visual Attention Network
+        'cl-7000':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(224,224),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True),
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/hf-transformers/van-tiny.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':70.44}, model_shortlist=110, compact_name='VAN-tiny', shortlisted=False)
+        ),
+        'cl-7010':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(224,224),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True),
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/hf-transformers/van-small.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':76.08}, model_shortlist=110, compact_name='VAN-small', shortlisted=False)
+        ),
+        'cl-7020':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(224,224),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True),
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/hf-transformers/van-base.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':80.84}, model_shortlist=110, compact_name='VAN-base', shortlisted=False)
+        ),
+        # CAFormer
+        'cl-7050':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(224,224),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True),
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/hf-transformers/caformer_s18_sail.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':83.58}, model_shortlist=110, compact_name='CAFormer-s18', shortlisted=False)
+        ),
+        'cl-7060':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(224,224),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True),
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/hf-transformers/caformer_s36_sail.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':84.42}, model_shortlist=110, compact_name='CAFormer-s36', shortlisted=False)
+        ),
+        # EfficientViT
+        'cl-7100':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(224,224),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True),
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/hf-transformers/efficientvit_b0.r224_in1k.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':71.6}, model_shortlist=110, compact_name='EfficientVit_B0', shortlisted=False)
+        ),
+        'cl-7110':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(224,224),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True),
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/hf-transformers/efficientvit_b1.r224_in1k.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':79.41}, model_shortlist=110, compact_name='EfficientVit_B1', shortlisted=False)
+        ),
+        'cl-7120':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(224,224),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True),
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/hf-transformers/efficientvit_b2.r224_in1k.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':82.12}, model_shortlist=110, compact_name='EfficientVit_B2', shortlisted=False)
+        ),
+        'cl-7130':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(224,224),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True),
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/hf-transformers/efficientvit_l1.r224_in1k.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':84.12}, model_shortlist=110, compact_name='EfficientVit_L1', shortlisted=False)
+        ),
+        'cl-7140':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(224,224),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True),
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/hf-transformers/efficientvit_l2.r224_in1k.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':84.86}, model_shortlist=110, compact_name='EfficientVit_L2', shortlisted=False)
+        ),
+        'cl-7150':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(224,224),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=True),
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/hf-transformers/efficientvit_m5.r224_in1k.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':76.49}, model_shortlist=110, compact_name='EfficientVit_M5', shortlisted=False)
+        ),
+        
     }
     return pipeline_configs
