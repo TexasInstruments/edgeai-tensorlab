@@ -3,6 +3,7 @@ from edgeai_benchmark import *
 import pytest
 import onnx
 from .unit_test_known_results import expected_fails
+from .unit_test_utils import get_tidl_performance
 from multiprocessing import Process
 import glob
 import shutil
@@ -171,9 +172,20 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, test_nam
 
         threshold = settings.inference_nmse_thresholds.get(test_name) or settings.inference_nmse_thresholds.get("default")
         max_nmse = tidl_unit_dataset([results_list])['max_nmse']
-        print(f"MAX_NMSE:{max_nmse}")
+        print(f"\nMAX_NMSE: {max_nmse}\n")
         if(max_nmse > threshold):
             pytest.fail(f" max_nmse of {max_nmse} is higher than threshold {threshold}")
+
+        # Report performance
+        stats = get_tidl_performance(onnxruntime_wrapper.interpreter, session_name="onnxrt")
+        print(f"\nPERFORMANCE:\n")
+        print(f"\tNum TIDL Subgraphs                    :   {stats['num_subgraphs']}")
+        print(f"\tTotal Time (ms)                       :   {stats['total_time']:.2f}")
+        print(f"\tCore Time (ms)                        :   {stats['core_time']:.2f}")
+        print(f"\tTIDL Subgraphs Processing Time (ms)   :   {stats['subgraph_time']:.2f}")
+        print(f"\tDDR Read Bandwidth (MB/s)             :   {stats['read_total']:.2f}")
+        print(f"\tDDR Write Bandwidth (MB/s)            :   {stats['write_total']:.2f}")
+        print()
 
     #Otherwise run import
     else:
