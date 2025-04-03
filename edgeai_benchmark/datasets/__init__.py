@@ -55,12 +55,17 @@ from .robokit_seg import *
 from .robokit_visloc import *
 
 from .kitti_2015 import *
-from .nuscenes_dataset import *
+
+try:
+    from .nuscenes_dataset import *
+except ImportError as e:
+    warnings.warn(f'WARNING: nuscenes_dataset could not be imported - {str(e)}')
+    nuscenes_dataset = None
 
 try:
     from .kitti_lidar_det import KittiLidar3D
 except ImportError as e:
-    warnings.warn(f'kitti_lidar_det could not be imported - {str(e)}')
+    warnings.warn(f'WARNING: kitti_lidar_det could not be imported - {str(e)}')
     KittiLidar3D = None
 
 

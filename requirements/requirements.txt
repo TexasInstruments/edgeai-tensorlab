@@ -15,4 +15,4 @@ scikit-learn
 debugpy
 packaging
 pyquaternion
-nuscenes-devkit
+#nuscenes-devkit
