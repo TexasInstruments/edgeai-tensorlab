@@ -3,6 +3,7 @@ from edgeai_benchmark import *
 import pytest
 import onnx
 from .unit_test_known_results import expected_fails
+from .unit_test_utils import get_tidl_performance
 from multiprocessing import Process
 import glob
 import shutil
@@ -70,9 +71,10 @@ def test_tidl_unit_operator(no_subprocess : bool, tidl_offload : bool, run_infer
                       tidl_offload    = tidl_offload, 
                       run_infer       = run_infer, 
                       test_name       = test_name,
+                      test_suite      = "operator",
                       testdir_parent  = testdir_parent)
 
-def perform_tidl_unit(no_subprocess : bool, tidl_offload : bool, run_infer : bool, testdir_parent : str, test_name : str):
+def perform_tidl_unit(no_subprocess : bool, tidl_offload : bool, run_infer : bool, testdir_parent : str, test_name : str, test_suite : str):
     '''
     Performs an tidl unit test
     '''
@@ -81,16 +83,18 @@ def perform_tidl_unit(no_subprocess : bool, tidl_offload : bool, run_infer : boo
         perform_tidl_unit_oneprocess(tidl_offload    = tidl_offload, 
                                      run_infer       = run_infer, 
                                      test_name       = test_name,
+                                     test_suite      = test_suite,
                                      testdir_parent  = testdir_parent)
     else:
         perform_tidl_unit_subprocess(tidl_offload    = tidl_offload, 
                                      run_infer       = run_infer, 
                                      test_name       = test_name,
+                                     test_suite      = test_suite,
                                      testdir_parent  = testdir_parent)
         
 
 
-def perform_tidl_unit_subprocess(tidl_offload : bool, run_infer : bool, test_name : str, testdir_parent : str):
+def perform_tidl_unit_subprocess(tidl_offload : bool, run_infer : bool, test_name : str, test_suite : str, testdir_parent : str):
     '''
     Perform an tidl unit test using a subprocess (in order to properly capture output for fatal errors)
     Called by perform_tidl_unit
@@ -99,6 +103,7 @@ def perform_tidl_unit_subprocess(tidl_offload : bool, run_infer : bool, test_nam
     kwargs = {"tidl_offload"   : tidl_offload, 
               "run_infer"      : run_infer, 
               "test_name"      : test_name,
+              "test_suite"     : test_suite,
               "testdir_parent" : testdir_parent}
     
     p = Process(target=perform_tidl_unit_oneprocess, kwargs=kwargs)
@@ -118,7 +123,7 @@ def perform_tidl_unit_subprocess(tidl_offload : bool, run_infer : bool, test_nam
     assert p.exitcode == 0, f"Received nonzero exit code: {p.exitcode}"
 
 # Utility function to perform tidl unit test
-def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, test_name : str, testdir_parent : str):
+def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, test_name : str, test_suite : str, testdir_parent : str):
     '''
     Perform an tidl unit test using without a subprocess wrapper
     Called by perform_tidl_unit_subprocess or directly by perform_tidl_unit if no_subprocess is specified
@@ -127,7 +132,6 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, test_nam
 
     # Check environment is set up correctly
     assert os.path.exists(test_dir), f"test path {test_dir} doesn't exist"
-    assert os.environ.get('TIDL_RT_AVX_REF') is not None, "Make sure to source run_set_env.sh"
     assert os.path.exists(os.environ['TIDL_TOOLS_PATH'])
 
     # Declare config object
@@ -168,9 +172,20 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, test_nam
 
         threshold = settings.inference_nmse_thresholds.get(test_name) or settings.inference_nmse_thresholds.get("default")
         max_nmse = tidl_unit_dataset([results_list])['max_nmse']
-        print(f"MAX_NMSE:{max_nmse}")
+        print(f"\nMAX_NMSE: {max_nmse}\n")
         if(max_nmse > threshold):
             pytest.fail(f" max_nmse of {max_nmse} is higher than threshold {threshold}")
+
+        # Report performance
+        stats = get_tidl_performance(onnxruntime_wrapper.interpreter, session_name="onnxrt")
+        print(f"\nPERFORMANCE:\n")
+        print(f"\tNum TIDL Subgraphs                    :   {stats['num_subgraphs']}")
+        print(f"\tTotal Time (ms)                       :   {stats['total_time']:.2f}")
+        print(f"\tCore Time (ms)                        :   {stats['core_time']:.2f}")
+        print(f"\tTIDL Subgraphs Processing Time (ms)   :   {stats['subgraph_time']:.2f}")
+        print(f"\tDDR Read Bandwidth (MB/s)             :   {stats['read_total']:.2f}")
+        print(f"\tDDR Write Bandwidth (MB/s)            :   {stats['write_total']:.2f}")
+        print()
 
     #Otherwise run import
     else:
