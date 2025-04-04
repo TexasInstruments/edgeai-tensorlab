@@ -61,6 +61,7 @@ try:
 except ImportError as e:
     warnings.warn(f'WARNING: nuscenes_dataset could not be imported - {str(e)}')
     nuscenes_dataset = None
+    NuScenesDataset = None
 
 try:
     from .kitti_lidar_det import KittiLidar3D
