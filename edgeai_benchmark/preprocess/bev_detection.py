@@ -248,7 +248,25 @@ from scipy.spatial import transform
 from pyquaternion import Quaternion
 from ..utils.config_utils.misc_utils import inverse_sigmoid as inverse_sigmoid
 
-from nuscenes.eval.common.utils import quaternion_yaw
+
+# pulled exactly from the nuscenes official code for installation on evm
+# from nuscenes.eval.common.utils import quaternion_yaw 
+def quaternion_yaw(q: Quaternion) -> float:
+    """
+    Calculate the yaw angle from a quaternion.
+    Note that this only works for a quaternion that represents a box in lidar or global coordinate frame.
+    It does not work for a box in the camera frame.
+    :param q: Quaternion of interest.
+    :return: Yaw angle in radians.
+    """
+
+    # Project into xy plane.
+    v = np.dot(q.rotation_matrix, np.array([1, 0, 0]))
+
+    # Measure yaw using arctan.
+    yaw = np.arctan2(v[1], v[0])
+
+    return yaw
 
 
 _camera_types = [
