@@ -31,6 +31,7 @@ class BenchmarkEvm():
         self.test_num = 0
         self.pass_num = 0
         self.restarts = 0
+        self.model_restart = 0
         self.relay = None
         self.reboot_type = reboot_type
         if self.reboot_type == "hard":
@@ -126,7 +127,7 @@ class BenchmarkEvm():
 
     def parse_test_run(self, response):
         '''
-        status = 0 [No run], 1 [Successful run], -1 [Critical error]
+        status = 0 [No run], 1 [Successful run], -1 [Critical error], 2 [Retry Model]
         '''
         ignore_filters = ["VX_ZONE_ERROR:Enabled","Globally Enabled","Globally Disabled","VX_ZONE_ERROR:[tivxObjectDeInit"]
         critical_errors = ["VX_ZONE_ERROR","dumped core","core dump","Segmentation fault"]
@@ -199,6 +200,12 @@ class BenchmarkEvm():
             # response = uart_interface.log_buffer
             print(f"\n\n*******************************\nLog Buffer : {response}\n*******************************\n\n")
             response_status = self.parse_test_run(response)
+
+            # if the dataset loading was the issue (from log_file_path), we might want to retry the same model again after restarting the device.
+            with open(log_file_path, 'r') as myfile:
+                if 'downloading and preparing dataset' in myfile.read():
+                    response_status = 2
+                    return response_status
         
         if not status:
                 response = uart_interface.log_buffer
@@ -230,9 +237,23 @@ class BenchmarkEvm():
                     print(f"[ Error ] Critical error detected while running test {self.test_num + 1}/{total_models} [{model}]! Rebooting...")
                     self.restarts += 1
                     self.init_setup()
+                elif status == 2:
+                    if self.model_restart < 10:
+                        print(f"[ Retrying ] Error while trying to run the model {self.test_num + 1}/{total_models} [{model}]! , retrying the model run after reboot...")
+                        self.restarts += 1
+                        self.init_setup()
+                        self.test_num -= 1
+                        self.model_restart += 1 
+                    else:
+                        print(f"[ Error ] Critical error detected while running test {self.test_num + 1}/{total_models} [{model}]! Rebooting...")
+                        self.restarts += 1
+                        self.init_setup()
                 else:
                     print(f"[ Info ] Test {self.test_num + 1}/{total_models} [{model}] ran successfully!")
                     self.pass_num += 1
+                if status != 2:
+                    self.model_restart = 0
+                    
             except TimeoutError:
                 print("[ Error ] Timeout while run_single_test().")
                 print(f"\n{traceback.format_exc()}\n")
