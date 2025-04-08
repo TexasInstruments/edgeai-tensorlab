@@ -6,6 +6,7 @@
 # ---------------------------------------------
 
 from mmcv.ops.multi_scale_deform_attn import multi_scale_deformable_attn_pytorch
+
 import warnings
 import torch
 import torch.nn as nn
@@ -424,25 +425,25 @@ class MSDeformableAttention3D(BaseModule):
             query = query.permute(1, 0, 2)
             value = value.permute(1, 0, 2)
 
-        bs, num_query, _ = query.shape
-        bs, num_value, _ = value.shape
+        bs, num_query, _ = query.shape # [N, 50x50, 256]
+        bs, num_value, _ = value.shape # [N, 375, 256]
         assert (spatial_shapes[:, 0] * spatial_shapes[:, 1]).sum() == num_value
 
         value = self.value_proj(value)
         if key_padding_mask is not None:
             value = value.masked_fill(key_padding_mask[..., None], 0.0)
-        value = value.view(bs, num_value, self.num_heads, -1)
+        value = value.view(bs, num_value, self.num_heads, -1)   # [N, 375, 8, 32]
         sampling_offsets = self.sampling_offsets(query).view(
-            bs, num_query, self.num_heads, self.num_levels, self.num_points, 2)
+            bs, num_query, self.num_heads, self.num_levels, self.num_points, 2) # [N, 50x50, 8, 1, 8, 2]
         attention_weights = self.attention_weights(query).view(
             bs, num_query, self.num_heads, self.num_levels * self.num_points)
 
-        attention_weights = attention_weights.softmax(-1)
+        attention_weights = attention_weights.softmax(-1)  # [N, 50x50, 8, 8]
 
         attention_weights = attention_weights.view(bs, num_query,
                                                    self.num_heads,
                                                    self.num_levels,
-                                                   self.num_points)
+                                                   self.num_points)  # [N, 50x50, 8, 1, 8]
 
         if reference_points.shape[-1] == 2:
             """
@@ -454,7 +455,9 @@ class MSDeformableAttention3D(BaseModule):
             offset_normalizer = torch.stack(
                 [spatial_shapes[..., 1], spatial_shapes[..., 0]], -1)
 
-            bs, num_query, num_Z_anchors, xy = reference_points.shape
+            """
+            # 7D tensor operation
+            bs, num_query, num_Z_anchors, xy = reference_points.shape  # [6, 50x50, 4 ,2]
             reference_points = reference_points[:, :, None, None, None, :, :]
             sampling_offsets = sampling_offsets / \
                 offset_normalizer[None, None, None, :, None, :]
@@ -464,6 +467,21 @@ class MSDeformableAttention3D(BaseModule):
             sampling_locations = reference_points + sampling_offsets
             bs, num_query, num_heads, num_levels, num_points, num_Z_anchors, xy = sampling_locations.shape
             assert num_all_points == num_points * num_Z_anchors
+
+            sampling_locations = sampling_locations.view(
+                bs, num_query, num_heads, num_levels, num_all_points, xy)
+            """
+            # 6D tensor operation
+            bs, num_query, num_Z_anchors, xy = reference_points.shape  # [6, 50x50, 4 ,2]
+            reference_points = reference_points[:, :, None, None, :, :]
+            sampling_offsets = sampling_offsets / \
+                offset_normalizer[None, None, None, :, None, :]
+            bs, num_query, num_heads, num_levels, num_all_points, xy = sampling_offsets.shape
+            sampling_offsets = sampling_offsets.view(
+                bs, num_query, num_heads, num_levels * (num_all_points // num_Z_anchors), num_Z_anchors, xy)
+            sampling_locations = reference_points + sampling_offsets
+            bs, num_query, num_heads, num_levels_points, num_Z_anchors, xy = sampling_locations.shape
+            assert num_all_points == (num_levels_points // num_levels) * num_Z_anchors
 
             sampling_locations = sampling_locations.view(
                 bs, num_query, num_heads, num_levels, num_all_points, xy)
