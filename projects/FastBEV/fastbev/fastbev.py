@@ -21,12 +21,11 @@ from mmseg.models.utils import resize
 from mmengine.structures import InstanceData
 from mmdet3d.structures.det3d_data_sample import SampleList, ForwardResults, OptSampleList
 from mmdet3d.utils.typing_utils import OptInstanceList
-#from mmcv.runner import get_dist_info, auto_fp16
 
 import copy
 
-from mmdet3d.models.detectors.onnx_export import create_onnx_FastBEV, export_FastBEV
-from mmdet3d.models.detectors.onnx_network import backproject_tidl
+from .onnx_export import create_onnx_FastBEV, export_FastBEV
+from .onnx_network import backproject_tidl
 
 from .utils import get_rot, rts2proj, get_augmented_img_params, scale_augmented_img_params
 

@@ -135,15 +135,23 @@ def xywhr2xyxyr(
     Returns:
         Tensor or np.ndarray: Converted boxes in XYXYR format.
     """
-    boxes = torch.zeros_like(boxes_xywhr)
     half_w = boxes_xywhr[..., 2] / 2
     half_h = boxes_xywhr[..., 3] / 2
 
-    boxes[..., 0] = boxes_xywhr[..., 0] - half_w
-    boxes[..., 1] = boxes_xywhr[..., 1] - half_h
-    boxes[..., 2] = boxes_xywhr[..., 0] + half_w
-    boxes[..., 3] = boxes_xywhr[..., 1] + half_h
-    boxes[..., 4] = boxes_xywhr[..., 4]
+    #boxes = torch.zeros_like(boxes_xywhr)
+    #boxes[..., 0] = boxes_xywhr[..., 0] - half_w
+    #boxes[..., 1] = boxes_xywhr[..., 1] - half_h
+    #boxes[..., 2] = boxes_xywhr[..., 0] + half_w
+    #boxes[..., 3] = boxes_xywhr[..., 1] + half_h
+    #boxes[..., 4] = boxes_xywhr[..., 4]
+
+    # It makes onnx simpler
+    b0 = boxes_xywhr[..., 0] - half_w
+    b1 = boxes_xywhr[..., 1] - half_h
+    b2 = boxes_xywhr[..., 0] + half_w
+    b3 = boxes_xywhr[..., 1] + half_h
+    b4 = boxes_xywhr[..., 4]
+    boxes = torch.cat([b0[:, None], b1[:, None], b2[:, None], b3[:, None], b4[:, None]], dim=1)
     return boxes
 
 

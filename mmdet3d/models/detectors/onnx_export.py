@@ -8,7 +8,6 @@ from .onnx_network import PETR_export_model, StreamPETR_export_model, \
                           Far3D_export_model, Far3D_export_img_backbone, Far3D_export_img_roi, Far3D_export_pts_bbox, \
                           BEVFormer_export_model, \
                           BEVDet_export_model, FCOS3D_export_model, \
-                          FastBEV_export_model, \
                           DETR3D_export_model
 
 
@@ -601,76 +600,3 @@ def export_FCOS3D(model, inputs=None, data_samples=None, quantized_model=False, 
     onnx.save(onnx_model, model_name)
 
     print("!! ONNX model has been exported for FCOS3D! !!\n\n")
-
-
-
-def create_onnx_FastBEV(model, quantized_model=False):
-    onnxModel = FastBEV_export_model(model)
-    onnxModel = onnxModel.cpu()
-    if not quantized_model:
-        onnxModel.eval()
-
-    return onnxModel
-
-
-def export_FastBEV(onnxModel, inputs=None, data_samples=None,
-                   quantized_model=False, opset_version=20,  **kwargs):
-
-    img = inputs['imgs'].clone()
-    img = img.cpu()
-    batch_img_metas = [ds.metainfo for ds in data_samples]
-
-    onnxModel.prepare_data(batch_img_metas)
-
-    prev_feats_map = None
-    prev_input_metas = None
-
-    if onnxModel.num_temporal_feats > 0:
-        prev_feats_map, prev_input_metas = onnxModel.get_temporal_feats(
-            onnxModel.queue, onnxModel.memory, img, batch_img_metas,
-            onnxModel.feats_size, onnxModel.num_temporal_feats)
-
-    xy_coors = onnxModel.precompute_proj_info_for_inference(img, batch_img_metas, prev_img_metas=prev_input_metas)
-
-    # Passed the squeezed img
-    if img.dim() == 5 and img.size(0) == 1:
-        img.squeeze_()
-    elif img.dim() == 5 and img.size(0) > 1:
-        B, N, C, H, W = img.size()
-        img = img.view(B * N, C, H, W)
-
-    model_input = []
-    model_input.append(img)
-    model_input.append(xy_coors)
-    model_input.append(prev_feats_map)
-
-    if quantized_model:
-        from edgeai_torchmodelopt import xmodelopt
-        xmodelopt.quantization.v3.quant_utils.register_onnx_symbolics(opset_version=opset_version)
-        model_name = 'fastbev_quantized.onnx'
-    else:
-        model_name = 'fastbev.onnx'
-
-    input_names  = ["imgs", "xy_coor", "prev_img_feats"]
-    if prev_feats_map is None:
-        output_names = ["bboxes", "bboxes_for_nms", "scores", "dir_scores"]
-    else:
-        output_names = ["bboxes", "bboxes_for_nms", "scores", "dir_scores", "img_feats"]
-
-    torch.onnx.export(onnxModel,
-                      tuple(model_input),
-                      model_name,
-                      input_names=input_names,
-                      output_names=output_names,
-                      opset_version=opset_version,
-                      training=torch._C._onnx.TrainingMode.PRESERVE,
-                      verbose=False)
-
-    onnx_model, _ = simplify(model_name)
-    onnx.save(onnx_model, model_name)
-
-    # move model back to gpu
-    onnxModel = onnxModel.cuda()
-
-    print("\n!! ONNX model has been exported for FastBEV!!!\n\n")
-
