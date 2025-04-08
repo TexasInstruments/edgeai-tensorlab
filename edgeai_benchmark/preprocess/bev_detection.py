@@ -1071,7 +1071,8 @@ class GetBEVFormerGeometry():
         data.append(reference_points_cam)
         data.append(bev_mask_count)
         data.append(bev_valid_indices)
-        data.append(bev_valid_indices_count)
+        # Not needed for the latest model (bevformer_tiny_plus_480x800_20250408.onnx)
+        #data.append(bev_valid_indices_count)
         data.append(can_bus)
 
         return data, info_dict
