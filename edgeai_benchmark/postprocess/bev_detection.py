@@ -783,8 +783,8 @@ def box3d_multiclass_scale_nms(
         2D bounding boxes (optional).
     """
     # do multi class nms
-    # the fg class id range: [0, num_classes-1]
-    num_classes = mlvl_scores.shape[1] - 1
+    # the fg class id range: [0, num_classes]
+    num_classes = mlvl_scores.shape[1]
     bboxes = []
     scores = []
     labels = []
