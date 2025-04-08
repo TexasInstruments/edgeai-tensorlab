@@ -188,6 +188,13 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/hf-transformers/deit_tiny_patch16_224_simp.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':72.13}, model_shortlist=80, compact_name='DeiT-tiny-patch16-transformer-224', shortlisted=False)
         ),
+        'cl-6721':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer={'hf_attention_block_optimization':True}),
+                runtime_options=settings.runtime_options_onnx_np2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL}),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/hf-transformers/deit_small_patch16_224_simp.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':79.9}, model_shortlist=80, compact_name='DeiT-small-patch16-transformer-224', shortlisted=False)
+        ),
         'cl-6730':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer={'hf_attention_block_optimization':True}),
@@ -404,6 +411,20 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/hf-transformers/efficientvit_m5.r224_in1k.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':76.49}, model_shortlist=None, compact_name='EfficientVit_M5', shortlisted=False)
         ),
-        
+        # onnx-models: classification resnet50_v2 (pre-batchnorm) expected_metric: 75.81% top-1 accuracy
+        'cl-7160':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(224,224),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
+                runtime_options=settings.runtime_options_onnx_p2(),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/onnx-models/resnet50-v2-7.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':75.81}, model_shortlist=None, compact_name='ResNet50-V2-PreBN', shortlisted=False)
+        ),
+        'cl-7170':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(384,384),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
+                runtime_options=settings.runtime_options_onnx_p2(),
+                model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/efficientnet_v2_s.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':84.228}, model_shortlist=None, compact_name='EfficientNet-V2-S', shortlisted=False)
+        ),
     }
     return pipeline_configs
