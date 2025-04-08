@@ -52,7 +52,8 @@ session_type_dict : {'onnx':'onnxrt', 'tflite':'tflitert', 'mxnet':'tvmdlr'}
 #   examples: ['resnet18.onnx', 'resnet50_v1.tflite'] ['classification'] ['imagenet1k'] ['torchvision'] ['coco']
 #   examples: [cl-0000, od-2020, ss-2580, cl-3090, od-5120, ss-5710, cl-6360, od-8020, od-8200, od-8220, od-8420, ss-8610, kd-7060, 3dod-7100, 6dpose-7200, ss-7618]
 #   examples: [cl-0000, od-2020, cl-6360, od-8200, od-8270, od-8410, ss-8610, ss-8630, ss-8710, ss-8720]
-#   examples: [3dod-7120 (PETR), 3dod-7130 (BEVDet), 3dod-7140 (BEVFormer), 3dod-7150 (FCOS3D), 3dod-7160, 3dod-7161 (FastBEV)]
+#   examples: [3dod-7120 (PETR), 3dod-7130 (BEVDet), 3dod-7140 (BEVFormer), 3dod-7150 (FCOS3D), 
+#              3dod-7160, 3dod-7161 (FastBEV_f1), 3dod-7162, 3dod-7163 (FastBEV_f4) ]
 model_selection : null
 
 # model_shortlist can be a number, which indicates a predefined shortlist, and a fraction of the models will be selected

@@ -299,11 +299,12 @@ class PostProcessTransforms(utils.TransformsCompose):
 
         return transforms
 
-    def get_transform_bev_detection_fastbev(self, data_layout=constants.NCHW):
-        postprocess_bev_detection_fastbev = [MultiClassScaleNMS(),
-                                             Bbox3d2result()]
-        #postprocess_bev_detection_fastbev = [Bbox3d2result()]
-
+    def get_transform_bev_detection_fastbev(self, enable_nms=True, data_layout=constants.NCHW):
+        if enable_nms:
+            postprocess_bev_detection_fastbev = [MultiClassScaleNMS(),
+                                                 Bbox3d2result()]
+        else:
+            postprocess_bev_detection_fastbev = [Bbox3d2result()]
 
         if self.settings.save_output:
             # To be updated
