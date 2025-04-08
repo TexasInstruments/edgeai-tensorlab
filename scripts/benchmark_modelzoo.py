@@ -72,6 +72,7 @@ def get_arg_parser():
     parser.add_argument('--overall_timeout', type=utils.float_or_none)
     parser.add_argument('--instance_timeout', type=utils.float_or_none)
     parser.add_argument('--log_file', type=utils.str_to_bool)
+    parser.add_argument('--tidl_offload', type=utils.str_to_bool)
     return parser
 
 
