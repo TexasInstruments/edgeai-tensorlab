@@ -24,7 +24,6 @@ model = dict(
         num_attrs=18,),
     test_cfg=dict(
         use_rotate_nms=False,
-        # score_thr=0.0025,
         ))
 
 env_cfg = dict(
@@ -65,7 +64,7 @@ test_pipeline = [
 ]
 
 train_dataloader = dict(
-    batch_size=2, num_workers=4, dataset=dict(pipeline=train_pipeline, ))
+    batch_size=2, num_workers=2, dataset=dict(pipeline=train_pipeline, ))
 test_dataloader = dict(batch_size=1, dataset=dict(pipeline=test_pipeline))
 val_dataloader = dict(batch_size=1, dataset=dict(pipeline=test_pipeline))
 
@@ -92,6 +91,6 @@ param_scheduler = [
         gamma=0.1)
 ]
 # TODO remove this
-load_from = './checkpoints/fcos3d/fcos3d_r101_caffe_fpn_gn-head_dcn_2x8_1x_ps-mono3d_finetune_20210717_095645-8d806dc2_adjusted.pth'
+# load_from = './checkpoints/fcos3d/fcos3d_r101_caffe_fpn_gn-head_dcn_2x8_1x_ps-mono3d_finetune_20210717_095645-8d806dc2_adjusted.pth'
 
 find_unused_parameters = True

@@ -247,9 +247,9 @@ class PandaSetDataset(NuScenesDataset):
                 orig_class_mapping = [max(min(x,len(kwargs['metainfo']['classes'])),0) for x in orig_class_mapping ]
             kwargs['metainfo']['class_mapping'] = orig_class_mapping
         self._orig_data_prefix = copy.deepcopy(kwargs.get('data_prefix',{}))
-        self.get_label_func = (lambda x : orig_class_mapping[x]) if orig_class_mapping else (lambda x: x)
+        self.get_label_func = (lambda x : orig_class_mapping[x] if x>=0 else x) if orig_class_mapping else (lambda x: x)
         self.max_dist_thr = max_dist_thr
-        self.label_mapping_changed = False
+        self.label_mapping_changed = False if orig_class_mapping else True
         self.new_num_ins_per_cat = [0]*len(kwargs['metainfo']['classes'] if 'metainfo' in kwargs and 'classes' in kwargs['metainfo'] else self.METAINFO['classes'])
         super().__init__(data_root, ann_file, pipeline, box_type_3d, load_type, modality, filter_empty_gt, test_mode, with_velocity, use_valid_flag, **kwargs)
 
@@ -288,7 +288,7 @@ class PandaSetDataset(NuScenesDataset):
                 translations = gt_bboxes_3d[:,[0,2]]
             else:
                 translations = gt_bboxes_3d[:,:2]
-            filtered_indices = np.where(np.linalg.norm(np.array(translations),axis=-1)<max_dist_thr)[0].tolist()
+            filtered_indices = np.where(np.linalg.norm(np.array(translations),axis=-1)<=max_dist_thr)[0].tolist()
             for key, value in ann_info.items():
                 if isinstance(value,np.ndarray):
                     value = value[filtered_indices]
@@ -301,14 +301,10 @@ class PandaSetDataset(NuScenesDataset):
     def parse_ann_info(self, info):
         instances = info['instances']
         for instance in instances:
-            instance['bbox_label'] = self.get_label_func(instance['bbox_label'])
-            instance['bbox_label_3d'] = self.get_label_func(instance['bbox_label_3d'])
             instance['velocity'] = instance['velocity'] [::2] if self.load_type == 'mv_image_based' else instance['velocity'][:2]
         cam_instances = info.get('cam_instances',{})
         for name, instances in cam_instances.items():
             for instance in instances:
-                instance['bbox_label'] = self.get_label_func(instance['bbox_label'])
-                instance['bbox_label_3d'] = self.get_label_func(instance['bbox_label_3d'])
                 instance['velocity'] = instance['velocity'] [::2]
         ann_info =  super().parse_ann_info(info)
         for label in ann_info['gt_labels_3d']:

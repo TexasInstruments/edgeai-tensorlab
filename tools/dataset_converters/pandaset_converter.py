@@ -525,6 +525,6 @@ def main(args=None):
 if __name__ == '__main__':
 
     # from edgeai-mmdetection3d path
-    main(['--dataset-path', './data/pandaset/data/', '--output-dir', './data/pandaset/data/'])
+    # main(['--dataset-path', './data/pandaset/data/', '--output-dir', './data/pandaset/data/'])
     # from any path with correct path to dataset
-    # main()
+    main()

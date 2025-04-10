@@ -14,7 +14,6 @@ model = dict(
         dcn=dict(type='DCNv2', deform_groups=1, fallback_on_stride=False),
         stage_with_dcn=(False, False, True, True)),
     bbox_head = dict(num_classes=27, num_attrs=18),
-    # test_cfg=dict(score_thr=0.0025,),
     )
 
 train_cfg = dict(max_epochs=20)
@@ -75,6 +74,6 @@ param_scheduler = [
         gamma=0.1)
 ]
 # TODO remove this
-load_from = './checkpoints/fcos3d/fcos3d_r101_caffe_fpn_gn-head_dcn_2x8_1x_ps-mono3d_finetune_20210717_095645-8d806dc2_adjusted.pth'
+# load_from = './checkpoints/fcos3d/fcos3d_r101_caffe_fpn_gn-head_dcn_2x8_1x_ps-mono3d_finetune_20210717_095645-8d806dc2_adjusted.pth'
 
 find_unused_parameters = True

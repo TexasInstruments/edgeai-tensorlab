@@ -16,9 +16,9 @@ env_cfg = dict(
     dist_cfg = dict(timeout=3600)
 )
 
-train_dataloader = dict( batch_size=2, num_workers=4)
-test_dataloader = dict( batch_size=1, num_workers=4)
-val_dataloader = dict( batch_size=1, num_workers=4)
+train_dataloader = dict( batch_size=2, num_workers=2)
+test_dataloader = dict( batch_size=1, num_workers=1)
+val_dataloader = dict( batch_size=1, num_workers=1)
 
 load_from = './checkpoints/fcos3d/fcos3d_r101_caffe_fpn_gn-head_dcn_2x8_1x_nus-mono3d_finetune_20210717_095645-8d806dc2.pth'
 
