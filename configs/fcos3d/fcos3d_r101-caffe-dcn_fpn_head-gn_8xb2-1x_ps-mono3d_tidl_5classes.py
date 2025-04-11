@@ -32,7 +32,8 @@ env_cfg = dict(
 
 train_cfg = dict(max_epochs=12)
 default_hooks = dict(
-    logger=dict(interval=100)
+    logger=dict(interval=100),
+    checkpoint=dict(interval=1, max_keep_ckpts=2),
 )
 
 backend_args = None
