@@ -953,8 +953,8 @@ class GetBEVFormerGeometry():
         shift_x = translation_length * \
             np.sin(bev_angle / 180 * np.pi) / grid_length_x / self.bev_w
 
-        return reference_points_cam, bev_mask_count, np.stack(bev_valid_indices, axis=0).astype(np.int64), \
-               np.array(bev_valid_indices_count).astype(np.int64), \
+        return reference_points_cam, bev_mask_count, np.stack(bev_valid_indices, axis=0).astype(np.int32), \
+               np.array(bev_valid_indices_count).astype(np.int32), \
                np.array([[shift_x[0],shift_y[0]]]).astype(np.float32), can_bus.astype(np.float32)
 
 
