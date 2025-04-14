@@ -16,6 +16,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import math
 
+from mmdet.models.layers.transformer import inverse_sigmoid
 from mmengine.model import BaseModule, ModuleList, Sequential
 from mmengine.model import xavier_init, constant_init
 from mmengine import ConfigDict
@@ -30,22 +31,22 @@ ext_module = ext_loader.load_ext(
     '_ext', ['ms_deform_attn_backward', 'ms_deform_attn_forward'])
 
 
-def inverse_sigmoid(x, eps=1e-5):
-    """Inverse function of sigmoid.
-    Args:
-        x (Tensor): The tensor to do the
-            inverse.
-        eps (float): EPS avoid numerical
-            overflow. Defaults 1e-5.
-    Returns:
-        Tensor: The x has passed the inverse
-            function of sigmoid, has same
-            shape with input.
-    """
-    x = x.clamp(min=0, max=1)
-    x1 = x.clamp(min=eps)
-    x2 = (1 - x).clamp(min=eps)
-    return torch.log(x1 / x2)
+#def inverse_sigmoid(x, eps=1e-5):
+#    """Inverse function of sigmoid.
+#    Args:
+#        x (Tensor): The tensor to do the
+#            inverse.
+#        eps (float): EPS avoid numerical
+#            overflow. Defaults 1e-5.
+#    Returns:
+#        Tensor: The x has passed the inverse
+#            function of sigmoid, has same
+#            shape with input.
+#    """
+#    x = x.clamp(min=0, max=1)
+#    x1 = x.clamp(min=eps)
+#    x2 = (1 - x).clamp(min=eps)
+#    return torch.log(x1 / x2)
 
 
 @MODELS.register_module()
@@ -106,11 +107,13 @@ class DetectionTransformerDecoder(TransformerLayerSequence):
 
                 assert reference_points.shape[-1] == 3
 
-                new_reference_points = torch.zeros_like(reference_points)
-                new_reference_points[..., :3] = \
+                #new_reference_points = torch.zeros_like(reference_points)
+                #new_reference_points[..., :3] = \
+                #    torch.cat((tmp[..., :2], tmp[..., 4:5]), dim=-1) + inverse_sigmoid(reference_points[..., :3])
+                new_reference_points = \
                     torch.cat((tmp[..., :2], tmp[..., 4:5]), dim=-1) + inverse_sigmoid(reference_points[..., :3])
-                new_reference_points = new_reference_points.sigmoid()
 
+                new_reference_points = new_reference_points.sigmoid()
                 reference_points = new_reference_points.detach()
 
             output = output.permute(1, 0, 2)
@@ -119,8 +122,12 @@ class DetectionTransformerDecoder(TransformerLayerSequence):
                 intermediate_reference_points.append(reference_points)
 
         if self.return_intermediate:
-            return torch.stack(intermediate), torch.stack(
-                intermediate_reference_points)
+            if torch.onnx.is_in_onnx_export():
+                return torch.cat(intermediate), torch.cat(
+                    intermediate_reference_points)
+            else:
+                return torch.stack(intermediate), torch.stack(
+                    intermediate_reference_points)
 
         return output, reference_points
 
