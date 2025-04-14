@@ -1110,7 +1110,7 @@ class BEVFormer_export_model(nn.Module):
         bev_valid_indices = []
         bev_valid_indices_count = []
         for mask_per_img in bev_mask:
-            nzindex = mask_per_img[0].sum(-1).nonzero().squeeze(-1)
+            nzindex = mask_per_img[0].sum(-1).nonzero().squeeze(-1).to(torch.int32)
             index_query_per_img = nzindex.new_ones(self.bev_h * self.bev_w)*self.bev_h * self.bev_w
             index_query_per_img[:len(nzindex)] = nzindex
             bev_valid_indices.append(index_query_per_img)
