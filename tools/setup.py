@@ -354,7 +354,7 @@ def download_tidl_tools_package_11_00_00_00(tools_version, tools_type):
     TIDL_TOOLS_RELEASE_ID="11_00_00_00"
     C7X_FIRMWARE_VERSION="10_01_03_00" #TODO - udpate this for 11.0
     C7X_FIRMWARE_VERSION_POSSIBLE_UPDATE="10_01_04_00" #TODO - udpate this for 11.0
-    TARGET_SOCS=("TDA4VM", "AM68A", "AM69A", "AM62A", "AM67A")
+    TARGET_SOCS=("TDA4VM", "AM68A", "AM69A", "AM67A", "AM62A")
     TIDL_TOOLS_TYPE_SUFFIX=tools_type
     print(f"INFO: you have chosen to install tidl_tools version:{TIDL_TOOLS_RELEASE_ID} with default SDK firmware version set to:{C7X_FIRMWARE_VERSION}")
     print(f"INFO: to leverage more features, set advanced_options:c7x_firmware_version while model compialtion and update firmware version in SDK to: {C7X_FIRMWARE_VERSION_POSSIBLE_UPDATE}")
@@ -364,8 +364,8 @@ def download_tidl_tools_package_11_00_00_00(tools_version, tools_type):
         "TDA4VM": "http://tidl-build-pc01.dhcp.ti.com/build/tools/j721e/tidl_tools.tar.gz",
         "AM68A": "http://tidl-build-pc01.dhcp.ti.com/build/tools/j721s2/tidl_tools.tar.gz",
         "AM69A": "http://tidl-build-pc01.dhcp.ti.com/build/tools/j784s4/tidl_tools.tar.gz",
-        "AM62A": "http://tidl-build-pc01.dhcp.ti.com/build/tools/AM62A/tidl_tools.tar.gz",
         "AM67A": "http://tidl-build-pc01.dhcp.ti.com/build/tools/j722s/tidl_tools.tar.gz",
+        "AM62A": "http://tidl-build-pc01.dhcp.ti.com/build/tools/AM62A/tidl_tools.tar.gz",
     }
     download_tidl_tools(TIDL_TOOLS_VERSION_NAME, TIDL_TOOLS_RELEASE_LABEL, TIDL_TOOLS_RELEASE_ID, TARGET_SOCS, TIDL_TOOLS_TYPE_SUFFIX, C7X_FIRMWARE_VERSION,
         DOWNLOAD_URLS=DOWNLOAD_URLS)
