@@ -291,7 +291,7 @@ def download_and_extract_archive(
     return fpath
 
 
-def download_tidl_tools(TIDL_TOOLS_VERSION_NAME, TIDL_TOOLS_RELEASE_LABEL, TIDL_TOOLS_RELEASE_ID, TARGET_SOCS, TIDL_TOOLS_TYPE_SUFFIX, C7X_FIRMWARE_VERSION):
+def download_tidl_tools(TIDL_TOOLS_VERSION_NAME, TIDL_TOOLS_RELEASE_LABEL, TIDL_TOOLS_RELEASE_ID, TARGET_SOCS, TIDL_TOOLS_TYPE_SUFFIX, C7X_FIRMWARE_VERSION, DOWNLOAD_URLS=None):
     tidl_tools_package_path = os.path.join(os.path.dirname(__file__), 'tidl_tools_package')
 
     print("INFO: installing gcc arm required for tvm...")
@@ -312,15 +312,19 @@ def download_tidl_tools(TIDL_TOOLS_VERSION_NAME, TIDL_TOOLS_RELEASE_LABEL, TIDL_
     cwd = os.getcwd()
     target_soc_version_dict = {}
     for TARGET_SOC in TARGET_SOCS:
-        url=f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{TIDL_TOOLS_RELEASE_ID}/TIDL_TOOLS/{TARGET_SOC}/tidl_tools{TIDL_TOOLS_TYPE_SUFFIX}.tar.gz"
+        if isinstance(DOWNLOAD_URLS, dict):
+            download_url = DOWNLOAD_URLS[TARGET_SOC]
+        else:
+            download_url=f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{TIDL_TOOLS_RELEASE_ID}/TIDL_TOOLS/{TARGET_SOC}/tidl_tools{TIDL_TOOLS_TYPE_SUFFIX}.tar.gz"
+        #
         install_target_soc_path = os.path.join(tidl_tools_package_path, TARGET_SOC)
         install_path = os.path.join(install_target_soc_path, 'tidl_tools')
 
         shutil.rmtree(install_target_soc_path, ignore_errors=True)
         os.makedirs(install_target_soc_path, exist_ok=True)
 
-        download_and_extract_archive(url, install_target_soc_path, install_target_soc_path)
-        assert os.path.exists(install_path), f"ERROR: download_and_extract_archive: {url} - failed"
+        download_and_extract_archive(download_url, install_target_soc_path, install_target_soc_path)
+        assert os.path.exists(install_path), f"ERROR: download_and_extract_archive: {download_url} - failed"
 
         os.chdir(install_path)
         os.symlink(os.path.join("..", "..", GCC_ARM_AARCH64_NAME), GCC_ARM_AARCH64_NAME)
@@ -342,18 +346,30 @@ def download_tidl_tools(TIDL_TOOLS_VERSION_NAME, TIDL_TOOLS_RELEASE_LABEL, TIDL_
     return None
 
 
-def download_tidl_tools_package_10_00_08_00(tools_version, tools_type):
-    expected_tools_version=("10.0",)
+def download_tidl_tools_package_11_00_00_00(tools_version, tools_type):
+    expected_tools_version=("11.0",)
     assert tools_version in expected_tools_version, f"ERROR: incorrect tools_version passed:{tools_version} - expected:{expected_tools_version}"
     TIDL_TOOLS_VERSION_NAME=tools_version
-    TIDL_TOOLS_RELEASE_LABEL="r10.0"
-    TIDL_TOOLS_RELEASE_ID="10_00_08_00"
-    C7X_FIRMWARE_VERSION=""
+    TIDL_TOOLS_RELEASE_LABEL="r11.0"
+    TIDL_TOOLS_RELEASE_ID="11_00_00_00"
+    C7X_FIRMWARE_VERSION="10_01_03_00" #TODO - udpate this for 11.0
+    C7X_FIRMWARE_VERSION_POSSIBLE_UPDATE="10_01_04_00" #TODO - udpate this for 11.0
     TARGET_SOCS=("TDA4VM", "AM68A", "AM69A", "AM62A", "AM67A")
     TIDL_TOOLS_TYPE_SUFFIX=tools_type
-    print(f"INFO: you have chosen to install tidl_tools version:{TIDL_TOOLS_RELEASE_ID} with default SDK firmware version:{C7X_FIRMWARE_VERSION}")
-    download_tidl_tools(TIDL_TOOLS_VERSION_NAME, TIDL_TOOLS_RELEASE_LABEL, TIDL_TOOLS_RELEASE_ID, TARGET_SOCS, TIDL_TOOLS_TYPE_SUFFIX, C7X_FIRMWARE_VERSION)
-    requirements_file = os.path.realpath(os.path.join(os.path.dirname(__file__), f'requirements/requirements_10.0.txt'))
+    print(f"INFO: you have chosen to install tidl_tools version:{TIDL_TOOLS_RELEASE_ID} with default SDK firmware version set to:{C7X_FIRMWARE_VERSION}")
+    print(f"INFO: to leverage more features, set advanced_options:c7x_firmware_version while model compialtion and update firmware version in SDK to: {C7X_FIRMWARE_VERSION_POSSIBLE_UPDATE}")
+    print(f"INFO: for more info, see version compatibiltiy table: https://github.com/TexasInstruments/edgeai-tidl-tools/blob/master/docs/version_compatibility_table.md")
+
+    DOWNLOAD_URLS = {
+        "TDA4VM": "http://tidl-build-pc01.dhcp.ti.com/build/tools/j721e/tidl_tools.tar.gz",
+        "AM68A": "http://tidl-build-pc01.dhcp.ti.com/build/tools/j721s2/tidl_tools.tar.gz",
+        "AM69A": "http://tidl-build-pc01.dhcp.ti.com/build/tools/j784s4/tidl_tools.tar.gz",
+        "AM62A": "http://tidl-build-pc01.dhcp.ti.com/build/tools/AM62A/tidl_tools.tar.gz",
+        "AM67A": "http://tidl-build-pc01.dhcp.ti.com/build/tools/j722s/tidl_tools.tar.gz",
+    }
+    download_tidl_tools(TIDL_TOOLS_VERSION_NAME, TIDL_TOOLS_RELEASE_LABEL, TIDL_TOOLS_RELEASE_ID, TARGET_SOCS, TIDL_TOOLS_TYPE_SUFFIX, C7X_FIRMWARE_VERSION,
+        DOWNLOAD_URLS=DOWNLOAD_URLS)
+    requirements_file = os.path.realpath(os.path.join(os.path.dirname(__file__), f'requirements/requirements_11.0.txt'))
     return requirements_file
 
 
@@ -375,9 +391,25 @@ def download_tidl_tools_package_10_01_04_01(tools_version, tools_type):
     return requirements_file
 
 
+def download_tidl_tools_package_10_00_08_00(tools_version, tools_type):
+    expected_tools_version=("10.0",)
+    assert tools_version in expected_tools_version, f"ERROR: incorrect tools_version passed:{tools_version} - expected:{expected_tools_version}"
+    TIDL_TOOLS_VERSION_NAME=tools_version
+    TIDL_TOOLS_RELEASE_LABEL="r10.0"
+    TIDL_TOOLS_RELEASE_ID="10_00_08_00"
+    C7X_FIRMWARE_VERSION=""
+    TARGET_SOCS=("TDA4VM", "AM68A", "AM69A", "AM62A", "AM67A")
+    TIDL_TOOLS_TYPE_SUFFIX=tools_type
+    print(f"INFO: you have chosen to install tidl_tools version:{TIDL_TOOLS_RELEASE_ID} with default SDK firmware version:{C7X_FIRMWARE_VERSION}")
+    download_tidl_tools(TIDL_TOOLS_VERSION_NAME, TIDL_TOOLS_RELEASE_LABEL, TIDL_TOOLS_RELEASE_ID, TARGET_SOCS, TIDL_TOOLS_TYPE_SUFFIX, C7X_FIRMWARE_VERSION)
+    requirements_file = os.path.realpath(os.path.join(os.path.dirname(__file__), f'requirements/requirements_10.0.txt'))
+    return requirements_file
+
+
 down_tidl_tools_package_dict = {
-    "10.0":   download_tidl_tools_package_10_00_08_00,
+    "11.0":   download_tidl_tools_package_11_00_00_00,
     "10.1":   download_tidl_tools_package_10_01_04_01,
+    "10.0":   download_tidl_tools_package_10_00_08_00,
 }
 
 
