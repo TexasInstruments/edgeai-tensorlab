@@ -144,7 +144,7 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=[(123.675, 116.280, 103.530)], input_scale=[(0.017125, 0.017507, 0.017429)], input_optimization=False),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
                     {'advanced_options:output_feature_16bit_names_list':''}),
-                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/bevformer/bevformer_tiny_plus_480x800_20250412.onnx'),
+                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/bevformer/bevformer_tiny_plus_480x800_20250415.onnx'),
             postprocess=postproc_transforms.get_transform_bev_detection_base(),
             metric=dict(),
             model_info=dict(metric_reference={'mAP':0.4})
