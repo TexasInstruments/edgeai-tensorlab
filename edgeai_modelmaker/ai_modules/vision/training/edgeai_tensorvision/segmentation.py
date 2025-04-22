@@ -247,8 +247,7 @@ class ModelTraining:
         task_entries = {self.params.training.model_name:task_list}
         parallel_processes = (1 if self.params.compilation.log_file else 0)
         process_runner = edgeai_benchmark.utils.ParallelRunner(parallel_processes=parallel_processes)
-        self.result = None
-        self.result = process_runner.run(task_entries)
+        process_runner.run(task_entries)
         return self.params
 
     def get_result(self):

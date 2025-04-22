@@ -102,11 +102,12 @@ def init_params(*args, **kwargs):
             num_gpus=0,  # 0,1..4
             distributed=True,
             training_master_port=29500,
-            with_background_class=None
+            with_background_class=None,
+            train_output_path=None,
         ),
         compilation=dict(
             enable=True,
-            preset_name=None,
+            compile_preset_name=None,
             model_compilation_id=None,
             compilation_path=None, # top level compilation path
             model_compiled_path=None, # compiled path for the model
@@ -128,6 +129,7 @@ def init_params(*args, **kwargs):
             tidl_offload=True,
             input_optimization=True, # if this is set, the compilation tool will try to fold mean and scale inside the model.
             log_file=True, # capture logs into log_file
+            compile_output_path=None,
         ),
     )
     params = utils.ConfigDict(default_params, *args, **kwargs)

@@ -33,10 +33,10 @@
 
 #################################################################################
 # internal or external repositories
-USE_INTERNAL_REPO=0
+USE_INTERNAL_REPO=1
 
 # clone git repositories
-CLONE_GIT_REPOS=0
+CLONE_GIT_REPOS=1
 
 # pull git repositories
 UPDATE_GIT_REPOS=0
@@ -46,7 +46,7 @@ USE_PIP_FREEZE_REQUIREMENTS=1
 
 #################################################################################
 if [[ ${USE_INTERNAL_REPO} -eq 0 ]]; then
-    SOURCE_LOCATION="https://github.com/TexasInstruments/"
+    SOURCE_LOCATION=""
 else
     SOURCE_LOCATION="ssh://git@bitbucket.itg.ti.com/edgeai-algo/"
 fi
