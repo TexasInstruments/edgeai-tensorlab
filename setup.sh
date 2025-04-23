@@ -39,7 +39,7 @@ pip3 install --no-input --upgrade pip==23.0.1 setuptools==60.2.0
 
 ######################################################################
 echo "installing torch, torchvision"
-# pip3 install torch==2.4.0 torchvision==0.19.0
+pip3 install torch==2.4.0 torchvision==0.19.0
 
 echo "installing requirements"
 pip3 install --no-input -r requirements.txt

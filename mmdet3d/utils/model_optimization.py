@@ -82,8 +82,8 @@ def get_input(runner, cfg, train=True, to_export=False):
     example_inputs = []
     example_kwargs = input_dict
     return example_inputs, example_kwargs
-    
-    
+
+
 def get_replacement_dict(model_surgery_version, cfg):
     from mmdet.models.backbones.csp_darknet import Focus, FocusLite
     if hasattr(cfg,'convert_to_lite_model') : 

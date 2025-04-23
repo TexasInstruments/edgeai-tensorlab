@@ -1,8 +1,6 @@
 import torch
 import copy
 
-from onnxsim import simplify
-import onnx
 import torch.distributed
 import onnx
 from onnxsim import simplify

@@ -192,6 +192,8 @@ def main(args=None):
             runner.model = runner.model.module
             is_wrapped = True
 
+        example_inputs, example_kwargs = get_input(runner, cfg, train=False)
+
         # # can we one unified transfomration_dict for all models?
         # if cfg.get("model")['type'] == 'FCOSMono3D':
         #     transformation_dict = dict(backbone=None, neck=None, bbox_head=xmodelopt.utils.TransformationWrapper(wrap_fn_for_bbox_head))
