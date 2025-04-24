@@ -385,6 +385,13 @@ def main(args=None):
     # log_file_link = osp.join(cfg.work_dir, f'run.log')
     # xnn.utils.make_symlink(log_file, log_file_link)
 
+    # model surgery
+    runner._init_model_weights()
+    del BaseModule.init_weights
+    runner.load_or_resume()
+    runner.model.eval()
+    runner.model = replace_dform_conv_with_split_offset_mask(runner.model)
+
     # Need to validate it for other models
     if args.quantization and \
        (cfg.get("model")['type'] == 'FCOSMono3D' or \
@@ -401,13 +408,6 @@ def main(args=None):
         # if hasattr(cfg, 'resize_with_scale_factor') and cfg.resize_with_scale_factor:
         #     torch.nn.functional._interpolate_orig = torch.nn.functional.interpolate
         #     torch.nn.functional.interpolate = xnn.layers.resize_with_scale_factor
-
-        # model surgery
-        # runner._init_model_weights()
-        # del BaseModule.init_weights
-        # runner.load_or_resume()
-        # runner.model.eval()
-        # runner.model = replace_dform_conv_with_split_offset_mask(runner.model)
 
         is_wrapped = False
         if is_model_wrapper(runner.model):

@@ -170,6 +170,18 @@ def main(args=None):
         # if 'runner_type' is set in the cfg
         runner = RUNNERS.build(cfg)
 
+    # start testing
+    runner._init_model_weights()
+    del BaseModule.init_weights
+
+    runner.model.eval()
+    # runner.call_hook('before_run')
+    modify_runner_load_check_point_function(runner)
+    #runner.load_or_resume()
+    # runner.call_hook('after_run')
+    runner.model = replace_dform_conv_with_split_offset_mask(runner.model)
+    runner.load_or_resume()
+
     # Need to validate model optimization for other models
     if args.quantization and \
        (cfg.get("model")['type'] == 'FCOSMono3D' or \
@@ -236,17 +248,6 @@ def main(args=None):
             runner.model = runner.wrap_model(
                 runner.cfg.get('model_wrapper_cfg'), runner.model)
 
-        # runner._init_model_weights()
-        # start testing
-        # runner._init_model_weights()
-        # del BaseModule.init_weights
-
-        runner.model.eval()
-        # runner.call_hook('before_run')
-        modify_runner_load_check_point_function(runner)
-        runner.load_or_resume()
-        # runner.call_hook('after_run')
-        # runner.model = replace_dform_conv_with_split_offset_mask(runner.model)
 
     runner.test()
 

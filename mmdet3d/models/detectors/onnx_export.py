@@ -14,7 +14,8 @@ from .onnx_network import PETR_export_model, StreamPETR_export_model, \
 from  mmengine.dist.utils import  master_only
 
 @master_only
-def export_PETR(model, inputs=None, data_samples=None, **kwargs):
+def export_PETR(model, inputs=None, data_samples=None,
+                quantized_model=False, opset_version=20, **kwargs):
 
     onnxModel = PETR_export_model(model.img_backbone,
                                   model.img_neck,
