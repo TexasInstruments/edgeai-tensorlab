@@ -205,8 +205,12 @@ class TemporalSelfAttention(BaseModule):
                               num_value, self.num_heads, -1)
 
         sampling_offsets = self.sampling_offsets(query) # linear transform
-        sampling_offsets = sampling_offsets.view(
-            bs, num_query, self.num_heads,  self.num_bev_queue, self.num_levels, self.num_points, 2)
+        if torch.onnx.is_in_onnx_export():
+            sampling_offsets = sampling_offsets.view(
+                bs, num_query*self.num_heads*self.num_levels, self.num_bev_queue, self.num_points*2)
+        else:
+            sampling_offsets = sampling_offsets.view(
+                bs, num_query, self.num_heads,  self.num_bev_queue, self.num_levels, self.num_points, 2)
         attention_weights = self.attention_weights(query).view(
             bs, num_query,  self.num_heads, self.num_bev_queue, self.num_levels * self.num_points)
         attention_weights = attention_weights.softmax(-1)
@@ -219,8 +223,12 @@ class TemporalSelfAttention(BaseModule):
 
         attention_weights = attention_weights.permute(0, 3, 1, 2, 4, 5)\
             .reshape(bs*self.num_bev_queue, num_query, self.num_heads, self.num_levels, self.num_points).contiguous()
-        sampling_offsets = sampling_offsets.permute(0, 3, 1, 2, 4, 5, 6)\
-            .reshape(bs*self.num_bev_queue, num_query, self.num_heads, self.num_levels, self.num_points, 2)
+        if torch.onnx.is_in_onnx_export():
+            sampling_offsets = sampling_offsets.permute(0, 2, 1, 3)\
+                .reshape(bs*self.num_bev_queue, num_query, self.num_heads, self.num_levels, self.num_points, 2)
+        else:
+            sampling_offsets = sampling_offsets.permute(0, 3, 1, 2, 4, 5, 6)\
+                .reshape(bs*self.num_bev_queue, num_query, self.num_heads, self.num_levels, self.num_points, 2)
 
         if reference_points.shape[-1] == 2:
             offset_normalizer = torch.stack(
@@ -241,7 +249,6 @@ class TemporalSelfAttention(BaseModule):
 
         output = multi_scale_deformable_attn_pytorch(
             value, spatial_shapes, sampling_locations, attention_weights)
-        #output = output.data
 
         # output shape (bs*num_bev_queue, num_query, embed_dims)
         # (bs*num_bev_queue, num_query, embed_dims)-> (num_query, embed_dims, bs*num_bev_queue)

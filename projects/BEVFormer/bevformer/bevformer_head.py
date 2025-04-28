@@ -316,7 +316,6 @@ class BEVFormerHead(AnchorFreeHead):
         )
 
         bev_embed, hs, init_reference, inter_references = outputs
-
         outputs_classes = []
         outputs_coords = []
 
@@ -340,7 +339,7 @@ class BEVFormerHead(AnchorFreeHead):
                 tmp[..., 0:1] = ((tmp[..., 0:1] + reference[..., 0:1]).sigmoid() * (self.pc_range[3] -
                                  self.pc_range[0]) + self.pc_range[0])
                 tmp[..., 1:2] = ((tmp[..., 1:2] + reference[..., 1:2]).sigmoid() * (self.pc_range[4] -
-                                 self.pc_range[0]) + self.pc_range[0])
+                                 self.pc_range[1]) + self.pc_range[1])
                 tmp[..., 4:5] = ((tmp[..., 4:5] + reference[..., 2:3]).sigmoid() * (self.pc_range[5] -
                                  self.pc_range[2]) + self.pc_range[2])
 
@@ -417,12 +416,31 @@ class BEVFormerHead(AnchorFreeHead):
         out  = torch.bmm(out, reg_linear3_wgt)
         out  = torch.add(out, reg_linear3_bias)
 
+        """
         out[..., 0:1] = ((out[..., 0:1] + reference[..., 0:1]).sigmoid() * (self.pc_range[3] -
                          self.pc_range[0]) + self.pc_range[0])
         out[..., 1:2] = ((out[..., 1:2] + reference[..., 1:2]).sigmoid() * (self.pc_range[4] -
-                         self.pc_range[0]) + self.pc_range[0])
+                         self.pc_range[1]) + self.pc_range[1])
         out[..., 4:5] = ((out[..., 4:5] + reference[..., 2:3]).sigmoid() * (self.pc_range[5] -
                          self.pc_range[2]) + self.pc_range[2])
+        """
+        # Use index_put_ directly to have a single ScatterND
+        temp = torch.cat((out[..., 0:2], out[...,4:5]), dim=-1)
+        temp = (temp + reference).sigmoid()
+        m0 = torch.Tensor([self.pc_range[3] - self.pc_range[0],
+                           self.pc_range[4] - self.pc_range[1], 
+                           self.pc_range[5] - self.pc_range[2]]).to(temp.device)
+        a0 = torch.Tensor([self.pc_range[0], self.pc_range[1], self.pc_range[2]]).to(temp.device)
+        temp  = temp*m0 + a0
+
+        d0 = temp.size(0)
+        d1 = temp.size(1)
+        d2 = temp.size(2)
+        p0 = torch.arange(0, d0).to(temp.device).view(-1, 1, 1).expand(d0, d1, d2)
+        p1 = torch.arange(0, d1).to(temp.device).view(1, -1, 1).expand(d0, d1, d2)
+        p2 = torch.Tensor([0,1,4]).to(torch.int64).to(temp.device).view(1, 1, -1).expand(d0, d1, d2)
+        indices = tuple([p0, p1, p2])
+        out.index_put_(indices, temp)
 
         out = out.unsqueeze(1)
         return out

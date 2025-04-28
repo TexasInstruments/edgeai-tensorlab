@@ -49,6 +49,19 @@ class NMSFreeCoder(BaseBBoxCoder):
         Returns:
             list[dict]: Decoded boxes.
         """
+        # for TIDL detection post processing
+        if torch.onnx.is_in_onnx_export():
+            num_query, num_ch = cls_scores.shape
+            sq_num_query = int(np.sqrt(num_query))
+            cls_scores = cls_scores.transpose(0, 1)
+            cls_scores = cls_scores.reshape(-1, sq_num_query, sq_num_query)
+            cls_scores = cls_scores.permute(1, 2, 0)
+            cls_scores = cls_scores.reshape(num_query, -1)
+            bbox_preds = bbox_preds.transpose(0, 1)
+            bbox_preds = bbox_preds.reshape(-1, sq_num_query, sq_num_query)
+            bbox_preds = bbox_preds.permute(1, 2, 0)
+            bbox_preds = bbox_preds.reshape(num_query, -1)
+
         max_num = self.max_num
 
         cls_scores = cls_scores.sigmoid()
@@ -114,12 +127,19 @@ class NMSFreeCoder(BaseBBoxCoder):
         Returns:
             list[dict]: Decoded boxes.
         """
-        all_cls_scores = preds_dicts['all_cls_scores'][-1]
-        all_bbox_preds = preds_dicts['all_bbox_preds'][-1]
-        
+        if torch.onnx.is_in_onnx_export():
+            all_cls_scores = preds_dicts['all_cls_scores'][-1:].squeeze(0)
+            all_bbox_preds = preds_dicts['all_bbox_preds'][-1:].squeeze(0)
+        else:
+            all_cls_scores = preds_dicts['all_cls_scores'][-1]
+            all_bbox_preds = preds_dicts['all_bbox_preds'][-1]
+
         batch_size = all_cls_scores.size()[0]
         predictions_list = []
         for i in range(batch_size):
-            predictions_list.append(self.decode_single(all_cls_scores[i], all_bbox_preds[i]))
+            if torch.onnx.is_in_onnx_export() and batch_size == 1:
+                predictions_list.append(self.decode_single(all_cls_scores.squeeze(0), all_bbox_preds.squeeze(0)))
+            else:
+                predictions_list.append(self.decode_single(all_cls_scores[i], all_bbox_preds[i]))
         return predictions_list
 
