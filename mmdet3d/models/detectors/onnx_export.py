@@ -1,8 +1,9 @@
 import torch
 import copy
 
-from onnxsim import simplify
+import torch.distributed
 import onnx
+from onnxsim import simplify
 
 from .onnx_network import PETR_export_model, StreamPETR_export_model, \
                           Far3D_export_model, Far3D_export_img_backbone, Far3D_export_img_roi, Far3D_export_pts_bbox, \
@@ -10,8 +11,10 @@ from .onnx_network import PETR_export_model, StreamPETR_export_model, \
                           BEVDet_export_model, FCOS3D_export_model, \
                           DETR3D_export_model
 
+from  mmengine.dist.utils import  master_only
 
-def export_PETR(model, inputs=None, data_samples=None, 
+@master_only
+def export_PETR(model, inputs=None, data_samples=None,
                 quantized_model=False, opset_version=20, **kwargs):
 
     onnxModel = PETR_export_model(model.img_backbone,
@@ -72,6 +75,7 @@ def export_PETR(model, inputs=None, data_samples=None,
 
 
 
+@master_only
 def export_StreamPETR(model, inputs=None, data_samples=None, 
                       opset_version=20, **kwargs):
 
@@ -354,6 +358,7 @@ def export_Far3D(model, inputs=None, data_samples=None,
 
 
 
+@master_only
 def export_BEVDet(model, inputs=None, data_samples=None, **kwargs):
 
     onnxModel = BEVDet_export_model(model.img_backbone,
@@ -407,6 +412,7 @@ def export_BEVDet(model, inputs=None, data_samples=None, **kwargs):
     print("!! ONNX model has been exported for BEVDet!!!\n\n")
 
 
+@master_only
 def export_DETR3D(model, inputs=None, data_samples=None, **kwargs):
 
     onnxModel = DETR3D_export_model(model.img_backbone, 
@@ -436,6 +442,7 @@ def export_DETR3D(model, inputs=None, data_samples=None, **kwargs):
     print("!! ONNX model has been exported for DETR3D!!!\n\n")
 
 
+@master_only
 def create_onnx_BEVFormer(model):
     onnxModel = BEVFormer_export_model(model.img_backbone,
                                        model.img_neck,
@@ -447,6 +454,7 @@ def create_onnx_BEVFormer(model):
 
     return onnxModel
 
+@master_only
 def export_BEVFormer(onnxModel, inputs=None, data_samples=None, **kwargs):
 
     # Should clone. Otherwise, when we run both export_model and self.predict,
@@ -533,8 +541,8 @@ def export_BEVFormer(onnxModel, inputs=None, data_samples=None, **kwargs):
 
     print("!!ONNX model has been exported for BEVFormer!\n\n")
 
-
-def export_FCOS3D(model, inputs=None, data_samples=None, quantized_model=False, opset_version=20):
+@master_only
+def export_FCOS3D(model, inputs=None, data_samples=None, quantized_model=False, opset_version=17):
     onnxModel = FCOS3D_export_model(model.backbone,
                                     model.neck,
                                     model.bbox_head,
@@ -594,6 +602,7 @@ def export_FCOS3D(model, inputs=None, data_samples=None, quantized_model=False, 
                       output_names=output_names,
                       opset_version=opset_version,
                       training=torch._C._onnx.TrainingMode.PRESERVE,
+                      do_constant_folding=False, 
                       verbose=False)
 
     onnx_model, _ = simplify(model_name)

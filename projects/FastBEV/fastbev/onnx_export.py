@@ -5,7 +5,9 @@ from onnxsim import simplify
 import onnx
 from .onnx_network import FastBEV_export_model
 
+from  mmengine.dist.utils import  master_only
 
+@master_only
 def create_onnx_FastBEV(model, quantized_model=False):
     onnxModel = FastBEV_export_model(model)
     onnxModel = onnxModel.cpu()
@@ -14,7 +16,7 @@ def create_onnx_FastBEV(model, quantized_model=False):
 
     return onnxModel
 
-
+@master_only
 def export_FastBEV(onnxModel, inputs=None, data_samples=None,
                    quantized_model=False, opset_version=20,  **kwargs):
 

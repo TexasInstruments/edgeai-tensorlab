@@ -103,6 +103,7 @@ class FCOSMono3D(SingleStageMono3DDetector):
             if self.save_onnx_model is True:
                 export_FCOS3D(self, inputs, data_samples, quantized_model=self.quantized_model)
                 # Export onnx only once
+                # exit()
                 self.save_onnx_model = False
 
             return self.predict(inputs, data_samples)

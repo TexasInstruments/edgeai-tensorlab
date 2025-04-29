@@ -6,17 +6,24 @@ point_cloud_range = [-50, -50, -5, 50, 50, 3]
 # point_cloud_range = [-50, -50.8, -5, 50, 49.2, 3]
 # For nuScenes we usually do 10-class detection
 class_names = [
-    'car', 'truck', 'trailer', 'bus', 'construction_vehicle', 'bicycle',
-    'motorcycle', 'pedestrian', 'traffic_cone', 'barrier'
+    'Car','Temporary Construction Barriers',
 ]
-metainfo = dict(classes=class_names) # full
-# metainfo = dict(classes=class_names, version='v1.0-mini') # mini
-dataset_type = 'NuScenesDataset'
-data_root = 'data/nuscenes/'
+class_mapping = [0]+[1]*26
+metainfo = dict(classes=class_names, class_mapping=class_mapping) # full
+dataset_type = 'PandaSetDataset'
+data_root = 'data/pandaset/'
 # Input modality for nuScenes dataset, this is consistent with the submission
 # format which requires the information in input_modality.
 input_modality = dict(use_lidar=True, use_camera=False)
-data_prefix = dict(pts='samples/LIDAR_TOP', img='', sweeps='sweeps/LIDAR_TOP')
+data_prefix=dict(
+    pts='lidar',
+    back_camera='camera/back_camera',
+    front_camera='camera/front_camera',
+    front_left_camera='camera/front_left_camera',
+    front_right_camera='camera/front_right_camera',
+    left_camera='camera/left_camera',
+    right_camera='camera/right_camera'
+    )
 
 # Example to use different file client
 # Method 1: simply set the data root and let the file I/O module
@@ -112,7 +119,7 @@ train_dataloader = dict(
     dataset=dict(
         type=dataset_type,
         data_root=data_root,
-        ann_file='nuscenes_infos_train.pkl',
+        ann_file='pandaset_infos_train.pkl',
         pipeline=train_pipeline,
         metainfo=metainfo,
         modality=input_modality,
@@ -121,7 +128,9 @@ train_dataloader = dict(
         # we use box_type_3d='LiDAR' in kitti and nuscenes dataset
         # and box_type_3d='Depth' in sunrgbd and scannet dataset.
         box_type_3d='LiDAR',
-        backend_args=backend_args))
+        backend_args=backend_args,
+        #max_dist_thr=[50,50]
+    ))
 test_dataloader = dict(
     batch_size=1,
     num_workers=1,
@@ -131,14 +140,16 @@ test_dataloader = dict(
     dataset=dict(
         type=dataset_type,
         data_root=data_root,
-        ann_file='nuscenes_infos_val.pkl',
+        ann_file='pandaset_infos_val.pkl',
         pipeline=test_pipeline,
         metainfo=metainfo,
         modality=input_modality,
         data_prefix=data_prefix,
         test_mode=True,
         box_type_3d='LiDAR',
-        backend_args=backend_args))
+        backend_args=backend_args,
+        #max_dist_thr=[50,50]
+    ))
 val_dataloader = dict(
     batch_size=1,
     num_workers=1,
@@ -148,19 +159,22 @@ val_dataloader = dict(
     dataset=dict(
         type=dataset_type,
         data_root=data_root,
-        ann_file='nuscenes_infos_val.pkl',
+        ann_file='pandaset_infos_val.pkl',
         pipeline=test_pipeline,
         metainfo=metainfo,
         modality=input_modality,
         test_mode=True,
         data_prefix=data_prefix,
         box_type_3d='LiDAR',
-        backend_args=backend_args))
+        backend_args=backend_args,
+        #max_dist_thr=[50,50]
+    ))
 
 val_evaluator = dict(
-    type='NuScenesMetric',
+    type='PandaSetMetric',
     data_root=data_root,
-    ann_file=data_root + 'nuscenes_infos_val.pkl',
+    max_dists =[50,50],
+    ann_file=data_root + 'pandaset_infos_val.pkl',
     metric='bbox',
     backend_args=backend_args)
 test_evaluator = val_evaluator

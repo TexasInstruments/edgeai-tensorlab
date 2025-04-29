@@ -224,14 +224,14 @@ def parse_args(args=None):
     parser.add_argument('--export-onnx-model', action='store_true', default=False, help='whether to export the onnx network' )
     parser.add_argument('--simplify', action='store_true', default=False, help='whether to simplify the onnx model or not model' )   
     
-    args = parser.parse_args()
+    args = parser.parse_args() if args is None else parser.parse_args(args)
     if 'LOCAL_RANK' not in os.environ:
         os.environ['LOCAL_RANK'] = str(args.local_rank)
     return args
 
 
-def main():
-    args = parse_args()
+def main(args=None):
+    args = parse_args(args)
 
     # load config
     cfg = Config.fromfile(args.config)
@@ -385,6 +385,13 @@ def main():
     # log_file_link = osp.join(cfg.work_dir, f'run.log')
     # xnn.utils.make_symlink(log_file, log_file_link)
 
+    # model surgery
+    runner._init_model_weights()
+    del BaseModule.init_weights
+    runner.load_or_resume()
+    runner.model.eval()
+    runner.model = replace_dform_conv_with_split_offset_mask(runner.model)
+
     # Need to validate it for other models
     if args.quantization and \
        (cfg.get("model")['type'] == 'FCOSMono3D' or \
@@ -401,13 +408,6 @@ def main():
         # if hasattr(cfg, 'resize_with_scale_factor') and cfg.resize_with_scale_factor:
         #     torch.nn.functional._interpolate_orig = torch.nn.functional.interpolate
         #     torch.nn.functional.interpolate = xnn.layers.resize_with_scale_factor
-
-        # model surgery
-        # runner._init_model_weights()
-        # del BaseModule.init_weights
-        # runner.load_or_resume()
-        # runner.model.eval()
-        # runner.model = replace_dform_conv_with_split_offset_mask(runner.model)
 
         is_wrapped = False
         if is_model_wrapper(runner.model):

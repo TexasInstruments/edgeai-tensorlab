@@ -44,11 +44,20 @@ pip3 install torch==2.4.0 torchvision==0.19.0
 echo "installing requirements"
 pip3 install --no-input -r requirements.txt
 
+echo "Installing PandaSet"
+rm -r pandaset-devkit
+git clone git@github.com:scaleapi/pandaset-devkit.git
+cp -f ./requirements/pandaset_requirements.txt ./pandaset-devkit/python/requirements.txt
+cd pandaset-devkit/python
+pip install .
+cd ../..
+rm -r pandaset-devkit
+
 pip install -U openmim
-pip install mmengine==0.10.4
-pip install mmcv==2.2.0 -f https://download.openmmlab.com/mmcv/dist/cu121/torch2.4/index.html
-pip install mmdet==3.3.0
-pip install mmsegmentation==1.2.2
+mim install mmengine==0.10.4
+mim install mmcv==2.2.0 -f https://download.openmmlab.com/mmcv/dist/cu121/torch2.4/index.html
+mim install mmdet==3.3.0
+mim install mmsegmentation==1.2.2
 
 
 ######################################################################

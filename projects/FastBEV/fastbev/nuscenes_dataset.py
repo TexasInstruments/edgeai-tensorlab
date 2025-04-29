@@ -648,7 +648,7 @@ class CustomNuScenesDataset(NuScenesDataset):
                      new_bevseg_gts_road,
                      new_bevseg_gts_lane):
         from mmseg.core import eval_metrics
-        from mmseg.ops import resize
+        # from mmseg.ops import resize
         assert len(new_bevseg_results) == len(new_bevseg_gts_road) == len(new_bevseg_gts_lane)
         print('### evaluate BEV segmentation start ###')
         categories = ['road', 'lane']

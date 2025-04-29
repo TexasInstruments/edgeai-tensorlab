@@ -1,11 +1,8 @@
-# FCOS3D config 
-#   without DCN and
-#   with BatchNorm in bbox_head
 _base_ = [
-    '../_base_/datasets/nus-mono3d.py', '../_base_/models/fcos3d.py',
+    '../_base_/datasets/pandaset-mono3d-5classes.py', '../_base_/models/fcos3d.py',
     '../_base_/schedules/mmdet-schedule-1x.py', '../_base_/default_runtime.py'
 ]
-
+# model settings
 custom_imports = dict(imports=['projects.FCOS3D.fcos3d'])
 
 # model settings
@@ -22,9 +19,22 @@ model = dict(
         stage_with_dcn=(False, False, True, True)),
     bbox_head=dict(
         type='CustomFCOSMono3DHead',
-        dcn_on_last_conv=True),
+        dcn_on_last_conv=True,
+        num_classes=5, 
+        num_attrs=18,),
     test_cfg=dict(
-        use_rotate_nms=False))
+        use_rotate_nms=False,
+        ))
+
+env_cfg = dict(
+    dist_cfg = dict(timeout=3600)
+)
+
+train_cfg = dict(max_epochs=12)
+default_hooks = dict(
+    logger=dict(interval=100),
+    checkpoint=dict(interval=1, max_keep_ckpts=2),
+)
 
 backend_args = None
 
@@ -38,7 +48,7 @@ train_pipeline = [
         with_bbox_3d=True,
         with_label_3d=True,
         with_bbox_depth=True),
-    dict(type='mmdet.Resize', scale=(1600, 900), keep_ratio=True),
+    dict(type='Resize3D', scale=(1920, 1080), keep_ratio=True),
     dict(type='RandomFlip3D', flip_ratio_bev_horizontal=0.5),
     dict(
         type='Pack3DDetInputs',
@@ -49,26 +59,21 @@ train_pipeline = [
 ]
 test_pipeline = [
     dict(type='LoadImageFromFileMono3D', backend_args=backend_args),
-    dict(type='mmdet.Resize', scale_factor=1.0),
+    # dict(type='mmdet.Resize', scale=(1600, 900), keep_ratio=True),
+    dict(type='Resize3D', scale_factor=1.0),
     dict(type='Pack3DDetInputs', keys=['img'])
 ]
 
 train_dataloader = dict(
-    batch_size=2, num_workers=2, dataset=dict(pipeline=train_pipeline))
+    batch_size=2, num_workers=2, dataset=dict(pipeline=train_pipeline, ))
 test_dataloader = dict(batch_size=1, dataset=dict(pipeline=test_pipeline))
 val_dataloader = dict(batch_size=1, dataset=dict(pipeline=test_pipeline))
 
 # optimizer
 optim_wrapper = dict(
-    optimizer=dict(lr=0.002),
+    optimizer=dict(lr=0.0002),
     paramwise_cfg=dict(bias_lr_mult=2., bias_decay_mult=0.),
     clip_grad=dict(max_norm=35, norm_type=2))
-
-
-default_hooks = dict(
-    checkpoint=dict(
-        type='CheckpointHook', interval=1, max_keep_ckpts=4, save_last=True))
-
 
 # learning rate
 param_scheduler = [
@@ -86,3 +91,8 @@ param_scheduler = [
         milestones=[8, 11],
         gamma=0.1)
 ]
+# TODO remove this
+load_from = './checkpoints/fcos3d/fcos3d_r101_caffe_fpn_gn-head_dcn_2x8_1x_ps-mono3d_finetune_20210717_095645-8d806dc2_adjusted_5classes.pth'
+# load_from = './work_dirs/fcos3d_r101-caffe-dcn_fpn_head-gn_8xb2-1x_ps-mono3d_tidl_2classes/epoch_12.pth'
+
+find_unused_parameters = True

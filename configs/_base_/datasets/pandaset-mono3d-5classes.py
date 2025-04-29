@@ -1,10 +1,14 @@
-dataset_type = 'NuScenesDataset'
-data_root = 'data/nuscenes/'
+dataset_type = 'PandaSetDataset'
+data_root = 'data/pandaset/data/'
 class_names = [
-    'car', 'truck', 'trailer', 'bus', 'construction_vehicle', 'bicycle',
-    'motorcycle', 'pedestrian', 'traffic_cone', 'barrier'
+    'Car','Bus','Bicycle','Pedestrian','Temporary Construction Barriers'
 ]
-metainfo = dict(classes=class_names) # full
+class_mapping = [
+    0,1,1,3,1,4,2,4,4,
+    4,1,1,2,2,1,1,2,4,
+    4,1,2,1,4,3,4,4,1,
+]
+metainfo = dict(classes=class_names, class_mapping=class_mapping) # full
 # metainfo = dict(classes=class_names, version='v1.0-mini') # mini
 # Input modality for nuScenes dataset, this is consistent with the submission
 # format which requires the information in input_modality.
@@ -35,7 +39,7 @@ train_pipeline = [
         with_bbox_3d=True,
         with_label_3d=True,
         with_bbox_depth=True),
-    dict(type='Resize', scale=(1600, 900), keep_ratio=True),
+    dict(type='Resize3D', scale=(1920, 1080), keep_ratio=True),
     dict(type='RandomFlip3D', flip_ratio_bev_horizontal=0.5),
     dict(
         type='Pack3DDetInputs',
@@ -47,9 +51,11 @@ train_pipeline = [
 
 test_pipeline = [
     dict(type='LoadImageFromFileMono3D', backend_args=backend_args),
-    dict(type='mmdet.Resize', scale=(1600, 900), keep_ratio=True),
+    dict(type='Resize3D', scale=(1920, 1080), keep_ratio=True),
     dict(type='Pack3DDetInputs', keys=['img'])
 ]
+
+max_dist_thr = [50]*len(class_names)
 
 train_dataloader = dict(
     batch_size=2,
@@ -60,15 +66,16 @@ train_dataloader = dict(
         type=dataset_type,
         data_root=data_root,
         data_prefix=dict(
-            pts='',
-            CAM_FRONT='samples/CAM_FRONT',
-            CAM_FRONT_LEFT='samples/CAM_FRONT_LEFT',
-            CAM_FRONT_RIGHT='samples/CAM_FRONT_RIGHT',
-            CAM_BACK='samples/CAM_BACK',
-            CAM_BACK_RIGHT='samples/CAM_BACK_RIGHT',
-            CAM_BACK_LEFT='samples/CAM_BACK_LEFT'),
-        ann_file='nuscenes_infos_train.pkl',
-        # ann_file='nuscenes_mini_infos_val.pkl', #mini
+            pts='lidar', 
+            back_camera='camera/back_camera', 
+            front_camera='camera/front_camera', 
+            front_left_camera='camera/front_left_camera', 
+            front_right_camera='camera/front_right_camera', 
+            left_camera='camera/left_camera', 
+            right_camera='camera/right_camera'
+            ),
+        ann_file='pandaset_infos_train.pkl',
+        # ann_file='pandaset_mini_infos_val.pkl', # mini
         load_type='mv_image_based',
         pipeline=train_pipeline,
         metainfo=metainfo,
@@ -78,7 +85,10 @@ train_dataloader = dict(
         # detection task
         box_type_3d='Camera',
         use_valid_flag=True,
-        backend_args=backend_args))
+        backend_args=backend_args,
+        max_dist_thr=max_dist_thr
+        )
+    )
 val_dataloader = dict(
     batch_size=1,
     num_workers=2,
@@ -88,16 +98,17 @@ val_dataloader = dict(
     dataset=dict(
         type=dataset_type,
         data_root=data_root,
-        data_prefix=dict(
-            pts='',
-            CAM_FRONT='samples/CAM_FRONT',
-            CAM_FRONT_LEFT='samples/CAM_FRONT_LEFT',
-            CAM_FRONT_RIGHT='samples/CAM_FRONT_RIGHT',
-            CAM_BACK='samples/CAM_BACK',
-            CAM_BACK_RIGHT='samples/CAM_BACK_RIGHT',
-            CAM_BACK_LEFT='samples/CAM_BACK_LEFT'),
-        ann_file='nuscenes_infos_val.pkl', #full
-        # ann_file='nuscenes_mini_infos_val.pkl', #mini
+        data_prefix = dict(
+            pts='lidar', 
+            back_camera='camera/back_camera', 
+            front_camera='camera/front_camera', 
+            front_left_camera='camera/front_left_camera', 
+            front_right_camera='camera/front_right_camera', 
+            left_camera='camera/left_camera', 
+            right_camera='camera/right_camera'
+            ),
+        ann_file='pandaset_infos_val.pkl', 
+        # ann_file='pandaset_mini_infos_val.pkl', #mini
         load_type='mv_image_based',
         pipeline=test_pipeline,
         modality=input_modality,
@@ -105,14 +116,17 @@ val_dataloader = dict(
         test_mode=True,
         box_type_3d='Camera',
         use_valid_flag=True,
-        backend_args=backend_args))
+        backend_args=backend_args,
+        max_dist_thr=max_dist_thr
+    ))
 test_dataloader = val_dataloader
 
 val_evaluator = dict(
-    type='NuScenesMetric',
+    type='PandaSetMetric',
     data_root=data_root,
-    ann_file=data_root + 'nuscenes_infos_val.pkl', # full 
-    # ann_file=data_root + 'nuscenes_mini_infos_val.pkl', # mini
+    max_dists = max_dist_thr,
+    ann_file=data_root + 'pandaset_infos_val.pkl', 
+    # ann_file=data_root + 'pandaset_mini_infos_val.pkl', # mini
     metric='bbox',
     backend_args=backend_args)
 

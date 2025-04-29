@@ -116,7 +116,7 @@ model = dict(
         min_bbox_size=0,
         nms_pre=1000,
         max_num=500,
-        use_scale_nms=False,
+        use_scale_nms=True,
         # Normal-NMS
         nms_across_levels=False,
         use_rotate_nms=False,
