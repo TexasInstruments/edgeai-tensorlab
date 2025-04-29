@@ -573,7 +573,6 @@ def export_FCOS3D(model, inputs=None, data_samples=None, quantized_model=False, 
         xmodelopt.quantization.v3.quant_utils.register_onnx_symbolics(opset_version=opset_version)
 
         model_name = 'fcos3d_quantized.onnx'
-        
     else:
         modelInput = []
         modelInput.append(img)
