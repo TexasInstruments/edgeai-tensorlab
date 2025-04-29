@@ -131,6 +131,55 @@
         "distributed":true,
         "training_master_port":29500,
         "with_background_class":null,
+        "train_output_path":null,
+        "properties":[
+          {
+            "type":"group",
+            "dynamic":false,
+            "name":"train_group",
+            "label":"Training Parameters",
+            "default":[
+              "training_epochs",
+              "learning_rate",
+              "batch_size",
+              "weight_decay"
+            ]
+          },
+          {
+            "label":"Epochs",
+            "name":"training_epochs",
+            "type":"integer",
+            "default":50,
+            "min":1,
+            "max":300
+          },
+          {
+            "label":"Learning Rate",
+            "name":"learning_rate",
+            "type":"float",
+            "default":0.04,
+            "min":0.001,
+            "max":0.1,
+            "decimal_places":3,
+            "increment":0.001
+          },
+          {
+            "label":"Batch Size",
+            "name":"batch_size",
+            "type":"integer",
+            "default":8,
+            "min":1,
+            "max":128
+          },
+          {
+            "label":"Weight Decay",
+            "name":"weight_decay",
+            "type":"float",
+            "default":0.0001,
+            "min":0.0001,
+            "max":0.1
+          }
+        ],
         "model_architecture":"backbone",
         "training_devices":{
           "cpu":true,
@@ -139,7 +188,7 @@
       },
       "compilation":{
         "enable":true,
-        "preset_name":null,
+        "compile_preset_name":null,
         "model_compilation_id":"cl-6090",
         "compilation_path":null,
         "model_compiled_path":null,
@@ -160,6 +209,42 @@
         "tidl_offload":true,
         "input_optimization":true,
         "log_file":true,
+        "compile_output_path":null,
+        "properties":[
+          {
+            "label":"Compilation Preset",
+            "name":"compile_preset_name",
+            "type":"enum",
+            "default":"default_preset",
+            "enum":[
+              {
+                "value":"best_accuracy_preset",
+                "label":"best accuracy preset",
+                "tooltip":"Best Accuracy Inference Mode"
+              },
+              {
+                "value":"high_accuracy_preset",
+                "label":"high accuracy preset",
+                "tooltip":"high Accuracy Inference Mode"
+              },
+              {
+                "value":"default_preset",
+                "label":"default preset",
+                "tooltip":"Default Inference Mode"
+              },
+              {
+                "value":"high_speed_preset",
+                "label":"high speed preset",
+                "tooltip":"high Speed Inference Mode"
+              },
+              {
+                "value":"best_speed_preset",
+                "label":"best speed preset",
+                "tooltip":"best Speed Inference Mode"
+              }
+            ]
+          }
+        ],
         "metric":{
           "label_offset_pred":1
         }
@@ -282,6 +367,55 @@
         "distributed":true,
         "training_master_port":29500,
         "with_background_class":null,
+        "train_output_path":null,
+        "properties":[
+          {
+            "type":"group",
+            "dynamic":false,
+            "name":"train_group",
+            "label":"Training Parameters",
+            "default":[
+              "training_epochs",
+              "learning_rate",
+              "batch_size",
+              "weight_decay"
+            ]
+          },
+          {
+            "label":"Epochs",
+            "name":"training_epochs",
+            "type":"integer",
+            "default":50,
+            "min":1,
+            "max":300
+          },
+          {
+            "label":"Learning Rate",
+            "name":"learning_rate",
+            "type":"float",
+            "default":0.04,
+            "min":0.001,
+            "max":0.1,
+            "decimal_places":3,
+            "increment":0.001
+          },
+          {
+            "label":"Batch Size",
+            "name":"batch_size",
+            "type":"integer",
+            "default":8,
+            "min":1,
+            "max":128
+          },
+          {
+            "label":"Weight Decay",
+            "name":"weight_decay",
+            "type":"float",
+            "default":0.0001,
+            "min":0.0001,
+            "max":0.1
+          }
+        ],
         "model_architecture":"backbone",
         "training_devices":{
           "cpu":true,
@@ -290,7 +424,7 @@
       },
       "compilation":{
         "enable":true,
-        "preset_name":null,
+        "compile_preset_name":null,
         "model_compilation_id":"cl-6160",
         "compilation_path":null,
         "model_compiled_path":null,
@@ -311,6 +445,42 @@
         "tidl_offload":true,
         "input_optimization":true,
         "log_file":true,
+        "compile_output_path":null,
+        "properties":[
+          {
+            "label":"Compilation Preset",
+            "name":"compile_preset_name",
+            "type":"enum",
+            "default":"default_preset",
+            "enum":[
+              {
+                "value":"best_accuracy_preset",
+                "label":"best accuracy preset",
+                "tooltip":"Best Accuracy Inference Mode"
+              },
+              {
+                "value":"high_accuracy_preset",
+                "label":"high accuracy preset",
+                "tooltip":"high Accuracy Inference Mode"
+              },
+              {
+                "value":"default_preset",
+                "label":"default preset",
+                "tooltip":"Default Inference Mode"
+              },
+              {
+                "value":"high_speed_preset",
+                "label":"high speed preset",
+                "tooltip":"high Speed Inference Mode"
+              },
+              {
+                "value":"best_speed_preset",
+                "label":"best speed preset",
+                "tooltip":"best Speed Inference Mode"
+              }
+            ]
+          }
+        ],
         "metric":{
           "label_offset_pred":1
         }
@@ -426,6 +596,55 @@
         "distributed":true,
         "training_master_port":29500,
         "with_background_class":null,
+        "train_output_path":null,
+        "properties":[
+          {
+            "type":"group",
+            "dynamic":false,
+            "name":"train_group",
+            "label":"Training Parameters",
+            "default":[
+              "training_epochs",
+              "learning_rate",
+              "batch_size",
+              "weight_decay"
+            ]
+          },
+          {
+            "label":"Epochs",
+            "name":"training_epochs",
+            "type":"integer",
+            "default":50,
+            "min":1,
+            "max":300
+          },
+          {
+            "label":"Learning Rate",
+            "name":"learning_rate",
+            "type":"float",
+            "default":0.04,
+            "min":0.001,
+            "max":0.1,
+            "decimal_places":3,
+            "increment":0.001
+          },
+          {
+            "label":"Batch Size",
+            "name":"batch_size",
+            "type":"integer",
+            "default":8,
+            "min":1,
+            "max":128
+          },
+          {
+            "label":"Weight Decay",
+            "name":"weight_decay",
+            "type":"float",
+            "default":0.0001,
+            "min":0.0001,
+            "max":0.1
+          }
+        ],
         "model_architecture":"backbone",
         "training_devices":{
           "cpu":true,
@@ -434,7 +653,7 @@
       },
       "compilation":{
         "enable":true,
-        "preset_name":null,
+        "compile_preset_name":null,
         "model_compilation_id":"cl-6170",
         "compilation_path":null,
         "model_compiled_path":null,
@@ -455,6 +674,42 @@
         "tidl_offload":true,
         "input_optimization":true,
         "log_file":true,
+        "compile_output_path":null,
+        "properties":[
+          {
+            "label":"Compilation Preset",
+            "name":"compile_preset_name",
+            "type":"enum",
+            "default":"default_preset",
+            "enum":[
+              {
+                "value":"best_accuracy_preset",
+                "label":"best accuracy preset",
+                "tooltip":"Best Accuracy Inference Mode"
+              },
+              {
+                "value":"high_accuracy_preset",
+                "label":"high accuracy preset",
+                "tooltip":"high Accuracy Inference Mode"
+              },
+              {
+                "value":"default_preset",
+                "label":"default preset",
+                "tooltip":"Default Inference Mode"
+              },
+              {
+                "value":"high_speed_preset",
+                "label":"high speed preset",
+                "tooltip":"high Speed Inference Mode"
+              },
+              {
+                "value":"best_speed_preset",
+                "label":"best speed preset",
+                "tooltip":"best Speed Inference Mode"
+              }
+            ]
+          }
+        ],
         "metric":{
           "label_offset_pred":1
         }
@@ -563,6 +818,55 @@
         "distributed":true,
         "training_master_port":29500,
         "with_background_class":true,
+        "train_output_path":null,
+        "properties":[
+          {
+            "type":"group",
+            "dynamic":false,
+            "name":"train_group",
+            "label":"Training Parameters",
+            "default":[
+              "training_epochs",
+              "learning_rate",
+              "batch_size",
+              "weight_decay"
+            ]
+          },
+          {
+            "label":"Epochs",
+            "name":"training_epochs",
+            "type":"integer",
+            "default":50,
+            "min":1,
+            "max":300
+          },
+          {
+            "label":"Learning Rate",
+            "name":"learning_rate",
+            "type":"float",
+            "default":0.04,
+            "min":0.001,
+            "max":0.1,
+            "decimal_places":3,
+            "increment":0.001
+          },
+          {
+            "label":"Batch Size",
+            "name":"batch_size",
+            "type":"integer",
+            "default":8,
+            "min":1,
+            "max":128
+          },
+          {
+            "label":"Weight Decay",
+            "name":"weight_decay",
+            "type":"float",
+            "default":0.0001,
+            "min":0.0001,
+            "max":0.1
+          }
+        ],
         "model_architecture":"backbone",
         "training_devices":{
           "cpu":true,
@@ -571,7 +875,7 @@
       },
       "compilation":{
         "enable":true,
-        "preset_name":null,
+        "compile_preset_name":null,
         "model_compilation_id":"ss-8720",
         "compilation_path":null,
         "model_compiled_path":null,
@@ -592,6 +896,42 @@
         "tidl_offload":true,
         "input_optimization":true,
         "log_file":true,
+        "compile_output_path":null,
+        "properties":[
+          {
+            "label":"Compilation Preset",
+            "name":"compile_preset_name",
+            "type":"enum",
+            "default":"default_preset",
+            "enum":[
+              {
+                "value":"best_accuracy_preset",
+                "label":"best accuracy preset",
+                "tooltip":"Best Accuracy Inference Mode"
+              },
+              {
+                "value":"high_accuracy_preset",
+                "label":"high accuracy preset",
+                "tooltip":"high Accuracy Inference Mode"
+              },
+              {
+                "value":"default_preset",
+                "label":"default preset",
+                "tooltip":"Default Inference Mode"
+              },
+              {
+                "value":"high_speed_preset",
+                "label":"high speed preset",
+                "tooltip":"high Speed Inference Mode"
+              },
+              {
+                "value":"best_speed_preset",
+                "label":"best speed preset",
+                "tooltip":"best Speed Inference Mode"
+              }
+            ]
+          }
+        ],
         "metric":{
           "label_offset_pred":1
         },
@@ -703,6 +1043,55 @@
         "distributed":true,
         "training_master_port":29500,
         "with_background_class":true,
+        "train_output_path":null,
+        "properties":[
+          {
+            "type":"group",
+            "dynamic":false,
+            "name":"train_group",
+            "label":"Training Parameters",
+            "default":[
+              "training_epochs",
+              "learning_rate",
+              "batch_size",
+              "weight_decay"
+            ]
+          },
+          {
+            "label":"Epochs",
+            "name":"training_epochs",
+            "type":"integer",
+            "default":50,
+            "min":1,
+            "max":300
+          },
+          {
+            "label":"Learning Rate",
+            "name":"learning_rate",
+            "type":"float",
+            "default":0.04,
+            "min":0.001,
+            "max":0.1,
+            "decimal_places":3,
+            "increment":0.001
+          },
+          {
+            "label":"Batch Size",
+            "name":"batch_size",
+            "type":"integer",
+            "default":8,
+            "min":1,
+            "max":128
+          },
+          {
+            "label":"Weight Decay",
+            "name":"weight_decay",
+            "type":"float",
+            "default":0.0001,
+            "min":0.0001,
+            "max":0.1
+          }
+        ],
         "model_architecture":"backbone",
         "training_devices":{
           "cpu":true,
@@ -711,7 +1100,7 @@
       },
       "compilation":{
         "enable":true,
-        "preset_name":null,
+        "compile_preset_name":null,
         "model_compilation_id":"ss-8630",
         "compilation_path":null,
         "model_compiled_path":null,
@@ -732,6 +1121,42 @@
         "tidl_offload":true,
         "input_optimization":true,
         "log_file":true,
+        "compile_output_path":null,
+        "properties":[
+          {
+            "label":"Compilation Preset",
+            "name":"compile_preset_name",
+            "type":"enum",
+            "default":"default_preset",
+            "enum":[
+              {
+                "value":"best_accuracy_preset",
+                "label":"best accuracy preset",
+                "tooltip":"Best Accuracy Inference Mode"
+              },
+              {
+                "value":"high_accuracy_preset",
+                "label":"high accuracy preset",
+                "tooltip":"high Accuracy Inference Mode"
+              },
+              {
+                "value":"default_preset",
+                "label":"default preset",
+                "tooltip":"Default Inference Mode"
+              },
+              {
+                "value":"high_speed_preset",
+                "label":"high speed preset",
+                "tooltip":"high Speed Inference Mode"
+              },
+              {
+                "value":"best_speed_preset",
+                "label":"best speed preset",
+                "tooltip":"best Speed Inference Mode"
+              }
+            ]
+          }
+        ],
         "metric":{
           "label_offset_pred":1
         },
@@ -857,6 +1282,55 @@
         "distributed":true,
         "training_master_port":29500,
         "with_background_class":true,
+        "train_output_path":null,
+        "properties":[
+          {
+            "type":"group",
+            "dynamic":false,
+            "name":"train_group",
+            "label":"Training Parameters",
+            "default":[
+              "training_epochs",
+              "learning_rate",
+              "batch_size",
+              "weight_decay"
+            ]
+          },
+          {
+            "label":"Epochs",
+            "name":"training_epochs",
+            "type":"integer",
+            "default":50,
+            "min":1,
+            "max":300
+          },
+          {
+            "label":"Learning Rate",
+            "name":"learning_rate",
+            "type":"float",
+            "default":0.04,
+            "min":0.001,
+            "max":0.1,
+            "decimal_places":3,
+            "increment":0.001
+          },
+          {
+            "label":"Batch Size",
+            "name":"batch_size",
+            "type":"integer",
+            "default":8,
+            "min":1,
+            "max":128
+          },
+          {
+            "label":"Weight Decay",
+            "name":"weight_decay",
+            "type":"float",
+            "default":0.0001,
+            "min":0.0001,
+            "max":0.1
+          }
+        ],
         "model_architecture":"backbone",
         "training_devices":{
           "cpu":true,
@@ -865,7 +1339,7 @@
       },
       "compilation":{
         "enable":true,
-        "preset_name":null,
+        "compile_preset_name":null,
         "model_compilation_id":"ss-8710",
         "compilation_path":null,
         "model_compiled_path":null,
@@ -886,6 +1360,42 @@
         "tidl_offload":true,
         "input_optimization":true,
         "log_file":true,
+        "compile_output_path":null,
+        "properties":[
+          {
+            "label":"Compilation Preset",
+            "name":"compile_preset_name",
+            "type":"enum",
+            "default":"default_preset",
+            "enum":[
+              {
+                "value":"best_accuracy_preset",
+                "label":"best accuracy preset",
+                "tooltip":"Best Accuracy Inference Mode"
+              },
+              {
+                "value":"high_accuracy_preset",
+                "label":"high accuracy preset",
+                "tooltip":"high Accuracy Inference Mode"
+              },
+              {
+                "value":"default_preset",
+                "label":"default preset",
+                "tooltip":"Default Inference Mode"
+              },
+              {
+                "value":"high_speed_preset",
+                "label":"high speed preset",
+                "tooltip":"high Speed Inference Mode"
+              },
+              {
+                "value":"best_speed_preset",
+                "label":"best speed preset",
+                "tooltip":"best Speed Inference Mode"
+              }
+            ]
+          }
+        ],
         "metric":{
           "label_offset_pred":1
         },
@@ -980,6 +1490,55 @@
         "distributed":true,
         "training_master_port":29500,
         "with_background_class":null,
+        "train_output_path":null,
+        "properties":[
+          {
+            "type":"group",
+            "dynamic":false,
+            "name":"train_group",
+            "label":"Training Parameters",
+            "default":[
+              "training_epochs",
+              "learning_rate",
+              "batch_size",
+              "weight_decay"
+            ]
+          },
+          {
+            "label":"Epochs",
+            "name":"training_epochs",
+            "type":"integer",
+            "default":50,
+            "min":1,
+            "max":300
+          },
+          {
+            "label":"Learning Rate",
+            "name":"learning_rate",
+            "type":"float",
+            "default":0.04,
+            "min":0.001,
+            "max":0.1,
+            "decimal_places":3,
+            "increment":0.001
+          },
+          {
+            "label":"Batch Size",
+            "name":"batch_size",
+            "type":"integer",
+            "default":8,
+            "min":1,
+            "max":128
+          },
+          {
+            "label":"Weight Decay",
+            "name":"weight_decay",
+            "type":"float",
+            "default":0.0001,
+            "min":0.0001,
+            "max":0.1
+          }
+        ],
         "model_architecture":"yolox",
         "training_devices":{
           "cpu":true,
@@ -988,7 +1547,7 @@
       },
       "compilation":{
         "enable":true,
-        "preset_name":null,
+        "compile_preset_name":null,
         "model_compilation_id":"od-8270",
         "compilation_path":null,
         "model_compiled_path":null,
@@ -1009,6 +1568,42 @@
         "tidl_offload":true,
         "input_optimization":false,
         "log_file":true,
+        "compile_output_path":null,
+        "properties":[
+          {
+            "label":"Compilation Preset",
+            "name":"compile_preset_name",
+            "type":"enum",
+            "default":"default_preset",
+            "enum":[
+              {
+                "value":"best_accuracy_preset",
+                "label":"best accuracy preset",
+                "tooltip":"Best Accuracy Inference Mode"
+              },
+              {
+                "value":"high_accuracy_preset",
+                "label":"high accuracy preset",
+                "tooltip":"high Accuracy Inference Mode"
+              },
+              {
+                "value":"default_preset",
+                "label":"default preset",
+                "tooltip":"Default Inference Mode"
+              },
+              {
+                "value":"high_speed_preset",
+                "label":"high speed preset",
+                "tooltip":"high Speed Inference Mode"
+              },
+              {
+                "value":"best_speed_preset",
+                "label":"best speed preset",
+                "tooltip":"best Speed Inference Mode"
+              }
+            ]
+          }
+        ],
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":"/multi_level_conv_obj.2/Conv_output_0, /multi_level_conv_reg.2/Conv_output_0, /multi_level_conv_cls.2/Conv_output_0, /multi_level_conv_obj.1/Conv_output_0, /multi_level_conv_reg.1/Conv_output_0, /multi_level_conv_cls.1/Conv_output_0, /multi_level_conv_obj.0/Conv_output_0, /multi_level_conv_reg.0/Conv_output_0, /multi_level_conv_cls.0/Conv_output_0"
         },
@@ -1148,6 +1743,55 @@
         "distributed":true,
         "training_master_port":29500,
         "with_background_class":null,
+        "train_output_path":null,
+        "properties":[
+          {
+            "type":"group",
+            "dynamic":false,
+            "name":"train_group",
+            "label":"Training Parameters",
+            "default":[
+              "training_epochs",
+              "learning_rate",
+              "batch_size",
+              "weight_decay"
+            ]
+          },
+          {
+            "label":"Epochs",
+            "name":"training_epochs",
+            "type":"integer",
+            "default":50,
+            "min":1,
+            "max":300
+          },
+          {
+            "label":"Learning Rate",
+            "name":"learning_rate",
+            "type":"float",
+            "default":0.04,
+            "min":0.001,
+            "max":0.1,
+            "decimal_places":3,
+            "increment":0.001
+          },
+          {
+            "label":"Batch Size",
+            "name":"batch_size",
+            "type":"integer",
+            "default":8,
+            "min":1,
+            "max":128
+          },
+          {
+            "label":"Weight Decay",
+            "name":"weight_decay",
+            "type":"float",
+            "default":0.0001,
+            "min":0.0001,
+            "max":0.1
+          }
+        ],
         "model_architecture":"yolox",
         "training_devices":{
           "cpu":true,
@@ -1156,7 +1800,7 @@
       },
       "compilation":{
         "enable":true,
-        "preset_name":null,
+        "compile_preset_name":null,
         "model_compilation_id":"od-8200",
         "compilation_path":null,
         "model_compiled_path":null,
@@ -1177,6 +1821,42 @@
         "tidl_offload":true,
         "input_optimization":false,
         "log_file":true,
+        "compile_output_path":null,
+        "properties":[
+          {
+            "label":"Compilation Preset",
+            "name":"compile_preset_name",
+            "type":"enum",
+            "default":"default_preset",
+            "enum":[
+              {
+                "value":"best_accuracy_preset",
+                "label":"best accuracy preset",
+                "tooltip":"Best Accuracy Inference Mode"
+              },
+              {
+                "value":"high_accuracy_preset",
+                "label":"high accuracy preset",
+                "tooltip":"high Accuracy Inference Mode"
+              },
+              {
+                "value":"default_preset",
+                "label":"default preset",
+                "tooltip":"Default Inference Mode"
+              },
+              {
+                "value":"high_speed_preset",
+                "label":"high speed preset",
+                "tooltip":"high Speed Inference Mode"
+              },
+              {
+                "value":"best_speed_preset",
+                "label":"best speed preset",
+                "tooltip":"best Speed Inference Mode"
+              }
+            ]
+          }
+        ],
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":"/multi_level_conv_obj.2/Conv_output_0, /multi_level_conv_reg.2/Conv_output_0, /multi_level_conv_cls.2/Conv_output_0, /multi_level_conv_obj.1/Conv_output_0, /multi_level_conv_reg.1/Conv_output_0, /multi_level_conv_cls.1/Conv_output_0, /multi_level_conv_obj.0/Conv_output_0, /multi_level_conv_reg.0/Conv_output_0, /multi_level_conv_cls.0/Conv_output_0"
         },
@@ -1316,6 +1996,55 @@
         "distributed":true,
         "training_master_port":29500,
         "with_background_class":null,
+        "train_output_path":null,
+        "properties":[
+          {
+            "type":"group",
+            "dynamic":false,
+            "name":"train_group",
+            "label":"Training Parameters",
+            "default":[
+              "training_epochs",
+              "learning_rate",
+              "batch_size",
+              "weight_decay"
+            ]
+          },
+          {
+            "label":"Epochs",
+            "name":"training_epochs",
+            "type":"integer",
+            "default":50,
+            "min":1,
+            "max":300
+          },
+          {
+            "label":"Learning Rate",
+            "name":"learning_rate",
+            "type":"float",
+            "default":0.04,
+            "min":0.001,
+            "max":0.1,
+            "decimal_places":3,
+            "increment":0.001
+          },
+          {
+            "label":"Batch Size",
+            "name":"batch_size",
+            "type":"integer",
+            "default":8,
+            "min":1,
+            "max":128
+          },
+          {
+            "label":"Weight Decay",
+            "name":"weight_decay",
+            "type":"float",
+            "default":0.0001,
+            "min":0.0001,
+            "max":0.1
+          }
+        ],
         "model_architecture":"yolox",
         "training_devices":{
           "cpu":true,
@@ -1324,7 +2053,7 @@
       },
       "compilation":{
         "enable":true,
-        "preset_name":null,
+        "compile_preset_name":null,
         "model_compilation_id":"od-8210",
         "compilation_path":null,
         "model_compiled_path":null,
@@ -1345,6 +2074,42 @@
         "tidl_offload":true,
         "input_optimization":false,
         "log_file":true,
+        "compile_output_path":null,
+        "properties":[
+          {
+            "label":"Compilation Preset",
+            "name":"compile_preset_name",
+            "type":"enum",
+            "default":"default_preset",
+            "enum":[
+              {
+                "value":"best_accuracy_preset",
+                "label":"best accuracy preset",
+                "tooltip":"Best Accuracy Inference Mode"
+              },
+              {
+                "value":"high_accuracy_preset",
+                "label":"high accuracy preset",
+                "tooltip":"high Accuracy Inference Mode"
+              },
+              {
+                "value":"default_preset",
+                "label":"default preset",
+                "tooltip":"Default Inference Mode"
+              },
+              {
+                "value":"high_speed_preset",
+                "label":"high speed preset",
+                "tooltip":"high Speed Inference Mode"
+              },
+              {
+                "value":"best_speed_preset",
+                "label":"best speed preset",
+                "tooltip":"best Speed Inference Mode"
+              }
+            ]
+          }
+        ],
         "runtime_options":{},
         "metric":{
           "label_offset_pred":0
@@ -1473,6 +2238,55 @@
         "distributed":true,
         "training_master_port":29500,
         "with_background_class":null,
+        "train_output_path":null,
+        "properties":[
+          {
+            "type":"group",
+            "dynamic":false,
+            "name":"train_group",
+            "label":"Training Parameters",
+            "default":[
+              "training_epochs",
+              "learning_rate",
+              "batch_size",
+              "weight_decay"
+            ]
+          },
+          {
+            "label":"Epochs",
+            "name":"training_epochs",
+            "type":"integer",
+            "default":50,
+            "min":1,
+            "max":300
+          },
+          {
+            "label":"Learning Rate",
+            "name":"learning_rate",
+            "type":"float",
+            "default":0.04,
+            "min":0.001,
+            "max":0.1,
+            "decimal_places":3,
+            "increment":0.001
+          },
+          {
+            "label":"Batch Size",
+            "name":"batch_size",
+            "type":"integer",
+            "default":8,
+            "min":1,
+            "max":128
+          },
+          {
+            "label":"Weight Decay",
+            "name":"weight_decay",
+            "type":"float",
+            "default":0.0001,
+            "min":0.0001,
+            "max":0.1
+          }
+        ],
         "model_architecture":"yolox",
         "training_devices":{
           "cpu":true,
@@ -1481,7 +2295,7 @@
       },
       "compilation":{
         "enable":true,
-        "preset_name":null,
+        "compile_preset_name":null,
         "model_compilation_id":"od-8220",
         "compilation_path":null,
         "model_compiled_path":null,
@@ -1502,6 +2316,42 @@
         "tidl_offload":true,
         "input_optimization":false,
         "log_file":true,
+        "compile_output_path":null,
+        "properties":[
+          {
+            "label":"Compilation Preset",
+            "name":"compile_preset_name",
+            "type":"enum",
+            "default":"default_preset",
+            "enum":[
+              {
+                "value":"best_accuracy_preset",
+                "label":"best accuracy preset",
+                "tooltip":"Best Accuracy Inference Mode"
+              },
+              {
+                "value":"high_accuracy_preset",
+                "label":"high accuracy preset",
+                "tooltip":"high Accuracy Inference Mode"
+              },
+              {
+                "value":"default_preset",
+                "label":"default preset",
+                "tooltip":"Default Inference Mode"
+              },
+              {
+                "value":"high_speed_preset",
+                "label":"high speed preset",
+                "tooltip":"high Speed Inference Mode"
+              },
+              {
+                "value":"best_speed_preset",
+                "label":"best speed preset",
+                "tooltip":"best Speed Inference Mode"
+              }
+            ]
+          }
+        ],
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":"/multi_level_conv_obj.2/Conv_output_0, /multi_level_conv_reg.2/Conv_output_0, /multi_level_conv_cls.2/Conv_output_0, /multi_level_conv_obj.1/Conv_output_0, /multi_level_conv_reg.1/Conv_output_0, /multi_level_conv_cls.1/Conv_output_0, /multi_level_conv_obj.0/Conv_output_0, /multi_level_conv_reg.0/Conv_output_0, /multi_level_conv_cls.0/Conv_output_0"
         },
@@ -1614,6 +2464,55 @@
         "distributed":true,
         "training_master_port":29500,
         "with_background_class":null,
+        "train_output_path":null,
+        "properties":[
+          {
+            "type":"group",
+            "dynamic":false,
+            "name":"train_group",
+            "label":"Training Parameters",
+            "default":[
+              "training_epochs",
+              "learning_rate",
+              "batch_size",
+              "weight_decay"
+            ]
+          },
+          {
+            "label":"Epochs",
+            "name":"training_epochs",
+            "type":"integer",
+            "default":50,
+            "min":1,
+            "max":300
+          },
+          {
+            "label":"Learning Rate",
+            "name":"learning_rate",
+            "type":"float",
+            "default":0.04,
+            "min":0.001,
+            "max":0.1,
+            "decimal_places":3,
+            "increment":0.001
+          },
+          {
+            "label":"Batch Size",
+            "name":"batch_size",
+            "type":"integer",
+            "default":8,
+            "min":1,
+            "max":128
+          },
+          {
+            "label":"Weight Decay",
+            "name":"weight_decay",
+            "type":"float",
+            "default":0.0001,
+            "min":0.0001,
+            "max":0.1
+          }
+        ],
         "model_architecture":"yolov7",
         "training_devices":{
           "cpu":true,
@@ -1622,7 +2521,7 @@
       },
       "compilation":{
         "enable":true,
-        "preset_name":null,
+        "compile_preset_name":null,
         "model_compilation_id":"od-9202",
         "compilation_path":null,
         "model_compiled_path":null,
@@ -1643,6 +2542,42 @@
         "tidl_offload":true,
         "input_optimization":false,
         "log_file":true,
+        "compile_output_path":null,
+        "properties":[
+          {
+            "label":"Compilation Preset",
+            "name":"compile_preset_name",
+            "type":"enum",
+            "default":"default_preset",
+            "enum":[
+              {
+                "value":"best_accuracy_preset",
+                "label":"best accuracy preset",
+                "tooltip":"Best Accuracy Inference Mode"
+              },
+              {
+                "value":"high_accuracy_preset",
+                "label":"high accuracy preset",
+                "tooltip":"high Accuracy Inference Mode"
+              },
+              {
+                "value":"default_preset",
+                "label":"default preset",
+                "tooltip":"Default Inference Mode"
+              },
+              {
+                "value":"high_speed_preset",
+                "label":"high speed preset",
+                "tooltip":"high Speed Inference Mode"
+              },
+              {
+                "value":"best_speed_preset",
+                "label":"best speed preset",
+                "tooltip":"best Speed Inference Mode"
+              }
+            ]
+          }
+        ],
         "metric":{
           "label_offset_pred":1
         }
@@ -1752,6 +2687,55 @@
         "distributed":true,
         "training_master_port":29500,
         "with_background_class":null,
+        "train_output_path":null,
+        "properties":[
+          {
+            "type":"group",
+            "dynamic":false,
+            "name":"train_group",
+            "label":"Training Parameters",
+            "default":[
+              "training_epochs",
+              "learning_rate",
+              "batch_size",
+              "weight_decay"
+            ]
+          },
+          {
+            "label":"Epochs",
+            "name":"training_epochs",
+            "type":"integer",
+            "default":50,
+            "min":1,
+            "max":300
+          },
+          {
+            "label":"Learning Rate",
+            "name":"learning_rate",
+            "type":"float",
+            "default":0.04,
+            "min":0.001,
+            "max":0.1,
+            "decimal_places":3,
+            "increment":0.001
+          },
+          {
+            "label":"Batch Size",
+            "name":"batch_size",
+            "type":"integer",
+            "default":8,
+            "min":1,
+            "max":128
+          },
+          {
+            "label":"Weight Decay",
+            "name":"weight_decay",
+            "type":"float",
+            "default":0.0001,
+            "min":0.0001,
+            "max":0.1
+          }
+        ],
         "model_architecture":"yolox",
         "training_devices":{
           "cpu":true,
@@ -1760,7 +2744,7 @@
       },
       "compilation":{
         "enable":true,
-        "preset_name":null,
+        "compile_preset_name":null,
         "model_compilation_id":"kd-7070",
         "compilation_path":null,
         "model_compiled_path":null,
@@ -1781,6 +2765,42 @@
         "tidl_offload":true,
         "input_optimization":false,
         "log_file":true,
+        "compile_output_path":null,
+        "properties":[
+          {
+            "label":"Compilation Preset",
+            "name":"compile_preset_name",
+            "type":"enum",
+            "default":"default_preset",
+            "enum":[
+              {
+                "value":"best_accuracy_preset",
+                "label":"best accuracy preset",
+                "tooltip":"Best Accuracy Inference Mode"
+              },
+              {
+                "value":"high_accuracy_preset",
+                "label":"high accuracy preset",
+                "tooltip":"high Accuracy Inference Mode"
+              },
+              {
+                "value":"default_preset",
+                "label":"default preset",
+                "tooltip":"Default Inference Mode"
+              },
+              {
+                "value":"high_speed_preset",
+                "label":"high speed preset",
+                "tooltip":"high Speed Inference Mode"
+              },
+              {
+                "value":"best_speed_preset",
+                "label":"best speed preset",
+                "tooltip":"best Speed Inference Mode"
+              }
+            ]
+          }
+        ],
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":"3,201,224,177"
         },
@@ -1893,6 +2913,55 @@
         "distributed":true,
         "training_master_port":29500,
         "with_background_class":null,
+        "train_output_path":null,
+        "properties":[
+          {
+            "type":"group",
+            "dynamic":false,
+            "name":"train_group",
+            "label":"Training Parameters",
+            "default":[
+              "training_epochs",
+              "learning_rate",
+              "batch_size",
+              "weight_decay"
+            ]
+          },
+          {
+            "label":"Epochs",
+            "name":"training_epochs",
+            "type":"integer",
+            "default":50,
+            "min":1,
+            "max":300
+          },
+          {
+            "label":"Learning Rate",
+            "name":"learning_rate",
+            "type":"float",
+            "default":0.04,
+            "min":0.001,
+            "max":0.1,
+            "decimal_places":3,
+            "increment":0.001
+          },
+          {
+            "label":"Batch Size",
+            "name":"batch_size",
+            "type":"integer",
+            "default":8,
+            "min":1,
+            "max":128
+          },
+          {
+            "label":"Weight Decay",
+            "name":"weight_decay",
+            "type":"float",
+            "default":0.0001,
+            "min":0.0001,
+            "max":0.1
+          }
+        ],
         "model_architecture":"yolox",
         "training_devices":{
           "cpu":true,
@@ -1901,7 +2970,7 @@
       },
       "compilation":{
         "enable":true,
-        "preset_name":null,
+        "compile_preset_name":null,
         "model_compilation_id":"kd-7080",
         "compilation_path":null,
         "model_compiled_path":null,
@@ -1922,6 +2991,42 @@
         "tidl_offload":true,
         "input_optimization":false,
         "log_file":true,
+        "compile_output_path":null,
+        "properties":[
+          {
+            "label":"Compilation Preset",
+            "name":"compile_preset_name",
+            "type":"enum",
+            "default":"default_preset",
+            "enum":[
+              {
+                "value":"best_accuracy_preset",
+                "label":"best accuracy preset",
+                "tooltip":"Best Accuracy Inference Mode"
+              },
+              {
+                "value":"high_accuracy_preset",
+                "label":"high accuracy preset",
+                "tooltip":"high Accuracy Inference Mode"
+              },
+              {
+                "value":"default_preset",
+                "label":"default preset",
+                "tooltip":"Default Inference Mode"
+              },
+              {
+                "value":"high_speed_preset",
+                "label":"high speed preset",
+                "tooltip":"high Speed Inference Mode"
+              },
+              {
+                "value":"best_speed_preset",
+                "label":"best speed preset",
+                "tooltip":"best Speed Inference Mode"
+              }
+            ]
+          }
+        ],
         "runtime_options":{
           "advanced_options:output_feature_16bit_names_list":"3"
         },

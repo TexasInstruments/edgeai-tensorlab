@@ -104,6 +104,15 @@ def init_params(*args, **kwargs):
             training_master_port=29500,
             with_background_class=None,
             train_output_path=None,
+            properties=[
+                dict(type="group", dynamic=False, name="train_group", label="Training Parameters",
+                     default=["training_epochs", "learning_rate", "batch_size", "weight_decay"]),
+                dict(label="Epochs", name="training_epochs", type="integer", default=50, min=1, max=300),
+                dict(label="Learning Rate", name="learning_rate", type="float", default=0.04, min=0.001, max=0.1,
+                     decimal_places=3, increment=0.001),
+                dict(label="Batch Size", name="batch_size", type="integer", default=8, min=1, max=128),
+                dict(label="Weight Decay", name="weight_decay", type="float", default=0.0001, min=0.0001, max=0.1,)
+                ]
         ),
         compilation=dict(
             enable=True,
@@ -130,6 +139,18 @@ def init_params(*args, **kwargs):
             input_optimization=True, # if this is set, the compilation tool will try to fold mean and scale inside the model.
             log_file=True, # capture logs into log_file
             compile_output_path=None,
+            properties=[dict(
+                label="Compilation Preset", name="compile_preset_name", type="enum",
+                default='default_preset',
+                enum=[
+                    # {"value": constants.COMPILATION_FORCED_SOFT_NPU, "label": "Forced Software NPU", "tooltip": "Only for F28P55, to disable HW NPU"},
+                      {"value": 'best_accuracy_preset', "label": "best accuracy preset", "tooltip": "Best Accuracy Inference Mode"},
+                      {"value": 'high_accuracy_preset', "label": "high accuracy preset", "tooltip": "high Accuracy Inference Mode"},
+                      {"value": 'default_preset', "label": "default preset", "tooltip": "Default Inference Mode"},
+                      {"value": 'high_speed_preset', "label": "high speed preset", "tooltip": "high Speed Inference Mode"},
+                      {"value": 'best_speed_preset', "label": "best speed preset", "tooltip": "best Speed Inference Mode"},
+                      ])
+            ],
         ),
     )
     params = utils.ConfigDict(default_params, *args, **kwargs)

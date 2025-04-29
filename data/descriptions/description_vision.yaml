@@ -125,6 +125,8 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
+      compile_output_path: null
+      compile_preset_name: null
       detection_threshold: 0.3
       detection_top_k: 200
       enable: true
@@ -141,7 +143,27 @@ model_descriptions:
       num_frames: null
       num_output_frames: 50
       output_tensors_path: null
-      preset_name: null
+      properties:
+      - default: default_preset
+        enum:
+        - label: best accuracy preset
+          tooltip: Best Accuracy Inference Mode
+          value: best_accuracy_preset
+        - label: high accuracy preset
+          tooltip: high Accuracy Inference Mode
+          value: high_accuracy_preset
+        - label: default preset
+          tooltip: Default Inference Mode
+          value: default_preset
+        - label: high speed preset
+          tooltip: high Speed Inference Mode
+          value: high_speed_preset
+        - label: best speed preset
+          tooltip: best Speed Inference Mode
+          value: best_speed_preset
+        label: Compilation Preset
+        name: compile_preset_name
+        type: enum
       runtime_options:
         tensor_bits: 8
       save_output: true
@@ -196,6 +218,42 @@ model_descriptions:
       pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/segmentation/cocoseg21/edgeai-tv/deeplabv3plus_mobilenetv2_edgeailite_512x512_20210405_checkpoint.pth
       pretrained_weight_state_dict_name: null
       project_path: null
+      properties:
+      - default:
+        - training_epochs
+        - learning_rate
+        - batch_size
+        - weight_decay
+        dynamic: false
+        label: Training Parameters
+        name: train_group
+        type: group
+      - default: 50
+        label: Epochs
+        max: 300
+        min: 1
+        name: training_epochs
+        type: integer
+      - decimal_places: 3
+        default: 0.04
+        increment: 0.001
+        label: Learning Rate
+        max: 0.1
+        min: 0.001
+        name: learning_rate
+        type: float
+      - default: 8
+        label: Batch Size
+        max: 128
+        min: 1
+        name: batch_size
+        type: integer
+      - default: 0.0001
+        label: Weight Decay
+        max: 0.1
+        min: 0.0001
+        name: weight_decay
+        type: float
       summary_file_path: null
       target_devices:
         AM62:
@@ -234,6 +292,7 @@ model_descriptions:
           model_selection_factor: 1
           performance_fps: 237
           performance_infer_time_ms: 4.219409282700422
+      train_output_path: null
       training_backend: edgeai_tensorvision
       training_device: null
       training_devices:
@@ -261,6 +320,8 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
+      compile_output_path: null
+      compile_preset_name: null
       detection_threshold: 0.3
       detection_top_k: 200
       enable: true
@@ -277,7 +338,27 @@ model_descriptions:
       num_frames: null
       num_output_frames: 50
       output_tensors_path: null
-      preset_name: null
+      properties:
+      - default: default_preset
+        enum:
+        - label: best accuracy preset
+          tooltip: Best Accuracy Inference Mode
+          value: best_accuracy_preset
+        - label: high accuracy preset
+          tooltip: high Accuracy Inference Mode
+          value: high_accuracy_preset
+        - label: default preset
+          tooltip: Default Inference Mode
+          value: default_preset
+        - label: high speed preset
+          tooltip: high Speed Inference Mode
+          value: high_speed_preset
+        - label: best speed preset
+          tooltip: best Speed Inference Mode
+          value: best_speed_preset
+        label: Compilation Preset
+        name: compile_preset_name
+        type: enum
       runtime_options:
         tensor_bits: 16
       save_output: true
@@ -332,6 +413,42 @@ model_descriptions:
       pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/segmentation/cocoseg21/edgeai-tv/fpn_aspp_regnetx800mf_edgeailite_512x512_20210405_checkpoint.pth
       pretrained_weight_state_dict_name: null
       project_path: null
+      properties:
+      - default:
+        - training_epochs
+        - learning_rate
+        - batch_size
+        - weight_decay
+        dynamic: false
+        label: Training Parameters
+        name: train_group
+        type: group
+      - default: 50
+        label: Epochs
+        max: 300
+        min: 1
+        name: training_epochs
+        type: integer
+      - decimal_places: 3
+        default: 0.04
+        increment: 0.001
+        label: Learning Rate
+        max: 0.1
+        min: 0.001
+        name: learning_rate
+        type: float
+      - default: 8
+        label: Batch Size
+        max: 128
+        min: 1
+        name: batch_size
+        type: integer
+      - default: 0.0001
+        label: Weight Decay
+        max: 0.1
+        min: 0.0001
+        name: weight_decay
+        type: float
       summary_file_path: null
       target_devices:
         AM62:
@@ -358,6 +475,7 @@ model_descriptions:
           model_selection_factor: 2
           performance_fps: 272
           performance_infer_time_ms: 3.676470588235294
+      train_output_path: null
       training_backend: edgeai_tensorvision
       training_device: null
       training_devices:
@@ -385,6 +503,8 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
+      compile_output_path: null
+      compile_preset_name: null
       detection_threshold: 0.3
       detection_top_k: 200
       enable: true
@@ -401,7 +521,27 @@ model_descriptions:
       num_frames: null
       num_output_frames: 50
       output_tensors_path: null
-      preset_name: null
+      properties:
+      - default: default_preset
+        enum:
+        - label: best accuracy preset
+          tooltip: Best Accuracy Inference Mode
+          value: best_accuracy_preset
+        - label: high accuracy preset
+          tooltip: high Accuracy Inference Mode
+          value: high_accuracy_preset
+        - label: default preset
+          tooltip: Default Inference Mode
+          value: default_preset
+        - label: high speed preset
+          tooltip: high Speed Inference Mode
+          value: high_speed_preset
+        - label: best speed preset
+          tooltip: best Speed Inference Mode
+          value: best_speed_preset
+        label: Compilation Preset
+        name: compile_preset_name
+        type: enum
       save_output: true
       summary_file_path: null
       tensor_bits: 8
@@ -454,6 +594,42 @@ model_descriptions:
         download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/classification/imagenet1k/edgeai-tv/mobilenet_v2_20191224_checkpoint.pth
       pretrained_weight_state_dict_name: state_dict
       project_path: null
+      properties:
+      - default:
+        - training_epochs
+        - learning_rate
+        - batch_size
+        - weight_decay
+        dynamic: false
+        label: Training Parameters
+        name: train_group
+        type: group
+      - default: 50
+        label: Epochs
+        max: 300
+        min: 1
+        name: training_epochs
+        type: integer
+      - decimal_places: 3
+        default: 0.04
+        increment: 0.001
+        label: Learning Rate
+        max: 0.1
+        min: 0.001
+        name: learning_rate
+        type: float
+      - default: 8
+        label: Batch Size
+        max: 128
+        min: 1
+        name: batch_size
+        type: integer
+      - default: 0.0001
+        label: Weight Decay
+        max: 0.1
+        min: 0.0001
+        name: weight_decay
+        type: float
       summary_file_path: null
       target_devices:
         AM62:
@@ -492,6 +668,7 @@ model_descriptions:
           model_selection_factor: 2
           performance_fps: null
           performance_infer_time_ms: 2.27
+      train_output_path: null
       training_backend: edgeai_torchvision
       training_device: null
       training_devices:
@@ -519,6 +696,8 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
+      compile_output_path: null
+      compile_preset_name: null
       detection_threshold: 0.3
       detection_top_k: 200
       enable: true
@@ -535,7 +714,27 @@ model_descriptions:
       num_frames: null
       num_output_frames: 50
       output_tensors_path: null
-      preset_name: null
+      properties:
+      - default: default_preset
+        enum:
+        - label: best accuracy preset
+          tooltip: Best Accuracy Inference Mode
+          value: best_accuracy_preset
+        - label: high accuracy preset
+          tooltip: high Accuracy Inference Mode
+          value: high_accuracy_preset
+        - label: default preset
+          tooltip: Default Inference Mode
+          value: default_preset
+        - label: high speed preset
+          tooltip: high Speed Inference Mode
+          value: high_speed_preset
+        - label: best speed preset
+          tooltip: best Speed Inference Mode
+          value: best_speed_preset
+        label: Compilation Preset
+        name: compile_preset_name
+        type: enum
       save_output: true
       summary_file_path: null
       tensor_bits: 8
@@ -588,6 +787,42 @@ model_descriptions:
         download_url: https://download.pytorch.org/models/regnet_x_400mf-62229a5f.pth
       pretrained_weight_state_dict_name: model
       project_path: null
+      properties:
+      - default:
+        - training_epochs
+        - learning_rate
+        - batch_size
+        - weight_decay
+        dynamic: false
+        label: Training Parameters
+        name: train_group
+        type: group
+      - default: 50
+        label: Epochs
+        max: 300
+        min: 1
+        name: training_epochs
+        type: integer
+      - decimal_places: 3
+        default: 0.04
+        increment: 0.001
+        label: Learning Rate
+        max: 0.1
+        min: 0.001
+        name: learning_rate
+        type: float
+      - default: 8
+        label: Batch Size
+        max: 128
+        min: 1
+        name: batch_size
+        type: integer
+      - default: 0.0001
+        label: Weight Decay
+        max: 0.1
+        min: 0.0001
+        name: weight_decay
+        type: float
       summary_file_path: null
       target_devices:
         AM62:
@@ -626,6 +861,7 @@ model_descriptions:
           model_selection_factor: 1
           performance_fps: null
           performance_infer_time_ms: 2.61
+      train_output_path: null
       training_backend: edgeai_torchvision
       training_device: null
       training_devices:
@@ -653,6 +889,8 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
+      compile_output_path: null
+      compile_preset_name: null
       detection_threshold: 0.3
       detection_top_k: 200
       enable: true
@@ -669,7 +907,27 @@ model_descriptions:
       num_frames: null
       num_output_frames: 50
       output_tensors_path: null
-      preset_name: null
+      properties:
+      - default: default_preset
+        enum:
+        - label: best accuracy preset
+          tooltip: Best Accuracy Inference Mode
+          value: best_accuracy_preset
+        - label: high accuracy preset
+          tooltip: high Accuracy Inference Mode
+          value: high_accuracy_preset
+        - label: default preset
+          tooltip: Default Inference Mode
+          value: default_preset
+        - label: high speed preset
+          tooltip: high Speed Inference Mode
+          value: high_speed_preset
+        - label: best speed preset
+          tooltip: best Speed Inference Mode
+          value: best_speed_preset
+        label: Compilation Preset
+        name: compile_preset_name
+        type: enum
       save_output: true
       summary_file_path: null
       tensor_bits: 8
@@ -722,6 +980,42 @@ model_descriptions:
         download_url: https://download.pytorch.org/models/regnet_x_800mf-ad17e45c.pth
       pretrained_weight_state_dict_name: model
       project_path: null
+      properties:
+      - default:
+        - training_epochs
+        - learning_rate
+        - batch_size
+        - weight_decay
+        dynamic: false
+        label: Training Parameters
+        name: train_group
+        type: group
+      - default: 50
+        label: Epochs
+        max: 300
+        min: 1
+        name: training_epochs
+        type: integer
+      - decimal_places: 3
+        default: 0.04
+        increment: 0.001
+        label: Learning Rate
+        max: 0.1
+        min: 0.001
+        name: learning_rate
+        type: float
+      - default: 8
+        label: Batch Size
+        max: 128
+        min: 1
+        name: batch_size
+        type: integer
+      - default: 0.0001
+        label: Weight Decay
+        max: 0.1
+        min: 0.0001
+        name: weight_decay
+        type: float
       summary_file_path: null
       target_devices:
         AM62A:
@@ -754,6 +1048,7 @@ model_descriptions:
           model_selection_factor: 0
           performance_fps: null
           performance_infer_time_ms: 2.95
+      train_output_path: null
       training_backend: edgeai_torchvision
       training_device: null
       training_devices:
@@ -781,6 +1076,8 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
+      compile_output_path: null
+      compile_preset_name: null
       detection_threshold: 0.3
       detection_top_k: 200
       enable: true
@@ -797,7 +1094,27 @@ model_descriptions:
       num_frames: null
       num_output_frames: 50
       output_tensors_path: null
-      preset_name: null
+      properties:
+      - default: default_preset
+        enum:
+        - label: best accuracy preset
+          tooltip: Best Accuracy Inference Mode
+          value: best_accuracy_preset
+        - label: high accuracy preset
+          tooltip: high Accuracy Inference Mode
+          value: high_accuracy_preset
+        - label: default preset
+          tooltip: Default Inference Mode
+          value: default_preset
+        - label: high speed preset
+          tooltip: high Speed Inference Mode
+          value: high_speed_preset
+        - label: best speed preset
+          tooltip: best Speed Inference Mode
+          value: best_speed_preset
+        label: Compilation Preset
+        name: compile_preset_name
+        type: enum
       runtime_options:
         tensor_bits: 8
       save_output: true
@@ -852,6 +1169,42 @@ model_descriptions:
       pretrained_checkpoint_path: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/segmentation/cocoseg21/edgeai-tv/unet_aspp_mobilenetv2_edgeailite_512x512_20210407_checkpoint.pth
       pretrained_weight_state_dict_name: null
       project_path: null
+      properties:
+      - default:
+        - training_epochs
+        - learning_rate
+        - batch_size
+        - weight_decay
+        dynamic: false
+        label: Training Parameters
+        name: train_group
+        type: group
+      - default: 50
+        label: Epochs
+        max: 300
+        min: 1
+        name: training_epochs
+        type: integer
+      - decimal_places: 3
+        default: 0.04
+        increment: 0.001
+        label: Learning Rate
+        max: 0.1
+        min: 0.001
+        name: learning_rate
+        type: float
+      - default: 8
+        label: Batch Size
+        max: 128
+        min: 1
+        name: batch_size
+        type: integer
+      - default: 0.0001
+        label: Weight Decay
+        max: 0.1
+        min: 0.0001
+        name: weight_decay
+        type: float
       summary_file_path: null
       target_devices:
         AM62:
@@ -878,6 +1231,7 @@ model_descriptions:
           model_selection_factor: 0
           performance_fps: 237
           performance_infer_time_ms: 4.219409282700422
+      train_output_path: null
       training_backend: edgeai_tensorvision
       training_device: null
       training_devices:
@@ -905,6 +1259,8 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
+      compile_output_path: null
+      compile_preset_name: null
       detection_threshold: 0.3
       detection_top_k: 200
       enable: true
@@ -921,7 +1277,27 @@ model_descriptions:
       num_frames: null
       num_output_frames: 50
       output_tensors_path: null
-      preset_name: null
+      properties:
+      - default: default_preset
+        enum:
+        - label: best accuracy preset
+          tooltip: Best Accuracy Inference Mode
+          value: best_accuracy_preset
+        - label: high accuracy preset
+          tooltip: high Accuracy Inference Mode
+          value: high_accuracy_preset
+        - label: default preset
+          tooltip: Default Inference Mode
+          value: default_preset
+        - label: high speed preset
+          tooltip: high Speed Inference Mode
+          value: high_speed_preset
+        - label: best speed preset
+          tooltip: best Speed Inference Mode
+          value: best_speed_preset
+        label: Compilation Preset
+        name: compile_preset_name
+        type: enum
       save_output: true
       summary_file_path: null
       tensor_bits: 8
@@ -974,6 +1350,42 @@ model_descriptions:
         download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolov7_l_coco_lite_640x640_20250109_checkpoint.pth
       pretrained_weight_state_dict_name: null
       project_path: null
+      properties:
+      - default:
+        - training_epochs
+        - learning_rate
+        - batch_size
+        - weight_decay
+        dynamic: false
+        label: Training Parameters
+        name: train_group
+        type: group
+      - default: 50
+        label: Epochs
+        max: 300
+        min: 1
+        name: training_epochs
+        type: integer
+      - decimal_places: 3
+        default: 0.04
+        increment: 0.001
+        label: Learning Rate
+        max: 0.1
+        min: 0.001
+        name: learning_rate
+        type: float
+      - default: 8
+        label: Batch Size
+        max: 128
+        min: 1
+        name: batch_size
+        type: integer
+      - default: 0.0001
+        label: Weight Decay
+        max: 0.1
+        min: 0.0001
+        name: weight_decay
+        type: float
       summary_file_path: null
       target_devices:
         AM68A:
@@ -1000,6 +1412,7 @@ model_descriptions:
           model_selection_factor: null
           performance_fps: null
           performance_infer_time_ms: null
+      train_output_path: null
       training_backend: edgeai_mmdetection
       training_device: null
       training_devices:
@@ -1027,6 +1440,8 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
+      compile_output_path: null
+      compile_preset_name: null
       detection_threshold: 0.3
       detection_top_k: 200
       enable: true
@@ -1043,7 +1458,27 @@ model_descriptions:
       num_frames: null
       num_output_frames: 50
       output_tensors_path: null
-      preset_name: null
+      properties:
+      - default: default_preset
+        enum:
+        - label: best accuracy preset
+          tooltip: Best Accuracy Inference Mode
+          value: best_accuracy_preset
+        - label: high accuracy preset
+          tooltip: high Accuracy Inference Mode
+          value: high_accuracy_preset
+        - label: default preset
+          tooltip: Default Inference Mode
+          value: default_preset
+        - label: high speed preset
+          tooltip: high Speed Inference Mode
+          value: high_speed_preset
+        - label: best speed preset
+          tooltip: best Speed Inference Mode
+          value: best_speed_preset
+        label: Compilation Preset
+        name: compile_preset_name
+        type: enum
       runtime_options:
         advanced_options:output_feature_16bit_names_list: /multi_level_conv_obj.2/Conv_output_0,
           /multi_level_conv_reg.2/Conv_output_0, /multi_level_conv_cls.2/Conv_output_0,
@@ -1102,6 +1537,42 @@ model_descriptions:
         download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth
       pretrained_weight_state_dict_name: null
       project_path: null
+      properties:
+      - default:
+        - training_epochs
+        - learning_rate
+        - batch_size
+        - weight_decay
+        dynamic: false
+        label: Training Parameters
+        name: train_group
+        type: group
+      - default: 50
+        label: Epochs
+        max: 300
+        min: 1
+        name: training_epochs
+        type: integer
+      - decimal_places: 3
+        default: 0.04
+        increment: 0.001
+        label: Learning Rate
+        max: 0.1
+        min: 0.001
+        name: learning_rate
+        type: float
+      - default: 8
+        label: Batch Size
+        max: 128
+        min: 1
+        name: batch_size
+        type: integer
+      - default: 0.0001
+        label: Weight Decay
+        max: 0.1
+        min: 0.0001
+        name: weight_decay
+        type: float
       summary_file_path: null
       target_devices:
         AM62:
@@ -1152,6 +1623,7 @@ model_descriptions:
           model_selection_factor: 2
           performance_fps: null
           performance_infer_time_ms: 3.74
+      train_output_path: null
       training_backend: edgeai_mmdetection
       training_device: null
       training_devices:
@@ -1179,6 +1651,8 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
+      compile_output_path: null
+      compile_preset_name: null
       detection_threshold: 0.3
       detection_top_k: 200
       enable: true
@@ -1195,7 +1669,27 @@ model_descriptions:
       num_frames: null
       num_output_frames: 50
       output_tensors_path: null
-      preset_name: null
+      properties:
+      - default: default_preset
+        enum:
+        - label: best accuracy preset
+          tooltip: Best Accuracy Inference Mode
+          value: best_accuracy_preset
+        - label: high accuracy preset
+          tooltip: high Accuracy Inference Mode
+          value: high_accuracy_preset
+        - label: default preset
+          tooltip: Default Inference Mode
+          value: default_preset
+        - label: high speed preset
+          tooltip: high Speed Inference Mode
+          value: high_speed_preset
+        - label: best speed preset
+          tooltip: best Speed Inference Mode
+          value: best_speed_preset
+        label: Compilation Preset
+        name: compile_preset_name
+        type: enum
       runtime_options:
         advanced_options:output_feature_16bit_names_list: /multi_level_conv_obj.2/Conv_output_0,
           /multi_level_conv_reg.2/Conv_output_0, /multi_level_conv_cls.2/Conv_output_0,
@@ -1254,6 +1748,42 @@ model_descriptions:
         download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_pico_lite_320x320_20230410_checkpoint.pth
       pretrained_weight_state_dict_name: null
       project_path: null
+      properties:
+      - default:
+        - training_epochs
+        - learning_rate
+        - batch_size
+        - weight_decay
+        dynamic: false
+        label: Training Parameters
+        name: train_group
+        type: group
+      - default: 50
+        label: Epochs
+        max: 300
+        min: 1
+        name: training_epochs
+        type: integer
+      - decimal_places: 3
+        default: 0.04
+        increment: 0.001
+        label: Learning Rate
+        max: 0.1
+        min: 0.001
+        name: learning_rate
+        type: float
+      - default: 8
+        label: Batch Size
+        max: 128
+        min: 1
+        name: batch_size
+        type: integer
+      - default: 0.0001
+        label: Weight Decay
+        max: 0.1
+        min: 0.0001
+        name: weight_decay
+        type: float
       summary_file_path: null
       target_devices:
         AM62:
@@ -1264,6 +1794,7 @@ model_descriptions:
           model_selection_factor: 2
           performance_fps: null
           performance_infer_time_ms: 154.89
+      train_output_path: null
       training_backend: edgeai_mmdetection
       training_device: null
       training_devices:
@@ -1291,6 +1822,8 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
+      compile_output_path: null
+      compile_preset_name: null
       detection_threshold: 0.3
       detection_top_k: 200
       enable: true
@@ -1307,7 +1840,27 @@ model_descriptions:
       num_frames: null
       num_output_frames: 50
       output_tensors_path: null
-      preset_name: null
+      properties:
+      - default: default_preset
+        enum:
+        - label: best accuracy preset
+          tooltip: Best Accuracy Inference Mode
+          value: best_accuracy_preset
+        - label: high accuracy preset
+          tooltip: high Accuracy Inference Mode
+          value: high_accuracy_preset
+        - label: default preset
+          tooltip: Default Inference Mode
+          value: default_preset
+        - label: high speed preset
+          tooltip: high Speed Inference Mode
+          value: high_speed_preset
+        - label: best speed preset
+          tooltip: best Speed Inference Mode
+          value: best_speed_preset
+        label: Compilation Preset
+        name: compile_preset_name
+        type: enum
       runtime_options:
         advanced_options:output_feature_16bit_names_list: /multi_level_conv_obj.2/Conv_output_0,
           /multi_level_conv_reg.2/Conv_output_0, /multi_level_conv_cls.2/Conv_output_0,
@@ -1366,6 +1919,42 @@ model_descriptions:
         download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth
       pretrained_weight_state_dict_name: null
       project_path: null
+      properties:
+      - default:
+        - training_epochs
+        - learning_rate
+        - batch_size
+        - weight_decay
+        dynamic: false
+        label: Training Parameters
+        name: train_group
+        type: group
+      - default: 50
+        label: Epochs
+        max: 300
+        min: 1
+        name: training_epochs
+        type: integer
+      - decimal_places: 3
+        default: 0.04
+        increment: 0.001
+        label: Learning Rate
+        max: 0.1
+        min: 0.001
+        name: learning_rate
+        type: float
+      - default: 8
+        label: Batch Size
+        max: 128
+        min: 1
+        name: batch_size
+        type: integer
+      - default: 0.0001
+        label: Weight Decay
+        max: 0.1
+        min: 0.0001
+        name: weight_decay
+        type: float
       summary_file_path: null
       target_devices:
         AM62A:
@@ -1408,6 +1997,7 @@ model_descriptions:
           model_selection_factor: 0
           performance_fps: null
           performance_infer_time_ms: 10.14
+      train_output_path: null
       training_backend: edgeai_mmdetection
       training_device: null
       training_devices:
@@ -1435,6 +2025,8 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
+      compile_output_path: null
+      compile_preset_name: null
       detection_threshold: 0.3
       detection_top_k: 200
       enable: true
@@ -1451,7 +2043,27 @@ model_descriptions:
       num_frames: null
       num_output_frames: 50
       output_tensors_path: null
-      preset_name: null
+      properties:
+      - default: default_preset
+        enum:
+        - label: best accuracy preset
+          tooltip: Best Accuracy Inference Mode
+          value: best_accuracy_preset
+        - label: high accuracy preset
+          tooltip: high Accuracy Inference Mode
+          value: high_accuracy_preset
+        - label: default preset
+          tooltip: Default Inference Mode
+          value: default_preset
+        - label: high speed preset
+          tooltip: high Speed Inference Mode
+          value: high_speed_preset
+        - label: best speed preset
+          tooltip: best Speed Inference Mode
+          value: best_speed_preset
+        label: Compilation Preset
+        name: compile_preset_name
+        type: enum
       runtime_options: {}
       save_output: true
       summary_file_path: null
@@ -1505,6 +2117,42 @@ model_descriptions:
         download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth
       pretrained_weight_state_dict_name: null
       project_path: null
+      properties:
+      - default:
+        - training_epochs
+        - learning_rate
+        - batch_size
+        - weight_decay
+        dynamic: false
+        label: Training Parameters
+        name: train_group
+        type: group
+      - default: 50
+        label: Epochs
+        max: 300
+        min: 1
+        name: training_epochs
+        type: integer
+      - decimal_places: 3
+        default: 0.04
+        increment: 0.001
+        label: Learning Rate
+        max: 0.1
+        min: 0.001
+        name: learning_rate
+        type: float
+      - default: 8
+        label: Batch Size
+        max: 128
+        min: 1
+        name: batch_size
+        type: integer
+      - default: 0.0001
+        label: Weight Decay
+        max: 0.1
+        min: 0.0001
+        name: weight_decay
+        type: float
       summary_file_path: null
       target_devices:
         AM62:
@@ -1555,6 +2203,7 @@ model_descriptions:
           model_selection_factor: 1
           performance_fps: null
           performance_infer_time_ms: 4.84
+      train_output_path: null
       training_backend: edgeai_mmdetection
       training_device: null
       training_devices:
@@ -1582,6 +2231,8 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
+      compile_output_path: null
+      compile_preset_name: null
       detection_threshold: 0.3
       detection_top_k: 200
       enable: true
@@ -1598,7 +2249,27 @@ model_descriptions:
       num_frames: null
       num_output_frames: 50
       output_tensors_path: null
-      preset_name: null
+      properties:
+      - default: default_preset
+        enum:
+        - label: best accuracy preset
+          tooltip: Best Accuracy Inference Mode
+          value: best_accuracy_preset
+        - label: high accuracy preset
+          tooltip: high Accuracy Inference Mode
+          value: high_accuracy_preset
+        - label: default preset
+          tooltip: Default Inference Mode
+          value: default_preset
+        - label: high speed preset
+          tooltip: high Speed Inference Mode
+          value: high_speed_preset
+        - label: best speed preset
+          tooltip: best Speed Inference Mode
+          value: best_speed_preset
+        label: Compilation Preset
+        name: compile_preset_name
+        type: enum
       runtime_options:
         advanced_options:output_feature_16bit_names_list: '3'
       save_output: true
@@ -1653,6 +2324,42 @@ model_descriptions:
         download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/10_01_00/models/vision/keypoint/coco/edgeai-mmpose/yoloxpose_s_lite_coco-640x640_20250119_checkpoint.pth
       pretrained_weight_state_dict_name: null
       project_path: null
+      properties:
+      - default:
+        - training_epochs
+        - learning_rate
+        - batch_size
+        - weight_decay
+        dynamic: false
+        label: Training Parameters
+        name: train_group
+        type: group
+      - default: 50
+        label: Epochs
+        max: 300
+        min: 1
+        name: training_epochs
+        type: integer
+      - decimal_places: 3
+        default: 0.04
+        increment: 0.001
+        label: Learning Rate
+        max: 0.1
+        min: 0.001
+        name: learning_rate
+        type: float
+      - default: 8
+        label: Batch Size
+        max: 128
+        min: 1
+        name: batch_size
+        type: integer
+      - default: 0.0001
+        label: Weight Decay
+        max: 0.1
+        min: 0.0001
+        name: weight_decay
+        type: float
       summary_file_path: null
       target_devices:
         AM62A:
@@ -1679,6 +2386,7 @@ model_descriptions:
           model_selection_factor: 1
           performance_fps: null
           performance_infer_time_ms: -1
+      train_output_path: null
       training_backend: edgeai_mmpose
       training_device: null
       training_devices:
@@ -1706,6 +2414,8 @@ model_descriptions:
       calibration_frames: 10
       calibration_iterations: 10
       compilation_path: null
+      compile_output_path: null
+      compile_preset_name: null
       detection_threshold: 0.3
       detection_top_k: 200
       enable: true
@@ -1722,7 +2432,27 @@ model_descriptions:
       num_frames: null
       num_output_frames: 50
       output_tensors_path: null
-      preset_name: null
+      properties:
+      - default: default_preset
+        enum:
+        - label: best accuracy preset
+          tooltip: Best Accuracy Inference Mode
+          value: best_accuracy_preset
+        - label: high accuracy preset
+          tooltip: high Accuracy Inference Mode
+          value: high_accuracy_preset
+        - label: default preset
+          tooltip: Default Inference Mode
+          value: default_preset
+        - label: high speed preset
+          tooltip: high Speed Inference Mode
+          value: high_speed_preset
+        - label: best speed preset
+          tooltip: best Speed Inference Mode
+          value: best_speed_preset
+        label: Compilation Preset
+        name: compile_preset_name
+        type: enum
       runtime_options:
         advanced_options:output_feature_16bit_names_list: 3,201,224,177
       save_output: true
@@ -1777,6 +2507,42 @@ model_descriptions:
         download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/10_01_00/models/vision/keypoint/coco/edgeai-mmpose/yoloxpose_tiny_lite_416x416_20240808_checkpoint.pth
       pretrained_weight_state_dict_name: null
       project_path: null
+      properties:
+      - default:
+        - training_epochs
+        - learning_rate
+        - batch_size
+        - weight_decay
+        dynamic: false
+        label: Training Parameters
+        name: train_group
+        type: group
+      - default: 50
+        label: Epochs
+        max: 300
+        min: 1
+        name: training_epochs
+        type: integer
+      - decimal_places: 3
+        default: 0.04
+        increment: 0.001
+        label: Learning Rate
+        max: 0.1
+        min: 0.001
+        name: learning_rate
+        type: float
+      - default: 8
+        label: Batch Size
+        max: 128
+        min: 1
+        name: batch_size
+        type: integer
+      - default: 0.0001
+        label: Weight Decay
+        max: 0.1
+        min: 0.0001
+        name: weight_decay
+        type: float
       summary_file_path: null
       target_devices:
         AM62A:
@@ -1803,6 +2569,7 @@ model_descriptions:
           model_selection_factor: 0
           performance_fps: null
           performance_infer_time_ms: -1
+      train_output_path: null
       training_backend: edgeai_mmpose
       training_device: null
       training_devices:
