@@ -64,24 +64,59 @@ class ModelRunner():
             [print(key, ':', value) for key, value in vars(self.params).items()]
         #
         # normalize the paths
-        self.params.common.projects_path = utils.absolute_path(self.params.common.projects_path)
+        if not self.params.dataset.dataset_name:
+            self.params.dataset.dataset_name = os.path.splitext(os.path.basename(self.params.dataset.input_data_path))[0]
         self.params.dataset.input_data_path = utils.absolute_path(self.params.dataset.input_data_path)
         self.params.dataset.input_annotation_path = utils.absolute_path(self.params.dataset.input_annotation_path)
-        self.params.common.project_path = os.path.join(self.params.common.projects_path, self.params.dataset.dataset_name)
+
+        
 
         self.params.common.run_name = self.resolve_run_name(self.params.common.run_name, self.params.training.model_name)
-        self.params.common.project_run_path = os.path.join(self.params.common.project_path, 'run', self.params.common.run_name)
+        
 
-        self.params.dataset.dataset_path = os.path.join(self.params.common.project_path, 'dataset')
+
+        if self.params.training.train_output_path:
+            self.params.common.projects_path = utils.absolute_path(self.params.training.train_output_path)
+            self.params.common.project_path = os.path.join(self.params.common.projects_path)
+            self.params.common.project_run_path = self.params.common.projects_path
+            self.params.dataset.dataset_path = os.path.join(self.params.common.project_path, 'dataset')
+            self.params.training.training_path = utils.absolute_path(os.path.join(self.params.training.train_output_path, 'training_base'))
+            self.params.training.model_packaged_path = os.path.join(self.params.training.train_output_path,
+                                        '_'.join(os.path.split(self.params.common.run_name))+'.tar.gz')
+        else:
+            self.params.common.projects_path = utils.absolute_path(self.params.common.projects_path)
+            self.params.common.project_path = os.path.join(self.params.common.projects_path, self.params.dataset.dataset_name)
+            self.params.common.project_run_path = os.path.join(self.params.common.project_path, 'run', self.params.common.run_name)
+            self.params.dataset.dataset_path = os.path.join(self.params.common.project_path, 'dataset')
+            self.params.training.training_path = os.path.join(self.params.common.project_run_path, 'training')
+            self.params.training.model_packaged_path = os.path.join(self.params.training.training_path,
+                                        '_'.join(os.path.split(self.params.common.run_name))+'.tar.gz')
         self.params.dataset.extract_path = self.params.dataset.dataset_path
 
-        self.params.training.training_path = os.path.join(self.params.common.project_run_path, 'training')
-        self.params.training.model_packaged_path = os.path.join(self.params.training.training_path,
-                                    '_'.join(os.path.split(self.params.common.run_name))+'.tar.gz')
+        ##test
+        # if self.params.dataset.input_annotation_name:
+        #     self.params.dataset.input_annotation_path = os.path.join(self.params.dataset.dataset_path, 'annotations', self.params.dataset.input_annotation_name)
+
 
         assert self.params.common.target_device in constants.TARGET_DEVICES_ALL, f'common.target_device must be set to one of: {constants.TARGET_DEVICES_ALL}'
-        target_device_compilation_folder = self.params.common.target_device
-        self.params.compilation.compilation_path = os.path.join(self.params.common.project_run_path, 'compilation', target_device_compilation_folder)
+        # target_device_compilation_folder = self.params.common.target_device
+
+        if self.params.compilation.compile_output_path:
+            if self.params.training.enable == False and self.params.compilation.enable == True:
+                self.params.common.projects_path = utils.absolute_path(self.params.compilation.compile_output_path)
+                self.params.common.project_run_path = self.params.common.projects_path
+            self.params.compilation.compilation_path = utils.absolute_path(self.params.compilation.compile_output_path)
+            self.params.compilation.model_packaged_path = os.path.join(self.params.compilation.compile_output_path,
+                                                                    '_'.join(os.path.split(
+                                                                        self.params.common.run_name)) + f'_{self.params.common.target_device}.zip')
+        else:
+            # self.params.compilation.compilation_path = utils.absolute_path(os.path.join(self.params.common.project_run_path, 'compilation', target_device_compilation_folder))
+            self.params.compilation.compilation_path = utils.absolute_path(os.path.join(self.params.common.project_run_path, 'compilation'))
+            self.params.compilation.model_packaged_path = os.path.join(self.params.compilation.compilation_path,
+                                                                    '_'.join(os.path.split(
+                                                                        self.params.common.run_name)) + f'_{self.params.common.target_device}.zip')
+
+        # self.params.compilation.compilation_path = os.path.join(self.params.common.project_run_path, 'compilation', target_device_compilation_folder)
 
         if self.params.common.target_device in self.params.training.target_devices:
             performance_infer_time_ms_list = {k:v['performance_infer_time_ms'] for k,v in self.params.training.target_devices.items()}
