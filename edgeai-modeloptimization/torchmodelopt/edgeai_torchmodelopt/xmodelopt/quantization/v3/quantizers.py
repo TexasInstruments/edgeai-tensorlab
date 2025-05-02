@@ -51,8 +51,8 @@ from torch.ao.quantization.quantizer.quantizer import (
     DerivedQuantizationSpec
 )
 # might move to torch/ao/quantization/utils.py later on
-from torch.ao.quantization.pt2e.utils import _is_conv_or_conv_transpose_node
-from torch.nn.utils.fusion import fuse_conv_bn_weights
+# from torch.ao.quantization.pt2e.utils import _is_conv_or_conv_transpose_node
+# from torch.nn.utils.fusion import fuse_conv_bn_weights
 import itertools
 import operator
 from typing import Dict, List, Optional, Any
