@@ -105,15 +105,15 @@ RUN source ${HOME_DIR}/.bashrc && \
     pip3 install --no-input --upgrade pip==24.2 setuptools==73.0.0 && \
     pip3 install --no-input cython wheel numpy==1.23.0
 
-
-# enabling write permissions for all users, if support is needed for users passed via --user argument of docker run
-RUN chmod -R ugo+rwx ${HOME_DIR}
-
 # Change working directory permission to non-root user
 RUN source ${HOME_DIR}/.bashrc
 
 # Add all files to docker image
 # ADD . ${WORK_DIR}
+
+
+# enabling write permissions for all users, if support is needed for users passed via --user argument of docker run
+# RUN chmod -R ugo+rwx ${HOME_DIR}
 
 # RUN cd "${WORK_DIR}/edgeai-modelmaker" && \
 #     pwd && \
