@@ -39,7 +39,7 @@ pip3 install --no-input cython wheel numpy==1.23.0
 
 ######################################################################
 echo "installing pytorch - use the applopriate index-url from https://pytorch.org/get-started/locally/"
-pip3 install --no-input torch==2.4.0 torchvision==0.19.0 --index-url https://download.pytorch.org/whl/cu118
+pip3 install --no-input torch==2.4.0 torchvision==0.19.0 --index-url https://download.pytorch.org/whl/cu124
 
 ######################################################################
 pip install -U openmim
@@ -53,4 +53,4 @@ pip install -v -e .
 pip install -e ../edgeai-modeloptimization/torchmodelopt
 
 ######################################################################
-pip3 install --no-input protobuf==3.20.2 onnx==1.14.0
+pip3 install --no-input protobuf onnx==1.14.0
