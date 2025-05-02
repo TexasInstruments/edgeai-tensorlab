@@ -31,8 +31,8 @@
 #
 #################################################################################
 
-DOCKER_IMAGE_NAME="edgeai-modelmaker:10.1.0"
-DOCKER_CONTAINER_NAME="edgeai-modelmaker-10.1.0-cnt"
+DOCKER_IMAGE_NAME="edgeai-modelmaker-ubuntu:22.04-2025-05-02"
+DOCKER_CONTAINER_NAME="edgeai-modelmaker-ubuntu-22.04-2025-05-02-cnt"
 PARENT_DIR=$(realpath ..)
 
 # This script is intended to work with single container.
