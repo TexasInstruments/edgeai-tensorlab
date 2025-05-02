@@ -6,7 +6,7 @@ ARG DOCKER_REPO_LOCATION
 
 
 # build settings
-ARG PROJECT_NAME="edgeai-modelmaker-ubuntu:22.04"
+ARG PROJECT_NAME="edgeai-modelmaker"
 
 FROM ${DOCKER_REPO_LOCATION}${DOCKER_IMAGE_BASE}
 
@@ -121,4 +121,4 @@ RUN source ${HOME_DIR}/.bashrc
 #    ./${SETUP_FIlE}
     
 # workdir
-WORKDIR ${WORK_DIR}/${PROJECT_NAME}
+WORKDIR "${WORK_DIR}/edgeai-modelmaker"
