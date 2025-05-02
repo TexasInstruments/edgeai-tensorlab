@@ -59,7 +59,7 @@ RUN apt update && apt install -y sudo git curl iputils-ping wget cmake build-ess
     libbz2-dev xz-utils libreadline-dev libncurses5-dev libssl-dev libsqlite3-dev liblzma-dev
 
 # additional packages
-RUN apt install -y libffi-dev libjpeg-dev zlib1g-dev graphviz graphviz-dev protobuf-compiler
+RUN apt install -y libffi-dev libjpeg-dev zlib1g-dev graphviz graphviz-dev protobuf-compiler libgl1
 
 # pyenv install
 ENV PYENV_ROOT ${HOME_DIR}/.pyenv

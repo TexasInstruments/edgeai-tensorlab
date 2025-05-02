@@ -32,7 +32,7 @@
 #################################################################################
 
 DOCKER_IMAGE_NAME="edgeai-modelmaker:10.1.0"
-DOCKER_CONTAINER_NAME="${DOCKER_IMAGE_NAME}-cnt"
+DOCKER_CONTAINER_NAME="edgeai-modelmaker-10.1.0-cnt"
 PARENT_DIR=$(realpath ..)
 
 # This script is intended to work with single container.
