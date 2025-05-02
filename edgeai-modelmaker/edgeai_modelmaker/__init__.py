@@ -31,3 +31,4 @@
 
 from . import utils
 from . import ai_modules
+from scripts import run_modelmaker

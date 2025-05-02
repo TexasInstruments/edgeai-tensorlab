@@ -558,7 +558,7 @@ class ModelTraining:
         os.chdir(edgeai_mmdetection_path)
 
         # invoke the distributed training
-        if self.params.training.distributed and self.params.training.num_gpus > 1:
+        if self.params.training.distributed and self.params.training.num_gpus > 0:
             # launcher for the training
             run_launcher = distributed_run.__file__
             run_script = os.path.join(edgeai_mmdetection_tools_path,'train.py')

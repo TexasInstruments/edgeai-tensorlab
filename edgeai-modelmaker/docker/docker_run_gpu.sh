@@ -31,13 +31,13 @@
 #
 #################################################################################
 
-docker_image_name="modelmaker:v9.0"
-docker_container_name="${docker_image_name}-ubuntu22.04-py310"
+DOCKER_IMAGE_NAME="edgeai-modelmaker:10.1.0"
+DOCKER_CONTAINER_NAME="${DOCKER_IMAGE_NAME}-cnt"
 PARENT_DIR=$(realpath ..)
 
 # This script is intended to work with single container.
 # Number container exist
-container_count=$(docker ps -a | grep ${docker_container_name} | wc -l)
+container_count=$(docker ps -a | grep ${DOCKER_CONTAINER_NAME} | wc -l)
 echo "Number of containers with the given name/tag: ${container_count} "
 
 echo "This script starts the container with GPU support."
@@ -51,26 +51,27 @@ no_proxy=${no_proxy:-""}
 #If no container exist, then create the container.
 if [ $container_count -eq 0 ]
 then
+    echo "Starting a new container: ${DOCKER_CONTAINER_NAME}"
     docker run -it \
-        --name "${docker_container_name}" \
-        -v ${PARENT_DIR}:/home/edgeai/code \
+        --name "${DOCKER_CONTAINER_NAME}" \
+        -v ${PARENT_DIR}:/opt/code \
         --privileged \
         --network host \
         --shm-size 50G \
-        --gpus all \
         -e http_proxy=${http_proxy} \
         -e https_proxy=${https_proxy} \
         -e no_proxy=${no_proxy} \
         --user $(id -u):$(id -g) \
-        ${docker_image_name} bash
+        --runtime=nvidia --gpus all \
+        ${DOCKER_IMAGE_NAME} bash
 # If one container exist, execute that container.
 elif [ $container_count -eq 1 ]
 then
-    echo "Restarting existing container: ${docker_container_name}"
-    docker start "${docker_container_name}"
-    docker exec -it "${docker_container_name}" /bin/bash
+    echo "Restarting existing container: ${DOCKER_CONTAINER_NAME}"
+    docker start "${DOCKER_CONTAINER_NAME}"
+    docker exec -it "${DOCKER_CONTAINER_NAME}" /bin/bash
 else
-    echo -e "\nMultiple containers found with similar name/tag ${docker_container_name}, so exiting"
+    echo -e "\nMultiple containers found with similar name/tag ${DOCKER_CONTAINER_NAME}, so exiting"
     echo -e "To run existing container, use [docker start] and [docker exec] command"
     echo -e "To run the new container, use [docker run] command\n"
 fi

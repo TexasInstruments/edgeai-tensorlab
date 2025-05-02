@@ -31,19 +31,24 @@
 #
 #################################################################################
 
-docker_image_name="modelmaker:v9.1"
+DOCKER_IMAGE_BASE="ubuntu:22.04"
+DOCKER_IMAGE_NAME="edgeai-modelmaker-ubuntu22.04-py310"
 
 #################################################################################
-# determine if we are behind ti firewall
-ping bitbucket.itg.ti.com -c 1 > /dev/null 2>&1
-PING_CHECK="$?"
+USE_INTERNAL_REPO="1"
 
 # docker and git repo locations - internal or external build
-if [ ${PING_CHECK} -eq "0" ]; then
-    REPO_LOCATION="artifactory.itg.ti.com/docker-public/library/"
+if [[ ${USE_INTERNAL_REPO} == "1" ]]; then
+    DOCKER_REPO_LOCATION="artifactory.itg.ti.com/docker-public/library/"
+    # SOURCE_LOCATION="ssh://git@bitbucket.itg.ti.com/edgeai-algo/"    
 else
-    REPO_LOCATION=""
+    DOCKER_REPO_LOCATION=""
+    # SOURCE_LOCATION="https://github.com/TexasInstruments/"    
 fi
+
+# print
+echo "DOCKER_REPO_LOCATION=${DOCKER_REPO_LOCATION}"
+# echo "SOURCE_LOCATION=${SOURCE_LOCATION}"
 
 # initialize http_proxy and https_proxy if they are not defined
 http_proxy=${http_proxy:-""}
@@ -51,13 +56,20 @@ https_proxy=${https_proxy:-""}
 no_proxy=${no_proxy:-""}
 
 #################################################################################
+CUR_DIR=${PWD}
+PARENT_DIR=$(realpath ${CUR_DIR}/..)
+
+#################################################################################
 # Build docker image
-echo "building docker image..."
+DATE_TIME=$(date +'%Y%m%d-%H%M%S')
+echo "building docker image at ${DATE_TIME} ..."
+
 docker build \
-    -f ./docker/Dockerfile \
-    -t ${docker_image_name} \
-    --build-arg REPO_LOCATION=${REPO_LOCATION} \
+    -f ${CUR_DIR}/docker/Dockerfile \
+    -t ${DOCKER_IMAGE_NAME} \
+    --build-arg DOCKER_IMAGE_BASE=${DOCKER_IMAGE_BASE} \
+    --build-arg DOCKER_REPO_LOCATION=${DOCKER_REPO_LOCATION} \
     --build-arg http_proxy=${http_proxy} \
     --build-arg https_proxy=${https_proxy} \
     --build-arg no_proxy=${no_proxy} \
-    --no-cache .
+    ${PARENT_DIR}
