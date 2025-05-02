@@ -32,7 +32,7 @@
 #################################################################################
 
 DOCKER_IMAGE_BASE="ubuntu:22.04"
-DOCKER_IMAGE_NAME="edgeai-modelmaker-ubuntu22.04-py310"
+DOCKER_IMAGE_NAME="edgeai-modelmaker-ubuntu:22.04-2025-05-02"
 
 #################################################################################
 USE_INTERNAL_REPO="1"

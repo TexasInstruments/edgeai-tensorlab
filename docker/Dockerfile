@@ -6,9 +6,9 @@ ARG DOCKER_REPO_LOCATION
 
 
 # build settings
-ARG PROJECT_NAME="edgeai-modelmaker"
+ARG PROJECT_NAME="edgeai-modelmaker-ubuntu:22.04"
 
-FROM ${DOCKER_IMAGE_BASE}
+FROM ${DOCKER_REPO_LOCATION}${DOCKER_IMAGE_BASE}
 
 ENV HOME_DIR=/opt
 ENV HOME ${HOME_DIR}
@@ -109,14 +109,16 @@ RUN source ${HOME_DIR}/.bashrc && \
 # enabling write permissions for all users, if support is needed for users passed via --user argument of docker run
 RUN chmod -R ugo+rwx ${HOME_DIR}
 
-# workdir
-WORKDIR ${WORK_DIR}/${PROJECT_NAME}
-
 # Change working directory permission to non-root user
 RUN source ${HOME_DIR}/.bashrc
 
 # Add all files to docker image
 # ADD . ${WORK_DIR}
 
-# RUN cd ${WORK_DIR}/${PROJECT_NAME} && \
+# RUN cd "${WORK_DIR}/edgeai-modelmaker" && \
+#     pwd && \
+#     ls -al && \
 #    ./${SETUP_FIlE}
+    
+# workdir
+WORKDIR ${WORK_DIR}/${PROJECT_NAME}
