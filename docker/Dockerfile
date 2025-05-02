@@ -1,19 +1,48 @@
-# base image
-ARG REPO_LOCATION=""
-FROM ${REPO_LOCATION}ubuntu:22.04
+# in a multi-stage build, args get reset after a from statement
+# declare ARG without default to retrieve it
+# but ENV variables do no have this problem
+ARG DOCKER_IMAGE_BASE="ubuntu:22.04"
+ARG DOCKER_REPO_LOCATION
+
+
+# build settings
+ARG PROJECT_NAME="edgeai-modelmaker"
+
+FROM ${DOCKER_IMAGE_BASE}
+
+ENV HOME_DIR=/opt
+ENV HOME ${HOME_DIR}
+
+ENV WORK_DIR ${HOME_DIR}/code
+ENV DATA_DIR ${HOME_DIR}/data
+ENV PYTHONPATH=":${HOME_DIR}/edgeai-modelmaker:$PYTHONPATH"
+
+#setup file cpu or gpu
+ARG SETUP_FIlE="setup_gpu.sh"
+
+LABEL TI_IMAGE_SOURCE="https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modelmaker/browse"
+
+RUN mkdir -p ${WORK_DIR}
+RUN mkdir -p ${DATA_DIR}
 
 # user
 ARG USER_NAME=edgeai
-ENV HOME_DIR=/opt
 # ARG USER_ID=1000
 # ARG USER_GID=$USER_ID
 
 # build settings
-ARG PROJECT_NAME="modelmaker"
 ARG DEBIAN_FRONTEND=noninteractive
 # avoid warnings/errors while installing pillow-simd
 ARG LC_ALL=C.UTF-8
 
+# print
+RUN echo "DOCKER_IMAGE_BASE="${DOCKER_IMAGE_BASE} && \
+    echo "DOCKER_REPO_LOCATION="${DOCKER_REPO_LOCATION} && \
+    echo "HOME_DIR="${HOME_DIR} && \
+    echo "PWD=$(pwd)" && \
+    echo $(ls -al)
+
+#####################################################################################
 # proxy
 ARG http_proxy=""
 ARG https_proxy=""
@@ -31,30 +60,6 @@ RUN apt update && apt install -y sudo git curl iputils-ping wget cmake build-ess
 
 # additional packages
 RUN apt install -y libffi-dev libjpeg-dev zlib1g-dev graphviz graphviz-dev protobuf-compiler
-
-# ##################################################################
-# Method 1: these lines would have created a user and switched to it
-# add user, inspired by: https://code.visualstudio.com/remote/advancedcontainers/add-nonroot-user
-# RUN groupadd --gid $USER_GID $USER_NAME && \
-#     useradd --uid $USER_ID --gid $USER_GID --create-home $USER_NAME && \
-#     chown -R ${USER_ID}:${USER_GID} ${HOME_DIR}
-#
-# # not having this may cause sudo commands in our setup files to issue an error
-# # but any sudo intallation required may be finished above - so it should be okay.
-# RUN echo ${USER_NAME} ALL=\(root\) NOPASSWD:ALL >> /etc/sudoers.d/${USER_NAME} && chmod 400 /etc/sudoers.d/${USER_NAME}
-#
-# # switch user, workdir, default permissions
-# USER $USER_NAME
-# RUN echo "umask u=rwx,g=rx,o=rx" >> ${HOME_DIR}/.bashrc
-# ##################################################################
-# Method 2: continue as root. during docker run, --user argument can be used to map to the host user
-# also a chmod -R ugo+rwx ${HOME_DIR} is added at the end of this file to enable such mapped users to have access.
-# that permission can be later restricted to only folders where a write is required.
-RUN mkdir -p ${HOME_DIR}
-# ##################################################################
-
-# change working directory
-WORKDIR ${HOME_DIR}
 
 # pyenv install
 ENV PYENV_ROOT ${HOME_DIR}/.pyenv
@@ -100,14 +105,18 @@ RUN source ${HOME_DIR}/.bashrc && \
     pip3 install --no-input --upgrade pip==24.2 setuptools==73.0.0 && \
     pip3 install --no-input cython wheel numpy==1.23.0
 
-# Note 1: this can be reversed later as a last step after all installations are done.
+
 # enabling write permissions for all users, if support is needed for users passed via --user argument of docker run
 RUN chmod -R ugo+rwx ${HOME_DIR}
 
-# Note 2: after all installations are done,
-# it is possible to remove the file /etc/sudoers.d/${USER_NAME} (if that was used above)
+# workdir
+WORKDIR ${WORK_DIR}/${PROJECT_NAME}
 
-# Note 3: in the container, .bashrc or .pyenvrc may need to be sourced to activate the Python environment
-# if it is not being activated automatically.
-# source ${HOME_DIR}/.bashrc
+# Change working directory permission to non-root user
+RUN source ${HOME_DIR}/.bashrc
 
+# Add all files to docker image
+# ADD . ${WORK_DIR}
+
+# RUN cd ${WORK_DIR}/${PROJECT_NAME} && \
+#    ./${SETUP_FIlE}
