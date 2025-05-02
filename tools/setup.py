@@ -361,11 +361,11 @@ def download_tidl_tools_package_11_00_00_00(tools_version, tools_type):
     print(f"INFO: for more info, see version compatibiltiy table: https://github.com/TexasInstruments/edgeai-tidl-tools/blob/master/docs/version_compatibility_table.md")
 
     DOWNLOAD_URLS = {
-        "TDA4VM": f"http://10.24.68.92/OSRT_TOOLS/11_00_00_00/am68pa/tidl_tools{TIDL_TOOLS_TYPE_SUFFIX}.tar.gz",
-        "AM68A": f"http://10.24.68.92/OSRT_TOOLS/11_00_00_00/am68a/tidl_tools{TIDL_TOOLS_TYPE_SUFFIX}.tar.gz",
-        "AM69A": f"http://10.24.68.92/OSRT_TOOLS/11_00_00_00/am69a/tidl_tools{TIDL_TOOLS_TYPE_SUFFIX}.tar.gz",
-        "AM67A": f"http://10.24.68.92/OSRT_TOOLS/11_00_00_00/am67a/tidl_tools{TIDL_TOOLS_TYPE_SUFFIX}.tar.gz",
-        "AM62A": f"http://10.24.68.92/OSRT_TOOLS/11_00_00_00/am62a/tidl_tools{TIDL_TOOLS_TYPE_SUFFIX}.tar.gz",
+        "TDA4VM": f"http://10.24.68.92/OSRT_TOOLS/11_00_00_01/am68pa/tidl_tools{TIDL_TOOLS_TYPE_SUFFIX}.tar.gz",
+        "AM68A": f"http://10.24.68.92/OSRT_TOOLS/11_00_00_01/am68a/tidl_tools{TIDL_TOOLS_TYPE_SUFFIX}.tar.gz",
+        "AM69A": f"http://10.24.68.92/OSRT_TOOLS/11_00_00_01/am69a/tidl_tools{TIDL_TOOLS_TYPE_SUFFIX}.tar.gz",
+        "AM67A": f"http://10.24.68.92/OSRT_TOOLS/11_00_00_01/am67a/tidl_tools{TIDL_TOOLS_TYPE_SUFFIX}.tar.gz",
+        "AM62A": f"http://10.24.68.92/OSRT_TOOLS/11_00_00_01/am62a/tidl_tools{TIDL_TOOLS_TYPE_SUFFIX}.tar.gz",
     }
     download_tidl_tools(TIDL_TOOLS_VERSION_NAME, TIDL_TOOLS_RELEASE_LABEL, TIDL_TOOLS_RELEASE_ID, TARGET_SOCS, TIDL_TOOLS_TYPE_SUFFIX, C7X_FIRMWARE_VERSION,
         DOWNLOAD_URLS=DOWNLOAD_URLS)
