@@ -207,6 +207,9 @@ def main(args=None):
         
         save_file = 'model.onnx'
         save_file = osp.join(cfg.work_dir,save_file)
+
+        if is_model_wrapper(runner.model):
+            runner.model = runner.model.module
         
         torch2onnx(img='../edgeai-mmdetection/demo/demo.jpg', work_dir=cfg.work_dir, save_file=save_file, model_cfg = cfg, \
             deploy_cfg='../edgeai-mmdeploy/configs/mmpose/pose-detection_yolox-pose_onnxruntime_dynamic.py', torch_model = runner.model, device='cpu')
