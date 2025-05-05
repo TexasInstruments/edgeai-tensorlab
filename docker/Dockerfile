@@ -3,13 +3,11 @@
 # but ENV variables do no have this problem
 ARG DOCKER_IMAGE_BASE="ubuntu:22.04"
 ARG DOCKER_REPO_LOCATION
-
-
-# build settings
 ARG PROJECT_NAME="edgeai-modelmaker"
-LABEL TI_IMAGE_SOURCE="https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modelmaker/browse"
 
 FROM ${DOCKER_REPO_LOCATION}${DOCKER_IMAGE_BASE}
+
+LABEL TI_IMAGE_SOURCE="https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modelmaker/browse"
 
 # user
 ENV HOME_DIR=/opt/edgeai
