@@ -7,10 +7,12 @@ ARG DOCKER_REPO_LOCATION
 
 # build settings
 ARG PROJECT_NAME="edgeai-modelmaker"
+LABEL TI_IMAGE_SOURCE="https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modelmaker/browse"
 
 FROM ${DOCKER_REPO_LOCATION}${DOCKER_IMAGE_BASE}
 
-ENV HOME_DIR=/opt
+# user
+ENV HOME_DIR=/opt/edgeai
 ENV HOME ${HOME_DIR}
 
 ENV WORK_DIR ${HOME_DIR}/code
@@ -20,16 +22,7 @@ ENV PYTHONPATH=":${HOME_DIR}/edgeai-modelmaker:$PYTHONPATH"
 #setup file cpu or gpu
 ARG SETUP_FIlE="setup_gpu.sh"
 
-LABEL TI_IMAGE_SOURCE="https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modelmaker/browse"
-
-RUN mkdir -p ${WORK_DIR}
-RUN mkdir -p ${DATA_DIR}
-
-# user
-ARG USER_NAME=edgeai
-# ARG USER_ID=1000
-# ARG USER_GID=$USER_ID
-
+RUN mkdir -p ${WORK_DIR} && mkdir -p ${DATA_DIR}
 # build settings
 ARG DEBIAN_FRONTEND=noninteractive
 # avoid warnings/errors while installing pillow-simd
