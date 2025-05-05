@@ -313,9 +313,9 @@ def download_tidl_tools(TIDL_TOOLS_VERSION_NAME, TIDL_TOOLS_RELEASE_LABEL, TIDL_
     target_soc_version_dict = {}
     for TARGET_SOC in TARGET_SOCS:
         if isinstance(DOWNLOAD_URLS, dict):
-            download_url = DOWNLOAD_URLS[TARGET_SOC]
+            url_name = DOWNLOAD_URLS[TARGET_SOC]
         else:
-            download_url=f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{TIDL_TOOLS_RELEASE_ID}/TIDL_TOOLS/{TARGET_SOC}/tidl_tools{TIDL_TOOLS_TYPE_SUFFIX}.tar.gz"
+            url_name = f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{TIDL_TOOLS_RELEASE_ID}/TIDL_TOOLS/{TARGET_SOC}/tidl_tools{TIDL_TOOLS_TYPE_SUFFIX}.tar.gz"
         #
         install_target_soc_path = os.path.join(tidl_tools_package_path, TARGET_SOC)
         install_path = os.path.join(install_target_soc_path, 'tidl_tools')
@@ -323,8 +323,8 @@ def download_tidl_tools(TIDL_TOOLS_VERSION_NAME, TIDL_TOOLS_RELEASE_LABEL, TIDL_
         shutil.rmtree(install_target_soc_path, ignore_errors=True)
         os.makedirs(install_target_soc_path, exist_ok=True)
 
-        download_and_extract_archive(download_url, install_target_soc_path, install_target_soc_path)
-        assert os.path.exists(install_path), f"ERROR: download_and_extract_archive: {download_url} - failed"
+        download_and_extract_archive(url_name, install_target_soc_path, install_target_soc_path)
+        assert os.path.exists(install_path), f"ERROR: download_and_extract_archive: {url_name} - failed"
 
         os.chdir(install_path)
         os.symlink(os.path.join("..", "..", GCC_ARM_AARCH64_NAME), GCC_ARM_AARCH64_NAME)
