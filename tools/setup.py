@@ -352,12 +352,14 @@ def download_tidl_tools_package_11_00_00_00(tools_version, tools_type):
     TIDL_TOOLS_VERSION_NAME=tools_version
     TIDL_TOOLS_RELEASE_LABEL="r11.0"
     TIDL_TOOLS_RELEASE_ID="11_00_00_00"
-    C7X_FIRMWARE_VERSION="10_01_03_00" #TODO - udpate this for 11.0
-    C7X_FIRMWARE_VERSION_POSSIBLE_UPDATE="10_01_04_00" #TODO - udpate this for 11.0
+    C7X_FIRMWARE_VERSION="11_00_00_00" #TODO - udpate this for 11.0
+    C7X_FIRMWARE_VERSION_POSSIBLE_UPDATE=None #TODO - udpate this for 11.0
     TARGET_SOCS=("TDA4VM", "AM68A", "AM69A", "AM67A", "AM62A")
     TIDL_TOOLS_TYPE_SUFFIX=tools_type
     print(f"INFO: you have chosen to install tidl_tools version:{TIDL_TOOLS_RELEASE_ID} with default SDK firmware version set to:{C7X_FIRMWARE_VERSION}")
-    print(f"INFO: to leverage more features, set advanced_options:c7x_firmware_version while model compialtion and update firmware version in SDK to: {C7X_FIRMWARE_VERSION_POSSIBLE_UPDATE}")
+    if C7X_FIRMWARE_VERSION_POSSIBLE_UPDATE:
+        print(f"INFO: to leverage more features, set advanced_options:c7x_firmware_version while model compialtion and update firmware version in SDK to: {C7X_FIRMWARE_VERSION_POSSIBLE_UPDATE}")
+    #
     print(f"INFO: for more info, see version compatibiltiy table: https://github.com/TexasInstruments/edgeai-tidl-tools/blob/master/docs/version_compatibility_table.md")
 
     DOWNLOAD_URLS = {
@@ -365,7 +367,7 @@ def download_tidl_tools_package_11_00_00_00(tools_version, tools_type):
         "AM68A": f"http://10.24.68.92/OSRT_TOOLS/11_00_00_01/am68a/tidl_tools{TIDL_TOOLS_TYPE_SUFFIX}.tar.gz",
         "AM69A": f"http://10.24.68.92/OSRT_TOOLS/11_00_00_01/am69a/tidl_tools{TIDL_TOOLS_TYPE_SUFFIX}.tar.gz",
         "AM67A": f"http://10.24.68.92/OSRT_TOOLS/11_00_00_01/am67a/tidl_tools{TIDL_TOOLS_TYPE_SUFFIX}.tar.gz",
-        "AM62A": f"http://10.24.68.92/OSRT_TOOLS/11_00_00_01/am62a/tidl_tools{TIDL_TOOLS_TYPE_SUFFIX}.tar.gz",
+        "AM62A": f"http://10.24.68.92/OSRT_TOOLS/10_01_04_01/am62a/tidl_tools{TIDL_TOOLS_TYPE_SUFFIX}.tar.gz", # no update for AM62A in 11.0
     }
     download_tidl_tools(TIDL_TOOLS_VERSION_NAME, TIDL_TOOLS_RELEASE_LABEL, TIDL_TOOLS_RELEASE_ID, TARGET_SOCS, TIDL_TOOLS_TYPE_SUFFIX, C7X_FIRMWARE_VERSION,
         DOWNLOAD_URLS=DOWNLOAD_URLS)
