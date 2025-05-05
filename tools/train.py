@@ -234,8 +234,8 @@ def main(args=None):
             runner.model = runner.model.module
             is_wrapped = True
         example_inputs, example_kwargs = get_input(runner.model, cfg, batch_size=1, to_export=True)
-        runner.model = xmodelopt.prepare_model_for_onnx(orig_model, runner.model
-                                                        , example_inputs, example_kwargs, model_surgery_version=model_surgery, quantization_version=args.quantization, model_surgery_kwargs=model_surgery_kwargs, quantization_kwargs=quantization_kwargs, transformation_dict=transformation_dict, copy_attrs=copy_attrs)
+        # runner.model = xmodelopt.prepare_model_for_onnx(orig_model, runner.model
+        #                                                 , example_inputs, example_kwargs, model_surgery_version=model_surgery, quantization_version=args.quantization, model_surgery_kwargs=model_surgery_kwargs, quantization_kwargs=quantization_kwargs, transformation_dict=transformation_dict, copy_attrs=copy_attrs)
         
         
         torch2onnx(img='../edgeai-mmdetection/demo/demo.jpg', work_dir=cfg.work_dir, save_file=save_file, model_cfg = cfg, \
