@@ -45,7 +45,7 @@ this_dir_path = os.path.dirname(os.path.abspath(__file__))
 repo_parent_path = os.path.abspath(os.path.join(this_dir_path, '../../../../../../'))
 
 edgeai_modelzoo_path = os.path.join(repo_parent_path, 'edgeai-modelzoo')
-www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01'
+www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/10_01_00'
 edgeai_mmdetection_path = os.path.join(repo_parent_path, 'edgeai-mmdetection')
 edgeai_mmdetection_tools_path = os.path.join(edgeai_mmdetection_path, 'tools')
 
@@ -87,12 +87,12 @@ model_urls = {
             'download_path': os.path.join('{download_path}', 'pretrained', 'yolov7_l_lite')
         },
     ],
-    'yolov9_s_lite': [
-        {
-            'download_url': f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/yolov9_s_coco_lite_640x640_20250219_checkpoint.pth',
-            'download_path': os.path.join('{download_path}', 'pretrained', 'yolov9_s_lite')
-        },
-    ],
+    # 'yolov9_s_lite': [
+    #     {
+    #         'download_url': f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/yolov9_s_coco_lite_640x640_20250219_checkpoint.pth',
+    #         'download_path': os.path.join('{download_path}', 'pretrained', 'yolov9_s_lite')
+    #     },
+    # ],
 }
 
 
