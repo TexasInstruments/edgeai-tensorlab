@@ -455,9 +455,9 @@ class BEVSensorsRead():
         lidar2imgs_org = []
         ego2imgs = []
         
-        for cam_name in self.camera_types:
-            intrin    = np.array(data['cams'][cam_name]['cam_intrinsic']).astype(np.float32)
-            lidar2cam = np.array(data['cams'][cam_name]['lidar2sensor']).astype(np.float32)
+        for cam_name,dic in data['cams'].items():
+            intrin    = np.array(dic['cam_intrinsic']).astype(np.float32)
+            lidar2cam = np.array(dic['lidar2sensor']).astype(np.float32)
             cam2lidar = np.linalg.inv(lidar2cam)
 
             sensor2ego, ego2global = \
@@ -575,8 +575,8 @@ class BEVSensorsRead():
             return image_name, info_dict
         else:
             image_name_list = []
-            for cam in self.camera_types:
-                image_name_list.append(data['cams'][cam]['data_path'])
+            for cam, dic in data['cams'].items():
+                image_name_list.append(dic['data_path'])
 
             # save lidar_path, which is also needed for visualization
             info_dict['lidar_path'] = data['lidar_path']

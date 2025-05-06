@@ -35,7 +35,7 @@ import yaml
 from ..core import config_dict
 from .. import utils, preprocess, postprocess, pipelines, datasets, sessions, config_settings, constants
 
-__all__ = ['get_configs_from_file']
+__all__ = ['get_configs_from_file','select_configs_from_file']
 
 
 def pipeline_param_to_config(settings, config_file_or_pipeline_param, work_dir, adjust_config):
@@ -154,7 +154,7 @@ def get_configs_from_file(settings, work_dir, adjust_config):
         #
         with open(config_dict_or_file) as fp:
             configs_dict = yaml.safe_load(fp)
-            assert isinstance(configs_dict, dict), f'config file contnet must be a dict {config_file}'
+            assert isinstance(configs_dict, dict), f'config file contnet must be a dict {config_dict_or_file}'
         #
     elif isinstance(config_dict_or_file, dict):
         configs_dict = config_dict_or_file
