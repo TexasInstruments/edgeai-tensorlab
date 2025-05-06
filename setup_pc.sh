@@ -58,6 +58,8 @@ pip3 install --no-input cython wheel numpy==1.23.0 scipy==1.10 pyyaml tqdm
 CURRENT_WORK_DIR=$(pwd)
 TOOLS_BASE_PATH=${CURRENT_WORK_DIR}/tools
 
+./setup_panadaset.sh
+
 ######################################################################
 if [ -d "${CURRENT_WORK_DIR}/../edgeai-tidl-tools" ]; then
   echo "--------------------------------------------------------------------------------------------------------------"

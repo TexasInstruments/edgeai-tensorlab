@@ -13,13 +13,13 @@ target_device : null
 tensor_bits : 8
 
 # number of frames for inference
-num_frames : 1000 #5000 #10000 #50000
+num_frames : 12 #5000 #10000 #50000
 
 # number of frames to be used for post training quantization / calibration
-calibration_frames : 12 #25 #50
+calibration_frames : 1 #25 #50
 
 # number of iterations to be used for post training quantization / calibration
-calibration_iterations : 12 #25 #50
+calibration_iterations : 1 #25 #50
 
 # runtime_options to be passed to the core session. default: null or a dict
 # eg. (in next line and with preceding spaces to indicate this is a dict entry) accuracy_level : 0
@@ -52,9 +52,8 @@ session_type_dict : {'onnx':'onnxrt', 'tflite':'tflitert', 'mxnet':'tvmdlr'}
 #   examples: ['resnet18.onnx', 'resnet50_v1.tflite'] ['classification'] ['imagenet1k'] ['torchvision'] ['coco']
 #   examples: [cl-0000, od-2020, ss-2580, cl-3090, od-5120, ss-5710, cl-6360, od-8020, od-8200, od-8220, od-8420, ss-8610, kd-7060, 3dod-7100, 6dpose-7200, ss-7618]
 #   examples: [cl-0000, od-2020, cl-6360, od-8200, od-8270, od-8410, ss-8610, ss-8630, ss-8710, ss-8720]
-#   examples: [3dod-7120 (PETR), 3dod-7130 (BEVDet), 3dod-7140 (BEVFormer), 3dod-7150 (FCOS3D), 
-#              3dod-7160, 3dod-7161 (FastBEV_f1), 3dod-7162, 3dod-7163 (FastBEV_f4) ]
-model_selection : null
+#   examples: [3dod-7120 (PETR), 3dod-7130 (BEVDet), 3dod-7140 (BEVFormer), 3dod-7150 (FCOS3D), 3dod-7160, 3dod-7161 (FastBEV)]
+model_selection : '3dod-7161'
 
 # model_shortlist can be a number, which indicates a predefined shortlist, and a fraction of the models will be selected
 # model_shortlist and model_selection are complimentary - they can be used together.
@@ -75,15 +74,15 @@ task_selection : null
 # wild card list to match against runtime name. if null, all runtimes will be considered
 # example: ['onnxrt', 'tflitert', 'tvmdlr']
 # example: ['onnxrt']
-runtime_selection : null
+runtime_selection : 'onnxrt'
 
 # dataset_selection can be a list of dataset categories for which the models will be run
 # set this to null to run all the models
 # example: ['coco']
 # example: ['imagenet', 'coco', 'cocoseg21', 'ade20k', 'cocokpts', 'kitti_lidar_det', 'ti-robokit_semseg_zed1hd', 'ycbv']
 # example: ['nuscenes_frame' (PETR, BEVDet, BEVFormer, FastBEV), 'nuscenes_mv_image' (FCOS3D)]
-dataset_selection : null
-
+# example: ['pandaset_frame' (PETR, BEVDet, BEVFormer, FastBEV), 'pandaset_mv_image' (FCOS3D)]
+dataset_selection : pandaset_frame
 # use TIDL offload to speedup inference
 tidl_offload : True
 
@@ -104,7 +103,7 @@ detection_top_k : 200
 verbose : False
 
 # save detection, segmentation, human pose estimation output
-save_output : False
+save_output : True
 
 # wehther to apply predifened presets based on target_device
 target_device_preset : True
@@ -119,4 +118,4 @@ write_results: True
 additional_models : False
 
 # enable use of experimental models - these model files may not be available in modelzoo in some cases
-experimental_models : False
+experimental_models : True

@@ -67,6 +67,19 @@ def get_configs(settings, work_dir):
         'calibration_dataset': settings.dataset_cache[datasets.DATASET_CATEGORY_NUSCENES_MV_IMAGE]['calibration_dataset'],
         'input_dataset': settings.dataset_cache[datasets.DATASET_CATEGORY_NUSCENES_MV_IMAGE]['input_dataset'],
     }
+    bev_frame_cfg_ps = {
+        'task_type': 'bev_detection',
+        'dataset_category': datasets.DATASET_CATEGORY_PANDASET_FRAME,
+        'calibration_dataset': settings.dataset_cache[datasets.DATASET_CATEGORY_PANDASET_FRAME]['calibration_dataset'],
+        'input_dataset': settings.dataset_cache[datasets.DATASET_CATEGORY_PANDASET_FRAME]['input_dataset'],
+    }
+
+    bev_mv_image_cfg_ps = {
+        'task_type': 'bev_detection',
+        'dataset_category': datasets.DATASET_CATEGORY_PANDASET_MV_IMAGE,
+        'calibration_dataset': settings.dataset_cache[datasets.DATASET_CATEGORY_PANDASET_MV_IMAGE]['calibration_dataset'],
+        'input_dataset': settings.dataset_cache[datasets.DATASET_CATEGORY_PANDASET_MV_IMAGE]['input_dataset'],
+    }
 
     # to define the names of first and last layer for 16 bit conversion
     first_last_layer_3dod_7100 = ''
@@ -157,7 +170,20 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=[(103.530, 116.280, 123.675)], input_scale=[(1.0, 1.0, 1.0)], input_optimization=False),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
                     {'advanced_options:output_feature_16bit_names_list':''}),
-                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/fcos3d/fcos3d_r101_928x1600.onnx'),
+                model_path=f'./models/fcos3d/fcos3d_r101_928x1600.onnx'),
+            postprocess=postproc_transforms.get_transform_fcos3d(),
+            metric=dict(),
+            model_info=dict(metric_reference={'mAP':0.4})
+        ),
+        # for pandaset the transforms are different
+        '3dod-7151':utils.dict_update(bev_mv_image_cfg_ps,
+            task_name='FCOS3D',
+            # pad = (left, top, right, bottom) = (0, 0, 0, 28)
+            preprocess=preproc_transforms.get_transform_fcos3d((1080,1920), (1080,1920), (0, 0, 0, 8), backend='cv2', interpolation=cv2.INTER_CUBIC),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=[(103.530, 116.280, 123.675)], input_scale=[(1.0, 1.0, 1.0)], input_optimization=False),
+                runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
+                    {'advanced_options:output_feature_16bit_names_list':''}),
+                model_path=f'./models/fcos3d/fcos3d_r101_ps_simp.onnx'),
             postprocess=postproc_transforms.get_transform_fcos3d(),
             metric=dict(),
             model_info=dict(metric_reference={'mAP':0.4})
@@ -182,10 +208,10 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'mAP':0.4})
         ),
         # 3dod-7161: FastBEV w/ NMS without temporal frame
-        '3dod-7161':utils.dict_update(bev_frame_cfg,
+        '3dod-7161':utils.dict_update(bev_frame_cfg_ps,
             task_name='FastBEV_f1',
             # crop = (left, top, width, height)
-            preprocess=preproc_transforms.get_transform_bev_fastbev((900, 1600), (396, 704), (0, 70, 704, 256), backend='cv2', interpolation=cv2.INTER_CUBIC),
+            preprocess=preproc_transforms.get_transform_bev_fastbev((1080,1920), (396,704), (0, 70, 704, 256), backend='cv2', interpolation=cv2.INTER_CUBIC),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=[(123.675, 116.280, 103.530)], 
                                                                       input_scale=[(0.017125, 0.017507, 0.017429)], input_optimization=False,
                                                                       deny_list_from_start_end_node = {}),
