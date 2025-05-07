@@ -248,7 +248,25 @@ from scipy.spatial import transform
 from pyquaternion import Quaternion
 from ..utils.config_utils.misc_utils import inverse_sigmoid as inverse_sigmoid
 
-from nuscenes.eval.common.utils import quaternion_yaw
+
+# pulled exactly from the nuscenes official code for installation on evm
+# from nuscenes.eval.common.utils import quaternion_yaw 
+def quaternion_yaw(q: Quaternion) -> float:
+    """
+    Calculate the yaw angle from a quaternion.
+    Note that this only works for a quaternion that represents a box in lidar or global coordinate frame.
+    It does not work for a box in the camera frame.
+    :param q: Quaternion of interest.
+    :return: Yaw angle in radians.
+    """
+
+    # Project into xy plane.
+    v = np.dot(q.rotation_matrix, np.array([1, 0, 0]))
+
+    # Measure yaw using arctan.
+    yaw = np.arctan2(v[1], v[0])
+
+    return yaw
 
 
 _camera_types = [
@@ -437,9 +455,9 @@ class BEVSensorsRead():
         lidar2imgs_org = []
         ego2imgs = []
         
-        for cam_name in self.camera_types:
-            intrin    = np.array(data['cams'][cam_name]['cam_intrinsic']).astype(np.float32)
-            lidar2cam = np.array(data['cams'][cam_name]['lidar2sensor']).astype(np.float32)
+        for cam_name,dic in data['cams'].items():
+            intrin    = np.array(dic['cam_intrinsic']).astype(np.float32)
+            lidar2cam = np.array(dic['lidar2sensor']).astype(np.float32)
             cam2lidar = np.linalg.inv(lidar2cam)
 
             sensor2ego, ego2global = \
@@ -557,8 +575,8 @@ class BEVSensorsRead():
             return image_name, info_dict
         else:
             image_name_list = []
-            for cam in self.camera_types:
-                image_name_list.append(data['cams'][cam]['data_path'])
+            for cam, dic in data['cams'].items():
+                image_name_list.append(dic['data_path'])
 
             # save lidar_path, which is also needed for visualization
             info_dict['lidar_path'] = data['lidar_path']

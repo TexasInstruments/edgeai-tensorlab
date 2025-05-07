@@ -40,7 +40,9 @@ TARGET_MACHINE=pc
 # settigns model_shortlist will cause only selected models to be run
 # in ./configs folder, model configs have a model_shortlist associated with them
 # in this script, if --model_shortlist is set to 120, only those models with model_shortlist values <= 120 will run
+echo 'model_shortlist:'$MODEL_SHORTLIST
 MODEL_SHORTLIST=${MODEL_SHORTLIST:-120}
+echo 'model_shortlist:'$MODEL_SHORTLIST
 
 
 echo "TARGET_SOC:     ${TARGET_SOC}"
@@ -55,7 +57,8 @@ source ./run_set_env.sh ${TARGET_SOC} ${TARGET_MACHINE}
 SETTINGS_FILE=settings_import_on_pc.yaml
 
 echo "==================================================================="
-python3 ./scripts/benchmark_modelzoo.py ${SETTINGS_FILE} --target_device ${TARGET_SOC} --model_shortlist ${MODEL_SHORTLIST} "${@:2}"
+python3 ./scripts/benchmark_modelzoo.py ${SETTINGS_FILE} --target_device ${TARGET_SOC} 
+# --model_shortlist ${MODEL_SHORTLIST} "${@:2}"
 python3 ./scripts/generate_report.py ${SETTINGS_FILE}
 echo "==================================================================="
 

@@ -2024,10 +2024,21 @@ class BEVImageSave():
     def visualize_LiDAR_detections(self, corners_3d, labels_3d, info_dict):
         # Read LiDAR file
         with open(info_dict['lidar_path'], 'rb') as f:
-            raw_lidar = f.read()
-        lidar_points = np.frombuffer(raw_lidar, dtype=np.float32)
-        lidar_points = lidar_points.reshape(-1, self.use_dim)
-        lidar_points = lidar_points[:, [0,1,2]]
+            if info_dict['lidar_path'].endswith('.pkl'):
+                self.use_dim = 4
+                import pickle as pkl
+                lidar_points = pkl.load(f).values[:, :self.use_dim]
+                lidar_points = lidar_points[:,:3].astype(np.float32)
+                lidar2ego = info_dict['lidar2ego']
+                ego2global = info_dict['ego2globals'][0][0]
+                global2lidar = np.linalg.inv(ego2global @ lidar2ego)
+                lidar_points = lidar_points @ global2lidar[:3, :3].T + global2lidar[:3, 3]
+                pass
+            else:
+                raw_lidar = f.read()
+                lidar_points = np.frombuffer(raw_lidar, dtype=np.float32)
+                lidar_points = lidar_points.reshape(-1, self.use_dim)
+                lidar_points = lidar_points[:, [0,1,2]]
 
         lidar_img = np.zeros(self.lidar_image_size, dtype=np.uint8)
         for point in lidar_points:

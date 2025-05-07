@@ -328,7 +328,7 @@ def load_nuscenes(path):
 
 # https://github.com/open-mmlab/mmdetection3d/
 # From get_available_scenes()
-def get_available_scenes(nusc):
+def get_available_scenes(nusc: NuScenes):
     """Get available scenes from the input nuscenes class.
 
     Given the raw data, get the information of available scenes for
