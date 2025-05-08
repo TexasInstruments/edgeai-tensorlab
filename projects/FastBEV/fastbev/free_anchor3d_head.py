@@ -11,7 +11,7 @@ from mmdet3d.registry import MODELS
 from mmdet3d.models.dense_heads import FreeAnchor3DHead
 
 from .box3d_nms import box3d_multiclass_scale_nms, box3d_multiclass_scale_nms_python, \
-                       box3d_multiclass_nms, box3d_multiclass_nms_python
+                       box3d_multiclass_nms, box3d_multiclass_nms_python, box3d_multiclass_nms_python_simple
 
 @MODELS.register_module()
 class CustomFreeAnchor3DHead(FreeAnchor3DHead):
@@ -329,7 +329,9 @@ class CustomFreeAnchor3DHead(FreeAnchor3DHead):
         #    padding = mlvl_scores.new_zeros(mlvl_scores.shape[0], 1)
         #    mlvl_scores = torch.cat([mlvl_scores, padding], dim=1)
 
-        if cfg.get('use_scale_nms', False):
+        # For onnx export, we use always normal multi-class NMS
+        # regardless of use_scale_nms
+        if 0: #cfg.get('use_scale_nms', False):
             mlvl_bboxes_for_nms = input_meta['box_type_3d'](mlvl_bboxes, box_dim=self.box_code_size).bev
         else:
             mlvl_bboxes_for_nms = xywhr2xyxyr(input_meta['box_type_3d'](
@@ -338,12 +340,14 @@ class CustomFreeAnchor3DHead(FreeAnchor3DHead):
         #return mlvl_bboxes, mlvl_bboxes_for_nms, mlvl_scores, mlvl_dir_scores
 
         score_thr = cfg.get('score_thr', 0)
-        if cfg.get('use_scale_nms', False):
+        if 0: # cfg.get('use_scale_nms', False):
             results = box3d_multiclass_scale_nms_python(mlvl_bboxes, mlvl_bboxes_for_nms,
                                                  mlvl_scores, score_thr, cfg.max_num,
                                                  cfg, mlvl_dir_scores)
         else:
-            results = box3d_multiclass_nms_python(mlvl_bboxes, mlvl_bboxes_for_nms,
+            # box3d_multiclass_nms_python_simple is actually single-class NMS
+            # But, with TIDL offload, we can enable multi-class NMS with proper metaarch configs.
+            results = box3d_multiclass_nms_python_simple(mlvl_bboxes, mlvl_bboxes_for_nms,
                                            mlvl_scores, score_thr, cfg.max_num,
                                            cfg, mlvl_dir_scores)
 

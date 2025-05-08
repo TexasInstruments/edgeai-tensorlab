@@ -12,6 +12,6 @@ from .waymo_metric import WaymoMetric  # noqa: F401,F403
 from . import pandaset_metric_utils
 
 __all__ = [
-    'KittiMetric', 'NuScenesMetric', 'IndoorMetric', 'LyftMetric', 'SegMetric',
+    'KittiMetric', 'NuScenesMetric', 'PandaSetMetric', 'IndoorMetric', 'LyftMetric', 'SegMetric',
     'InstanceSegMetric', 'WaymoMetric', 'PanopticSegMetric'
 ]

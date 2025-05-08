@@ -216,11 +216,19 @@ class BEVFormerEncoder(TransformerLayerSequence):
             prev_bev = prev_bev.permute(1, 0, 2)
             prev_bev = torch.stack(
                 [prev_bev, bev_query], 1).reshape(bs*2, len_bev, -1)
-            hybird_ref_2d = torch.stack([shift_ref_2d, ref_2d], 1).reshape(
-                bs*2, len_bev, num_bev_level, 2)
+            if torch.onnx.is_in_onnx_export():
+                hybird_ref_2d = torch.cat([shift_ref_2d, ref_2d], 1).reshape(
+                    bs*2, len_bev, num_bev_level, 2)
+            else:
+                hybird_ref_2d = torch.stack([shift_ref_2d, ref_2d], 1).reshape(
+                    bs*2, len_bev, num_bev_level, 2)
         else:
-            hybird_ref_2d = torch.stack([ref_2d, ref_2d], 1).reshape(
-                bs*2, len_bev, num_bev_level, 2)
+            if torch.onnx.is_in_onnx_export():
+                hybird_ref_2d = torch.cat([ref_2d, ref_2d], 1).reshape(
+                    bs*2, len_bev, num_bev_level, 2)
+            else: 
+                hybird_ref_2d = torch.stack([ref_2d, ref_2d], 1).reshape(
+                    bs*2, len_bev, num_bev_level, 2)
 
         for lid, layer in enumerate(self.layers):
             output = layer(

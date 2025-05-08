@@ -1141,7 +1141,7 @@ class BEVFormer_export_model(nn.Module):
         shift_xy =  torch.tensor([[shift_x[0],shift_y[0]]]).to(torch.float32)
 
         #return ref_3d, ref_2d, reference_points_cam, bev_mask, torch.tensor([shift_y[0],shift_x[0]]), can_bus
-        return reference_points_cam, bev_mask_count, torch.stack(bev_valid_indices, dim=0), \
+        return reference_points_cam, bev_mask_count, torch.cat(bev_valid_indices, dim=0), \
             torch.Tensor(bev_valid_indices_count).to(torch.int64), shift_xy, can_bus
 
 

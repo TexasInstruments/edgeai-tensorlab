@@ -6,9 +6,13 @@ point_cloud_range = [-50, -50, -5, 50, 50, 3]
 # point_cloud_range = [-50, -50.8, -5, 50, 49.2, 3]
 # For nuScenes we usually do 10-class detection
 class_names = [
-    'Car','Temporary Construction Barriers',
+    'Car','Bus','Bicycle','Pedestrian','Temporary Construction Barriers'
 ]
-class_mapping = [0]+[1]*26
+class_mapping = [
+    0,1,1,3,1,4,2,4,4,
+    4,1,1,2,2,1,1,2,4,
+    4,1,2,1,4,3,4,4,1,
+]
 metainfo = dict(classes=class_names, class_mapping=class_mapping) # full
 dataset_type = 'PandaSetDataset'
 data_root = 'data/pandaset/'

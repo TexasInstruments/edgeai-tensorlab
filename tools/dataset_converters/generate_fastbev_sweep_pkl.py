@@ -7,6 +7,7 @@ import numpy as np
 from pyquaternion import Quaternion
 import argparse
 import os
+import copy
 
 from mmdet3d.datasets.utils import convert_quaternion_to_matrix
 
@@ -215,7 +216,7 @@ def add_adj_info_pandaset(root_path, version):
                         #adj_list[cam].append(dict(data_path=data_path))
                         adj_list[cam] = dict(data_path=data_path)
 
-                    sweeps.append(dict(timestamp=np.int64(adj_info['timestamp']*1e+6), cams=adj_list,
+                    sweeps.append(dict(timestamp=np.int64(adj_info['timestamp']*1e+6), cams=copy.deepcopy(adj_list),
                                        ego2global=adj_info['ego2global']))
                     count += 1
 

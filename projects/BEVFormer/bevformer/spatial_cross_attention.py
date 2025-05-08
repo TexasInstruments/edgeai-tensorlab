@@ -152,7 +152,9 @@ class SpatialCrossAttention(BaseModule):
             # Need to create bev_valid_indices for later use
             bev_valid_indices = torch.cat(indexes)
         else:
-            indexes = list(bev_valid_indices)
+            # bev_valid_indecse : [150000]
+            # indexes : list of six [2500] tensors
+            indexes = list(torch.split(bev_valid_indices, num_query, dim=0))
             indexes_count = bev_valid_indices_count
         max_len = max([len(each) for each in indexes])
 
@@ -226,17 +228,15 @@ class SpatialCrossAttention(BaseModule):
 
             # Just reshape bev_valid_indices, instead concat squeezed indexes again
             # bev_valid_indices should be type cated to int64 for ScatterND
-            all_indices  = bev_valid_indices.to(torch.int64).reshape(-1)
+            all_indices = bev_valid_indices.to(torch.int64)
+            all_queries = queries.view(-1, self.embed_dims)
+            """
             for i, index_query_per_img in enumerate(indexes):
-                # Note: When len(index_query_per_img) == 2500 (i.e. max query num),
-                #       we don't need slicing like  queries[i, :len(index_query_per_img)]
-                #slots[index_query_per_img] += queries[i, :len(index_query_per_img)]
                 if i == 0:
-                    #all_indices = index_query_per_img
                     all_queries = queries[i]
                 else:
-                    #all_indices = torch.cat((all_indices, index_query_per_img), dim = 0)
                     all_queries = torch.cat((all_queries, queries[i]), dim = 0)
+            """
 
             slots.index_put_(tuple([all_indices]), all_queries, accumulate=True)
             slots = slots[:-1].unsqueeze(0)
