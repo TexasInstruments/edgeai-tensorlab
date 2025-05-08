@@ -162,6 +162,19 @@ def get_configs(settings, work_dir):
             metric=dict(),
             model_info=dict(metric_reference={'mAP':0.4})
         ),
+        # 3dod-7141: BEVFormer for pandaset
+        '3dod-7141':utils.dict_update(bev_frame_cfg_ps,
+            task_name='BEVFormer',
+            # pad = (left, top, right, bottom) = (0, 0, 0, 30)
+            preprocess=preproc_transforms.get_transform_bev_bevformer((1080, 1920), (540, 960), (0, 0, 0, 4), backend='cv2', interpolation=cv2.INTER_CUBIC),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=[(123.675, 116.280, 103.530)], input_scale=[(0.017125, 0.017507, 0.017429)], input_optimization=False),
+                runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
+                    {'advanced_options:output_feature_16bit_names_list':''}),
+                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/bevformer/bevformer_tiny_plus_pandaset_544x960_20250507.onnx'),
+            postprocess=postproc_transforms.get_transform_bev_detection_base(),
+            metric=dict(),
+            model_info=dict(metric_reference={'mAP':0.4})
+        ),
         # 3dod-7150: FCOS3D (bev_mv_image_cfg)
         '3dod-7150':utils.dict_update(bev_mv_image_cfg,
             task_name='FCOS3D',
