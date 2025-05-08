@@ -19,7 +19,8 @@ def export_PETR(model, inputs=None, data_samples=None,
 
     onnxModel = PETR_export_model(model.img_backbone,
                                   model.img_neck,
-                                  model.pts_bbox_head)
+                                  model.pts_bbox_head,
+                                  model.imgfeat_size)
     if not quantized_model:
         onnxModel.eval()
 

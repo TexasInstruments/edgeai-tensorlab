@@ -20,7 +20,8 @@ class PETR_export_model(nn.Module):
     def __init__(self,
                  img_backbone,
                  img_neck,
-                 pts_bbox_head):
+                 pts_bbox_head,
+                 imgfeat_size):
         super().__init__()
 
         #self.img_backbone   = img_backbone
@@ -44,8 +45,8 @@ class PETR_export_model(nn.Module):
         self.B              = 1
         self.N              = 6
         self.C              = 256
-        self.H              = 20
-        self.W              = 50
+        self.H              = imgfeat_size[0]
+        self.W              = imgfeat_size[1]
 
         self.position_level = self.pts_bbox_head.position_level
         self.with_multiview = self.pts_bbox_head.with_multiview
