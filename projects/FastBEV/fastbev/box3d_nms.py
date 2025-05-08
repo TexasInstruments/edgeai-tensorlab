@@ -198,6 +198,7 @@ def box3d_multiclass_nms(
 
         _scores = mlvl_scores[cls_inds, i]
         _bboxes_for_nms = mlvl_bboxes_for_nms[cls_inds, :]
+        _mlvl_bboxes = mlvl_bboxes[cls_inds, :]
 
         if cfg.use_rotate_nms:
             nms_func = nms_bev
@@ -205,7 +206,6 @@ def box3d_multiclass_nms(
             nms_func = nms_normal_bev
 
         selected = nms_func(_bboxes_for_nms, _scores, cfg.nms_thr)
-        _mlvl_bboxes = mlvl_bboxes[cls_inds, :]
         bboxes.append(_mlvl_bboxes[selected])
         scores.append(_scores[selected])
         cls_label = mlvl_bboxes.new_full((len(selected), ),

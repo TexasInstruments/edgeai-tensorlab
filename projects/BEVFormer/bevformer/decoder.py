@@ -112,7 +112,6 @@ class DetectionTransformerDecoder(TransformerLayerSequence):
                 #    torch.cat((tmp[..., :2], tmp[..., 4:5]), dim=-1) + inverse_sigmoid(reference_points[..., :3])
                 new_reference_points = \
                     torch.cat((tmp[..., :2], tmp[..., 4:5]), dim=-1) + inverse_sigmoid(reference_points[..., :3])
-
                 new_reference_points = new_reference_points.sigmoid()
                 reference_points = new_reference_points.detach()
 
