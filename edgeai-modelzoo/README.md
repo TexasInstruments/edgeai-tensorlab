@@ -59,14 +59,13 @@ Pretrained models are located in the **[models](models)** folder. Following are 
 #### Notes on accuracy measurements
 - Note: Since there are multiple models and devices, our report uses accuracy measured using **only on 1000 frames** to reduce the benchmark time. It is likely that this reported accuracy using smaller set of frames is similar to the accuracy on the entire validation set, but may not be exactly same. For accurate measurements, it is recommended to use the entire validation set.
 - Note: Measuring accuracy of object detection models requires to use a low detection threshold, that is not suitable for real-time inference. Because, in real inference, we are only interested in high confidence detections - including too many unnecessary low confidence detections also will affect inference time. Hence, we have separate report for performance/inference time and accuracy.
-- "Model Selection Tool - Performance Visualization" uses a high performance setting that focuses on reporting the best inference time. 
-- However, the report in "Model Compilation / Accuracy report" focuses on a setting that is suitable for accuracy measurement.
+
 
 <hr>
 
 ### Model Selection Tool - Performance Visualization
-
-[Edge AI Studio: Model Selection Tool](https://www.ti.com/tool/EDGE-AI-STUDIO) - Understand the performance statistics such as FPS, Latency, Accuracy & DDR bandwidth of models in the Model Zoo. Find a model that best meets your performance and accuracy goals on TI Processor from TI Model Zoo.
+- [Edge AI Studio: Model Selection Tool](https://www.ti.com/tool/EDGE-AI-STUDIO) - Understand the performance statistics such as FPS, Latency, Accuracy & DDR bandwidth of models in the Model Zoo. Find a model that best meets your performance and accuracy goals on TI Processor from TI Model Zoo.
+- Note: The model compilation for this section here in "Model Selection Tool - Performance Visualization" uses a setting that focuses on getting the best inference time. This is equivalent to setting detection_threshold to 0.3 and detection_top_k to 200 in edgeai-benchmark/settings_base.yaml
 
 
 <hr>
@@ -74,9 +73,8 @@ Pretrained models are located in the **[models](models)** folder. Following are 
 
 
 ### Model Compilation / Accuracy report
-
-[See the accuracy report, with measurements on PC emulation](./reports/accuracy_report_20250307-161945_pc.md) and the corresponding [csv file](./reports/accuracy_report_20250307-161945_pc.csv)
-
+- [See the accuracy report, with measurements on PC emulation](./reports/accuracy_report_20250310-190344_pc.md) and the corresponding [csv file](./reports/accuracy_report_20250310-190344_pc.csv)
+- Note: The model compilation for this report here, in "Model Compilation / Accuracy report" focuses on a setting that is suitable for accuracy measurement. This is equivalent to setting detection_threshold to 0.05 and detection_top_k to 500 in edgeai-benchmark/settings_base.yaml
 
 <hr>
 
