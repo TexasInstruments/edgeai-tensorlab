@@ -262,32 +262,32 @@ from edgeai_benchmark import datasets
 # TODO modify these to configurable
 PandaSetNameMapping = {
     'Car':'Car', 
-    'Semi-truck':'Bus', 
-    'Other Vehicle - Construction Vehicle':'Bus', 
+    'Semi-truck':'Temporary Construction Barriers', 
+    'Other Vehicle - Construction Vehicle':'Temporary Construction Barriers', 
     'Pedestrian with Object':'Pedestrian', 
-    'Train':'Bus', 
+    'Train':'Temporary Construction Barriers', 
     'Animals - Bird':'Temporary Construction Barriers', 
-    'Bicycle':'Bicycle', 
+    'Bicycle':'Temporary Construction Barriers', 
     'Rolling Containers':'Temporary Construction Barriers', 
     'Pylons':'Temporary Construction Barriers', 
     'Signs':'Temporary Construction Barriers', 
-    'Emergency Vehicle':'Bus', 
-    'Towed Object':'Bus', 
-    'Personal Mobility Device':'Bicycle', 
-    'Motorcycle':'Bicycle', 
-    'Tram / Subway':'Bus', 
-    'Other Vehicle - Uncommon':'Bus', 
-    'Other Vehicle - Pedicab':'Bicycle', 
+    'Emergency Vehicle':'Temporary Construction Barriers', 
+    'Towed Object':'Temporary Construction Barriers', 
+    'Personal Mobility Device':'Temporary Construction Barriers', 
+    'Motorcycle':'Temporary Construction Barriers', 
+    'Tram / Subway':'Temporary Construction Barriers', 
+    'Other Vehicle - Uncommon':'Temporary Construction Barriers', 
+    'Other Vehicle - Pedicab':'Temporary Construction Barriers', 
     'Temporary Construction Barriers':'Temporary Construction Barriers', 
     'Animals - Other':'Temporary Construction Barriers', 
-    'Bus':'Bus', 
-    'Motorized Scooter':'Bicycle', 
-    'Pickup Truck':'Bus', 
+    'Bus':'Temporary Construction Barriers', 
+    'Motorized Scooter':'Temporary Construction Barriers', 
+    'Pickup Truck':'Temporary Construction Barriers', 
     'Road Barriers':'Temporary Construction Barriers', 
     'Pedestrian':'Pedestrian', 
     'Construction Signs':'Temporary Construction Barriers', 
     'Cones':'Temporary Construction Barriers', 
-    'Medium-sized Truck':'Bus'
+    'Medium-sized Truck':'Temporary Construction Barriers'
 }
 
 
@@ -303,17 +303,17 @@ ErrNameMapping = {
 # FCOS3D, FastBEV
 class_to_name_type= {
     0: 'Car',
-    1: 'Bus',
-    2: 'Bicycle', 
-    3: 'Pedestrian',
-    4: 'Temporary Construction Barriers'
+    1: 'Pedestrian',
+    2: 'Bus', 
+    # 3: 'Pedestrian',
+    # 4: 'Temporary Construction Barriers'
 }
 
 
 class PandasetDatasetBase:
     AVAILABLE_VERSIONS: dict[str, list[str]] ={
         'v1.0-full':None,
-        'v1.0-mini':['001','002','003'],
+        'v1.0-mini':['001','003'],
     }
     def __init__(self, path, version):
         assert version in self.AVAILABLE_VERSIONS, \
@@ -608,8 +608,8 @@ class PandaSetDataset(DatasetBase):
 
             self.DefaultAttribute = {
                 'Car':'vehicle.Parked',
-                'Bus':'vehicle.Parked',
-                'Bicycle':'vehicle.Parked',
+                # 'Bus':'vehicle.Parked',
+                # 'Bicycle':'vehicle.Parked',
                 'Pedestrian':'pedestrian.Standing',
                 'Temporary Construction Barriers':'None'
             }
@@ -629,7 +629,7 @@ class PandaSetDataset(DatasetBase):
     def create_pandaset_infos(self, read_anno=True, split_folder='train', version='v1.0-mini', max_sweeps=10):
         metadata = dict(version=version)
         if split_folder == 'train':
-            train_scenes = ['001','002']
+            train_scenes = ['001']
             available_scenes = get_available_scenes(self.ps)
             available_scene_names = [s['name'] for s in available_scenes]
             # filter existing scenes.
