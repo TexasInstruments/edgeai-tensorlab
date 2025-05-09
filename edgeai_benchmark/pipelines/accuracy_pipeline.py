@@ -250,7 +250,7 @@ class AccuracyPipeline(BasePipeline):
         }
         if self.settings.target_machine == constants.TARGET_MACHINE_EVM:
             self.infer_stats_dict.update({
-                #'infer_time_invoke_ms': invoke_time * constants.MILLI_CONST / num_frames,
+                'infer_time_invoke_ms': invoke_time * constants.MILLI_CONST / num_frames,
                 'infer_time_core_ms': core_time * constants.MILLI_CONST / num_frames,
                 'infer_time_subgraph_ms': subgraph_time * constants.MILLI_CONST / num_frames,
                 'ddr_transfer_mb': (ddr_transfer / num_frames_ddr / constants.MEGA_CONST) if num_frames_ddr > 0 else 0
@@ -465,7 +465,7 @@ class AccuracyPipeline(BasePipeline):
         }
         if self.settings.target_machine == constants.TARGET_MACHINE_EVM:
             self.infer_stats_dict.update({
-                #'infer_time_invoke_ms': invoke_time * constants.MILLI_CONST / num_frames,
+                'infer_time_invoke_ms': invoke_time * constants.MILLI_CONST / num_frames,
                 'infer_time_core_ms': core_time * constants.MILLI_CONST / num_frames,
                 'infer_time_subgraph_ms': subgraph_time * constants.MILLI_CONST / num_frames,
                 'ddr_transfer_mb': (ddr_transfer / num_frames_ddr / constants.MEGA_CONST) if num_frames_ddr > 0 else 0
