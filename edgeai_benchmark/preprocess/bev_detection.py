@@ -586,13 +586,13 @@ class BEVSensorsRead():
 
 
 class GetPETRGeometry():
-    def __init__(self, crop):
+    def __init__(self, crop, featsize):
         # Params needed to generate coords3d: How make them configurable?
         # Batch size
         self.B = 1
         self.C              = 256
-        self.H              = 20
-        self.W              = 50
+        self.H              = featsize[0]
+        self.W              = featsize[1]
 
         self.position_level = 0
         self.with_multiview = True
