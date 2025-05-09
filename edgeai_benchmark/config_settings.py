@@ -202,8 +202,8 @@ class ConfigSettings(core.ConfigRuntimeOptions):
         self.param_template_file = None
         # auto generate code for C7x DSP - can be used via tvm.
         self.c7x_codegen = False
-        # additional models to test tvm backend
-        self.c7x_codegen_models = False
+        # enable use of external models - provide path  in this option
+        self.external_models_path = None
 
     def basic_settings(self):
         '''this only returns the basic settings.

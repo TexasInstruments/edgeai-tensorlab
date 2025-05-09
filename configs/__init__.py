@@ -92,9 +92,9 @@ def get_configs(settings, work_dir):
         pipeline_configs.update(stereo_disparity_experimental.get_configs(settings, work_dir))
     #
 
-    if settings.c7x_codegen_models:
-        from . import tvm_models
-        pipeline_configs.update(tvm_models.get_configs(settings, work_dir))
+    if settings.external_models_path:
+        external_models_configs = utils.import_file_folder(settings.external_models_path)
+        pipeline_configs.update(external_models_configs.get_configs(settings, work_dir))
     #
 
     return pipeline_configs
