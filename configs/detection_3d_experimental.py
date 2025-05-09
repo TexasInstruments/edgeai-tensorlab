@@ -115,8 +115,8 @@ def get_configs(settings, work_dir):
         # 3dod-7120: PETR
         '3dod-7120':utils.dict_update(bev_frame_cfg,
             task_name='PETRv1',
-            # To double check image param changes due to scaling and cropping
-            preprocess=preproc_transforms.get_transform_bev_petr((900, 1600), (450, 800), (0, 130, 800, 320), backend='cv2', interpolation=cv2.INTER_CUBIC),
+            # crop = (left, top, width, height)
+            preprocess=preproc_transforms.get_transform_bev_petr((900, 1600), (450, 800), (0, 130, 800, 320), featsize=(20, 50), backend='cv2', interpolation=cv2.INTER_CUBIC),
             # Check RGB vs BGR
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=[(103.530, 116.280, 123.675)], input_scale=[(0.017429, 0.017507, 0.017125)], input_optimization=False,
                                                                         deny_list_from_start_end_node = {'/pts_bbox_head/Concat_102':None,
@@ -131,7 +131,32 @@ def get_configs(settings, work_dir):
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
                     {'advanced_options:output_feature_16bit_names_list':''},
                     {'advanced_options:max_num_subgraph_nodes':300}),
-                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/petr/edgeai_petrv1_vovnet_p4_320x800.onnx'),
+                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/petr/petrv1_plus_vovnet_320x800_20250402.onnx'),
+            postprocess=postproc_transforms.get_transform_bev_detection_base(),
+            metric=dict(),
+            model_info=dict(metric_reference={'mAP':0.4})
+        ),
+        # 3dod-7121: PETR for pandaset
+        '3dod-7121':utils.dict_update(bev_frame_cfg_ps,
+
+            task_name='PETRv1',
+            # crop = (left, top, width, height)
+            preprocess=preproc_transforms.get_transform_bev_petr((1080, 1920), (540, 960), (0, 188, 960, 352), featsize=(22, 60), backend='cv2', interpolation=cv2.INTER_CUBIC),
+            # Check RGB vs BGR
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=[(103.530, 116.280, 123.675)], input_scale=[(0.017429, 0.017507, 0.017125)], input_optimization=False,
+                                                                        deny_list_from_start_end_node = {'/pts_bbox_head/Concat_102':None,
+                                                                                                         '/pts_bbox_head/Concat_101':None,
+                                                                                                         '/pts_bbox_head/transformer/Transpose_2':'/pts_bbox_head/transformer/Transpose_2',
+                                                                                                         '/pts_bbox_head/ScatterND_6':'/pts_bbox_head/Unsqueeze_164',
+                                                                                                         '/pts_bbox_head/ScatterND_12':'/pts_bbox_head/Unsqueeze_165',
+                                                                                                         '/pts_bbox_head/ScatterND_18':'/pts_bbox_head/Unsqueeze_166',
+                                                                                                         '/pts_bbox_head/ScatterND_24':'/pts_bbox_head/Unsqueeze_167',
+                                                                                                         '/pts_bbox_head/ScatterND_30':'/pts_bbox_head/Unsqueeze_168',
+                                                                                                         '/pts_bbox_head/ScatterND_36':'/pts_bbox_head/Unsqueeze_169'}),
+                runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
+                    {'advanced_options:output_feature_16bit_names_list':''},
+                    {'advanced_options:max_num_subgraph_nodes':300}),
+                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/pandaset/petr/petrv1_plus_pandaset_vovnet_352x960_20250509.onnx'),
             postprocess=postproc_transforms.get_transform_bev_detection_base(),
             metric=dict(),
             model_info=dict(metric_reference={'mAP':0.4})
@@ -170,7 +195,7 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=[(123.675, 116.280, 103.530)], input_scale=[(0.017125, 0.017507, 0.017429)], input_optimization=False),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
                     {'advanced_options:output_feature_16bit_names_list':''}),
-                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/bevformer/bevformer_tiny_plus_pandaset_544x960_20250507.onnx'),
+                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/pandaset/bevformer/bevformer_tiny_plus_pandaset_544x960_20250507.onnx'),
             postprocess=postproc_transforms.get_transform_bev_detection_base(),
             metric=dict(),
             model_info=dict(metric_reference={'mAP':0.4})
@@ -183,7 +208,7 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=[(103.530, 116.280, 123.675)], input_scale=[(1.0, 1.0, 1.0)], input_optimization=False),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
                     {'advanced_options:output_feature_16bit_names_list':''}),
-                model_path=f'./models/fcos3d/fcos3d_r101_928x1600.onnx'),
+                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/fcos3d/fcos3d_plus_r101_928x1600_20250402.onnx'),
             postprocess=postproc_transforms.get_transform_fcos3d(),
             metric=dict(),
             model_info=dict(metric_reference={'mAP':0.4})
@@ -196,7 +221,7 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=[(103.530, 116.280, 123.675)], input_scale=[(1.0, 1.0, 1.0)], input_optimization=False),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
                     {'advanced_options:output_feature_16bit_names_list':''}),
-                model_path=f'./models/fcos3d/fcos3d_r101_ps_simp.onnx'),
+                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/pandaset/fcos3d/fcos3d_plus_pandaset_r101_928x1600_20250509.onnx'),
             postprocess=postproc_transforms.get_transform_fcos3d(),
             metric=dict(),
             model_info=dict(metric_reference={'mAP':0.4})

@@ -128,7 +128,7 @@ class PreProcessTransforms(utils.TransformsCompose):
         return transforms_list
     """
 
-    def get_transform_bev_petr(self, imsize=256, resize=256, crop=224, data_layout=constants.NCHW, reverse_channels=False,
+    def get_transform_bev_petr(self, imsize=256, resize=256, crop=224, featsize=(20, 50), data_layout=constants.NCHW, reverse_channels=False,
                         backend='cv2', interpolation=cv2.INTER_AREA, resize_with_pad=False, pad_color=0):
         transforms_list = [
             BEVSensorsRead(imsize, resize, crop),
@@ -136,7 +136,7 @@ class PreProcessTransforms(utils.TransformsCompose):
             ImageResize(resize, interpolation=interpolation, resize_with_pad=resize_with_pad, pad_color=pad_color),
             ImageCrop(crop),
             ImageToNPTensor4D(data_layout=data_layout),
-            GetPETRGeometry(crop)
+            GetPETRGeometry(crop, featsize)
         ]
 
         transforms = PreProcessTransforms(None, transforms_list,
