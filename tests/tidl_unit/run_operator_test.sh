@@ -38,7 +38,7 @@ fi
 tools_path="/home/tidl/pranav/sdk/ti-processor-sdk-rtos-j721s2-evm-11_00_00_02/c7x-mma-tidl/tidl_tools.tar.gz"
 # Add specific operators to run in the array, else it will run all test under tidl_unit_test_data/operator
 # Example: OPERATORS=("Softmax" "Convolution" "Sqrt")
-OPERATORS=("Max" "Softmax")
+OPERATORS=()
 #######################################################################
 
 
