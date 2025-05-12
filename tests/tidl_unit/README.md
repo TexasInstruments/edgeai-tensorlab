@@ -35,7 +35,7 @@ Mount from a local device with nfs mount
 
 ### 4.1 Full suite
 ```bash
-./run_operator_test.sh &lt;SOC&gt;
+./run_operator_test.sh <SOC>
 ```
 &lt;SOC&gt; - AM62A, AM67A, AM68A, AM69A, TDA4VM 
 
@@ -48,28 +48,28 @@ full suite - OPERATORS=()
 ## 5. Repository Layout
 tidl_unit_tests/<br>
 
-├─ docs/                        # Usage notes, pass/fail logs, code outline
-├─ run_operator_test.sh         # Main entry‑point script
-├─ tidl_unit_test_data/         # Symlink → operator assets
-├─ tests/                       # PyTest collections & fixtures
-├─ operator_test_report_csv/    # Csv based intensive test reports    
-├─ operator_test_report_html/   # Html based onnx backed default reports
-└─ report_script/               # Report generation scripts
+├─ docs/                        # Usage notes, pass/fail logs, code outline<br>
+├─ run_operator_test.sh         # Main entry‑point script<br>
+├─ tidl_unit_test_data/         # Symlink → operator assets<br>
+├─ tests/                       # PyTest collections & fixtures<br>
+├─ operator_test_report_csv/    # Csv based intensive test reports<br>   
+├─ operator_test_report_html/   # Html based onnx backed default reports<br>
+└─ report_script/               # Report generation scripts<br>
 
 ## 6. Reports Layout
 tidl_unit_tests/<br>
 
 ├─ operator_test_report_csv/    
-    ├─ customer_test_reports/                   # Customore Facing Reports
-        ├─ <Operator_Name>.csv                  # Operator Specific Report
-        └─ operator_test_report_summary.csv     # Summary Report
-    ├─ comaparison_test_reports/                # Referance comparison Report
-        ├─ ...
-        └─ ...
-    └─ absolute_test_repors/                    # Operator Test Report
-        ├─ ...
-        └─ ...
-└─ operator_test_report_html
+    ├─ customer_test_reports/                   # Customore Facing Reports<br>
+        ├─ <Operator_Name>.csv                  # Operator Specific Report<br>
+        └─ operator_test_report_summary.csv     # Summary Report<br>
+    ├─ comaparison_test_reports/                # Referance comparison Report<br>
+        ├─ ...<br>
+        └─ ...<br>
+    └─ absolute_test_repors/                    # Operator Test Report<br>
+        ├─ ...<br>
+        └─ ...<br>
+└─ operator_test_report_html<br>
 
 ## 7. Documentation
 
