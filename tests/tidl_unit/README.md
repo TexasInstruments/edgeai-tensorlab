@@ -1,4 +1,4 @@
-# TIDL Unit Tests
+# TIDL Unit Tests
 A production‑grade regression suite containing thousands of single‑operator ONNX models used to validate Texas Instruments Deep‑Learning (TIDL) kernels on any supported SoC.
 
 ## 1. Features
@@ -15,7 +15,7 @@ CI‑ready – Generates JUnit/HTML reports and supports pytest-xdist for parall
 | Python packages          | —               | Install once in a fresh pyenv/conda env: pip install -r requirements.txt \ pytest pytest-xdist pytest-html==3.2.0 |
 | **TIDL Models repo**     | current `main`  | Holds the ONNX operator assets |
 
-## 2. Obtaining Operator Assets
+## 3. Obtaining Operator Assets
 <!-- ```bash -->
 # Clone (anywhere)
 git clone <tidl_models_repo>
@@ -31,11 +31,10 @@ ln -s "${TIDL_OPS}" tidl_unit_test_data/operator
 
 ### 4.1 Full suite
 ./run_operator_test.sh <SOC>
-<SOC> - AM62A, AM67A, AM68A, AM69A, TDA4VM 
+SOC - AM62A, AM67A, AM68A, AM69A, TDA4VM 
 
 ### 4.2 Subset
 Edit the OPERATORS=( … ) array inside run_operator_test.sh:
-
 Single operator like Max - OPERATORS=("Max")
 Multi operator like Softmax, Convolution & Sqrt - OPERATORS=("Softmax" "Convolution" "Sqrt")
 full suite - OPERATORS=()
