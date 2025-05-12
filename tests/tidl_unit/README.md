@@ -12,7 +12,7 @@ CI‑ready – Generates JUnit/HTML reports and supports pytest-xdist for parall
 |------------              |-----------------|-------|
 | Python                   | 3.x             | Tested on 3.8 – 3.12 |
 | pip                      | latest          | python -m pip install --upgrade pip |
-| Python packages          | —               | Install once in a fresh venv/conda env: pip install -r requirements.txt \ pytest pytest-xdist pytest-html==3.2.0 |
+| Python packages          | —               | Install once in a fresh pyenv/conda env: pip install -r requirements.txt \ pytest pytest-xdist pytest-html==3.2.0 |
 | **TIDL Models repo**     | current `main`  | Holds the ONNX operator assets |
 
 ---
