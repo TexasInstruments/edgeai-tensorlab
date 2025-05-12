@@ -17,12 +17,12 @@ CI‑ready – Generates JUnit/HTML reports and supports pytest-xdist for parall
 
 ## 3. Obtaining Operator Assets
 <!-- ```bash -->
-Clone (anywhere)
-git clone <tidl_models_repo>
+Clone (anywhere)<br>
+git clone <tidl_models_repo><br>
 export TIDL_OPS=$PWD/tidl_models/unitTest/onnx/tidl_unit_test_assets/operators
 
 ### 3.1 Local symbolic‑link (dev workflow)
-rm -rf tidl_unit_test_data/operator          # purge any stale link/dir
+rm -rf tidl_unit_test_data/operator          # purge any stale link/dir<br>
 ln -s "${TIDL_OPS}" tidl_unit_test_data/operator
 
 ### 3.2 NFS mount (CI / farm)
@@ -30,17 +30,17 @@ ln -s "${TIDL_OPS}" tidl_unit_test_data/operator
 ## 4. Running the Tests
 
 ### 4.1 Full suite
-./run_operator_test.sh &lt;SOC&gt;
+./run_operator_test.sh &lt;SOC&gt;<br>
 &lt;SOC&gt; - AM62A, AM67A, AM68A, AM69A, TDA4VM 
 
 ### 4.2 Subset
-Edit the OPERATORS=( … ) array inside run_operator_test.sh:
-Single operator like Max - OPERATORS=("Max")
-Multi operator like Softmax, Convolution & Sqrt - OPERATORS=("Softmax" "Convolution" "Sqrt")
+Edit the OPERATORS=( … ) array inside run_operator_test.sh:<br>
+Single operator like Max - OPERATORS=("Max")<br>
+Multi operator like Softmax, Convolution & Sqrt - OPERATORS=("Softmax" "Convolution" "Sqrt")<br>
 full suite - OPERATORS=()
 
 ## 5. Repository Layout
-tidl_unit_tests/
+tidl_unit_tests/<br>
 
 ├─ docs/                        # Usage notes, pass/fail logs, code outline
 ├─ run_operator_test.sh         # Main entry‑point script
@@ -51,7 +51,7 @@ tidl_unit_tests/
 └─ report_script/               # Report generation scripts
 
 ## 6. Reports Layout
-tidl_unit_tests/
+tidl_unit_tests/<br>
 
 ├─ operator_test_report_csv/    
     ├─ customer_test_reports/                   # Customore Facing Reports
@@ -67,8 +67,8 @@ tidl_unit_tests/
 
 ## 7. Documentation
 
-Usage notes: [usage-notes.md](docs/usage-notes.md)
-Pass/Fail Notes: [pass-fail-notes.md](docs/pass-fail-notes.md)
+Usage notes: [usage-notes.md](docs/usage-notes.md)<br>
+Pass/Fail Notes: [pass-fail-notes.md](docs/pass-fail-notes.md)<br>
 Code Outline: [code-outline.md](docs/code-outline.md)
 
 
