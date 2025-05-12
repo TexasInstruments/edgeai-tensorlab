@@ -8,8 +8,8 @@ from .transforms_3d import ImageAug, BEVAug, \
 
 from .nuscenes_dataset import CustomNuScenesDataset
 from .nuscenes_metric import CustomNuScenesMetric
-
-
+from .pandaset_dataset import CustomPandaSetDataset
+from .pandaset_metric import CustomPandaSetMetric
 
 
 __all__ = [
@@ -17,5 +17,6 @@ __all__ = [
     'CustomFPN', 'CustomResNet',
     'LSSViewTransformer',
     'ImageAug', 'BEVAug', 'CustomMultiScaleFlipAug3D', 'CustomPack3DDetInputs',
-    'CustomNuScenesDataset', 'CustomNuScenesMetric'
+    'CustomNuScenesDataset', 'CustomNuScenesMetric',
+    'CustomPandaSetDataset', 'CustomPandaSetMetric'
 ]

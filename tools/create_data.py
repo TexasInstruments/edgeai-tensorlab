@@ -411,9 +411,9 @@ def pandaset_data_prep(root_path,
                        info_prefix,
                        version,
                        dataset_name,
-                       out_dir,):
-    pandaset_converter.create_pandaset_infos(root_path, info_prefix, version, dataset_name, out_dir)
-    
+                       out_dir,
+                       enable_bevdet=False):
+    pandaset_converter.create_pandaset_infos(root_path, info_prefix, version, dataset_name, out_dir, enable_bevdet)
 
 
 parser = argparse.ArgumentParser(description='Data converter arg parser')
@@ -567,7 +567,8 @@ if __name__ == '__main__':
             info_prefix=args.extra_tag,
             version=args.version,
             dataset_name='PandasetDataset',
-            out_dir=args.out_dir)
+            out_dir=args.out_dir,
+            enable_bevdet=args.bevdet)
     elif args.dataset == 'waymo':
         waymo_data_prep(
             root_path=args.root_path,

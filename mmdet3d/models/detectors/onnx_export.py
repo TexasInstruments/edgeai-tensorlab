@@ -381,8 +381,8 @@ def export_BEVDet(model, inputs=None, data_samples=None, **kwargs):
     bev_feat_np      = bev_feat.to('cpu').numpy()
     lidar_coor_1d_np = lidar_coor_1d.to('cpu').numpy()
 
-    bev_feat_np.tofile('bevdet_feat.dat')
-    lidar_coor_1d_np.tofile('bevdet_lidar_coor_1d.dat')
+    #bev_feat_np.tofile('bevdet_feat.dat')
+    #lidar_coor_1d_np.tofile('bevdet_lidar_coor_1d.dat')
 
     # Passed the squeezed img
     if img.dim() == 5 and img.size(0) == 1:
