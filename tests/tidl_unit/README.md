@@ -5,7 +5,7 @@ A production‑grade regression suite containing thousands of single‑operator 
 Fine‑grained coverage – Every operator / attribute / dtype combination is a separate minimal ONNX graph.<br>
 Deterministic I/O – Golden inputs & outputs ship with each model, enabling bit‑exact comparison.<br>
 Flexible execution – Run the full matrix or an ad‑hoc subset, locally or over NFS.<br>
-CI‑ready – Generates JUnit/HTML reports and supports pytest-xdist for parallel runs.
+CI‑ready – Generates CSV/HTML reports and supports pytest-xdist for parallel runs.
 
 ## 2. Prerequisites
 | Dependency               | Minimum version | Notes |
