@@ -12,12 +12,12 @@ CI‑ready – Generates JUnit/HTML reports and supports pytest-xdist for parall
 |------------              |-----------------|-------|
 | Python                   | 3.x             | Tested on 3.8 – 3.12 |
 | pip                      | latest          | python -m pip install --upgrade pip |
-| Python packages          | —               | Install once in a fresh pyenv/conda env: pip install -r requirements.txt \ pytest pytest-xdist pytest-html==3.2.0 |
+| Python packages          | —               | Install once in a fresh pyenv/conda env: pip install -r requirements.txt |
 | **TIDL Models repo**     | current `main`  | Holds the ONNX operator assets |
 
 ## 3. Obtaining Operator Assets
 <!-- ```bash -->
-# Clone (anywhere)
+Clone (anywhere)
 git clone <tidl_models_repo>
 export TIDL_OPS=$PWD/tidl_models/unitTest/onnx/tidl_unit_test_assets/operators
 
@@ -30,8 +30,8 @@ ln -s "${TIDL_OPS}" tidl_unit_test_data/operator
 ## 4. Running the Tests
 
 ### 4.1 Full suite
-./run_operator_test.sh <SOC>
-SOC - AM62A, AM67A, AM68A, AM69A, TDA4VM 
+./run_operator_test.sh &lt;SOC&gt;
+&lt;SOC&gt; - AM62A, AM67A, AM68A, AM69A, TDA4VM 
 
 ### 4.2 Subset
 Edit the OPERATORS=( … ) array inside run_operator_test.sh:
@@ -48,7 +48,7 @@ tidl_unit_tests/
 ├─ tests/                       # PyTest collections & fixtures
 ├─ operator_test_report_csv/    # Csv based intensive test reports    
 ├─ operator_test_report_html/   # Html based onnx backed default reports
-├─ report_script/               # Report generation scripts
+└─ report_script/               # Report generation scripts
 
 ## 6. Reports Layout
 tidl_unit_tests/
@@ -60,9 +60,10 @@ tidl_unit_tests/
     ├─ comaparison_test_reports/                # Referance comparison Report
         ├─ ...
         └─ ...
-    ├─ absolute_test_repors/                    # Operator Test Report
+    └─ absolute_test_repors/                    # Operator Test Report
         ├─ ...
         └─ ...
+└─ operator_test_report_html
 
 ## 7. Documentation
 
