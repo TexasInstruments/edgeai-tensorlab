@@ -103,13 +103,10 @@ tidl_unit_tests/
 ```text
 tidl_unit_tests/
 ├── operator_test_report_csv/
-│   ├── customer_test_reports/                # Customer‑facing reports
+│   ├── complete_test_reports/                # Customer‑facing reports 
 │   │   ├── <Operator_Name>.csv               # Operator‑specific report
 │   │   └── operator_test_report_summary.csv  # Aggregate summary
-│   ├── comparison_test_reports/              # Reference comparison reports
-│   │   ├── …
-│   │   └── …
-│   └── absolute_test_reports/                # Full operator test reports
+│   └── customer_test_reports/                # Customer‑facing reports 
 │       ├── …
 │       └── …
 └── operator_test_report_html/               
