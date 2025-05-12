@@ -16,7 +16,7 @@ CI‑ready – Generates JUnit/HTML reports and supports pytest-xdist for parall
 | TIDL Models repo     	   | current `master`| Holds the ONNX operator assets |
 | TIDL tools tar file      | —               | — |
 
-**Setup on X86_PC**C<br>
+**Setup on X86_PC**<br>
 Install pyenv using the following command.<br>
 ```bash
 curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
@@ -36,7 +36,7 @@ pip install --upgrade pip setuptools
 ```
 Setup scripts.<br>
 ```bash
-./setup_pc.sh
+./setup_pc.sh  #inside main benchmark directory 
 cd tests/tidl_unit/
 pip install -r requirements.txt
 ```
