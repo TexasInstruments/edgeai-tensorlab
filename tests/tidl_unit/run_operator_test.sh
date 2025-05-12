@@ -127,7 +127,7 @@ cd ../
 rm -rf operator_test_report_csv
 mkdir operator_test_report_csv
 # mv report_script/comparison_test_reports/ operator_test_report_csv/
-mv report_script/absolute_test_reports/ operator_test_report_csv/
+mv report_script/complete_test_reports/ operator_test_report_csv/
 mv report_script/customer_test_reports/ operator_test_report_csv/
 
 rm -rf operator_test_report_html

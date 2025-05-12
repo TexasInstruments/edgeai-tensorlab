@@ -39,7 +39,7 @@ def parse_html_report(html_path):
 A_DIR   = "operator_test_reports"
 R_DIR   = "operator_test_report_ref"
 CONFIGS_DIR = "configs"
-OUT_DIR = "absolute_test_reports"
+OUT_DIR = "complete_test_reports"
 os.makedirs(OUT_DIR, exist_ok=True)
 
 VARIANTS = [
