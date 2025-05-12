@@ -119,14 +119,14 @@ done
 mv operator_test_reports/ report_script/ 
 
 cd report_script
-python3 comparison_test_report_csv.py
+# python3 comparison_test_report_csv.py
 python3 absolute_test_report_csv.py
 python3 customer_test_report_csv.py
 
 cd ../
 rm -rf operator_test_report_csv
 mkdir operator_test_report_csv
-mv report_script/comparison_test_reports/ operator_test_report_csv/
+# mv report_script/comparison_test_reports/ operator_test_report_csv/
 mv report_script/absolute_test_reports/ operator_test_report_csv/
 mv report_script/customer_test_reports/ operator_test_report_csv/
 
