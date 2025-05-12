@@ -60,7 +60,10 @@ Mount from a local device with nfs mount
 ## 4. Obtaining tools
 Generate/Fetch the tools tar ball for testing<br>
 Update the tools path inside run_operator_test.sh<br>
-Indise Configuration - tools_path="<tidl_tools tarball path here>"
+```python
+# Configuration
+tools_path="<tidl_tools tarball path here>"
+```
 
 ## 5. Running the Tests
 
@@ -71,11 +74,14 @@ Indise Configuration - tools_path="<tidl_tools tarball path here>"
 &lt;SOC&gt; - AM62A, AM67A, AM68A, AM69A, TDA4VM 
 
 ### 5.2 Subset
-Edit the OPERATORS=( … ) array inside run_operator_test.sh:<br>
-Indise Configuration - OPERATORS()<br>
-Single operator like Max - OPERATORS=("Max")<br>
-Multi operator like Softmax, Convolution & Sqrt - OPERATORS=("Softmax" "Convolution" "Sqrt")<br>
-full suite - OPERATORS=()
+Update the operators list inside run_operator_test.sh<br>
+```python
+# Configuration
+OPERATORS=()
+# Single operator like Max - OPERATORS=("Max")
+# Multi operator like Softmax, Convolution & Sqrt - OPERATORS=("Softmax" "Convolution" "Sqrt")
+# Full suite - OPERATORS=()
+```
 
 ## 6. Repository Layout
 ```text
