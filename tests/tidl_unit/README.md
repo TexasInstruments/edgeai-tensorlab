@@ -15,6 +15,31 @@ CI‑ready – Generates JUnit/HTML reports and supports pytest-xdist for parall
 | Python packages          | —               | Install once in a fresh pyenv/conda env: pip install -r requirements.txt |
 | **TIDL Models repo**     | current `main`  | Holds the ONNX operator assets |
 
+**Setup on X86_PC**C<br>
+Install pyenv using the following command.<br>
+```bash
+curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
+echo '# pyenv settings ' >> ${HOME}/.bashrc
+echo 'command -v pyenv >/dev/null || export PATH=":${HOME}/.pyenv/bin:$PATH"' >> ${HOME}/.bashrc
+echo 'eval "$(pyenv init -)"' >> ${HOME}/.bashrc
+echo 'eval "$(pyenv virtualenv-init -)"' >> ${HOME}/.bashrc
+echo '' >> ${HOME}/.bashrc
+exec ${SHELL}
+```
+Create and activate pyenv.<br>
+```bash
+pyenv install 3.10
+pyenv virtualenv 3.10 benchmark
+pyenv activate benchmark
+pip install --upgrade pip setuptools
+```
+Setup scripts.<br>
+```bash
+./setup_pc.sh
+cd tests/tidl_unit/
+pip install -r requirements.txt
+```
+
 ## 3. Obtaining Operator Assets
 ```bash
 Clone (anywhere)
