@@ -46,15 +46,15 @@ Multi operator like Softmax, Convolution & Sqrt - OPERATORS=("Softmax" "Convolut
 full suite - OPERATORS=()
 
 ## 5. Repository Layout
-tidl_unit_tests/<br>
-
-├─ docs/                        # Usage notes, pass/fail logs, code outline<br>
-├─ run_operator_test.sh         # Main entry‑point script<br>
-├─ tidl_unit_test_data/         # Symlink → operator assets<br>
-├─ tests/                       # PyTest collections & fixtures<br>
-├─ operator_test_report_csv/    # Csv based intensive test reports<br>   
-├─ operator_test_report_html/   # Html based onnx backed default reports<br>
-└─ report_script/               # Report generation scripts<br>
+tidl_unit_tests/
+├─ docs/                     	# Usage notes
+├─ logs/						# pass/fail logs
+├─ run_operator_test.sh         # Main entry‑point script
+├─ tidl_unit_test_data/         # Symlink → operator assets
+├─ tests/                       # PyTest collections & fixtures
+├─ operator_test_report_csv/    # CSV‑based intensive test reports
+├─ operator_test_report_html/   # HTML reports (ONNX‑backed, default)
+└─ report_script/               # Report‑generation scripts'
 
 ## 6. Reports Layout
 tidl_unit_tests/<br>
