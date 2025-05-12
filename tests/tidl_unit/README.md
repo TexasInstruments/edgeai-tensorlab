@@ -22,8 +22,10 @@ git clone <tidl_models_repo><br>
 export TIDL_OPS=$PWD/tidl_models/unitTest/onnx/tidl_unit_test_assets/operators
 
 ### 3.1 Local symbolic‑link (dev workflow)
-rm -rf tidl_unit_test_data/operator          # purge any stale link/dir<br>
+```bash
+rm -rf tidl_unit_test_data/operator          # purge any stale link/dir
 ln -s "${TIDL_OPS}" tidl_unit_test_data/operator
+```
 
 ### 3.2 NFS mount (CI / farm)
 
