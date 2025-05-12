@@ -16,10 +16,11 @@ CI‑ready – Generates JUnit/HTML reports and supports pytest-xdist for parall
 | **TIDL Models repo**     | current `main`  | Holds the ONNX operator assets |
 
 ## 3. Obtaining Operator Assets
-<!-- ```bash -->
-Clone (anywhere)<br>
-git clone <tidl_models_repo><br>
+```bash
+Clone (anywhere)
+git clone <tidl_models_repo>
 export TIDL_OPS=$PWD/tidl_models/unitTest/onnx/tidl_unit_test_assets/operators
+```
 
 ### 3.1 Local symbolic‑link (dev workflow)
 ```bash
@@ -28,11 +29,14 @@ ln -s "${TIDL_OPS}" tidl_unit_test_data/operator
 ```
 
 ### 3.2 NFS mount (CI / farm)
+Mount from a local device with nfs mount
 
 ## 4. Running the Tests
 
 ### 4.1 Full suite
-./run_operator_test.sh &lt;SOC&gt;<br>
+```bash
+./run_operator_test.sh &lt;SOC&gt;
+```
 &lt;SOC&gt; - AM62A, AM67A, AM68A, AM69A, TDA4VM 
 
 ### 4.2 Subset
