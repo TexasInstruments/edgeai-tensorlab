@@ -120,7 +120,7 @@ mv operator_test_reports/ report_script/
 
 cd report_script
 # python3 comparison_test_report_csv.py
-python3 absolute_test_report_csv.py
+python3 complete_test_report_csv.py
 python3 customer_test_report_csv.py
 
 cd ../
