@@ -50,27 +50,32 @@ full suite - OPERATORS=()
 tidl_unit_tests/
 ├─ docs/                     	# Usage notes
 ├─ logs/						# pass/fail logs
-├─ run_operator_test.sh         # Main entry‑point script
+├─ run_operator_test.sh         # Operator testing script
+├─ run_test.sh  				# Main entry‑point script
+├─ tidl_unit.yaml  				# backend testing configuration
 ├─ tidl_unit_test_data/         # Symlink → operator assets
-├─ tests/                       # PyTest collections & fixtures
 ├─ operator_test_report_csv/    # CSV‑based intensive test reports
 ├─ operator_test_report_html/   # HTML reports (ONNX‑backed, default)
-└─ report_script/               # Report‑generation scripts'
+├─ report_script/               # Report‑generation scripts'
+├─ requirements.txt  			# python requirements
+... other pytest requirements
 ```
 
 ## 6. Reports Layout
-tidl_unit_tests/<br>
-├─ operator_test_report_csv/    
-    ├─ customer_test_reports/                   # Customore Facing Reports<br>
-        ├─ <Operator_Name>.csv                  # Operator Specific Report<br>
-        └─ operator_test_report_summary.csv     # Summary Report<br>
-    ├─ comaparison_test_reports/                # Referance comparison Report<br>
-        ├─ ...<br>
-        └─ ...<br>
-    └─ absolute_test_repors/                    # Operator Test Report<br>
-        ├─ ...<br>
-        └─ ...<br>
-└─ operator_test_report_html<br>
+```text
+tidl_unit_tests/
+├── operator_test_report_csv/
+│   ├── customer_test_reports/                # Customer‑facing reports
+│   │   ├── <Operator_Name>.csv               # Operator‑specific report
+│   │   └── operator_test_report_summary.csv  # Aggregate summary
+│   ├── comparison_test_reports/              # Reference comparison reports
+│   │   ├── …
+│   │   └── …
+│   └── absolute_test_reports/                # Full operator test reports
+│       ├── …
+│       └── …
+└── operator_test_report_html/               
+```
 
 ## 7. Documentation
 
