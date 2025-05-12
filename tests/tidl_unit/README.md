@@ -9,11 +9,12 @@ CI‑ready – Generates JUnit/HTML reports and supports pytest-xdist for parall
 
 ## 2. Prerequisites
 | Dependency               | Minimum version | Notes |
-|------------              |-----------------|-------|
+|--------------------------|-----------------|-------|
 | Python                   | 3.x             | Tested on 3.8 – 3.12 |
 | pip                      | latest          | python -m pip install --upgrade pip |
 | Python packages          | —               | Install once in a fresh pyenv/conda env: pip install -r requirements.txt |
-| **TIDL Models repo**     | current `main`  | Holds the ONNX operator assets |
+| TIDL Models repo     	   | current `master`| Holds the ONNX operator assets |
+| TIDL tools tar file      | —               | Holds the ONNX operator assets |
 
 **Setup on X86_PC**C<br>
 Install pyenv using the following command.<br>
