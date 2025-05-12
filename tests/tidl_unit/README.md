@@ -14,7 +14,7 @@ CI‑ready – Generates JUnit/HTML reports and supports pytest-xdist for parall
 | pip                      | latest          | python -m pip install --upgrade pip |
 | Python packages          | —               | Install once in a fresh pyenv/conda env: pip install -r requirements.txt |
 | TIDL Models repo     	   | current `master`| Holds the ONNX operator assets |
-| TIDL tools tar file      | —               | Holds the ONNX operator assets |
+| TIDL tools tar file      | —               | — |
 
 **Setup on X86_PC**C<br>
 Install pyenv using the following command.<br>
@@ -57,21 +57,27 @@ ln -s "${TIDL_OPS}" tidl_unit_test_data/operator
 ### 3.2 NFS mount (CI / farm)
 Mount from a local device with nfs mount
 
-## 4. Running the Tests
+## 4. Obtaining tools
+Generate/Fetch the tools tar ball for testing<br>
+Update the tools path inside run_operator_test.sh<br>
+Indise Configuration - tools_path="<tidl_tools tarball path here>"
 
-### 4.1 Full suite
+## 5. Running the Tests
+
+### 5.1 Full suite
 ```bash
 ./run_operator_test.sh <SOC>
 ```
 &lt;SOC&gt; - AM62A, AM67A, AM68A, AM69A, TDA4VM 
 
-### 4.2 Subset
+### 5.2 Subset
 Edit the OPERATORS=( … ) array inside run_operator_test.sh:<br>
+Indise Configuration - OPERATORS()<br>
 Single operator like Max - OPERATORS=("Max")<br>
 Multi operator like Softmax, Convolution & Sqrt - OPERATORS=("Softmax" "Convolution" "Sqrt")<br>
 full suite - OPERATORS=()
 
-## 5. Repository Layout
+## 6. Repository Layout
 ```text
 tidl_unit_tests/
 ├─ docs/                     	# Usage notes
@@ -87,7 +93,7 @@ tidl_unit_tests/
 ... other pytest requirements
 ```
 
-## 6. Reports Layout
+## 7. Reports Layout
 ```text
 tidl_unit_tests/
 ├── operator_test_report_csv/
@@ -103,7 +109,7 @@ tidl_unit_tests/
 └── operator_test_report_html/               
 ```
 
-## 7. Documentation
+## 8. Documentation
 
 Usage notes: [usage-notes.md](docs/usage-notes.md)<br>
 Pass/Fail Notes: [pass-fail-notes.md](docs/pass-fail-notes.md)<br>
