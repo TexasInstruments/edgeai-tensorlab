@@ -15,9 +15,7 @@ CI‑ready – Generates JUnit/HTML reports and supports pytest-xdist for parall
 | Python packages          | —               | Install once in a fresh pyenv/conda env: pip install -r requirements.txt \ pytest pytest-xdist pytest-html==3.2.0 |
 | **TIDL Models repo**     | current `main`  | Holds the ONNX operator assets |
 
----
-
-## 3. Obtaining Operator Assets
+## 2. Obtaining Operator Assets
 <!-- ```bash -->
 # Clone (anywhere)
 git clone <tidl_models_repo>
