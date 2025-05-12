@@ -46,6 +46,7 @@ Multi operator like Softmax, Convolution & Sqrt - OPERATORS=("Softmax" "Convolut
 full suite - OPERATORS=()
 
 ## 5. Repository Layout
+```text
 tidl_unit_tests/
 ├─ docs/                     	# Usage notes
 ├─ logs/						# pass/fail logs
@@ -55,10 +56,10 @@ tidl_unit_tests/
 ├─ operator_test_report_csv/    # CSV‑based intensive test reports
 ├─ operator_test_report_html/   # HTML reports (ONNX‑backed, default)
 └─ report_script/               # Report‑generation scripts'
+```
 
 ## 6. Reports Layout
 tidl_unit_tests/<br>
-
 ├─ operator_test_report_csv/    
     ├─ customer_test_reports/                   # Customore Facing Reports<br>
         ├─ <Operator_Name>.csv                  # Operator Specific Report<br>
