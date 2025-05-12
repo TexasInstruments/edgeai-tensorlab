@@ -1,0 +1,2261 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>report_05-07-2025_01-10-28.html</title>
+    <style>body {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  /* do not increase min-width as some may use split screens */
+  min-width: 800px;
+  color: #999;
+}
+
+h1 {
+  font-size: 24px;
+  color: black;
+}
+
+h2 {
+  font-size: 16px;
+  color: black;
+}
+
+p {
+  color: black;
+}
+
+a {
+  color: #999;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+/******************************
+ * SUMMARY INFORMATION
+ ******************************/
+#environment td {
+  padding: 5px;
+  border: 1px solid #E6E6E6;
+}
+#environment tr:nth-child(odd) {
+  background-color: #f6f6f6;
+}
+
+/******************************
+ * TEST RESULT COLORS
+ ******************************/
+span.passed,
+.passed .col-result {
+  color: green;
+}
+
+span.skipped,
+span.xfailed,
+span.rerun,
+.skipped .col-result,
+.xfailed .col-result,
+.rerun .col-result {
+  color: orange;
+}
+
+span.error,
+span.failed,
+span.xpassed,
+.error .col-result,
+.failed .col-result,
+.xpassed .col-result {
+  color: red;
+}
+
+/******************************
+ * RESULTS TABLE
+ *
+ * 1. Table Layout
+ * 2. Extra
+ * 3. Sorting items
+ *
+ ******************************/
+/*------------------
+ * 1. Table Layout
+ *------------------*/
+#results-table {
+  border: 1px solid #e6e6e6;
+  color: #999;
+  font-size: 12px;
+  width: 100%;
+}
+#results-table th,
+#results-table td {
+  padding: 5px;
+  border: 1px solid #E6E6E6;
+  text-align: left;
+}
+#results-table th {
+  font-weight: bold;
+}
+
+/*------------------
+ * 2. Extra
+ *------------------*/
+.log {
+  background-color: #e6e6e6;
+  border: 1px solid #e6e6e6;
+  color: black;
+  display: block;
+  font-family: "Courier New", Courier, monospace;
+  height: 230px;
+  overflow-y: scroll;
+  padding: 5px;
+  white-space: pre-wrap;
+}
+.log:only-child {
+  height: inherit;
+}
+
+div.image {
+  border: 1px solid #e6e6e6;
+  float: right;
+  height: 240px;
+  margin-left: 5px;
+  overflow: hidden;
+  width: 320px;
+}
+div.image img {
+  width: 320px;
+}
+
+div.video {
+  border: 1px solid #e6e6e6;
+  float: right;
+  height: 240px;
+  margin-left: 5px;
+  overflow: hidden;
+  width: 320px;
+}
+div.video video {
+  overflow: hidden;
+  width: 320px;
+  height: 240px;
+}
+
+.collapsed {
+  display: none;
+}
+
+.expander::after {
+  content: " (show details)";
+  color: #BBB;
+  font-style: italic;
+  cursor: pointer;
+}
+
+.collapser::after {
+  content: " (hide details)";
+  color: #BBB;
+  font-style: italic;
+  cursor: pointer;
+}
+
+/*------------------
+ * 3. Sorting items
+ *------------------*/
+.sortable {
+  cursor: pointer;
+}
+
+.sort-icon {
+  font-size: 0px;
+  float: left;
+  margin-right: 5px;
+  margin-top: 5px;
+  /*triangle*/
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+}
+.inactive .sort-icon {
+  /*finish triangle*/
+  border-top: 8px solid #E6E6E6;
+}
+.asc.active .sort-icon {
+  /*finish triangle*/
+  border-bottom: 8px solid #999;
+}
+.desc.active .sort-icon {
+  /*finish triangle*/
+  border-top: 8px solid #999;
+}
+</style></head>
+  <body onLoad="init()">
+    <script>/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+
+function toArray(iter) {
+    if (iter === null) {
+        return null;
+    }
+    return Array.prototype.slice.call(iter);
+}
+
+function find(selector, elem) { // eslint-disable-line no-redeclare
+    if (!elem) {
+        elem = document;
+    }
+    return elem.querySelector(selector);
+}
+
+function findAll(selector, elem) {
+    if (!elem) {
+        elem = document;
+    }
+    return toArray(elem.querySelectorAll(selector));
+}
+
+function sortColumn(elem) {
+    toggleSortStates(elem);
+    const colIndex = toArray(elem.parentNode.childNodes).indexOf(elem);
+    let key;
+    if (elem.classList.contains('result')) {
+        key = keyResult;
+    } else if (elem.classList.contains('links')) {
+        key = keyLink;
+    } else {
+        key = keyAlpha;
+    }
+    sortTable(elem, key(colIndex));
+}
+
+function showAllExtras() { // eslint-disable-line no-unused-vars
+    findAll('.col-result').forEach(showExtras);
+}
+
+function hideAllExtras() { // eslint-disable-line no-unused-vars
+    findAll('.col-result').forEach(hideExtras);
+}
+
+function showExtras(colresultElem) {
+    const extras = colresultElem.parentNode.nextElementSibling;
+    const expandcollapse = colresultElem.firstElementChild;
+    extras.classList.remove('collapsed');
+    expandcollapse.classList.remove('expander');
+    expandcollapse.classList.add('collapser');
+}
+
+function hideExtras(colresultElem) {
+    const extras = colresultElem.parentNode.nextElementSibling;
+    const expandcollapse = colresultElem.firstElementChild;
+    extras.classList.add('collapsed');
+    expandcollapse.classList.remove('collapser');
+    expandcollapse.classList.add('expander');
+}
+
+function showFilters() {
+    let visibleString = getQueryParameter('visible') || 'all';
+    visibleString = visibleString.toLowerCase();
+    const checkedItems = visibleString.split(',');
+
+    const filterItems = document.getElementsByClassName('filter');
+    for (let i = 0; i < filterItems.length; i++) {
+        filterItems[i].hidden = false;
+
+        if (visibleString != 'all') {
+            filterItems[i].checked = checkedItems.includes(filterItems[i].getAttribute('data-test-result'));
+            filterTable(filterItems[i]);
+        }
+    }
+}
+
+function addCollapse() {
+    // Add links for show/hide all
+    const resulttable = find('table#results-table');
+    const showhideall = document.createElement('p');
+    showhideall.innerHTML = '<a href="javascript:showAllExtras()">Show all details</a> / ' +
+                            '<a href="javascript:hideAllExtras()">Hide all details</a>';
+    resulttable.parentElement.insertBefore(showhideall, resulttable);
+
+    // Add show/hide link to each result
+    findAll('.col-result').forEach(function(elem) {
+        const collapsed = getQueryParameter('collapsed') || 'Passed';
+        const extras = elem.parentNode.nextElementSibling;
+        const expandcollapse = document.createElement('span');
+        if (extras.classList.contains('collapsed')) {
+            expandcollapse.classList.add('expander');
+        } else if (collapsed.includes(elem.innerHTML)) {
+            extras.classList.add('collapsed');
+            expandcollapse.classList.add('expander');
+        } else {
+            expandcollapse.classList.add('collapser');
+        }
+        elem.appendChild(expandcollapse);
+
+        elem.addEventListener('click', function(event) {
+            if (event.currentTarget.parentNode.nextElementSibling.classList.contains('collapsed')) {
+                showExtras(event.currentTarget);
+            } else {
+                hideExtras(event.currentTarget);
+            }
+        });
+    });
+}
+
+function getQueryParameter(name) {
+    const match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+    return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+}
+
+function init () { // eslint-disable-line no-unused-vars
+    resetSortHeaders();
+
+    addCollapse();
+
+    showFilters();
+
+    sortColumn(find('.initial-sort'));
+
+    findAll('.sortable').forEach(function(elem) {
+        elem.addEventListener('click',
+            function() {
+                sortColumn(elem);
+            }, false);
+    });
+}
+
+function sortTable(clicked, keyFunc) {
+    const rows = findAll('.results-table-row');
+    const reversed = !clicked.classList.contains('asc');
+    const sortedRows = sort(rows, keyFunc, reversed);
+    /* Whole table is removed here because browsers acts much slower
+     * when appending existing elements.
+     */
+    const thead = document.getElementById('results-table-head');
+    document.getElementById('results-table').remove();
+    const parent = document.createElement('table');
+    parent.id = 'results-table';
+    parent.appendChild(thead);
+    sortedRows.forEach(function(elem) {
+        parent.appendChild(elem);
+    });
+    document.getElementsByTagName('BODY')[0].appendChild(parent);
+}
+
+function sort(items, keyFunc, reversed) {
+    const sortArray = items.map(function(item, i) {
+        return [keyFunc(item), i];
+    });
+
+    sortArray.sort(function(a, b) {
+        const keyA = a[0];
+        const keyB = b[0];
+
+        if (keyA == keyB) return 0;
+
+        if (reversed) {
+            return keyA < keyB ? 1 : -1;
+        } else {
+            return keyA > keyB ? 1 : -1;
+        }
+    });
+
+    return sortArray.map(function(item) {
+        const index = item[1];
+        return items[index];
+    });
+}
+
+function keyAlpha(colIndex) {
+    return function(elem) {
+        return elem.childNodes[1].childNodes[colIndex].firstChild.data.toLowerCase();
+    };
+}
+
+function keyLink(colIndex) {
+    return function(elem) {
+        const dataCell = elem.childNodes[1].childNodes[colIndex].firstChild;
+        return dataCell == null ? '' : dataCell.innerText.toLowerCase();
+    };
+}
+
+function keyResult(colIndex) {
+    return function(elem) {
+        const strings = ['Error', 'Failed', 'Rerun', 'XFailed', 'XPassed',
+            'Skipped', 'Passed'];
+        return strings.indexOf(elem.childNodes[1].childNodes[colIndex].firstChild.data);
+    };
+}
+
+function resetSortHeaders() {
+    findAll('.sort-icon').forEach(function(elem) {
+        elem.parentNode.removeChild(elem);
+    });
+    findAll('.sortable').forEach(function(elem) {
+        const icon = document.createElement('div');
+        icon.className = 'sort-icon';
+        icon.textContent = 'vvv';
+        elem.insertBefore(icon, elem.firstChild);
+        elem.classList.remove('desc', 'active');
+        elem.classList.add('asc', 'inactive');
+    });
+}
+
+function toggleSortStates(elem) {
+    //if active, toggle between asc and desc
+    if (elem.classList.contains('active')) {
+        elem.classList.toggle('asc');
+        elem.classList.toggle('desc');
+    }
+
+    //if inactive, reset all other functions and add ascending active
+    if (elem.classList.contains('inactive')) {
+        resetSortHeaders();
+        elem.classList.remove('inactive');
+        elem.classList.add('active');
+    }
+}
+
+function isAllRowsHidden(value) {
+    return value.hidden == false;
+}
+
+function filterTable(elem) { // eslint-disable-line no-unused-vars
+    const outcomeAtt = 'data-test-result';
+    const outcome = elem.getAttribute(outcomeAtt);
+    const classOutcome = outcome + ' results-table-row';
+    const outcomeRows = document.getElementsByClassName(classOutcome);
+
+    for(let i = 0; i < outcomeRows.length; i++){
+        outcomeRows[i].hidden = !elem.checked;
+    }
+
+    const rows = findAll('.results-table-row').filter(isAllRowsHidden);
+    const allRowsHidden = rows.length == 0 ? true : false;
+    const notFoundMessage = document.getElementById('not-found-message');
+    notFoundMessage.hidden = !allRowsHidden;
+}
+</script>
+    <h1>report_05-07-2025_01-10-28.html</h1>
+    <p>Report generated on 07-May-2025 at 01:10:33 by <a href="https://pypi.python.org/pypi/pytest-html">pytest-html</a> v3.2.0</p>
+    <h2>Summary</h2>
+    <p>22 tests ran in 5.51 seconds. </p>
+    <p class="filter" hidden="true">(Un)check the boxes to filter the results.</p><input checked="true" class="filter" data-test-result="passed" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="passed">22 passed</span>, <input checked="true" class="filter" data-test-result="skipped" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="skipped">0 skipped</span>, <input checked="true" class="filter" data-test-result="failed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="failed">0 failed</span>, <input checked="true" class="filter" data-test-result="error" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="error">0 errors</span>, <input checked="true" class="filter" data-test-result="xfailed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="xfailed">0 expected failures</span>, <input checked="true" class="filter" data-test-result="xpassed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="xpassed">0 unexpected passes</span>
+    <h2>Results</h2>
+    <table id="results-table">
+      <thead id="results-table-head">
+        <tr>
+          <th class="sortable result initial-sort" col="result">Result</th>
+          <th class="sortable" col="name">Test</th>
+          <th>TIDL Subgraphs</th>
+          <th>Complete TIDL Offload</th>
+          <th class="sortable" col="duration">Duration</th>
+          <th class="sortable links" col="links">Links</th></tr>
+        <tr hidden="true" id="not-found-message">
+          <th colspan="6">No results found. Try to check the filters</th></tr></thead>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[HardSwish_15]</td>
+          <td>1</td>
+          <td>True</td>
+          <td class="col-duration">0.23</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw7] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw7] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw7] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw7] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x61787e1ada00 
+Final number of subgraphs created are : 1, - Offloaded Nodes - 1, Total Nodes - 1 
+The soft limit is 10240
+The hard limit is 10240
+MEM: Init ... !!!
+MEM: Init ... Done !!!
+ 0.0s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_INFO
+ 0.7s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_ERROR
+ 0.8s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_WARNING
+ 0.74s:  VX_ZONE_INFO: [ownAddTargetKernelInternal:189] registered kernel vx_tutorial_graph.phase_rgb on target DSP-1
+ 0.906s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-0 
+ 0.925s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-1 
+ 0.945s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-2 
+ 0.960s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-3 
+ 0.24730s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1 
+ 0.24772s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_2 
+ 0.24922s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_3 
+ 0.24950s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_4 
+ 0.24971s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_5 
+ 0.24992s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_6 
+ 0.25021s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_7 
+ 0.25042s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_8 
+ 0.25066s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP-1 
+ 0.25103s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-0 
+ 0.25130s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_NF 
+ 0.25152s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_LDC1 
+ 0.25179s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC1 
+ 0.25200s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC2 
+ 0.25224s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_VISS1 
+ 0.25250s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE1 
+ 0.25271s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE2 
+ 0.25300s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE3 
+ 0.25373s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE4 
+ 0.25397s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE5 
+ 0.25417s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE6 
+ 0.25448s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE7 
+ 0.25471s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE8 
+ 0.25493s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY1 
+ 0.25520s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY2 
+ 0.25544s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX 
+ 0.25567s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX2 
+ 0.25594s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M1 
+ 0.25615s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M2 
+ 0.25638s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M3 
+ 0.25663s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M4 
+ 0.25683s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_FC 
+ 0.25710s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-1 
+ 0.25738s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_SDE 
+ 0.25764s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_DOF 
+ 0.25791s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-0 
+ 0.25818s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-1 
+ 0.25820s:  VX_ZONE_INFO: [tivxInit:152] Initialization Done !!!
+ 0.25823s:  VX_ZONE_INFO: Globally Disabled VX_ZONE_INFO
+
+MAX_NMSE: 0.0004117856666456883
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   1
+	Total Time (ms)                       :   28.51
+	Core Time (ms)                        :   24.89
+	TIDL Subgraphs Processing Time (ms)   :   24.82
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+MEM: Deinit ... !!!
+MEM: Alloc&#x27;s: 26 alloc&#x27;s of 71321961 bytes 
+MEM: Free&#x27;s : 26 free&#x27;s  of 71321961 bytes 
+MEM: Open&#x27;s : 0 allocs  of 0 bytes 
+MEM: Deinit ... Done !!!
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[HardSwish_7]</td>
+          <td>1</td>
+          <td>True</td>
+          <td class="col-duration">0.22</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw18] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw18] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw18] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw18] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x647c44593760 
+Final number of subgraphs created are : 1, - Offloaded Nodes - 1, Total Nodes - 1 
+The soft limit is 10240
+The hard limit is 10240
+MEM: Init ... !!!
+MEM: Init ... Done !!!
+ 0.0s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_INFO
+ 0.3s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_ERROR
+ 0.4s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_WARNING
+ 0.72s:  VX_ZONE_INFO: [ownAddTargetKernelInternal:189] registered kernel vx_tutorial_graph.phase_rgb on target DSP-1
+ 0.987s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-0 
+ 0.1007s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-1 
+ 0.1042s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-2 
+ 0.1055s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-3 
+ 0.1075s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1 
+ 0.1092s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_2 
+ 0.1109s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_3 
+ 0.1125s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_4 
+ 0.1140s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_5 
+ 0.1153s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_6 
+ 0.1169s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_7 
+ 0.1182s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_8 
+ 0.1194s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP-1 
+ 0.1213s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-0 
+ 0.1230s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_NF 
+ 0.1246s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_LDC1 
+ 0.1262s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC1 
+ 0.1276s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC2 
+ 0.1293s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_VISS1 
+ 0.1311s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE1 
+ 0.1325s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE2 
+ 0.1341s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE3 
+ 0.1359s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE4 
+ 0.1371s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE5 
+ 0.1387s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE6 
+ 0.1405s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE7 
+ 0.1417s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE8 
+ 0.1428s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY1 
+ 0.1445s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY2 
+ 0.1458s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX 
+ 0.1477s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX2 
+ 0.1493s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M1 
+ 0.1504s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M2 
+ 0.1515s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M3 
+ 0.1530s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M4 
+ 0.1543s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_FC 
+ 0.1560s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-1 
+ 0.1574s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_SDE 
+ 0.1586s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_DOF 
+ 0.1603s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-0 
+ 0.1618s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-1 
+ 0.1620s:  VX_ZONE_INFO: [tivxInit:152] Initialization Done !!!
+ 0.1621s:  VX_ZONE_INFO: Globally Disabled VX_ZONE_INFO
+
+MAX_NMSE: 0.00010432796068363278
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   1
+	Total Time (ms)                       :   7.12
+	Core Time (ms)                        :   7.07
+	TIDL Subgraphs Processing Time (ms)   :   7.03
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+MEM: Deinit ... !!!
+MEM: Alloc&#x27;s: 26 alloc&#x27;s of 13373605 bytes 
+MEM: Free&#x27;s : 26 free&#x27;s  of 13373605 bytes 
+MEM: Open&#x27;s : 0 allocs  of 0 bytes 
+MEM: Deinit ... Done !!!
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[HardSwish_19]</td>
+          <td>1</td>
+          <td>True</td>
+          <td class="col-duration">0.21</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw15] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw15] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw15] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw15] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x606c873a1520 
+Final number of subgraphs created are : 1, - Offloaded Nodes - 1, Total Nodes - 1 
+The soft limit is 10240
+The hard limit is 10240
+MEM: Init ... !!!
+MEM: Init ... Done !!!
+ 0.0s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_INFO
+ 0.3s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_ERROR
+ 0.4s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_WARNING
+ 0.69s:  VX_ZONE_INFO: [ownAddTargetKernelInternal:189] registered kernel vx_tutorial_graph.phase_rgb on target DSP-1
+ 0.8292s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-0 
+ 0.8313s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-1 
+ 0.8326s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-2 
+ 0.8342s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-3 
+ 0.8359s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1 
+ 0.8374s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_2 
+ 0.8390s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_3 
+ 0.8403s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_4 
+ 0.8417s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_5 
+ 0.8433s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_6 
+ 0.8447s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_7 
+ 0.8460s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_8 
+ 0.8472s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP-1 
+ 0.8487s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-0 
+ 0.8500s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_NF 
+ 0.8514s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_LDC1 
+ 0.8526s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC1 
+ 0.8537s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC2 
+ 0.8552s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_VISS1 
+ 0.8566s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE1 
+ 0.8578s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE2 
+ 0.8595s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE3 
+ 0.8607s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE4 
+ 0.8618s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE5 
+ 0.8634s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE6 
+ 0.8648s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE7 
+ 0.8662s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE8 
+ 0.8676s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY1 
+ 0.8687s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY2 
+ 0.8699s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX 
+ 0.8713s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX2 
+ 0.8724s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M1 
+ 0.8736s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M2 
+ 0.8748s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M3 
+ 0.8759s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M4 
+ 0.8768s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_FC 
+ 0.8785s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-1 
+ 0.8795s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_SDE 
+ 0.8807s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_DOF 
+ 0.8905s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-0 
+ 0.8918s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-1 
+ 0.8919s:  VX_ZONE_INFO: [tivxInit:152] Initialization Done !!!
+ 0.8920s:  VX_ZONE_INFO: Globally Disabled VX_ZONE_INFO
+
+MAX_NMSE: 0.00010793756305219588
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   1
+	Total Time (ms)                       :   3.42
+	Core Time (ms)                        :   3.41
+	TIDL Subgraphs Processing Time (ms)   :   3.38
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+MEM: Deinit ... !!!
+MEM: Alloc&#x27;s: 26 alloc&#x27;s of 12352621 bytes 
+MEM: Free&#x27;s : 26 free&#x27;s  of 12352621 bytes 
+MEM: Open&#x27;s : 0 allocs  of 0 bytes 
+MEM: Deinit ... Done !!!
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[HardSwish_3]</td>
+          <td>1</td>
+          <td>True</td>
+          <td class="col-duration">0.19</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw11] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw11] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw11] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw11] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x641485d84cf0 
+Final number of subgraphs created are : 1, - Offloaded Nodes - 1, Total Nodes - 1 
+The soft limit is 10240
+The hard limit is 10240
+MEM: Init ... !!!
+MEM: Init ... Done !!!
+ 0.0s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_INFO
+ 0.4s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_ERROR
+ 0.4s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_WARNING
+ 0.67s:  VX_ZONE_INFO: [ownAddTargetKernelInternal:189] registered kernel vx_tutorial_graph.phase_rgb on target DSP-1
+ 0.908s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-0 
+ 0.924s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-1 
+ 0.939s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-2 
+ 0.949s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-3 
+ 0.966s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1 
+ 0.982s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_2 
+ 0.997s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_3 
+ 0.1009s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_4 
+ 0.1023s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_5 
+ 0.1036s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_6 
+ 0.1051s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_7 
+ 0.1066s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_8 
+ 0.1081s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP-1 
+ 0.1095s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-0 
+ 0.1109s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_NF 
+ 0.1120s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_LDC1 
+ 0.1133s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC1 
+ 0.1149s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC2 
+ 0.1163s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_VISS1 
+ 0.1175s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE1 
+ 0.1190s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE2 
+ 0.1206s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE3 
+ 0.1219s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE4 
+ 0.1233s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE5 
+ 0.1247s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE6 
+ 0.2391s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE7 
+ 0.2427s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE8 
+ 0.2447s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY1 
+ 0.2463s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY2 
+ 0.2480s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX 
+ 0.2506s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX2 
+ 0.2522s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M1 
+ 0.2536s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M2 
+ 0.2555s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M3 
+ 0.2569s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M4 
+ 0.2584s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_FC 
+ 0.2605s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-1 
+ 0.2619s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_SDE 
+ 0.2636s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_DOF 
+ 0.2657s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-0 
+ 0.2673s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-1 
+ 0.2674s:  VX_ZONE_INFO: [tivxInit:152] Initialization Done !!!
+ 0.2676s:  VX_ZONE_INFO: Globally Disabled VX_ZONE_INFO
+
+MAX_NMSE: 0.00011795281240706995
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   1
+	Total Time (ms)                       :   4.02
+	Core Time (ms)                        :   4.00
+	TIDL Subgraphs Processing Time (ms)   :   3.97
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+MEM: Deinit ... !!!
+MEM: Alloc&#x27;s: 26 alloc&#x27;s of 12263280 bytes 
+MEM: Free&#x27;s : 26 free&#x27;s  of 12263280 bytes 
+MEM: Open&#x27;s : 0 allocs  of 0 bytes 
+MEM: Deinit ... Done !!!
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[HardSwish_5]</td>
+          <td>1</td>
+          <td>True</td>
+          <td class="col-duration">0.20</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw2] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw2] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw2] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw2] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5d014728cd80 
+Final number of subgraphs created are : 1, - Offloaded Nodes - 1, Total Nodes - 1 
+The soft limit is 10240
+The hard limit is 10240
+MEM: Init ... !!!
+MEM: Init ... Done !!!
+ 0.0s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_INFO
+ 0.4s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_ERROR
+ 0.5s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_WARNING
+ 0.76s:  VX_ZONE_INFO: [ownAddTargetKernelInternal:189] registered kernel vx_tutorial_graph.phase_rgb on target DSP-1
+ 0.1043s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-0 
+ 0.1065s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-1 
+ 0.1087s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-2 
+ 0.1105s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-3 
+ 0.1125s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1 
+ 0.1139s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_2 
+ 0.1160s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_3 
+ 0.1176s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_4 
+ 0.1190s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_5 
+ 0.1208s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_6 
+ 0.1224s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_7 
+ 0.1238s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_8 
+ 0.1257s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP-1 
+ 0.1278s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-0 
+ 0.1294s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_NF 
+ 0.1310s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_LDC1 
+ 0.1327s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC1 
+ 0.1341s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC2 
+ 0.1358s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_VISS1 
+ 0.1376s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE1 
+ 0.1390s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE2 
+ 0.1412s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE3 
+ 0.1424s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE4 
+ 0.1441s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE5 
+ 0.1463s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE6 
+ 0.1480s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE7 
+ 0.1498s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE8 
+ 0.1517s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY1 
+ 0.1534s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY2 
+ 0.1549s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX 
+ 0.1567s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX2 
+ 0.1581s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M1 
+ 0.1598s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M2 
+ 0.1613s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M3 
+ 0.1627s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M4 
+ 0.1639s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_FC 
+ 0.1656s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-1 
+ 0.1668s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_SDE 
+ 0.1684s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_DOF 
+ 0.1702s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-0 
+ 0.1716s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-1 
+ 0.1717s:  VX_ZONE_INFO: [tivxInit:152] Initialization Done !!!
+ 0.1720s:  VX_ZONE_INFO: Globally Disabled VX_ZONE_INFO
+
+MAX_NMSE: 0.00010585698814079495
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   1
+	Total Time (ms)                       :   0.15
+	Core Time (ms)                        :   0.13
+	TIDL Subgraphs Processing Time (ms)   :   0.11
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+MEM: Deinit ... !!!
+MEM: Alloc&#x27;s: 26 alloc&#x27;s of 12290689 bytes 
+MEM: Free&#x27;s : 26 free&#x27;s  of 12290689 bytes 
+MEM: Open&#x27;s : 0 allocs  of 0 bytes 
+MEM: Deinit ... Done !!!
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[HardSwish_4]</td>
+          <td>1</td>
+          <td>True</td>
+          <td class="col-duration">0.22</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw17] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw17] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw17] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw17] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x64240bafcd30 
+Final number of subgraphs created are : 1, - Offloaded Nodes - 1, Total Nodes - 1 
+The soft limit is 10240
+The hard limit is 10240
+MEM: Init ... !!!
+MEM: Init ... Done !!!
+ 0.0s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_INFO
+ 0.6s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_ERROR
+ 0.8s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_WARNING
+ 0.104s:  VX_ZONE_INFO: [ownAddTargetKernelInternal:189] registered kernel vx_tutorial_graph.phase_rgb on target DSP-1
+ 0.46451s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-0 
+ 0.46497s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-1 
+ 0.46517s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-2 
+ 0.46541s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-3 
+ 0.46572s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1 
+ 0.46597s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_2 
+ 0.46618s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_3 
+ 0.46639s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_4 
+ 0.46660s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_5 
+ 0.46678s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_6 
+ 0.46698s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_7 
+ 0.46723s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_8 
+ 0.46744s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP-1 
+ 0.46770s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-0 
+ 0.46796s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_NF 
+ 0.46817s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_LDC1 
+ 0.46834s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC1 
+ 0.46856s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC2 
+ 0.46873s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_VISS1 
+ 0.46894s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE1 
+ 0.46920s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE2 
+ 0.46942s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE3 
+ 0.46961s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE4 
+ 0.46984s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE5 
+ 0.47001s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE6 
+ 0.47022s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE7 
+ 0.47049s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE8 
+ 0.47067s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY1 
+ 0.47088s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY2 
+ 0.47109s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX 
+ 0.47136s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX2 
+ 0.47154s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M1 
+ 0.47177s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M2 
+ 0.47195s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M3 
+ 0.47215s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M4 
+ 0.47236s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_FC 
+ 0.47263s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-1 
+ 0.47282s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_SDE 
+ 0.47306s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_DOF 
+ 0.47327s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-0 
+ 0.47353s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-1 
+ 0.47355s:  VX_ZONE_INFO: [tivxInit:152] Initialization Done !!!
+ 0.47357s:  VX_ZONE_INFO: Globally Disabled VX_ZONE_INFO
+
+MAX_NMSE: 0.00010940156417770555
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   1
+	Total Time (ms)                       :   0.13
+	Core Time (ms)                        :   0.12
+	TIDL Subgraphs Processing Time (ms)   :   0.09
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+MEM: Deinit ... !!!
+MEM: Alloc&#x27;s: 26 alloc&#x27;s of 12267134 bytes 
+MEM: Free&#x27;s : 26 free&#x27;s  of 12267134 bytes 
+MEM: Open&#x27;s : 0 allocs  of 0 bytes 
+MEM: Deinit ... Done !!!
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[HardSwish_16]</td>
+          <td>1</td>
+          <td>True</td>
+          <td class="col-duration">0.20</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw14] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw14] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw14] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw14] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5eb5edd2b0f0 
+Final number of subgraphs created are : 1, - Offloaded Nodes - 1, Total Nodes - 1 
+The soft limit is 10240
+The hard limit is 10240
+MEM: Init ... !!!
+MEM: Init ... Done !!!
+ 0.0s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_INFO
+ 0.4s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_ERROR
+ 0.6s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_WARNING
+ 0.88s:  VX_ZONE_INFO: [ownAddTargetKernelInternal:189] registered kernel vx_tutorial_graph.phase_rgb on target DSP-1
+ 0.911s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-0 
+ 0.932s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-1 
+ 0.947s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-2 
+ 0.963s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-3 
+ 0.984s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1 
+ 0.1002s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_2 
+ 0.1017s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_3 
+ 0.1035s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_4 
+ 0.1052s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_5 
+ 0.1067s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_6 
+ 0.1085s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_7 
+ 0.1097s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_8 
+ 0.1110s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP-1 
+ 0.1137s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-0 
+ 0.1150s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_NF 
+ 0.1166s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_LDC1 
+ 0.1181s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC1 
+ 0.1192s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC2 
+ 0.1205s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_VISS1 
+ 0.1220s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE1 
+ 0.1235s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE2 
+ 0.1248s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE3 
+ 0.1263s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE4 
+ 0.1273s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE5 
+ 0.1289s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE6 
+ 0.1307s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE7 
+ 0.1318s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE8 
+ 0.1329s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY1 
+ 0.1346s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY2 
+ 0.1360s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX 
+ 0.1375s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX2 
+ 0.1389s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M1 
+ 0.1400s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M2 
+ 0.1411s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M3 
+ 0.1430s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M4 
+ 0.1442s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_FC 
+ 0.1458s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-1 
+ 0.1473s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_SDE 
+ 0.1485s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_DOF 
+ 0.1500s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-0 
+ 0.1520s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-1 
+ 0.1521s:  VX_ZONE_INFO: [tivxInit:152] Initialization Done !!!
+ 0.1523s:  VX_ZONE_INFO: Globally Disabled VX_ZONE_INFO
+
+MAX_NMSE: 0.0004101120051634778
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   1
+	Total Time (ms)                       :   5.17
+	Core Time (ms)                        :   5.12
+	TIDL Subgraphs Processing Time (ms)   :   5.08
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+MEM: Deinit ... !!!
+MEM: Alloc&#x27;s: 26 alloc&#x27;s of 13840867 bytes 
+MEM: Free&#x27;s : 26 free&#x27;s  of 13840867 bytes 
+MEM: Open&#x27;s : 0 allocs  of 0 bytes 
+MEM: Deinit ... Done !!!
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[HardSwish_17]</td>
+          <td>1</td>
+          <td>True</td>
+          <td class="col-duration">0.19</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw21] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw21] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw21] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw21] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x639dec91c3c0 
+Final number of subgraphs created are : 1, - Offloaded Nodes - 1, Total Nodes - 1 
+The soft limit is 10240
+The hard limit is 10240
+MEM: Init ... !!!
+MEM: Init ... Done !!!
+ 0.0s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_INFO
+ 0.9s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_ERROR
+ 0.10s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_WARNING
+ 0.98s:  VX_ZONE_INFO: [ownAddTargetKernelInternal:189] registered kernel vx_tutorial_graph.phase_rgb on target DSP-1
+ 0.920s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-0 
+ 0.939s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-1 
+ 0.957s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-2 
+ 0.972s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-3 
+ 0.989s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1 
+ 0.1005s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_2 
+ 0.1020s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_3 
+ 0.1037s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_4 
+ 0.1051s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_5 
+ 0.1066s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_6 
+ 0.1081s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_7 
+ 0.1098s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_8 
+ 0.1112s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP-1 
+ 0.1132s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-0 
+ 0.1146s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_NF 
+ 0.1159s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_LDC1 
+ 0.1174s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC1 
+ 0.1191s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC2 
+ 0.1207s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_VISS1 
+ 0.1221s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE1 
+ 0.1235s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE2 
+ 0.1253s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE3 
+ 0.1270s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE4 
+ 0.1282s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE5 
+ 0.1302s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE6 
+ 0.1316s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE7 
+ 0.1328s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE8 
+ 0.1345s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY1 
+ 0.1360s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY2 
+ 0.1373s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX 
+ 0.1393s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX2 
+ 0.1406s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M1 
+ 0.1421s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M2 
+ 0.1438s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M3 
+ 0.1454s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M4 
+ 0.1466s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_FC 
+ 0.1489s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-1 
+ 0.1503s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_SDE 
+ 0.1516s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_DOF 
+ 0.1535s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-0 
+ 0.1553s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-1 
+ 0.1554s:  VX_ZONE_INFO: [tivxInit:152] Initialization Done !!!
+ 0.1556s:  VX_ZONE_INFO: Globally Disabled VX_ZONE_INFO
+
+MAX_NMSE: 0.0004099684111620171
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   1
+	Total Time (ms)                       :   4.77
+	Core Time (ms)                        :   4.58
+	TIDL Subgraphs Processing Time (ms)   :   4.55
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+MEM: Deinit ... !!!
+MEM: Alloc&#x27;s: 26 alloc&#x27;s of 20246045 bytes 
+MEM: Free&#x27;s : 26 free&#x27;s  of 20246045 bytes 
+MEM: Open&#x27;s : 0 allocs  of 0 bytes 
+MEM: Deinit ... Done !!!
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[HardSwish_12]</td>
+          <td>1</td>
+          <td>True</td>
+          <td class="col-duration">0.26</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw6] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw6] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw6] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw6] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5cbcaa125ab0 
+Final number of subgraphs created are : 1, - Offloaded Nodes - 1, Total Nodes - 1 
+The soft limit is 10240
+The hard limit is 10240
+MEM: Init ... !!!
+MEM: Init ... Done !!!
+ 0.0s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_INFO
+ 0.9s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_ERROR
+ 0.10s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_WARNING
+ 0.72s:  VX_ZONE_INFO: [ownAddTargetKernelInternal:189] registered kernel vx_tutorial_graph.phase_rgb on target DSP-1
+ 0.822s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-0 
+ 0.843s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-1 
+ 0.854s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-2 
+ 0.865s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-3 
+ 0.885s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1 
+ 0.900s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_2 
+ 0.913s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_3 
+ 0.928s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_4 
+ 0.938s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_5 
+ 0.950s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_6 
+ 0.967s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_7 
+ 0.979s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_8 
+ 0.989s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP-1 
+ 0.1006s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-0 
+ 0.1017s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_NF 
+ 0.1032s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_LDC1 
+ 0.1045s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC1 
+ 0.1056s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC2 
+ 0.1068s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_VISS1 
+ 0.1085s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE1 
+ 0.1097s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE2 
+ 0.1110s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE3 
+ 0.1123s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE4 
+ 0.1136s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE5 
+ 0.1152s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE6 
+ 0.19166s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE7 
+ 0.19206s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE8 
+ 0.19230s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY1 
+ 0.19249s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY2 
+ 0.19292s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX 
+ 0.19318s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX2 
+ 0.19338s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M1 
+ 0.19362s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M2 
+ 0.19381s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M3 
+ 0.19402s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M4 
+ 0.19424s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_FC 
+ 0.19449s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-1 
+ 0.19467s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_SDE 
+ 0.19489s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_DOF 
+ 0.19509s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-0 
+ 0.19750s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-1 
+ 0.19751s:  VX_ZONE_INFO: [tivxInit:152] Initialization Done !!!
+ 0.19757s:  VX_ZONE_INFO: Globally Disabled VX_ZONE_INFO
+
+MAX_NMSE: 0.0004111448519128693
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   1
+	Total Time (ms)                       :   42.47
+	Core Time (ms)                        :   37.71
+	TIDL Subgraphs Processing Time (ms)   :   37.61
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+MEM: Deinit ... !!!
+MEM: Alloc&#x27;s: 26 alloc&#x27;s of 71663244 bytes 
+MEM: Free&#x27;s : 26 free&#x27;s  of 71663244 bytes 
+MEM: Open&#x27;s : 0 allocs  of 0 bytes 
+MEM: Deinit ... Done !!!
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[HardSwish_18]</td>
+          <td>1</td>
+          <td>True</td>
+          <td class="col-duration">0.23</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw13] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw13] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw13] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw13] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x6000e8d6d5f0 
+Final number of subgraphs created are : 1, - Offloaded Nodes - 1, Total Nodes - 1 
+The soft limit is 10240
+The hard limit is 10240
+MEM: Init ... !!!
+MEM: Init ... Done !!!
+ 0.0s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_INFO
+ 0.7s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_ERROR
+ 0.7s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_WARNING
+ 0.70s:  VX_ZONE_INFO: [ownAddTargetKernelInternal:189] registered kernel vx_tutorial_graph.phase_rgb on target DSP-1
+ 0.811s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-0 
+ 0.831s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-1 
+ 0.848s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-2 
+ 0.863s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-3 
+ 0.880s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1 
+ 0.892s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_2 
+ 0.905s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_3 
+ 0.917s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_4 
+ 0.931s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_5 
+ 0.943s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_6 
+ 0.967s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_7 
+ 0.981s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_8 
+ 0.992s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP-1 
+ 0.1006s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-0 
+ 0.1020s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_NF 
+ 0.1031s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_LDC1 
+ 0.1043s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC1 
+ 0.1055s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC2 
+ 0.1065s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_VISS1 
+ 0.1078s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE1 
+ 0.1146s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE2 
+ 0.1160s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE3 
+ 0.1176s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE4 
+ 0.1191s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE5 
+ 0.1204s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE6 
+ 0.1217s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE7 
+ 0.1230s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE8 
+ 0.1242s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY1 
+ 0.1255s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY2 
+ 0.1269s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX 
+ 0.1285s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX2 
+ 0.1295s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M1 
+ 0.1311s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M2 
+ 0.1323s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M3 
+ 0.1337s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M4 
+ 0.1351s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_FC 
+ 0.1369s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-1 
+ 0.1380s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_SDE 
+ 0.1395s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_DOF 
+ 0.1408s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-0 
+ 0.1424s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-1 
+ 0.1425s:  VX_ZONE_INFO: [tivxInit:152] Initialization Done !!!
+ 0.1426s:  VX_ZONE_INFO: Globally Disabled VX_ZONE_INFO
+
+MAX_NMSE: 0.00041035235581016297
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   1
+	Total Time (ms)                       :   12.38
+	Core Time (ms)                        :   11.55
+	TIDL Subgraphs Processing Time (ms)   :   11.49
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+MEM: Deinit ... !!!
+MEM: Alloc&#x27;s: 26 alloc&#x27;s of 26730437 bytes 
+MEM: Free&#x27;s : 26 free&#x27;s  of 26730437 bytes 
+MEM: Open&#x27;s : 0 allocs  of 0 bytes 
+MEM: Deinit ... Done !!!
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[HardSwish_20]</td>
+          <td>1</td>
+          <td>True</td>
+          <td class="col-duration">0.20</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw0] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw0] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw0] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw0] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5a340bb3c070 
+Final number of subgraphs created are : 1, - Offloaded Nodes - 1, Total Nodes - 1 
+The soft limit is 10240
+The hard limit is 10240
+MEM: Init ... !!!
+MEM: Init ... Done !!!
+ 0.0s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_INFO
+ 0.5s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_ERROR
+ 0.5s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_WARNING
+ 0.99s:  VX_ZONE_INFO: [ownAddTargetKernelInternal:189] registered kernel vx_tutorial_graph.phase_rgb on target DSP-1
+ 0.1004s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-0 
+ 0.1024s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-1 
+ 0.1036s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-2 
+ 0.1048s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-3 
+ 0.1065s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1 
+ 0.1080s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_2 
+ 0.1093s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_3 
+ 0.1106s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_4 
+ 0.1123s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_5 
+ 0.1135s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_6 
+ 0.1148s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_7 
+ 0.1160s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_8 
+ 0.1172s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP-1 
+ 0.1189s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-0 
+ 0.1200s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_NF 
+ 0.1211s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_LDC1 
+ 0.1224s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC1 
+ 0.1240s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC2 
+ 0.1252s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_VISS1 
+ 0.1264s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE1 
+ 0.1276s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE2 
+ 0.1292s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE3 
+ 0.1303s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE4 
+ 0.1315s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE5 
+ 0.1332s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE6 
+ 0.1346s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE7 
+ 0.1361s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE8 
+ 0.1374s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY1 
+ 0.1387s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY2 
+ 0.1400s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX 
+ 0.1413s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX2 
+ 0.1426s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M1 
+ 0.1439s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M2 
+ 0.1453s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M3 
+ 0.1466s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M4 
+ 0.1479s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_FC 
+ 0.1495s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-1 
+ 0.1508s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_SDE 
+ 0.1523s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_DOF 
+ 0.1538s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-0 
+ 0.1556s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-1 
+ 0.1557s:  VX_ZONE_INFO: [tivxInit:152] Initialization Done !!!
+ 0.1559s:  VX_ZONE_INFO: Globally Disabled VX_ZONE_INFO
+
+MAX_NMSE: 0.00010008428389938906
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   1
+	Total Time (ms)                       :   0.21
+	Core Time (ms)                        :   0.19
+	TIDL Subgraphs Processing Time (ms)   :   0.14
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+MEM: Deinit ... !!!
+MEM: Alloc&#x27;s: 26 alloc&#x27;s of 12314233 bytes 
+MEM: Free&#x27;s : 26 free&#x27;s  of 12314233 bytes 
+MEM: Open&#x27;s : 0 allocs  of 0 bytes 
+MEM: Deinit ... Done !!!
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[HardSwish_1]</td>
+          <td>1</td>
+          <td>True</td>
+          <td class="col-duration">0.20</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw5] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw5] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw5] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw5] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x57a5d8f1dfd0 
+Final number of subgraphs created are : 1, - Offloaded Nodes - 1, Total Nodes - 1 
+The soft limit is 10240
+The hard limit is 10240
+MEM: Init ... !!!
+MEM: Init ... Done !!!
+ 0.0s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_INFO
+ 0.5s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_ERROR
+ 0.6s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_WARNING
+ 0.82s:  VX_ZONE_INFO: [ownAddTargetKernelInternal:189] registered kernel vx_tutorial_graph.phase_rgb on target DSP-1
+ 0.819s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-0 
+ 0.833s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-1 
+ 0.845s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-2 
+ 0.858s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-3 
+ 0.883s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1 
+ 0.898s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_2 
+ 0.944s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_3 
+ 0.956s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_4 
+ 0.972s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_5 
+ 0.988s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_6 
+ 0.1062s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_7 
+ 0.1092s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_8 
+ 0.1125s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP-1 
+ 0.1154s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-0 
+ 0.1176s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_NF 
+ 0.1198s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_LDC1 
+ 0.1225s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC1 
+ 0.1246s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC2 
+ 0.1269s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_VISS1 
+ 0.1296s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE1 
+ 0.1316s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE2 
+ 0.1344s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE3 
+ 0.1365s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE4 
+ 0.1388s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE5 
+ 0.1414s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE6 
+ 0.1436s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE7 
+ 0.1461s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE8 
+ 0.1482s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY1 
+ 0.1508s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY2 
+ 0.1531s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX 
+ 0.1560s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX2 
+ 0.1585s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M1 
+ 0.1610s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M2 
+ 0.1632s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M3 
+ 0.1657s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M4 
+ 0.1682s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_FC 
+ 0.1712s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-1 
+ 0.1735s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_SDE 
+ 0.1763s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_DOF 
+ 0.1789s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-0 
+ 0.1815s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-1 
+ 0.1817s:  VX_ZONE_INFO: [tivxInit:152] Initialization Done !!!
+ 0.1820s:  VX_ZONE_INFO: Globally Disabled VX_ZONE_INFO
+
+MAX_NMSE: 9.675378645644818e-05
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   1
+	Total Time (ms)                       :   0.18
+	Core Time (ms)                        :   0.17
+	TIDL Subgraphs Processing Time (ms)   :   0.12
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+MEM: Deinit ... !!!
+MEM: Alloc&#x27;s: 26 alloc&#x27;s of 12264875 bytes 
+MEM: Free&#x27;s : 26 free&#x27;s  of 12264875 bytes 
+MEM: Open&#x27;s : 0 allocs  of 0 bytes 
+MEM: Deinit ... Done !!!
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[HardSwish_6]</td>
+          <td>1</td>
+          <td>True</td>
+          <td class="col-duration">0.18</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw10] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw10] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw10] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw10] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x562c61fb5630 
+Final number of subgraphs created are : 1, - Offloaded Nodes - 1, Total Nodes - 1 
+The soft limit is 10240
+The hard limit is 10240
+MEM: Init ... !!!
+MEM: Init ... Done !!!
+ 0.0s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_INFO
+ 0.6s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_ERROR
+ 0.8s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_WARNING
+ 0.85s:  VX_ZONE_INFO: [ownAddTargetKernelInternal:189] registered kernel vx_tutorial_graph.phase_rgb on target DSP-1
+ 0.1138s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-0 
+ 0.1155s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-1 
+ 0.1172s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-2 
+ 0.1187s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-3 
+ 0.1204s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1 
+ 0.1220s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_2 
+ 0.1237s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_3 
+ 0.1251s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_4 
+ 0.1263s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_5 
+ 0.1279s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_6 
+ 0.1291s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_7 
+ 0.1306s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_8 
+ 0.1320s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP-1 
+ 0.1334s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-0 
+ 0.1346s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_NF 
+ 0.1361s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_LDC1 
+ 0.1381s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC1 
+ 0.1394s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC2 
+ 0.1411s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_VISS1 
+ 0.1424s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE1 
+ 0.1434s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE2 
+ 0.1451s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE3 
+ 0.1465s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE4 
+ 0.1478s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE5 
+ 0.1495s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE6 
+ 0.1507s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE7 
+ 0.1520s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE8 
+ 0.1533s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY1 
+ 0.1545s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY2 
+ 0.1557s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX 
+ 0.1576s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX2 
+ 0.1592s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M1 
+ 0.1604s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M2 
+ 0.1618s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M3 
+ 0.1634s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M4 
+ 0.1645s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_FC 
+ 0.1664s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-1 
+ 0.1676s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_SDE 
+ 0.1691s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_DOF 
+ 0.1710s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-0 
+ 0.1727s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-1 
+ 0.1728s:  VX_ZONE_INFO: [tivxInit:152] Initialization Done !!!
+ 0.1730s:  VX_ZONE_INFO: Globally Disabled VX_ZONE_INFO
+
+MAX_NMSE: 0.00018120913060415612
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   1
+	Total Time (ms)                       :   0.19
+	Core Time (ms)                        :   0.18
+	TIDL Subgraphs Processing Time (ms)   :   0.13
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+MEM: Deinit ... !!!
+MEM: Alloc&#x27;s: 26 alloc&#x27;s of 12334959 bytes 
+MEM: Free&#x27;s : 26 free&#x27;s  of 12334959 bytes 
+MEM: Open&#x27;s : 0 allocs  of 0 bytes 
+MEM: Deinit ... Done !!!
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[HardSwish_2]</td>
+          <td>1</td>
+          <td>True</td>
+          <td class="col-duration">0.22</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw3] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw3] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw3] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw3] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x61a649c4aa70 
+Final number of subgraphs created are : 1, - Offloaded Nodes - 1, Total Nodes - 1 
+The soft limit is 10240
+The hard limit is 10240
+MEM: Init ... !!!
+MEM: Init ... Done !!!
+ 0.0s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_INFO
+ 0.3s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_ERROR
+ 0.4s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_WARNING
+ 0.72s:  VX_ZONE_INFO: [ownAddTargetKernelInternal:189] registered kernel vx_tutorial_graph.phase_rgb on target DSP-1
+ 0.908s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-0 
+ 0.930s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-1 
+ 0.945s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-2 
+ 0.959s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-3 
+ 0.978s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1 
+ 0.993s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_2 
+ 0.1006s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_3 
+ 0.1022s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_4 
+ 0.1035s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_5 
+ 0.1052s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_6 
+ 0.1069s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_7 
+ 0.1081s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_8 
+ 0.1094s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP-1 
+ 0.1116s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-0 
+ 0.1128s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_NF 
+ 0.1144s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_LDC1 
+ 0.1160s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC1 
+ 0.1172s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC2 
+ 0.1184s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_VISS1 
+ 0.1201s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE1 
+ 0.1216s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE2 
+ 0.1237s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE3 
+ 0.1254s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE4 
+ 0.1268s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE5 
+ 0.1282s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE6 
+ 0.1301s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE7 
+ 0.1313s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE8 
+ 0.1327s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY1 
+ 0.1547s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY2 
+ 0.1562s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX 
+ 0.1575s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX2 
+ 0.1590s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M1 
+ 0.1605s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M2 
+ 0.1617s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M3 
+ 0.1636s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M4 
+ 0.1647s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_FC 
+ 0.1662s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-1 
+ 0.1676s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_SDE 
+ 0.1688s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_DOF 
+ 0.1703s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-0 
+ 0.1723s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-1 
+ 0.1724s:  VX_ZONE_INFO: [tivxInit:152] Initialization Done !!!
+ 0.1726s:  VX_ZONE_INFO: Globally Disabled VX_ZONE_INFO
+
+MAX_NMSE: 0.00012692645322500546
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   1
+	Total Time (ms)                       :   0.18
+	Core Time (ms)                        :   0.16
+	TIDL Subgraphs Processing Time (ms)   :   0.13
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+MEM: Deinit ... !!!
+MEM: Alloc&#x27;s: 26 alloc&#x27;s of 12263489 bytes 
+MEM: Free&#x27;s : 26 free&#x27;s  of 12263489 bytes 
+MEM: Open&#x27;s : 0 allocs  of 0 bytes 
+MEM: Deinit ... Done !!!
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[HardSwish_13]</td>
+          <td>1</td>
+          <td>True</td>
+          <td class="col-duration">0.23</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw20] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw20] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw20] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw20] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x624f58f09d00 
+Final number of subgraphs created are : 1, - Offloaded Nodes - 1, Total Nodes - 1 
+The soft limit is 10240
+The hard limit is 10240
+MEM: Init ... !!!
+MEM: Init ... Done !!!
+ 0.0s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_INFO
+ 0.3s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_ERROR
+ 0.4s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_WARNING
+ 0.75s:  VX_ZONE_INFO: [ownAddTargetKernelInternal:189] registered kernel vx_tutorial_graph.phase_rgb on target DSP-1
+ 0.896s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-0 
+ 0.914s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-1 
+ 0.929s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-2 
+ 0.947s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-3 
+ 0.967s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1 
+ 0.983s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_2 
+ 0.1000s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_3 
+ 0.1018s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_4 
+ 0.1036s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_5 
+ 0.1053s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_6 
+ 0.1072s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_7 
+ 0.1086s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_8 
+ 0.1102s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP-1 
+ 0.1121s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-0 
+ 0.1134s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_NF 
+ 0.1149s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_LDC1 
+ 0.1166s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC1 
+ 0.1180s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC2 
+ 0.1195s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_VISS1 
+ 0.1212s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE1 
+ 0.1225s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE2 
+ 0.1239s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE3 
+ 0.1258s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE4 
+ 0.1270s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE5 
+ 0.1285s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE6 
+ 0.1304s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE7 
+ 0.1317s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE8 
+ 0.1331s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY1 
+ 0.1350s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY2 
+ 0.1363s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX 
+ 0.1378s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX2 
+ 0.1393s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M1 
+ 0.1407s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M2 
+ 0.1419s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M3 
+ 0.1434s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M4 
+ 0.1447s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_FC 
+ 0.1464s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-1 
+ 0.1487s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_SDE 
+ 0.1517s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_DOF 
+ 0.1546s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-0 
+ 0.1575s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-1 
+ 0.1576s:  VX_ZONE_INFO: [tivxInit:152] Initialization Done !!!
+ 0.1577s:  VX_ZONE_INFO: Globally Disabled VX_ZONE_INFO
+
+MAX_NMSE: 0.00040993899035076314
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   1
+	Total Time (ms)                       :   44.76
+	Core Time (ms)                        :   41.25
+	TIDL Subgraphs Processing Time (ms)   :   41.17
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+MEM: Deinit ... !!!
+MEM: Alloc&#x27;s: 26 alloc&#x27;s of 38934431 bytes 
+MEM: Free&#x27;s : 26 free&#x27;s  of 38934431 bytes 
+MEM: Open&#x27;s : 0 allocs  of 0 bytes 
+MEM: Deinit ... Done !!!
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[HardSwish_14]</td>
+          <td>1</td>
+          <td>True</td>
+          <td class="col-duration">0.22</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw8] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw8] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw8] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw8] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5f5decba8fc0 
+Final number of subgraphs created are : 1, - Offloaded Nodes - 1, Total Nodes - 1 
+The soft limit is 10240
+The hard limit is 10240
+MEM: Init ... !!!
+MEM: Init ... Done !!!
+ 0.0s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_INFO
+ 0.8s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_ERROR
+ 0.9s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_WARNING
+ 0.82s:  VX_ZONE_INFO: [ownAddTargetKernelInternal:189] registered kernel vx_tutorial_graph.phase_rgb on target DSP-1
+ 0.21731s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-0 
+ 0.21755s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-1 
+ 0.21772s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-2 
+ 0.21785s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-3 
+ 0.21811s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1 
+ 0.21828s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_2 
+ 0.21842s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_3 
+ 0.21858s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_4 
+ 0.21872s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_5 
+ 0.21887s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_6 
+ 0.21902s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_7 
+ 0.21918s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_8 
+ 0.21932s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP-1 
+ 0.21950s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-0 
+ 0.21965s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_NF 
+ 0.21978s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_LDC1 
+ 0.21993s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC1 
+ 0.22008s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC2 
+ 0.22024s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_VISS1 
+ 0.22039s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE1 
+ 0.22056s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE2 
+ 0.22072s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE3 
+ 0.22085s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE4 
+ 0.22101s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE5 
+ 0.22114s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE6 
+ 0.22129s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE7 
+ 0.22148s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE8 
+ 0.22161s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY1 
+ 0.22178s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY2 
+ 0.22194s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX 
+ 0.22216s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX2 
+ 0.22229s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M1 
+ 0.22244s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M2 
+ 0.22257s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M3 
+ 0.22271s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M4 
+ 0.22286s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_FC 
+ 0.22304s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-1 
+ 0.22317s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_SDE 
+ 0.22332s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_DOF 
+ 0.22347s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-0 
+ 0.22363s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-1 
+ 0.22364s:  VX_ZONE_INFO: [tivxInit:152] Initialization Done !!!
+ 0.22368s:  VX_ZONE_INFO: Globally Disabled VX_ZONE_INFO
+
+MAX_NMSE: 0.0004120256559945685
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   1
+	Total Time (ms)                       :   10.41
+	Core Time (ms)                        :   9.07
+	TIDL Subgraphs Processing Time (ms)   :   9.02
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+MEM: Deinit ... !!!
+MEM: Alloc&#x27;s: 26 alloc&#x27;s of 34246933 bytes 
+MEM: Free&#x27;s : 26 free&#x27;s  of 34246933 bytes 
+MEM: Open&#x27;s : 0 allocs  of 0 bytes 
+MEM: Deinit ... Done !!!
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[HardSwish_9]</td>
+          <td>1</td>
+          <td>True</td>
+          <td class="col-duration">0.23</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw9] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw9] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw9] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw9] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x645a6936b030 
+Final number of subgraphs created are : 1, - Offloaded Nodes - 1, Total Nodes - 1 
+The soft limit is 10240
+The hard limit is 10240
+MEM: Init ... !!!
+MEM: Init ... Done !!!
+ 0.0s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_INFO
+ 0.8s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_ERROR
+ 0.9s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_WARNING
+ 0.107s:  VX_ZONE_INFO: [ownAddTargetKernelInternal:189] registered kernel vx_tutorial_graph.phase_rgb on target DSP-1
+ 0.994s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-0 
+ 0.1021s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-1 
+ 0.1052s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-2 
+ 0.1073s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-3 
+ 0.1097s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1 
+ 0.1118s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_2 
+ 0.1143s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_3 
+ 0.1163s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_4 
+ 0.1184s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_5 
+ 0.1204s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_6 
+ 0.1222s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_7 
+ 0.1244s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_8 
+ 0.1262s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP-1 
+ 0.1287s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-0 
+ 0.1309s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_NF 
+ 0.1328s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_LDC1 
+ 0.1351s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC1 
+ 0.1371s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC2 
+ 0.1389s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_VISS1 
+ 0.1414s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE1 
+ 0.1434s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE2 
+ 0.1459s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE3 
+ 0.1477s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE4 
+ 0.1498s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE5 
+ 0.1520s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE6 
+ 0.1540s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE7 
+ 0.1560s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE8 
+ 0.1581s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY1 
+ 0.1598s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY2 
+ 0.1619s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX 
+ 0.1653s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX2 
+ 0.1674s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M1 
+ 0.1693s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M2 
+ 0.10562s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M3 
+ 0.10622s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M4 
+ 0.10646s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_FC 
+ 0.10684s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-1 
+ 0.10703s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_SDE 
+ 0.10717s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_DOF 
+ 0.10732s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-0 
+ 0.10753s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-1 
+ 0.10754s:  VX_ZONE_INFO: [tivxInit:152] Initialization Done !!!
+ 0.10759s:  VX_ZONE_INFO: Globally Disabled VX_ZONE_INFO
+
+MAX_NMSE: 0.0004101533924086751
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   1
+	Total Time (ms)                       :   3.75
+	Core Time (ms)                        :   3.51
+	TIDL Subgraphs Processing Time (ms)   :   3.45
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+MEM: Deinit ... !!!
+MEM: Alloc&#x27;s: 26 alloc&#x27;s of 20389101 bytes 
+MEM: Free&#x27;s : 26 free&#x27;s  of 20389101 bytes 
+MEM: Open&#x27;s : 0 allocs  of 0 bytes 
+MEM: Deinit ... Done !!!
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[HardSwish_11]</td>
+          <td>1</td>
+          <td>True</td>
+          <td class="col-duration">0.23</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw16] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw16] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw16] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw16] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5dde189fb3d0 
+Final number of subgraphs created are : 1, - Offloaded Nodes - 1, Total Nodes - 1 
+The soft limit is 10240
+The hard limit is 10240
+MEM: Init ... !!!
+MEM: Init ... Done !!!
+ 0.0s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_INFO
+ 0.6s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_ERROR
+ 0.7s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_WARNING
+ 0.77s:  VX_ZONE_INFO: [ownAddTargetKernelInternal:189] registered kernel vx_tutorial_graph.phase_rgb on target DSP-1
+ 0.802s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-0 
+ 0.819s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-1 
+ 0.835s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-2 
+ 0.847s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-3 
+ 0.6469s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1 
+ 0.6493s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_2 
+ 0.6507s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_3 
+ 0.6520s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_4 
+ 0.6539s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_5 
+ 0.6555s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_6 
+ 0.6570s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_7 
+ 0.6591s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_8 
+ 0.6604s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP-1 
+ 0.6620s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-0 
+ 0.6639s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_NF 
+ 0.6654s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_LDC1 
+ 0.6667s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC1 
+ 0.6684s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC2 
+ 0.6698s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_VISS1 
+ 0.6712s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE1 
+ 0.6729s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE2 
+ 0.6748s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE3 
+ 0.6763s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE4 
+ 0.6779s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE5 
+ 0.6792s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE6 
+ 0.6804s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE7 
+ 0.6824s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE8 
+ 0.6836s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY1 
+ 0.6854s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY2 
+ 0.6880s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX 
+ 0.6893s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX2 
+ 0.6906s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M1 
+ 0.6924s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M2 
+ 0.6937s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M3 
+ 0.6950s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M4 
+ 0.6970s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_FC 
+ 0.6986s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-1 
+ 0.7002s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_SDE 
+ 0.7021s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_DOF 
+ 0.7038s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-0 
+ 0.7055s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-1 
+ 0.7056s:  VX_ZONE_INFO: [tivxInit:152] Initialization Done !!!
+ 0.7058s:  VX_ZONE_INFO: Globally Disabled VX_ZONE_INFO
+
+MAX_NMSE: 0.0004105456723690054
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   1
+	Total Time (ms)                       :   29.09
+	Core Time (ms)                        :   26.85
+	TIDL Subgraphs Processing Time (ms)   :   26.78
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+MEM: Deinit ... !!!
+MEM: Alloc&#x27;s: 26 alloc&#x27;s of 42277732 bytes 
+MEM: Free&#x27;s : 26 free&#x27;s  of 42277732 bytes 
+MEM: Open&#x27;s : 0 allocs  of 0 bytes 
+MEM: Deinit ... Done !!!
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[HardSwish_22]</td>
+          <td>1</td>
+          <td>True</td>
+          <td class="col-duration">0.21</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw1] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw1] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw1] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw1] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x57d2d492af60 
+Final number of subgraphs created are : 1, - Offloaded Nodes - 1, Total Nodes - 1 
+The soft limit is 10240
+The hard limit is 10240
+MEM: Init ... !!!
+MEM: Init ... Done !!!
+ 0.0s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_INFO
+ 0.5s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_ERROR
+ 0.5s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_WARNING
+ 0.67s:  VX_ZONE_INFO: [ownAddTargetKernelInternal:189] registered kernel vx_tutorial_graph.phase_rgb on target DSP-1
+ 0.816s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-0 
+ 0.832s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-1 
+ 0.851s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-2 
+ 0.864s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-3 
+ 0.882s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1 
+ 0.897s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_2 
+ 0.915s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_3 
+ 0.927s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_4 
+ 0.938s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_5 
+ 0.953s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_6 
+ 0.967s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_7 
+ 0.979s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_8 
+ 0.996s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP-1 
+ 0.1012s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-0 
+ 0.1024s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_NF 
+ 0.1041s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_LDC1 
+ 0.1054s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC1 
+ 0.1067s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC2 
+ 0.1079s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_VISS1 
+ 0.1093s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE1 
+ 0.1105s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE2 
+ 0.1123s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE3 
+ 0.1135s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE4 
+ 0.1147s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE5 
+ 0.1163s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE6 
+ 0.1176s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE7 
+ 0.1189s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE8 
+ 0.1204s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY1 
+ 0.1219s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY2 
+ 0.1232s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX 
+ 0.1252s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX2 
+ 0.1264s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M1 
+ 0.1274s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M2 
+ 0.1288s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M3 
+ 0.1299s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M4 
+ 0.1312s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_FC 
+ 0.1331s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-1 
+ 0.1345s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_SDE 
+ 0.1359s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_DOF 
+ 0.1378s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-0 
+ 0.1391s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-1 
+ 0.1392s:  VX_ZONE_INFO: [tivxInit:152] Initialization Done !!!
+ 0.1394s:  VX_ZONE_INFO: Globally Disabled VX_ZONE_INFO
+
+MAX_NMSE: 0.0004111869988568069
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   1
+	Total Time (ms)                       :   2.75
+	Core Time (ms)                        :   2.57
+	TIDL Subgraphs Processing Time (ms)   :   2.53
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+MEM: Deinit ... !!!
+MEM: Alloc&#x27;s: 26 alloc&#x27;s of 19990725 bytes 
+MEM: Free&#x27;s : 26 free&#x27;s  of 19990725 bytes 
+MEM: Open&#x27;s : 0 allocs  of 0 bytes 
+MEM: Deinit ... Done !!!
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[HardSwish_10]</td>
+          <td>1</td>
+          <td>True</td>
+          <td class="col-duration">0.21</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw4] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw4] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw4] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw4] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5b4351818df0 
+Final number of subgraphs created are : 1, - Offloaded Nodes - 1, Total Nodes - 1 
+The soft limit is 10240
+The hard limit is 10240
+MEM: Init ... !!!
+MEM: Init ... Done !!!
+ 0.0s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_INFO
+ 0.4s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_ERROR
+ 0.5s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_WARNING
+ 0.82s:  VX_ZONE_INFO: [ownAddTargetKernelInternal:189] registered kernel vx_tutorial_graph.phase_rgb on target DSP-1
+ 0.1163s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-0 
+ 0.1186s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-1 
+ 0.1207s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-2 
+ 0.1222s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-3 
+ 0.1244s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1 
+ 0.1265s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_2 
+ 0.1285s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_3 
+ 0.1300s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_4 
+ 0.1320s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_5 
+ 0.1338s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_6 
+ 0.1353s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_7 
+ 0.1371s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_8 
+ 0.1388s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP-1 
+ 0.1408s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-0 
+ 0.1432s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_NF 
+ 0.1448s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_LDC1 
+ 0.1466s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC1 
+ 0.1485s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC2 
+ 0.1506s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_VISS1 
+ 0.1523s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE1 
+ 0.1543s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE2 
+ 0.1559s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE3 
+ 0.1575s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE4 
+ 0.1592s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE5 
+ 0.1608s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE6 
+ 0.1623s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE7 
+ 0.1643s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE8 
+ 0.1657s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY1 
+ 0.1675s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY2 
+ 0.1694s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX 
+ 0.1712s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX2 
+ 0.1726s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M1 
+ 0.1743s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M2 
+ 0.1760s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M3 
+ 0.1774s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M4 
+ 0.1791s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_FC 
+ 0.1807s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-1 
+ 0.1821s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_SDE 
+ 0.1839s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_DOF 
+ 0.1853s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-0 
+ 0.1871s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-1 
+ 0.1873s:  VX_ZONE_INFO: [tivxInit:152] Initialization Done !!!
+ 0.1875s:  VX_ZONE_INFO: Globally Disabled VX_ZONE_INFO
+
+MAX_NMSE: 0.00041120059686571773
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   1
+	Total Time (ms)                       :   4.43
+	Core Time (ms)                        :   3.88
+	TIDL Subgraphs Processing Time (ms)   :   3.81
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+MEM: Deinit ... !!!
+MEM: Alloc&#x27;s: 26 alloc&#x27;s of 21681865 bytes 
+MEM: Free&#x27;s : 26 free&#x27;s  of 21681865 bytes 
+MEM: Open&#x27;s : 0 allocs  of 0 bytes 
+MEM: Deinit ... Done !!!
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[HardSwish_8]</td>
+          <td>1</td>
+          <td>True</td>
+          <td class="col-duration">0.22</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw12] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw12] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw12] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw12] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5f6c86ce3d60 
+Final number of subgraphs created are : 1, - Offloaded Nodes - 1, Total Nodes - 1 
+The soft limit is 10240
+The hard limit is 10240
+MEM: Init ... !!!
+MEM: Init ... Done !!!
+ 0.0s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_INFO
+ 0.7s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_ERROR
+ 0.8s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_WARNING
+ 0.84s:  VX_ZONE_INFO: [ownAddTargetKernelInternal:189] registered kernel vx_tutorial_graph.phase_rgb on target DSP-1
+ 0.971s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-0 
+ 0.987s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-1 
+ 0.1003s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-2 
+ 0.1020s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-3 
+ 0.1039s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1 
+ 0.1051s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_2 
+ 0.1070s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_3 
+ 0.1083s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_4 
+ 0.1098s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_5 
+ 0.1115s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_6 
+ 0.1131s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_7 
+ 0.1143s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_8 
+ 0.1163s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP-1 
+ 0.1180s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-0 
+ 0.1193s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_NF 
+ 0.1210s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_LDC1 
+ 0.1226s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC1 
+ 0.1240s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC2 
+ 0.1256s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_VISS1 
+ 0.1271s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE1 
+ 0.1285s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE2 
+ 0.1303s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE3 
+ 0.1317s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE4 
+ 0.1331s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE5 
+ 0.1348s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE6 
+ 0.1365s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE7 
+ 0.1380s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE8 
+ 0.1396s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY1 
+ 0.1409s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY2 
+ 0.1422s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX 
+ 0.1444s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX2 
+ 0.1459s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M1 
+ 0.1509s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M2 
+ 0.1525s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M3 
+ 0.1542s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M4 
+ 0.1556s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_FC 
+ 0.1578s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-1 
+ 0.1590s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_SDE 
+ 0.1605s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_DOF 
+ 0.1625s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-0 
+ 0.1641s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-1 
+ 0.1642s:  VX_ZONE_INFO: [tivxInit:152] Initialization Done !!!
+ 0.1644s:  VX_ZONE_INFO: Globally Disabled VX_ZONE_INFO
+
+MAX_NMSE: 0.00041163713872341786
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   1
+	Total Time (ms)                       :   23.69
+	Core Time (ms)                        :   23.58
+	TIDL Subgraphs Processing Time (ms)   :   23.53
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+MEM: Deinit ... !!!
+MEM: Alloc&#x27;s: 26 alloc&#x27;s of 14718665 bytes 
+MEM: Free&#x27;s : 26 free&#x27;s  of 14718665 bytes 
+MEM: Open&#x27;s : 0 allocs  of 0 bytes 
+MEM: Deinit ... Done !!!
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[HardSwish_21]</td>
+          <td>1</td>
+          <td>True</td>
+          <td class="col-duration">0.19</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw19] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw19] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw19] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw19] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x62fdd6566600 
+Final number of subgraphs created are : 1, - Offloaded Nodes - 1, Total Nodes - 1 
+The soft limit is 10240
+The hard limit is 10240
+MEM: Init ... !!!
+MEM: Init ... Done !!!
+ 0.0s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_INFO
+ 0.4s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_ERROR
+ 0.5s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_WARNING
+ 0.82s:  VX_ZONE_INFO: [ownAddTargetKernelInternal:189] registered kernel vx_tutorial_graph.phase_rgb on target DSP-1
+ 0.4971s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-0 
+ 0.5005s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-1 
+ 0.5020s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-2 
+ 0.5034s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-3 
+ 0.5052s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1 
+ 0.5064s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_2 
+ 0.5079s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_3 
+ 0.5091s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_4 
+ 0.5106s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_5 
+ 0.5120s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_6 
+ 0.5133s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_7 
+ 0.5147s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_8 
+ 0.5161s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP-1 
+ 0.5174s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-0 
+ 0.5188s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_NF 
+ 0.5200s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_LDC1 
+ 0.5216s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC1 
+ 0.5227s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC2 
+ 0.5239s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_VISS1 
+ 0.5251s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE1 
+ 0.5265s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE2 
+ 0.5279s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE3 
+ 0.5292s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE4 
+ 0.5304s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE5 
+ 0.5316s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE6 
+ 0.5330s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE7 
+ 0.5340s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE8 
+ 0.5352s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY1 
+ 0.5367s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY2 
+ 0.5378s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX 
+ 0.5393s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX2 
+ 0.5407s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M1 
+ 0.5419s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M2 
+ 0.5432s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M3 
+ 0.5442s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M4 
+ 0.5453s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_FC 
+ 0.5468s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-1 
+ 0.5479s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_SDE 
+ 0.5489s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_DOF 
+ 0.5504s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-0 
+ 0.5520s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-1 
+ 0.5521s:  VX_ZONE_INFO: [tivxInit:152] Initialization Done !!!
+ 0.5523s:  VX_ZONE_INFO: Globally Disabled VX_ZONE_INFO
+
+MAX_NMSE: 0.00010458333997645256
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   1
+	Total Time (ms)                       :   0.36
+	Core Time (ms)                        :   0.33
+	TIDL Subgraphs Processing Time (ms)   :   0.29
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+MEM: Deinit ... !!!
+MEM: Alloc&#x27;s: 26 alloc&#x27;s of 12846365 bytes 
+MEM: Free&#x27;s : 26 free&#x27;s  of 12846365 bytes 
+MEM: Open&#x27;s : 0 allocs  of 0 bytes 
+MEM: Deinit ... Done !!!
+<br/></div></td></tr></tbody></table></body></html>

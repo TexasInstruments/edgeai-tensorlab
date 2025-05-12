@@ -1,0 +1,2609 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>report_05-06-2025_22-29-12.html</title>
+    <style>body {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  /* do not increase min-width as some may use split screens */
+  min-width: 800px;
+  color: #999;
+}
+
+h1 {
+  font-size: 24px;
+  color: black;
+}
+
+h2 {
+  font-size: 16px;
+  color: black;
+}
+
+p {
+  color: black;
+}
+
+a {
+  color: #999;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+/******************************
+ * SUMMARY INFORMATION
+ ******************************/
+#environment td {
+  padding: 5px;
+  border: 1px solid #E6E6E6;
+}
+#environment tr:nth-child(odd) {
+  background-color: #f6f6f6;
+}
+
+/******************************
+ * TEST RESULT COLORS
+ ******************************/
+span.passed,
+.passed .col-result {
+  color: green;
+}
+
+span.skipped,
+span.xfailed,
+span.rerun,
+.skipped .col-result,
+.xfailed .col-result,
+.rerun .col-result {
+  color: orange;
+}
+
+span.error,
+span.failed,
+span.xpassed,
+.error .col-result,
+.failed .col-result,
+.xpassed .col-result {
+  color: red;
+}
+
+/******************************
+ * RESULTS TABLE
+ *
+ * 1. Table Layout
+ * 2. Extra
+ * 3. Sorting items
+ *
+ ******************************/
+/*------------------
+ * 1. Table Layout
+ *------------------*/
+#results-table {
+  border: 1px solid #e6e6e6;
+  color: #999;
+  font-size: 12px;
+  width: 100%;
+}
+#results-table th,
+#results-table td {
+  padding: 5px;
+  border: 1px solid #E6E6E6;
+  text-align: left;
+}
+#results-table th {
+  font-weight: bold;
+}
+
+/*------------------
+ * 2. Extra
+ *------------------*/
+.log {
+  background-color: #e6e6e6;
+  border: 1px solid #e6e6e6;
+  color: black;
+  display: block;
+  font-family: "Courier New", Courier, monospace;
+  height: 230px;
+  overflow-y: scroll;
+  padding: 5px;
+  white-space: pre-wrap;
+}
+.log:only-child {
+  height: inherit;
+}
+
+div.image {
+  border: 1px solid #e6e6e6;
+  float: right;
+  height: 240px;
+  margin-left: 5px;
+  overflow: hidden;
+  width: 320px;
+}
+div.image img {
+  width: 320px;
+}
+
+div.video {
+  border: 1px solid #e6e6e6;
+  float: right;
+  height: 240px;
+  margin-left: 5px;
+  overflow: hidden;
+  width: 320px;
+}
+div.video video {
+  overflow: hidden;
+  width: 320px;
+  height: 240px;
+}
+
+.collapsed {
+  display: none;
+}
+
+.expander::after {
+  content: " (show details)";
+  color: #BBB;
+  font-style: italic;
+  cursor: pointer;
+}
+
+.collapser::after {
+  content: " (hide details)";
+  color: #BBB;
+  font-style: italic;
+  cursor: pointer;
+}
+
+/*------------------
+ * 3. Sorting items
+ *------------------*/
+.sortable {
+  cursor: pointer;
+}
+
+.sort-icon {
+  font-size: 0px;
+  float: left;
+  margin-right: 5px;
+  margin-top: 5px;
+  /*triangle*/
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+}
+.inactive .sort-icon {
+  /*finish triangle*/
+  border-top: 8px solid #E6E6E6;
+}
+.asc.active .sort-icon {
+  /*finish triangle*/
+  border-bottom: 8px solid #999;
+}
+.desc.active .sort-icon {
+  /*finish triangle*/
+  border-top: 8px solid #999;
+}
+</style></head>
+  <body onLoad="init()">
+    <script>/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+
+function toArray(iter) {
+    if (iter === null) {
+        return null;
+    }
+    return Array.prototype.slice.call(iter);
+}
+
+function find(selector, elem) { // eslint-disable-line no-redeclare
+    if (!elem) {
+        elem = document;
+    }
+    return elem.querySelector(selector);
+}
+
+function findAll(selector, elem) {
+    if (!elem) {
+        elem = document;
+    }
+    return toArray(elem.querySelectorAll(selector));
+}
+
+function sortColumn(elem) {
+    toggleSortStates(elem);
+    const colIndex = toArray(elem.parentNode.childNodes).indexOf(elem);
+    let key;
+    if (elem.classList.contains('result')) {
+        key = keyResult;
+    } else if (elem.classList.contains('links')) {
+        key = keyLink;
+    } else {
+        key = keyAlpha;
+    }
+    sortTable(elem, key(colIndex));
+}
+
+function showAllExtras() { // eslint-disable-line no-unused-vars
+    findAll('.col-result').forEach(showExtras);
+}
+
+function hideAllExtras() { // eslint-disable-line no-unused-vars
+    findAll('.col-result').forEach(hideExtras);
+}
+
+function showExtras(colresultElem) {
+    const extras = colresultElem.parentNode.nextElementSibling;
+    const expandcollapse = colresultElem.firstElementChild;
+    extras.classList.remove('collapsed');
+    expandcollapse.classList.remove('expander');
+    expandcollapse.classList.add('collapser');
+}
+
+function hideExtras(colresultElem) {
+    const extras = colresultElem.parentNode.nextElementSibling;
+    const expandcollapse = colresultElem.firstElementChild;
+    extras.classList.add('collapsed');
+    expandcollapse.classList.remove('collapser');
+    expandcollapse.classList.add('expander');
+}
+
+function showFilters() {
+    let visibleString = getQueryParameter('visible') || 'all';
+    visibleString = visibleString.toLowerCase();
+    const checkedItems = visibleString.split(',');
+
+    const filterItems = document.getElementsByClassName('filter');
+    for (let i = 0; i < filterItems.length; i++) {
+        filterItems[i].hidden = false;
+
+        if (visibleString != 'all') {
+            filterItems[i].checked = checkedItems.includes(filterItems[i].getAttribute('data-test-result'));
+            filterTable(filterItems[i]);
+        }
+    }
+}
+
+function addCollapse() {
+    // Add links for show/hide all
+    const resulttable = find('table#results-table');
+    const showhideall = document.createElement('p');
+    showhideall.innerHTML = '<a href="javascript:showAllExtras()">Show all details</a> / ' +
+                            '<a href="javascript:hideAllExtras()">Hide all details</a>';
+    resulttable.parentElement.insertBefore(showhideall, resulttable);
+
+    // Add show/hide link to each result
+    findAll('.col-result').forEach(function(elem) {
+        const collapsed = getQueryParameter('collapsed') || 'Passed';
+        const extras = elem.parentNode.nextElementSibling;
+        const expandcollapse = document.createElement('span');
+        if (extras.classList.contains('collapsed')) {
+            expandcollapse.classList.add('expander');
+        } else if (collapsed.includes(elem.innerHTML)) {
+            extras.classList.add('collapsed');
+            expandcollapse.classList.add('expander');
+        } else {
+            expandcollapse.classList.add('collapser');
+        }
+        elem.appendChild(expandcollapse);
+
+        elem.addEventListener('click', function(event) {
+            if (event.currentTarget.parentNode.nextElementSibling.classList.contains('collapsed')) {
+                showExtras(event.currentTarget);
+            } else {
+                hideExtras(event.currentTarget);
+            }
+        });
+    });
+}
+
+function getQueryParameter(name) {
+    const match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+    return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+}
+
+function init () { // eslint-disable-line no-unused-vars
+    resetSortHeaders();
+
+    addCollapse();
+
+    showFilters();
+
+    sortColumn(find('.initial-sort'));
+
+    findAll('.sortable').forEach(function(elem) {
+        elem.addEventListener('click',
+            function() {
+                sortColumn(elem);
+            }, false);
+    });
+}
+
+function sortTable(clicked, keyFunc) {
+    const rows = findAll('.results-table-row');
+    const reversed = !clicked.classList.contains('asc');
+    const sortedRows = sort(rows, keyFunc, reversed);
+    /* Whole table is removed here because browsers acts much slower
+     * when appending existing elements.
+     */
+    const thead = document.getElementById('results-table-head');
+    document.getElementById('results-table').remove();
+    const parent = document.createElement('table');
+    parent.id = 'results-table';
+    parent.appendChild(thead);
+    sortedRows.forEach(function(elem) {
+        parent.appendChild(elem);
+    });
+    document.getElementsByTagName('BODY')[0].appendChild(parent);
+}
+
+function sort(items, keyFunc, reversed) {
+    const sortArray = items.map(function(item, i) {
+        return [keyFunc(item), i];
+    });
+
+    sortArray.sort(function(a, b) {
+        const keyA = a[0];
+        const keyB = b[0];
+
+        if (keyA == keyB) return 0;
+
+        if (reversed) {
+            return keyA < keyB ? 1 : -1;
+        } else {
+            return keyA > keyB ? 1 : -1;
+        }
+    });
+
+    return sortArray.map(function(item) {
+        const index = item[1];
+        return items[index];
+    });
+}
+
+function keyAlpha(colIndex) {
+    return function(elem) {
+        return elem.childNodes[1].childNodes[colIndex].firstChild.data.toLowerCase();
+    };
+}
+
+function keyLink(colIndex) {
+    return function(elem) {
+        const dataCell = elem.childNodes[1].childNodes[colIndex].firstChild;
+        return dataCell == null ? '' : dataCell.innerText.toLowerCase();
+    };
+}
+
+function keyResult(colIndex) {
+    return function(elem) {
+        const strings = ['Error', 'Failed', 'Rerun', 'XFailed', 'XPassed',
+            'Skipped', 'Passed'];
+        return strings.indexOf(elem.childNodes[1].childNodes[colIndex].firstChild.data);
+    };
+}
+
+function resetSortHeaders() {
+    findAll('.sort-icon').forEach(function(elem) {
+        elem.parentNode.removeChild(elem);
+    });
+    findAll('.sortable').forEach(function(elem) {
+        const icon = document.createElement('div');
+        icon.className = 'sort-icon';
+        icon.textContent = 'vvv';
+        elem.insertBefore(icon, elem.firstChild);
+        elem.classList.remove('desc', 'active');
+        elem.classList.add('asc', 'inactive');
+    });
+}
+
+function toggleSortStates(elem) {
+    //if active, toggle between asc and desc
+    if (elem.classList.contains('active')) {
+        elem.classList.toggle('asc');
+        elem.classList.toggle('desc');
+    }
+
+    //if inactive, reset all other functions and add ascending active
+    if (elem.classList.contains('inactive')) {
+        resetSortHeaders();
+        elem.classList.remove('inactive');
+        elem.classList.add('active');
+    }
+}
+
+function isAllRowsHidden(value) {
+    return value.hidden == false;
+}
+
+function filterTable(elem) { // eslint-disable-line no-unused-vars
+    const outcomeAtt = 'data-test-result';
+    const outcome = elem.getAttribute(outcomeAtt);
+    const classOutcome = outcome + ' results-table-row';
+    const outcomeRows = document.getElementsByClassName(classOutcome);
+
+    for(let i = 0; i < outcomeRows.length; i++){
+        outcomeRows[i].hidden = !elem.checked;
+    }
+
+    const rows = findAll('.results-table-row').filter(isAllRowsHidden);
+    const allRowsHidden = rows.length == 0 ? true : false;
+    const notFoundMessage = document.getElementById('not-found-message');
+    notFoundMessage.hidden = !allRowsHidden;
+}
+</script>
+    <h1>report_05-06-2025_22-29-12.html</h1>
+    <p>Report generated on 06-May-2025 at 22:29:19 by <a href="https://pypi.python.org/pypi/pytest-html">pytest-html</a> v3.2.0</p>
+    <h2>Summary</h2>
+    <p>72 tests ran in 6.40 seconds. </p>
+    <p class="filter" hidden="true">(Un)check the boxes to filter the results.</p><input checked="true" class="filter" data-test-result="passed" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="passed">72 passed</span>, <input checked="true" class="filter" data-test-result="skipped" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="skipped">0 skipped</span>, <input checked="true" class="filter" data-test-result="failed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="failed">0 failed</span>, <input checked="true" class="filter" data-test-result="error" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="error">0 errors</span>, <input checked="true" class="filter" data-test-result="xfailed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="xfailed">0 expected failures</span>, <input checked="true" class="filter" data-test-result="xpassed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="xpassed">0 unexpected passes</span>
+    <h2>Results</h2>
+    <table id="results-table">
+      <thead id="results-table-head">
+        <tr>
+          <th class="sortable result initial-sort" col="result">Result</th>
+          <th class="sortable" col="name">Test</th>
+          <th>TIDL Subgraphs</th>
+          <th>Complete TIDL Offload</th>
+          <th class="sortable" col="duration">Duration</th>
+          <th class="sortable links" col="links">Links</th></tr>
+        <tr hidden="true" id="not-found-message">
+          <th colspan="6">No results found. Try to check the filters</th></tr></thead>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_69]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.09</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw1] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw1] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw1] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw1] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x59323e61a5d0 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.11
+	Core Time (ms)                        :   0.11
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_18]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.11</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw8] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw8] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw8] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw8] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x6470a8f64d00 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.16
+	Core Time (ms)                        :   0.16
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_68]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.11</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw13] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw13] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw13] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw13] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x6307aafc0e50 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.07
+	Core Time (ms)                        :   0.07
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_22]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.11</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw0] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw0] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw0] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw0] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5846ab4cddd0 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.34
+	Core Time (ms)                        :   0.34
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_49]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.10</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw19] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw19] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw19] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw19] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5dd7a96fa2a0 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.09
+	Core Time (ms)                        :   0.09
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_10]</td>
+          <td>1</td>
+          <td>True</td>
+          <td class="col-duration">0.19</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw14] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw14] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw14] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw14] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x63bef66e8030 
+Final number of subgraphs created are : 1, - Offloaded Nodes - 1, Total Nodes - 1 
+The soft limit is 10240
+The hard limit is 10240
+MEM: Init ... !!!
+MEM: Init ... Done !!!
+ 0.0s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_INFO
+ 0.6s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_ERROR
+ 0.7s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_WARNING
+ 0.110s:  VX_ZONE_INFO: [ownAddTargetKernelInternal:189] registered kernel vx_tutorial_graph.phase_rgb on target DSP-1
+ 0.11947s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-0 
+ 0.11970s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-1 
+ 0.11988s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-2 
+ 0.11999s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-3 
+ 0.12013s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1 
+ 0.12031s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_2 
+ 0.12051s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_3 
+ 0.12067s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_4 
+ 0.12083s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_5 
+ 0.12097s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_6 
+ 0.12115s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_7 
+ 0.12134s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_8 
+ 0.12151s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP-1 
+ 0.12168s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-0 
+ 0.12186s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_NF 
+ 0.12203s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_LDC1 
+ 0.12221s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC1 
+ 0.12239s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC2 
+ 0.12256s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_VISS1 
+ 0.12274s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE1 
+ 0.12294s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE2 
+ 0.12316s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE3 
+ 0.12328s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE4 
+ 0.12348s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE5 
+ 0.12361s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE6 
+ 0.12379s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE7 
+ 0.12396s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE8 
+ 0.12409s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY1 
+ 0.12422s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY2 
+ 0.12444s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX 
+ 0.12463s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX2 
+ 0.12480s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M1 
+ 0.12500s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M2 
+ 0.12513s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M3 
+ 0.12528s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M4 
+ 0.12545s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_FC 
+ 0.12563s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-1 
+ 0.12578s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_SDE 
+ 0.12596s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_DOF 
+ 0.12612s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-0 
+ 0.12632s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-1 
+ 0.12633s:  VX_ZONE_INFO: [tivxInit:152] Initialization Done !!!
+ 0.12636s:  VX_ZONE_INFO: Globally Disabled VX_ZONE_INFO
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   1
+	Total Time (ms)                       :   0.14
+	Core Time (ms)                        :   0.12
+	TIDL Subgraphs Processing Time (ms)   :   0.08
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+MEM: Deinit ... !!!
+MEM: Alloc&#x27;s: 26 alloc&#x27;s of 18655669 bytes 
+MEM: Free&#x27;s : 26 free&#x27;s  of 18655669 bytes 
+MEM: Open&#x27;s : 0 allocs  of 0 bytes 
+MEM: Deinit ... Done !!!
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_4]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.10</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw22] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw22] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw22] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw22] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x64a608c945e0 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.07
+	Core Time (ms)                        :   0.07
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_16]</td>
+          <td>1</td>
+          <td>True</td>
+          <td class="col-duration">0.20</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw9] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw9] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw9] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw9] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5cf89483a7a0 
+Final number of subgraphs created are : 1, - Offloaded Nodes - 1, Total Nodes - 1 
+The soft limit is 10240
+The hard limit is 10240
+MEM: Init ... !!!
+MEM: Init ... Done !!!
+ 0.0s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_INFO
+ 0.6s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_ERROR
+ 0.7s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_WARNING
+ 0.74s:  VX_ZONE_INFO: [ownAddTargetKernelInternal:189] registered kernel vx_tutorial_graph.phase_rgb on target DSP-1
+ 0.798s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-0 
+ 0.812s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-1 
+ 0.833s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-2 
+ 0.848s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-3 
+ 0.861s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1 
+ 0.874s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_2 
+ 0.887s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_3 
+ 0.897s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_4 
+ 0.910s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_5 
+ 0.923s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_6 
+ 0.937s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_7 
+ 0.949s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_8 
+ 0.961s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP-1 
+ 0.978s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-0 
+ 0.991s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_NF 
+ 0.1003s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_LDC1 
+ 0.1018s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC1 
+ 0.1030s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC2 
+ 0.1040s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_VISS1 
+ 0.1162s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE1 
+ 0.1174s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE2 
+ 0.1186s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE3 
+ 0.1200s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE4 
+ 0.1212s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE5 
+ 0.1228s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE6 
+ 0.1242s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE7 
+ 0.1252s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE8 
+ 0.1264s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY1 
+ 0.1279s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY2 
+ 0.1291s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX 
+ 0.1305s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX2 
+ 0.1320s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M1 
+ 0.1333s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M2 
+ 0.1344s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M3 
+ 0.4712s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M4 
+ 0.4747s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_FC 
+ 0.4771s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-1 
+ 0.4789s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_SDE 
+ 0.4803s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_DOF 
+ 0.4819s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-0 
+ 0.4835s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-1 
+ 0.4836s:  VX_ZONE_INFO: [tivxInit:152] Initialization Done !!!
+ 0.4839s:  VX_ZONE_INFO: Globally Disabled VX_ZONE_INFO
+
+MAX_NMSE: 0.37117006395210883
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   1
+	Total Time (ms)                       :   22.00
+	Core Time (ms)                        :   21.02
+	TIDL Subgraphs Processing Time (ms)   :   20.98
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+MEM: Deinit ... !!!
+MEM: Alloc&#x27;s: 26 alloc&#x27;s of 44512445 bytes 
+MEM: Free&#x27;s : 26 free&#x27;s  of 44512445 bytes 
+MEM: Open&#x27;s : 0 allocs  of 0 bytes 
+MEM: Deinit ... Done !!!
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_15]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.10</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw23] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw23] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw23] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw23] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x562944db9d20 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.12
+	Core Time (ms)                        :   0.12
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_55]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.11</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw20] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw20] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw20] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw20] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x56e3bf044750 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.34
+	Core Time (ms)                        :   0.34
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_14]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.10</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw12] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw12] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw12] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw12] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5d40e106bc70 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.19
+	Core Time (ms)                        :   0.19
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_1]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.09</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw18] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw18] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw18] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw18] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5bac714422e0 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.07
+	Core Time (ms)                        :   0.07
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_25]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.10</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw10] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw10] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw10] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw10] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5fb4d9c234f0 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   1.00
+	Core Time (ms)                        :   1.00
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_26]</td>
+          <td>1</td>
+          <td>True</td>
+          <td class="col-duration">0.16</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw2] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw2] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw2] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw2] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x57c0acbd3970 
+Final number of subgraphs created are : 1, - Offloaded Nodes - 1, Total Nodes - 1 
+The soft limit is 10240
+The hard limit is 10240
+MEM: Init ... !!!
+MEM: Init ... Done !!!
+ 0.0s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_INFO
+ 0.4s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_ERROR
+ 0.5s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_WARNING
+ 0.86s:  VX_ZONE_INFO: [ownAddTargetKernelInternal:189] registered kernel vx_tutorial_graph.phase_rgb on target DSP-1
+ 0.926s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-0 
+ 0.952s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-1 
+ 0.971s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-2 
+ 0.985s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-3 
+ 0.1009s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1 
+ 0.1026s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_2 
+ 0.1045s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_3 
+ 0.1062s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_4 
+ 0.1080s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_5 
+ 0.1095s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_6 
+ 0.1116s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_7 
+ 0.1134s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_8 
+ 0.1149s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP-1 
+ 0.1169s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-0 
+ 0.1188s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_NF 
+ 0.1203s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_LDC1 
+ 0.1223s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC1 
+ 0.1240s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC2 
+ 0.1255s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_VISS1 
+ 0.1278s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE1 
+ 0.8349s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE2 
+ 0.8388s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE3 
+ 0.8401s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE4 
+ 0.8413s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE5 
+ 0.8430s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE6 
+ 0.8440s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE7 
+ 0.8453s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE8 
+ 0.8469s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY1 
+ 0.8481s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY2 
+ 0.8492s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX 
+ 0.8511s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX2 
+ 0.8522s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M1 
+ 0.8535s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M2 
+ 0.8548s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M3 
+ 0.8561s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M4 
+ 0.8573s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_FC 
+ 0.8592s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-1 
+ 0.8602s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_SDE 
+ 0.8615s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_DOF 
+ 0.8630s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-0 
+ 0.8644s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-1 
+ 0.8645s:  VX_ZONE_INFO: [tivxInit:152] Initialization Done !!!
+ 0.8647s:  VX_ZONE_INFO: Globally Disabled VX_ZONE_INFO
+
+MAX_NMSE: 0.00396728515625
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   1
+	Total Time (ms)                       :   5.61
+	Core Time (ms)                        :   5.55
+	TIDL Subgraphs Processing Time (ms)   :   5.50
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+MEM: Deinit ... !!!
+MEM: Alloc&#x27;s: 26 alloc&#x27;s of 19161197 bytes 
+MEM: Free&#x27;s : 26 free&#x27;s  of 19161197 bytes 
+MEM: Open&#x27;s : 0 allocs  of 0 bytes 
+MEM: Deinit ... Done !!!
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_9]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.09</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw5] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw5] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw5] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw5] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x61159c725a30 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.06
+	Core Time (ms)                        :   0.06
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_62]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.11</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw7] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw7] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw7] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw7] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x63263158b5b0 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.32
+	Core Time (ms)                        :   0.32
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_72]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.11</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw16] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw16] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw16] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw16] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5efc4116d960 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.10
+	Core Time (ms)                        :   0.10
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_56]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.11</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw4] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw4] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw4] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw4] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x56bc9622fb00 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   42.10
+	Core Time (ms)                        :   42.10
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_28]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.10</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw6] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw6] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw6] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw6] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x606b0e9d6590 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.48
+	Core Time (ms)                        :   0.48
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_20]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.09</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw21] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw21] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw21] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw21] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5b535b49ef90 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.10
+	Core Time (ms)                        :   0.10
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_70]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.10</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw15] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw15] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw15] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw15] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5a3024b89f90 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.23
+	Core Time (ms)                        :   0.23
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_44]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.09</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw17] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw17] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw17] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw17] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x63449a5fbc60 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.14
+	Core Time (ms)                        :   0.14
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_65]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.09</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw3] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw3] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw3] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw3] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5d044b0b0d20 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.31
+	Core Time (ms)                        :   0.31
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_36]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.07</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw11] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw11] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw11] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw11] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5747ed44fef0 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.34
+	Core Time (ms)                        :   0.34
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_7]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.04</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw1] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw1] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw1] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw1] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x59323e705410 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.08
+	Core Time (ms)                        :   0.08
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_37]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.06</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw3] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw3] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw3] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw3] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5d044b1a16e0 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.11
+	Core Time (ms)                        :   0.11
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_31]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.09</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw18] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw18] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw18] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw18] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5bac7135b4a0 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.11
+	Core Time (ms)                        :   0.11
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_63]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.09</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw11] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw11] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw11] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw11] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5747ed552040 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.06
+	Core Time (ms)                        :   0.06
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_24]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.07</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw21] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw21] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw21] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw21] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5b535b58d730 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.06
+	Core Time (ms)                        :   0.06
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_17]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.04</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw5] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw5] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw5] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw5] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x61159c63f450 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.11
+	Core Time (ms)                        :   0.11
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_33]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.09</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw17] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw17] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw17] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw17] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x63449a852c90 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   13.70
+	Core Time (ms)                        :   13.70
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_53]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.13</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw19] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw19] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw19] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw19] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5dd7a95fcc50 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   16.41
+	Core Time (ms)                        :   16.41
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_51]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.09</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw23] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw23] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw23] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw23] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x562944dbd330 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.12
+	Core Time (ms)                        :   0.12
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_50]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.09</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw15] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw15] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw15] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw15] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5a3024b8c9c0 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.13
+	Core Time (ms)                        :   0.13
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_27]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.07</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw22] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw22] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw22] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw22] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x64a608badc70 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.19
+	Core Time (ms)                        :   0.19
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_42]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.10</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw6] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw6] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw6] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw6] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x606b0e9d7690 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.08
+	Core Time (ms)                        :   0.08
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_8]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.10</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw10] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw10] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw10] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw10] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5fb4d9c26240 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   2.05
+	Core Time (ms)                        :   2.05
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_35]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.07</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw12] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw12] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw12] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw12] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5d40e10237e0 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.27
+	Core Time (ms)                        :   0.27
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_29]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.07</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw13] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw13] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw13] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw13] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x6307ab2139c0 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.38
+	Core Time (ms)                        :   0.38
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_38]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.07</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw0] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw0] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw0] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw0] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5846ab4d1330 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.09
+	Core Time (ms)                        :   0.09
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_57]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.07</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw8] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw8] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw8] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw8] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x6470a8e7c500 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.09
+	Core Time (ms)                        :   0.09
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_32]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.10</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw20] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw20] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw20] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw20] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x56e3bf1338e0 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.06
+	Core Time (ms)                        :   0.06
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_3]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.11</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw4] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw4] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw4] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw4] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x56bc9631c3d0 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.07
+	Core Time (ms)                        :   0.07
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_5]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.09</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw7] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw7] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw7] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw7] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x632631677cb0 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.05
+	Core Time (ms)                        :   0.05
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_6]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.07</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw16] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw16] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw16] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw16] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5efc4115b5e0 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.07
+	Core Time (ms)                        :   0.07
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_34]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.07</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw1] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw1] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw1] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw1] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x59323e6244c0 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.15
+	Core Time (ms)                        :   0.15
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_47]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.06</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw5] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw5] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw5] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw5] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x61159c72bbc0 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.06
+	Core Time (ms)                        :   0.06
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_30]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.06</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw3] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw3] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw3] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw3] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5d044b0b3dd0 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.15
+	Core Time (ms)                        :   0.15
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_52]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.05</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw2] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw2] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw2] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw2] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x57c0acbe7370 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.17
+	Core Time (ms)                        :   0.17
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_61]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.07</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw21] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw21] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw21] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw21] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5b535b4a1890 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.13
+	Core Time (ms)                        :   0.13
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_41]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.06</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw14] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw14] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw14] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw14] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x63bef67c6d00 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   3.81
+	Core Time (ms)                        :   3.81
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_48]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.08</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw13] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw13] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw13] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw13] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x6307aafc0660 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.12
+	Core Time (ms)                        :   0.12
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_66]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.08</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw12] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw12] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw12] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw12] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5d40e10253a0 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.31
+	Core Time (ms)                        :   0.31
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_23]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.10</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw22] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw22] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw22] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw22] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x64a608cc7df0 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.13
+	Core Time (ms)                        :   0.13
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_54]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.05</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw0] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw0] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw0] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw0] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5846ab3e51f0 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   3.27
+	Core Time (ms)                        :   3.27
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_58]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.07</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw11] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw11] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw11] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw11] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5747ed4543c0 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.12
+	Core Time (ms)                        :   0.12
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_39]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.09</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw17] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw17] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw17] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw17] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x63449a6ebad0 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.06
+	Core Time (ms)                        :   0.06
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_13]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.10</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw8] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw8] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw8] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw8] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x6470a8f95930 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.08
+	Core Time (ms)                        :   0.08
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_19]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.10</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw16] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw16] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw16] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw16] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5efc41163cb0 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.15
+	Core Time (ms)                        :   0.15
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_67]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.08</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw18] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw18] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw18] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw18] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5bac71361cc0 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.10
+	Core Time (ms)                        :   0.10
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_71]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.08</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw15] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw15] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw15] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw15] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5a3024b8e140 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   3.51
+	Core Time (ms)                        :   3.51
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_43]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.07</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw6] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw6] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw6] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw6] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x606b0e8e96e0 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.12
+	Core Time (ms)                        :   0.12
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_59]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.10</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw23] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw23] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw23] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw23] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x562944dbe450 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.12
+	Core Time (ms)                        :   0.12
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_11]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.08</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw10] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw10] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw10] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw10] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5fb4d9c276b0 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.09
+	Core Time (ms)                        :   0.09
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_46]</td>
+          <td>1</td>
+          <td>True</td>
+          <td class="col-duration">0.15</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw7] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw7] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw7] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw7] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x63263167ec30 
+Final number of subgraphs created are : 1, - Offloaded Nodes - 1, Total Nodes - 1 
+The soft limit is 10240
+The hard limit is 10240
+MEM: Init ... !!!
+MEM: Init ... Done !!!
+ 0.0s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_INFO
+ 0.5s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_ERROR
+ 0.6s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_WARNING
+ 0.84s:  VX_ZONE_INFO: [ownAddTargetKernelInternal:189] registered kernel vx_tutorial_graph.phase_rgb on target DSP-1
+ 0.6206s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-0 
+ 0.6239s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-1 
+ 0.6255s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-2 
+ 0.6271s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-3 
+ 0.6290s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1 
+ 0.6301s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_2 
+ 0.6314s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_3 
+ 0.6325s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_4 
+ 0.6339s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_5 
+ 0.6356s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_6 
+ 0.6369s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_7 
+ 0.6379s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_8 
+ 0.6395s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP-1 
+ 0.6409s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-0 
+ 0.6418s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_NF 
+ 0.6433s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_LDC1 
+ 0.6443s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC1 
+ 0.6452s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC2 
+ 0.6473s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_VISS1 
+ 0.6486s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE1 
+ 0.6496s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE2 
+ 0.6511s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE3 
+ 0.6521s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE4 
+ 0.6532s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE5 
+ 0.6547s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE6 
+ 0.6561s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE7 
+ 0.6571s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE8 
+ 0.6582s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY1 
+ 0.6595s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY2 
+ 0.6605s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX 
+ 0.6625s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX2 
+ 0.6635s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M1 
+ 0.6647s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M2 
+ 0.6659s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M3 
+ 0.6671s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M4 
+ 0.6682s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_FC 
+ 0.6702s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-1 
+ 0.6839s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_SDE 
+ 0.6849s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_DOF 
+ 0.6865s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-0 
+ 0.6878s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-1 
+ 0.6879s:  VX_ZONE_INFO: [tivxInit:152] Initialization Done !!!
+ 0.6881s:  VX_ZONE_INFO: Globally Disabled VX_ZONE_INFO
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   1
+	Total Time (ms)                       :   3.52
+	Core Time (ms)                        :   3.49
+	TIDL Subgraphs Processing Time (ms)   :   3.45
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+MEM: Deinit ... !!!
+MEM: Alloc&#x27;s: 26 alloc&#x27;s of 18688141 bytes 
+MEM: Free&#x27;s : 26 free&#x27;s  of 18688141 bytes 
+MEM: Open&#x27;s : 0 allocs  of 0 bytes 
+MEM: Deinit ... Done !!!
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_12]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.09</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw9] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw9] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw9] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw9] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5cf89483e760 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.05
+	Core Time (ms)                        :   0.05
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_64]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.07</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw1] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw1] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw1] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw1] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x59323e71bef0 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.07
+	Core Time (ms)                        :   0.07
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_45]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.09</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw20] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw20] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw20] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw20] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x56e3bf137e20 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.06
+	Core Time (ms)                        :   0.06
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_60]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.07</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw5] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw5] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw5] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw5] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x61159c641130 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.21
+	Core Time (ms)                        :   0.21
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_2]</td>
+          <td>1</td>
+          <td>True</td>
+          <td class="col-duration">0.13</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw4] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw4] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw4] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw4] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x56bc9631ed20 
+Final number of subgraphs created are : 1, - Offloaded Nodes - 1, Total Nodes - 1 
+The soft limit is 10240
+The hard limit is 10240
+MEM: Init ... !!!
+MEM: Init ... Done !!!
+ 0.0s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_INFO
+ 0.5s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_ERROR
+ 0.6s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_WARNING
+ 0.89s:  VX_ZONE_INFO: [ownAddTargetKernelInternal:189] registered kernel vx_tutorial_graph.phase_rgb on target DSP-1
+ 0.933s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-0 
+ 0.952s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-1 
+ 0.971s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-2 
+ 0.986s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-3 
+ 0.1007s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1 
+ 0.1022s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_2 
+ 0.1041s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_3 
+ 0.1054s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_4 
+ 0.1068s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_5 
+ 0.1202s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_6 
+ 0.1215s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_7 
+ 0.1229s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_8 
+ 0.1243s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP-1 
+ 0.1261s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-0 
+ 0.1274s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_NF 
+ 0.1289s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_LDC1 
+ 0.1304s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC1 
+ 0.1321s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC2 
+ 0.1334s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_VISS1 
+ 0.1350s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE1 
+ 0.1366s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE2 
+ 0.1385s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE3 
+ 0.1400s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE4 
+ 0.1422s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE5 
+ 0.1439s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE6 
+ 0.1453s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE7 
+ 0.1469s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE8 
+ 0.1486s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY1 
+ 0.1503s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY2 
+ 0.1517s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX 
+ 0.1535s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX2 
+ 0.1551s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M1 
+ 0.1564s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M2 
+ 0.1578s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M3 
+ 0.1592s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M4 
+ 0.1606s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_FC 
+ 0.1624s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-1 
+ 0.1641s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_SDE 
+ 0.1656s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_DOF 
+ 0.1671s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-0 
+ 0.1693s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-1 
+ 0.1694s:  VX_ZONE_INFO: [tivxInit:152] Initialization Done !!!
+ 0.1696s:  VX_ZONE_INFO: Globally Disabled VX_ZONE_INFO
+
+MAX_NMSE: 0.015625
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   1
+	Total Time (ms)                       :   0.20
+	Core Time (ms)                        :   0.18
+	TIDL Subgraphs Processing Time (ms)   :   0.11
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+MEM: Deinit ... !!!
+MEM: Alloc&#x27;s: 26 alloc&#x27;s of 18667885 bytes 
+MEM: Free&#x27;s : 26 free&#x27;s  of 18667885 bytes 
+MEM: Open&#x27;s : 0 allocs  of 0 bytes 
+MEM: Deinit ... Done !!!
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_40]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.07</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw3] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw3] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw3] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw3] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5d044b0b6020 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   0.09
+	Core Time (ms)                        :   0.09
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[ArgMax_21]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.07</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw19] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw19] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw19] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw19] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>libtidl_onnxrt_EP loaded 0x5dd7a95fe100 
+Final number of subgraphs created are : 0, - Offloaded Nodes - 0, Total Nodes - 1 
+
+MAX_NMSE: 0
+
+
+PERFORMANCE:
+
+	Num TIDL Subgraphs                    :   0
+	Total Time (ms)                       :   2.15
+	Core Time (ms)                        :   2.15
+	TIDL Subgraphs Processing Time (ms)   :   0.00
+	DDR Read Bandwidth (MB/s)             :   0.00
+	DDR Write Bandwidth (MB/s)            :   0.00
+
+<br/></div></td></tr></tbody></table></body></html>

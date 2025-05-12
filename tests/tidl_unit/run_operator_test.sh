@@ -1,16 +1,50 @@
 #!/usr/bin/env bash
 
-: '
-Invoke this script by running:
-./run_operator_test <SOC>
-where SOC can be AM62A, AM67A, AM68A, AM69A, TDA4VM 
-'
+###############################################################################
+# Script: run_operator_test.sh
+# Description: Run TIDL operator tests for a specified SoC with and without
+# neural compiler (NC), then generate comparison CSV reports.
+# Usage: ./run_operator_test.sh <SOC>
+# <SOC> must be one of: AM62A, AM67A, AM68A, AM69A, TDA4VM
+###############################################################################
+
+ALLOWED_SOC=("AM62A" "AM67A" "AM68A" "AM69A" "TDA4VM")
+
+usage() {
+cat <<EOF
+Usage: $0 <SOC>
+<SOC> must be one of: ${ALLOWED_SOC[*]}
+EOF
+exit 1
+}
+
+# Validate arguments
+if [ $# -ne 1 ]; then
+echo "Error: Exactly one argument expected." >&2
+usage
+fi
 
 SOC=$1
-###### Make sure to update these variables with the actual paths ######
-tools_path="<tidl_tools tarball path here>"
+
+# Check SOC validity
+if ! printf '%s\n' "${ALLOWED_SOC[@]}" | grep -Fxq "$SOC"; then
+echo "Error: Invalid SoC '$SOC'." >&2
+usage
+fi
+
+###############################################################################
+# Configuration
+###############################################################################
+tools_path="/home/tidl/pranav/sdk/ti-processor-sdk-rtos-j721s2-evm-11_00_00_02/c7x-mma-tidl/tidl_tools.tar.gz"
+# Add specific operators to run in the array, else it will run all test under tidl_unit_test_data/operator
+# Example: OPERATORS=("Softmax" "Convolution" "Sqrt")
+OPERATORS=("Max" "Softmax")
 #######################################################################
 
+
+###############################################################################
+# Prepare environment and tools
+###############################################################################
 current_dir="$PWD"
 path_edge_ai_benchmark="$current_dir/../.."
 cd "$path_edge_ai_benchmark" || { echo "Failed to cd to $path_edge_ai_benchmark";}
@@ -26,21 +60,24 @@ cp -r "$path_edge_ai_benchmark/tools/tidl_tools_package/$SOC/tidl_tools/ti_cnnpe
 
 cd "$path_edge_ai_benchmark/tests/tidl_unit"
 
+###############################################################################
+# Prepare test directories
+###############################################################################
 rm -rf "$path_edge_ai_benchmark/tests/tidl_unit/operator_test_reports"
 mkdir -p "$path_edge_ai_benchmark/tests/tidl_unit/operator_test_reports"
 
 path_reports="$path_edge_ai_benchmark/tests/tidl_unit/operator_test_reports"
 
-# Add specific operators to run in the array, else it will run all test under tidl_unit_test_data/operator
-# Example: OPERATORS=("Softmax" "Convolution" "Sqrt")
-OPERATORS=()
 if [ -z "$OPERATORS" ]; then
-     for D in $(find $path_edge_ai_benchmark/tests/tidl_unit/tidl_unit_test_data/operator -mindepth 1 -maxdepth 1 -type d) ; do
+     for D in $(find $path_edge_ai_benchmark/tests/tidl_unit/tidl_unit_test_data/operator/ -mindepth 1 -maxdepth 1 -type d) ; do
         name=`basename $D`
         OPERATORS+=("$name")
     done
 fi
 
+###############################################################################
+# Run tests for each operator
+###############################################################################
 for operator in "${OPERATORS[@]}"
 do
     logs_path=$path_reports/$operator
@@ -73,9 +110,26 @@ do
     rm -rf logs/*
     ./run_test.sh --test_suite=operator --tests=$operator --run_compile=0
     cp logs/*.html "$logs_path/infer_without_nc.html"
-
-    ##############################################################################################
 done
 
-# Generate summary report
-python3 report_summary_generation.py
+###############################################################################
+# Generate CSV reports
+###############################################################################
+mv operator_test_reports/ report_script/ 
+
+cd report_script
+python3 comparison_test_report_csv.py
+python3 absolute_test_report_csv.py
+python3 customer_test_report_csv.py
+
+cd ../
+rm -rf operator_test_report_csv
+mkdir operator_test_report_csv
+mv report_script/comparison_test_reports/ operator_test_report_csv/
+mv report_script/absolute_test_reports/ operator_test_report_csv/
+mv report_script/customer_test_reports/ operator_test_report_csv/
+
+rm -rf operator_test_report_html
+mkdir operator_test_report_html
+mv report_script/operator_test_reports/* operator_test_report_html/
+rm -rf report_script/operator_test_reports/

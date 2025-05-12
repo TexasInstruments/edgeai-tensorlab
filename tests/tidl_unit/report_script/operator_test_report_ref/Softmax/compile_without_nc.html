@@ -1,0 +1,2063 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>report_05-06-2025_22-27-36.html</title>
+    <style>body {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  /* do not increase min-width as some may use split screens */
+  min-width: 800px;
+  color: #999;
+}
+
+h1 {
+  font-size: 24px;
+  color: black;
+}
+
+h2 {
+  font-size: 16px;
+  color: black;
+}
+
+p {
+  color: black;
+}
+
+a {
+  color: #999;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+/******************************
+ * SUMMARY INFORMATION
+ ******************************/
+#environment td {
+  padding: 5px;
+  border: 1px solid #E6E6E6;
+}
+#environment tr:nth-child(odd) {
+  background-color: #f6f6f6;
+}
+
+/******************************
+ * TEST RESULT COLORS
+ ******************************/
+span.passed,
+.passed .col-result {
+  color: green;
+}
+
+span.skipped,
+span.xfailed,
+span.rerun,
+.skipped .col-result,
+.xfailed .col-result,
+.rerun .col-result {
+  color: orange;
+}
+
+span.error,
+span.failed,
+span.xpassed,
+.error .col-result,
+.failed .col-result,
+.xpassed .col-result {
+  color: red;
+}
+
+/******************************
+ * RESULTS TABLE
+ *
+ * 1. Table Layout
+ * 2. Extra
+ * 3. Sorting items
+ *
+ ******************************/
+/*------------------
+ * 1. Table Layout
+ *------------------*/
+#results-table {
+  border: 1px solid #e6e6e6;
+  color: #999;
+  font-size: 12px;
+  width: 100%;
+}
+#results-table th,
+#results-table td {
+  padding: 5px;
+  border: 1px solid #E6E6E6;
+  text-align: left;
+}
+#results-table th {
+  font-weight: bold;
+}
+
+/*------------------
+ * 2. Extra
+ *------------------*/
+.log {
+  background-color: #e6e6e6;
+  border: 1px solid #e6e6e6;
+  color: black;
+  display: block;
+  font-family: "Courier New", Courier, monospace;
+  height: 230px;
+  overflow-y: scroll;
+  padding: 5px;
+  white-space: pre-wrap;
+}
+.log:only-child {
+  height: inherit;
+}
+
+div.image {
+  border: 1px solid #e6e6e6;
+  float: right;
+  height: 240px;
+  margin-left: 5px;
+  overflow: hidden;
+  width: 320px;
+}
+div.image img {
+  width: 320px;
+}
+
+div.video {
+  border: 1px solid #e6e6e6;
+  float: right;
+  height: 240px;
+  margin-left: 5px;
+  overflow: hidden;
+  width: 320px;
+}
+div.video video {
+  overflow: hidden;
+  width: 320px;
+  height: 240px;
+}
+
+.collapsed {
+  display: none;
+}
+
+.expander::after {
+  content: " (show details)";
+  color: #BBB;
+  font-style: italic;
+  cursor: pointer;
+}
+
+.collapser::after {
+  content: " (hide details)";
+  color: #BBB;
+  font-style: italic;
+  cursor: pointer;
+}
+
+/*------------------
+ * 3. Sorting items
+ *------------------*/
+.sortable {
+  cursor: pointer;
+}
+
+.sort-icon {
+  font-size: 0px;
+  float: left;
+  margin-right: 5px;
+  margin-top: 5px;
+  /*triangle*/
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+}
+.inactive .sort-icon {
+  /*finish triangle*/
+  border-top: 8px solid #E6E6E6;
+}
+.asc.active .sort-icon {
+  /*finish triangle*/
+  border-bottom: 8px solid #999;
+}
+.desc.active .sort-icon {
+  /*finish triangle*/
+  border-top: 8px solid #999;
+}
+</style></head>
+  <body onLoad="init()">
+    <script>/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+
+function toArray(iter) {
+    if (iter === null) {
+        return null;
+    }
+    return Array.prototype.slice.call(iter);
+}
+
+function find(selector, elem) { // eslint-disable-line no-redeclare
+    if (!elem) {
+        elem = document;
+    }
+    return elem.querySelector(selector);
+}
+
+function findAll(selector, elem) {
+    if (!elem) {
+        elem = document;
+    }
+    return toArray(elem.querySelectorAll(selector));
+}
+
+function sortColumn(elem) {
+    toggleSortStates(elem);
+    const colIndex = toArray(elem.parentNode.childNodes).indexOf(elem);
+    let key;
+    if (elem.classList.contains('result')) {
+        key = keyResult;
+    } else if (elem.classList.contains('links')) {
+        key = keyLink;
+    } else {
+        key = keyAlpha;
+    }
+    sortTable(elem, key(colIndex));
+}
+
+function showAllExtras() { // eslint-disable-line no-unused-vars
+    findAll('.col-result').forEach(showExtras);
+}
+
+function hideAllExtras() { // eslint-disable-line no-unused-vars
+    findAll('.col-result').forEach(hideExtras);
+}
+
+function showExtras(colresultElem) {
+    const extras = colresultElem.parentNode.nextElementSibling;
+    const expandcollapse = colresultElem.firstElementChild;
+    extras.classList.remove('collapsed');
+    expandcollapse.classList.remove('expander');
+    expandcollapse.classList.add('collapser');
+}
+
+function hideExtras(colresultElem) {
+    const extras = colresultElem.parentNode.nextElementSibling;
+    const expandcollapse = colresultElem.firstElementChild;
+    extras.classList.add('collapsed');
+    expandcollapse.classList.remove('collapser');
+    expandcollapse.classList.add('expander');
+}
+
+function showFilters() {
+    let visibleString = getQueryParameter('visible') || 'all';
+    visibleString = visibleString.toLowerCase();
+    const checkedItems = visibleString.split(',');
+
+    const filterItems = document.getElementsByClassName('filter');
+    for (let i = 0; i < filterItems.length; i++) {
+        filterItems[i].hidden = false;
+
+        if (visibleString != 'all') {
+            filterItems[i].checked = checkedItems.includes(filterItems[i].getAttribute('data-test-result'));
+            filterTable(filterItems[i]);
+        }
+    }
+}
+
+function addCollapse() {
+    // Add links for show/hide all
+    const resulttable = find('table#results-table');
+    const showhideall = document.createElement('p');
+    showhideall.innerHTML = '<a href="javascript:showAllExtras()">Show all details</a> / ' +
+                            '<a href="javascript:hideAllExtras()">Hide all details</a>';
+    resulttable.parentElement.insertBefore(showhideall, resulttable);
+
+    // Add show/hide link to each result
+    findAll('.col-result').forEach(function(elem) {
+        const collapsed = getQueryParameter('collapsed') || 'Passed';
+        const extras = elem.parentNode.nextElementSibling;
+        const expandcollapse = document.createElement('span');
+        if (extras.classList.contains('collapsed')) {
+            expandcollapse.classList.add('expander');
+        } else if (collapsed.includes(elem.innerHTML)) {
+            extras.classList.add('collapsed');
+            expandcollapse.classList.add('expander');
+        } else {
+            expandcollapse.classList.add('collapser');
+        }
+        elem.appendChild(expandcollapse);
+
+        elem.addEventListener('click', function(event) {
+            if (event.currentTarget.parentNode.nextElementSibling.classList.contains('collapsed')) {
+                showExtras(event.currentTarget);
+            } else {
+                hideExtras(event.currentTarget);
+            }
+        });
+    });
+}
+
+function getQueryParameter(name) {
+    const match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+    return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+}
+
+function init () { // eslint-disable-line no-unused-vars
+    resetSortHeaders();
+
+    addCollapse();
+
+    showFilters();
+
+    sortColumn(find('.initial-sort'));
+
+    findAll('.sortable').forEach(function(elem) {
+        elem.addEventListener('click',
+            function() {
+                sortColumn(elem);
+            }, false);
+    });
+}
+
+function sortTable(clicked, keyFunc) {
+    const rows = findAll('.results-table-row');
+    const reversed = !clicked.classList.contains('asc');
+    const sortedRows = sort(rows, keyFunc, reversed);
+    /* Whole table is removed here because browsers acts much slower
+     * when appending existing elements.
+     */
+    const thead = document.getElementById('results-table-head');
+    document.getElementById('results-table').remove();
+    const parent = document.createElement('table');
+    parent.id = 'results-table';
+    parent.appendChild(thead);
+    sortedRows.forEach(function(elem) {
+        parent.appendChild(elem);
+    });
+    document.getElementsByTagName('BODY')[0].appendChild(parent);
+}
+
+function sort(items, keyFunc, reversed) {
+    const sortArray = items.map(function(item, i) {
+        return [keyFunc(item), i];
+    });
+
+    sortArray.sort(function(a, b) {
+        const keyA = a[0];
+        const keyB = b[0];
+
+        if (keyA == keyB) return 0;
+
+        if (reversed) {
+            return keyA < keyB ? 1 : -1;
+        } else {
+            return keyA > keyB ? 1 : -1;
+        }
+    });
+
+    return sortArray.map(function(item) {
+        const index = item[1];
+        return items[index];
+    });
+}
+
+function keyAlpha(colIndex) {
+    return function(elem) {
+        return elem.childNodes[1].childNodes[colIndex].firstChild.data.toLowerCase();
+    };
+}
+
+function keyLink(colIndex) {
+    return function(elem) {
+        const dataCell = elem.childNodes[1].childNodes[colIndex].firstChild;
+        return dataCell == null ? '' : dataCell.innerText.toLowerCase();
+    };
+}
+
+function keyResult(colIndex) {
+    return function(elem) {
+        const strings = ['Error', 'Failed', 'Rerun', 'XFailed', 'XPassed',
+            'Skipped', 'Passed'];
+        return strings.indexOf(elem.childNodes[1].childNodes[colIndex].firstChild.data);
+    };
+}
+
+function resetSortHeaders() {
+    findAll('.sort-icon').forEach(function(elem) {
+        elem.parentNode.removeChild(elem);
+    });
+    findAll('.sortable').forEach(function(elem) {
+        const icon = document.createElement('div');
+        icon.className = 'sort-icon';
+        icon.textContent = 'vvv';
+        elem.insertBefore(icon, elem.firstChild);
+        elem.classList.remove('desc', 'active');
+        elem.classList.add('asc', 'inactive');
+    });
+}
+
+function toggleSortStates(elem) {
+    //if active, toggle between asc and desc
+    if (elem.classList.contains('active')) {
+        elem.classList.toggle('asc');
+        elem.classList.toggle('desc');
+    }
+
+    //if inactive, reset all other functions and add ascending active
+    if (elem.classList.contains('inactive')) {
+        resetSortHeaders();
+        elem.classList.remove('inactive');
+        elem.classList.add('active');
+    }
+}
+
+function isAllRowsHidden(value) {
+    return value.hidden == false;
+}
+
+function filterTable(elem) { // eslint-disable-line no-unused-vars
+    const outcomeAtt = 'data-test-result';
+    const outcome = elem.getAttribute(outcomeAtt);
+    const classOutcome = outcome + ' results-table-row';
+    const outcomeRows = document.getElementsByClassName(classOutcome);
+
+    for(let i = 0; i < outcomeRows.length; i++){
+        outcomeRows[i].hidden = !elem.checked;
+    }
+
+    const rows = findAll('.results-table-row').filter(isAllRowsHidden);
+    const allRowsHidden = rows.length == 0 ? true : false;
+    const notFoundMessage = document.getElementById('not-found-message');
+    notFoundMessage.hidden = !allRowsHidden;
+}
+</script>
+    <h1>report_05-06-2025_22-27-36.html</h1>
+    <p>Report generated on 06-May-2025 at 22:27:46 by <a href="https://pypi.python.org/pypi/pytest-html">pytest-html</a> v3.2.0</p>
+    <h2>Summary</h2>
+    <p>18 tests ran in 9.93 seconds. </p>
+    <p class="filter" hidden="true">(Un)check the boxes to filter the results.</p><input checked="true" class="filter" data-test-result="passed" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="passed">18 passed</span>, <input checked="true" class="filter" data-test-result="skipped" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="skipped">0 skipped</span>, <input checked="true" class="filter" data-test-result="failed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="failed">0 failed</span>, <input checked="true" class="filter" data-test-result="error" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="error">0 errors</span>, <input checked="true" class="filter" data-test-result="xfailed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="xfailed">0 expected failures</span>, <input checked="true" class="filter" data-test-result="xpassed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="xpassed">0 unexpected passes</span>
+    <h2>Results</h2>
+    <table id="results-table">
+      <thead id="results-table-head">
+        <tr>
+          <th class="sortable result initial-sort" col="result">Result</th>
+          <th class="sortable" col="name">Test</th>
+          <th>TIDL Subgraphs</th>
+          <th>Complete TIDL Offload</th>
+          <th class="sortable" col="duration">Duration</th>
+          <th class="sortable links" col="links">Links</th></tr>
+        <tr hidden="true" id="not-found-message">
+          <th colspan="6">No results found. Try to check the filters</th></tr></thead>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Softmax_11]</td>
+          <td>1</td>
+          <td>True</td>
+          <td class="col-duration">4.78</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw0] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw0] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw0] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw0] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       1 |                       1 |
+| CPU                     |                       0 |                       x |
+-------------------------------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+==================== [Optimization for subgraph_0 Started] ====================
+
+[TIDL Import] [PARSER] WARNING: Requested output data convert layer is not added to the network, It is currently not optimal
+----------------------------- Optimization Summary -----------------------------
+----------------------------------------------------------------------------
+|       Layer       | Nodes before optimization | Nodes after optimization |
+----------------------------------------------------------------------------
+| TIDL_SoftMaxLayer |                         1 |                        1 |
+----------------------------------------------------------------------------
+
+Total nodes in subgraph: 4
+
+=================== [Optimization for subgraph_0 Completed] ===================
+
+The soft limit is 10240
+The hard limit is 10240
+MEM: Init ... !!!
+MEM: Init ... Done !!!
+ 0.0s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_INFO
+ 0.6s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_ERROR
+ 0.7s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_WARNING
+ 0.146s:  VX_ZONE_INFO: [ownAddTargetKernelInternal:189] registered kernel vx_tutorial_graph.phase_rgb on target DSP-1
+ 0.1510s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-0 
+ 0.1532s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-1 
+ 0.1544s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-2 
+ 0.1558s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-3 
+ 0.1625s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1 
+ 0.1636s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_2 
+ 0.1647s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_3 
+ 0.1657s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_4 
+ 0.1666s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_5 
+ 0.1680s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_6 
+ 0.1695s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_7 
+ 0.1705s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_8 
+ 0.1715s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP-1 
+ 0.1729s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-0 
+ 0.1739s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_NF 
+ 0.1750s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_LDC1 
+ 0.1762s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC1 
+ 0.1769s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC2 
+ 0.1781s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_VISS1 
+ 0.1791s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE1 
+ 0.1804s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE2 
+ 0.1815s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE3 
+ 0.1827s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE4 
+ 0.1836s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE5 
+ 0.1844s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE6 
+ 0.1855s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE7 
+ 0.1864s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE8 
+ 0.1874s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY1 
+ 0.1887s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY2 
+ 0.1895s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX 
+ 0.1906s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX2 
+ 0.1918s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M1 
+ 0.1929s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M2 
+ 0.1937s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M3 
+ 0.2116s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M4 
+ 0.2128s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_FC 
+ 0.2146s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-1 
+ 0.2156s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_SDE 
+ 0.2164s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_DOF 
+ 0.2176s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-0 
+ 0.2187s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-1 
+ 0.2188s:  VX_ZONE_INFO: [tivxInit:152] Initialization Done !!!
+ 0.2189s:  VX_ZONE_INFO: Globally Disabled VX_ZONE_INFO
+============= [Quantization &amp; Calibration for subgraph_0 Started] =============
+
+
+-------- Running Calibration in Float Mode to Collect Tensor Statistics --------
+[=============================================================================] 100 %
+
+------------------ Fixed-point Calibration Iteration [1 / 1]: ------------------
+[=============================================================================] 100 %
+
+==================== [Quantization &amp; Calibration Completed] ====================
+
+[TIDL Import]  WARNING: Couldn&#x27;t open perfSimTool file: /home/tidl/pranav/edgeai-benchmark/tools/tidl_tools_package/AM68A/tidl_tools/ti_cnnperfsim.out. Skipping Performance Simulation.
+Rerunning network compiler...
+[TIDL Import]  WARNING: Couldn&#x27;t open perfSimTool file: /home/tidl/pranav/edgeai-benchmark/tools/tidl_tools_package/AM68A/tidl_tools/ti_cnnperfsim.out. Skipping Performance Simulation.
+[TIDL Import] [PARSER] WARNING: 
+********************************************************************
+*     Network compiler returned with error or didn&#x27;t executed      *
+*      This model can only be used on PC/Host emulation mode       *
+*            It is not expected to work on target/EVM              *
+********************************************************************
+
+======================== Subgraph Compiled Successfully ========================
+
+
+
+MEM: Deinit ... !!!
+MEM: Alloc&#x27;s: 26 alloc&#x27;s of 28007533 bytes 
+MEM: Free&#x27;s : 26 free&#x27;s  of 28007533 bytes 
+MEM: Open&#x27;s : 0 allocs  of 0 bytes 
+MEM: Deinit ... Done !!!
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Softmax_3]</td>
+          <td>1</td>
+          <td>True</td>
+          <td class="col-duration">4.73</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw2] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw2] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw2] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw2] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       1 |                       1 |
+| CPU                     |                       0 |                       x |
+-------------------------------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+==================== [Optimization for subgraph_0 Started] ====================
+
+[TIDL Import] [PARSER] WARNING: Requested output data convert layer is not added to the network, It is currently not optimal
+----------------------------- Optimization Summary -----------------------------
+------------------------------------------------------------------------------
+|        Layer        | Nodes before optimization | Nodes after optimization |
+------------------------------------------------------------------------------
+| TIDL_TransposeLayer |                         0 |                        1 |
+| TIDL_SoftMaxLayer   |                         1 |                        1 |
+------------------------------------------------------------------------------
+
+Total nodes in subgraph: 5
+
+=================== [Optimization for subgraph_0 Completed] ===================
+
+The soft limit is 10240
+The hard limit is 10240
+MEM: Init ... !!!
+MEM: Init ... Done !!!
+ 0.0s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_INFO
+ 0.7s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_ERROR
+ 0.8s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_WARNING
+ 0.179s:  VX_ZONE_INFO: [ownAddTargetKernelInternal:189] registered kernel vx_tutorial_graph.phase_rgb on target DSP-1
+ 0.1600s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-0 
+ 0.1650s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-1 
+ 0.1678s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-2 
+ 0.1710s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-3 
+ 0.1746s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1 
+ 0.1778s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_2 
+ 0.1811s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_3 
+ 0.1840s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_4 
+ 0.1867s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_5 
+ 0.1909s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_6 
+ 0.1934s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_7 
+ 0.1961s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_8 
+ 0.1988s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP-1 
+ 0.2022s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-0 
+ 0.2053s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_NF 
+ 0.2088s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_LDC1 
+ 0.2112s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC1 
+ 0.2140s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC2 
+ 0.2173s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_VISS1 
+ 0.2200s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE1 
+ 0.2223s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE2 
+ 0.2265s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE3 
+ 0.2290s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE4 
+ 0.2315s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE5 
+ 0.2347s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE6 
+ 0.2371s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE7 
+ 0.2393s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE8 
+ 0.2427s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY1 
+ 0.2450s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY2 
+ 0.2473s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX 
+ 0.2685s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX2 
+ 0.2713s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M1 
+ 0.2733s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M2 
+ 0.2766s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M3 
+ 0.2790s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M4 
+ 0.2811s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_FC 
+ 0.2843s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-1 
+ 0.2867s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_SDE 
+ 0.2891s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_DOF 
+ 0.2925s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-0 
+ 0.2953s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-1 
+ 0.2955s:  VX_ZONE_INFO: [tivxInit:152] Initialization Done !!!
+ 0.2959s:  VX_ZONE_INFO: Globally Disabled VX_ZONE_INFO
+============= [Quantization &amp; Calibration for subgraph_0 Started] =============
+
+
+-------- Running Calibration in Float Mode to Collect Tensor Statistics --------
+[=============================================================================] 100 %
+
+------------------ Fixed-point Calibration Iteration [1 / 1]: ------------------
+[=============================================================================] 100 %
+
+==================== [Quantization &amp; Calibration Completed] ====================
+
+[TIDL Import]  WARNING: Couldn&#x27;t open perfSimTool file: /home/tidl/pranav/edgeai-benchmark/tools/tidl_tools_package/AM68A/tidl_tools/ti_cnnperfsim.out. Skipping Performance Simulation.
+Rerunning network compiler...
+[TIDL Import]  WARNING: Couldn&#x27;t open perfSimTool file: /home/tidl/pranav/edgeai-benchmark/tools/tidl_tools_package/AM68A/tidl_tools/ti_cnnperfsim.out. Skipping Performance Simulation.
+[TIDL Import] [PARSER] WARNING: 
+********************************************************************
+*     Network compiler returned with error or didn&#x27;t executed      *
+*      This model can only be used on PC/Host emulation mode       *
+*            It is not expected to work on target/EVM              *
+********************************************************************
+
+======================== Subgraph Compiled Successfully ========================
+
+
+
+MEM: Deinit ... !!!
+MEM: Alloc&#x27;s: 26 alloc&#x27;s of 18673877 bytes 
+MEM: Free&#x27;s : 26 free&#x27;s  of 18673877 bytes 
+MEM: Open&#x27;s : 0 allocs  of 0 bytes 
+MEM: Deinit ... Done !!!
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Softmax_7]</td>
+          <td>1</td>
+          <td>True</td>
+          <td class="col-duration">4.77</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw16] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw16] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw16] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw16] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       1 |                       1 |
+| CPU                     |                       0 |                       x |
+-------------------------------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+==================== [Optimization for subgraph_0 Started] ====================
+
+[TIDL Import] [PARSER] WARNING: Requested output data convert layer is not added to the network, It is currently not optimal
+----------------------------- Optimization Summary -----------------------------
+------------------------------------------------------------------------------
+|        Layer        | Nodes before optimization | Nodes after optimization |
+------------------------------------------------------------------------------
+| TIDL_TransposeLayer |                         0 |                        1 |
+| TIDL_SoftMaxLayer   |                         1 |                        1 |
+------------------------------------------------------------------------------
+
+Total nodes in subgraph: 5
+
+=================== [Optimization for subgraph_0 Completed] ===================
+
+The soft limit is 10240
+The hard limit is 10240
+MEM: Init ... !!!
+MEM: Init ... Done !!!
+ 0.0s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_INFO
+ 0.3s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_ERROR
+ 0.4s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_WARNING
+ 0.90s:  VX_ZONE_INFO: [ownAddTargetKernelInternal:189] registered kernel vx_tutorial_graph.phase_rgb on target DSP-1
+ 0.886s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-0 
+ 0.910s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-1 
+ 0.922s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-2 
+ 0.932s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-3 
+ 0.949s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1 
+ 0.969s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_2 
+ 0.980s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_3 
+ 0.994s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_4 
+ 0.1005s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_5 
+ 0.1018s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_6 
+ 0.1030s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_7 
+ 0.1041s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_8 
+ 0.1051s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP-1 
+ 0.1067s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-0 
+ 0.1080s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_NF 
+ 0.1092s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_LDC1 
+ 0.1102s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC1 
+ 0.1116s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC2 
+ 0.1126s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_VISS1 
+ 0.1139s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE1 
+ 0.1152s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE2 
+ 0.1165s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE3 
+ 0.1176s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE4 
+ 0.1189s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE5 
+ 0.1199s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE6 
+ 0.1210s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE7 
+ 0.1223s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE8 
+ 0.1231s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY1 
+ 0.1244s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY2 
+ 0.1255s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX 
+ 0.1266s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX2 
+ 0.1278s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M1 
+ 0.1292s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M2 
+ 0.1302s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M3 
+ 0.1313s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M4 
+ 0.1325s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_FC 
+ 0.1338s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-1 
+ 0.1351s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_SDE 
+ 0.1362s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_DOF 
+ 0.1375s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-0 
+ 0.1386s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-1 
+ 0.1387s:  VX_ZONE_INFO: [tivxInit:152] Initialization Done !!!
+ 0.1389s:  VX_ZONE_INFO: Globally Disabled VX_ZONE_INFO
+============= [Quantization &amp; Calibration for subgraph_0 Started] =============
+
+
+-------- Running Calibration in Float Mode to Collect Tensor Statistics --------
+[=============================================================================] 100 %
+
+------------------ Fixed-point Calibration Iteration [1 / 1]: ------------------
+[=============================================================================] 100 %
+
+==================== [Quantization &amp; Calibration Completed] ====================
+
+[TIDL Import]  WARNING: Couldn&#x27;t open perfSimTool file: /home/tidl/pranav/edgeai-benchmark/tools/tidl_tools_package/AM68A/tidl_tools/ti_cnnperfsim.out. Skipping Performance Simulation.
+Rerunning network compiler...
+[TIDL Import]  WARNING: Couldn&#x27;t open perfSimTool file: /home/tidl/pranav/edgeai-benchmark/tools/tidl_tools_package/AM68A/tidl_tools/ti_cnnperfsim.out. Skipping Performance Simulation.
+[TIDL Import] [PARSER] WARNING: 
+********************************************************************
+*     Network compiler returned with error or didn&#x27;t executed      *
+*      This model can only be used on PC/Host emulation mode       *
+*            It is not expected to work on target/EVM              *
+********************************************************************
+
+======================== Subgraph Compiled Successfully ========================
+
+
+
+MEM: Deinit ... !!!
+MEM: Alloc&#x27;s: 26 alloc&#x27;s of 26142413 bytes 
+MEM: Free&#x27;s : 26 free&#x27;s  of 26142413 bytes 
+MEM: Open&#x27;s : 0 allocs  of 0 bytes 
+MEM: Deinit ... Done !!!
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Softmax_16]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.24</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw11] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw11] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw11] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw11] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       0 |                       0 |
+| CPU                     |                       1 |                       x |
+-------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------
+|  Node   |     Node Name    |                        Reason                         |
+--------------------------------------------------------------------------------------
+| Softmax | /softmax/Softmax | Only softmax along width and height axis is supported |
+--------------------------------------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Softmax_15]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.18</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw9] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw9] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw9] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw9] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       0 |                       0 |
+| CPU                     |                       1 |                       x |
+-------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------
+|  Node   |     Node Name    |                        Reason                         |
+--------------------------------------------------------------------------------------
+| Softmax | /softmax/Softmax | Only softmax along width and height axis is supported |
+--------------------------------------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Softmax_8]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.15</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw6] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw6] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw6] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw6] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       0 |                       0 |
+| CPU                     |                       1 |                       x |
+-------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------
+|  Node   |     Node Name    |                        Reason                         |
+--------------------------------------------------------------------------------------
+| Softmax | /softmax/Softmax | Only softmax along width and height axis is supported |
+--------------------------------------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Softmax_10]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.27</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw12] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw12] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw12] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw12] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       0 |                       0 |
+| CPU                     |                       1 |                       x |
+-------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------
+|  Node   |     Node Name    |                        Reason                         |
+--------------------------------------------------------------------------------------
+| Softmax | /softmax/Softmax | Only softmax along width and height axis is supported |
+--------------------------------------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Softmax_12]</td>
+          <td>1</td>
+          <td>True</td>
+          <td class="col-duration">4.74</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw7] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw7] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw7] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw7] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       1 |                       1 |
+| CPU                     |                       0 |                       x |
+-------------------------------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+==================== [Optimization for subgraph_0 Started] ====================
+
+[TIDL Import] [PARSER] WARNING: Requested output data convert layer is not added to the network, It is currently not optimal
+----------------------------- Optimization Summary -----------------------------
+------------------------------------------------------------------------------
+|        Layer        | Nodes before optimization | Nodes after optimization |
+------------------------------------------------------------------------------
+| TIDL_TransposeLayer |                         0 |                        1 |
+| TIDL_SoftMaxLayer   |                         1 |                        1 |
+------------------------------------------------------------------------------
+
+Total nodes in subgraph: 5
+
+=================== [Optimization for subgraph_0 Completed] ===================
+
+The soft limit is 10240
+The hard limit is 10240
+MEM: Init ... !!!
+MEM: Init ... Done !!!
+ 0.0s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_INFO
+ 0.7s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_ERROR
+ 0.8s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_WARNING
+ 0.117s:  VX_ZONE_INFO: [ownAddTargetKernelInternal:189] registered kernel vx_tutorial_graph.phase_rgb on target DSP-1
+ 0.1586s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-0 
+ 0.1627s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-1 
+ 0.1652s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-2 
+ 0.1683s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-3 
+ 0.1723s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1 
+ 0.1761s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_2 
+ 0.1796s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_3 
+ 0.1821s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_4 
+ 0.1844s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_5 
+ 0.1881s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_6 
+ 0.1904s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_7 
+ 0.1927s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_8 
+ 0.1950s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP-1 
+ 0.1984s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-0 
+ 0.2009s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_NF 
+ 0.2047s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_LDC1 
+ 0.2069s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC1 
+ 0.2093s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC2 
+ 0.2125s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_VISS1 
+ 0.2152s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE1 
+ 0.2174s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE2 
+ 0.2210s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE3 
+ 0.2231s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE4 
+ 0.2253s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE5 
+ 0.2285s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE6 
+ 0.2308s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE7 
+ 0.2330s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE8 
+ 0.2365s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY1 
+ 0.2389s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY2 
+ 0.2414s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX 
+ 0.2449s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX2 
+ 0.2473s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M1 
+ 0.2495s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M2 
+ 0.2525s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M3 
+ 0.2546s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M4 
+ 0.2571s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_FC 
+ 0.2606s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-1 
+ 0.2633s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_SDE 
+ 0.2656s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_DOF 
+ 0.2694s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-0 
+ 0.2720s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-1 
+ 0.2721s:  VX_ZONE_INFO: [tivxInit:152] Initialization Done !!!
+ 0.2725s:  VX_ZONE_INFO: Globally Disabled VX_ZONE_INFO
+============= [Quantization &amp; Calibration for subgraph_0 Started] =============
+
+
+-------- Running Calibration in Float Mode to Collect Tensor Statistics --------
+[=============================================================================] 100 %
+
+------------------ Fixed-point Calibration Iteration [1 / 1]: ------------------
+[=============================================================================] 100 %
+
+==================== [Quantization &amp; Calibration Completed] ====================
+
+[TIDL Import]  WARNING: Couldn&#x27;t open perfSimTool file: /home/tidl/pranav/edgeai-benchmark/tools/tidl_tools_package/AM68A/tidl_tools/ti_cnnperfsim.out. Skipping Performance Simulation.
+Rerunning network compiler...
+[TIDL Import]  WARNING: Couldn&#x27;t open perfSimTool file: /home/tidl/pranav/edgeai-benchmark/tools/tidl_tools_package/AM68A/tidl_tools/ti_cnnperfsim.out. Skipping Performance Simulation.
+[TIDL Import] [PARSER] WARNING: 
+********************************************************************
+*     Network compiler returned with error or didn&#x27;t executed      *
+*      This model can only be used on PC/Host emulation mode       *
+*            It is not expected to work on target/EVM              *
+********************************************************************
+
+======================== Subgraph Compiled Successfully ========================
+
+
+
+MEM: Deinit ... !!!
+MEM: Alloc&#x27;s: 26 alloc&#x27;s of 24859213 bytes 
+MEM: Free&#x27;s : 26 free&#x27;s  of 24859213 bytes 
+MEM: Open&#x27;s : 0 allocs  of 0 bytes 
+MEM: Deinit ... Done !!!
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Softmax_2]</td>
+          <td>1</td>
+          <td>True</td>
+          <td class="col-duration">4.74</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw10] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw10] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw10] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw10] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       1 |                       1 |
+| CPU                     |                       0 |                       x |
+-------------------------------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+==================== [Optimization for subgraph_0 Started] ====================
+
+[TIDL Import] [PARSER] WARNING: Requested output data convert layer is not added to the network, It is currently not optimal
+----------------------------- Optimization Summary -----------------------------
+----------------------------------------------------------------------------
+|       Layer       | Nodes before optimization | Nodes after optimization |
+----------------------------------------------------------------------------
+| TIDL_SoftMaxLayer |                         1 |                        1 |
+----------------------------------------------------------------------------
+
+Total nodes in subgraph: 4
+
+=================== [Optimization for subgraph_0 Completed] ===================
+
+The soft limit is 10240
+The hard limit is 10240
+MEM: Init ... !!!
+MEM: Init ... Done !!!
+ 0.0s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_INFO
+ 0.5s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_ERROR
+ 0.7s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_WARNING
+ 0.120s:  VX_ZONE_INFO: [ownAddTargetKernelInternal:189] registered kernel vx_tutorial_graph.phase_rgb on target DSP-1
+ 0.1162s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-0 
+ 0.1177s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-1 
+ 0.1195s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-2 
+ 0.1208s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-3 
+ 0.1223s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1 
+ 0.1234s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_2 
+ 0.1245s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_3 
+ 0.1256s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_4 
+ 0.1269s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_5 
+ 0.1279s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_6 
+ 0.1293s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_7 
+ 0.1305s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_8 
+ 0.1330s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP-1 
+ 0.1342s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-0 
+ 0.1352s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_NF 
+ 0.1366s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_LDC1 
+ 0.1377s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC1 
+ 0.1389s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC2 
+ 0.1402s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_VISS1 
+ 0.1414s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE1 
+ 0.1425s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE2 
+ 0.1439s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE3 
+ 0.1451s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE4 
+ 0.1460s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE5 
+ 0.1473s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE6 
+ 0.1482s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE7 
+ 0.1491s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE8 
+ 0.1503s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY1 
+ 0.1512s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY2 
+ 0.1524s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX 
+ 0.1539s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX2 
+ 0.1550s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M1 
+ 0.1572s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M2 
+ 0.1584s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M3 
+ 0.1594s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M4 
+ 0.1605s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_FC 
+ 0.1627s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-1 
+ 0.1638s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_SDE 
+ 0.1650s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_DOF 
+ 0.1665s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-0 
+ 0.1676s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-1 
+ 0.1677s:  VX_ZONE_INFO: [tivxInit:152] Initialization Done !!!
+ 0.1678s:  VX_ZONE_INFO: Globally Disabled VX_ZONE_INFO
+============= [Quantization &amp; Calibration for subgraph_0 Started] =============
+
+
+-------- Running Calibration in Float Mode to Collect Tensor Statistics --------
+[=============================================================================] 100 %
+
+------------------ Fixed-point Calibration Iteration [1 / 1]: ------------------
+[=============================================================================] 100 %
+
+==================== [Quantization &amp; Calibration Completed] ====================
+
+[TIDL Import]  WARNING: Couldn&#x27;t open perfSimTool file: /home/tidl/pranav/edgeai-benchmark/tools/tidl_tools_package/AM68A/tidl_tools/ti_cnnperfsim.out. Skipping Performance Simulation.
+Rerunning network compiler...
+[TIDL Import]  WARNING: Couldn&#x27;t open perfSimTool file: /home/tidl/pranav/edgeai-benchmark/tools/tidl_tools_package/AM68A/tidl_tools/ti_cnnperfsim.out. Skipping Performance Simulation.
+[TIDL Import] [PARSER] WARNING: 
+********************************************************************
+*     Network compiler returned with error or didn&#x27;t executed      *
+*      This model can only be used on PC/Host emulation mode       *
+*            It is not expected to work on target/EVM              *
+********************************************************************
+
+======================== Subgraph Compiled Successfully ========================
+
+
+
+MEM: Deinit ... !!!
+MEM: Alloc&#x27;s: 26 alloc&#x27;s of 18659005 bytes 
+MEM: Free&#x27;s : 26 free&#x27;s  of 18659005 bytes 
+MEM: Open&#x27;s : 0 allocs  of 0 bytes 
+MEM: Deinit ... Done !!!
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Softmax_6]</td>
+          <td>1</td>
+          <td>True</td>
+          <td class="col-duration">4.79</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw3] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw3] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw3] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw3] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       1 |                       1 |
+| CPU                     |                       0 |                       x |
+-------------------------------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+==================== [Optimization for subgraph_0 Started] ====================
+
+[TIDL Import] [PARSER] WARNING: Requested output data convert layer is not added to the network, It is currently not optimal
+----------------------------- Optimization Summary -----------------------------
+----------------------------------------------------------------------------
+|       Layer       | Nodes before optimization | Nodes after optimization |
+----------------------------------------------------------------------------
+| TIDL_SoftMaxLayer |                         1 |                        1 |
+----------------------------------------------------------------------------
+
+Total nodes in subgraph: 4
+
+=================== [Optimization for subgraph_0 Completed] ===================
+
+The soft limit is 10240
+The hard limit is 10240
+MEM: Init ... !!!
+MEM: Init ... Done !!!
+ 0.0s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_INFO
+ 0.4s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_ERROR
+ 0.4s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_WARNING
+ 0.92s:  VX_ZONE_INFO: [ownAddTargetKernelInternal:189] registered kernel vx_tutorial_graph.phase_rgb on target DSP-1
+ 0.805s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-0 
+ 0.823s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-1 
+ 0.837s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-2 
+ 0.850s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-3 
+ 0.887s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1 
+ 0.900s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_2 
+ 0.909s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_3 
+ 0.921s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_4 
+ 0.930s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_5 
+ 0.941s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_6 
+ 0.953s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_7 
+ 0.967s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_8 
+ 0.977s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP-1 
+ 0.993s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-0 
+ 0.1002s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_NF 
+ 0.1015s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_LDC1 
+ 0.1027s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC1 
+ 0.1037s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC2 
+ 0.1045s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_VISS1 
+ 0.1059s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE1 
+ 0.1071s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE2 
+ 0.1083s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE3 
+ 0.1096s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE4 
+ 0.1107s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE5 
+ 0.1118s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE6 
+ 0.1131s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE7 
+ 0.1142s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE8 
+ 0.1151s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY1 
+ 0.1163s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY2 
+ 0.1172s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX 
+ 0.1183s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX2 
+ 0.1194s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M1 
+ 0.1203s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M2 
+ 0.1214s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M3 
+ 0.1225s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M4 
+ 0.1235s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_FC 
+ 0.1248s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-1 
+ 0.1261s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_SDE 
+ 0.1276s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_DOF 
+ 0.1286s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-0 
+ 0.1300s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-1 
+ 0.1301s:  VX_ZONE_INFO: [tivxInit:152] Initialization Done !!!
+ 0.1303s:  VX_ZONE_INFO: Globally Disabled VX_ZONE_INFO
+============= [Quantization &amp; Calibration for subgraph_0 Started] =============
+
+
+-------- Running Calibration in Float Mode to Collect Tensor Statistics --------
+[=============================================================================] 100 %
+
+------------------ Fixed-point Calibration Iteration [1 / 1]: ------------------
+[=============================================================================] 100 %
+
+==================== [Quantization &amp; Calibration Completed] ====================
+
+[TIDL Import]  WARNING: Couldn&#x27;t open perfSimTool file: /home/tidl/pranav/edgeai-benchmark/tools/tidl_tools_package/AM68A/tidl_tools/ti_cnnperfsim.out. Skipping Performance Simulation.
+Rerunning network compiler...
+[TIDL Import]  WARNING: Couldn&#x27;t open perfSimTool file: /home/tidl/pranav/edgeai-benchmark/tools/tidl_tools_package/AM68A/tidl_tools/ti_cnnperfsim.out. Skipping Performance Simulation.
+[TIDL Import] [PARSER] WARNING: 
+********************************************************************
+*     Network compiler returned with error or didn&#x27;t executed      *
+*      This model can only be used on PC/Host emulation mode       *
+*            It is not expected to work on target/EVM              *
+********************************************************************
+
+======================== Subgraph Compiled Successfully ========================
+
+
+
+MEM: Deinit ... !!!
+MEM: Alloc&#x27;s: 26 alloc&#x27;s of 33156829 bytes 
+MEM: Free&#x27;s : 26 free&#x27;s  of 33156829 bytes 
+MEM: Open&#x27;s : 0 allocs  of 0 bytes 
+MEM: Deinit ... Done !!!
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Softmax_13]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.17</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw17] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw17] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw17] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw17] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       0 |                       0 |
+| CPU                     |                       1 |                       x |
+-------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------
+|  Node   |     Node Name    |                        Reason                         |
+--------------------------------------------------------------------------------------
+| Softmax | /softmax/Softmax | Only softmax along width and height axis is supported |
+--------------------------------------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Softmax_9]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.29</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw13] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw13] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw13] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw13] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       0 |                       0 |
+| CPU                     |                       1 |                       x |
+-------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------
+|  Node   |     Node Name    |                        Reason                         |
+--------------------------------------------------------------------------------------
+| Softmax | /softmax/Softmax | Only softmax along width and height axis is supported |
+--------------------------------------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Softmax_17]</td>
+          <td>1</td>
+          <td>True</td>
+          <td class="col-duration">4.77</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw15] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw15] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw15] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw15] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       1 |                       1 |
+| CPU                     |                       0 |                       x |
+-------------------------------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+==================== [Optimization for subgraph_0 Started] ====================
+
+[TIDL Import] [PARSER] WARNING: Requested output data convert layer is not added to the network, It is currently not optimal
+----------------------------- Optimization Summary -----------------------------
+----------------------------------------------------------------------------
+|       Layer       | Nodes before optimization | Nodes after optimization |
+----------------------------------------------------------------------------
+| TIDL_SoftMaxLayer |                         1 |                        1 |
+----------------------------------------------------------------------------
+
+Total nodes in subgraph: 4
+
+=================== [Optimization for subgraph_0 Completed] ===================
+
+The soft limit is 10240
+The hard limit is 10240
+MEM: Init ... !!!
+MEM: Init ... Done !!!
+ 0.0s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_INFO
+ 0.5s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_ERROR
+ 0.6s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_WARNING
+ 0.127s:  VX_ZONE_INFO: [ownAddTargetKernelInternal:189] registered kernel vx_tutorial_graph.phase_rgb on target DSP-1
+ 0.1269s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-0 
+ 0.1307s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-1 
+ 0.1330s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-2 
+ 0.1356s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-3 
+ 0.1390s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1 
+ 0.1418s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_2 
+ 0.1443s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_3 
+ 0.1472s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_4 
+ 0.1492s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_5 
+ 0.1674s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_6 
+ 0.1707s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_7 
+ 0.1732s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_8 
+ 0.1756s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP-1 
+ 0.1794s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-0 
+ 0.1833s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_NF 
+ 0.1915s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_LDC1 
+ 0.1941s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC1 
+ 0.1966s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC2 
+ 0.1985s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_VISS1 
+ 0.2016s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE1 
+ 0.2037s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE2 
+ 0.2064s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE3 
+ 0.2090s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE4 
+ 0.2109s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE5 
+ 0.2129s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE6 
+ 0.2163s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE7 
+ 0.2183s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE8 
+ 0.2207s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY1 
+ 0.2233s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY2 
+ 0.2258s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX 
+ 0.2286s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX2 
+ 0.2318s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M1 
+ 0.2340s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M2 
+ 0.2365s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M3 
+ 0.2395s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M4 
+ 0.2423s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_FC 
+ 0.2451s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-1 
+ 0.2480s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_SDE 
+ 0.2502s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_DOF 
+ 0.2532s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-0 
+ 0.2568s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-1 
+ 0.2570s:  VX_ZONE_INFO: [tivxInit:152] Initialization Done !!!
+ 0.2573s:  VX_ZONE_INFO: Globally Disabled VX_ZONE_INFO
+============= [Quantization &amp; Calibration for subgraph_0 Started] =============
+
+
+-------- Running Calibration in Float Mode to Collect Tensor Statistics --------
+[=============================================================================] 100 %
+
+------------------ Fixed-point Calibration Iteration [1 / 1]: ------------------
+[=============================================================================] 100 %
+
+==================== [Quantization &amp; Calibration Completed] ====================
+
+[TIDL Import]  WARNING: Couldn&#x27;t open perfSimTool file: /home/tidl/pranav/edgeai-benchmark/tools/tidl_tools_package/AM68A/tidl_tools/ti_cnnperfsim.out. Skipping Performance Simulation.
+Rerunning network compiler...
+[TIDL Import]  WARNING: Couldn&#x27;t open perfSimTool file: /home/tidl/pranav/edgeai-benchmark/tools/tidl_tools_package/AM68A/tidl_tools/ti_cnnperfsim.out. Skipping Performance Simulation.
+[TIDL Import] [PARSER] WARNING: 
+********************************************************************
+*     Network compiler returned with error or didn&#x27;t executed      *
+*      This model can only be used on PC/Host emulation mode       *
+*            It is not expected to work on target/EVM              *
+********************************************************************
+
+======================== Subgraph Compiled Successfully ========================
+
+
+
+MEM: Deinit ... !!!
+MEM: Alloc&#x27;s: 26 alloc&#x27;s of 23245933 bytes 
+MEM: Free&#x27;s : 26 free&#x27;s  of 23245933 bytes 
+MEM: Open&#x27;s : 0 allocs  of 0 bytes 
+MEM: Deinit ... Done !!!
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Softmax_1]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.29</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw5] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw5] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw5] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw5] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       0 |                       0 |
+| CPU                     |                       1 |                       x |
+-------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------
+|  Node   |     Node Name    |                        Reason                         |
+--------------------------------------------------------------------------------------
+| Softmax | /softmax/Softmax | Only softmax along width and height axis is supported |
+--------------------------------------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Softmax_4]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.21</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw8] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw8] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw8] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw8] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       0 |                       0 |
+| CPU                     |                       1 |                       x |
+-------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------
+|  Node   |     Node Name    |                        Reason                         |
+--------------------------------------------------------------------------------------
+| Softmax | /softmax/Softmax | Only softmax along width and height axis is supported |
+--------------------------------------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Softmax_14]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.24</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw14] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw14] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw14] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw14] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       0 |                       0 |
+| CPU                     |                       1 |                       x |
+-------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------
+|  Node   |     Node Name    |                        Reason                         |
+--------------------------------------------------------------------------------------
+| Softmax | /softmax/Softmax | Only softmax along width and height axis is supported |
+--------------------------------------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Softmax_5]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.31</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw4] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw4] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw4] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw4] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       0 |                       0 |
+| CPU                     |                       1 |                       x |
+-------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------
+|  Node   |     Node Name    |                        Reason                         |
+--------------------------------------------------------------------------------------
+| Softmax | /softmax/Softmax | Only softmax along width and height axis is supported |
+--------------------------------------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Softmax_18]</td>
+          <td>1</td>
+          <td>True</td>
+          <td class="col-duration">4.65</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw1] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw1] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw1] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw1] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       1 |                       1 |
+| CPU                     |                       0 |                       x |
+-------------------------------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+==================== [Optimization for subgraph_0 Started] ====================
+
+[TIDL Import] [PARSER] WARNING: Requested output data convert layer is not added to the network, It is currently not optimal
+----------------------------- Optimization Summary -----------------------------
+------------------------------------------------------------------------------
+|        Layer        | Nodes before optimization | Nodes after optimization |
+------------------------------------------------------------------------------
+| TIDL_TransposeLayer |                         0 |                        1 |
+| TIDL_SoftMaxLayer   |                         1 |                        1 |
+------------------------------------------------------------------------------
+
+Total nodes in subgraph: 5
+
+=================== [Optimization for subgraph_0 Completed] ===================
+
+The soft limit is 10240
+The hard limit is 10240
+MEM: Init ... !!!
+MEM: Init ... Done !!!
+ 0.0s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_INFO
+ 0.7s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_ERROR
+ 0.8s:  VX_ZONE_INFO: Globally Enabled VX_ZONE_WARNING
+ 0.221s:  VX_ZONE_INFO: [ownAddTargetKernelInternal:189] registered kernel vx_tutorial_graph.phase_rgb on target DSP-1
+ 0.2173s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-0 
+ 0.2223s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-1 
+ 0.2254s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-2 
+ 0.2288s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MPU-3 
+ 0.2329s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1 
+ 0.2367s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_2 
+ 0.2403s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_3 
+ 0.2434s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_4 
+ 0.2464s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_5 
+ 0.2505s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_6 
+ 0.2539s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_7 
+ 0.2569s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP_C7-1_PRI_8 
+ 0.2601s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSP-1 
+ 0.2970s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-0 
+ 0.3001s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_NF 
+ 0.3045s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_LDC1 
+ 0.3085s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC1 
+ 0.3114s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_MSC2 
+ 0.3141s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_VISS1 
+ 0.3172s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE1 
+ 0.3203s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE2 
+ 0.3235s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE3 
+ 0.3265s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE4 
+ 0.3298s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE5 
+ 0.3329s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE6 
+ 0.3365s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE7 
+ 0.3397s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CAPTURE8 
+ 0.3431s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY1 
+ 0.3468s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DISPLAY2 
+ 0.3499s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX 
+ 0.3537s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target CSITX2 
+ 0.3566s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M1 
+ 0.3595s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M2 
+ 0.3638s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M3 
+ 0.3673s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DSS_M2M4 
+ 0.3701s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target VPAC_FC 
+ 0.3738s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU2-1 
+ 0.3773s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_SDE 
+ 0.3804s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target DMPAC_DOF 
+ 0.3840s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-0 
+ 0.3876s:  VX_ZONE_INFO: [tivxPlatformCreateTargetId:169] Added target MCU3-1 
+ 0.3880s:  VX_ZONE_INFO: [tivxInit:152] Initialization Done !!!
+ 0.3883s:  VX_ZONE_INFO: Globally Disabled VX_ZONE_INFO
+============= [Quantization &amp; Calibration for subgraph_0 Started] =============
+
+
+-------- Running Calibration in Float Mode to Collect Tensor Statistics --------
+[=============================================================================] 100 %
+
+------------------ Fixed-point Calibration Iteration [1 / 1]: ------------------
+[=============================================================================] 100 %
+
+==================== [Quantization &amp; Calibration Completed] ====================
+
+[TIDL Import]  WARNING: Couldn&#x27;t open perfSimTool file: /home/tidl/pranav/edgeai-benchmark/tools/tidl_tools_package/AM68A/tidl_tools/ti_cnnperfsim.out. Skipping Performance Simulation.
+Rerunning network compiler...
+[TIDL Import]  WARNING: Couldn&#x27;t open perfSimTool file: /home/tidl/pranav/edgeai-benchmark/tools/tidl_tools_package/AM68A/tidl_tools/ti_cnnperfsim.out. Skipping Performance Simulation.
+[TIDL Import] [PARSER] WARNING: 
+********************************************************************
+*     Network compiler returned with error or didn&#x27;t executed      *
+*      This model can only be used on PC/Host emulation mode       *
+*            It is not expected to work on target/EVM              *
+********************************************************************
+
+======================== Subgraph Compiled Successfully ========================
+
+
+
+MEM: Deinit ... !!!
+MEM: Alloc&#x27;s: 26 alloc&#x27;s of 19027405 bytes 
+MEM: Free&#x27;s : 26 free&#x27;s  of 19027405 bytes 
+MEM: Open&#x27;s : 0 allocs  of 0 bytes 
+MEM: Deinit ... Done !!!
+<br/></div></td></tr></tbody></table></body></html>

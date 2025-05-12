@@ -1,0 +1,1535 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>report_05-07-2025_00-35-26.html</title>
+    <style>body {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  /* do not increase min-width as some may use split screens */
+  min-width: 800px;
+  color: #999;
+}
+
+h1 {
+  font-size: 24px;
+  color: black;
+}
+
+h2 {
+  font-size: 16px;
+  color: black;
+}
+
+p {
+  color: black;
+}
+
+a {
+  color: #999;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+/******************************
+ * SUMMARY INFORMATION
+ ******************************/
+#environment td {
+  padding: 5px;
+  border: 1px solid #E6E6E6;
+}
+#environment tr:nth-child(odd) {
+  background-color: #f6f6f6;
+}
+
+/******************************
+ * TEST RESULT COLORS
+ ******************************/
+span.passed,
+.passed .col-result {
+  color: green;
+}
+
+span.skipped,
+span.xfailed,
+span.rerun,
+.skipped .col-result,
+.xfailed .col-result,
+.rerun .col-result {
+  color: orange;
+}
+
+span.error,
+span.failed,
+span.xpassed,
+.error .col-result,
+.failed .col-result,
+.xpassed .col-result {
+  color: red;
+}
+
+/******************************
+ * RESULTS TABLE
+ *
+ * 1. Table Layout
+ * 2. Extra
+ * 3. Sorting items
+ *
+ ******************************/
+/*------------------
+ * 1. Table Layout
+ *------------------*/
+#results-table {
+  border: 1px solid #e6e6e6;
+  color: #999;
+  font-size: 12px;
+  width: 100%;
+}
+#results-table th,
+#results-table td {
+  padding: 5px;
+  border: 1px solid #E6E6E6;
+  text-align: left;
+}
+#results-table th {
+  font-weight: bold;
+}
+
+/*------------------
+ * 2. Extra
+ *------------------*/
+.log {
+  background-color: #e6e6e6;
+  border: 1px solid #e6e6e6;
+  color: black;
+  display: block;
+  font-family: "Courier New", Courier, monospace;
+  height: 230px;
+  overflow-y: scroll;
+  padding: 5px;
+  white-space: pre-wrap;
+}
+.log:only-child {
+  height: inherit;
+}
+
+div.image {
+  border: 1px solid #e6e6e6;
+  float: right;
+  height: 240px;
+  margin-left: 5px;
+  overflow: hidden;
+  width: 320px;
+}
+div.image img {
+  width: 320px;
+}
+
+div.video {
+  border: 1px solid #e6e6e6;
+  float: right;
+  height: 240px;
+  margin-left: 5px;
+  overflow: hidden;
+  width: 320px;
+}
+div.video video {
+  overflow: hidden;
+  width: 320px;
+  height: 240px;
+}
+
+.collapsed {
+  display: none;
+}
+
+.expander::after {
+  content: " (show details)";
+  color: #BBB;
+  font-style: italic;
+  cursor: pointer;
+}
+
+.collapser::after {
+  content: " (hide details)";
+  color: #BBB;
+  font-style: italic;
+  cursor: pointer;
+}
+
+/*------------------
+ * 3. Sorting items
+ *------------------*/
+.sortable {
+  cursor: pointer;
+}
+
+.sort-icon {
+  font-size: 0px;
+  float: left;
+  margin-right: 5px;
+  margin-top: 5px;
+  /*triangle*/
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+}
+.inactive .sort-icon {
+  /*finish triangle*/
+  border-top: 8px solid #E6E6E6;
+}
+.asc.active .sort-icon {
+  /*finish triangle*/
+  border-bottom: 8px solid #999;
+}
+.desc.active .sort-icon {
+  /*finish triangle*/
+  border-top: 8px solid #999;
+}
+</style></head>
+  <body onLoad="init()">
+    <script>/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+
+function toArray(iter) {
+    if (iter === null) {
+        return null;
+    }
+    return Array.prototype.slice.call(iter);
+}
+
+function find(selector, elem) { // eslint-disable-line no-redeclare
+    if (!elem) {
+        elem = document;
+    }
+    return elem.querySelector(selector);
+}
+
+function findAll(selector, elem) {
+    if (!elem) {
+        elem = document;
+    }
+    return toArray(elem.querySelectorAll(selector));
+}
+
+function sortColumn(elem) {
+    toggleSortStates(elem);
+    const colIndex = toArray(elem.parentNode.childNodes).indexOf(elem);
+    let key;
+    if (elem.classList.contains('result')) {
+        key = keyResult;
+    } else if (elem.classList.contains('links')) {
+        key = keyLink;
+    } else {
+        key = keyAlpha;
+    }
+    sortTable(elem, key(colIndex));
+}
+
+function showAllExtras() { // eslint-disable-line no-unused-vars
+    findAll('.col-result').forEach(showExtras);
+}
+
+function hideAllExtras() { // eslint-disable-line no-unused-vars
+    findAll('.col-result').forEach(hideExtras);
+}
+
+function showExtras(colresultElem) {
+    const extras = colresultElem.parentNode.nextElementSibling;
+    const expandcollapse = colresultElem.firstElementChild;
+    extras.classList.remove('collapsed');
+    expandcollapse.classList.remove('expander');
+    expandcollapse.classList.add('collapser');
+}
+
+function hideExtras(colresultElem) {
+    const extras = colresultElem.parentNode.nextElementSibling;
+    const expandcollapse = colresultElem.firstElementChild;
+    extras.classList.add('collapsed');
+    expandcollapse.classList.remove('collapser');
+    expandcollapse.classList.add('expander');
+}
+
+function showFilters() {
+    let visibleString = getQueryParameter('visible') || 'all';
+    visibleString = visibleString.toLowerCase();
+    const checkedItems = visibleString.split(',');
+
+    const filterItems = document.getElementsByClassName('filter');
+    for (let i = 0; i < filterItems.length; i++) {
+        filterItems[i].hidden = false;
+
+        if (visibleString != 'all') {
+            filterItems[i].checked = checkedItems.includes(filterItems[i].getAttribute('data-test-result'));
+            filterTable(filterItems[i]);
+        }
+    }
+}
+
+function addCollapse() {
+    // Add links for show/hide all
+    const resulttable = find('table#results-table');
+    const showhideall = document.createElement('p');
+    showhideall.innerHTML = '<a href="javascript:showAllExtras()">Show all details</a> / ' +
+                            '<a href="javascript:hideAllExtras()">Hide all details</a>';
+    resulttable.parentElement.insertBefore(showhideall, resulttable);
+
+    // Add show/hide link to each result
+    findAll('.col-result').forEach(function(elem) {
+        const collapsed = getQueryParameter('collapsed') || 'Passed';
+        const extras = elem.parentNode.nextElementSibling;
+        const expandcollapse = document.createElement('span');
+        if (extras.classList.contains('collapsed')) {
+            expandcollapse.classList.add('expander');
+        } else if (collapsed.includes(elem.innerHTML)) {
+            extras.classList.add('collapsed');
+            expandcollapse.classList.add('expander');
+        } else {
+            expandcollapse.classList.add('collapser');
+        }
+        elem.appendChild(expandcollapse);
+
+        elem.addEventListener('click', function(event) {
+            if (event.currentTarget.parentNode.nextElementSibling.classList.contains('collapsed')) {
+                showExtras(event.currentTarget);
+            } else {
+                hideExtras(event.currentTarget);
+            }
+        });
+    });
+}
+
+function getQueryParameter(name) {
+    const match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+    return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+}
+
+function init () { // eslint-disable-line no-unused-vars
+    resetSortHeaders();
+
+    addCollapse();
+
+    showFilters();
+
+    sortColumn(find('.initial-sort'));
+
+    findAll('.sortable').forEach(function(elem) {
+        elem.addEventListener('click',
+            function() {
+                sortColumn(elem);
+            }, false);
+    });
+}
+
+function sortTable(clicked, keyFunc) {
+    const rows = findAll('.results-table-row');
+    const reversed = !clicked.classList.contains('asc');
+    const sortedRows = sort(rows, keyFunc, reversed);
+    /* Whole table is removed here because browsers acts much slower
+     * when appending existing elements.
+     */
+    const thead = document.getElementById('results-table-head');
+    document.getElementById('results-table').remove();
+    const parent = document.createElement('table');
+    parent.id = 'results-table';
+    parent.appendChild(thead);
+    sortedRows.forEach(function(elem) {
+        parent.appendChild(elem);
+    });
+    document.getElementsByTagName('BODY')[0].appendChild(parent);
+}
+
+function sort(items, keyFunc, reversed) {
+    const sortArray = items.map(function(item, i) {
+        return [keyFunc(item), i];
+    });
+
+    sortArray.sort(function(a, b) {
+        const keyA = a[0];
+        const keyB = b[0];
+
+        if (keyA == keyB) return 0;
+
+        if (reversed) {
+            return keyA < keyB ? 1 : -1;
+        } else {
+            return keyA > keyB ? 1 : -1;
+        }
+    });
+
+    return sortArray.map(function(item) {
+        const index = item[1];
+        return items[index];
+    });
+}
+
+function keyAlpha(colIndex) {
+    return function(elem) {
+        return elem.childNodes[1].childNodes[colIndex].firstChild.data.toLowerCase();
+    };
+}
+
+function keyLink(colIndex) {
+    return function(elem) {
+        const dataCell = elem.childNodes[1].childNodes[colIndex].firstChild;
+        return dataCell == null ? '' : dataCell.innerText.toLowerCase();
+    };
+}
+
+function keyResult(colIndex) {
+    return function(elem) {
+        const strings = ['Error', 'Failed', 'Rerun', 'XFailed', 'XPassed',
+            'Skipped', 'Passed'];
+        return strings.indexOf(elem.childNodes[1].childNodes[colIndex].firstChild.data);
+    };
+}
+
+function resetSortHeaders() {
+    findAll('.sort-icon').forEach(function(elem) {
+        elem.parentNode.removeChild(elem);
+    });
+    findAll('.sortable').forEach(function(elem) {
+        const icon = document.createElement('div');
+        icon.className = 'sort-icon';
+        icon.textContent = 'vvv';
+        elem.insertBefore(icon, elem.firstChild);
+        elem.classList.remove('desc', 'active');
+        elem.classList.add('asc', 'inactive');
+    });
+}
+
+function toggleSortStates(elem) {
+    //if active, toggle between asc and desc
+    if (elem.classList.contains('active')) {
+        elem.classList.toggle('asc');
+        elem.classList.toggle('desc');
+    }
+
+    //if inactive, reset all other functions and add ascending active
+    if (elem.classList.contains('inactive')) {
+        resetSortHeaders();
+        elem.classList.remove('inactive');
+        elem.classList.add('active');
+    }
+}
+
+function isAllRowsHidden(value) {
+    return value.hidden == false;
+}
+
+function filterTable(elem) { // eslint-disable-line no-unused-vars
+    const outcomeAtt = 'data-test-result';
+    const outcome = elem.getAttribute(outcomeAtt);
+    const classOutcome = outcome + ' results-table-row';
+    const outcomeRows = document.getElementsByClassName(classOutcome);
+
+    for(let i = 0; i < outcomeRows.length; i++){
+        outcomeRows[i].hidden = !elem.checked;
+    }
+
+    const rows = findAll('.results-table-row').filter(isAllRowsHidden);
+    const allRowsHidden = rows.length == 0 ? true : false;
+    const notFoundMessage = document.getElementById('not-found-message');
+    notFoundMessage.hidden = !allRowsHidden;
+}
+</script>
+    <h1>report_05-07-2025_00-35-26.html</h1>
+    <p>Report generated on 07-May-2025 at 00:35:32 by <a href="https://pypi.python.org/pypi/pytest-html">pytest-html</a> v3.2.0</p>
+    <h2>Summary</h2>
+    <p>22 tests ran in 5.76 seconds. </p>
+    <p class="filter" hidden="true">(Un)check the boxes to filter the results.</p><input checked="true" class="filter" data-test-result="passed" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="passed">22 passed</span>, <input checked="true" class="filter" data-test-result="skipped" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="skipped">0 skipped</span>, <input checked="true" class="filter" data-test-result="failed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="failed">0 failed</span>, <input checked="true" class="filter" data-test-result="error" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="error">0 errors</span>, <input checked="true" class="filter" data-test-result="xfailed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="xfailed">0 expected failures</span>, <input checked="true" class="filter" data-test-result="xpassed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="xpassed">0 unexpected passes</span>
+    <h2>Results</h2>
+    <table id="results-table">
+      <thead id="results-table-head">
+        <tr>
+          <th class="sortable result initial-sort" col="result">Result</th>
+          <th class="sortable" col="name">Test</th>
+          <th>TIDL Subgraphs</th>
+          <th>Complete TIDL Offload</th>
+          <th class="sortable" col="duration">Duration</th>
+          <th class="sortable links" col="links">Links</th></tr>
+        <tr hidden="true" id="not-found-message">
+          <th colspan="6">No results found. Try to check the filters</th></tr></thead>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Cosh_8]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.21</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw15] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw15] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw15] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw15] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       0 |                       0 |
+| CPU                     |                       1 |                       x |
+-------------------------------------------------------------------------------
+-------------------------------------------------------
+| Node | Node Name |              Reason              |
+-------------------------------------------------------
+| Cosh | output    | Layer type not supported by TIDL |
+-------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Cosh_5]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.18</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw8] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw8] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw8] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw8] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       0 |                       0 |
+| CPU                     |                       1 |                       x |
+-------------------------------------------------------------------------------
+-------------------------------------------------------
+| Node | Node Name |              Reason              |
+-------------------------------------------------------
+| Cosh | output    | Layer type not supported by TIDL |
+-------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Cosh_18]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.29</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw9] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw9] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw9] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw9] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       0 |                       0 |
+| CPU                     |                       1 |                       x |
+-------------------------------------------------------------------------------
+-------------------------------------------------------
+| Node | Node Name |              Reason              |
+-------------------------------------------------------
+| Cosh | output    | Layer type not supported by TIDL |
+-------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Cosh_15]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.34</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw5] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw5] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw5] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw5] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       0 |                       0 |
+| CPU                     |                       1 |                       x |
+-------------------------------------------------------------------------------
+-------------------------------------------------------
+| Node | Node Name |              Reason              |
+-------------------------------------------------------
+| Cosh | output    | Layer type not supported by TIDL |
+-------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Cosh_2]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.27</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw6] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw6] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw6] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw6] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       0 |                       0 |
+| CPU                     |                       1 |                       x |
+-------------------------------------------------------------------------------
+-------------------------------------------------------
+| Node | Node Name |              Reason              |
+-------------------------------------------------------
+| Cosh | output    | Layer type not supported by TIDL |
+-------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Cosh_4]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.21</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw16] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw16] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw16] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw16] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       0 |                       0 |
+| CPU                     |                       1 |                       x |
+-------------------------------------------------------------------------------
+-------------------------------------------------------
+| Node | Node Name |              Reason              |
+-------------------------------------------------------
+| Cosh | output    | Layer type not supported by TIDL |
+-------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Cosh_22]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.25</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw17] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw17] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw17] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw17] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       0 |                       0 |
+| CPU                     |                       1 |                       x |
+-------------------------------------------------------------------------------
+-------------------------------------------------------
+| Node | Node Name |              Reason              |
+-------------------------------------------------------
+| Cosh | output    | Layer type not supported by TIDL |
+-------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Cosh_17]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.29</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw2] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw2] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw2] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw2] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       0 |                       0 |
+| CPU                     |                       1 |                       x |
+-------------------------------------------------------------------------------
+-------------------------------------------------------
+| Node | Node Name |              Reason              |
+-------------------------------------------------------
+| Cosh | output    | Layer type not supported by TIDL |
+-------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Cosh_14]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.28</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw4] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw4] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw4] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw4] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       0 |                       0 |
+| CPU                     |                       1 |                       x |
+-------------------------------------------------------------------------------
+-------------------------------------------------------
+| Node | Node Name |              Reason              |
+-------------------------------------------------------
+| Cosh | output    | Layer type not supported by TIDL |
+-------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Cosh_16]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.18</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw3] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw3] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw3] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw3] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       0 |                       0 |
+| CPU                     |                       1 |                       x |
+-------------------------------------------------------------------------------
+-------------------------------------------------------
+| Node | Node Name |              Reason              |
+-------------------------------------------------------
+| Cosh | output    | Layer type not supported by TIDL |
+-------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Cosh_21]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.22</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw7] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw7] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw7] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw7] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       0 |                       0 |
+| CPU                     |                       1 |                       x |
+-------------------------------------------------------------------------------
+-------------------------------------------------------
+| Node | Node Name |              Reason              |
+-------------------------------------------------------
+| Cosh | output    | Layer type not supported by TIDL |
+-------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Cosh_7]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.15</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw13] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw13] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw13] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw13] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       0 |                       0 |
+| CPU                     |                       1 |                       x |
+-------------------------------------------------------------------------------
+-------------------------------------------------------
+| Node | Node Name |              Reason              |
+-------------------------------------------------------
+| Cosh | output    | Layer type not supported by TIDL |
+-------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Cosh_13]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.29</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw11] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw11] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw11] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw11] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       0 |                       0 |
+| CPU                     |                       1 |                       x |
+-------------------------------------------------------------------------------
+-------------------------------------------------------
+| Node | Node Name |              Reason              |
+-------------------------------------------------------
+| Cosh | output    | Layer type not supported by TIDL |
+-------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Cosh_3]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.22</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw14] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw14] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw14] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw14] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       0 |                       0 |
+| CPU                     |                       1 |                       x |
+-------------------------------------------------------------------------------
+-------------------------------------------------------
+| Node | Node Name |              Reason              |
+-------------------------------------------------------
+| Cosh | output    | Layer type not supported by TIDL |
+-------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Cosh_10]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.24</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw20] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw20] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw20] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw20] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       0 |                       0 |
+| CPU                     |                       1 |                       x |
+-------------------------------------------------------------------------------
+-------------------------------------------------------
+| Node | Node Name |              Reason              |
+-------------------------------------------------------
+| Cosh | output    | Layer type not supported by TIDL |
+-------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Cosh_12]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.35</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw19] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw19] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw19] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw19] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       0 |                       0 |
+| CPU                     |                       1 |                       x |
+-------------------------------------------------------------------------------
+-------------------------------------------------------
+| Node | Node Name |              Reason              |
+-------------------------------------------------------
+| Cosh | output    | Layer type not supported by TIDL |
+-------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Cosh_11]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.33</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw1] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw1] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw1] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw1] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       0 |                       0 |
+| CPU                     |                       1 |                       x |
+-------------------------------------------------------------------------------
+-------------------------------------------------------
+| Node | Node Name |              Reason              |
+-------------------------------------------------------
+| Cosh | output    | Layer type not supported by TIDL |
+-------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Cosh_19]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.24</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw18] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw18] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw18] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw18] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       0 |                       0 |
+| CPU                     |                       1 |                       x |
+-------------------------------------------------------------------------------
+-------------------------------------------------------
+| Node | Node Name |              Reason              |
+-------------------------------------------------------
+| Cosh | output    | Layer type not supported by TIDL |
+-------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Cosh_1]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.26</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw10] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw10] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw10] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw10] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       0 |                       0 |
+| CPU                     |                       1 |                       x |
+-------------------------------------------------------------------------------
+-------------------------------------------------------
+| Node | Node Name |              Reason              |
+-------------------------------------------------------
+| Cosh | output    | Layer type not supported by TIDL |
+-------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Cosh_6]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.33</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw0] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw0] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw0] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw0] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       0 |                       0 |
+| CPU                     |                       1 |                       x |
+-------------------------------------------------------------------------------
+-------------------------------------------------------
+| Node | Node Name |              Reason              |
+-------------------------------------------------------
+| Cosh | output    | Layer type not supported by TIDL |
+-------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Cosh_20]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.31</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw21] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw21] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw21] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw21] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       0 |                       0 |
+| CPU                     |                       1 |                       x |
+-------------------------------------------------------------------------------
+-------------------------------------------------------
+| Node | Node Name |              Reason              |
+-------------------------------------------------------
+| Cosh | output    | Layer type not supported by TIDL |
+-------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_tidl_unit.py::test_tidl_unit_operator[Cosh_9]</td>
+          <td>0</td>
+          <td>-</td>
+          <td class="col-duration">0.29</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="6">
+            <div class="log">[gw12] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/>[gw12] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw12] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3[gw12] linux -- Python 3.10.16 /home/tidl/.pyenv/versions/benchmark/bin/python3<br/> ------------------------------Captured stdout call------------------------------ <br/>========================= [Model Compilation Started] =========================
+
+Model compilation will perform the following stages:
+1. Parsing
+2. Graph Optimization
+3. Quantization &amp; Calibration
+4. Memory Planning
+
+============================== [Version Summary] ==============================
+
+-------------------------------------------------------------------------------
+|          TIDL Tools Version          |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|         C7x Firmware Version         |              11_00_00_00             |
+-------------------------------------------------------------------------------
+|            Runtime Version           |                1.15.0                |
+-------------------------------------------------------------------------------
+|          Model Opset Version         |                  19                  |
+-------------------------------------------------------------------------------
+
+============================== [Parsing Started] ==============================
+
+[TIDL Import] [PARSER] WARNING: Network not identified as Object Detection network : (1) Ignore if network is not Object Detection network (2) If network is Object Detection network, please specify &quot;model_type&quot;:&quot;OD&quot; as part of OSRT compilation options
+
+------------------------- Subgraph Information Summary -------------------------
+-------------------------------------------------------------------------------
+|          Core           |      No. of Nodes       |   Number of Subgraphs   |
+-------------------------------------------------------------------------------
+| C7x                     |                       0 |                       0 |
+| CPU                     |                       1 |                       x |
+-------------------------------------------------------------------------------
+-------------------------------------------------------
+| Node | Node Name |              Reason              |
+-------------------------------------------------------
+| Cosh | output    | Layer type not supported by TIDL |
+-------------------------------------------------------
+============================= [Parsing Completed] =============================
+
+<br/></div></td></tr></tbody></table></body></html>
