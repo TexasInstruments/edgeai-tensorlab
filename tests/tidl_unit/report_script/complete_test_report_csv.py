@@ -55,6 +55,10 @@ operator_summaries = []
 for op in sorted(os.listdir(A_DIR)):
     dir_a = os.path.join(A_DIR,   op)
 
+    mod_num = None
+    if '_' in op:
+        mod_num = op.split('_')[-1]
+        op = "_".join(op.split('_')[:-1])
     # parse both sets
     data_a = {k: parse_html_report(os.path.join(dir_a, f"{k}.html")) for k,_ in VARIANTS}
 
@@ -83,6 +87,8 @@ for op in sorted(os.listdir(A_DIR)):
             reader = csv.DictReader(csvfile)
             for row in reader:
                 mn = row["model name"]
+                if mod_num and f"{op}_{mod_num}" != mn:
+                    continue
                 if mn not in model_attrs:
                     model_attrs[mn] = {}
                 # merge attributes (later CSVs can override)

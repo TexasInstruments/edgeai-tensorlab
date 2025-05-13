@@ -14,6 +14,7 @@ Pytest file for TIDL Unit tests
 Note: Pass in --disable-tidl-offload to pytest command in order to disable TIDL offload
 Note: Pass in --no-subprocess to disable running the test in a subprocess
 Note: Pass in --run-infer to pytest command in order to run inference (default is import which must be done first)
+Note: Pass in --runtime=<runtime> in order to select the compiler runtime to be used. Valid values: (onnxrt, tvmrt)
 '''
 
 import logging
@@ -40,6 +41,10 @@ def run_infer(pytestconfig):
 def no_subprocess(pytestconfig):
     return pytestconfig.getoption("no_subprocess")
 
+@pytest.fixture(scope="session")
+def runtime(pytestconfig):
+    return pytestconfig.getoption("runtime")
+
 def retrieve_tests_operator(root_dir):
     subdir = os.listdir(root_dir)
     all_tests = []
@@ -57,7 +62,7 @@ operator_tests_to_run, operator_tests_parent_dir = retrieve_tests_operator(opera
 
 # Test TIDL operator unit test
 @pytest.mark.parametrize(("test_name"), operator_tests_to_run)
-def test_tidl_unit_operator(no_subprocess : bool, tidl_offload : bool, run_infer : bool, operator_tests_root_fixture : str, test_name : str):
+def test_tidl_unit_operator(no_subprocess : bool, tidl_offload : bool, run_infer : bool, operator_tests_root_fixture : str, test_name : str, runtime : str):
     '''
     Pytest for tidl unit operator tests using the edgeai-benchmark framework
     '''
@@ -72,9 +77,10 @@ def test_tidl_unit_operator(no_subprocess : bool, tidl_offload : bool, run_infer
                       run_infer       = run_infer, 
                       test_name       = test_name,
                       test_suite      = "operator",
-                      testdir_parent  = testdir_parent)
+                      testdir_parent  = testdir_parent,
+                      runtime         = runtime)
 
-def perform_tidl_unit(no_subprocess : bool, tidl_offload : bool, run_infer : bool, testdir_parent : str, test_name : str, test_suite : str):
+def perform_tidl_unit(no_subprocess : bool, tidl_offload : bool, run_infer : bool, testdir_parent : str, test_name : str, test_suite : str, runtime : str):
     '''
     Performs an tidl unit test
     '''
@@ -84,17 +90,19 @@ def perform_tidl_unit(no_subprocess : bool, tidl_offload : bool, run_infer : boo
                                      run_infer       = run_infer, 
                                      test_name       = test_name,
                                      test_suite      = test_suite,
-                                     testdir_parent  = testdir_parent)
+                                     testdir_parent  = testdir_parent,
+                                     runtime         = runtime)
     else:
         perform_tidl_unit_subprocess(tidl_offload    = tidl_offload, 
                                      run_infer       = run_infer, 
                                      test_name       = test_name,
                                      test_suite      = test_suite,
-                                     testdir_parent  = testdir_parent)
+                                     testdir_parent  = testdir_parent,
+                                     runtime         = runtime)
         
 
 
-def perform_tidl_unit_subprocess(tidl_offload : bool, run_infer : bool, test_name : str, test_suite : str, testdir_parent : str):
+def perform_tidl_unit_subprocess(tidl_offload : bool, run_infer : bool, test_name : str, test_suite : str, testdir_parent : str, runtime : str):
     '''
     Perform an tidl unit test using a subprocess (in order to properly capture output for fatal errors)
     Called by perform_tidl_unit
@@ -104,7 +112,8 @@ def perform_tidl_unit_subprocess(tidl_offload : bool, run_infer : bool, test_nam
               "run_infer"      : run_infer, 
               "test_name"      : test_name,
               "test_suite"     : test_suite,
-              "testdir_parent" : testdir_parent}
+              "testdir_parent" : testdir_parent,
+              "runtime"        : runtime}
     
     p = Process(target=perform_tidl_unit_oneprocess, kwargs=kwargs)
     p.start()
@@ -123,7 +132,7 @@ def perform_tidl_unit_subprocess(tidl_offload : bool, run_infer : bool, test_nam
     assert p.exitcode == 0, f"Received nonzero exit code: {p.exitcode}"
 
 # Utility function to perform tidl unit test
-def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, test_name : str, test_suite : str, testdir_parent : str):
+def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, test_name : str, test_suite : str, testdir_parent : str, runtime : str):
     '''
     Perform an tidl unit test using without a subprocess wrapper
     Called by perform_tidl_unit_subprocess or directly by perform_tidl_unit if no_subprocess is specified
@@ -137,8 +146,13 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, test_nam
     # Declare config object
     cur_dir = os.path.dirname(__file__)
     settings = config_settings.ConfigSettings(os.path.join(cur_dir,'tidl_unit.yaml'), tidl_offload=tidl_offload)
-    session_name     = constants.SESSION_NAME_ONNXRT
-
+    match runtime:
+        case "onnxrt":
+            session_name = constants.SESSION_NAME_ONNXRT
+        case "tvmrt":
+            session_name = constants.SESSION_NAME_TVMDLR
+        case _:
+            raise ValueError("Runtimes currently supported are onnxrt and tvmrt")
     model_file       = os.path.join(test_dir, "model.onnx")
     onnx.shape_inference.infer_shapes_path(model_file, model_file)
 
@@ -159,12 +173,23 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, test_nam
         runtime_options  = settings.get_runtime_options(session_name, is_qat=False, debug_level = 0)
         runtime_options["advanced_options:quantization_scale_type"] = constants.QUANTScaleType.QUANT_SCALE_TYPE_NP2_PERCHAN
 
-        onnxruntime_wrapper = core.ONNXRuntimeWrapper(runtime_options=runtime_options,
-                                                      model_file=model_file,
-                                                      artifacts_folder=artifacts_folder,
-                                                      tidl_tools_path=os.environ['TIDL_TOOLS_PATH'],
-                                                      tidl_offload=tidl_offload)
-        results_list = onnxruntime_wrapper.run_inference(tidl_unit_dataset[0])
+        if runtime == "onnxrt":
+            runtime_wrapper = core.ONNXRuntimeWrapper(runtime_options=runtime_options,
+                                                        model_file=model_file,
+                                                        artifacts_folder=artifacts_folder,
+                                                        tidl_tools_path=os.environ['TIDL_TOOLS_PATH'],
+                                                        tidl_offload=tidl_offload)
+        elif runtime == "tvmrt":
+            runtime_wrapper = core.TVMDLRRuntimeWrapper(runtime_options=runtime_options,
+                                                        model_file=model_file,
+                                                        artifacts_folder=artifacts_folder,
+                                                        tidl_tools_path=os.environ['TIDL_TOOLS_PATH'],
+                                                        tidl_offload=tidl_offload)
+        else:
+            # If not supported
+            raise ValueError("Runtimes currently supported are onnxrt and tvmdlr")
+
+        results_list = runtime_wrapper.run_inference(tidl_unit_dataset[0])
 
         assert len(results_list) > 0, " Results not found!!!! "
 
@@ -177,7 +202,7 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, test_nam
             pytest.fail(f" max_nmse of {max_nmse} is higher than threshold {threshold}")
 
         # Report performance
-        stats = get_tidl_performance(onnxruntime_wrapper.interpreter, session_name="onnxrt")
+        stats = get_tidl_performance(runtime_wrapper.interpreter, session_name=runtime)
         print(f"\nPERFORMANCE:\n")
         print(f"\tNum TIDL Subgraphs                    :   {stats['num_subgraphs']}")
         print(f"\tTotal Time (ms)                       :   {stats['total_time']:.2f}")
@@ -198,10 +223,23 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, test_nam
         runtime_options  = settings.get_runtime_options(session_name, is_qat=False, debug_level = 0)
         runtime_options["advanced_options:quantization_scale_type"] = constants.QUANTScaleType.QUANT_SCALE_TYPE_NP2_PERCHAN
 
-        onnxruntime_wrapper = core.ONNXRuntimeWrapper(runtime_options=runtime_options,
-                                                      model_file=model_file,
-                                                      artifacts_folder=artifacts_folder,
-                                                      tidl_tools_path=os.environ['TIDL_TOOLS_PATH'],
-                                                      tidl_offload=tidl_offload)
-        results_list = onnxruntime_wrapper.run_import(tidl_unit_dataset[0])
-        assert len(results_list) > 0, " Results not found!!!! "
+        if runtime == "onnxrt":
+            runtime_wrapper = core.ONNXRuntimeWrapper(runtime_options=runtime_options,
+                                                        model_file=model_file,
+                                                        artifacts_folder=artifacts_folder,
+                                                        tidl_tools_path=os.environ['TIDL_TOOLS_PATH'],
+                                                        tidl_offload=tidl_offload)
+            results_list = runtime_wrapper.run_import(tidl_unit_dataset[0])
+            assert len(results_list) > 0, " Results not found!!!! "
+        elif runtime == "tvmrt":
+            runtime_wrapper = core.TVMDLRRuntimeWrapper(runtime_options=runtime_options,
+                                                        model_file=model_file,
+                                                        artifacts_folder=artifacts_folder,
+                                                        tidl_tools_path=os.environ['TIDL_TOOLS_PATH'],
+                                                        tidl_offload=tidl_offload)
+            status = runtime_wrapper.run_import(tidl_unit_dataset[0])
+            assert status >= 0, "TIDL Import Failed"
+            assert status > 0, "TIDL Tools missing"
+        else:
+            # If not supported
+            raise ValueError("Runtimes currently supported are onnxrt and tvmdlr")

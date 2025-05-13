@@ -3,7 +3,7 @@ num_frames : 1
 calibration_frames : 1
 calibration_iterations : 1
 input_optimization : False
-runtime_selection : ['onnxrt']
+runtime_selection : ['onnxrt', 'tvmdlr']
 parallel_processes : null
 target_machine : 'pc'
 run_import : True
