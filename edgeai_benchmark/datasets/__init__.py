@@ -699,7 +699,7 @@ def get_datasets(settings, download=False, dataset_list=None):
             dataset_calib_cfg = dict(
                 path=f'{settings.datasets_path}/pandaset/',
                 split='train',
-                num_classes=5,
+                num_classes=3,
                 load_type='frame_based',
                 shuffle=False,
                 num_frames=min(81, calibration_frames_nx),
@@ -709,7 +709,7 @@ def get_datasets(settings, download=False, dataset_list=None):
             dataset_val_cfg = dict(
                 path=f'{settings.datasets_path}/pandaset/',
                 split='val',
-                num_classes=5,
+                num_classes=3,
                 load_type='frame_based',
                 shuffle=False,
                 num_frames=min(settings.num_frames, 81),
@@ -772,7 +772,7 @@ def get_datasets(settings, download=False, dataset_list=None):
             dataset_calib_cfg = dict(
                 path=f'{settings.datasets_path}/pandaset/',
                 split='train',
-                num_classes=5,
+                num_classes=3,
                 load_type='mv_image_based',
                 shuffle=False,
                 num_frames=min(50, calibration_frames_nx),
@@ -782,7 +782,7 @@ def get_datasets(settings, download=False, dataset_list=None):
             dataset_val_cfg = dict(
                 path=f'{settings.datasets_path}/pandaset/',
                 split='val',
-                num_classes=5,
+                num_classes=3,
                 load_type='mv_image_based',
                 shuffle=False,
                 num_frames=min(settings.num_frames, 456),

@@ -466,7 +466,7 @@ def global_corners3d_to_global_bbox(global_corners, velocities):
     return np.array(bboxes)
 
 
-def convert_lidar_box_to_global_box(boxes, info):
+def convert_lidar_box_to_global_box(boxes, info, task_name):
     box_dims= boxes[:, 3:6]
     box_yaw = boxes[:, 6:7]
     center = boxes[:, :3]
@@ -477,7 +477,11 @@ def convert_lidar_box_to_global_box(boxes, info):
     gravity_center[:, [0, 2]] = bottom_center[:, [0, 2]]
     gravity_center[:, 1] = bottom_center[:, 1] - boxes[:, 4] * 0.5
     corners = convert_bbox_to_cornrers3d(np.concatenate([gravity_center,box_dims,box_yaw], axis=1), yaw_axis=2)
-    lidar2global = np.array(info['lidar2global'])
+    # BEVDet predicted bboxes are in ego coordinate system
+    if task_name == 'BEVDet':
+        lidar2global = np.array(info['ego2global'])
+    else:
+        lidar2global = np.array(info['lidar2global'])
     global_corners = corners @ lidar2global[:3,:3].T + lidar2global[:3,3]
     lobal_velocities = velocity @ lidar2global[:3,:3].T
     return global_corners3d_to_global_bbox(global_corners, lobal_velocities)

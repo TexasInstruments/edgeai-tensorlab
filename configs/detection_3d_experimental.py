@@ -169,7 +169,20 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=[(123.675, 116.280, 103.530)], input_scale=[(0.017125, 0.017507, 0.017429)], input_optimization=False),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
                     {'advanced_options:output_feature_16bit_names_list':''}),
-                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/bevdet/edgeai_bevdet_tiny_res50_256x704.onnx'),
+                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/bevdet/bevdet_r50_plus_256x704_20250402.onnx'),
+            postprocess=postproc_transforms.get_transform_bev_detection_bevdet(),
+            metric=dict(),
+            model_info=dict(metric_reference={'mAP':0.4})
+        ),
+        # 3dod-7131: BEVDet for Pandaset
+        '3dod-7131':utils.dict_update(bev_frame_cfg_ps,
+            task_name='BEVDet',
+            # crop = (left, top, width, height)
+            preprocess=preproc_transforms.get_transform_bev_bevdet((1080, 1920), (468, 832), (0, 180, 832, 288), backend='cv2', interpolation=cv2.INTER_CUBIC),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=[(123.675, 116.280, 103.530)], input_scale=[(0.017125, 0.017507, 0.017429)], input_optimization=False),
+                runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
+                    {'advanced_options:output_feature_16bit_names_list':''}),
+                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/pandaset/bevdet/bevdet_r50_plus_pandaset_288x832_20250512.onnx'),
             postprocess=postproc_transforms.get_transform_bev_detection_bevdet(),
             metric=dict(),
             model_info=dict(metric_reference={'mAP':0.4})

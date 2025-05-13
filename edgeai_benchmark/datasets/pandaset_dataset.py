@@ -304,7 +304,7 @@ ErrNameMapping = {
 class_to_name_type= {
     0: 'Car',
     1: 'Pedestrian',
-    2: 'Bus', 
+    2: 'Temporary Construction Barriers', 
     # 3: 'Pedestrian',
     # 4: 'Temporary Construction Barriers'
 }
@@ -699,7 +699,7 @@ class PandaSetDataset(DatasetBase):
             sample_idx = i
             info = self.data_infos['infos'][sample_idx]
             sample_token = info['token']
-            boxes = convert_lidar_box_to_global_box(boxes, info)
+            boxes = convert_lidar_box_to_global_box(boxes, info, kwargs['task_name'])
 
             for i in range(boxes.shape[0]):
                 box = boxes[i]
