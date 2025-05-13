@@ -29,6 +29,7 @@ class PETR(MVXTwoStageDetector):
                  use_grid_mask=False,
                  save_onnx_model=False,
                  quantized_model=False,
+                 imgfeat_size=[20, 50],
                  pts_voxel_encoder=None,
                  pts_middle_encoder=None,
                  pts_fusion_layer=None,
@@ -57,6 +58,7 @@ class PETR(MVXTwoStageDetector):
         # for onnx model export
         self.save_onnx_model = save_onnx_model
         self.quantized_model = quantized_model
+        self.imgfeat_size    = imgfeat_size
 
 
     def forward(self,

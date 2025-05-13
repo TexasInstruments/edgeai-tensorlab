@@ -1,26 +1,5 @@
 # Copyright (c) Phigent Robotics. All rights reserved.
 
-# mAP: 0.2828
-# mATE: 0.7734
-# mASE: 0.2884
-# mAOE: 0.6976
-# mAVE: 0.8637
-# mAAE: 0.2908
-# NDS: 0.3500
-#
-# Per-class results:
-# Object Class	AP	ATE	ASE	AOE	AVE	AAE
-# car	0.517	0.533	0.161	0.123	0.909	0.235
-# truck	0.226	0.745	0.232	0.222	0.848	0.268
-# bus	0.305	0.797	0.220	0.192	1.982	0.355
-# trailer	0.101	1.107	0.230	0.514	0.536	0.068
-# construction_vehicle	0.039	1.105	0.501	1.402	0.119	0.386
-# pedestrian	0.318	0.805	0.305	1.341	0.826	0.650
-# motorcycle	0.216	0.783	0.286	0.977	1.224	0.273
-# bicycle	0.203	0.712	0.304	1.354	0.465	0.090
-# traffic_cone	0.499	0.547	0.347	nan	nan	nan
-# barrier	0.404	0.599	0.297	0.153	nan	nan
-
 _base_ = ['../../../configs/_base_/datasets/nus-3d.py',
           '../../../configs/_base_/default_runtime.py']
 
@@ -326,7 +305,7 @@ test_cfg = dict(type='TestLoop')
 
 default_hooks = dict(
     checkpoint=dict(
-        type='CheckpointHook', interval=2, max_keep_ckpts=4, save_last=True))
+        type='CheckpointHook', interval=1, max_keep_ckpts=4, save_last=True))
 
 custom_hooks = [
     dict(

@@ -30,11 +30,13 @@ class ImageAug(BaseTransform):
         self,
         ida_aug_conf,
         is_train=False,
-        sequential=False
+        sequential=False,
+        camera_names=['CAM_FRONT', 'CAM_FRONT_RIGHT', 'CAM_FRONT_LEFT', 'CAM_BACK', 'CAM_BACK_LEFT', 'CAM_BACK_RIGHT']
     ):
         self.is_train = is_train
         self.ida_aug_conf = ida_aug_conf
         self.sequential = sequential
+        self.camera_names = camera_names
 
     def get_rot(self, h):
         return torch.Tensor([
@@ -219,8 +221,7 @@ class ImageAug(BaseTransform):
         resize, resize_dims, crop, flip, rotate = img_augs
 
         # map camera index to camera names
-        # it could be from a config
-        camera_names = ['CAM_FRONT', 'CAM_FRONT_RIGHT', 'CAM_FRONT_LEFT', 'CAM_BACK', 'CAM_BACK_LEFT', 'CAM_BACK_RIGHT']
+        camera_names= self.camera_names
         # BEVDet config
         #camera_names = ['CAM_FRONT_LEFT', 'CAM_FRONT', 'CAM_FRONT_RIGHT', 'CAM_BACK_LEFT', 'CAM_BACK', 'CAM_BACK_RIGHT']
 

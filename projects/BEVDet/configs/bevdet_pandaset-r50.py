@@ -1,6 +1,6 @@
 # Copyright (c) Phigent Robotics. All rights reserved.
 
-_base_ = ['../../../configs/_base_/datasets/nus-3d.py',
+_base_ = ['../../../configs/_base_/datasets/pandaset-3d-3classes.py',
           '../../../configs/_base_/default_runtime.py']
 
 custom_imports = dict(imports=['projects.BEVDet.bevdet'])
@@ -12,10 +12,14 @@ point_cloud_range = [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0]
 
 # For nuScenes we usually do 10-class detection
 class_names = [
-    'car', 'truck', 'construction_vehicle', 'bus', 'trailer', 'barrier',
-    'motorcycle', 'bicycle', 'pedestrian', 'traffic_cone'
+    'Car','Pedestrian','Temporary Construction Barriers'
 ]
-metainfo = dict(classes=class_names)
+class_mapping = [
+    0,2,2,1,2,2,2,2,2,
+    2,2,2,2,2,2,2,2,2,
+    2,2,2,2,2,1,2,2,2,
+]
+metainfo = dict(classes=class_names, class_mapping=class_mapping)
 
 
 input_modality = dict(
@@ -27,8 +31,8 @@ input_modality = dict(
 
 
 ida_aug_conf = {
-    'input_size': (256, 704),
-    'src_size': (900, 1600),
+    'input_size': (288, 832),
+    'src_size': (1080, 1920),
 
     # Augmentation
     'resize': (-0.06, 0.11),
@@ -96,7 +100,7 @@ model = dict(
         type='BEVDetHead',
         in_channels=256,
         tasks=[
-            dict(num_class=10, class_names=class_names),
+            dict(num_class=3, class_names=class_names),
         ],
         common_heads=dict(
             reg=(2, 2), height=(1, 2), dim=(3, 2), rot=(2, 2), vel=(2, 2)),
@@ -152,8 +156,8 @@ model = dict(
 )
 
 # Data
-dataset_type = 'CustomNuScenesDataset'
-data_root = 'data/nuscenes/'
+dataset_type = 'CustomPandaSetDataset'
+data_root = 'data/pandaset/'
 #file_client_args = dict(backend='disk')
 backend_args = None
 
@@ -171,7 +175,10 @@ train_pipeline = [
         backend_args=backend_args),
     dict(type='ImageAug',
          ida_aug_conf=ida_aug_conf,
-         is_train=True),
+         is_train=True,
+         camera_names=[
+             'back_camera', 'front_camera', 'front_left_camera', 
+             'front_right_camera', 'left_camera', 'right_camera']),
     dict(
         type='LoadAnnotations3D',
         with_bbox_3d=True,
@@ -195,7 +202,10 @@ test_pipeline = [
         backend_args=backend_args),
     dict(type='ImageAug',
          ida_aug_conf=ida_aug_conf,
-         is_train=False),
+         is_train=False,
+         camera_names=[
+             'back_camera', 'front_camera', 'front_left_camera', 
+             'front_right_camera', 'left_camera', 'right_camera']),
     dict(type='BEVAug',
          bda_aug_conf=bda_aug_conf,
          classes=class_names,
@@ -217,44 +227,42 @@ train_dataloader = dict(
     sampler=dict(type='DefaultSampler', shuffle=True),
     dataset=dict(
         type=dataset_type,
-        ann_file='nuscenes_long_infos_train.pkl',
+        ann_file='pandaset_long_infos_train.pkl',
         data_prefix=dict(
-            CAM_FRONT='samples/CAM_FRONT',
-            CAM_FRONT_LEFT='samples/CAM_FRONT_LEFT',
-            CAM_FRONT_RIGHT='samples/CAM_FRONT_RIGHT',
-            CAM_BACK='samples/CAM_BACK',
-            CAM_BACK_RIGHT='samples/CAM_BACK_RIGHT',
-            CAM_BACK_LEFT='samples/CAM_BACK_LEFT'),
+            front_camera='camera/front_camera',
+            front_left_camera='camera/front_left_camera',
+            front_right_camera='camera/front_right_camera',
+            back_camera='camera/back_camera',
+            left_camera='camera/left_camera',
+            right_camera='camera/right_camera'),
         pipeline=train_pipeline,
         box_type_3d='LiDAR',
         metainfo=metainfo,
         test_mode=False,
         modality=input_modality,
-        use_valid_flag=True,
+        use_valid_flag=False,
         backend_args=backend_args))
-
-
 
 val_dataloader = dict(
     batch_size=1,
     num_workers=4,
     dataset=dict(
         type=dataset_type,
-        ann_file='nuscenes_long_infos_val.pkl',
+        ann_file='pandaset_long_infos_val.pkl',
         data_prefix=dict(
-            pts='samples/LIDAR_TOP',
-            CAM_FRONT='samples/CAM_FRONT',
-            CAM_FRONT_LEFT='samples/CAM_FRONT_LEFT',
-            CAM_FRONT_RIGHT='samples/CAM_FRONT_RIGHT',
-            CAM_BACK='samples/CAM_BACK',
-            CAM_BACK_RIGHT='samples/CAM_BACK_RIGHT',
-            CAM_BACK_LEFT='samples/CAM_BACK_LEFT'),
+            pts='',
+            front_camera='camera/front_camera',
+            front_left_camera='camera/front_left_camera',
+            front_right_camera='camera/front_right_camera',
+            back_camera='camera/back_camera',
+            left_camera='camera/left_camera',
+            right_camera='camera/right_camera'),
         pipeline=test_pipeline,
         box_type_3d='LiDAR',
         metainfo=metainfo,
         test_mode=True,
         modality=input_modality,
-        use_valid_flag=True,
+        use_valid_flag=False,
         backend_args=backend_args))
 
 
@@ -262,9 +270,10 @@ test_dataloader = val_dataloader
 
 
 val_evaluator = dict(
-    type='CustomNuScenesMetric',
+    type='CustomPandaSetMetric',
     data_root=data_root,
-    ann_file=data_root + 'nuscenes_long_infos_val.pkl',
+    max_dists=[50, 50],
+    ann_file=data_root + 'pandaset_long_infos_val.pkl',
     metric='mAP',
     backend_args=backend_args)
 test_evaluator = val_evaluator
@@ -313,5 +322,4 @@ custom_hooks = [
     ),
 ]
 
-#load_from='checkpoints/BEVDet/epoch_1.pth'
-#fp16 = dict(loss_scale='dynamic')
+load_from='./checkpoints/bevdet/edgeai_bevdet-r50_epoch_24.pth'

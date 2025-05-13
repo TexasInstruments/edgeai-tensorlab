@@ -1,5 +1,5 @@
 _base_ = [
-    '../../../configs/_base_/datasets/nus-3d.py',
+    '../../../configs/_base_/datasets/pandaset-3d-3classes.py',
     '../../../configs/_base_/default_runtime.py',
     '../../../configs/_base_/schedules/cyclic-20e.py'
 ]
@@ -15,18 +15,25 @@ img_norm_cfg = dict(
     mean=[103.530, 116.280, 123.675],
     std=[57.375, 57.120, 58.395],
     to_rgb=False)
-# For nuScenes we usually do 10-class detection
+
+# 3 classes
 class_names = [
-    'car', 'truck', 'construction_vehicle', 'bus', 'trailer', 'barrier',
-    'motorcycle', 'bicycle', 'pedestrian', 'traffic_cone'
+    'Car','Pedestrian','Temporary Construction Barriers'
 ]
-metainfo = dict(classes=class_names)
+
+class_mapping = [
+    0,2,2,1,2,2,2,2,2,
+    2,2,2,2,2,2,2,2,2,
+    2,2,2,2,2,1,2,2,2,
+]
+
+metainfo = dict(classes=class_names, class_mapping=class_mapping)
 
 input_modality = dict(use_camera=True)
 model = dict(
     type='PETR',
     save_onnx_model=False,
-    imgfeat_size=[20, 50],
+    imgfeat_size=[22, 60],
     data_preprocessor=dict(
         type='Det3DDataPreprocessor',
         mean=[103.530, 116.280, 123.675],
@@ -48,7 +55,7 @@ model = dict(
         type='CPFPN', in_channels=[768, 1024], out_channels=256, num_outs=2),
     pts_bbox_head=dict(
         type='PETRHead',
-        num_classes=10,
+        num_classes=3,
         in_channels=256,
         num_query=900,
         LID=True,
@@ -89,7 +96,7 @@ model = dict(
             pc_range=point_cloud_range,
             max_num=300,
             voxel_size=voxel_size,
-            num_classes=10),
+            num_classes=3),
         positional_encoding=dict(
             type='SinePositionalEncoding3D', num_feats=128, normalize=True),
         loss_cls=dict(
@@ -116,53 +123,17 @@ model = dict(
                 ),  # Fake cost. Just to be compatible with DETR head.
                 pc_range=point_cloud_range))))
 
-dataset_type = 'NuScenesDataset'
-data_root = 'data/nuscenes/'
+dataset_type = 'PandaSetDataset'
+data_root = 'data/pandaset/'
 backend_args = None
 
-db_sampler = dict(
-    data_root=data_root,
-    info_path=data_root + 'nuscenes_dbinfos_train.pkl',
-    rate=1.0,
-    prepare=dict(
-        filter_by_difficulty=[-1],
-        filter_by_min_points=dict(
-            car=5,
-            truck=5,
-            bus=5,
-            trailer=5,
-            construction_vehicle=5,
-            traffic_cone=5,
-            barrier=5,
-            motorcycle=5,
-            bicycle=5,
-            pedestrian=5)),
-    classes=class_names,
-    sample_groups=dict(
-        car=2,
-        truck=3,
-        construction_vehicle=7,
-        bus=4,
-        trailer=6,
-        barrier=2,
-        motorcycle=6,
-        bicycle=6,
-        pedestrian=2,
-        traffic_cone=2),
-    points_loader=dict(
-        type='LoadPointsFromFile',
-        coord_type='LIDAR',
-        load_dim=5,
-        use_dim=[0, 1, 2, 3, 4],
-        backend_args=backend_args),
-    backend_args=backend_args)
 ida_aug_conf = {
     'resize_lim': (0.47, 0.625),
-    'final_dim': (320, 800),
+    'final_dim': (352, 960),
     'bot_pct_lim': (0.0, 0.0),
     'rot_lim': (0.0, 0.0),
-    'H': 900,
-    'W': 1600,
+    'H': 1080,
+    'W': 1920,
     'rand_flip': True,
 }
 
@@ -206,18 +177,18 @@ test_pipeline = [
 ]
 
 train_dataloader = dict(
-    batch_size=1,
+    batch_size=2,
     num_workers=4,
     dataset=dict(
         type=dataset_type,
         data_prefix=dict(
-            pts='samples/LIDAR_TOP',
-            CAM_FRONT='samples/CAM_FRONT',
-            CAM_FRONT_LEFT='samples/CAM_FRONT_LEFT',
-            CAM_FRONT_RIGHT='samples/CAM_FRONT_RIGHT',
-            CAM_BACK='samples/CAM_BACK',
-            CAM_BACK_RIGHT='samples/CAM_BACK_RIGHT',
-            CAM_BACK_LEFT='samples/CAM_BACK_LEFT'),
+            pts='',
+            front_camera='camera/front_camera',
+            front_left_camera='camera/front_left_camera',
+            front_right_camera='camera/front_right_camera',
+            back_camera='camera/back_camera',
+            left_camera='camera/left_camera',
+            right_camera='camera/right_camera'),
         pipeline=train_pipeline,
         box_type_3d='LiDAR',
         metainfo=metainfo,
@@ -229,13 +200,13 @@ test_dataloader = dict(
     dataset=dict(
         type=dataset_type,
         data_prefix=dict(
-            pts='samples/LIDAR_TOP',
-            CAM_FRONT='samples/CAM_FRONT',
-            CAM_FRONT_LEFT='samples/CAM_FRONT_LEFT',
-            CAM_FRONT_RIGHT='samples/CAM_FRONT_RIGHT',
-            CAM_BACK='samples/CAM_BACK',
-            CAM_BACK_RIGHT='samples/CAM_BACK_RIGHT',
-            CAM_BACK_LEFT='samples/CAM_BACK_LEFT'),
+            pts='',
+            front_camera='camera/front_camera',
+            front_left_camera='camera/front_left_camera',
+            front_right_camera='camera/front_right_camera',
+            back_camera='camera/back_camera',
+            left_camera='camera/left_camera',
+            right_camera='camera/right_camera'),
         pipeline=test_pipeline,
         box_type_3d='LiDAR',
         metainfo=metainfo,
@@ -247,13 +218,13 @@ val_dataloader = dict(
     dataset=dict(
         type=dataset_type,
         data_prefix=dict(
-            pts='samples/LIDAR_TOP',
-            CAM_FRONT='samples/CAM_FRONT',
-            CAM_FRONT_LEFT='samples/CAM_FRONT_LEFT',
-            CAM_FRONT_RIGHT='samples/CAM_FRONT_RIGHT',
-            CAM_BACK='samples/CAM_BACK',
-            CAM_BACK_RIGHT='samples/CAM_BACK_RIGHT',
-            CAM_BACK_LEFT='samples/CAM_BACK_LEFT'),
+            pts='',
+            front_camera='camera/front_camera',
+            front_left_camera='camera/front_left_camera',
+            front_right_camera='camera/front_right_camera',
+            back_camera='camera/back_camera',
+            left_camera='camera/left_camera',
+            right_camera='camera/right_camera'),
         pipeline=test_pipeline,
         box_type_3d='LiDAR',
         metainfo=metainfo,
@@ -302,5 +273,6 @@ find_unused_parameters = False
 
 # pretrain_path can be found here:
 # https://drive.google.com/file/d/1ABI5BoQCkCkP4B0pO5KBJ3Ni0tei0gZi/view
-load_from = './pretrained/fcos3d_vovnet_imgbackbone-remapped.pth'
+load_from = './checkpoints/petr/edgeai_petr_vovnet_gridmask_p4_800x320.pth'
 resume = False
+
