@@ -1568,7 +1568,7 @@ class BEVDetNMS(object):
             bboxes = rets[i]['bboxes']
             bboxes[:, 2] = bboxes[:, 2] - bboxes[:, 5] * 0.5
             scores = rets[i]['scores']
-            labels = rets[i]['labels']
+            labels = rets[i]['labels'].astype(np.int32)
             ret_list.append([bboxes, scores, labels])
 
         # ref_list[0][0]: bboxes_3d (LIDARInstance3DBoxes),
