@@ -115,7 +115,7 @@ for op in sorted(os.listdir(A_DIR)):
             check = 0
             for key,label in VARIANTS:
                 sa, ra, subg, offload = data_a[key].get(mn, ("-", "", "", ""))
-                sr, rr, subg, offload = data_r[key].get(mn, ("-", "", "", ""))
+                sr, rr, subg, offload_ = data_r[key].get(mn, ("-", "", "", ""))
                 if(sa.lower()=="passed" and sr.lower()=="failed"):
                     check =1
                 elif(sa.lower()=="failed" and sr.lower()=="passed"):
@@ -133,7 +133,7 @@ for op in sorted(os.listdir(A_DIR)):
                 num_offload = num_offload+1
             for key,label in VARIANTS:
                 sa, ra, subg, offload= data_a[key].get(mn, ("-", "", "", ""))
-                sr, rr, subg, offload= data_r[key].get(mn, ("-", "", "", ""))
+                sr, rr, subg, offload_= data_r[key].get(mn, ("-", "", "", ""))
                 if(sa.lower()=="passed" and sr.lower()=="failed"):
                     check =1
                 elif(sa.lower()=="failed" and sr.lower()=="passed"):
