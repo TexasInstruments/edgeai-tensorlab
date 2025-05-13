@@ -19,7 +19,7 @@ from mmdet3d.registry import MODELS
 from mmdet3d.structures.ops import bbox3d2result
 from .grid_mask import GridMask
 
-from mmdet3d.models.detectors.onnx_export import export_PETR
+from .onnx_export import export_PETR
 
 @MODELS.register_module()
 class PETR(MVXTwoStageDetector):

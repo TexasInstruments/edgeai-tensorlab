@@ -22,7 +22,7 @@ from .utils import locations
 
 import numpy as np
 
-from mmdet3d.models.detectors.onnx_export import export_Far3D, export_Far3D_combined
+from .onnx_export import export_Far3D, export_Far3D_combined
 
 
 @MODELS.register_module()
