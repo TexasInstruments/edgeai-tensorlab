@@ -62,7 +62,12 @@ Generate/Fetch the tools tar ball for testing<br>
 Update the tools path inside run_operator_test.sh<br>
 ```python
 # Configuration
-tools_path="<tidl_tools tarball path here>"
+tools_path="<tidl_tools tarball path here>" #tools in name.tar.gz format
+```
+For taking tools from c7x use
+```bash
+tar -h -czvf tidl_tools.tar.gz tidl_tools/
+# Now place this tools tar file path to the above tools_path 
 ```
 
 ## 5. Running the Tests

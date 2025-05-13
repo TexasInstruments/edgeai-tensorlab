@@ -95,6 +95,7 @@ for op in sorted(os.listdir(A_DIR)):
     header += sorted(all_attr_keys)
 
     num_offload = 0
+    total_tests = 0
 
     with open(out_path, "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
@@ -103,6 +104,7 @@ for op in sorted(os.listdir(A_DIR)):
         # model-by-model rows
         for mn, attrs in sorted(model_attrs.items()):
             row = [mn]
+            total_tests = total_tests +1
             check = 0
             for key,label in VARIANTS:
                 sa, ra, subg, offload = data_a[key].get(mn, ("-", "", "", ""))
@@ -117,17 +119,17 @@ for op in sorted(os.listdir(A_DIR)):
             w.writerow(row)
 
     # record for the full summary
-    op_summary = {"Operator": op, "TIDL_Offload_Percentage": num_offload}
+    op_summary = {"Operator": op, "TIDL_Offload_Percentage": num_offload, "Total_Tests": total_tests}
     total_val =0
     for key,_ in VARIANTS:
         da = data_a[key]
         if da:
             p = sum(1 for s,_,__,___ in da.values() if s.lower()=="passed")
             f = sum(1 for s,_,__,___ in da.values() if s.lower()!="passed")
-            op_summary[f"{key}"] = f"{p}/{p+f}"
+            op_summary[f"{key}_failures"] = f"{f}"
             total_val = p+f
         else:
-            op_summary[f"{key}"] = "-"
+            op_summary[f"{key}_failures"] = "-"
     op_summary["TIDL_Offload_Percentage"] = (num_offload/total_val)*100
 
     operator_summaries.append(op_summary)
@@ -143,7 +145,7 @@ VARIANTS = [
 ]
 
 full_path = os.path.join(OUT_DIR, "operator_test_report_summary.csv")
-fields = ["Operator"] + ["TIDL_Offload_Percentage"] + ["compile_with_nc"] + ["infer_with_nc"] + ["compile_without_nc"] + ["infer_without_nc"] 
+fields = ["Operator"] + ["TIDL_Offload_Percentage"] + ["Total_Tests"] + ["compile_with_nc_failures"] + ["infer_with_nc_failures"] + ["compile_without_nc_failures"] + ["infer_without_nc_failures"] 
 
 with open(full_path, "w", newline="", encoding="utf-8") as f:
     w = csv.DictWriter(f, fieldnames=fields)

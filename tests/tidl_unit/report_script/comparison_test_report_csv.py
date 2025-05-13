@@ -4,6 +4,14 @@ import csv
 from bs4 import BeautifulSoup
 import sys
 
+# --- CONFIGURATION ---
+
+A_DIR   = "operator_test_reports"
+R_DIR   = "operator_test_report_ref"
+CONFIGS_DIR = "configs"
+OUT_DIR = "comparison_test_reports"
+os.makedirs(OUT_DIR, exist_ok=True)
+
 def parse_html_report(html_path):
     """
     Returns a dict mapping model_name -> (status, reason)
@@ -33,14 +41,6 @@ def parse_html_report(html_path):
         results[mn] = (status, reason, subgraphs, offload)
     return results
 
-
-# --- CONFIGURATION ---
-
-A_DIR   = "operator_test_reports"
-R_DIR   = "operator_test_report_ref"
-CONFIGS_DIR = "configs"
-OUT_DIR = "comparison_test_reports"
-os.makedirs(OUT_DIR, exist_ok=True)
 
 VARIANTS = [
     ("compile_with_nc",    "Compile with NC"),
@@ -102,6 +102,7 @@ for op in sorted(os.listdir(A_DIR)):
     num_upgraded = 0
     num_degraded = 0
     num_offload = 0
+    total_tests = 0
 
     with open(out_path, "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
@@ -110,6 +111,7 @@ for op in sorted(os.listdir(A_DIR)):
         # model-by-model rows
         for mn, attrs in sorted(model_attrs.items()):
             row = [mn]
+            total_tests = total_tests +1
             check = 0
             for key,label in VARIANTS:
                 sa, ra, subg, offload = data_a[key].get(mn, ("-", "", "", ""))
@@ -142,25 +144,26 @@ for op in sorted(os.listdir(A_DIR)):
             w.writerow(row)
 
     # record for the full summary
-    op_summary = {"Operator": op, "Num Upgraded": num_upgraded, "Num Degraded": num_degraded, "TIDL_Offload_Percentage": num_offload}
+    op_summary = {"Operator": op, "Num Upgraded": num_upgraded, "Num Degraded": num_degraded, "TIDL_Offload_Percentage": num_offload, "Total_Tests": total_tests}
     total_val =0
     for key,_ in VARIANTS:
         da = data_a[key]
         if da:
             p = sum(1 for s,_,__,___ in da.values() if s.lower()=="passed")
             f = sum(1 for s,_,__,___ in da.values() if s.lower()!="passed")
-            op_summary[f"{key}_user"] = f"{p}/{p+f}"
+            # op_summary[f"{key}_user_failures"] = f"{p}/{p+f}"
+            op_summary[f"{key}_user_failures"] = f"{f}"
             total_val = p+f
         else:
-            op_summary[f"{key}_user"] = "-"
+            op_summary[f"{key}_user_failures"] = "-"
         dr = data_r[key]
         if dr:
             p = sum(1 for s,_,__,___ in dr.values() if s.lower()=="passed")
             f = sum(1 for s,_,__,___ in dr.values() if s.lower()!="passed")
-            op_summary[f"{key}_ref"] = f"{p}/{p+f}"
+            op_summary[f"{key}_ref_failures"] = f"{f}"
             total_val = p+f
         else:
-            op_summary[f"{key}_ref"] = "-"
+            op_summary[f"{key}_ref_failures"] = "-"
     op_summary["TIDL_Offload_Percentage"] = (num_offload/total_val)*100
 
     operator_summaries.append(op_summary)
@@ -176,7 +179,7 @@ VARIANTS = [
 ]
 
 full_path = os.path.join(OUT_DIR, "operator_test_report_summary.csv")
-fields = ["Operator"] + ["Num Upgraded"] + ["Num Degraded"] + ["TIDL_Offload_Percentage"] + ["compile_with_nc_user"] + ["compile_with_nc_ref"] + ["infer_with_nc_user"] + ["infer_with_nc_ref"] + ["compile_without_nc_user"] + ["compile_without_nc_ref"] + ["infer_without_nc_user"] + ["infer_without_nc_ref"]
+fields = ["Operator"] + ["Num Upgraded"] + ["Num Degraded"] + ["TIDL_Offload_Percentage"] + ["Total_Tests"] + ["compile_with_nc_user_failures"] + ["compile_with_nc_ref_failures"] + ["infer_with_nc_user_failures"] + ["infer_with_nc_ref_failures"] + ["compile_without_nc_user_failures"] + ["compile_without_nc_ref_failures"] + ["infer_without_nc_user_failures"] + ["infer_without_nc_ref_failures"]
 
 with open(full_path, "w", newline="", encoding="utf-8") as f:
     w = csv.DictWriter(f, fieldnames=fields)
