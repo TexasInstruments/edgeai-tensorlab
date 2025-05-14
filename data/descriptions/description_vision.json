@@ -1419,7 +1419,7 @@
       },
       "download":[
         {
-          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_pico_lite_320x320_20230410_checkpoint.pth",
+          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/10_01_00/models/vision/detection/coco/edgeai-mmdet/yolox_pico_lite_320x320_20230410_checkpoint.pth",
           "download_path":"{download_path}/pretrained/yolox_pico_lite"
         }
       ],
@@ -1451,7 +1451,7 @@
         "model_training_id":"yolox_pico_lite",
         "training_backend":"edgeai_mmdetection",
         "pretrained_checkpoint_path":{
-          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_pico_lite_320x320_20230410_checkpoint.pth",
+          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/10_01_00/models/vision/detection/coco/edgeai-mmdet/yolox_pico_lite_320x320_20230410_checkpoint.pth",
           "download_path":"{download_path}/pretrained/yolox_pico_lite"
         },
         "pretrained_weight_state_dict_name":null,
@@ -1627,7 +1627,7 @@
       },
       "download":[
         {
-          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth",
+          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/10_01_00/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth",
           "download_path":"{download_path}/pretrained/yolox_nano_lite"
         }
       ],
@@ -1659,7 +1659,7 @@
         "model_training_id":"yolox_nano_lite",
         "training_backend":"edgeai_mmdetection",
         "pretrained_checkpoint_path":{
-          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth",
+          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/10_01_00/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth",
           "download_path":"{download_path}/pretrained/yolox_nano_lite"
         },
         "pretrained_weight_state_dict_name":null,
@@ -1880,7 +1880,7 @@
       },
       "download":[
         {
-          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth",
+          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/10_01_00/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth",
           "download_path":"{download_path}/pretrained/yolox_tiny_lite"
         }
       ],
@@ -1912,7 +1912,7 @@
         "model_training_id":"yolox_tiny_lite",
         "training_backend":"edgeai_mmdetection",
         "pretrained_checkpoint_path":{
-          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth",
+          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/10_01_00/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth",
           "download_path":"{download_path}/pretrained/yolox_tiny_lite"
         },
         "pretrained_weight_state_dict_name":null,
@@ -2131,7 +2131,7 @@
       },
       "download":[
         {
-          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth",
+          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/10_01_00/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth",
           "download_path":"{download_path}/pretrained/yolox_s_lite"
         }
       ],
@@ -2163,7 +2163,7 @@
         "model_training_id":"yolox_s_lite",
         "training_backend":"edgeai_mmdetection",
         "pretrained_checkpoint_path":{
-          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth",
+          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/10_01_00/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth",
           "download_path":"{download_path}/pretrained/yolox_s_lite"
         },
         "pretrained_weight_state_dict_name":null,
@@ -2375,7 +2375,7 @@
       },
       "download":[
         {
-          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolov7_l_coco_lite_640x640_20250109_checkpoint.pth",
+          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/10_01_00/models/vision/detection/coco/edgeai-mmdet/yolov7_l_coco_lite_640x640_20250109_checkpoint.pth",
           "download_path":"{download_path}/pretrained/yolov7_l_lite"
         }
       ],
@@ -2407,7 +2407,7 @@
         "model_training_id":"yolov7_l_coco_lite",
         "training_backend":"edgeai_mmdetection",
         "pretrained_checkpoint_path":{
-          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolov7_l_coco_lite_640x640_20250109_checkpoint.pth",
+          "download_url":"https://software-dl.ti.com/jacinto7/esd/modelzoo/10_01_00/models/vision/detection/coco/edgeai-mmdet/yolov7_l_coco_lite_640x640_20250109_checkpoint.pth",
           "download_path":"{download_path}/pretrained/yolov7_l_lite"
         },
         "pretrained_weight_state_dict_name":null,
@@ -4285,23 +4285,6 @@
     },
     "segmentation":{
       "task_name":"Semantic Segmentation",
-      "target_module":"vision",
-      "target_devices":[
-        "AM62",
-        "AM62A",
-        "AM67A",
-        "TDA4VM",
-        "AM68A",
-        "AM69A"
-      ],
-      "stages":[
-        "dataset",
-        "training",
-        "compilation"
-      ]
-    },
-    "keypoint_detection":{
-      "task_name":"Keypoint Detection",
       "target_module":"vision",
       "target_devices":[
         "AM62",

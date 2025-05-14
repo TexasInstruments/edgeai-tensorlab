@@ -311,12 +311,12 @@ TASK_DESCRIPTIONS = {
        'target_devices': TARGET_DEVICES,
        'stages': ['dataset', 'training', 'compilation'],
     },
-    TASK_TYPE_KEYPOINT_DETECTION: {
-       'task_name': 'Keypoint Detection',
-       'target_module': 'vision',
-       'target_devices': TARGET_DEVICES,
-       'stages': ['dataset', 'training', 'compilation'],
-    }
+    # TASK_TYPE_KEYPOINT_DETECTION: {
+    #    'task_name': 'Keypoint Detection',
+    #    'target_module': 'vision',
+    #    'target_devices': TARGET_DEVICES,
+    #    'stages': ['dataset', 'training', 'compilation'],
+    # }
 }
 
 # compilation settings for various speed and accuracy tradeoffs:
