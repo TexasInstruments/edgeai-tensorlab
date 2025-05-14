@@ -1324,7 +1324,7 @@ model_descriptions:
       - val
     download:
     - download_path: '{download_path}/pretrained/yolov7_l_lite'
-      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolov7_l_coco_lite_640x640_20250109_checkpoint.pth
+      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/10_01_00/models/vision/detection/coco/edgeai-mmdet/yolov7_l_coco_lite_640x640_20250109_checkpoint.pth
     training:
       batch_size: 8
       dataset_path: null
@@ -1347,7 +1347,7 @@ model_descriptions:
       num_last_epochs: 5
       pretrained_checkpoint_path:
         download_path: '{download_path}/pretrained/yolov7_l_lite'
-        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolov7_l_coco_lite_640x640_20250109_checkpoint.pth
+        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/10_01_00/models/vision/detection/coco/edgeai-mmdet/yolov7_l_coco_lite_640x640_20250109_checkpoint.pth
       pretrained_weight_state_dict_name: null
       project_path: null
       properties:
@@ -1511,7 +1511,7 @@ model_descriptions:
       - val
     download:
     - download_path: '{download_path}/pretrained/yolox_nano_lite'
-      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth
+      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/10_01_00/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth
     training:
       batch_size: 8
       dataset_path: null
@@ -1534,7 +1534,7 @@ model_descriptions:
       num_last_epochs: 5
       pretrained_checkpoint_path:
         download_path: '{download_path}/pretrained/yolox_nano_lite'
-        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth
+        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/10_01_00/models/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_checkpoint.pth
       pretrained_weight_state_dict_name: null
       project_path: null
       properties:
@@ -1722,7 +1722,7 @@ model_descriptions:
       - val
     download:
     - download_path: '{download_path}/pretrained/yolox_pico_lite'
-      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_pico_lite_320x320_20230410_checkpoint.pth
+      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/10_01_00/models/vision/detection/coco/edgeai-mmdet/yolox_pico_lite_320x320_20230410_checkpoint.pth
     training:
       batch_size: 8
       dataset_path: null
@@ -1745,7 +1745,7 @@ model_descriptions:
       num_last_epochs: 5
       pretrained_checkpoint_path:
         download_path: '{download_path}/pretrained/yolox_pico_lite'
-        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_pico_lite_320x320_20230410_checkpoint.pth
+        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/10_01_00/models/vision/detection/coco/edgeai-mmdet/yolox_pico_lite_320x320_20230410_checkpoint.pth
       pretrained_weight_state_dict_name: null
       project_path: null
       properties:
@@ -1893,7 +1893,7 @@ model_descriptions:
       - val
     download:
     - download_path: '{download_path}/pretrained/yolox_s_lite'
-      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth
+      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/10_01_00/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth
     training:
       batch_size: 8
       dataset_path: null
@@ -1916,7 +1916,7 @@ model_descriptions:
       num_last_epochs: 5
       pretrained_checkpoint_path:
         download_path: '{download_path}/pretrained/yolox_s_lite'
-        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth
+        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/10_01_00/models/vision/detection/coco/edgeai-mmdet/yolox_s_lite_640x640_20220221_checkpoint.pth
       pretrained_weight_state_dict_name: null
       project_path: null
       properties:
@@ -2091,7 +2091,7 @@ model_descriptions:
       - val
     download:
     - download_path: '{download_path}/pretrained/yolox_tiny_lite'
-      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth
+      download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/10_01_00/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth
     training:
       batch_size: 8
       dataset_path: null
@@ -2114,7 +2114,7 @@ model_descriptions:
       num_last_epochs: 5
       pretrained_checkpoint_path:
         download_path: '{download_path}/pretrained/yolox_tiny_lite'
-        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth
+        download_url: https://software-dl.ti.com/jacinto7/esd/modelzoo/10_01_00/models/vision/detection/coco/edgeai-mmdet/yolox_tiny_lite_416x416_20220217_checkpoint.pth
       pretrained_weight_state_dict_name: null
       project_path: null
       properties:
@@ -3651,14 +3651,6 @@ task_descriptions:
     target_devices: *id001
     target_module: vision
     task_name: Object Detection
-  keypoint_detection:
-    stages:
-    - dataset
-    - training
-    - compilation
-    target_devices: *id001
-    target_module: vision
-    task_name: Keypoint Detection
   segmentation:
     stages:
     - dataset
