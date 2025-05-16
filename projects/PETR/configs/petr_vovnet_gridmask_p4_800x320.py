@@ -26,7 +26,7 @@ input_modality = dict(use_camera=True)
 model = dict(
     type='PETR',
     save_onnx_model=False,
-    imgfeat_size=[20, 50],
+    img_feat_size = [[6, 256, 20, 50], [6, 256, 10, 25]],
     data_preprocessor=dict(
         type='Det3DDataPreprocessor',
         mean=[103.530, 116.280, 123.675],

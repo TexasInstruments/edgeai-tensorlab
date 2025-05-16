@@ -20,7 +20,7 @@ from mmdet3d.structures.det3d_data_sample import ForwardResults, OptSampleList
 from .grid_mask import GridMask
 from .utils import locations
 
-from mmdet3d.models.detectors.onnx_export import export_StreamPETR
+from .onnx_export import export_StreamPETR
 
 
 @MODELS.register_module()

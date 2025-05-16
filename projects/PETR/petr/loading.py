@@ -42,7 +42,8 @@ class LoadMultiViewImageFromMultiSweepsFiles(LoadMultiViewImageFromFiles):
 
     def __init__(self, 
                 sweeps_num=5,
-                to_float32=False, 
+                to_float32=False,
+                optimized_inference=False,
                 file_client_args=dict(backend='disk'),
                 pad_empty_sweeps=False,
                 sweep_range=[3,27],
@@ -53,8 +54,9 @@ class LoadMultiViewImageFromMultiSweepsFiles(LoadMultiViewImageFromFiles):
                 prob=1.0,
                 ):
 
-        self.sweeps_num = sweeps_num    
+        self.sweeps_num = sweeps_num
         self.to_float32 = to_float32
+        self.optimized_inference = optimized_inference
         self.color_type = color_type
         self.file_client_args = file_client_args.copy()
         self.file_client = None
@@ -90,6 +92,14 @@ class LoadMultiViewImageFromMultiSweepsFiles(LoadMultiViewImageFromFiles):
         img_timestamp = [lidar_timestamp - timestamp for timestamp in img_timestamp]
         sweep_imgs_list.extend(imgs)
         timestamp_imgs_list.extend(img_timestamp)
+
+        # For inferencing, we do not read sweeps information
+        # Intead, reuse previous frames
+        if self.optimized_inference and self.test_mode:
+            results['delta_timestamp'] = timestamp_imgs_list
+            results['lidar2ego'] = results['lidar_points']['lidar2ego']
+            return results
+
         nums = len(imgs)
         if self.pad_empty_sweeps and len(results['camera_sweeps']) == 0:
             for i in range(self.sweeps_num):

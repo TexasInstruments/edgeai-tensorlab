@@ -27,10 +27,16 @@ class_names = [
 ]
 metainfo = dict(classes=class_names)
 
+# If True, reuse image feature map from the previous frame
+optimized_inference=True
+
 input_modality = dict(use_camera=True)
 model = dict(
     type='PETR',
+    version='v2',
+    img_feat_size = [[6, 256, 20, 50], [6, 256, 10, 25]],
     save_onnx_model=False,
+    optimized_inference=optimized_inference,
     data_preprocessor=dict(
         type='Det3DDataPreprocessor',
         mean=[103.530, 116.280, 123.675],
@@ -221,13 +227,14 @@ test_pipeline = [
         sweeps_num=1,
         to_float32=True,
         pad_empty_sweeps=True,
+        optimized_inference=optimized_inference,
         sweep_range=[3,27]),
     dict(
         type='ResizeCropFlipImage', data_aug_conf=ida_aug_conf,
         training=False),
-    dict(type='Pack3DDetInputs', keys=['img'], meta_keys=['filename', 'ori_shape', 'img_shape', 'lidar2img', 'cam2img', 'lidar2cam',
-                'pad_shape', 'scale_factor', 'flip', 'box_mode_3d', 'box_type_3d',
-                'img_norm_cfg', 'sample_idx', 'timestamp', 'delta_timestamp'])
+    dict(type='Pack3DDetInputs', keys=['img'], meta_keys=['filename', 'ori_shape', 'img_shape', 'cam2img', 'lidar2cam',
+                'pad_shape', 'scale_factor', 'flip', 'box_mode_3d', 'box_type_3d', 'scene_token',
+                'img_norm_cfg', 'sample_idx', 'timestamp', 'delta_timestamp', 'img_timestamp', 'ego2global', 'lidar2ego'])
 ]
 
 train_dataloader = dict(
@@ -252,6 +259,8 @@ train_dataloader = dict(
         use_valid_flag=True,
         backend_args=backend_args))
 test_dataloader = dict(
+    batch_size=1,
+    num_workers=4,
     dataset=dict(
         type=dataset_type,
         ann_file='nuscenes_long_infos_val.pkl',
@@ -271,6 +280,8 @@ test_dataloader = dict(
         use_valid_flag=True,
         backend_args=backend_args))
 val_dataloader = dict(
+    batch_size=1,
+    num_workers=4,
     dataset=dict(
         type=dataset_type,
         ann_file='nuscenes_long_infos_val.pkl',

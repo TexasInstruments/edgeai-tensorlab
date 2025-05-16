@@ -354,74 +354,78 @@ class PETRv2Head(AnchorFreeHead):
             for m in self.cls_branches:
                 nn.init.constant_(m[-1].bias, bias_init)
 
-    def position_embeding(self, img_feats, img_metas, masks=None):
-        eps = 1e-5
-        pad_h, pad_w = img_metas[0]['pad_shape']
-        B, N, C, H, W = img_feats[self.position_level].shape
-        coords_h = torch.arange(
-            H, device=img_feats[0].device).float() * pad_h / H
-        coords_w = torch.arange(
-            W, device=img_feats[0].device).float() * pad_w / W
+    def position_embeding(self, img_feats, img_metas, masks=None, coords3d=None):
+        if coords3d is None:
+            eps = 1e-5
+            pad_h, pad_w = img_metas[0]['pad_shape']
+            B, N, C, H, W = img_feats[self.position_level].shape
+            coords_h = torch.arange(
+                H, device=img_feats[0].device).float() * pad_h / H
+            coords_w = torch.arange(
+                W, device=img_feats[0].device).float() * pad_w / W
 
-        if self.LID:
-            index = torch.arange(
-                start=0,
-                end=self.depth_num,
-                step=1,
-                device=img_feats[0].device).float()
-            index_1 = index + 1
-            bin_size = (self.position_range[3] - self.depth_start) / (
-                self.depth_num * (1 + self.depth_num))
-            coords_d = self.depth_start + bin_size * index * index_1
+            if self.LID:
+                index = torch.arange(
+                    start=0,
+                    end=self.depth_num,
+                    step=1,
+                    device=img_feats[0].device).float()
+                index_1 = index + 1
+                bin_size = (self.position_range[3] - self.depth_start) / (
+                    self.depth_num * (1 + self.depth_num))
+                coords_d = self.depth_start + bin_size * index * index_1
+            else:
+                index = torch.arange(
+                    start=0,
+                    end=self.depth_num,
+                    step=1,
+                    device=img_feats[0].device).float()
+                bin_size = (self.position_range[3] -
+                            self.depth_start) / self.depth_num
+                coords_d = self.depth_start + bin_size * index
+
+            D = coords_d.shape[0]
+            coords = torch.stack(torch.meshgrid([coords_w, coords_h, coords_d
+                                                 ])).permute(1, 2, 3,
+                                                             0)  # W, H, D, 3
+            coords = torch.cat((coords, torch.ones_like(coords[..., :1])), -1)
+            coords[..., :2] = coords[..., :2] * torch.maximum(
+                coords[..., 2:3],
+                torch.ones_like(coords[..., 2:3]) * eps)
+
+            img2lidars = []
+            for img_meta in img_metas:
+                img2lidar = []
+                for i in range(len(img_meta['lidar2img'])):
+                    img2lidar.append(np.linalg.inv(img_meta['lidar2img'][i]))
+                img2lidars.append(np.asarray(img2lidar))
+            img2lidars = np.asarray(img2lidars)
+            img2lidars = coords.new_tensor(img2lidars)  # (B, N, 4, 4)
+
+            coords = coords.view(1, 1, W, H, D, 4, 1).repeat(B, N, 1, 1, 1, 1, 1)
+            img2lidars = img2lidars.view(B, N, 1, 1, 1, 4,
+                                         4).repeat(1, 1, W, H, D, 1, 1)
+            coords3d = torch.matmul(img2lidars, coords).squeeze(-1)[..., :3]
+            coords3d[..., 0:1] = (coords3d[..., 0:1] - self.position_range[0]) / (
+                self.position_range[3] - self.position_range[0])
+            coords3d[..., 1:2] = (coords3d[..., 1:2] - self.position_range[1]) / (
+                self.position_range[4] - self.position_range[1])
+            coords3d[..., 2:3] = (coords3d[..., 2:3] - self.position_range[2]) / (
+                self.position_range[5] - self.position_range[2])
+
+            coords_mask = (coords3d > 1.0) | (coords3d < 0.0)
+            coords_mask = coords_mask.flatten(-2).sum(-1) > (D * 0.5)
+            coords_mask = masks | coords_mask.permute(0, 1, 3, 2)
+            coords3d = coords3d.permute(0, 1, 4, 5, 3,
+                                        2).contiguous().view(B * N, -1, H, W)
+            coords3d = inverse_sigmoid(coords3d)
         else:
-            index = torch.arange(
-                start=0,
-                end=self.depth_num,
-                step=1,
-                device=img_feats[0].device).float()
-            bin_size = (self.position_range[3] -
-                        self.depth_start) / self.depth_num
-            coords_d = self.depth_start + bin_size * index
+            B, N, C, H, W = img_feats[self.position_level].shape
 
-        D = coords_d.shape[0]
-        coords = torch.stack(torch.meshgrid([coords_w, coords_h, coords_d
-                                             ])).permute(1, 2, 3,
-                                                         0)  # W, H, D, 3
-        coords = torch.cat((coords, torch.ones_like(coords[..., :1])), -1)
-        coords[..., :2] = coords[..., :2] * torch.maximum(
-            coords[..., 2:3],
-            torch.ones_like(coords[..., 2:3]) * eps)
-
-        img2lidars = []
-        for img_meta in img_metas:
-            img2lidar = []
-            for i in range(len(img_meta['lidar2img'])):
-                img2lidar.append(np.linalg.inv(img_meta['lidar2img'][i]))
-            img2lidars.append(np.asarray(img2lidar))
-        img2lidars = np.asarray(img2lidars)
-        img2lidars = coords.new_tensor(img2lidars)  # (B, N, 4, 4)
-
-        coords = coords.view(1, 1, W, H, D, 4, 1).repeat(B, N, 1, 1, 1, 1, 1)
-        img2lidars = img2lidars.view(B, N, 1, 1, 1, 4,
-                                     4).repeat(1, 1, W, H, D, 1, 1)
-        coords3d = torch.matmul(img2lidars, coords).squeeze(-1)[..., :3]
-        coords3d[..., 0:1] = (coords3d[..., 0:1] - self.position_range[0]) / (
-            self.position_range[3] - self.position_range[0])
-        coords3d[..., 1:2] = (coords3d[..., 1:2] - self.position_range[1]) / (
-            self.position_range[4] - self.position_range[1])
-        coords3d[..., 2:3] = (coords3d[..., 2:3] - self.position_range[2]) / (
-            self.position_range[5] - self.position_range[2])
-
-        coords_mask = (coords3d > 1.0) | (coords3d < 0.0)
-        coords_mask = coords_mask.flatten(-2).sum(-1) > (D * 0.5)
-        coords_mask = masks | coords_mask.permute(0, 1, 3, 2)
-        coords3d = coords3d.permute(0, 1, 4, 5, 3,
-                                    2).contiguous().view(B * N, -1, H, W)
-        coords3d = inverse_sigmoid(coords3d)
         coords_position_embeding = self.position_encoder(coords3d)
 
         return coords_position_embeding.view(B, N, self.embed_dims, H,
-                                             W), coords_mask
+                                             W) #, coords_mask
 
     def _load_from_state_dict(self, state_dict, prefix, local_metadata, strict,
                               missing_keys, unexpected_keys, error_msgs):
@@ -453,7 +457,7 @@ class PETRv2Head(AnchorFreeHead):
                                           strict, missing_keys,
                                           unexpected_keys, error_msgs)
 
-    def forward(self, mlvl_feats, img_metas):
+    def forward(self, mlvl_feats, img_metas, coords3d=None):
         """Forward function.
 
         Args:
@@ -474,18 +478,18 @@ class PETRv2Head(AnchorFreeHead):
         batch_size, num_cams = x.size(0), x.size(1)
         input_img_h, input_img_w = img_metas[0]['pad_shape']
         masks = x.new_ones((batch_size, num_cams, input_img_h, input_img_w))
-        for img_id in range(batch_size):
+        for batch_id in range(batch_size):
             for cam_id in range(num_cams):
-                img_h, img_w = img_metas[img_id]['img_shape'][cam_id]
-                masks[img_id, cam_id, :img_h, :img_w] = 0
+                img_h, img_w = img_metas[batch_id]['img_shape'][cam_id]
+                masks[batch_id, cam_id, :img_h, :img_w] = 0
         x = self.input_proj(x.flatten(0, 1))
         x = x.view(batch_size, num_cams, *x.shape[-3:])
         # interpolate masks to have the same spatial shape with x
         masks = F.interpolate(masks, size=x.shape[-2:]).to(torch.bool)
 
         if self.with_position:
-            coords_position_embeding, _ = self.position_embeding(
-                mlvl_feats, img_metas, masks)
+            coords_position_embeding = self.position_embeding(
+                mlvl_feats, img_metas, masks, coords3d)
             if self.with_fpe:
                 coords_position_embeding = self.fpe(
                     coords_position_embeding.flatten(0,1), x.flatten(0,1)).view(x.size())
@@ -528,7 +532,8 @@ class PETRv2Head(AnchorFreeHead):
 
         if self.with_time:
             time_stamps = []
-            for img_meta in img_metas:    
+            # 12 elememnts of 'delta_timestamp'
+            for img_meta in img_metas:
                 time_stamps.append(np.asarray(img_meta['delta_timestamp']))
             time_stamp = x.new_tensor(time_stamps)
             time_stamp = time_stamp.view(batch_size, -1, 6)
@@ -549,7 +554,7 @@ class PETRv2Head(AnchorFreeHead):
             tmp[..., 4:5] = tmp[..., 4:5].sigmoid()
 
             if self.with_time:
-                tmp[..., 8:] = tmp[..., 8:] / mean_time_stamp[:, None, None]            
+                tmp[..., 8:] = tmp[..., 8:] / mean_time_stamp[:, None, None]
 
             outputs_coord = tmp
             outputs_classes.append(outputs_class)
@@ -869,7 +874,8 @@ class PETRv2Head(AnchorFreeHead):
             preds = preds_dicts[i]
             bboxes = preds['bboxes']
             bboxes[:, 2] = bboxes[:, 2] - bboxes[:, 5] * 0.5
-            bboxes = img_metas[i]['box_type_3d'](bboxes, bboxes.size(-1))
+            if not torch.onnx.is_in_onnx_export():
+                bboxes = img_metas[i]['box_type_3d'](bboxes, bboxes.size(-1))
             scores = preds['scores']
             labels = preds['labels']
             ret_list.append([bboxes, scores, labels])
