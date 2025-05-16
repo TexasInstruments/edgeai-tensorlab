@@ -15,10 +15,10 @@ from  mmengine.dist.utils import  master_only
 def export_PETR(model, inputs=None, data_samples=None,
                 quantized_model=False, opset_version=20, **kwargs):
 
-    onnxModel = PETR_export_model(model.img_backbone,
+    onnxModel = PETR_export_model(model,
+                                  model.img_backbone,
                                   model.img_neck,
-                                  model.pts_bbox_head,
-                                  model.imgfeat_size)
+                                  model.pts_bbox_head)
     if not quantized_model:
         onnxModel.eval()
 
@@ -26,7 +26,20 @@ def export_PETR(model, inputs=None, data_samples=None,
     # we have error PETRHead forward() - Don't know why
     img = inputs['imgs'].clone()
 
-    batch_img_metas = [ds.metainfo for ds in data_samples]
+    # PETRv2 update batch_img_metas,
+    # so use the copied batch_img_metas
+    batch_img_metas_org = [ds.metainfo for ds in data_samples]
+    batch_img_metas = copy.deepcopy(batch_img_metas_org)
+
+    prev_feats_map = 0
+    if model.version == 'v2':
+        prev_feats_map, batch_img_metas = onnxModel.get_temporal_feats(
+            onnxModel.queue, onnxModel.memory, img, batch_img_metas, onnxModel.img_feat_size)
+        if torch.is_tensor(prev_feats_map) is False:
+            is_prev_feat = 0
+        else:
+            is_prev_feat = 1
+
     batch_img_metas = onnxModel.add_lidar2img(img, batch_img_metas)
     onnxModel.prepare_data(img, batch_img_metas)
     masks, coords3d = onnxModel.create_coords3d(img)
@@ -37,16 +50,25 @@ def export_PETR(model, inputs=None, data_samples=None,
     #masks_np.tofile('petrv1_masks.dat')
     #coords3d_np.tofile('petrv1_coords3d.dat')
 
+    # Set inputs and outputs
     model_input = []
     model_input.append(img)
     model_input.append(coords3d)
+    if model.version == 'v2':
+        model_input.append(is_prev_feat)
+        model_input.append(prev_feats_map)
+
+    # Set the model name
+    model_name = 'petrv1.onnx'
+    if model.version == 'v2':
+        model_name = 'petrv2.onnx'
 
     if quantized_model:
         model_name = 'petrv1_quantized.onnx'
+        if model.version == 'v2':
+            model_name = 'petrv2_quantized.onnx'
         from edgeai_torchmodelopt import xmodelopt
         xmodelopt.quantization.v3.quant_utils.register_onnx_symbolics(opset_version=opset_version)
-    else:
-        model_name = 'petrv1.onnx'
 
     # Passed the squeezed img
     if img.dim() == 5 and img.size(0) == 1:
@@ -55,8 +77,12 @@ def export_PETR(model, inputs=None, data_samples=None,
         B, N, C, H, W = img.size()
         img = img.view(B * N, C, H, W)
 
-    input_names  = ["imgs", "coords3d"]
-    output_names = ["bboxes", "scores", "labels"]
+    if model.version == 'v2':
+        input_names  = ["imgs", "coords3d", "valid_prev_feats", "prev_feats_map"]
+        output_names = ["bboxes", "scores", "labels", 'feats_map']
+    else:
+        input_names  = ["imgs", "coords3d"]
+        output_names = ["bboxes", "scores", "labels"]
 
     torch.onnx.export(onnxModel,
                       tuple(model_input),
@@ -70,7 +96,7 @@ def export_PETR(model, inputs=None, data_samples=None,
     onnx_model, _ = simplify(model_name)
     onnx.save(onnx_model, model_name)
 
-    print("!! ONNX model has been exported for PETR!!!\n\n")
+    print("!! ONNX model has been exported for PETR{}!!!\n\n".format(model.version))
 
 
 

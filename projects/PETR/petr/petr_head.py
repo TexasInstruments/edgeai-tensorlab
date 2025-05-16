@@ -812,34 +812,12 @@ class PETRHead(AnchorFreeHead):
             preds = preds_dicts[i]
             bboxes = preds['bboxes']
             bboxes[:, 2] = bboxes[:, 2] - bboxes[:, 5] * 0.5
-            bboxes = img_metas[i]['box_type_3d'](bboxes, bboxes.size(-1))
+            if not torch.onnx.is_in_onnx_export():
+                bboxes = img_metas[i]['box_type_3d'](bboxes, bboxes.size(-1))
             scores = preds['scores']
             labels = preds['labels']
             ret_list.append([bboxes, scores, labels])
         return ret_list
 
 
-    def get_bboxes_onnx(self, preds_dicts, img_metas, rescale=False):
-        """Generate bboxes from bbox head predictions.
-
-        Args:
-            preds_dicts (tuple[list[dict]]): Prediction results.
-            img_metas (list[dict]): Point cloud and image's meta info.
-        Returns:
-            list[dict]: Decoded bbox, scores and labels after nms.
-        """
-        preds_dicts = self.bbox_coder.decode(preds_dicts)
-        num_samples = len(preds_dicts)
-
-        ret_list = []
-        for i in range(num_samples):
-            preds = preds_dicts[i]
-            bboxes = preds['bboxes']
-            bboxes[:, 2] = bboxes[:, 2] - bboxes[:, 5] * 0.5
-            #bboxes = img_metas[i]['box_type_3d'](bboxes, bboxes.size(-1))
-            #bboxes = bboxes.tensor
-            scores = preds['scores']
-            labels = preds['labels']
-            ret_list.append([bboxes, scores, labels])
-        return ret_list
 

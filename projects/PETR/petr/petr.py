@@ -9,7 +9,10 @@
 # ------------------------------------------------------------------------
 
 from typing import Dict, List, Union, Optional
+import queue
 import torch
+import copy
+import numpy as np
 from torch import Tensor
 from mmengine.structures import InstanceData
 from mmdet3d.models.detectors.mvx_two_stage import MVXTwoStageDetector
@@ -26,10 +29,12 @@ class PETR(MVXTwoStageDetector):
     """PETR."""
 
     def __init__(self,
+                 version='v1',
+                 img_feat_size=None,
                  use_grid_mask=False,
                  save_onnx_model=False,
+                 optimized_inference=False,
                  quantized_model=False,
-                 imgfeat_size=[20, 50],
                  pts_voxel_encoder=None,
                  pts_middle_encoder=None,
                  pts_fusion_layer=None,
@@ -56,9 +61,16 @@ class PETR(MVXTwoStageDetector):
         self.use_grid_mask = use_grid_mask
 
         # for onnx model export
-        self.save_onnx_model = save_onnx_model
-        self.quantized_model = quantized_model
-        self.imgfeat_size    = imgfeat_size
+        self.save_onnx_model     = save_onnx_model
+        self.optimized_inference = optimized_inference
+        self.quantized_model     = quantized_model
+        self.img_feat_size       = img_feat_size
+        self.version             = version
+
+        if self.version == 'v2':
+            self.memory = dict()
+            self.queue = queue.Queue(maxsize=1)
+            self.img_metas_save = None
 
 
     def forward(self,
@@ -215,7 +227,6 @@ class PETR(MVXTwoStageDetector):
         batch_img_metas = [ds.metainfo for ds in data_samples]
 
         batch_img_metas = self.add_lidar2img(img, batch_img_metas)
-
         img_feats = self.extract_feat(img=img, img_metas=batch_img_metas)
         results = self.pts_bbox_head(img_feats, batch_img_metas)
 
@@ -269,7 +280,6 @@ class PETR(MVXTwoStageDetector):
         gt_bboxes_ignore = None
 
         batch_img_metas = self.add_lidar2img(img, batch_img_metas)
-
         img_feats = self.extract_feat(img=img, img_metas=batch_img_metas)
 
         losses = dict()
@@ -278,6 +288,52 @@ class PETR(MVXTwoStageDetector):
                                             gt_bboxes_ignore)
         losses.update(losses_pts)
         return losses
+
+    def add_prev_img_metas(self, prev_img_meta, img_meta):
+        e2g = np.array(img_meta['ego2global'])
+        l2e = np.array(img_meta['lidar2ego'])
+
+        e2g_p = np.array(prev_img_meta['ego2global'])
+        l2e_p = np.array(prev_img_meta['lidar2ego'])
+
+        for i in range(len(img_meta['lidar2cam'])):
+            l2c_p = np.array(prev_img_meta['lidar2cam'][i])
+            # Transform [R|t] from the (temporal) previous camera  to the current lidar
+            cam2lidar_p_c = np.linalg.inv(l2e) @ np.linalg.inv(e2g) @ e2g_p @ l2e_p @ np.linalg.inv(l2c_p)
+            # Transform [R|t] from the current lidar to the (temporal) previous camera
+            lidar2cam_p_c = np.linalg.inv(cam2lidar_p_c)
+            # Transform [R|t] from the current lidar to the (temporal) previous image
+            lidar2img_p_c = np.array(prev_img_meta['cam2img'][i]) @ lidar2cam_p_c
+
+            img_meta['cam2img'].append(prev_img_meta['cam2img'][i])
+            img_meta['lidar2cam'] = np.concatenate((img_meta['lidar2cam'], np.expand_dims(lidar2cam_p_c, axis=0)), axis=0)
+            #img_meta['lidar2img'].append(lidar2img_p_c)
+            img_meta['delta_timestamp'].append(img_meta['timestamp'] - prev_img_meta['img_timestamp'][i])
+
+        return img_meta
+
+
+    def get_temporal_feats(self, queue, memory, img, img_metas, img_feat_size):
+        # Support only batch_size = 1
+        for batch_id, img_meta in enumerate(img_metas):
+            cur_sample_idx = img_meta['sample_idx']
+            if queue.qsize() == 0 or \
+                img_meta['scene_token'] != memory[cur_sample_idx-1]['img_meta']['scene_token']:
+
+                #prev_feat = []
+                #prev_feat.append(torch.zeros([1]+img_feat_size[0], dtype=img.dtype, device=img.device))
+                #prev_feat.append(torch.zeros([1]+img_feat_size[1], dtype=img.dtype, device=img.device))
+                prev_feat = 0
+                prev_img_meta = copy.deepcopy(img_meta)
+            else:
+                prev_feat = memory[cur_sample_idx-1]['feature_map']
+                prev_img_meta = memory[cur_sample_idx-1]['img_meta']
+
+            # Update img_metas with concatenated fields
+            img_meta = self.add_prev_img_metas(prev_img_meta, img_meta)
+
+        return prev_feat, img_metas
+
 
     def predict(self, inputs=None, data_samples=None, mode=None, **kwargs):
         img = inputs['imgs']
@@ -288,9 +344,34 @@ class PETR(MVXTwoStageDetector):
                     name, type(var)))
         img = [img] if img is None else img
 
-        batch_img_metas = self.add_lidar2img(img, batch_img_metas)
+        prev_feats_map = None
+        if self.optimized_inference is False:
+            batch_img_metas = self.add_lidar2img(img, batch_img_metas)
+            feature_map, results_list_3d = self.simple_test(batch_img_metas, img, prev_feats_map, **kwargs)
+        else:
+            if self.version == 'v2':
+                # Save current batch_img_metas, which
+                # will be stored in the queue
+                self.img_metas_save = copy.deepcopy(batch_img_metas)
+                prev_feats_map, batch_img_metas = self.get_temporal_feats(
+                    self.queue, self.memory, img, batch_img_metas, self.img_feat_size)
 
-        results_list_3d = self.simple_test(batch_img_metas, img, **kwargs)
+            batch_img_metas = self.add_lidar2img(img, batch_img_metas)
+            feature_map, results_list_3d = self.simple_test(batch_img_metas, img, prev_feats_map, **kwargs)
+
+            if self.version == 'v2':
+                if self.queue.full():
+                    pop_key = self.queue.get()
+                    self.memory.pop(pop_key)
+
+                # add the current feature map
+                # For inference, it should be batch_size = 1
+                for batch_id, img_meta in enumerate(self.img_metas_save):
+                    # PETRv2 only use the first layer of img_feats after neck
+                    # So save only the first layer of img feature_map
+                    self.memory[img_meta['sample_idx']] = \
+                        dict(feature_map=feature_map[0], img_meta=img_meta)
+                    self.queue.put(img_meta['sample_idx'])
 
         for i, data_sample in enumerate(data_samples):
             results_list_3d_i = InstanceData(
@@ -311,15 +392,34 @@ class PETR(MVXTwoStageDetector):
         ]
         return bbox_results
 
-    def simple_test(self, img_metas, img=None, rescale=False):
+    def simple_test(self, img_metas, img=None, prev_feats_map=0, rescale=False):
         """Test function without augmentaiton."""
         img_feats = self.extract_feat(img=img, img_metas=img_metas)
 
-        bbox_list = [dict() for i in range(len(img_metas))]
-        bbox_pts = self.simple_test_pts(img_feats, img_metas, rescale=rescale)
+        if self.optimized_inference is False:
+            bbox_list = [dict() for i in range(len(img_metas))]
+            bbox_pts = self.simple_test_pts(img_feats, img_metas, rescale=rescale)
+        else:
+            if torch.is_tensor(prev_feats_map) is False and self.version == 'v1':
+                img_feats_all = img_feats
+            else:
+                if torch.is_tensor(prev_feats_map) is False:
+                    is_prev_feat = 0
+                else:
+                    is_prev_feat = 1
+
+                # PETRv2 only use the first layer of img_feats after neck
+                # So concatenatee only the first layer
+                img_feats_all = []
+                img_feats_all.append(
+                     torch.cat((img_feats[0], is_prev_feat*prev_feats_map + (1-is_prev_feat)*img_feats[0]), dim=1))
+
+            bbox_list = [dict() for i in range(len(img_metas))]
+            bbox_pts = self.simple_test_pts(img_feats_all, img_metas, rescale=rescale)
+
         for result_dict, pts_bbox in zip(bbox_list, bbox_pts):
             result_dict['pts_bbox'] = pts_bbox
-        return bbox_list
+        return img_feats, bbox_list
 
     def aug_test_pts(self, feats, img_metas, rescale=False):
         feats_list = []
@@ -374,6 +474,6 @@ class PETR(MVXTwoStageDetector):
                 lidar2img_rts.append(lidar2img_rt)
             meta['lidar2img'] = lidar2img_rts
             img_shape = meta['img_shape'][:3]
-            meta['img_shape'] = [img_shape] * len(img[0])
+            meta['img_shape'] = [img_shape] * len(meta['cam2img'])
 
         return batch_input_metas

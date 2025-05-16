@@ -11,10 +11,10 @@ from mmdet.models.layers.transformer import inverse_sigmoid
 
 class PETR_export_model(nn.Module):
     def __init__(self,
+                 model,
                  img_backbone,
                  img_neck,
-                 pts_bbox_head,
-                 imgfeat_size):
+                 pts_bbox_head):
         super().__init__()
 
         #self.img_backbone   = img_backbone
@@ -32,14 +32,21 @@ class PETR_export_model(nn.Module):
         else:
             self.pts_bbox_head = pts_bbox_head
 
+        self.img_feat_size = model.img_feat_size
+        self.version = model.version
+        if self.version == 'v2':
+            self.memory = model.memory
+            self.queue  = model.queue
+            self.get_temporal_feats = model.get_temporal_feats
+
         # for camera frustum creation
         # Image feature size after image backbone. 
         # It may need update for different image backbone
         self.B              = 1
-        self.N              = 6
-        self.C              = 256
-        self.H              = imgfeat_size[0]
-        self.W              = imgfeat_size[1]
+        self.N              = self.img_feat_size[0][0]
+        self.C              = self.img_feat_size[0][1]
+        self.H              = self.img_feat_size[0][2]
+        self.W              = self.img_feat_size[0][3]
 
         self.position_level = self.pts_bbox_head.position_level
         self.with_multiview = self.pts_bbox_head.with_multiview
@@ -75,7 +82,7 @@ class PETR_export_model(nn.Module):
                 lidar2img_rts.append(lidar2img_rt)
             meta['lidar2img'] = lidar2img_rts
             img_shape = meta['img_shape'][:3]
-            meta['img_shape'] = [img_shape] * len(img[0])
+            meta['img_shape'] = [img_shape] * len(meta['cam2img'])
 
         return batch_input_metas
 
@@ -93,21 +100,21 @@ class PETR_export_model(nn.Module):
     def create_coords3d(self, img):
 
         batch_size = self.B
-        num_cams   = self.N
+        num_cams   = len(self.img_metas[0]['lidar2img'])
 
         pad_h, pad_w = self.img_metas[0]['pad_shape']
         masks = img.new_ones((batch_size, num_cams, pad_h, pad_w))
-        for img_id in range(batch_size):
+        for batch_id in range(batch_size):
             for cam_id in range(num_cams):
-                img_h, img_w = self.img_metas[img_id]['img_shape'][cam_id]
-                masks[img_id, cam_id, :img_h, :img_w] = 0
+                img_h, img_w = self.img_metas[batch_id]['img_shape'][cam_id]
+                masks[batch_id, cam_id, :img_h, :img_w] = 0
         
         # interpolate masks to have the same spatial shape with x
         masks = F.interpolate(masks, size=(self.H, self.W)).to(torch.bool)
 
         eps = 1e-5
 
-        B, N, C, H, W = self.B, self.N, self.C, self.H, self.W
+        B, N, C, H, W = self.B, num_cams, self.C, self.H, self.W
         coords_h = torch.arange(
             H, device=img.device).float() * pad_h / H
         coords_w = torch.arange(
@@ -172,7 +179,7 @@ class PETR_export_model(nn.Module):
         return masks, coords3d
 
 
-    def forward(self, img, coords3d):
+    def forward(self, img, coords3d, valid_prev_feats=0, prev_feats_map=0):
         B = 1
         N, C, H, W = img.size()
 
@@ -184,12 +191,22 @@ class PETR_export_model(nn.Module):
             BN, C, H, W = img_feat.size()
             img_feats_reshaped.append(img_feat.view(B, int(BN / B), C, H, W))
 
-        outs = self.pts_bbox_head(img_feats_reshaped, self.img_metas, masks=None, coords3d=coords3d)
+        if self.version == 'v2':
+            img_feats_all = []
+            img_feats_all.append(
+                 torch.cat((img_feats_reshaped[0], \
+                    valid_prev_feats*prev_feats_map + (1-valid_prev_feats)*img_feats_reshaped[0]), dim=1))
+            outs = self.pts_bbox_head(img_feats_all, self.img_metas, coords3d=coords3d)
+        else:
+            outs = self.pts_bbox_head(img_feats_reshaped, self.img_metas, masks=None, coords3d=coords3d)
 
-        bbox_list = self.pts_bbox_head.get_bboxes_onnx(
+        bbox_list = self.pts_bbox_head.get_bboxes(
             outs, self.img_metas, rescale=False)
 
-        return bbox_list
+        if self.version == 'v2':
+            return bbox_list, img_feats_reshaped[0]
+        else:
+            return bbox_list
 
 
 class StreamPETR_export_model(nn.Module):
