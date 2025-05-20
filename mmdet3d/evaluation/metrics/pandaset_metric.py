@@ -56,9 +56,9 @@ class PandaSetMetric(NuScenesMetric):
         'Cones': 'None',
     }
 
-    default_prefix: Optional[str] = 'PandaSet metric'
     def __init__(self, data_root, ann_file, metric = 'bbox', modality = None, prefix = None, format_only = False, jsonfile_prefix = None, eval_version = 'detection_cvpr_2019', collect_device = 'cpu', backend_args = None, max_dists=None):
         super().__init__(data_root, ann_file, metric, modality, prefix, format_only, jsonfile_prefix, eval_version, collect_device, backend_args)
+        self.default_prefix: Optional[str] = 'PandaSet metric'
         self.prefix = prefix or self.default_prefix
         self.max_dists = max_dists
     
@@ -292,7 +292,7 @@ class PandaSetMetric(NuScenesMetric):
 
                 name = classes[labels[i]]
                 attr = self.get_attr_name(attrs[i], name)
-                nusc_anno = dict(
+                ps_anno = dict(
                     sample_token=sample_token,
                     translation=box[0:3].tolist(),
                     size=box[3:6].tolist(),
@@ -301,7 +301,7 @@ class PandaSetMetric(NuScenesMetric):
                     detection_name=name,
                     detection_score=scores[i],
                     attribute_name=attr)
-                annos.append(nusc_anno)
+                annos.append(ps_anno)
             # other views results of the same frame should be concatenated
             if sample_token in pandaset_annos:
                 pandaset_annos[sample_token].extend(annos)
