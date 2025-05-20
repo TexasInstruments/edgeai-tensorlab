@@ -45,13 +45,13 @@ echo "installing requirements"
 pip3 install --no-input -r requirements.txt
 
 echo "Installing PandaSet"
-rm -r pandaset-devkit
-git clone git@github.com:scaleapi/pandaset-devkit.git
+rm -r -f pandaset-devkit
+git clone https://github.com/scaleapi/pandaset-devkit.git
 cp -f ./requirements/pandaset_requirements.txt ./pandaset-devkit/python/requirements.txt
 cd pandaset-devkit/python
 pip install .
 cd ../..
-rm -r pandaset-devkit
+rm -r -f pandaset-devkit
 
 pip install -U openmim
 mim install mmengine==0.10.4
