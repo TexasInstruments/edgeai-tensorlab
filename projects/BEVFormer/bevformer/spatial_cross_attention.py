@@ -147,13 +147,13 @@ class SpatialCrossAttention(BaseModule):
                 index_query_per_img = nzindex.new_ones(num_query)*num_query
                 index_query_per_img[:len(nzindex)] = nzindex
 
-                indexes.append(index_query_per_img)
+                indexes.append(index_query_per_img.unsqueeze(1))
                 indexes_count.append(len(nzindex))
             # Need to create bev_valid_indices for later use
             bev_valid_indices = torch.cat(indexes)
         else:
-            # bev_valid_indecse : [150000]
-            # indexes : list of six [2500] tensors
+            # bev_valid_indecse : [150000x1]
+            # indexes : list of six [2500x1] tensors
             indexes = list(torch.split(bev_valid_indices, num_query, dim=0))
             indexes_count = bev_valid_indices_count
         max_len = max([len(each) for each in indexes])
@@ -183,7 +183,7 @@ class SpatialCrossAttention(BaseModule):
             else:
                 # Replace ScatterND with Concat
                 for i, reference_points_per_img in enumerate(reference_points_cam):
-                    index_query_per_img = indexes[i]
+                    index_query_per_img = indexes[i].squeeze(1)
                     if i == 0:
                         queries_rebatch = query[index_query_per_img]
                         reference_points_rebatch = reference_points_per_img.squeeze(0)[index_query_per_img]
@@ -228,7 +228,7 @@ class SpatialCrossAttention(BaseModule):
 
             # Just reshape bev_valid_indices, instead concat squeezed indexes again
             # bev_valid_indices should be type cated to int64 for ScatterND
-            all_indices = bev_valid_indices.to(torch.int64)
+            all_indices = bev_valid_indices.to(torch.int64).squeeze(1)
             all_queries = queries.view(-1, self.embed_dims)
             """
             for i, index_query_per_img in enumerate(indexes):
