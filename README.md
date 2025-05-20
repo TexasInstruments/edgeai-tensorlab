@@ -2,6 +2,8 @@
 
 This repository is an extension of the popular [mmdetection3d](https://github.com/open-mmlab/mmdetection3d) open source repository for 3d object detection. While mmdetection3d focuses on a wide variety of models, typically at high complexity, we focus on models that are optimized for speed and accuracy so that they run efficiently on embedded devices. For this purpose, we have added a set of embedded friendly model configurations and scripts.
 
+The main contribution in this reposistory is the support of the `PandaSet` dataset for multiple 3D detection models. How to prepare `PandaSet` and train and evaluate 3D detection models with `PandaSet` will be decribed in this document.
+
 This repository implements Quantization Aware Training (QAT). However, it has not been verified with Python 3.10.
 
 <hr>
@@ -58,10 +60,16 @@ pyenv activate edgeai-mmdet3d
 ## Installation Instructions
 After cloning this repository, install it as a Python package by follows:
 
-- Update line #49 of `setup.sh` to install `mmcv` depending on the type of system, CUDA version, PyTorch version. Refer to [MMCV Installation Instruction](https://mmcv.readthedocs.io/en/latest/get_started/installation.html). For example, to install mmcv 2.1.0 for cuda 12.1 and torch 2.1, 
-  
+- Update line #43 of `setup.sh` to install `torch`==2.4.0 and `torchvision`==0.19.0 depending on the CUDA version. Refer to [PyTorch](https://pytorch.org/get-started/previous-versions). For example, to install them for cuda 12.1, 
+
   ```
-    pip install mmcv==2.1.0 -f https://download.openmmlab.com/mmcv/dist/cu121/torch2.1/index.html
+  pip3 install torch==2.4.0 torchvision==0.19.0 --index-url https://download.pytorch.org/whl/cu121
+  ```
+
+- Update line #59 of `setup.sh` to install `mmcv` depending on the type of system, CUDA version, PyTorch version. Refer to [MMCV Installation Instruction](https://mmcv.readthedocs.io/en/latest/get_started/installation.html). For example, to install mmcv 2.2.0 for cuda 12.1 and torch 2.4, 
+
+  ```
+  mim install mmcv==2.2.0 -f https://download.openmmlab.com/mmcv/dist/cu121/torch2.4/index.html
   ```
 
 - Run `setup.sh`
@@ -105,23 +113,81 @@ There are a couple of issues that are encounterd most frequently.
 
 ## Dataset Preparation
 
+### NuScenes Dataset
+
+Prepare the nuScenes dataset as per the MMDetection3D documentation [NuScenes Dataset Preperation](./docs/en/advanced_guides/datasets/nuscenes.md)
+
+### PandaSet Dataset
+
+Prepare the nuScenes dataset as per the PandaSet documentation [PandaSet Dataset Preperation](./docs/en/advanced_guides/datasets/pandaset.md)
+
 ### KITTI Dataset
 
 Prepare the KITTI dataset as per the MMDetection3D documentation [KITTI dataset preperation](../../docs/en/advanced_guides/datasets/kitti.md). 
 
-### NuScenes Dataset
-
-Prepare the nuScenes dataset as per the MMDetection3D documentation [NuScenes Dataset Preperation](./docs/en/advanced_guides/datasets/nuscenes.md)
 
 <hr>
 
 ## Models Supported
 
-**Disclaimer**: The following models are supported in **EdgeAI-MMDetection3D** for training and inference testing. However, these models may not be supported yet in **TIDL**.
+**Disclaimer**: **EdgeAI-MMDetection3D** supports the following models with NuScenes and PandaSet for training and inferencing. However, as shown in the table, some of them may not be supported yet in **TIDL**.
+
+<table>
+  <tr>
+    <th rowspan="2" align="center">Model</th>
+    <th colspan="2" align="center">Dataset Support</th>
+    <th rowspan="2" align="center">TIDL Support</th>
+  </tr>
+  <tr>
+    <th align="center">NuScenes </th>
+    <th align="center">PandaSet</th>
+  </tr>
+  <tr>
+    <td>FastBEV</td>
+    <td align="center"> Yes </td>
+    <td align="center"> Yes </td>
+    <td align="center"> Yes </td>
+  </tr>
+  <tr>
+    <td>BEVFormer</td>
+    <td align="center">Yes</td>
+    <td align="center">Yes</td>
+    <td align="center">In Progress</td>
+  </tr>  
+  <tr>
+    <td>PETR</td>
+    <td align="center">Yes</td>
+    <td align="center">Yes</td>
+    <td align="center">In Progress</td>
+  </tr>
+  <tr>
+    <td>PETRv2</td>
+    <td align="center">Yes</td>
+    <td align="center">In Progress</td>
+    <td align="center">In Progress</td>
+  </tr>
+  <tr>
+    <td>FCOS3D</td>
+    <td align="center">Yes</td>
+    <td align="center">Yes</td>
+    <td align="center">In Progress</td>
+  </tr>  
+    <tr>
+    <td>BEVDet</td>
+    <td align="center">Yes</td>
+    <td align="center">Yes</td>
+    <td align="center">No</td>
+  </tr>  
+</table>
+
 
 ### FastBEV
 
 FastBEV has been trained and validated with egdgeai-mmdetection3d. Data preparation, training and testing of them can be found in [FastBEV](./projects/FastBEV/README.md).
+
+### BEVFormer
+
+BEVFormer has been trained and validated with egdgeai-mmdetection3d. Data preparation, training and testing of BEVFormer can be found in [BEVFormer](./projects/BEVFormer/README.md).
 
 ### PETR / PETRv2
 
@@ -130,10 +196,6 @@ PETR and PETRv2 have been trained and validated with egdgeai-mmdetection3d. Data
 ### BEVDet
 
 BEVDet has been trained and validated with egdgeai-mmdetection3d. Data preparation, training and testing of BEVDet can be found in [BEVDet](./projects/BEVDet/README.md).
-
-### BEVFormer
-
-BEVFormer has been trained and validated with egdgeai-mmdetection3d. Data preparation, training and testing of BEVFormer can be found in [BEVFormer](./projects/BEVFormer/README.md).
 
 ### FCOS3D
 

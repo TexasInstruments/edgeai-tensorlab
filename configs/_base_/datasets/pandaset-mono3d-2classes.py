@@ -1,5 +1,5 @@
 dataset_type = 'PandaSetDataset'
-data_root = 'data/pandaset/data/'
+data_root = 'data/pandaset/'
 class_names = [
             'Car','Temporary Construction Barriers',
         ]

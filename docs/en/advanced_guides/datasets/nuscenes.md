@@ -46,14 +46,14 @@ This command creates `.pkl` files for PETR, BEVFormer and FCOS3D. To include add
 python tools/create_data.py nuscenes --root-path ./data/nuscenes --out-dir ./data/nuscenes --extra-tag nuscenes --canbus ./data --bevdet --petrv2
 ```
 
-FastBEV uses multiple temporal frames and therefore need to organize neighboring frames's information as well in a `.pkl` file for training. For this purpose, we should run the following script, which will create `nuscenes_infos_train_fastbev.pkl` from `nuscenes_infos_train.pkl`.
+FastBEV uses multiple temporal frames and therefore need to organize neighboring frames' information as well in a `.pkl` file for training. For this purpose, we should run the following script, which will create `nuscenes_infos_train_fastbev.pkl` from `nuscenes_infos_train.pkl`.
 
 ```bash
-python tools/dataset_converters/generate_fastbev_sweep_pkl.py n --root-path ./data/nuscenes --version 'v1.0-trainval'
+python tools/dataset_converters/generate_fastbev_sweep_pkl.py nuscenes --root-path ./data/nuscenes --version 'v1.0-trainval'
 ```
 
 
-The folder structure after processing should be as below.
+The diretory structure after processing should be as below.
 
 ```
 edgeai-mmdetection3d
