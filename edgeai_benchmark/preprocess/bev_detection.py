@@ -455,9 +455,9 @@ class BEVSensorsRead():
         lidar2imgs_org = []
         ego2imgs = []
         
-        for cam_name in self.camera_types:
-            intrin    = np.array(data['cams'][cam_name]['cam_intrinsic']).astype(np.float32)
-            lidar2cam = np.array(data['cams'][cam_name]['lidar2sensor']).astype(np.float32)
+        for cam_name,dic in data['cams'].items():
+            intrin    = np.array(dic['cam_intrinsic']).astype(np.float32)
+            lidar2cam = np.array(dic['lidar2sensor']).astype(np.float32)
             cam2lidar = np.linalg.inv(lidar2cam)
 
             sensor2ego, ego2global = \
@@ -575,8 +575,8 @@ class BEVSensorsRead():
             return image_name, info_dict
         else:
             image_name_list = []
-            for cam in self.camera_types:
-                image_name_list.append(data['cams'][cam]['data_path'])
+            for cam, dic in data['cams'].items():
+                image_name_list.append(dic['data_path'])
 
             # save lidar_path, which is also needed for visualization
             info_dict['lidar_path'] = data['lidar_path']
@@ -586,13 +586,13 @@ class BEVSensorsRead():
 
 
 class GetPETRGeometry():
-    def __init__(self, crop):
+    def __init__(self, crop, featsize):
         # Params needed to generate coords3d: How make them configurable?
         # Batch size
         self.B = 1
         self.C              = 256
-        self.H              = 20
-        self.W              = 50
+        self.H              = featsize[0]
+        self.W              = featsize[1]
 
         self.position_level = 0
         self.with_multiview = True
@@ -971,8 +971,9 @@ class GetBEVFormerGeometry():
         shift_x = translation_length * \
             np.sin(bev_angle / 180 * np.pi) / grid_length_x / self.bev_w
 
-        return reference_points_cam, bev_mask_count, np.stack(bev_valid_indices, axis=0).astype(np.int64), \
-               np.array(bev_valid_indices_count).astype(np.int64), \
+        return reference_points_cam, bev_mask_count, \
+               np.expand_dims(np.concatenate(bev_valid_indices, axis=0), axis=1).astype(np.int32), \
+               np.array(bev_valid_indices_count).astype(np.int32), \
                np.array([[shift_x[0],shift_y[0]]]).astype(np.float32), can_bus.astype(np.float32)
 
 
@@ -1089,7 +1090,8 @@ class GetBEVFormerGeometry():
         data.append(reference_points_cam)
         data.append(bev_mask_count)
         data.append(bev_valid_indices)
-        data.append(bev_valid_indices_count)
+        # Not needed for the latest model (bevformer_tiny_plus_480x800_20250408.onnx)
+        #data.append(bev_valid_indices_count)
         data.append(can_bus)
 
         return data, info_dict

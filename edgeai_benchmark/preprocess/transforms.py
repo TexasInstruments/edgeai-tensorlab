@@ -221,7 +221,7 @@ class ImageNormMeanScale(object):
             Tensor: Normalized Tensor image.
         """
         if isinstance(tensor, list):
-            if isinstance(self.mean, list) and isinstance(self.scale, list):
+            if isinstance(self.mean, (list,tuple)) and isinstance(self.scale, (list,tuple)):
                 tensor_ = []
                 num_norm = min(len(tensor), len(self.mean))
                 for t_idx in range(num_norm):

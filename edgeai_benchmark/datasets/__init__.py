@@ -64,6 +64,13 @@ except ImportError as e:
     NuScenesDataset = None
 
 try:
+    from .pandaset_dataset import *
+except ImportError as e:
+    warnings.warn(f'WARNING: pandaset_dataset could not be imported - {str(e)}')
+    pandaset_dataset = None
+    PandaSetDataset = None
+
+try:
     from .kitti_lidar_det import KittiLidar3D
 except ImportError as e:
     warnings.warn(f'WARNING: kitti_lidar_det could not be imported - {str(e)}')
@@ -88,6 +95,8 @@ DATASET_CATEGORY_KITTI_2015 = 'kitti_2015'
 DATASET_CATEGORY_YCBV = 'ycbv'
 DATASET_CATEGORY_NUSCENES_FRAME = 'nuscenes_frame'
 DATASET_CATEGORY_NUSCENES_MV_IMAGE = 'nuscenes_mv_image'
+DATASET_CATEGORY_PANDASET_FRAME = 'pandaset_frame'
+DATASET_CATEGORY_PANDASET_MV_IMAGE = 'pandaset_mv_image'
 
 dataset_info_dict = {
     #------------------------image classification datasets--------------------------#
@@ -114,6 +123,9 @@ dataset_info_dict = {
     'nyudepthv2': {'task_type':'depth_estimation', 'category':DATASET_CATEGORY_NYUDEPTHV2, 'type':NYUDepthV2, 'size':654, 'split':'val'},
     #------------------------object 6d pose estimation datasets--------------------------#
     'ycbv': {'task_type':'object_6d_pose_estimation', 'category':DATASET_CATEGORY_YCBV, 'type': YCBV, 'size':900, 'split':'test'},
+    #----------------------- BEV Detection datasets for PandaSet --------------------------#
+    'pandaset_frame': {'task_type':'bev-detection', 'category':DATASET_CATEGORY_PANDASET_FRAME, 'type':PandaSetDataset, 'size':404, 'split':'val'},
+    'pandaset_mv_image': {'task_type':'bev-detection', 'category':DATASET_CATEGORY_PANDASET_MV_IMAGE, 'type':PandaSetDataset, 'size':404, 'split':'val'},    
  }
 
 
@@ -125,7 +137,7 @@ dataset_info_dict_experimental = {
     'kitti_lidar_det_3class': {'task_type': '3d-detection', 'category': DATASET_CATEGORY_KITTI_LIDAR_DET_3CLASS,'type': KittiLidar3D, 'size': 3769, 'split': 'val'},
     #----------------------- Stereo disparity datasets--------------------------#
     'kitti_2015': {'task_type':'stereo-disparity', 'category':DATASET_CATEGORY_KITTI_2015, 'type':Kitti2015, 'size':159, 'split':'training'},
-    #----------------------- BEV Detection datasets--------------------------#
+    #----------------------- BEV Detection datasets for NuScenes --------------------------#
     'nuscenes_frame': {'task_type':'bev-detection', 'category':DATASET_CATEGORY_NUSCENES_FRAME, 'type':NuScenesDataset, 'size':404, 'split':'val'},
     'nuscenes_mv_image': {'task_type':'bev-detection', 'category':DATASET_CATEGORY_NUSCENES_MV_IMAGE, 'type':NuScenesDataset, 'size':404, 'split':'val'},
 }
@@ -532,6 +544,81 @@ def get_datasets(settings, download=False, dataset_list=None):
             dataset_cache[DATASET_CATEGORY_TI_ROBOKIT_VISLOC_ZED1HD]['calibration_dataset'] = DATASET_CATEGORY_TI_ROBOKIT_VISLOC_ZED1HD
             dataset_cache[DATASET_CATEGORY_TI_ROBOKIT_VISLOC_ZED1HD]['input_dataset'] = DATASET_CATEGORY_TI_ROBOKIT_VISLOC_ZED1HD
             print('Robokit VisLoc dataset could not be loaded')
+        #
+    #
+
+    if check_dataset_load(settings, DATASET_CATEGORY_PANDASET_FRAME) and (DATASET_CATEGORY_PANDASET_FRAME in dataset_list):
+        print(utils.log_color("\nINFO", f"loading dataset", f"category:{DATASET_CATEGORY_PANDASET_FRAME} variant:{DATASET_CATEGORY_PANDASET_FRAME}"))
+        dataset_calib_cfg = dict(
+            path=f'{settings.datasets_path}/pandaset/',
+            split='train',
+            num_classes=3,
+            load_type='frame_based',
+            shuffle=False,
+            num_frames=min(81, calibration_frames_nx),
+            name=DATASET_CATEGORY_PANDASET_FRAME)
+
+        # dataset parameters for actual inference
+        dataset_val_cfg = dict(
+            path=f'{settings.datasets_path}/pandaset/',
+            split='val',
+            num_classes=3,
+            load_type='frame_based',
+            shuffle=False,
+            num_frames=min(settings.num_frames, 81),
+            name=DATASET_CATEGORY_PANDASET_FRAME)
+
+        if dataset_cache[DATASET_CATEGORY_PANDASET_FRAME]['dataset_init'] is False:
+            try:
+                # load pandaset dataset first
+                ps = load_pandaset(dataset_calib_cfg['path'])
+                dataset_cache[DATASET_CATEGORY_PANDASET_FRAME]['calibration_dataset'] = \
+                    PandaSetDataset(**dataset_calib_cfg, ps=ps, download=False, read_anno=False)
+                dataset_cache[DATASET_CATEGORY_PANDASET_FRAME]['input_dataset'] = \
+                    PandaSetDataset(**dataset_val_cfg, ps=ps, download=False, read_anno=True)
+                dataset_cache[DATASET_CATEGORY_PANDASET_FRAME]['dataset_init'] =  True
+            except Exception as message:
+                dataset_cache[DATASET_CATEGORY_PANDASET_FRAME]['calibration_dataset'] = DATASET_CATEGORY_PANDASET_FRAME
+                dataset_cache[DATASET_CATEGORY_PANDASET_FRAME]['input_dataset'] = DATASET_CATEGORY_PANDASET_FRAME
+                print(f'PandaSet dataset loader could not be created: {message}')
+        #
+    #
+
+    if check_dataset_load(settings, DATASET_CATEGORY_PANDASET_MV_IMAGE) and (DATASET_CATEGORY_PANDASET_MV_IMAGE in dataset_list):
+        print(utils.log_color("\nINFO", f"loading dataset", f"category:{DATASET_CATEGORY_PANDASET_MV_IMAGE} variant:{DATASET_CATEGORY_PANDASET_MV_IMAGE}"))
+        dataset_calib_cfg = dict(
+            path=f'{settings.datasets_path}/pandaset/',
+            split='train',
+            num_classes=3,
+            load_type='mv_image_based',
+            shuffle=False,
+            num_frames=min(50, calibration_frames_nx),
+            name=DATASET_CATEGORY_PANDASET_MV_IMAGE)
+
+        # dataset parameters for actual inference
+        dataset_val_cfg = dict(
+            path=f'{settings.datasets_path}/pandaset/',
+            split='val',
+            num_classes=3,
+            load_type='mv_image_based',
+            shuffle=False,
+            num_frames=min(settings.num_frames, 456),
+            name=DATASET_CATEGORY_PANDASET_MV_IMAGE)
+
+        # To revisit
+        if dataset_cache[DATASET_CATEGORY_PANDASET_MV_IMAGE]['dataset_init'] is False:
+            try:
+                # load pandaset dataset first
+                ps = load_pandaset(dataset_calib_cfg['path'])
+                dataset_cache[DATASET_CATEGORY_PANDASET_MV_IMAGE]['calibration_dataset'] = \
+                    PandaSetDataset(**dataset_calib_cfg, ps=ps, download=False, read_anno=False)
+                dataset_cache[DATASET_CATEGORY_PANDASET_MV_IMAGE]['input_dataset'] = \
+                    PandaSetDataset(**dataset_val_cfg, ps=ps, download=False, read_anno=True)
+                dataset_cache[DATASET_CATEGORY_PANDASET_MV_IMAGE]['dataset_init'] =  True
+            except Exception as message:
+                dataset_cache[DATASET_CATEGORY_PANDASET_MV_IMAGE]['calibration_dataset'] = DATASET_CATEGORY_PANDASET_MV_IMAGE
+                dataset_cache[DATASET_CATEGORY_PANDASET_MV_IMAGE]['input_dataset'] = DATASET_CATEGORY_PANDASET_MV_IMAGE
+                print(f'PandaSet dataset loader could not be created: {message}')
         #
     #
 

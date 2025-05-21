@@ -37,7 +37,6 @@ TARGET_SOC=${1-AM68A}
 # after compilation, run_package_artifacts_evm.sh can be used to format and package the compiled artifacts for evm
 TARGET_MACHINE=pc
 
-
 echo "TARGET_SOC:     ${TARGET_SOC}"
 echo "TARGET_MACHINE: ${TARGET_MACHINE}"
 
