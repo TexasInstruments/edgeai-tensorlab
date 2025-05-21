@@ -271,7 +271,7 @@ class ParallelRunner:
         # check if this run has been too long; terminate if needed
         overall_running_time = time.time() - self.start_time
         if self.overall_timeout and (overall_running_time > self.overall_timeout) and (not self.terminate_all_flag):
-            self.terminate_all()
+            self.terminate_all(f"WARNING: TIMEOUT occurred - overall_timeout: {self.overall_timeout}")
         #        
         return num_completed, num_running
 

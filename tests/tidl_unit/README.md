@@ -1,17 +1,126 @@
-# TIDL Unit Tests
+# TIDL Unit Tests
+A production‑grade regression suite containing thousands of single‑operator ONNX models used to validate Texas Instruments Deep‑Learning (TIDL) kernels on any supported SoC.
 
-TIDL Unit Tests are a suite of tests written by the TIDL. It is made up of a large number of single-operator ONNX models with varied operator properties and fixed inputs/outputs.
+## 1. Features
+Fine‑grained coverage – Every operator / attribute / dtype combination is a separate minimal ONNX graph.<br>
+Deterministic I/O – Golden inputs & outputs ship with each model, enabling bit‑exact comparison.<br>
+Flexible execution – Run the full matrix or an ad‑hoc subset, locally or over NFS.<br>
+CI‑ready – Generates CSV/HTML reports and supports pytest-xdist for parallel runs.
 
-## Setup
+## 2. Prerequisites
+| Dependency               | Minimum version | Notes |
+|--------------------------|-----------------|-------|
+| Python                   | 3.x             | Tested on 3.8 – 3.12 |
+| pip                      | latest          | python -m pip install --upgrade pip |
+| Python packages          | —               | Install once in a fresh pyenv/conda env: pip install -r requirements.txt |
+| TIDL Models repo     	   | current `master`| Holds the ONNX operator assets |
+| TIDL tools tar file      | —               | — |
 
-To use these tests, ensure that you have installed pytest as well as helpful plugins: `pip install pytest pytest-xdist pytest-html==3.2.0`
+**Setup on X86_PC**<br>
+Install pyenv using the following command.<br>
+```bash
+curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
+echo '# pyenv settings ' >> ${HOME}/.bashrc
+echo 'command -v pyenv >/dev/null || export PATH=":${HOME}/.pyenv/bin:$PATH"' >> ${HOME}/.bashrc
+echo 'eval "$(pyenv init -)"' >> ${HOME}/.bashrc
+echo 'eval "$(pyenv virtualenv-init -)"' >> ${HOME}/.bashrc
+echo '' >> ${HOME}/.bashrc
+exec ${SHELL}
+```
+Create and activate pyenv.<br>
+```bash
+pyenv install 3.10
+pyenv virtualenv 3.10 benchmark
+pyenv activate benchmark
+pip install --upgrade pip setuptools
+```
+Setup scripts.<br>
+```bash
+./setup_pc.sh  #inside main benchmark directory 
+cd tests/tidl_unit/
+pip install -r requirements.txt
+```
 
-## Documentation
-Usage notes: [usage-notes.md](docs/usage-notes.md)
+## 3. Obtaining Operator Assets
+```bash
+Clone (anywhere)
+git clone <tidl_models_repo>
+export TIDL_OPS=$PWD/tidl_models/unitTest/onnx/tidl_unit_test_assets/operators
+```
 
-Pass/Fail Notes: [pass-fail-notes.md](docs/pass-fail-notes.md)
+### 3.1 Local symbolic‑link (dev workflow)
+```bash
+rm -rf tidl_unit_test_data/operator          # purge any stale link/dir
+ln -s "${TIDL_OPS}" tidl_unit_test_data/operator
+```
 
+### 3.2 NFS mount (CI / farm)
+Mount from a local device with nfs mount
+
+## 4. Obtaining tools
+Generate/Fetch the tools tar ball for testing<br>
+Update the tools path inside run_operator_test.sh<br>
+```python
+# Configuration
+tools_path="<tidl_tools tarball path here>" #tools in name.tar.gz format
+```
+For taking tools from c7x use
+```bash
+tar -h -czvf tidl_tools.tar.gz tidl_tools/
+# Now place this tools tar file path to the above tools_path 
+```
+
+## 5. Running the Tests
+
+### 5.1 Full suite
+```bash
+./run_operator_test.sh <SOC>
+```
+&lt;SOC&gt; - AM62A, AM67A, AM68A, AM69A, TDA4VM 
+
+### 5.2 Subset
+Update the operators list inside run_operator_test.sh<br>
+```python
+# Configuration
+OPERATORS=()
+# Single operator like Max - OPERATORS=("Max")
+# Multi operator like Softmax, Convolution & Sqrt - OPERATORS=("Softmax" "Convolution" "Sqrt")
+# Full suite - OPERATORS=()
+```
+
+## 6. Repository Layout
+```text
+tidl_unit_tests/
+├─ docs/                     	# Usage notes
+├─ logs/						# pass/fail logs
+├─ run_operator_test.sh         # Operator testing script
+├─ run_test.sh  				# Main entry‑point script
+├─ tidl_unit.yaml  				# backend testing configuration
+├─ tidl_unit_test_data/         # Symlink → operator assets
+├─ operator_test_report_csv/    # CSV‑based intensive test reports
+├─ operator_test_report_html/   # HTML reports (ONNX‑backed, default)
+├─ report_script/               # Report‑generation scripts'
+├─ requirements.txt  			# python requirements
+... other pytest requirements
+```
+
+## 7. Reports Layout
+```text
+tidl_unit_tests/
+├── operator_test_report_csv/
+│   ├── complete_test_reports/                # Customer‑facing reports 
+│   │   ├── <Operator_Name>.csv               # Operator‑specific report
+│   │   └── operator_test_report_summary.csv  # Aggregate summary
+│   └── customer_test_reports/                # Customer‑facing reports 
+│       ├── …
+│       └── …
+└── operator_test_report_html/               
+```
+
+## 8. Documentation
+
+Usage notes: [usage-notes.md](docs/usage-notes.md)<br>
+Pass/Fail Notes: [pass-fail-notes.md](docs/pass-fail-notes.md)<br>
 Code Outline: [code-outline.md](docs/code-outline.md)
-
 
 

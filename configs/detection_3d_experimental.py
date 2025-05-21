@@ -187,10 +187,10 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'mAP':0.4})
         ),
         # 3dod-7161: FastBEV w/ NMS without temporal frame
-        '3dod-7161':utils.dict_update(bev_frame_cfg,
+        '3dod-7161':utils.dict_update(bev_frame_cfg_ps,
             task_name='FastBEV_f1',
             # crop = (left, top, width, height)
-            preprocess=preproc_transforms.get_transform_bev_fastbev((900, 1600), (396, 704), (0, 70, 704, 256), backend='cv2', interpolation=cv2.INTER_CUBIC),
+            preprocess=preproc_transforms.get_transform_bev_fastbev((1080,1920), (396,704), (0, 70, 704, 256), backend='cv2', interpolation=cv2.INTER_CUBIC),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=[(123.675, 116.280, 103.530)], 
                                                                       input_scale=[(0.017125, 0.017507, 0.017429)], input_optimization=False,
                                                                       deny_list_from_start_end_node = {}),
@@ -244,7 +244,7 @@ def get_configs(settings, work_dir):
             postprocess=postproc_transforms.get_transform_bev_detection_fastbev(enable_nms=False),
             metric=dict(),
             model_info=dict(metric_reference={'mAP':0.4})
-        ),
+        )
     }
 
     return pipeline_configs

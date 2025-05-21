@@ -1,0 +1,139 @@
+Model_Name,Dataset Number,Input_Shape,Axes,Axes_File
+Squeeze_axesVar_1,1,"(2, 1, 87)",[1],axes/Axes_Squeeze_axesVar_1.pb
+Squeeze_axesVar_2,2,"(1, 8, 1)",[0],axes/Axes_Squeeze_axesVar_2.pb
+Squeeze_axesVar_3,2,"(1, 8, 1)",[2],axes/Axes_Squeeze_axesVar_3.pb
+Squeeze_axesVar_4,2,"(1, 8, 1)","[0, 2]",axes/Axes_Squeeze_axesVar_4.pb
+Squeeze_axesVar_5,3,"(1, 1, 6)",[0],axes/Axes_Squeeze_axesVar_5.pb
+Squeeze_axesVar_6,3,"(1, 1, 6)",[1],axes/Axes_Squeeze_axesVar_6.pb
+Squeeze_axesVar_7,3,"(1, 1, 6)","[0, 1]",axes/Axes_Squeeze_axesVar_7.pb
+Squeeze_axesVar_8,4,"(1, 1, 1)",[0],axes/Axes_Squeeze_axesVar_8.pb
+Squeeze_axesVar_9,4,"(1, 1, 1)",[1],axes/Axes_Squeeze_axesVar_9.pb
+Squeeze_axesVar_10,4,"(1, 1, 1)",[2],axes/Axes_Squeeze_axesVar_10.pb
+Squeeze_axesVar_11,4,"(1, 1, 1)","[0, 1]",axes/Axes_Squeeze_axesVar_11.pb
+Squeeze_axesVar_12,4,"(1, 1, 1)","[0, 2]",axes/Axes_Squeeze_axesVar_12.pb
+Squeeze_axesVar_13,4,"(1, 1, 1)","[1, 2]",axes/Axes_Squeeze_axesVar_13.pb
+Squeeze_axesVar_14,4,"(1, 1, 1)","[0, 1, 2]",axes/Axes_Squeeze_axesVar_14.pb
+Squeeze_axesVar_15,5,"(4, 4, 1)",[2],axes/Axes_Squeeze_axesVar_15.pb
+Squeeze_axesVar_16,6,"(2, 1, 32, 32)",[1],axes/Axes_Squeeze_axesVar_16.pb
+Squeeze_axesVar_17,7,"(4, 1, 1, 64)",[1],axes/Axes_Squeeze_axesVar_17.pb
+Squeeze_axesVar_18,7,"(4, 1, 1, 64)",[2],axes/Axes_Squeeze_axesVar_18.pb
+Squeeze_axesVar_19,7,"(4, 1, 1, 64)","[1, 2]",axes/Axes_Squeeze_axesVar_19.pb
+Squeeze_axesVar_20,8,"(1, 4, 1, 80)",[0],axes/Axes_Squeeze_axesVar_20.pb
+Squeeze_axesVar_21,8,"(1, 4, 1, 80)",[2],axes/Axes_Squeeze_axesVar_21.pb
+Squeeze_axesVar_22,8,"(1, 4, 1, 80)","[0, 2]",axes/Axes_Squeeze_axesVar_22.pb
+Squeeze_axesVar_23,9,"(1, 1, 1, 1)",[0],axes/Axes_Squeeze_axesVar_23.pb
+Squeeze_axesVar_24,9,"(1, 1, 1, 1)",[1],axes/Axes_Squeeze_axesVar_24.pb
+Squeeze_axesVar_25,9,"(1, 1, 1, 1)",[2],axes/Axes_Squeeze_axesVar_25.pb
+Squeeze_axesVar_26,9,"(1, 1, 1, 1)",[3],axes/Axes_Squeeze_axesVar_26.pb
+Squeeze_axesVar_27,9,"(1, 1, 1, 1)","[0, 1]",axes/Axes_Squeeze_axesVar_27.pb
+Squeeze_axesVar_28,9,"(1, 1, 1, 1)","[0, 2]",axes/Axes_Squeeze_axesVar_28.pb
+Squeeze_axesVar_29,9,"(1, 1, 1, 1)","[0, 3]",axes/Axes_Squeeze_axesVar_29.pb
+Squeeze_axesVar_30,9,"(1, 1, 1, 1)","[1, 2]",axes/Axes_Squeeze_axesVar_30.pb
+Squeeze_axesVar_31,9,"(1, 1, 1, 1)","[1, 3]",axes/Axes_Squeeze_axesVar_31.pb
+Squeeze_axesVar_32,9,"(1, 1, 1, 1)","[2, 3]",axes/Axes_Squeeze_axesVar_32.pb
+Squeeze_axesVar_33,9,"(1, 1, 1, 1)","[0, 1, 2]",axes/Axes_Squeeze_axesVar_33.pb
+Squeeze_axesVar_34,9,"(1, 1, 1, 1)","[0, 1, 3]",axes/Axes_Squeeze_axesVar_34.pb
+Squeeze_axesVar_35,9,"(1, 1, 1, 1)","[0, 2, 3]",axes/Axes_Squeeze_axesVar_35.pb
+Squeeze_axesVar_36,9,"(1, 1, 1, 1)","[1, 2, 3]",axes/Axes_Squeeze_axesVar_36.pb
+Squeeze_axesVar_37,9,"(1, 1, 1, 1)","[0, 1, 2, 3]",axes/Axes_Squeeze_axesVar_37.pb
+Squeeze_axesVar_38,10,"(1, 1, 160, 1)",[0],axes/Axes_Squeeze_axesVar_38.pb
+Squeeze_axesVar_39,10,"(1, 1, 160, 1)",[1],axes/Axes_Squeeze_axesVar_39.pb
+Squeeze_axesVar_40,10,"(1, 1, 160, 1)",[3],axes/Axes_Squeeze_axesVar_40.pb
+Squeeze_axesVar_41,10,"(1, 1, 160, 1)","[0, 1]",axes/Axes_Squeeze_axesVar_41.pb
+Squeeze_axesVar_42,10,"(1, 1, 160, 1)","[0, 3]",axes/Axes_Squeeze_axesVar_42.pb
+Squeeze_axesVar_43,10,"(1, 1, 160, 1)","[1, 3]",axes/Axes_Squeeze_axesVar_43.pb
+Squeeze_axesVar_44,10,"(1, 1, 160, 1)","[0, 1, 3]",axes/Axes_Squeeze_axesVar_44.pb
+Squeeze_axesVar_45,11,"(1, 1, 256, 256)",[0],axes/Axes_Squeeze_axesVar_45.pb
+Squeeze_axesVar_46,11,"(1, 1, 256, 256)",[1],axes/Axes_Squeeze_axesVar_46.pb
+Squeeze_axesVar_47,11,"(1, 1, 256, 256)","[0, 1]",axes/Axes_Squeeze_axesVar_47.pb
+Squeeze_axesVar_48,12,"(3, 1, 223, 1)",[1],axes/Axes_Squeeze_axesVar_48.pb
+Squeeze_axesVar_49,12,"(3, 1, 223, 1)",[3],axes/Axes_Squeeze_axesVar_49.pb
+Squeeze_axesVar_50,12,"(3, 1, 223, 1)","[1, 3]",axes/Axes_Squeeze_axesVar_50.pb
+Squeeze_axesVar_51,13,"(2, 9, 219, 1)",[3],axes/Axes_Squeeze_axesVar_51.pb
+Squeeze_axesVar_52,14,"(4, 6, 1, 11)",[2],axes/Axes_Squeeze_axesVar_52.pb
+Squeeze_axesVar_53,15,"(1, 1, 1, 209)",[0],axes/Axes_Squeeze_axesVar_53.pb
+Squeeze_axesVar_54,15,"(1, 1, 1, 209)",[1],axes/Axes_Squeeze_axesVar_54.pb
+Squeeze_axesVar_55,15,"(1, 1, 1, 209)",[2],axes/Axes_Squeeze_axesVar_55.pb
+Squeeze_axesVar_56,15,"(1, 1, 1, 209)","[0, 1]",axes/Axes_Squeeze_axesVar_56.pb
+Squeeze_axesVar_57,15,"(1, 1, 1, 209)","[0, 2]",axes/Axes_Squeeze_axesVar_57.pb
+Squeeze_axesVar_58,15,"(1, 1, 1, 209)","[1, 2]",axes/Axes_Squeeze_axesVar_58.pb
+Squeeze_axesVar_59,15,"(1, 1, 1, 209)","[0, 1, 2]",axes/Axes_Squeeze_axesVar_59.pb
+Squeeze_axesVar_60,16,"(1, 9, 1, 11, 1)",[0],axes/Axes_Squeeze_axesVar_60.pb
+Squeeze_axesVar_61,16,"(1, 9, 1, 11, 1)",[2],axes/Axes_Squeeze_axesVar_61.pb
+Squeeze_axesVar_62,16,"(1, 9, 1, 11, 1)",[4],axes/Axes_Squeeze_axesVar_62.pb
+Squeeze_axesVar_63,16,"(1, 9, 1, 11, 1)","[0, 2]",axes/Axes_Squeeze_axesVar_63.pb
+Squeeze_axesVar_64,16,"(1, 9, 1, 11, 1)","[0, 4]",axes/Axes_Squeeze_axesVar_64.pb
+Squeeze_axesVar_65,16,"(1, 9, 1, 11, 1)","[2, 4]",axes/Axes_Squeeze_axesVar_65.pb
+Squeeze_axesVar_66,16,"(1, 9, 1, 11, 1)","[0, 2, 4]",axes/Axes_Squeeze_axesVar_66.pb
+Squeeze_axesVar_67,17,"(4, 1, 4, 1, 43)",[1],axes/Axes_Squeeze_axesVar_67.pb
+Squeeze_axesVar_68,17,"(4, 1, 4, 1, 43)",[3],axes/Axes_Squeeze_axesVar_68.pb
+Squeeze_axesVar_69,17,"(4, 1, 4, 1, 43)","[1, 3]",axes/Axes_Squeeze_axesVar_69.pb
+Squeeze_axesVar_70,18,"(1, 8, 23, 24, 35)",[0],axes/Axes_Squeeze_axesVar_70.pb
+Squeeze_axesVar_71,19,"(1, 1, 1, 1, 11)",[0],axes/Axes_Squeeze_axesVar_71.pb
+Squeeze_axesVar_72,19,"(1, 1, 1, 1, 11)",[1],axes/Axes_Squeeze_axesVar_72.pb
+Squeeze_axesVar_73,19,"(1, 1, 1, 1, 11)",[2],axes/Axes_Squeeze_axesVar_73.pb
+Squeeze_axesVar_74,19,"(1, 1, 1, 1, 11)",[3],axes/Axes_Squeeze_axesVar_74.pb
+Squeeze_axesVar_75,19,"(1, 1, 1, 1, 11)","[0, 1]",axes/Axes_Squeeze_axesVar_75.pb
+Squeeze_axesVar_76,19,"(1, 1, 1, 1, 11)","[0, 2]",axes/Axes_Squeeze_axesVar_76.pb
+Squeeze_axesVar_77,19,"(1, 1, 1, 1, 11)","[0, 3]",axes/Axes_Squeeze_axesVar_77.pb
+Squeeze_axesVar_78,19,"(1, 1, 1, 1, 11)","[1, 2]",axes/Axes_Squeeze_axesVar_78.pb
+Squeeze_axesVar_79,19,"(1, 1, 1, 1, 11)","[1, 3]",axes/Axes_Squeeze_axesVar_79.pb
+Squeeze_axesVar_80,19,"(1, 1, 1, 1, 11)","[2, 3]",axes/Axes_Squeeze_axesVar_80.pb
+Squeeze_axesVar_81,19,"(1, 1, 1, 1, 11)","[0, 1, 2]",axes/Axes_Squeeze_axesVar_81.pb
+Squeeze_axesVar_82,19,"(1, 1, 1, 1, 11)","[0, 1, 3]",axes/Axes_Squeeze_axesVar_82.pb
+Squeeze_axesVar_83,19,"(1, 1, 1, 1, 11)","[0, 2, 3]",axes/Axes_Squeeze_axesVar_83.pb
+Squeeze_axesVar_84,19,"(1, 1, 1, 1, 11)","[1, 2, 3]",axes/Axes_Squeeze_axesVar_84.pb
+Squeeze_axesVar_85,19,"(1, 1, 1, 1, 11)","[0, 1, 2, 3]",axes/Axes_Squeeze_axesVar_85.pb
+Squeeze_axesVar_86,20,"(1, 1, 1, 1, 1)",[0],axes/Axes_Squeeze_axesVar_86.pb
+Squeeze_axesVar_87,20,"(1, 1, 1, 1, 1)",[1],axes/Axes_Squeeze_axesVar_87.pb
+Squeeze_axesVar_88,20,"(1, 1, 1, 1, 1)",[2],axes/Axes_Squeeze_axesVar_88.pb
+Squeeze_axesVar_89,20,"(1, 1, 1, 1, 1)",[3],axes/Axes_Squeeze_axesVar_89.pb
+Squeeze_axesVar_90,20,"(1, 1, 1, 1, 1)",[4],axes/Axes_Squeeze_axesVar_90.pb
+Squeeze_axesVar_91,20,"(1, 1, 1, 1, 1)","[0, 1]",axes/Axes_Squeeze_axesVar_91.pb
+Squeeze_axesVar_92,20,"(1, 1, 1, 1, 1)","[0, 2]",axes/Axes_Squeeze_axesVar_92.pb
+Squeeze_axesVar_93,20,"(1, 1, 1, 1, 1)","[0, 3]",axes/Axes_Squeeze_axesVar_93.pb
+Squeeze_axesVar_94,20,"(1, 1, 1, 1, 1)","[0, 4]",axes/Axes_Squeeze_axesVar_94.pb
+Squeeze_axesVar_95,20,"(1, 1, 1, 1, 1)","[1, 2]",axes/Axes_Squeeze_axesVar_95.pb
+Squeeze_axesVar_96,20,"(1, 1, 1, 1, 1)","[1, 3]",axes/Axes_Squeeze_axesVar_96.pb
+Squeeze_axesVar_97,20,"(1, 1, 1, 1, 1)","[1, 4]",axes/Axes_Squeeze_axesVar_97.pb
+Squeeze_axesVar_98,20,"(1, 1, 1, 1, 1)","[2, 3]",axes/Axes_Squeeze_axesVar_98.pb
+Squeeze_axesVar_99,20,"(1, 1, 1, 1, 1)","[2, 4]",axes/Axes_Squeeze_axesVar_99.pb
+Squeeze_axesVar_100,20,"(1, 1, 1, 1, 1)","[3, 4]",axes/Axes_Squeeze_axesVar_100.pb
+Squeeze_axesVar_101,20,"(1, 1, 1, 1, 1)","[0, 1, 2]",axes/Axes_Squeeze_axesVar_101.pb
+Squeeze_axesVar_102,20,"(1, 1, 1, 1, 1)","[0, 1, 3]",axes/Axes_Squeeze_axesVar_102.pb
+Squeeze_axesVar_103,20,"(1, 1, 1, 1, 1)","[0, 1, 4]",axes/Axes_Squeeze_axesVar_103.pb
+Squeeze_axesVar_104,20,"(1, 1, 1, 1, 1)","[0, 2, 3]",axes/Axes_Squeeze_axesVar_104.pb
+Squeeze_axesVar_105,20,"(1, 1, 1, 1, 1)","[0, 2, 4]",axes/Axes_Squeeze_axesVar_105.pb
+Squeeze_axesVar_106,20,"(1, 1, 1, 1, 1)","[0, 3, 4]",axes/Axes_Squeeze_axesVar_106.pb
+Squeeze_axesVar_107,20,"(1, 1, 1, 1, 1)","[1, 2, 3]",axes/Axes_Squeeze_axesVar_107.pb
+Squeeze_axesVar_108,20,"(1, 1, 1, 1, 1)","[1, 2, 4]",axes/Axes_Squeeze_axesVar_108.pb
+Squeeze_axesVar_109,20,"(1, 1, 1, 1, 1)","[1, 3, 4]",axes/Axes_Squeeze_axesVar_109.pb
+Squeeze_axesVar_110,20,"(1, 1, 1, 1, 1)","[2, 3, 4]",axes/Axes_Squeeze_axesVar_110.pb
+Squeeze_axesVar_111,20,"(1, 1, 1, 1, 1)","[0, 1, 2, 3]",axes/Axes_Squeeze_axesVar_111.pb
+Squeeze_axesVar_112,20,"(1, 1, 1, 1, 1)","[0, 1, 2, 4]",axes/Axes_Squeeze_axesVar_112.pb
+Squeeze_axesVar_113,20,"(1, 1, 1, 1, 1)","[0, 1, 3, 4]",axes/Axes_Squeeze_axesVar_113.pb
+Squeeze_axesVar_114,20,"(1, 1, 1, 1, 1)","[0, 2, 3, 4]",axes/Axes_Squeeze_axesVar_114.pb
+Squeeze_axesVar_115,20,"(1, 1, 1, 1, 1)","[1, 2, 3, 4]",axes/Axes_Squeeze_axesVar_115.pb
+Squeeze_axesVar_116,20,"(1, 1, 1, 1, 1)","[0, 1, 2, 3, 4]",axes/Axes_Squeeze_axesVar_116.pb
+Squeeze_axesVar_117,21,"(1, 1, 6, 11, 1, 4)",[0],axes/Axes_Squeeze_axesVar_117.pb
+Squeeze_axesVar_118,21,"(1, 1, 6, 11, 1, 4)",[1],axes/Axes_Squeeze_axesVar_118.pb
+Squeeze_axesVar_119,21,"(1, 1, 6, 11, 1, 4)",[4],axes/Axes_Squeeze_axesVar_119.pb
+Squeeze_axesVar_120,21,"(1, 1, 6, 11, 1, 4)","[0, 1]",axes/Axes_Squeeze_axesVar_120.pb
+Squeeze_axesVar_121,21,"(1, 1, 6, 11, 1, 4)","[0, 4]",axes/Axes_Squeeze_axesVar_121.pb
+Squeeze_axesVar_122,21,"(1, 1, 6, 11, 1, 4)","[1, 4]",axes/Axes_Squeeze_axesVar_122.pb
+Squeeze_axesVar_123,21,"(1, 1, 6, 11, 1, 4)","[0, 1, 4]",axes/Axes_Squeeze_axesVar_123.pb
+Squeeze_axesVar_124,22,"(2, 1, 1, 9, 1, 1)",[1],axes/Axes_Squeeze_axesVar_124.pb
+Squeeze_axesVar_125,22,"(2, 1, 1, 9, 1, 1)",[2],axes/Axes_Squeeze_axesVar_125.pb
+Squeeze_axesVar_126,22,"(2, 1, 1, 9, 1, 1)",[4],axes/Axes_Squeeze_axesVar_126.pb
+Squeeze_axesVar_127,22,"(2, 1, 1, 9, 1, 1)",[5],axes/Axes_Squeeze_axesVar_127.pb
+Squeeze_axesVar_128,22,"(2, 1, 1, 9, 1, 1)","[1, 2]",axes/Axes_Squeeze_axesVar_128.pb
+Squeeze_axesVar_129,22,"(2, 1, 1, 9, 1, 1)","[1, 4]",axes/Axes_Squeeze_axesVar_129.pb
+Squeeze_axesVar_130,22,"(2, 1, 1, 9, 1, 1)","[1, 5]",axes/Axes_Squeeze_axesVar_130.pb
+Squeeze_axesVar_131,22,"(2, 1, 1, 9, 1, 1)","[2, 4]",axes/Axes_Squeeze_axesVar_131.pb
+Squeeze_axesVar_132,22,"(2, 1, 1, 9, 1, 1)","[2, 5]",axes/Axes_Squeeze_axesVar_132.pb
+Squeeze_axesVar_133,22,"(2, 1, 1, 9, 1, 1)","[4, 5]",axes/Axes_Squeeze_axesVar_133.pb
+Squeeze_axesVar_134,22,"(2, 1, 1, 9, 1, 1)","[1, 2, 4]",axes/Axes_Squeeze_axesVar_134.pb
+Squeeze_axesVar_135,22,"(2, 1, 1, 9, 1, 1)","[1, 2, 5]",axes/Axes_Squeeze_axesVar_135.pb
+Squeeze_axesVar_136,22,"(2, 1, 1, 9, 1, 1)","[1, 4, 5]",axes/Axes_Squeeze_axesVar_136.pb
+Squeeze_axesVar_137,22,"(2, 1, 1, 9, 1, 1)","[2, 4, 5]",axes/Axes_Squeeze_axesVar_137.pb
+Squeeze_axesVar_138,22,"(2, 1, 1, 9, 1, 1)","[1, 2, 4, 5]",axes/Axes_Squeeze_axesVar_138.pb
