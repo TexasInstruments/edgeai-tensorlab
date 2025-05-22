@@ -76,7 +76,8 @@ def parse_args(args=None):
     parser.add_argument('--quantize-calib-images', type=int, default=50)
     parser.add_argument('--max-eval-samples', type=int, default=2000)
     parser.add_argument('--export-onnx-model', action='store_true', default=False, help='whether to export the onnx network' )
-    parser.add_argument('--simplify', action='store_true', default=False, help='whether to simplify the onnx model or not model' )   
+    parser.add_argument('--simplify', action='store_true', default=False, help='whether to simplify the onnx model or not model' )
+    parser.add_argument('--preload-checkpoint', type=int, default=0, help='where to load the checkpoint 0: before any modification, 1: after model surgery, 2: after quantization' )
     # When using PyTorch version >= 2.0.0, the `torch.distributed.launch`
     # will pass the `--local-rank` parameter to `tools/test.py` instead
     # of `--local_rank`.
@@ -152,6 +153,8 @@ def main(args=None):
         cfg.test_dataloader.dataset.pipeline = cfg.tta_pipeline
         cfg.model = ConfigDict(**cfg.tta_model, module=cfg.model)
 
+    args.preload_checkpoint = cfg.get('preload_checkpoint', False) or args.preload_checkpoint
+    
     if hasattr(cfg,'save_onnx_model') is False:
         cfg.save_onnx_model = False
 
@@ -175,12 +178,16 @@ def main(args=None):
     del BaseModule.init_weights
 
     runner.model.eval()
-    # runner.call_hook('before_run')
-    modify_runner_load_check_point_function(runner)
-    #runner.load_or_resume()
-    # runner.call_hook('after_run')
+    if args.preload_checkpoint == 0:
+        runner.load_or_resume()
+    ## this is requiured for model having original implementation of Deformable CONV
+    ## this will only change the Deformable Conv (of type ModulatedDeformConv2dTIDL and ModulatedDeformConv2dPack) to Split Offset and Mask
     runner.model = replace_dform_conv_with_split_offset_mask(runner.model)
-    runner.load_or_resume()
+    if args.preload_checkpoint == 1:
+        runner.load_or_resume()
+    if args.preload_checkpoint == 2:
+        ## this is required for loading checkpoint in quantized model
+        modify_runner_load_check_point_function(runner)
 
     # Need to validate model optimization for other models
     if args.quantization and \
@@ -248,7 +255,7 @@ def main(args=None):
             runner.model = runner.wrap_model(
                 runner.cfg.get('model_wrapper_cfg'), runner.model)
 
-
+    # runner.load_or_resume()
     runner.test()
 
 

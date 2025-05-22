@@ -38,20 +38,21 @@ sudo apt-get install -y libjpeg-dev zlib1g-dev cmake libffi-dev protobuf-compile
 pip3 install --no-input --upgrade pip==23.0.1 setuptools==60.2.0
 
 ######################################################################
-echo "installing torch, torchvision"
-pip3 install torch==2.4.0 torchvision==0.19.0
+echo "installing torch, torchvision base on CUDA version"
+# Refer to pytorch.org/get-started/previous-versions
+pip3 install torch==2.4.0 torchvision==0.19.0 --index-url https://download.pytorch.org/whl/cu121
 
 echo "installing requirements"
 pip3 install --no-input -r requirements.txt
 
 echo "Installing PandaSet"
-rm -r pandaset-devkit
-git clone git@github.com:scaleapi/pandaset-devkit.git
+rm -r -f pandaset-devkit
+git clone https://github.com/scaleapi/pandaset-devkit.git
 cp -f ./requirements/pandaset_requirements.txt ./pandaset-devkit/python/requirements.txt
 cd pandaset-devkit/python
 pip install .
 cd ../..
-rm -r pandaset-devkit
+rm -r -f pandaset-devkit
 
 pip install -U openmim
 mim install mmengine==0.10.4

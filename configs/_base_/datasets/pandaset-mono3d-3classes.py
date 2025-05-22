@@ -1,9 +1,13 @@
 dataset_type = 'PandaSetDataset'
 data_root = 'data/pandaset/'
 class_names = [
-            'Car','Temporary Construction Barriers',
-        ]
-class_mapping = [0]+[1]*26
+    'Car','Pedestrian','Temporary Construction Barriers'
+]
+class_mapping = [
+    0,2,2,1,2,2,2,2,2,
+    2,2,2,2,2,2,2,2,2,
+    2,2,2,2,2,1,2,2,2,
+]
 metainfo = dict(classes=class_names, class_mapping=class_mapping) # full
 # metainfo = dict(classes=class_names, version='v1.0-mini') # mini
 # Input modality for nuScenes dataset, this is consistent with the submission

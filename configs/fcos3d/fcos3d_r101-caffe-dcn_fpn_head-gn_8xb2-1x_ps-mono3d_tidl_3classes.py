@@ -1,5 +1,5 @@
 _base_ = [
-    '../_base_/datasets/pandaset-mono3d-2classes.py', '../_base_/models/fcos3d.py',
+    '../_base_/datasets/pandaset-mono3d-3classes.py', '../_base_/models/fcos3d.py',
     '../_base_/schedules/mmdet-schedule-1x.py', '../_base_/default_runtime.py'
 ]
 # model settings
@@ -20,7 +20,7 @@ model = dict(
     bbox_head=dict(
         type='CustomFCOSMono3DHead',
         dcn_on_last_conv=True,
-        num_classes=2, 
+        num_classes=3, 
         num_attrs=18,),
     test_cfg=dict(
         use_rotate_nms=False,
@@ -32,7 +32,8 @@ env_cfg = dict(
 
 train_cfg = dict(max_epochs=12)
 default_hooks = dict(
-    logger=dict(interval=100)
+    logger=dict(interval=100),
+    checkpoint=dict(interval=1, max_keep_ckpts=2),
 )
 
 backend_args = None
@@ -91,8 +92,7 @@ param_scheduler = [
         gamma=0.1)
 ]
 # TODO remove this
-load_from = './checkpoints/fcos3d/fcos3d_r101_caffe_fpn_gn-head_dcn_2x8_1x_ps-mono3d_finetune_20210717_095645-8d806dc2_adjusted_2classes.pth'
-# load_from = './work_dirs/fcos3d_r101-caffe-dcn_fpn_head-gn_8xb2-1x_ps-mono3d_tidl_2classes/epoch_12.pth'
-
-preload_checkpoint=0
+load_from = '/data/ssd/files/a0507161/edgeai/edgeai-mmdetection3d/work_dirs/fcos3d_r101-caffe-dcn_fpn_head-gn_8xb2-1x_ps-mono3d_tidl_3classes/epoch_5.pth'
+# load_from = './work_dirs/fcos3d_r101-caffe-dcn_fpn_head-gn_8xb2-1x_ps-mono3d_tidl_2classes/epoch_6.pth'
+preload_checkpoint=1
 find_unused_parameters = True

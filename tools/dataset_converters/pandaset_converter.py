@@ -230,7 +230,7 @@ def get_gt_bevdet(instances, ego_bboxes, ego_velocities):
     return gt_boxes, gt_labels
 
 
-def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img, enable_bevdet=False):
+def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img):
     scene_token = scene_id
     frame_token = f'{scene_id}_{frame_idx:02}'
     prev = (frame_idx-1) if frame_idx > 0 else None
@@ -436,14 +436,14 @@ def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img, enable_
         cam_instances=cam_instances,
     )
 
-    if enable_bevdet is True:
-        ann_infos = get_gt_bevdet(instances, ego_bboxes, ego_velocities)
-        frame_dict.update(dict(ann_infos=ann_infos))
+    # For BEVDet temporal info
+    ann_infos = get_gt_bevdet(instances, ego_bboxes, ego_velocities)
+    frame_dict.update(dict(ann_infos=ann_infos))
 
     return frame_dict
 
 
-def create_datalist_per_scene(scene_id, dataset, enable_bevdet=False):
+def create_datalist_per_scene(scene_id, dataset):
     data_list = []
     seq = dataset[scene_id]
     seq.load()
@@ -455,7 +455,7 @@ def create_datalist_per_scene(scene_id, dataset, enable_bevdet=False):
     with tqdm.tqdm(total=len(seq.lidar._data_structure)) as pbar:
 
         for frame_idx in range(len(seq.lidar._data_structure)):
-            frame_dict = create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img, enable_bevdet=enable_bevdet)
+            frame_dict = create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img)
             data_list.append(copy.deepcopy(frame_dict))
             delete_obj(frame_dict)
             pbar.update()
@@ -478,7 +478,7 @@ def create_datalist_per_scene(scene_id, dataset, enable_bevdet=False):
     return data_list
 
 
-def create_pickle_file( dataset, scenes, output_dir=None, info_prefix=None, version=None, dataset_name=None, enable_bevdet=False, train_split=True):
+def create_pickle_file( dataset, scenes, output_dir=None, info_prefix=None, version=None, dataset_name=None, train_split=True):
     output_dir = output_dir or os.getcwd()
     version = version or 'v1.0'
     dataset_name = dataset_name or 'PandaSetDataset'
@@ -498,7 +498,7 @@ def create_pickle_file( dataset, scenes, output_dir=None, info_prefix=None, vers
 
     for i, scene_id in enumerate(scenes):
         print(f"Scene({i+1}/{len(scenes)}): ",end='')
-        data_list.extend(create_datalist_per_scene(scene_id, dataset,enable_bevdet=enable_bevdet))
+        data_list.extend(create_datalist_per_scene(scene_id, dataset))
 
     for i, frame in enumerate(data_list):
         frame['sample_idx'] = i
@@ -509,7 +509,7 @@ def create_pickle_file( dataset, scenes, output_dir=None, info_prefix=None, vers
 
 
 
-def create_pickle_files(dataset_path, output_dir, info_prefix, version, dataset_name, enable_bevdet=False, with_semseg=False, fixed_split=True, train_split=0.80):
+def create_pickle_files(dataset_path, output_dir, info_prefix, version, dataset_name, with_semseg=False, fixed_split=True, train_split=0.80):
     dataset = ps.DataSet(dataset_path)
     semseg_scenes = dataset.sequences(with_semseg=with_semseg)
     scenes = dataset.sequences()
@@ -530,17 +530,16 @@ def create_pickle_files(dataset_path, output_dir, info_prefix, version, dataset_
         pass
     else:
         print(f"Creating a test dataset of {len(test_scenes)} scenes")
-        create_pickle_file(dataset, test_scenes, output_dir, info_prefix, version, dataset_name, enable_bevdet=enable_bevdet, train_split=False)
+        create_pickle_file(dataset, test_scenes, output_dir, info_prefix, version, dataset_name, train_split=False)
         print(f"Creating a train dataset of {len(train_scenes)} scenes")
-        create_pickle_file(dataset, train_scenes, output_dir, info_prefix, version, dataset_name, enable_bevdet=enable_bevdet)
+        create_pickle_file(dataset, train_scenes, output_dir, info_prefix, version, dataset_name)
 
 def create_pandaset_infos(root_path,
                           info_prefix,
                           version,
                           dataset_name,
-                          out_dir,
-                          enable_bevdet):
-    create_pickle_files(root_path, out_dir, info_prefix, version, dataset_name, enable_bevdet)
+                          out_dir):
+    create_pickle_files(root_path, out_dir, info_prefix, version, dataset_name)
     
 
 def main(args=None):
@@ -550,15 +549,14 @@ def main(args=None):
     parser.add_argument('--info-prefix', type=str, default='')
     parser.add_argument('--version', type=str, default='v1.0')
     parser.add_argument('--dataset-name', type=str, default='PandaSetDataset')
-    parser.add_argument('--bevdet',  action='store_true')
     parser.add_argument('--with-semseg',  action='store_true')
     parser.add_argument('--train-split', type=float, default=0.75)
     args = parser.parse_args() if args is None else parser.parse_args(args)
-    create_pickle_files(args.dataset_path, args.output_dir, args.info_prefix, args.version, args.dataset_name, args.bevdet, args.with_semseg, args.train_split)
+    create_pickle_files(args.dataset_path, args.output_dir, args.info_prefix, args.version, args.dataset_name, args.with_semseg, args.train_split)
 
 if __name__ == '__main__':
 
     # from edgeai-mmdetection3d path
-    # main(['--dataset-path', './data/pandaset/data/', '--output-dir', './data/pandaset/data/'])
+    # main(['--dataset-path', './data/pandaset/', '--output-dir', './data/pandaset/'])
     # from any path with correct path to dataset
     main()
