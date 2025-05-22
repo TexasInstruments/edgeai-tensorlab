@@ -131,7 +131,7 @@ def get_configs(settings, work_dir):
                                                                                                        '/Gather_9':'/Gather_9',}),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(bev_options={'bev_options:num_temporal_frames': 0}),
                     {'advanced_options:output_feature_16bit_names_list':'/bbox_head/conv_cls/Conv_output_0, /bbox_head/conv_dir_cls/Conv_output_0, /bbox_head/conv_reg/Conv_output_0'}),
-                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/pandaset/fastbev/fastbev_plus_pandaset_r18_f1_256x704_20250507.onnx'),
+                model_path=f'{settings.models_path}/vision/detection_3d/pandaset/mmdet3d/fastbev/fastbev_plus_pandaset_r18_f1_256x704_20250507.onnx'),
             postprocess=postproc_transforms.get_transform_bev_detection_fastbev(),
             metric=dict(),
             model_info=dict(metric_reference={'mAP':0.4})
@@ -148,9 +148,9 @@ def get_configs(settings, work_dir):
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(bev_options={'bev_options:num_temporal_frames': 0},
                     ext_options={'object_detection:meta_arch_type': 7,
                                  'object_detection:meta_layers_names_list':
-                                 '../edgeai-modelforest/models-cl/vision/detection_3d/pandaset/fastbev/fastbev_plus_pandaset_nms_r18_f1_metaarch.prototxt'}),
+                                 f'{settings.models_path}/vision/detection_3d/pandaset/mmdet3d/fastbev/fastbev_plus_pandaset_nms_r18_f1_metaarch.prototxt'}),
                     {'advanced_options:output_feature_16bit_names_list':'/bbox_head/conv_cls/Conv_output_0, /bbox_head/conv_dir_cls/Conv_output_0, /bbox_head/conv_reg/Conv_output_0'}),
-                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/pandaset/fastbev/fastbev_plus_pandaset_nms_r18_f1_256x704_20250507.onnx'),
+                model_path=f'{settings.models_path}/vision/detection_3d/pandaset/mmdet3d/fastbev/fastbev_plus_pandaset_nms_r18_f1_256x704_20250507.onnx'),
             postprocess=postproc_transforms.get_transform_bev_detection_fastbev(enable_nms=False),
             metric=dict(),
             model_info=dict(metric_reference={'mAP':0.4})
