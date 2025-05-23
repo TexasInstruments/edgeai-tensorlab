@@ -323,25 +323,29 @@ def download_tidl_tools(TIDL_TOOLS_VERSION_NAME, TIDL_TOOLS_RELEASE_LABEL, TIDL_
         shutil.rmtree(install_target_soc_path, ignore_errors=True)
         os.makedirs(install_target_soc_path, exist_ok=True)
 
-        download_and_extract_archive(url_name, install_target_soc_path, install_target_soc_path)
-        assert os.path.exists(install_path), f"ERROR: download_and_extract_archive: {url_name} - failed"
+        try:
+            download_and_extract_archive(url_name, install_target_soc_path, install_target_soc_path)
+            os.chdir(install_path)
+            os.symlink(os.path.join("..", "..", GCC_ARM_AARCH64_NAME), GCC_ARM_AARCH64_NAME)
 
-        os.chdir(install_path)
-        os.symlink(os.path.join("..", "..", GCC_ARM_AARCH64_NAME), GCC_ARM_AARCH64_NAME)
-
-        version_dict = {
-            "version": TIDL_TOOLS_VERSION_NAME,
-            "release_label": TIDL_TOOLS_RELEASE_LABEL,
-            "target_device": TARGET_SOC,
-            "release_id": TIDL_TOOLS_RELEASE_ID,
-            "c7x_firmware_version": C7X_FIRMWARE_VERSION
-        }
-        with open(os.path.join(install_path, 'version.yaml'), "w") as fp:
-            yaml.safe_dump(version_dict, fp)
+            version_dict = {
+                "version": TIDL_TOOLS_VERSION_NAME,
+                "release_label": TIDL_TOOLS_RELEASE_LABEL,
+                "target_device": TARGET_SOC,
+                "release_id": TIDL_TOOLS_RELEASE_ID,
+                "c7x_firmware_version": C7X_FIRMWARE_VERSION
+            }
+            with open(os.path.join(install_path, 'version.yaml'), "w") as fp:
+                yaml.safe_dump(version_dict, fp)
+            #
+            target_soc_version_dict.update({TARGET_SOC: version_dict})
+            #print(target_soc_version_dict)
+            os.chdir(cwd)
+        except:
+            print(f"ERROR: download_and_extract_archive: {url_name} - failed")
+            os.chdir(cwd)
         #
-        target_soc_version_dict.update({TARGET_SOC: version_dict})
-    #
-    #print(target_soc_version_dict)
+
     os.chdir(cwd)
     return None
 
