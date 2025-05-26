@@ -60,7 +60,7 @@ for op in sorted(os.listdir(A_DIR)):
 
     # write per-operator CSV
     out_path = os.path.join(OUT_DIR, f"{op}.csv")
-    header = ["Model_name"]
+    header = ["model name"]
     header += ["TIDL_Offload"]
     for _, label in VARIANTS:
         col = label.replace(" ", "_")
@@ -78,12 +78,12 @@ for op in sorted(os.listdir(A_DIR)):
         with open(path, newline="", encoding="utf-8") as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
-                mn = row["Model_Name"]
+                mn = row["model name"]
                 if mn not in model_attrs:
                     model_attrs[mn] = {}
                 # merge attributes (later CSVs can override)
                 for k,v in row.items():
-                    if k == "Model_Name":
+                    if k == "model name":
                         continue
                     model_attrs[mn][k] = v
                     all_attr_keys.add(k)
