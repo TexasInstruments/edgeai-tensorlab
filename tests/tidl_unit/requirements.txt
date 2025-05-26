@@ -1,4 +1,4 @@
---upgrade pillow
+pillow
 pytest
 pytest-xdist
 pytest-html==3.2.0
