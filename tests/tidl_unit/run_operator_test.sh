@@ -40,6 +40,7 @@ fi
 # Configuration
 ###############################################################################
 tools_path="<tidl_tools tarball path here>"
+ALLOWED_RUNTIMES=("onnxrt" "tvmrt")
 OPERATORS=()
 RUNTIMES=()
 while [[ $# -gt 0 ]]; do
@@ -64,6 +65,10 @@ while [[ $# -gt 0 ]]; do
             if $exp_ops; then
                 OPERATORS+=("$1")
             elif $exp_runtimes; then
+                if ! printf '%s\n' "${ALLOWED_RUNTIMES[@]}" | grep -Fxq "$1"; then
+                    echo "Error: Invalid Runtime '$1'." >&2
+                    exit 1
+                fi
                 RUNTIMES+=("$1")
             else
                 echo "Unexpected argument: $1"

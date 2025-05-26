@@ -200,7 +200,9 @@ if not args.compare:
     else:
         script += ['--runtimes'] + ALL_RUNTIMES
     
-    subprocess.run(script, text=True)
+    process = subprocess.run(script, text=True)
+    if process.returncode == 1:
+        exit()
 
 # Extract data from reports
 print("──────────────────────────── Extracting data from reports ────────────────────────────")

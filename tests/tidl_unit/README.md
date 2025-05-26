@@ -117,9 +117,9 @@ tidl_unit_tests/
 ├─ run_test.sh  				        # Main entry‑point script
 ├─ tidl_unit.yaml  				        # backend testing configuration
 ├─ tidl_unit_test_data/                 # Symlink → operator assets
-├─ operator_test_report_comparison/     # CSV‑based intensive test reports
+├─ operator_test_report_comparison/     # CSV‑based comparison reports between runtimes
 ├─ operator_test_report_csv/            # CSV‑based intensive test reports
-├─ operator_test_report_html/           # HTML reports (ONNX‑backed, default)
+├─ operator_test_report_html/           # HTML reports
 ├─ report_script/                       # Report‑generation scripts'
 ├─ requirements.txt  			        # python requirements
 ... other pytest requirements
@@ -128,7 +128,7 @@ tidl_unit_tests/
 ## 7. Reports Layout
 ```text
 tidl_unit_tests/
-├── operator_test_report_comparison/                # Comparison between various runtimes
+├── operator_test_report_comparison/                # Comparison between runtimes
 │   ├── onnxrt/
 │   │   ├── <Operator_Name>/
 │   │   └── …

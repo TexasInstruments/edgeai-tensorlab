@@ -30,6 +30,3 @@ evm_wheels/
 *.ods
 *.zip
 *.tar.gz
-
-/tests/tidl_tools
-/tests/tidl_unit/operator_test_report*

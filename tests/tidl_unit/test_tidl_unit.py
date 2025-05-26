@@ -146,13 +146,12 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, test_nam
     # Declare config object
     cur_dir = os.path.dirname(__file__)
     settings = config_settings.ConfigSettings(os.path.join(cur_dir,'tidl_unit.yaml'), tidl_offload=tidl_offload)
-    match runtime:
-        case "onnxrt":
-            session_name = constants.SESSION_NAME_ONNXRT
-        case "tvmrt":
-            session_name = constants.SESSION_NAME_TVMDLR
-        case _:
-            raise ValueError("Runtimes currently supported are onnxrt and tvmrt")
+    if runtime == "onnxrt":
+        session_name = constants.SESSION_NAME_ONNXRT
+    elif runtime == "tvmrt":
+        session_name = constants.SESSION_NAME_TVMDLR
+    else:
+        raise ValueError("Runtimes currently supported are onnxrt and tvmrt")
     model_file       = os.path.join(test_dir, "model.onnx")
     onnx.shape_inference.infer_shapes_path(model_file, model_file)
 
