@@ -81,6 +81,8 @@ def pytest_runtest_makereport(item, call):
                         report.complete_tidl_offload = "False"
                 except:
                     pass
+            if report.complete_tidl_offload != "True":
+                report.complete_tidl_offload = "True" if report.tidl_subgraphs.isdigit() and int(report.tidl_subgraphs) >= 1 else "False"
         else:
             report.complete_tidl_offload = "-"
 # Inserts the TIDL Subgraphs table header

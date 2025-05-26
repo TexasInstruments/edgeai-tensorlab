@@ -1,4 +1,5 @@
 from edgeai_benchmark import *
+import re
 
 def get_tidl_performance(interpreter, session_name="onnxrt"):
     '''

@@ -105,6 +105,7 @@ error_regex = [
     r"\nTVMError: (.*)",
     r"\n(.*) \[ONNXRuntimeError\] (.*)",
     r"\nAssertionError: (.*)",
+    r"\nFailed:  (.*)",
     { "regex": r"DLRError", "error": "Compilation Failed" },
     { "regex": r"stopped exitcode=-SIGBUS>", "error": "Bus Error"}
 ]
@@ -167,7 +168,10 @@ def extract_report_data(runtime, operator, report_dict):
                         else:
                             error_match = re.search(error_reg, err_str) 
                             if error_match is not None:
-                                error = error_match[0][1:]
+                                if error_reg.startswith(r"\n"):
+                                    error = error_match[0][1:]
+                                else:
+                                    error = error_match[0]
                     
                     report_dict[name].append({
                         "nodeid": cells[1].text.strip(),
@@ -286,11 +290,11 @@ for k in complete.keys():
             infer[7]
         ]
         overall = "-"
-        if row[8] == "Passing" and row[9] == "Passing":
+        if row[8] == "Passing" and row[9] == "Passed":
             overall = "Passing"
         elif row[8] != "Passing":
             overall = "Compilation Failure"
-        elif row[9] != "Passing":
+        elif row[9] != "Passed":
             overall = "Inference Failure"
         row.append(overall)
         complete_rows.append(row)
