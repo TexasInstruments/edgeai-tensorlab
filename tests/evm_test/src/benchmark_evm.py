@@ -13,7 +13,7 @@ import traceback
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(CURRENT_DIR))
 
-from src.relay_control import AnelRelayControl
+from src.relay_control import PowerRelayControl
 from src.uart_interface import UartInterface
 
 def find_subdirectory(starting_string, root_dir='.'):
@@ -23,7 +23,7 @@ def find_subdirectory(starting_string, root_dir='.'):
     return None
 
 class BenchmarkEvm():
-    def __init__(self, evm_config, edgeai_benchmark_path, ip_address, reboot_type="soft", logs_dir=None, dataset_dir_path=None, modelartifacts_path=None):
+    def __init__(self, evm_config, edgeai_benchmark_path, ip_address, reboot_type="soft", logs_dir=None, dataset_dir_path=None, modelartifacts_path=None, session_type_dict=None, tensor_bits=8):
         self.evm_config = evm_config
         self.soc = self.evm_config["soc"]
         self.eai_benchmark_mount_path = f"{ip_address}:{edgeai_benchmark_path}"
@@ -34,10 +34,11 @@ class BenchmarkEvm():
         self.relay = None
         self.reboot_type = reboot_type
         if self.reboot_type == "hard":
+            relay_type = self.evm_config["relay_info"]["relay_type"]
             relay_exe = self.evm_config["relay_info"]["executable_path"]
             relay_ip = self.evm_config["relay_info"]["ip_address"]
             relay_number = self.evm_config["relay_info"]["power_port"]
-            self.relay = AnelRelayControl(relay_exe,relay_ip,relay_number)
+            self.relay = PowerRelayControl(relay_exe,relay_ip,relay_number,relay_type)
             self.relay.verify_relay()
         elif self.reboot_type == "soft":
             pass
@@ -52,6 +53,8 @@ class BenchmarkEvm():
         self.setup_iter = 0
 
         self.modelartifacts_path = modelartifacts_path
+        self.session_type_dict = session_type_dict if session_type_dict is not None else "\"{'onnx':'onnxrt' ,'tflite':'tflitert' ,'mxnet':'tvmdlr'}\""
+        self.tensor_bits = tensor_bits
 
         print(f"[ Info ] SOC : {self.soc}")
         print(f"[ Info ] EVM Reboot type : {self.reboot_type}")
@@ -181,7 +184,7 @@ class BenchmarkEvm():
         if status:
             #TODO deal with timeout in better way
             if self.modelartifacts_path is not None:
-                command = f'cd && ./model_infer.sh {self.soc} {timeout} {generate_report} {model_selection} {num_frames} {self.modelartifacts_path}'
+                command = f'cd && ./model_infer.sh {self.soc} {timeout} {generate_report} {model_selection} {num_frames} {self.modelartifacts_path} {self.tensor_bits} \"{self.session_type_dict}\"'
             else:
                 command = f'cd && ./model_infer.sh {self.soc} {timeout} {generate_report} {model_selection} {num_frames}'
 

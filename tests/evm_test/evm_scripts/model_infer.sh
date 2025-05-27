@@ -7,6 +7,8 @@ GENERATE_REPORT=${3:-"0"}
 MODEL_SELECTION=${4:-"null"}
 NUM_FRAMES=${5:-"0"}
 MODELARTIFACTS_PATH=${6:-"./work_dirs/modelartifacts"}
+TENSOR_BITS=${7:-"8"}
+SESSION_TYPE_DICT=${8:-"{'onnx': 'onnxrt', 'tflite': 'tflitert', 'mxnet':'tvmdlr'}"}
 
 EXTRA_ARGS="--experimental_models True --additional_models True"
 if [ "$MODEL_SELECTION" != "null" ]; then
@@ -22,7 +24,7 @@ echo "EXTRA_ARGS:${EXTRA_ARGS}"
 
 # target Inference Steps
 cd ~/edgeai-benchmark
-timeout -k 5 ${TIMEOUT} python3 ./scripts/benchmark_modelzoo.py settings_infer_on_evm.yaml --target_device ${TARGET_DEVICE} --modelartifacts_path ${MODELARTIFACTS_PATH}/${target_device} --parallel_processes 0 ${EXTRA_ARGS}
+timeout -k 5 ${TIMEOUT} python3 ./scripts/benchmark_modelzoo.py settings_infer_on_evm.yaml --target_device ${TARGET_DEVICE} --modelartifacts_path ${MODELARTIFACTS_PATH}/${target_device} --parallel_processes 0 ${EXTRA_ARGS} --tensor_bits ${TENSOR_BITS} --session_type_dict ${SESSION_TYPE_DICT}
 if [ $? -eq 124 ]; then
     echo "TIMEDOUT after ${TIMEOUT}s"
     exit 1

@@ -138,7 +138,13 @@ class TVMDLRRuntimeWrapper(BaseRuntimeWrapper):
         #
 
        # Create the TIDL compiler with appropriate parameters
-        compiler = tidl.TIDLCompiler(c7x_codegen=0, **self.kwargs['runtime_options'])
+        if (not self.kwargs.get('tidl_offload', True)):
+            self.kwargs['runtime_options']['max_num_subgraphs'] = 0
+        #
+        compiler = tidl.TIDLCompiler(
+            c7x_codegen=self.kwargs.get('c7x_codegen', False),
+            **self.kwargs['runtime_options'],
+        )
 
         artifacts_folder = self.kwargs['artifacts_folder']
         os.makedirs(artifacts_folder, exist_ok=True)
