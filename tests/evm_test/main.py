@@ -25,6 +25,7 @@ parser.add_argument('--logs_dir', help='Optional path to store evm test logs', t
 parser.add_argument('--artifacts_folder', help='Optional path to store the model artifacts after EVM run', type=str, default=None)
 parser.add_argument('--artifacts_tarball', help='Optional path to model artifacts tarball', type=str, default=None)
 parser.add_argument('--reboot_type', help='Reboot type (hard|soft)', type=str, default="soft")
+parser.add_argument('--relay_type', help='Type of ethernet controlled power relay - (Anel|DLI)', type=str, default="Anel")
 parser.add_argument('--relay_exe_path', help='Anel power switch exe path', type=str, default=None)
 parser.add_argument('--relay_ip_address', help='Anel power switch IP address', type=str, default=None)
 parser.add_argument('--relay_power_port', help='Anel power switch port number', type=str, default=None)
@@ -32,6 +33,8 @@ parser.add_argument('--pc_ip', help='IP address of the pc', type=str, default=No
 parser.add_argument('--num_frames', help='The number of frames to run the evaluation', type=str, default=None)
 parser.add_argument('--dataset_dir', help='Optional path to get the dataset from pc, used with pc_ip', type=str, default=None)
 parser.add_argument('--evm_timeout', help='Optional argument to set the timeout for a single test', type=str, default='600')
+parser.add_argument('--tensor_bits', help='Optional argument to tensor bits', type=str, default='8')
+parser.add_argument('--session_type_dict', help='Optional argument to set runtime to model type mapping', type=str, default="\"{'onnx':'onnxrt' ,'tflite':'tflitert' ,'mxnet':'tvmdlr'}\"")
 
 
 args = parser.parse_args()
@@ -84,6 +87,7 @@ evm_config = { "soc" : args.soc,
                     "rtscts":0
                 },
                 "relay_info" : {
+                    "relay_type" : args.relay_type,
                     "executable_path": args.relay_exe_path,
                     "ip_address": args.relay_ip_address,
                     "power_port": args.relay_power_port
@@ -92,7 +96,7 @@ evm_config = { "soc" : args.soc,
 
 # Model artifacts folder
 if args.artifacts_folder is None:
-    artifacts_dir = os.path.join(edgeai_benchmark_path, "work_dirs", "modelartifacts", evm_config["soc"], "8bits")
+    artifacts_dir = os.path.join(edgeai_benchmark_path, "work_dirs", "modelartifacts", evm_config["soc"], f"{args.tensor_bits}bits")
 else:
     artifacts_dir = args.artifacts_folder
 
@@ -210,8 +214,8 @@ if len(model_list) == 0:
 
 # we need to send the relative path instead of absolute because it used in evm, without the 8bits in end
 artifacts_dir = './' + os.path.relpath(artifacts_dir, edgeai_benchmark_path)
-if artifacts_dir.endswith('/8bits'):
-    artifacts_dir = artifacts_dir[:-len('/8bits')]
+if artifacts_dir.endswith(f'/{args.tensor_bits}bits'):
+    artifacts_dir = artifacts_dir[:-len(f'/{args.tensor_bits}bits')]
 # Run the tests
 benchmark_evm = BenchmarkEvm(evm_config=evm_config,
                              edgeai_benchmark_path=edgeai_benchmark_path,
@@ -219,7 +223,9 @@ benchmark_evm = BenchmarkEvm(evm_config=evm_config,
                              reboot_type=args.reboot_type,
                              logs_dir=args.logs_dir,
                              dataset_dir_path=args.dataset_dir,
-                             modelartifacts_path=artifacts_dir)
+                             modelartifacts_path=artifacts_dir,
+                             tensor_bits=args.tensor_bits,
+                             session_type_dict=args.session_type_dict)
 
 status = benchmark_evm.init_setup()
 if status:

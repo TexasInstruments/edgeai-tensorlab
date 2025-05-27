@@ -33,7 +33,6 @@ import copy
 from . import presets
 from .basert_runtime import BaseRuntimeWrapper
 
-tvmdlr = "dlr"
 
 class TVMDLRRuntimeWrapper(BaseRuntimeWrapper):
     def __init__(self, *args, **kwargs):
@@ -82,25 +81,12 @@ class TVMDLRRuntimeWrapper(BaseRuntimeWrapper):
         self.kwargs['input_details'] = self.get_input_details(None, self.kwargs.get('input_details', None))
         self.kwargs['output_details'] = self.get_output_details(None, self.kwargs.get('output_details', None))
         # moved the import inside the function, so that dlr needs to be installed only if someone wants to use it
-        
+        from dlr import DLRModel
         artifacts_folder = self.kwargs['artifacts_folder']
-        if tvmdlr=="dlr":
-            from dlr import DLRModel
-            if not os.path.exists(artifacts_folder):
-                return False
-            #
-            self.interpreter = DLRModel(artifacts_folder, 'cpu')
-        else:
-            import tvm
-            from tvm.contrib import graph_executor as runtime
-
-            loaded_json = open(artifacts_folder + "/deploy_graph.json").read()
-            loaded_lib = tvm.runtime.load_module(artifacts_folder + "/deploy_lib.so","so")
-            loaded_params = bytearray(open(artifacts_folder + "/deploy_params.params", "rb").read())
-
-            # create a runtime executor module
-            self.interpreter = runtime.create(loaded_json, loaded_lib, tvm.cpu())
-            self.interpreter.load_params(loaded_params)
+        if not os.path.exists(artifacts_folder):
+            return False
+        #
+        self.interpreter = DLRModel(artifacts_folder, 'cpu')
         self._start_inference_done = True
         return self.interpreter
 
@@ -116,19 +102,7 @@ class TVMDLRRuntimeWrapper(BaseRuntimeWrapper):
         if self.kwargs.get('extra_inputs'):
             input_data.update(self.kwargs['extra_inputs'])
         #
-
-        if tvmdlr == "dlr":
-            outputs = self.interpreter.run(input_data)
-        else:
-            for key, value in input_data.items():
-                self.interpreter.set_input(key, value)
-            
-            self.interpreter.run()
-
-            outputs = []
-            for i in range(self.interpreter.get_num_outputs()):
-                outputs.append(self.interpreter.get_output(i).asnumpy())
-
+        outputs = self.interpreter.run(input_data)
         return outputs
 
     def _create_interpreter_for_import(self, calib_list):
