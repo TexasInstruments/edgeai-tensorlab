@@ -44,6 +44,7 @@ echo \
     --run_compile       Run model compilation test. Allowed values are (0,1). Default=1.
     --run_infer         Run model inference test. Allowed values are (0,1). Default=1.
     --tidl_offload      Enable TIDL Offload. Allowed values are (0,1). Default=1.
+    --runtime           Select the Compiler Runtime to use. Allowed values are (onnxrt, tvmrt). Default=onnxrt
     --tests             Specify tests name. If null, will run all test based on test_suite. Default=null.
                         TEST_SUITE:
                             operator: You can specify comma seperated operator name (Ex: Convolution) or specific test (Ex: Softmax_1) 
@@ -60,6 +61,7 @@ tests=""
 run_compile=""
 run_infer=""
 tidl_offload=""
+runtime="onnxrt"
 
 while [ $# -gt 0 ]; do
         case "$1" in
@@ -77,6 +79,9 @@ while [ $# -gt 0 ]; do
         ;;
         --tidl_offload=*)
         tidl_offload="${1#*=}"
+        ;;
+        --runtime=*)
+        runtime="${1#*=}"
         ;;
         --help)
         usage
@@ -129,6 +134,7 @@ echo "TESTS:        ${tests}"
 echo "RUN_COMPILE:  ${run_compile}"
 echo "RUN_INFER:    ${run_infer}"
 echo "TIDL_OFFLOAD: ${tidl_offload}"
+echo "RUNTIME:      ${runtime}"
 echo "##################################################################"
 echo
 
@@ -201,7 +207,7 @@ if [[ "$tidl_offload" == "0" ]]; then
    extra_args="--disable-tidl-offload"
 fi
 
-
+extra_args="${extra_args} --runtime=${runtime}"
 
 if [[ "$run_compile" == "1" ]]; then
     echo "##################################################################"

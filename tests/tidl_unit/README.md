@@ -88,36 +88,114 @@ OPERATORS=()
 # Full suite - OPERATORS=()
 ```
 
+### 5.3 Additional Arguments
+Operators and runtimes can be directly passed from command line using `--operators` and `--runtimes` respectively. Multiple space separated values can be passed.<br>
+Accepted values for RUNTIMES are `onnxrt`, `tvmrt`. Default is `onnxrt`<br>
+Operators accept either full operator suite names, or single layer names. (For eg. Both `MaxPool` and `Slice_1` are valid)
+If not passed, OPERATORS and RUNTIMES list are taken from the script
+
+```bash
+# Examples
+
+# Run tests for Add_1 and Add_2 layer in 'tvm' runtime
+./run_operator_test.sh AM68A --runtimes tvmrt --operators Add_1 Add_2
+
+# Run tests for Reshape model and Slice_3 layer in 'onnx' and 'tvm' runtimes
+./run_operator_test.sh AM68A --runtimes tvmrt onnxrt --operators Slice_3 Reshape
+
+# Run all tests in 'onnx' runtime. (Runtime defaults to 'onnx' if not passed)
+./run_operator_test.sh AM68A
+```
+
+
 ## 6. Repository Layout
 ```text
 tidl_unit_tests/
-├─ docs/                     	# Usage notes
-├─ logs/						# pass/fail logs
-├─ run_operator_test.sh         # Operator testing script
-├─ run_test.sh  				# Main entry‑point script
-├─ tidl_unit.yaml  				# backend testing configuration
-├─ tidl_unit_test_data/         # Symlink → operator assets
-├─ operator_test_report_csv/    # CSV‑based intensive test reports
-├─ operator_test_report_html/   # HTML reports (ONNX‑backed, default)
-├─ report_script/               # Report‑generation scripts'
-├─ requirements.txt  			# python requirements
+├─ docs/                     	        # Usage notes
+├─ logs/						        # pass/fail logs
+├─ run_operator_test.sh                 # Operator testing script
+├─ run_test.sh  				        # Main entry‑point script
+├─ tidl_unit.yaml  				        # backend testing configuration
+├─ tidl_unit_test_data/                 # Symlink → operator assets
+├─ operator_test_report_comparison/     # CSV‑based comparison reports between runtimes
+├─ operator_test_report_csv/            # CSV‑based intensive test reports
+├─ operator_test_report_html/           # HTML reports
+├─ report_script/                       # Report‑generation scripts'
+├─ requirements.txt  			        # python requirements
 ... other pytest requirements
 ```
 
 ## 7. Reports Layout
 ```text
 tidl_unit_tests/
+├── operator_test_report_comparison/                # Comparison between runtimes
+│   ├── onnxrt/
+│   │   ├── <Operator_Name>/
+│   │   └── …
+│   ├── tvmrt/
+│   │   └── …
+│   ├── compile_with_nc_comparison.csv              # Compilation comparion (with NC)
+│   ├── compile_without_nc_comparison.csv           # Compilation comparion (without NC)
+│   ├── infer_with_nc_comparison.csv                # Inference comparion (with NC)
+│   ├── infer_without_nc_comparison.csv             # Inference comparion (without NC)
+│   ├── with_nc_comparison.csv                      # Combined comparison (with NC)
+│   └── without_nc_comparison.csv                   # Complete comparion (without NC)
 ├── operator_test_report_csv/
-│   ├── complete_test_reports/                # Customer‑facing reports 
-│   │   ├── <Operator_Name>.csv               # Operator‑specific report
-│   │   └── operator_test_report_summary.csv  # Aggregate summary
-│   └── customer_test_reports/                # Customer‑facing reports 
+│   ├── onnxrt/                                     # Reports for ONNX Runtime
+│   │   ├── complete_test_reports/                  # Customer‑facing reports 
+│   │   │   ├── <Operator_Name>.csv                 # Operator‑specific report
+│   │   │   └── operator_test_report_summary.csv    # Aggregate summary
+│   │   └── customer_test_reports/                  # Customer‑facing reports 
+│   │       ├── …
+│   │       └── …
+│   └── tvmrt/                                      # Reports for TVM Runtime
 │       ├── …
 │       └── …
 └── operator_test_report_html/               
+    ├── onnxrt/
+    │   ├── <Operator_Name>/
+    │   └── …
+    └── tvmrt/
+        └── …
 ```
 
-## 8. Documentation
+## 8. Comparison Script
+Generate performance comparison between runtimes using `run_operator_comparison.py`
+
+
+### 8.1 Running the script
+```bash
+python3 run_operator_comparison.py
+```
+This generates test reports under `./operator_test_report_comparison/`<br>
+```text
+Optional Arguments:
+    --runtime <RUNTIMES>    : Runtimes to run. If left empty, runs all runtimes defined under ALL_RUNTIMES inside the script
+    --operator <OPERATORS>  : Operators to run. If left empty, runs full suite.
+    --compare               : Compare mode. Doesnt execute tests, uses existing reports to generate comparison report.    
+```
+
+
+### 8.2 Customisation
+- Set device by setting `DEVICE` inside the script. Accepts allowed devices mentioned in section 5.1<br>
+- Change report location by changing `REPORT_DIR` and `OUT_DIR`<br>
+- Add runtimes by adding to `ALL_RUNTIMES` and `reports` dictionary.
+- Add known error patterns to `error_regex` list to capture them in the report.
+
+```bash
+# Examples
+
+# Runs the tvmrt runtine tests for Relu and Max
+python3 run_operator_comparison.py --runtime tvmrt --operator Relu Max
+    
+# Runs tests for Add for all the runtimes
+python3 run_operator_comparison.py --operator Add
+    
+# Runs comparison for Convolution
+python3 run_operator_comparison.py --compare --operator Convolution
+```
+
+## 9. Documentation
 
 Usage notes: [usage-notes.md](docs/usage-notes.md)<br>
 Pass/Fail Notes: [pass-fail-notes.md](docs/pass-fail-notes.md)<br>

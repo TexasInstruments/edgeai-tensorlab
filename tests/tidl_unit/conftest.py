@@ -11,6 +11,7 @@ def pytest_addoption(parser):
     parser.addoption("--disable-tidl-offload", action="store_true")
     parser.addoption("--run-infer", action="store_true", default=False)
     parser.addoption("--no-subprocess", action="store_true", default=False)
+    parser.addoption("--runtime", action="store", default="onnxrt")
 
 def pytest_sessionfinish(session):
     plugin = session.config._json_report
@@ -33,9 +34,29 @@ def pytest_runtest_makereport(item, call):
         # Parsing subgraphs
         num_subgraph_regex = re.search("Final number of subgraphs created are : ([0-9]*)", report.capstdout)
         if(num_subgraph_regex is None):
+            # This table is only printed in case of ONNX Runtime
             c7x_table_regex = re.search(r"\|\s*C7x\s*\|\s*\d+\s*\|\s*(\d+|x)\s*\|", report.capstdout)
             if (c7x_table_regex is not None):
                 report.tidl_subgraphs = c7x_table_regex[1]
+            else:
+                num_sg = 0
+                # If import succeeded, extract from the success print
+                tidl_import_regex = re.search("TIDL import of ([0-9]*) Relay IR subgraphs succeeded.",report.capstdout)
+                if tidl_import_regex is not None:
+                    num_sg = tidl_import_regex[1]
+
+                # This prints detected subgraphs from the IRModule before import starts. If import fails, extract detected sub graphs
+                tvm_relay_detect = re.search("TVM Relay detected ([0-9]*) subgraphs", report.capstdout)
+                if (tvm_relay_detect is not None and not num_sg):
+                    num_sg = tvm_relay_detect[1]
+
+                # If all else fails, extract from performance summary (only printed during inference)
+                num_subgraph_regex = re.search(r"Num TIDL Subgraphs\s*:\s*([0-9]*)", report.capstdout)
+                if (num_subgraph_regex is not None and not num_sg):
+                    num_sg = num_subgraph_regex[1]
+                
+                if num_sg:
+                    report.tidl_subgraphs = num_sg
         else:
             report.tidl_subgraphs = num_subgraph_regex[1]
 
@@ -60,6 +81,8 @@ def pytest_runtest_makereport(item, call):
                         report.complete_tidl_offload = "False"
                 except:
                     pass
+            if report.complete_tidl_offload != "True":
+                report.complete_tidl_offload = "True" if report.tidl_subgraphs.isdigit() and int(report.tidl_subgraphs) >= 1 else "False"
         else:
             report.complete_tidl_offload = "-"
 # Inserts the TIDL Subgraphs table header
