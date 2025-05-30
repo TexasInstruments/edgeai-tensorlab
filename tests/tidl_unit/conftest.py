@@ -11,6 +11,9 @@ def pytest_addoption(parser):
     parser.addoption("--disable-tidl-offload", action="store_true")
     parser.addoption("--run-infer", action="store_true", default=False)
     parser.addoption("--no-subprocess", action="store_true", default=False)
+    parser.addoption("--exit-on-critical-error", action="store_true", default=False)
+    parser.addoption("--flow-control", type=int, default=-1)
+    parser.addoption("--temp-buffer-dir", type=str, default="/dev/shm")
     parser.addoption("--runtime", action="store", default="onnxrt")
 
 def pytest_sessionfinish(session):
@@ -28,6 +31,7 @@ def pytest_configure(config):
 def pytest_runtest_makereport(item, call):
     outcome = yield
     report = outcome.get_result()
+    exit_on_critical_error = item.funcargs['exit_on_critical_error']
     report.tidl_subgraphs = "Not detected"
     report.complete_tidl_offload = "Not detected"
     if report.when == 'call' or report.when == 'teardown':
@@ -60,7 +64,7 @@ def pytest_runtest_makereport(item, call):
         else:
             report.tidl_subgraphs = num_subgraph_regex[1]
 
-        if report.tidl_subgraphs.isdigit() and int(report.tidl_subgraphs) >= 1:
+        if (report.tidl_subgraphs.isdigit() and int(report.tidl_subgraphs) >= 1):
             # Parsing complete tidl offload
             total_nodes_regex = re.search("Total Nodes - ([0-9]*)", report.capstdout)
             offloaded_nodes_regex = re.search("Offloaded Nodes - ([0-9]*)", report.capstdout)
@@ -81,8 +85,21 @@ def pytest_runtest_makereport(item, call):
                         report.complete_tidl_offload = "False"
                 except:
                     pass
-            if report.complete_tidl_offload != "True":
-                report.complete_tidl_offload = "True" if report.tidl_subgraphs.isdigit() and int(report.tidl_subgraphs) >= 1 else "False"
+
+            if exit_on_critical_error:
+                ignore_filters = ["VX_ZONE_ERROR:Enabled","Globally Enabled","Globally Disabled","VX_ZONE_ERROR:[tivxObjectDeInit"]
+                critical_errors = ["VX_ZONE_ERROR","dumped core","core dump","Segmentation fault","PROCESS TIMED OUT"]
+                for i in report.capstdout.strip().split('\n'):
+                    i = i.strip()
+                    ignore = False
+                    for j in ignore_filters:
+                        if j in i:
+                            ignore = True
+                            break
+                    if not ignore:
+                        for j in critical_errors:
+                            if j in i:
+                                pytest.exit(f"CRITICAL_ERROR - {item.nodeid} - {j} detected. Exiting test run.")
         else:
             report.complete_tidl_offload = "-"
 # Inserts the TIDL Subgraphs table header

@@ -23,7 +23,7 @@ def find_subdirectory(starting_string, root_dir='.'):
     return None
 
 class BenchmarkEvm():
-    def __init__(self, evm_config, edgeai_benchmark_path, ip_address, reboot_type="soft", logs_dir=None, dataset_dir_path=None, modelartifacts_path=None, session_type_dict=None, tensor_bits=8):
+    def __init__(self, evm_config, edgeai_benchmark_path, ip_address, dataset_dir_path, reboot_type="soft", logs_dir=None, modelartifacts_path=None, session_type_dict=None, tensor_bits=8):
         self.evm_config = evm_config
         self.soc = self.evm_config["soc"]
         self.eai_benchmark_mount_path = f"{ip_address}:{edgeai_benchmark_path}"
@@ -42,7 +42,8 @@ class BenchmarkEvm():
             relay_exe = self.evm_config["relay_info"]["executable_path"]
             relay_ip = self.evm_config["relay_info"]["ip_address"]
             relay_number = self.evm_config["relay_info"]["power_port"]
-            self.relay = PowerRelayControl(relay_exe,relay_ip,relay_number,relay_type)
+            relay_trigger_mechanism = self.evm_config["relay_info"]["relay_trigger_mechanism"]
+            self.relay = PowerRelayControl(relay_exe,relay_ip,relay_number,relay_type,relay_trigger_mechanism)
             self.relay.verify_relay()
         elif self.reboot_type == "soft":
             pass
@@ -52,8 +53,8 @@ class BenchmarkEvm():
     
         self.logs_dir = logs_dir
         if self.logs_dir == None:
-            self.logs_dir = "evm_test_logs"
-
+            self.logs_dir = f"evm_test_logs/BENCHMARK/{self.soc}"
+        
         self.setup_iter = 0
 
         self.modelartifacts_path = modelartifacts_path
@@ -78,11 +79,17 @@ class BenchmarkEvm():
         # Reboot
         if(self.reboot_type == "hard"):
             self.relay.switch_relay(operation="toggle")
+            print(f"\n[ Info ] Sleeping for 30 seconds after reboot...")
+            time.sleep(30)
         else:
-            status = uart_interface.send_uart_command('reboot')
-        
-        print(f"[ Info ] Sleeping for 30 seconds after reboot...")
-        time.sleep(30)
+            status = uart_interface.send_uart_command('root', '#', 5, True)
+            status = uart_interface.send_uart_command('reboot', press_enter=True, retry_count=1)
+            del uart_interface
+            print(f"\n[ Info ] Sleeping for 30 seconds after reboot...")
+            time.sleep(30)
+            uart_interface = UartInterface(self.evm_config["dut_uart_info"],
+                                           self.evm_config["dut_uart_info"],
+                                           log_file_path)
 
         # wait for root prompt
         cnt=0
@@ -106,12 +113,8 @@ class BenchmarkEvm():
 
         ## mount edgeai-benchmark and dataset
         if status:
-            if self.dataset_dir_mount_path:
-                command = f"cd && ./setup_eai_benchmark.sh {self.eai_benchmark_mount_path} {self.dataset_dir_mount_path}"
-            else:
-                command = f"cd && ./setup_eai_benchmark.sh {self.eai_benchmark_mount_path}"
-
-            status = uart_interface.send_uart_command(command, "SCRIPT_EXECUTED_SUCCESSFULLY", 200, True)
+            command = f"cd && EAI_BENCHMARK_MOUNT_PATH={self.eai_benchmark_mount_path} TEST_SUITE=BENCHMARK BENCHMARK_DATASET_MOUNT_PATH={self.dataset_dir_mount_path} ./setup_eai_benchmark.sh"
+            status = uart_interface.send_uart_command(command, "SCRIPT_EXECUTED_SUCCESSFULLY", 60, True)
             response = uart_interface.log_buffer
             print(f"\n\n*******************************\nLog Buffer : {response}\n*******************************\n\n")
 
@@ -188,9 +191,9 @@ class BenchmarkEvm():
         if status:
             #TODO deal with timeout in better way
             if self.modelartifacts_path is not None:
-                command = f'cd && ./model_infer.sh {self.soc} {timeout} {generate_report} {model_selection} {num_frames} {self.modelartifacts_path} {self.tensor_bits} \"{self.session_type_dict}\"'
+                command = f'cd && ./model_infer_benchmark.sh {self.soc} {timeout} {generate_report} {model_selection} {num_frames} {self.modelartifacts_path} {self.tensor_bits} \"{self.session_type_dict}\"'
             else:
-                command = f'cd && ./model_infer.sh {self.soc} {timeout} {generate_report} {model_selection} {num_frames}'
+                command = f'cd && ./model_infer_benchmark.sh {self.soc} {timeout} {generate_report} {model_selection} {num_frames}'
 
             print(f"Sending command : {command}")
 

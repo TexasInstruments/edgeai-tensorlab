@@ -20,12 +20,12 @@ Each of the above commands will output a timestamped html report in the `logs` f
 > **_NOTE:_**  Copy or mount the folder containing all test assets to tidl_unit_test_data/*test_suite* folder
 
 - Tests are automatically retrieved from `tidl_unit_test_data/*test_suite*` under tidl_unit folder. For example if running operator test, the data
-should be present in `tidl_unit_test_data/operator`. The file should contain following 
+should be present in `tidl_unit_test_data/operators`. The file should contain following 
 
 ```
 tidl_unit_test_data 
 │
-└───operator 
+└───operators
     │
     └───Convolution
     │   │
