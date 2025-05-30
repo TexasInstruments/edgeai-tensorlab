@@ -24,24 +24,23 @@ After downloading nuScenes 3D detection dataset and unzipping all zip files, we 
 To prepare these files for nuScenes, run the following command:
 
 ```bash
-python tools/create_data.py nuscenes --root-path ./data/nuscenes --out-dir ./data/nuscenes --extra-tag nuscenes --canbus ./data
+python tools/create_data.py nuscenes --root-path ./data/nuscenes --out-dir ./data/nuscenes --extra-tag nuscenes
 ```
 
 This command creates `.pkl` files for PETR, BEVFormer and FCOS3D. To include additional data fields for BEVDet and PETRv2, we should add `--bevdet` and `--petrv2`, respectively, to the command. For example,
 
 ```bash
-python tools/create_data.py nuscenes --root-path ./data/nuscenes --out-dir ./data/nuscenes --extra-tag nuscenes --canbus ./data --bevdet --petrv2
+python tools/create_data.py nuscenes --root-path ./data/nuscenes --out-dir ./data/nuscenes --extra-tag nuscenes --bevdet --petrv2
 ```
 
 The directory structure after processing should be as below.
 
 ```
-mmdetection3d
+edgeai-mmdetection3d
 ├── mmdet3d
 ├── tools
 ├── configs
 ├── data
-│   ├── can_bus
 │   ├── nuscenes
 │   │   ├── maps
 │   │   ├── samples
