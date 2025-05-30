@@ -917,6 +917,9 @@ class GetBEVFormerGeometry():
         reference_points_cam[..., 0] /= info_dict['pad_shape'][1]
         reference_points_cam[..., 1] /= info_dict['pad_shape'][0]
 
+        # clip reference_points_cam for quantization
+        reference_points_cam = np.clip(reference_points_cam, 0.0, 1.0)
+
         bev_mask = (bev_mask & (reference_points_cam[..., 1:2] > 0.0)
                     & (reference_points_cam[..., 1:2] < 1.0)
                     & (reference_points_cam[..., 0:1] < 1.0)

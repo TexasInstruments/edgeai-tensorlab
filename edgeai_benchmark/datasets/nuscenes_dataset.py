@@ -318,9 +318,10 @@ def load_nuscenes(path):
         utils.log_color('\nERROR', 'dataset path is empty, and cannot load nuscenes dataset', path)
 
     from nuscenes.nuscenes import NuScenes
-    from nuscenes.can_bus.can_bus_api import NuScenesCanBus
-    nusc = NuScenes(version='v1.0-mini', dataroot=os.path.join(path, 'nuscenes'), verbose=True)
-    nusc_can_bus = NuScenesCanBus(dataroot=path)
+    #from nuscenes.can_bus.can_bus_api import NuScenesCanBus
+    nusc = NuScenes(version='v1.0-mini', dataroot=path, verbose=True)
+    #nusc_can_bus = NuScenesCanBus(dataroot=path)
+    nusc_can_bus = None
 
     return nusc, nusc_can_bus
 
@@ -414,7 +415,8 @@ def _fill_trainval_infos(nusc,
         if not os.path.isfile(lidar_path):
             raise FileNotFoundError('file "{}" does not exist'.format(lidar_path))
 
-        can_bus = _get_can_bus_info(nusc, nusc_can_bus, sample)
+        #can_bus = _get_can_bus_info(nusc, nusc_can_bus, sample)
+        can_bus = np.zeros(18, dtype=float)
 
         info = {
             'lidar_path': lidar_path,

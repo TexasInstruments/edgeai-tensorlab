@@ -1,0 +1,3 @@
+nuscenes-devkit
+pyquaternion
+opencv-python
