@@ -18,6 +18,10 @@ Example usage:
     
     python3 run_operator_comparison.py --compare --operator Convolution
         Runs comparison for Convolution
+
+If single tests are to be run, then only that should be passed. Example:
+    python3 run_operator_comparison.py --operator MaxPool_2
+        Runs onnx and tvm tests for just MaxPool_2 test
 '''
 
 import csv
@@ -62,11 +66,12 @@ if args.operator:
 else:
     OPERATORS = load_operators(os.path.abspath("../../tests/tidl_unit/tidl_unit_test_data/operator/"))
 
-REPORT_DIR = "operator_test_report_comparison"
+REPORT_DIR = "operator_test_reports"
 REPORT_PATH = os.path.abspath(REPORT_DIR)
-OUT_DIR = "operator_test_report_comparison"
+OUT_DIR = "operator_test_reports/comparison"
 
 os.makedirs(OUT_DIR, exist_ok=True)
+os.makedirs(REPORT_PATH, exist_ok=True)
 
 headers = [
     "Operator name",
@@ -84,8 +89,8 @@ headers = [
 rows = {
     "compile_with_nc": [],
     "compile_without_nc": [],
-    "infer_with_nc": [],
-    "infer_without_nc": [],
+    "infer_ref_with_nc": [],
+    "infer_ref_without_nc": [],
 }
 
 '''
@@ -107,7 +112,8 @@ error_regex = [
     r"\nAssertionError: (.*)",
     r"\nFailed:  (.*)",
     { "regex": r"DLRError", "error": "Compilation Failed" },
-    { "regex": r"stopped exitcode=-SIGBUS>", "error": "Bus Error"}
+    { "regex": r"stopped exitcode=-SIGBUS>", "error": "Bus Error"},
+    { "regex": r"assert None == 0", "error": "Timeout"}
 ]
 
 def extract_report_data(runtime, operator, report_dict):
@@ -127,13 +133,13 @@ def extract_report_data(runtime, operator, report_dict):
             ...
         ],
         "compile_without_nc": [...],
-        "infer_with_nc": [...],
-        "infer_without_nc": [...],
+        "infer_ref_with_nc": [...],
+        "infer_ref_without_nc": [...],
     }
     Prints summary (total, pass, fail) after each operator reports are extracted
     '''
     # Reports are store in $REPORT_PATH/$runtime/$operator
-    folder_path = os.path.join(REPORT_PATH, runtime, operator)
+    folder_path = os.path.join(REPORT_PATH, runtime, DEVICE, operator)
     #If operator test hasn't been run
     if not os.path.exists(folder_path):
         return
@@ -187,22 +193,82 @@ def extract_report_data(runtime, operator, report_dict):
 # Runs tests if not in compare mode
 if not args.compare:
     print("──────────────────────────── Running Testing Script ────────────────────────────")
-    script = [
-        'bash',
-        'run_operator_test.sh',
-        DEVICE,
-    ]
-    if args.operator and len(args.operator):
-        script += ['--operators'] + args.operator
 
-    if args.runtime and len(args.runtime):
-        script += ['--runtimes'] + args.runtime
+    # If a single test is run, run it directly from here
+    if (len(args.operator) == 1) and re.search(r"^(.*)_(\d*)$", args.operator[0]):
+        import shlex
+        import shutil
+        envs=["ARM64_GCC_PATH", "TIDL_RT_ONNX_VARDIM", "TIDL_RT_DDR_STATS", "TIDL_RT_DDR_STATS", "TIDL_RT_PERFSTATS", "TIDL_RT_AVX_REF", "TIDL_ARTIFACT_SYMLINKS"]
+
+        command = shlex.split("bash -c 'cd ../../ && source ./run_set_env.sh && env'")
+        proc = subprocess.Popen(command, stdout = subprocess.PIPE, universal_newlines=True)
+        for line in proc.stdout:
+            (key, _, value) = line.partition("=")
+            if key not in envs:
+                continue
+            os.environ[key] = value.replace("\n", '')
+        
+        proc.communicate()
+        os.environ["TIDL_TOOLS_PATH"] = os.path.abspath("./temp/tidl_tools")
+        os.environ["LD_LIBRARY_PATH"] = os.path.abspath("./temp/tidl_tools")
+        
+        if args.runtime and len(args.runtime):
+            rts = args.runtime
+        else:
+            rts = ALL_RUNTIMES
+
+        for rt in rts:
+            log_path = os.path.join(REPORT_PATH, rt, DEVICE, args.operator[0])
+            script = [
+                "bash",
+                "run_test.sh",
+                "--test_suite=operator",
+                f"--tests={args.operator[0]}",
+                f"--runtime={rt}"
+            ]
+            process = subprocess.run(script + ["--run_infer=0"], text=True)
+            if process.returncode != 0:
+                exit()
+            
+            for file in os.listdir("logs"):
+                if file.endswith(".html"):
+                    if not os.path.exists(log_path):
+                        os.makedirs(log_path)
+                    shutil.copy(os.path.join("logs", file),  f"{log_path}/compile_without_nc.html")
+                    os.remove(os.path.join("logs", file))
+                    
+            process = subprocess.run(script + ["--run_compile=0"], text=True)
+            if process.returncode != 0:
+                exit()
+            for file in os.listdir("logs"):
+                if file.endswith(".html"):
+                    shutil.copy(os.path.join("logs", file),  f"{log_path}/infer_ref_without_nc.html")
+                    os.remove(os.path.join("logs", file))
+            
+        try:
+            for env in envs:
+                    del os.environ[env]
+            del os.environ["LD_LIBRARY_PATH"]
+            del os.environ["TIDL_TOOLS_PATH"]
+        except:
+            pass
     else:
-        script += ['--runtimes'] + ALL_RUNTIMES
-    
-    process = subprocess.run(script, text=True)
-    if process.returncode == 1:
-        exit()
+        script = [
+            'bash',
+            'run_operator_test.sh',
+            f'--SOC={DEVICE}'
+        ]
+        if args.operator and len(args.operator):
+            script += ['--operators'] + args.operator
+
+        if args.runtime and len(args.runtime):
+            script += ['--runtimes'] + args.runtime
+        else:
+            script += ['--runtimes'] + ALL_RUNTIMES
+        
+        process = subprocess.run(script, text=True)
+        if process.returncode == 1:
+            exit()
 
 # Extract data from reports
 print("──────────────────────────── Extracting data from reports ────────────────────────────")
@@ -239,7 +305,12 @@ for op, onnx_res in report["onnxrt"].items():
 # Individual comparison report (either inference or compilation)
 print("Writing CSV Comparisions >")
 for op, report in rows.items():
-    with open(os.path.join(OUT_DIR, f"{op}_comparison.csv"), "w") as f:
+    path = os.path.join(OUT_DIR, f"{op}_comparison.csv")
+    if os.path.exists(path):
+        os.remove(path) 
+    if not len(rows[op]):
+        continue
+    with open(path, "w") as f:
         writer = csv.writer(f)
         writer.writerow(headers)
         writer.writerows(rows[op])
@@ -269,7 +340,7 @@ complete_headers = [
 print("Writing Complete Comparisions >")
 for k in complete.keys():
     # Get compilation and inference results of both compilation and inference of with/without nc
-    inference = rows[f"infer_{k}"]
+    inference = rows[f"infer_ref_{k}"]
     compilation = rows[f"compile_{k}"]
     complete_rows = []
     for comp in compilation:
@@ -301,7 +372,12 @@ for k in complete.keys():
         row.append(overall)
         complete_rows.append(row)
 
-    with open(os.path.join(OUT_DIR, f"{k}_comparison.csv"), "w") as f:
+    path = os.path.join(OUT_DIR, f"{k}_comparison.csv")
+    if os.path.exists(path):
+        os.remove(path)
+    if not len(complete_rows):
+        continue
+    with open(path, "w") as f:
         writer = csv.writer(f)
         writer.writerow(complete_headers)
         writer.writerows(complete_rows)

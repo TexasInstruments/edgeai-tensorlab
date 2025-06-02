@@ -14,7 +14,7 @@ def pytest_addoption(parser):
     parser.addoption("--exit-on-critical-error", action="store_true", default=False)
     parser.addoption("--flow-control", type=int, default=-1)
     parser.addoption("--temp-buffer-dir", type=str, default="/dev/shm")
-    parser.addoption("--runtime", action="store", default="onnxrt")
+    parser.addoption("--runtime", type=str, default="onnxrt")
 
 def pytest_sessionfinish(session):
     plugin = session.config._json_report
@@ -32,37 +32,39 @@ def pytest_runtest_makereport(item, call):
     outcome = yield
     report = outcome.get_result()
     exit_on_critical_error = item.funcargs['exit_on_critical_error']
+    runtime = item.funcargs['runtime']
     report.tidl_subgraphs = "Not detected"
     report.complete_tidl_offload = "Not detected"
     if report.when == 'call' or report.when == 'teardown':
-        # Parsing subgraphs
-        num_subgraph_regex = re.search("Final number of subgraphs created are : ([0-9]*)", report.capstdout)
-        if(num_subgraph_regex is None):
-            # This table is only printed in case of ONNX Runtime
-            c7x_table_regex = re.search(r"\|\s*C7x\s*\|\s*\d+\s*\|\s*(\d+|x)\s*\|", report.capstdout)
-            if (c7x_table_regex is not None):
-                report.tidl_subgraphs = c7x_table_regex[1]
+        # Parsing subgraphs]
+        if runtime == "onnxrt":
+            num_subgraph_regex = re.search("Final number of subgraphs created are : ([0-9]*)", report.capstdout)
+            if(num_subgraph_regex is None):
+                # This table is only printed in case of ONNX Runtime
+                c7x_table_regex = re.search(r"\|\s*C7x\s*\|\s*\d+\s*\|\s*(\d+|x)\s*\|", report.capstdout)
+                if (c7x_table_regex is not None):
+                    report.tidl_subgraphs = c7x_table_regex[1]
             else:
-                num_sg = 0
-                # If import succeeded, extract from the success print
-                tidl_import_regex = re.search("TIDL import of ([0-9]*) Relay IR subgraphs succeeded.",report.capstdout)
-                if tidl_import_regex is not None:
-                    num_sg = tidl_import_regex[1]
+                report.tidl_subgraphs = num_subgraph_regex[1]
+        elif runtime == "tvmrt":
+            num_sg = 0
+            # If import succeeded, extract from the success print
+            tidl_import_regex = re.search("TIDL import of ([0-9]*) Relay IR subgraphs succeeded.",report.capstdout)
+            if tidl_import_regex is not None:
+                num_sg = tidl_import_regex[1]
 
-                # This prints detected subgraphs from the IRModule before import starts. If import fails, extract detected sub graphs
-                tvm_relay_detect = re.search("TVM Relay detected ([0-9]*) subgraphs", report.capstdout)
-                if (tvm_relay_detect is not None and not num_sg):
-                    num_sg = tvm_relay_detect[1]
+            # This prints detected subgraphs from the IRModule before import starts. If import fails, extract detected sub graphs
+            tvm_relay_detect = re.search("TVM Relay detected ([0-9]*) subgraphs", report.capstdout)
+            if (tvm_relay_detect is not None and not num_sg):
+                num_sg = tvm_relay_detect[1]
 
-                # If all else fails, extract from performance summary (only printed during inference)
-                num_subgraph_regex = re.search(r"Num TIDL Subgraphs\s*:\s*([0-9]*)", report.capstdout)
-                if (num_subgraph_regex is not None and not num_sg):
-                    num_sg = num_subgraph_regex[1]
-                
-                if num_sg:
-                    report.tidl_subgraphs = num_sg
-        else:
-            report.tidl_subgraphs = num_subgraph_regex[1]
+            # If all else fails, extract from performance summary (only printed during inference)
+            num_subgraph_regex = re.search(r"Num TIDL Subgraphs\s*:\s*([0-9]*)", report.capstdout)
+            if (num_subgraph_regex is not None and not num_sg):
+                num_sg = num_subgraph_regex[1]
+
+            if num_sg:
+                report.tidl_subgraphs = num_sg
 
         if (report.tidl_subgraphs.isdigit() and int(report.tidl_subgraphs) >= 1):
             # Parsing complete tidl offload

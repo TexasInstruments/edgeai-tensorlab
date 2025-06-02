@@ -171,7 +171,7 @@ if [[ "$test_suite" == "operator" ]]; then
 
 echo "##################################################################"
 
-OPERATOR_ROOT_FOLDER="${ROOT_DIR}/tidl_unit_test_data/operators"
+OPERATOR_ROOT_FOLDER="${ROOT_DIR}/tidl_unit_test_data/operators/"
 if [ ! -d "$OPERATOR_ROOT_FOLDER" ]; then
   echo "[ERROR]: $OPERATOR_ROOT_FOLDER does not exist."
   echo "         All the data for operators suite needs to present in this directory. Refer to README for more information."
