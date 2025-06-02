@@ -19,6 +19,7 @@ echo \
     --operators                 List of operators to run. By default every operator under tidl_unit_test_data/operators
     --runtimes                  List of runtimes to run tests. Allowed values are (onnxrt, tvmrt). Default=onnxrt
     --tidl_tools_path           Path of tidl tools tarball.
+    --compiled_artifacts_path   Path of compiled model artifacts. Will be used only for TARGET run.
 
     Example:
         ./run_operator_test.sh --SOC=AM68A --run_ref=1 --run_natc=0 --run_ci=0 --save_model_artifacts=1
@@ -39,6 +40,7 @@ temp_buffer_dir="/dev/shm"
 OPERATORS=()
 RUNTIMES=()
 tidl_tools_path=""
+compiled_artifacts_path=""
 
 while [ $# -gt 0 ]; do
         case "$1" in
@@ -74,6 +76,9 @@ while [ $# -gt 0 ]; do
         ;;
         --tidl_tools_path=*)
         tidl_tools_path="${1#*=}"
+        ;;
+        --compiled_artifacts_path=*)
+        compiled_artifacts_path="${1#*=}"
         ;;
         --operators)
             exp_ops=true
@@ -167,6 +172,22 @@ if [ "$save_model_artifacts" == "1" ] && [ "$save_model_artifacts_dir" != "" ]; 
     fi
 fi
 
+if [ "$compiled_artifacts_path" != "" ]; then
+    if [ "$compile_without_nc" == "1" ] || [ "$compile_with_nc" == "1" ]; then
+        echo "[WARNING]: Using $compiled_artifacts_path for compiled model artifacts, model compilation will not happen"
+        compile_without_nc="0"
+        compile_with_nc="0"
+    fi
+    if [ "$run_target" != "1" ]; then
+        echo "[ERROR]: Compiled model artofacts path: $compiled_artifacts_path is given. TARGET run is expected. Exiting"
+        exit 1
+    fi
+    if [ ! -d $compiled_artifacts_path ]; then
+        echo "[ERROR]: $compiled_artifacts_path does not exist. Exiting"
+        exit 1
+    fi
+fi
+
 if [ ${#OPERATORS[@]} -eq 0 ]; then
     OPERATORS=()
 fi
@@ -222,22 +243,48 @@ export LD_LIBRARY_PATH="${TIDL_TOOLS_PATH}"
 echo "TIDL_TOOLS_PATH=${TIDL_TOOLS_PATH}"
 echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}"
 
-if [ -z "$OPERATORS" ]; then
-    for D in $(find $path_edge_ai_benchmark/tests/tidl_unit/tidl_unit_test_data/operators/ -mindepth 1 -maxdepth 1 -type d) ; do
-        name=`basename $D`
-        OPERATORS+=("$name")
-    done
+if [ "$compiled_artifacts_path" == "" ]; then
+    operators_path=$path_edge_ai_benchmark/tests/tidl_unit/tidl_unit_test_data/operators/
+    if [ -z "$OPERATORS" ]; then
+        for D in $(find $operators_path -mindepth 1 -maxdepth 1 -type d) ; do
+            name=`basename $D`
+            OPERATORS+=("$name")
+        done
+    else
+        temp_array=()
+        for operator in "${OPERATORS[@]}"
+        do
+            if [ ! -d $operators_path/$operator ]; then
+                echo "[WARNING]: $operators_path/$operator does not exist. Skipping it."
+            else
+                temp_array+=("$operator")
+            fi
+        done
+        OPERATORS=("${temp_array[@]}")
+    fi
 else
-    temp_array=()
-    for operator in "${OPERATORS[@]}"
-    do
-        if [ ! -d $path_edge_ai_benchmark/tests/tidl_unit/tidl_unit_test_data/operators/$operator ]; then
-            echo "[WARNING]: $path_edge_ai_benchmark/tests/tidl_unit/tidl_unit_test_data/operators/$operator does not exist. Skipping it."
-        else
-            temp_array+=("$operator")
+    operators_path=$compiled_artifacts_path
+    temp_operators=()
+    for D in $(find $operators_path -mindepth 1 -maxdepth 1 -type d) ; do
+        name=`basename $D`
+        name="${name%%_*}"
+        if [[ ! " ${temp_operators[@]} " =~ " ${name} " ]]; then
+            temp_operators+=("$name")
         fi
     done
-    OPERATORS=("${temp_array[@]}")
+    if [ -z "$OPERATORS" ]; then
+        OPERATORS=("${temp_operators[@]}")
+    else
+        for item in "${OPERATORS[@]}"; do
+            if [[ " ${temp_operators[@]} " =~ " ${item} " ]]; then
+                intersection+=("$item")
+            else
+                echo "[WARNING]: Artifacts for $item not present in $compiled_artifacts_path. Skipping it."
+            fi
+
+        done
+        OPERATORS=("${intersection[@]}")
+    fi
 fi
 
 ###############################################################################
@@ -339,6 +386,27 @@ do
                 rm -rf work_dirs/modelartifacts/8bits/${operator}_*
             elif [ "$save_model_artifacts_dir" != "" ]; then
                 mv work_dirs/modelartifacts/8bits/${operator}_* $save_model_artifacts_dir
+            fi
+        fi
+
+        if [ "$compiled_artifacts_path" != "" ]; then
+            echo "[INFO]: Using $compiled_artifacts_path for model artifacts to run inference on TARGET"
+
+            rm -rf logs/*
+            if [ "$run_target" == "1" ]; then
+                cd $path_edge_ai_benchmark/tests/evm_test/
+                python3 main.py --test_suite=TIDL_UNIT_TEST --soc=$SOC --uart=/dev/am68a-sk-00-usb2 --pc_ip=192.168.46.0 --evm_local_ip=192.168.46.100 --reboot_type=hard --relay_type=ANEL --relay_trigger_mechanism=EXE --relay_exe_path=/work/ti/UNIT_TEST/net-pwrctrl.exe --relay_ip_address=10.24.69.252 --relay_power_port=8 --dataset_dir=/work/ti/UNIT_TEST/tidl_models/unitTest/onnx/tidl_unit_test_assets --operators=$operator --artifacts_folder=$compiled_artifacts_path
+                cd -
+                cp logs/*.html "$logs_path"
+                cd $logs_path
+                rm -rf temp
+                mkdir -p temp
+                mv ./*_Chunk_*.html temp
+                cd temp
+                pytest_html_merger -i ./ -o ../infer_target_with_nc.html
+                cd ../
+                rm -rf temp
+                cd $path_edge_ai_benchmark/tests/tidl_unit
             fi
         fi
     done

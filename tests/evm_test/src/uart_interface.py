@@ -140,7 +140,7 @@ class UartInterface:
 
     def except_string_in_uart_log(self, expected_string, timeout):
         print('[ Info ] Waiting for : ' + expected_string)
-        print(' [Info ] Wait timeout : ' + str(timeout))
+        print('[ Info ] Wait timeout : ' + str(timeout))
         index = self.file_descriptor_process.expect([expected_string, pexpect.TIMEOUT, pexpect.EOF], timeout=timeout)
 
         # checking the return code based on the list provided in expect()
