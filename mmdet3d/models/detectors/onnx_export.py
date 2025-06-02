@@ -10,6 +10,7 @@ from .onnx_network import BEVFormer_export_model, \
                           DETR3D_export_model
 
 from  mmengine.dist.utils import  master_only
+#import numpy as np
 
 @master_only
 def export_BEVDet(model, inputs=None, data_samples=None, **kwargs):
@@ -169,6 +170,23 @@ def export_BEVFormer(onnxModel, inputs=None, data_samples=None, **kwargs):
     modelInput.append(bev_valid_indices_count)
     modelInput.append(can_bus)
     modelInput.append(onnxModel.prev_frame_info['prev_bev'])
+
+    # Save input tensors
+    """
+    img_np                  = img.to('cpu').numpy()
+    shift_xy_np             = shift_xy.to('cpu').numpy()
+    rotation_grid_np        = rotation_grid.to('cpu').numpy()
+    reference_points_cam_np = reference_points_cam.to('cpu').numpy()
+    bev_mask_count_np       = bev_mask_count.to('cpu').numpy()
+    bev_valid_indices_np    = bev_valid_indices.to('cpu').numpy()
+    can_bus_np              = can_bus.to('cpu').numpy()
+    prev_bev_np             = onnxModel.prev_frame_info['prev_bev'].to('cpu').numpy()
+
+    np.savez('bevformer_input.npz', inputs=img_np, shift_xy=shift_xy_np,
+             rotation_grid=rotation_grid_np, reference_points_cam=reference_points_cam_np,
+             bev_mask_count=bev_mask_count_np, bev_valid_indices=bev_valid_indices_np,
+             can_bus=can_bus_np, prev_bev=prev_bev_np)
+    """
 
     input_names  = ["inputs", "shift_xy", "rotation_grid", "reference_points_cam",
                     "bev_mask_count", "bev_valid_indices", "bev_valid_indices_count",

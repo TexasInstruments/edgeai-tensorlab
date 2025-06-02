@@ -425,7 +425,7 @@ parser.add_argument(
 parser.add_argument(
     '--canbus',
     type=str,
-    default='./data',
+    default='./data/nuscenes',
     help='specify the root path of nuScenes canbus')
 parser.add_argument(
     '--version',
