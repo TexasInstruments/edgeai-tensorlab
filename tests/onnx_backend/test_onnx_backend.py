@@ -5,7 +5,8 @@ import onnx
 from .backend_test_known_results import expected_fails
 from multiprocessing import Process
 import glob
-
+import shutil
+import numpy as np
 
 '''
 Pytest file for ONNX Backend tests
@@ -184,56 +185,61 @@ def perform_onnx_backend_oneprocess(tidl_offload : bool, run_infer : bool, test_
     assert os.path.exists(test_dir), f"test path {test_dir} doesn't exist"
     assert os.environ.get('TIDL_RT_AVX_REF') is not None, "Make sure to source run_set_env.sh"
     assert os.path.exists(os.environ['TIDL_TOOLS_PATH'])
-    assert os.path.exists(os.environ['ARM64_GCC_PATH'])
 
     # Declare config object
     cur_dir = os.path.dirname(__file__)
     settings = config_settings.ConfigSettings(os.path.join(cur_dir,'onnx_backend.yaml'), tidl_offload=tidl_offload)
-
-    # Declare ONNX Session
-    work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
     session_name     = constants.SESSION_NAME_ONNXRT
-    session_type     = settings.get_session_type(session_name)
-    runtime_options  = settings.get_runtime_options(session_name, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2, is_qat=False, debug_level = 3)
-    onnx_session_cfg = sessions.get_nomeanscale_session_cfg(settings, work_dir=work_dir)
-    session          = session_type(**onnx_session_cfg, runtime_options=runtime_options, model_path=os.path.join(test_dir, "model.onnx"))
+    
+    model_file       = os.path.join(test_dir, "model.onnx")
+    onnx.shape_inference.infer_shapes_path(model_file, model_file)
+
+    # Create necessary directory
+    work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
+    run_dir = os.path.join(work_dir, test_name)
+    model_directory = os.path.join(run_dir, 'model')
+    artifacts_folder = os.path.join(run_dir, 'artifacts')
 
     # Declare dataset
-    ob_dataset  = datasets.ONNXBackendDataset(path = test_dir)
+    backend_dataset  = datasets.ONNXBackendDataset(path = test_dir)
 
-    # Declare pipeline configs to 
-    pipeline_configs = {
-        os.path.basename(test_dir): dict(
-            dataset_category = datasets.DATASET_CATEGORY_IMAGENET,
-            calibration_dataset=ob_dataset,
-            input_dataset=ob_dataset,
-            preprocess=preprocess.PreProcessTransforms(settings).get_transform_none(),
-            session=session,
-            postprocess=postprocess.PostProcessTransforms(settings).get_transform_none(),
-        ),
-    }
-  
-    
-    # Run infer
+    #Run infer
     if(run_infer):
         logger.debug("Inferring")
         settings.run_import    = False
         settings.run_inference = True
-        results_list = interfaces.run_accuracy(settings, work_dir, pipeline_configs)
-        
-        assert len(results_list) > 0, " Results not found!!!! "
-        assert results_list[0].get("error") is None or len(results_list[0].get("error")) == 0, " Internal OSRT/TIDL Error:\n {} ".format(results_list[0]["error"])
+        runtime_options  = settings.get_runtime_options(session_name, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2, is_qat=False, debug_level = 0)
 
-        logger.debug(results_list[0]['result'])
-        
+        onnxruntime_wrapper = core.ONNXRuntimeWrapper(runtime_options=runtime_options,
+                                                      model_file=model_file,
+                                                      artifacts_folder=artifacts_folder,
+                                                      tidl_tools_path=os.environ['TIDL_TOOLS_PATH'],
+                                                      tidl_offload=tidl_offload)
+        results_list = onnxruntime_wrapper.run_inference(backend_dataset[0])
+
+        assert len(results_list) > 0, " Results not found!!!! "
+
+        logger.debug(results_list)
+
         threshold = settings.inference_nmse_thresholds.get(test_name) or settings.inference_nmse_thresholds.get("default")
-        if(results_list[0]['result']['max_nmse'] > threshold):
-            pytest.fail(f" max_nmse of {results_list[0]['result']['max_nmse']} is higher than threshold {threshold}")
-    
-    # Otherwise run import
-    else:
-        logger.debug("Importing")
-        results_list = interfaces.run_accuracy(settings, work_dir, pipeline_configs)
-        assert len(results_list) > 0, " Results not found!!!! "
-        assert results_list[0].get("error") is None, " Internal OSRT/TIDL Error:\n {} ".format(results_list[0]["error"])
+        max_nmse = backend_dataset([results_list])['max_nmse']
+        print(f"MAX_NMSE:{max_nmse}")
+        if(max_nmse > threshold):
+            pytest.fail(f" max_nmse of {max_nmse} is higher than threshold {threshold}")
 
+    #Otherwise run import
+    else:
+        shutil.rmtree(run_dir, ignore_errors=True)
+        os.makedirs(model_directory, exist_ok=True)
+        shutil.copy2(model_file, os.path.join(model_directory,"model.onnx"))
+        os.makedirs(artifacts_folder, exist_ok=True)
+
+        logger.debug("Importing")
+        runtime_options  = settings.get_runtime_options(session_name, quantization_scale_type=constants.QUANTScaleType.QUANT_SCALE_TYPE_P2, is_qat=False, debug_level = 0)
+        onnxruntime_wrapper = core.ONNXRuntimeWrapper(runtime_options=runtime_options,
+                                                      model_file=model_file,
+                                                      artifacts_folder=artifacts_folder,
+                                                      tidl_tools_path=os.environ['TIDL_TOOLS_PATH'],
+                                                      tidl_offload=tidl_offload)
+        results_list = onnxruntime_wrapper.run_import(backend_dataset[0])
+        assert len(results_list) > 0, " Results not found!!!! "

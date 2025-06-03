@@ -43,6 +43,7 @@ import math
 
 from .. import constants
 from .keypoints import *
+from .bev_detection import *
 
 ##############################################################################
 from ..utils.config_utils.postprocess_utils import *

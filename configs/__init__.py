@@ -44,6 +44,7 @@ from . import object_6d_pose_estimation
 from . import depth_estimation
 from . import high_resolution
 from . import miscllaneous
+from . import detection_3d
 
 
 def get_configs(settings, work_dir):
@@ -65,6 +66,7 @@ def get_configs(settings, work_dir):
     pipeline_configs.update(depth_estimation.get_configs(settings,work_dir))
     pipeline_configs.update(high_resolution.get_configs(settings,work_dir))
     pipeline_configs.update(miscllaneous.get_configs(settings,work_dir))
+    pipeline_configs.update(detection_3d.get_configs(settings,work_dir))
 
     if settings.experimental_models:
         from . import detection_additional
@@ -89,6 +91,11 @@ def get_configs(settings, work_dir):
         pipeline_configs.update(detection_3d_experimental.get_configs(settings, work_dir))
         pipeline_configs.update(stereo_disparity_experimental.get_configs(settings, work_dir))
     #
+
+    if settings.external_models_path:
+        external_models_configs = utils.import_file_folder(settings.external_models_path)
+        pipeline_configs.update(external_models_configs.get_configs(settings, work_dir))
+    # 
 
     return pipeline_configs
 

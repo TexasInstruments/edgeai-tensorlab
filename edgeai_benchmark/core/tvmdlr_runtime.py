@@ -41,6 +41,10 @@ class TVMDLRRuntimeWrapper(BaseRuntimeWrapper):
         self._start_inference_done = False
         self._num_run_import = 0
         self._input_list = []
+        self.supported_machines = (
+            presets.TARGET_MACHINE_PC_EMULATION,
+            presets.TARGET_MACHINE_EVM
+        )
 
     def start_import(self):
         self.is_import = True
@@ -63,13 +67,12 @@ class TVMDLRRuntimeWrapper(BaseRuntimeWrapper):
         input_data = self._format_input_data(input_data)
         self._input_list.append(input_data)
 
-        output = None
         if len(self._input_list) == self._calibration_frames:
             self.interpreter = self._create_interpreter_for_import(self._input_list)
         elif len(self._input_list) > self._calibration_frames:
             print(f"WARNING: not need to call run_import more than calibration_frames = {self._calibration_frames}")
         #
-        return output
+        return self.interpreter
 
     def start_inference(self):
         self.is_import = False
@@ -110,7 +113,7 @@ class TVMDLRRuntimeWrapper(BaseRuntimeWrapper):
 
         model_file = self.kwargs['model_file']
         model_file0 = model_file[0] if isinstance(model_file, (list,tuple)) else model_file
-        model_type = self.kwargs['model_type'] or os.path.splitext(model_file0)[1][1:]
+        model_type = self.kwargs.get('model_type',None) or os.path.splitext(model_file0)[1][1:]
 
         input_details = self.kwargs['input_details']
         input_shape = {inp_d['name']:inp_d['shape'] for inp_d in input_details}
@@ -135,7 +138,13 @@ class TVMDLRRuntimeWrapper(BaseRuntimeWrapper):
         #
 
        # Create the TIDL compiler with appropriate parameters
-        compiler = tidl.TIDLCompiler(c7x_codegen=0, **self.kwargs['runtime_options'])
+        if (not self.kwargs.get('tidl_offload', True)):
+            self.kwargs['runtime_options']['max_num_subgraphs'] = 0
+        #
+        compiler = tidl.TIDLCompiler(
+            c7x_codegen=self.kwargs.get('c7x_codegen', False),
+            **self.kwargs['runtime_options'],
+        )
 
         artifacts_folder = self.kwargs['artifacts_folder']
         os.makedirs(artifacts_folder, exist_ok=True)
@@ -181,7 +190,7 @@ class TVMDLRRuntimeWrapper(BaseRuntimeWrapper):
         #
         # create a symbolic link to the deploy_lib specified in target_machine
         artifacts_folder = self.kwargs['artifacts_folder']
-        target_machine = self.kwargs['target_machine']
+        target_machine = self.kwargs.get('target_machine', presets.TARGET_MACHINE_PC_EMULATION)
         cwd = os.getcwd()
         os.chdir(artifacts_folder)
         artifact_files = [deploy_lib, deploy_graph, deploy_params]
@@ -189,12 +198,13 @@ class TVMDLRRuntimeWrapper(BaseRuntimeWrapper):
             os.symlink(f'{artifact_file}.{target_machine}', artifact_file)
         #
         os.chdir(cwd)
+        return status
 
     def _format_input_data(self, input_data):
         if isinstance(input_data, dict):
             return input_data
 
-        if not isinstance(input_data, tuple):
+        if not isinstance(input_data, (list,tuple)):
             input_data = (input_data,)
 
         input_details = self.kwargs['input_details']

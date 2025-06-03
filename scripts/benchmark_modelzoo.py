@@ -72,6 +72,7 @@ def get_arg_parser():
     parser.add_argument('--overall_timeout', type=utils.float_or_none)
     parser.add_argument('--instance_timeout', type=utils.float_or_none)
     parser.add_argument('--log_file', type=utils.str_to_bool)
+    parser.add_argument('--tidl_offload', type=utils.str_to_bool)
     return parser
 
 
@@ -103,22 +104,31 @@ if __name__ == '__main__':
     ####################################################################
     try:
         if settings.target_machine == 'pc' and settings.parallel_devices is None:
-            print(f"INFO: model compilation in PC can use CUDA gpus (if it is available) - setup using setup_pc_gpu.sh")
+            print(f"\nINFO: model compilation in PC can use CUDA gpus (if it is available) - setup using setup_pc_gpu.sh")
             nvidia_smi_command = 'nvidia-smi --list-gpus | wc -l'
             proc = subprocess.Popen([nvidia_smi_command], stdout=subprocess.PIPE, shell=True)
             out_ret, err_ret = proc.communicate()
             num_cuda_gpus = int(out_ret)
-            print(f'INFO: setting parallel_devices to the number of cuda gpus found - {num_cuda_gpus}')
+            print(utils.log_color('INFO', 'setting parallel_devices to the number of cuda gpus found', f'{num_cuda_gpus}'))
             settings.parallel_devices = kwargs['parallel_devices'] = num_cuda_gpus
         #
     except:
-        print("INFO: could not find cuda gpus - parallel_devices will not be used.")
+        print("\nINFO: could not find cuda gpus - parallel_devices will not be used.")
         settings.parallel_devices = kwargs['parallel_devices'] = None
     #
 
     ####################################################################
+    # settigns model_shortlist will cause only selected models to be run
+    # in ./configs folder, model configs have a model_shortlist associated with them
+    # in this script, if --model_shortlist is set to 120, only those models with model_shortlist values <= 120 will run
+    if settings.model_shortlist is not None:
+        print(utils.log_color('\nINFO', 'model_shortlist has been set', 'it will cause only a subset of models to run:'))
+        print(utils.log_color('INFO', 'model_shortlist', f'{settings.model_shortlist}'))
+    #
+
+    ####################################################################
     work_dir = os.path.join(settings.modelartifacts_path, f'{settings.tensor_bits}bits')
-    print(f'work_dir: {work_dir}')
+    print(f'\nINFO: work_dir: {work_dir}')
 
     interfaces.run_benchmark_config(settings, work_dir,
         overall_timeout=settings.overall_timeout,

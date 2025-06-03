@@ -51,7 +51,7 @@ class ONNXRTSession(BaseRTSession, ONNXRuntimeWrapper):
         super().run_import(input_data, info_dict)
         # provide the calibration data and run the import
         # input_data = self._format_input_data(input_data)
-        if not isinstance(input_data, tuple):
+        if not isinstance(input_data, (list,tuple)):
             input_data = (input_data,)
         #
         if self.input_normalizer is not None:
@@ -72,7 +72,7 @@ class ONNXRTSession(BaseRTSession, ONNXRuntimeWrapper):
         super().run_inference(input_data, info_dict)
 
         # input_data = self._format_input_data(input_data)
-        if not isinstance(input_data, tuple):
+        if not isinstance(input_data, (list,tuple)):
             input_data = (input_data,)
         #
 

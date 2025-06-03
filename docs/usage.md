@@ -20,21 +20,27 @@ It uses parallel processing to compile multiple models in parallel and is especi
 **Model compilation can be run only on PC. The EVM/device does not support model compilation. However, the inference of a compiled model can be run on PC or on device.**
 
 
-## Firmware update
-Versions of tidl_tools released after an SDK release may come with improvements that may not be compatible - so those improvements are not enabled by default. In order to compile models with those improvements, another script is provided. Run using:
+## Compiling models in the Model Zoo
+* **model_shortlist** in the [settings_base.yaml](../settings_base.yaml) file indicates which all models are run by default. Many models have a shortlist or a priority assigned. If model_shortlist parameter is set to 120, then only those models with model_shortlist priority value less thatn or equal to 120 will be run. This values can be changed by either changing it directly in the settings file or by passing as an argument to run_benchmarks_pc.sh
+* **modelartifacts_path** in the [settings_base.yaml](../settings_base.yaml) file indicates the location where the artifacts are generated or expected. It currently points to work_dirs/modelartifacts/<SOC>/
+* Each model needs a set of side information for compilation. The [configs module](../configs) in this repository by default to understand this information. 
+* But this script can also use a [configs.yaml](https://github.com/TexasInstruments/edgeai-tensorlab/blob/main/edgeai-modelzoo/models/configs.yaml) file (instead of the configs module) by specifying it in the argument --configs_path.
+
+
+## Compiiling models with Firmware update features enabled
+Versions of tidl_tools released after an SDK release may come with improvements that may not be compatible - so those improvements may not be enabled by default. In order to compile models with those improvements, firmware version can be provided. Run using:
 ```
-run_benchmarks_firmware_update_pc.sh <SOC>
+run_benchmarks_pc.sh <SOC> --c7x_firmware_version <firmwareversion>
+```
+
+For example, compiling for latest firmware version in the 10.1 release series could be done by:
+```
+run_benchmarks_pc.sh AM68A --c7x_firmware_version 10_01_04_00
 ```
 
 But such models may require the SDK firmware to be updated - otherwise those compiled models may not run on EVM. See more details of compatibility in: 
 - [version compatibility table](https://github.com/TexasInstruments/edgeai-tidl-tools/blob/master/docs/version_compatibility_table.md)
 - [how to update the firmware](https://github.com/TexasInstruments/edgeai-tidl-tools/blob/master/docs/update_target.md)
-
-
-## Compiling models in the Model Zoo
-* modelartifacts_path* in the [settings_base.yaml](../settings_base.yaml) file indicates the location where the artifacts are generated or expected. It currently points to work_dirs/modelartifacts/<SOC>/
-* Each model needs a set of side information for compilation. The [configs module](../configs) in this repository by default to understand this information. 
-* But this script can also use a [configs.yaml](https://github.com/TexasInstruments/edgeai-tensorlab/blob/main/edgeai-modelzoo/models/configs.yaml) file (instead of the configs module) by specifying it in the argument --configs_path.
 
 
 ## Running inference / benchmark on *PC* using pre-compiled model artifacts

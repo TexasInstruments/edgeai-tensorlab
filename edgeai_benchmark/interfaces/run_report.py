@@ -136,7 +136,7 @@ def run_report(settings, rewrite_results=True, skip_pattern=None):
 
     metric_keys = ['accuracy_top1%', 'accuracy_mean_iou%', 'accuracy_ap[.5:.95]%', 'accuracy_delta_1%',
                    'accuracy_ap_3d_moderate%', 'accuracy_add(s)_p1%', 'accuracy_localization%']
-    performance_keys = ['num_subgraphs', 'infer_time_core_ms', 'ddr_transfer_mb']
+    performance_keys = ['num_subgraphs', 'infer_time_invoke_ms', 'infer_time_core_ms', 'ddr_transfer_mb']
     if report_perfsim:
         performance_keys += ['perfsim_time_ms', 'perfsim_ddr_transfer_mb', 'perfsim_gmacs']
     #

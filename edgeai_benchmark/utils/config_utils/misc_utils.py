@@ -239,3 +239,19 @@ def cleanup_dict(inp_dict, template_dict):
         #
     #
     return oup_dict
+
+
+def inverse_sigmoid(x, eps = 1e-5):
+    """Inverse function of sigmoid.
+
+    Args:
+        x (Tensor): The tensor to do the inverse.
+        eps (float): EPS avoid numerical overflow. Defaults 1e-5.
+    Returns:
+        Tensor: The x has passed the inverse function of sigmoid, has the same
+        shape with input.
+    """
+    x = x.clip(min=0, max=1)
+    x1 = x.clip(min=eps, max=1)
+    x2 = (1 - x).clip(min=eps, max=1)
+    return np.log(x1 / x2)

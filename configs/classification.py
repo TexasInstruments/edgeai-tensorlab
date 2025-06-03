@@ -345,7 +345,7 @@ def get_configs(settings, work_dir):
                 runtime_options=settings.runtime_options_tflite_np2(fast_calibration=False),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v3-large-minimalistic_224_1.0_float.tflite'),
             metric=dict(label_offset_pred=-1),
-            model_info=dict(metric_reference={'accuracy_top1%':72.3}, model_shortlist=None, compact_name='mobv3-large-minimalistic', shortlisted=False)
+            model_info=dict(metric_reference={'accuracy_top1%':72.3}, model_shortlist=120, compact_name='mobv3-large-minimalistic', shortlisted=False)
         ),
         # tensorflow/models: classification mobilenet_v3-small-minimalistic_224_1.0_float expected_metric: 61.9% top-1 accuracy
         'cl-0270':utils.dict_update(common_cfg,
@@ -354,7 +354,7 @@ def get_configs(settings, work_dir):
                 runtime_options=settings.runtime_options_tflite_np2(fast_calibration=False),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v3-small-minimalistic_224_1.0_float.tflite'),
             metric=dict(label_offset_pred=-1),
-            model_info=dict(metric_reference={'accuracy_top1%':61.9}, model_shortlist=None, compact_name='mobv3-small-minimalistic', shortlisted=False)
+            model_info=dict(metric_reference={'accuracy_top1%':61.9}, model_shortlist=120, compact_name='mobv3-small-minimalistic', shortlisted=False)
         ),
         #################efficinetnet & tpu models#########################
         # tensorflow/tpu: classification efficinetnet-lite0_224x224 expected_metric: 75.1% top-1 accuracy

@@ -156,6 +156,24 @@ class ParallelRunner:
         #
         return completed, out_ret
 
+    def check_errors_in_log_file(self, proc_log, proc_error):
+        proc_error = [proc_error] if not isinstance(proc_error, (list,tuple)) else proc_error
+        proc_term_msgs = []
+        with open(proc_log, "r") as fp:
+            try:
+                proc_log_content = fp.read()
+                for proc_error_entry in proc_error:
+                    regex_match =  re.search(proc_error_entry, proc_log_content)
+                    if regex_match:
+                        proc_term_msgs += [regex_match.group()]
+                    #
+                #
+            except:
+                print(f"WARNING: could not read file: {proc_log}")
+            #
+        #
+        return proc_term_msgs
+
     def _check_running_status(self, check_errors):
         running_tasks = []
         completed_tasks = []
@@ -168,7 +186,6 @@ class ParallelRunner:
                 completed = proc_dict.get('completed', False)
                 running = proc_dict.get('running', False)
                 terminated = proc_dict.get('terminated', False)
-
                 # check running processes                         
                 if running:
                     # try to update the completed status for running processes
@@ -179,36 +196,24 @@ class ParallelRunner:
                     proc_dict['result'] = result
                     self.result_entries[task_name] = result
                     running_proc_name = proc_dict['proc_name']
-                    running_time = time.time() - proc_dict['start_time']
+                    instance_running_time = time.time() - proc_dict['start_time']
                     proc_log = proc_dict.get('proc_log', None)
                     proc_error = proc_dict.get('proc_error', None)
 
                     # look for processes to terminate forcefully
-                    # proc_dict entry of terminated process will eventually get removed - don't keep trying  to terminate it again and again    
-                    if check_errors and (not terminated) and proc_error:
-                        proc_error = [proc_error] if not isinstance(proc_error, (list,tuple)) else proc_error
-                        proc_terminate = False
+                    # check for terminate flag beore trying to terminate again - don't keep trying  to terminate it again and again
+                    # proc_dict entry of terminated process will eventually get removed
+                    if (not terminated):
                         proc_term_msgs = []
-                        if proc_log and os.path.exists(proc_log):
-                            with open(proc_log, "r") as fp:
-                                try:
-                                    proc_log_content = fp.read()
-                                    for proc_error_entry in proc_error:
-                                        regex_match =  re.search(proc_error_entry, proc_log_content)
-                                        if regex_match:
-                                            proc_terminate = True
-                                            proc_term_msgs += [regex_match.group()]
-                                        #
-                                    #
-                                except:
-                                    print(f"WARNING: could not read file: {proc_log}")
-                                #
+                        if check_errors and proc_error:
+                            if proc_log and os.path.exists(proc_log):
+                                proc_term_msgs += self.check_errors_in_log_file(proc_log, proc_error)
                             #
                         #
-                        if self.instance_timeout and running_time > self.instance_timeout and proc is not None:
-                            proc_terminate = True
+                        if self.instance_timeout and instance_running_time > self.instance_timeout and proc is not None:
                             proc_term_msgs += [f"TIMEOUT : {self.instance_timeout}"]
                         #
+                        proc_terminate = len(proc_term_msgs) > 0
                         if proc_terminate:
                             print(f"WARNING: terminating the process - {running_proc_name} - {', '.join(proc_term_msgs)}")
                             proc.terminate()
@@ -241,30 +246,32 @@ class ParallelRunner:
     def _wait_in_loop(self, num_processes):
         # wait in a loop until the number of running processes come down        
         num_processes = num_processes or 0
-        last_check_time = time.time()        
-        check_errors = self.check_errors
-        num_completed, num_running = self._check_running_status(check_errors=check_errors)
+        last_check_time = time.time()
+        num_completed, num_running = self._check_running_status(check_errors=self.check_errors)
         while num_running > 0 and num_running >= num_processes and (not self.terminate_all_flag):
+            check_interval = time.time() - last_check_time
+            check_interval_elapsed = (check_interval > self.maxinterval)
+            if check_interval_elapsed:
+                last_check_time = time.time()
+            #
+            check_errors = (self.check_errors and check_interval_elapsed)
+
             num_completed, num_running = self._check_running_status(check_errors=check_errors)
             if num_running >= num_processes:
-                time.sleep(self.maxinterval)
+                time.sleep(self.mininterval)
             #
+
             # check if this run has been too long; terminate if needed
-            running_time = time.time() - self.start_time
-            if self.overall_timeout and (running_time > self.overall_timeout):
+            overall_running_time = time.time() - self.start_time
+            if self.overall_timeout and (overall_running_time > self.overall_timeout):
                 self.terminate_all(f"WARNING: TIMEOUT occurred - overall_timeout: {self.overall_timeout}")
-            #
-            check_interval = time.time() - last_check_time            
-            check_errors = (check_interval > self.maxinterval)
-            if check_errors:              
-                last_check_time = time.time()          
             #
         #
         time.sleep(self.mininterval)        
         # check if this run has been too long; terminate if needed
-        running_time = time.time() - self.start_time
-        if self.overall_timeout and (running_time > self.overall_timeout) and (not self.terminate_all_flag):
-            self.terminate_all()
+        overall_running_time = time.time() - self.start_time
+        if self.overall_timeout and (overall_running_time > self.overall_timeout) and (not self.terminate_all_flag):
+            self.terminate_all(f"WARNING: TIMEOUT occurred - overall_timeout: {self.overall_timeout}")
         #        
         return num_completed, num_running
 

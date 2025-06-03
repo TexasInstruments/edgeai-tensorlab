@@ -1,0 +1,139 @@
+model name,input shape,axes
+Squeeze_axesVar_1,"(2, 1, 87)",[1]
+Squeeze_axesVar_2,"(1, 8, 1)",[0]
+Squeeze_axesVar_3,"(1, 8, 1)",[2]
+Squeeze_axesVar_4,"(1, 8, 1)","[0, 2]"
+Squeeze_axesVar_5,"(1, 1, 6)",[0]
+Squeeze_axesVar_6,"(1, 1, 6)",[1]
+Squeeze_axesVar_7,"(1, 1, 6)","[0, 1]"
+Squeeze_axesVar_8,"(1, 1, 1)",[0]
+Squeeze_axesVar_9,"(1, 1, 1)",[1]
+Squeeze_axesVar_10,"(1, 1, 1)",[2]
+Squeeze_axesVar_11,"(1, 1, 1)","[0, 1]"
+Squeeze_axesVar_12,"(1, 1, 1)","[0, 2]"
+Squeeze_axesVar_13,"(1, 1, 1)","[1, 2]"
+Squeeze_axesVar_14,"(1, 1, 1)","[0, 1, 2]"
+Squeeze_axesVar_15,"(4, 4, 1)",[2]
+Squeeze_axesVar_16,"(2, 1, 32, 32)",[1]
+Squeeze_axesVar_17,"(4, 1, 1, 64)",[1]
+Squeeze_axesVar_18,"(4, 1, 1, 64)",[2]
+Squeeze_axesVar_19,"(4, 1, 1, 64)","[1, 2]"
+Squeeze_axesVar_20,"(1, 4, 1, 80)",[0]
+Squeeze_axesVar_21,"(1, 4, 1, 80)",[2]
+Squeeze_axesVar_22,"(1, 4, 1, 80)","[0, 2]"
+Squeeze_axesVar_23,"(1, 1, 1, 1)",[0]
+Squeeze_axesVar_24,"(1, 1, 1, 1)",[1]
+Squeeze_axesVar_25,"(1, 1, 1, 1)",[2]
+Squeeze_axesVar_26,"(1, 1, 1, 1)",[3]
+Squeeze_axesVar_27,"(1, 1, 1, 1)","[0, 1]"
+Squeeze_axesVar_28,"(1, 1, 1, 1)","[0, 2]"
+Squeeze_axesVar_29,"(1, 1, 1, 1)","[0, 3]"
+Squeeze_axesVar_30,"(1, 1, 1, 1)","[1, 2]"
+Squeeze_axesVar_31,"(1, 1, 1, 1)","[1, 3]"
+Squeeze_axesVar_32,"(1, 1, 1, 1)","[2, 3]"
+Squeeze_axesVar_33,"(1, 1, 1, 1)","[0, 1, 2]"
+Squeeze_axesVar_34,"(1, 1, 1, 1)","[0, 1, 3]"
+Squeeze_axesVar_35,"(1, 1, 1, 1)","[0, 2, 3]"
+Squeeze_axesVar_36,"(1, 1, 1, 1)","[1, 2, 3]"
+Squeeze_axesVar_37,"(1, 1, 1, 1)","[0, 1, 2, 3]"
+Squeeze_axesVar_38,"(1, 1, 160, 1)",[0]
+Squeeze_axesVar_39,"(1, 1, 160, 1)",[1]
+Squeeze_axesVar_40,"(1, 1, 160, 1)",[3]
+Squeeze_axesVar_41,"(1, 1, 160, 1)","[0, 1]"
+Squeeze_axesVar_42,"(1, 1, 160, 1)","[0, 3]"
+Squeeze_axesVar_43,"(1, 1, 160, 1)","[1, 3]"
+Squeeze_axesVar_44,"(1, 1, 160, 1)","[0, 1, 3]"
+Squeeze_axesVar_45,"(1, 1, 256, 256)",[0]
+Squeeze_axesVar_46,"(1, 1, 256, 256)",[1]
+Squeeze_axesVar_47,"(1, 1, 256, 256)","[0, 1]"
+Squeeze_axesVar_48,"(3, 1, 223, 1)",[1]
+Squeeze_axesVar_49,"(3, 1, 223, 1)",[3]
+Squeeze_axesVar_50,"(3, 1, 223, 1)","[1, 3]"
+Squeeze_axesVar_51,"(2, 9, 219, 1)",[3]
+Squeeze_axesVar_52,"(4, 6, 1, 11)",[2]
+Squeeze_axesVar_53,"(1, 1, 1, 209)",[0]
+Squeeze_axesVar_54,"(1, 1, 1, 209)",[1]
+Squeeze_axesVar_55,"(1, 1, 1, 209)",[2]
+Squeeze_axesVar_56,"(1, 1, 1, 209)","[0, 1]"
+Squeeze_axesVar_57,"(1, 1, 1, 209)","[0, 2]"
+Squeeze_axesVar_58,"(1, 1, 1, 209)","[1, 2]"
+Squeeze_axesVar_59,"(1, 1, 1, 209)","[0, 1, 2]"
+Squeeze_axesVar_60,"(1, 9, 1, 11, 1)",[0]
+Squeeze_axesVar_61,"(1, 9, 1, 11, 1)",[2]
+Squeeze_axesVar_62,"(1, 9, 1, 11, 1)",[4]
+Squeeze_axesVar_63,"(1, 9, 1, 11, 1)","[0, 2]"
+Squeeze_axesVar_64,"(1, 9, 1, 11, 1)","[0, 4]"
+Squeeze_axesVar_65,"(1, 9, 1, 11, 1)","[2, 4]"
+Squeeze_axesVar_66,"(1, 9, 1, 11, 1)","[0, 2, 4]"
+Squeeze_axesVar_67,"(4, 1, 4, 1, 43)",[1]
+Squeeze_axesVar_68,"(4, 1, 4, 1, 43)",[3]
+Squeeze_axesVar_69,"(4, 1, 4, 1, 43)","[1, 3]"
+Squeeze_axesVar_70,"(1, 8, 23, 24, 35)",[0]
+Squeeze_axesVar_71,"(1, 1, 1, 1, 11)",[0]
+Squeeze_axesVar_72,"(1, 1, 1, 1, 11)",[1]
+Squeeze_axesVar_73,"(1, 1, 1, 1, 11)",[2]
+Squeeze_axesVar_74,"(1, 1, 1, 1, 11)",[3]
+Squeeze_axesVar_75,"(1, 1, 1, 1, 11)","[0, 1]"
+Squeeze_axesVar_76,"(1, 1, 1, 1, 11)","[0, 2]"
+Squeeze_axesVar_77,"(1, 1, 1, 1, 11)","[0, 3]"
+Squeeze_axesVar_78,"(1, 1, 1, 1, 11)","[1, 2]"
+Squeeze_axesVar_79,"(1, 1, 1, 1, 11)","[1, 3]"
+Squeeze_axesVar_80,"(1, 1, 1, 1, 11)","[2, 3]"
+Squeeze_axesVar_81,"(1, 1, 1, 1, 11)","[0, 1, 2]"
+Squeeze_axesVar_82,"(1, 1, 1, 1, 11)","[0, 1, 3]"
+Squeeze_axesVar_83,"(1, 1, 1, 1, 11)","[0, 2, 3]"
+Squeeze_axesVar_84,"(1, 1, 1, 1, 11)","[1, 2, 3]"
+Squeeze_axesVar_85,"(1, 1, 1, 1, 11)","[0, 1, 2, 3]"
+Squeeze_axesVar_86,"(1, 1, 1, 1, 1)",[0]
+Squeeze_axesVar_87,"(1, 1, 1, 1, 1)",[1]
+Squeeze_axesVar_88,"(1, 1, 1, 1, 1)",[2]
+Squeeze_axesVar_89,"(1, 1, 1, 1, 1)",[3]
+Squeeze_axesVar_90,"(1, 1, 1, 1, 1)",[4]
+Squeeze_axesVar_91,"(1, 1, 1, 1, 1)","[0, 1]"
+Squeeze_axesVar_92,"(1, 1, 1, 1, 1)","[0, 2]"
+Squeeze_axesVar_93,"(1, 1, 1, 1, 1)","[0, 3]"
+Squeeze_axesVar_94,"(1, 1, 1, 1, 1)","[0, 4]"
+Squeeze_axesVar_95,"(1, 1, 1, 1, 1)","[1, 2]"
+Squeeze_axesVar_96,"(1, 1, 1, 1, 1)","[1, 3]"
+Squeeze_axesVar_97,"(1, 1, 1, 1, 1)","[1, 4]"
+Squeeze_axesVar_98,"(1, 1, 1, 1, 1)","[2, 3]"
+Squeeze_axesVar_99,"(1, 1, 1, 1, 1)","[2, 4]"
+Squeeze_axesVar_100,"(1, 1, 1, 1, 1)","[3, 4]"
+Squeeze_axesVar_101,"(1, 1, 1, 1, 1)","[0, 1, 2]"
+Squeeze_axesVar_102,"(1, 1, 1, 1, 1)","[0, 1, 3]"
+Squeeze_axesVar_103,"(1, 1, 1, 1, 1)","[0, 1, 4]"
+Squeeze_axesVar_104,"(1, 1, 1, 1, 1)","[0, 2, 3]"
+Squeeze_axesVar_105,"(1, 1, 1, 1, 1)","[0, 2, 4]"
+Squeeze_axesVar_106,"(1, 1, 1, 1, 1)","[0, 3, 4]"
+Squeeze_axesVar_107,"(1, 1, 1, 1, 1)","[1, 2, 3]"
+Squeeze_axesVar_108,"(1, 1, 1, 1, 1)","[1, 2, 4]"
+Squeeze_axesVar_109,"(1, 1, 1, 1, 1)","[1, 3, 4]"
+Squeeze_axesVar_110,"(1, 1, 1, 1, 1)","[2, 3, 4]"
+Squeeze_axesVar_111,"(1, 1, 1, 1, 1)","[0, 1, 2, 3]"
+Squeeze_axesVar_112,"(1, 1, 1, 1, 1)","[0, 1, 2, 4]"
+Squeeze_axesVar_113,"(1, 1, 1, 1, 1)","[0, 1, 3, 4]"
+Squeeze_axesVar_114,"(1, 1, 1, 1, 1)","[0, 2, 3, 4]"
+Squeeze_axesVar_115,"(1, 1, 1, 1, 1)","[1, 2, 3, 4]"
+Squeeze_axesVar_116,"(1, 1, 1, 1, 1)","[0, 1, 2, 3, 4]"
+Squeeze_axesVar_117,"(1, 1, 6, 11, 1, 4)",[0]
+Squeeze_axesVar_118,"(1, 1, 6, 11, 1, 4)",[1]
+Squeeze_axesVar_119,"(1, 1, 6, 11, 1, 4)",[4]
+Squeeze_axesVar_120,"(1, 1, 6, 11, 1, 4)","[0, 1]"
+Squeeze_axesVar_121,"(1, 1, 6, 11, 1, 4)","[0, 4]"
+Squeeze_axesVar_122,"(1, 1, 6, 11, 1, 4)","[1, 4]"
+Squeeze_axesVar_123,"(1, 1, 6, 11, 1, 4)","[0, 1, 4]"
+Squeeze_axesVar_124,"(2, 1, 1, 9, 1, 1)",[1]
+Squeeze_axesVar_125,"(2, 1, 1, 9, 1, 1)",[2]
+Squeeze_axesVar_126,"(2, 1, 1, 9, 1, 1)",[4]
+Squeeze_axesVar_127,"(2, 1, 1, 9, 1, 1)",[5]
+Squeeze_axesVar_128,"(2, 1, 1, 9, 1, 1)","[1, 2]"
+Squeeze_axesVar_129,"(2, 1, 1, 9, 1, 1)","[1, 4]"
+Squeeze_axesVar_130,"(2, 1, 1, 9, 1, 1)","[1, 5]"
+Squeeze_axesVar_131,"(2, 1, 1, 9, 1, 1)","[2, 4]"
+Squeeze_axesVar_132,"(2, 1, 1, 9, 1, 1)","[2, 5]"
+Squeeze_axesVar_133,"(2, 1, 1, 9, 1, 1)","[4, 5]"
+Squeeze_axesVar_134,"(2, 1, 1, 9, 1, 1)","[1, 2, 4]"
+Squeeze_axesVar_135,"(2, 1, 1, 9, 1, 1)","[1, 2, 5]"
+Squeeze_axesVar_136,"(2, 1, 1, 9, 1, 1)","[1, 4, 5]"
+Squeeze_axesVar_137,"(2, 1, 1, 9, 1, 1)","[2, 4, 5]"
+Squeeze_axesVar_138,"(2, 1, 1, 9, 1, 1)","[1, 2, 4, 5]"

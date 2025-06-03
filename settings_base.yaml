@@ -52,16 +52,19 @@ session_type_dict : {'onnx':'onnxrt', 'tflite':'tflitert', 'mxnet':'tvmdlr'}
 #   examples: ['resnet18.onnx', 'resnet50_v1.tflite'] ['classification'] ['imagenet1k'] ['torchvision'] ['coco']
 #   examples: [cl-0000, od-2020, ss-2580, cl-3090, od-5120, ss-5710, cl-6360, od-8020, od-8200, od-8220, od-8420, ss-8610, kd-7060, 3dod-7100, 6dpose-7200, ss-7618]
 #   examples: [cl-0000, od-2020, cl-6360, od-8200, od-8270, od-8410, ss-8610, ss-8630, ss-8710, ss-8720]
+#   examples: [3dod-7120 (PETR), 3dod-7130 (BEVDet), 3dod-7140 (BEVFormer), 3dod-7150 (FCOS3D), 3dod-7160 ~ 3dod-7163 (FastBEV)]  # NuScenes Experimental
+#   examples: [3dod-8160 ~ 3dod-8161 (FastBEV)] # PandaSet
 model_selection : null
 
 # model_shortlist can be a number, which indicates a predefined shortlist, and a fraction of the models will be selected
 # model_shortlist and model_selection are complimentary - they can be used together.
 # 0 means no models, 1 means 1 model, 15 means roughly 15% of models, 100 means all the models.
-#   examples: null
-#   examples: 10
-#   examples: 20
-#   examples: 30
-model_shortlist: null
+#   suggested values: minimalset: 10, basicset: 20, defaultset: 120, fullset: 200, all: null
+#   example: null
+#   example: 10
+#   example: 20
+#   example: 120
+model_shortlist: 120
 
 # wild card list to match against the tasks. it null, all tasks will be run
 # example: ['classification', 'detection', 'segmentation', 'depth_estimation', 'keypoint_detection', 'detection_3d']
@@ -78,6 +81,8 @@ runtime_selection : null
 # set this to null to run all the models
 # example: ['coco']
 # example: ['imagenet', 'coco', 'cocoseg21', 'ade20k', 'cocokpts', 'kitti_lidar_det', 'ti-robokit_semseg_zed1hd', 'ycbv']
+# example: ['nuscenes_frame' (PETR, BEVDet, BEVFormer, FastBEV), 'nuscenes_mv_image' (FCOS3D)]
+# example: ['pandaset_frame' (PETR, BEVDet, BEVFormer, FastBEV), 'pandaset_mv_image' (FCOS3D)]
 dataset_selection : null
 
 # use TIDL offload to speedup inference
