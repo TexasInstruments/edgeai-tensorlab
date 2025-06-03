@@ -64,7 +64,7 @@ model_selection : null
 #   example: 10
 #   example: 20
 #   example: 120
-model_shortlist: 120
+model_shortlist: 100
 
 # wild card list to match against the tasks. it null, all tasks will be run
 # example: ['classification', 'detection', 'segmentation', 'depth_estimation', 'keypoint_detection', 'detection_3d']
