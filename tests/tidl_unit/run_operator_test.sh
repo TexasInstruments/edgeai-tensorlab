@@ -16,14 +16,14 @@ echo \
     --save_model_artifacts      Whether to save compiled artifacts or not. Allowed values are (0,1). Default=0
     --save_model_artifacts_dir  Path to save model artifacts if save_model_artifacts is 1. Default is work_dirs/modelartifacts
     --temp_buffer_dir           Path to redirect temporary buffers for x86 runs. Default is /dev/shm
-    --operators                 List of operators to run. By default every operator under tidl_unit_test_data/operators
-    --runtimes                  List of runtimes to run tests. Allowed values are (onnxrt, tvmrt). Default=onnxrt
-    --tidl_tools_path           Path of tidl tools tarball.
+    --operators                 List of operators (space separated string) to run. By default every operator under tidl_unit_test_data/operators
+    --runtimes                  List of runtimes (space separated string) to run tests. Allowed values are (onnxrt, tvmrt). Default=onnxrt
+    --tidl_tools_path           Path of tidl tools tarball (named as tidl_tools.tar.gz)
     --compiled_artifacts_path   Path of compiled model artifacts. Will be used only for TARGET run.
 
     Example:
-        ./run_operator_test.sh --SOC=AM68A --run_ref=1 --run_natc=0 --run_ci=0 --save_model_artifacts=1
-        This will run unit tests for AM68A, aritifact will be saved and will run Host emulation inference 
+        ./run_operator_test.sh --SOC=AM68A --run_ref=1 --run_natc=0 --run_ci=0 --save_model_artifacts=1 --operators=\"Add Mul Sqrt\" --runtimes=\"onnxrt\"
+        This will run unit tests for (Add, Mul, Sqrt) operators on AM68A using onnxrt runtime, aritifacts will be saved and will run Host emulation inference 
     "
 }
 
@@ -80,35 +80,30 @@ while [ $# -gt 0 ]; do
         --compiled_artifacts_path=*)
         compiled_artifacts_path="${1#*=}"
         ;;
-        --operators)
-            exp_ops=true
-            exp_runtimes=false
-            shift
-            continue
+        --operators=*)
+        operators="${1#*=}"
         ;;
-        --runtimes)
-            exp_ops=false
-            exp_runtimes=true
-            shift
-            continue
+        --runtimes=*)
+        runtimes="${1#*=}"
         ;;
         --help)
         usage
         exit
         ;;
         *)
-            if $exp_ops; then
-                OPERATORS+=("$1")
-            elif $exp_runtimes; then
-                RUNTIMES+=("$1")
-            else
-                echo "Unexpected argument: $1"
-                usage
-                exit
-            fi
+        echo "[ERROR]: Invalid argument $1"
+        usage
+        exit
         ;;
         esac
         shift
+done
+
+for operator in $operators; do
+  OPERATORS+=("$operator")
+done
+for runtime in $runtimes; do
+  RUNTIMES+=("$runtime")
 done
 
 if [ "$run_ref" == "0" ] && [ "$run_natc" == "0" ] && [ "$run_ci" == "0" ] && [ "$run_target" == "0" ]; then
