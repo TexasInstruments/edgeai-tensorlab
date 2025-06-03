@@ -350,14 +350,14 @@ def download_tidl_tools(TIDL_TOOLS_VERSION_NAME, TIDL_TOOLS_RELEASE_LABEL, TIDL_
     return None
 
 
-def download_tidl_tools_package_11_00_00_00(tools_version, tools_type):
+def download_tidl_tools_package_11_00_06_00(tools_version, tools_type):
     expected_tools_version=("11.0",)
     assert tools_version in expected_tools_version, f"ERROR: incorrect tools_version passed:{tools_version} - expected:{expected_tools_version}"
     TIDL_TOOLS_VERSION_NAME=tools_version
     TIDL_TOOLS_RELEASE_LABEL="r11.0"
-    TIDL_TOOLS_RELEASE_ID="11_00_00_00"
-    C7X_FIRMWARE_VERSION="11_00_00_00" #TODO - udpate this for 11.0
-    C7X_FIRMWARE_VERSION_POSSIBLE_UPDATE=None #TODO - udpate this for 11.0
+    TIDL_TOOLS_RELEASE_ID="11_00_06_00"
+    C7X_FIRMWARE_VERSION="11_00_00_00"
+    C7X_FIRMWARE_VERSION_POSSIBLE_UPDATE=None #TODO - udpate this
     TARGET_SOCS=("TDA4VM", "AM68A", "AM69A", "AM67A", "AM62A")
     TIDL_TOOLS_TYPE_SUFFIX=tools_type
     print(f"INFO: you have chosen to install tidl_tools version:{TIDL_TOOLS_RELEASE_ID} with default SDK firmware version set to:{C7X_FIRMWARE_VERSION}")
@@ -365,16 +365,7 @@ def download_tidl_tools_package_11_00_00_00(tools_version, tools_type):
         print(f"INFO: to leverage more features, set advanced_options:c7x_firmware_version while model compialtion and update firmware version in SDK to: {C7X_FIRMWARE_VERSION_POSSIBLE_UPDATE}")
     #
     print(f"INFO: for more info, see version compatibiltiy table: https://github.com/TexasInstruments/edgeai-tidl-tools/blob/master/docs/version_compatibility_table.md")
-
-    DOWNLOAD_URLS = {
-        "TDA4VM": f"http://10.24.68.92/OSRT_TOOLS/11_00_06_00/am68pa/tidl_tools{TIDL_TOOLS_TYPE_SUFFIX}.tar.gz",
-        "AM68A": f"http://10.24.68.92/OSRT_TOOLS/11_00_06_00/am68a/tidl_tools{TIDL_TOOLS_TYPE_SUFFIX}.tar.gz",
-        "AM69A": f"http://10.24.68.92/OSRT_TOOLS/11_00_06_00/am69a/tidl_tools{TIDL_TOOLS_TYPE_SUFFIX}.tar.gz",
-        "AM67A": f"http://10.24.68.92/OSRT_TOOLS/11_00_06_00/am67a/tidl_tools{TIDL_TOOLS_TYPE_SUFFIX}.tar.gz",
-        "AM62A": f"http://10.24.68.92/OSRT_TOOLS/11_00_06_00/am62a/tidl_tools{TIDL_TOOLS_TYPE_SUFFIX}.tar.gz", # no update for AM62A in 11.0
-    }
-    download_tidl_tools(TIDL_TOOLS_VERSION_NAME, TIDL_TOOLS_RELEASE_LABEL, TIDL_TOOLS_RELEASE_ID, TARGET_SOCS, TIDL_TOOLS_TYPE_SUFFIX, C7X_FIRMWARE_VERSION,
-        DOWNLOAD_URLS=DOWNLOAD_URLS)
+    download_tidl_tools(TIDL_TOOLS_VERSION_NAME, TIDL_TOOLS_RELEASE_LABEL, TIDL_TOOLS_RELEASE_ID, TARGET_SOCS, TIDL_TOOLS_TYPE_SUFFIX, C7X_FIRMWARE_VERSION)
     requirements_file = os.path.realpath(os.path.join(os.path.dirname(__file__), f'requirements/requirements_11.0.txt'))
     return requirements_file
 
@@ -413,7 +404,7 @@ def download_tidl_tools_package_10_00_08_00(tools_version, tools_type):
 
 
 down_tidl_tools_package_dict = {
-    "11.0":   download_tidl_tools_package_11_00_00_00,
+    "11.0":   download_tidl_tools_package_11_00_06_00,
     "10.1":   download_tidl_tools_package_10_01_04_01,
     "10.0":   download_tidl_tools_package_10_00_08_00,
 }
