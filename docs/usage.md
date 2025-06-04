@@ -21,7 +21,7 @@ It uses parallel processing to compile multiple models in parallel and is especi
 
 
 ## Compiling models in the Model Zoo
-* **model_shortlist** in the [settings_base.yaml](../settings_base.yaml) file indicates which all models are run by default. Many models have a shortlist or a priority assigned. If model_shortlist parameter is set to 120, then only those models with model_shortlist priority value less thatn or equal to 120 will be run. This values can be changed by either changing it directly in the settings file or by passing as an argument to run_benchmarks_pc.sh
+* **model_shortlist** in the [settings_base.yaml](../settings_base.yaml) file indicates which all models are run by default. Many models have a shortlist or a priority assigned. If model_shortlist parameter is set to 100, then only those models with model_shortlist priority value less thatn or equal to 100 will be run. This values can be changed by either changing it directly in the settings file or by passing as an argument to run_benchmarks_pc.sh
 * **modelartifacts_path** in the [settings_base.yaml](../settings_base.yaml) file indicates the location where the artifacts are generated or expected. It currently points to work_dirs/modelartifacts/<SOC>/
 * Each model needs a set of side information for compilation. The [configs module](../configs) in this repository by default to understand this information. 
 * But this script can also use a [configs.yaml](https://github.com/TexasInstruments/edgeai-tensorlab/blob/main/edgeai-modelzoo/models/configs.yaml) file (instead of the configs module) by specifying it in the argument --configs_path.

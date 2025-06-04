@@ -101,7 +101,9 @@ See the [usage instructions](./docs/usage.md)
 <hr>
 
 ## Compiling Custom Models on PC
-See the **[instructions to compile custom models](./docs/custom_models.md)**
+Custom models can be compiled by one of the following methods:
+* Method 1: By running [run_custom_pc.sh](run_custom_pc.sh). See the **[instructions to compile custom models](./docs/custom_models.md)** using this method.
+* Method 2: Add your model config into the [configs](./configs) module, like one of the existing models. Then change model_shortlist in [settings_base.yaml](settings_base.yaml) to null and model_selection to the id of the model that you just added. For example: if you added a new model to [configs/classification_v2.py](configs/classification_v2.py) with id **cl-new1** - then change model_shortlist to null and model_selection to **cl-new1** . Then run [run_benchmarks_pc.sh](run_benchmarks_pc.sh) for model compilation on PC. Then  [run_benchmarks_evm.sh](run_benchmarks_evm.sh) can be used to run inference using the compiled artifacts on EVM (as explained below).
 
 <hr>
 

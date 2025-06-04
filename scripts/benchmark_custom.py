@@ -276,7 +276,8 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
     parser.add_argument('settings_file', type=str)
-    parser.add_argument('--model_selection', type=str, default=None, nargs='*')
+    parser.add_argument('--model_selection', type=utils.str_or_none, nargs='*')
+    parser.add_argument('--model_shortlist', type=utils.int_or_none)
     parser.add_argument('--target_device', type=str)
     parser.add_argument('--target_machine', type=str)
     cmds = parser.parse_args()
