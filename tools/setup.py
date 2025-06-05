@@ -33,42 +33,15 @@ import importlib
 import traceback
 import shutil
 import subprocess
-from setuptools import setup, Extension, find_packages
 import yaml
 import argparse
 import tqdm
+from setuptools import setup, Extension, find_packages
+from setuptools.command.install import install
+from setuptools.command.develop import develop
 
 
-def git_hash():
-    git_path = './' if os.path.exists('.git') else ('../' if os.path.exists('../.git') else None)
-    if git_path:
-        hash = subprocess.check_output(['git', 'rev-parse', 'HEAD']).strip()
-        return hash[:7] if (hash is not None) else None
-    else:
-        return None
-
-
-def import_file_folder(file_or_folder_name):
-    if file_or_folder_name.endswith(os.sep):
-        file_or_folder_name = file_or_folder_name[:-1]
-    #
-    parent_folder = os.path.dirname(file_or_folder_name)
-    basename = os.path.splitext(os.path.basename(file_or_folder_name))[0]
-    sys.path.insert(0, parent_folder)
-    imported_module = importlib.import_module(basename, __name__)
-    sys.path.pop(0)
-    return imported_module
-
-
-def get_version():
-    version_file = os.path.realpath(os.path.join(os.path.dirname(__file__), '..', 'edgeai_benchmark', 'version.py'))
-    print(f"version_file={version_file}")
-    version = import_file_folder(version_file)
-    hash = git_hash()
-    version_str = version.__version__ + '+' + hash.strip().decode('ascii') if (hash is not None) else version.__version__
-    return version_str
-
-
+###############################################################################
 def gen_bar_updater() -> Callable[[int, int, int], None]:
     pbar = tqdm.tqdm(total=None)
 
@@ -82,6 +55,7 @@ def gen_bar_updater() -> Callable[[int, int, int], None]:
 
 
 def calculate_md5(fpath: str, chunk_size: int = 1024 * 1024) -> str:
+    import hashlib
     md5 = hashlib.md5()
     with open(fpath, 'rb') as f:
         for chunk in iter(lambda: f.read(chunk_size), b''):
@@ -179,7 +153,6 @@ def download_url(
     #
     #print('done.')
     return fpath
-
 
 
 def _is_tarxz(filename: str) -> bool:
@@ -291,6 +264,7 @@ def download_and_extract_archive(
     return fpath
 
 
+###############################################################################
 def download_arm_gcc(tidl_tools_package_path):
     print("INFO: installing gcc arm required for tvm...")
     GCC_ARM_AARCH64_NAME="gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu"
@@ -329,7 +303,8 @@ def download_tidl_tools(download_url, download_path, **tidl_version_dict):
     return None
 
 
-def download_tidl_tools_package_11_00(tools_version, tools_type):
+###############################################################################
+def download_tidl_tools_package_11_00(install_path, tools_version, tools_type):
     expected_tools_version=("11.0",)
     assert tools_version in expected_tools_version, f"ERROR: incorrect tools_version passed:{tools_version} - expected:{expected_tools_version}"
     tidl_tools_version_name=tools_version
@@ -343,10 +318,10 @@ def download_tidl_tools_package_11_00(tools_version, tools_type):
         print(f"INFO: for more info, see version compatibiltiy table: https://github.com/TexasInstruments/edgeai-tidl-tools/blob/master/docs/version_compatibility_table.md")
     #
 
-    tidl_tools_package_path = os.path.join(os.path.dirname(__file__), 'tidl_tools_package')
+    tidl_tools_package_path = install_path
     download_arm_gcc(tidl_tools_package_path)
 
-    tidl_tools_type_suffix=tools_type
+    tidl_tools_type_suffix=("_gpu" if isinstance(tools_type,str) and "gpu" in tools_type else "")
     target_soc_download_urls = {
         "TDA4VM": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/TDA4VM",
         "AM68A": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM68A",
@@ -367,7 +342,7 @@ def download_tidl_tools_package_11_00(tools_version, tools_type):
     return requirements_file
 
 
-def download_tidl_tools_package_10_01(tools_version, tools_type):
+def download_tidl_tools_package_10_01(install_path, tools_version, tools_type):
     expected_tools_version=("10.1",)
     assert tools_version in expected_tools_version, f"ERROR: incorrect tools_version passed:{tools_version} - expected:{expected_tools_version}"
     tidl_tools_version_name=tools_version
@@ -379,10 +354,10 @@ def download_tidl_tools_package_10_01(tools_version, tools_type):
     print(f"INFO: to leverage more features, set advanced_options:c7x_firmware_version while model compialtion and update firmware version in SDK to: {c7x_firmware_version_possible_update}")
     print(f"INFO: for more info, see version compatibiltiy table: https://github.com/TexasInstruments/edgeai-tidl-tools/blob/master/docs/version_compatibility_table.md")
 
-    tidl_tools_package_path = os.path.join(os.path.dirname(__file__), 'tidl_tools_package')
+    tidl_tools_package_path = install_path
     download_arm_gcc(tidl_tools_package_path)
 
-    tidl_tools_type_suffix=tools_type
+    tidl_tools_type_suffix=("_gpu" if isinstance(tools_type,str) and "gpu" in tools_type else "")
     target_soc_download_urls = {
         "TDA4VM": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/TDA4VM",
         "AM68A": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM68A",
@@ -403,7 +378,7 @@ def download_tidl_tools_package_10_01(tools_version, tools_type):
     return requirements_file
 
 
-def download_tidl_tools_package_10_00(tools_version, tools_type):
+def download_tidl_tools_package_10_00(install_path, tools_version, tools_type):
     expected_tools_version=("10.0",)
     assert tools_version in expected_tools_version, f"ERROR: incorrect tools_version passed:{tools_version} - expected:{expected_tools_version}"
     tidl_tools_version_name=tools_version
@@ -412,10 +387,10 @@ def download_tidl_tools_package_10_00(tools_version, tools_type):
     c7x_firmware_version=""
     print(f"INFO: you have chosen to install tidl_tools version:{tidl_tools_release_id} with default SDK firmware version:{c7x_firmware_version}")
 
-    tidl_tools_package_path = os.path.join(os.path.dirname(__file__), 'tidl_tools_package')
+    tidl_tools_package_path = install_path
     download_arm_gcc(tidl_tools_package_path)
 
-    tidl_tools_type_suffix=tools_type
+    tidl_tools_type_suffix=("_gpu" if isinstance(tools_type,str) and "gpu" in tools_type else "")
     target_soc_download_urls = {
         "TDA4VM": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/TDA4VM",
         "AM68A": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM68A",
@@ -436,6 +411,7 @@ def download_tidl_tools_package_10_00(tools_version, tools_type):
     return requirements_file
 
 
+###############################################################################
 down_tidl_tools_package_dict = {
     "11.0":   download_tidl_tools_package_11_00,
     "10.1":   download_tidl_tools_package_10_01,
@@ -443,47 +419,104 @@ down_tidl_tools_package_dict = {
 }
 
 
-def main(tools_version, tools_type):
+def setup_tidl_tools(install_path, tools_version, tools_type):
     assert tools_version in down_tidl_tools_package_dict.keys(), f"unknown tools_version provided: {tools_version} at {__file__}"
+    down_tidl_tools_package_func = down_tidl_tools_package_dict[tools_version]
+    requirements_file = down_tidl_tools_package_func(install_path, tools_version, tools_type)
+    os.system(f'pip install -r {requirements_file}')
+    os.makedirs(GLOBAL_ARGS.install_path, exist_ok=True)
+    with open(os.path.join(GLOBAL_ARGS.install_path, '__init__.py'), "w") as fp:
+        fp.write(f'__version__ = "{GLOBAL_ARGS.tools_version}"')
 
-    requirements_file = down_tidl_tools_package_dict[tools_version](tools_version, tools_type)
-    # os.system(f'pip install -r {requirements_file}')
 
+###############################################################################
+GLOBAL_ARGS = argparse.Namespace()
+GLOBAL_ARGS.PACKAGE_NAME = 'tidl_tools_package'
+GLOBAL_ARGS.PACKAGE_PATH = 'tidl_tools_package'
+GLOBAL_ARGS.install_path = os.path.join(os.path.dirname(__file__), GLOBAL_ARGS.PACKAGE_PATH)
+GLOBAL_ARGS.tools_type = os.environ.get("TIDL_RUNNER_TOOLS_TYPE", "")
+GLOBAL_ARGS.tools_version = os.environ.get("TIDL_RUNNER_TOOLS_VERSION", "11.0")
+
+
+###############################################################################
+class CustomInstallCommand(install):
+    def get_install_path(self):
+        install_dir = os.path.join(self.install_lib, GLOBAL_ARGS.PACKAGE_NAME)
+        print(f"Extra data will be saved to {install_dir}")
+        return install_dir
+
+    def run(self):
+        # Run the standard installation process
+        super().run()
+
+        ######################################################################
+        cur_dir = os.getcwd()
+
+        os.chdir(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+        print(os.getcwd())
+        GLOBAL_ARGS.install_path = self.get_install_path()
+        print(GLOBAL_ARGS)
+
+        # setup the tidl-tools dependencies
+        setup_tidl_tools(GLOBAL_ARGS.install_path, GLOBAL_ARGS.tools_version, GLOBAL_ARGS.tools_type)
+        os.chdir(cur_dir)
+
+
+class CustomDevelopCommand(develop):
+    def get_install_path(self):
+        install_dir = os.path.join(os.path.dirname(__file__), GLOBAL_ARGS.PACKAGE_PATH)
+        print(f"Extra data will be saved to {install_dir}")
+        return install_dir
+
+    def run(self):
+        # Run the standard installation process
+        super().run()
+
+        ######################################################################
+        cur_dir = os.getcwd()
+
+        os.chdir(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+        print(os.getcwd())
+        GLOBAL_ARGS.install_path = self.get_install_path()
+        print(GLOBAL_ARGS)
+
+        # setup the tidl-tools dependencies
+        setup_tidl_tools(GLOBAL_ARGS.install_path, GLOBAL_ARGS.tools_version, GLOBAL_ARGS.tools_type)
+        os.chdir(cur_dir)
+
+
+def main():
     readme_file = os.path.realpath(os.path.join(os.path.dirname(__file__), 'README.md'))
     with open(readme_file,  encoding="utf8") as readme:
         long_description = readme.read()
 
-    try:
-        setup(
-            name='tidl_tools_package',
-            version=tools_version,
-            description='tidl-tools-package for model compilation',
-            long_description=long_description,
-            long_description_content_type='text/markdown',
-            url='https://github.com/TexasInstruments/edgeai-tensorlab/edgeai-benchmark/tools',
-            author='EdgeAI, TIDL & Analytics Algo Teams',
-            author_email='edgeai-devkit@list.ti.com',
-            classifiers=[
-                'Development Status :: 4 - Beta'
-                'Programming Language :: Python :: 3.10'
-            ],
-            keywords = 'artifical intelligence, deep learning, image classification, object detection, semantic segmentation, quantization',
-            python_requires='>=3.10',
-            packages=find_packages(),
-            include_package_data=True,
-            setup_rquires=["pip>=24.2", "setuptools>=73.0.0", "numpy==1.23.0", "wheel", "cython"],
-            install_requires=None,
-            dependency_links=None,
-            project_urls={
-                'Source': 'https://github.com/TexasInstruments/edgeai-tensorlab/edgeai-benchmark/tools',
-                'Bug Reports': 'https://e2e.ti.com/support/processors-group/processors/tags/TIDL',
-            },
-        )
-    except:
-        traceback.print_exc()
-        raise RuntimeError('tidl-tools-package - setup failed')
-    #
-    print("INFO: tidl-tools-package - setup done")
+    setup(
+        name=GLOBAL_ARGS.PACKAGE_NAME,
+        version=GLOBAL_ARGS.tools_version,
+        description='tidl_tools_package for edgeai-benchmark',
+        long_description=long_description,
+        long_description_content_type='text/markdown',
+        url='https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-tidl-runner/browse',
+        author='EdgeAI, TIDL & Analytics Algo Teams',
+        author_email='edgeai-dev@list.ti.com',
+        classifiers=[
+            'Development Status :: 4 - Beta'
+            'Programming Language :: Python :: 3.10'
+        ],
+        keywords = 'artifical intelligence, deep learning, image classification, object detection, semantic segmentation, quantization',
+        python_requires='>=3.10',
+        packages=find_packages(),
+        include_package_data=True,
+        cmdclass = {
+            'install': CustomInstallCommand,
+            'develop': CustomDevelopCommand,
+        },
+        setup_rquires=["pip>=24.2", "setuptools>=73.0.0", "numpy==1.23.0", "wheel", "cython"],
+        project_urls={
+            'Source': 'https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-benchmark/browse',
+            'Bug Reports': 'https://e2e.ti.com/support/processors-group/processors/tags/TIDL',
+        },
+    )
 
 
 def get_arg_parser():
@@ -507,9 +540,6 @@ if __name__ == '__main__':
         #
     #
 
-    tools_version = args.tools_version
-    tools_type = args.tools_type
-    tools_type = "" if tools_type.lower()=="cpu" else tools_type.lower()
-    tools_type = "_gpu" if tools_type.lower()=="gpu" else tools_type.lower()
-
-    main(tools_version, tools_type)
+    GLOBAL_ARGS.tools_type = args.tools_type
+    GLOBAL_ARGS.tools_version = args.tools_version
+    main()

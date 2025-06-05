@@ -14,12 +14,8 @@ work_dirs/
 !work_dirs/modelartifacts/readme.txt
 backup/*
 tutorials/.ipynb_checkpoints/
-/tools/tidl_tools_package/
-/tools/gcc-*
 
-/tools-*/
-/tools_*/
-/tidl_tools_backup/
+
 backup/
 temp_files/
 evm_wheels/
@@ -30,3 +26,6 @@ evm_wheels/
 *.ods
 *.zip
 *.tar.gz
+
+/tools/tidl_tools_package/
+/tools/tidl_tools_backup/
