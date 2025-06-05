@@ -268,7 +268,7 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, with_onnxsim=True, input_optimization=False, tidl_onnx_model_optimizer=True),
                 runtime_options=settings.runtime_options_onnx_np2(fast_calibration=False),
                 model_path=f'../edgeai-modelzoo/models/vision/classification/imagenet1k/torchvision/efficientnet_b2.onnx'),
-            model_info=dict(metric_reference={'accuracy_top1%':80.608}, model_shortlist=120, compact_name='efficientNet-b2-288', shortlisted=False)
+            model_info=dict(metric_reference={'accuracy_top1%':80.608}, model_shortlist=110, compact_name='efficientNet-b2-288', shortlisted=False)
         ),
         # torchvision: classification efficientnet_b3 expected_metric:  top-1 accuracy
         'cl-6753':utils.dict_update(common_cfg,
