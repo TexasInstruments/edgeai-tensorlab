@@ -155,6 +155,8 @@ class PerceptionTransformer(BaseModule):
         else:
             shift = shift_xy * (1 if self.use_shift else 0)
 
+        if self.use_shift is False:
+            shift = None
 
         # Normal inference
         if rotation_grid is None and prev_bev is not None:
@@ -187,11 +189,12 @@ class PerceptionTransformer(BaseModule):
         if can_bus is None:
             can_bus = bev_queries.new_tensor(
                 [each['can_bus'] for each in kwargs['img_metas']])  # [:, :]
-        can_bus = self.can_bus_mlp(can_bus)[None, :, :]
 
-        # It causes the error while exporting the onnx model
-        #bev_queries = bev_queries + can_bus * self.use_can_bus
-        bev_queries = bev_queries + can_bus * (1 if self.use_can_bus else 0)
+        if self.use_can_bus:
+            can_bus = self.can_bus_mlp(can_bus)[None, :, :]
+            # It causes the error while exporting the onnx model
+            #bev_queries = bev_queries + can_bus * self.use_can_bus
+            bev_queries = bev_queries + can_bus * (1 if self.use_can_bus else 0)
 
         feat_flatten = []
         spatial_shapes = []

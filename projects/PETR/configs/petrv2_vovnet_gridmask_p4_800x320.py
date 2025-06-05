@@ -27,10 +27,16 @@ class_names = [
 ]
 metainfo = dict(classes=class_names)
 
+# If True, reuse image feature map from the previous frame
+optimized_inference=True
+
 input_modality = dict(use_camera=True)
 model = dict(
     type='PETR',
+    version='v2',
+    img_feat_size = [[6, 256, 20, 50], [6, 256, 10, 25]],
     save_onnx_model=False,
+    optimized_inference=optimized_inference,
     data_preprocessor=dict(
         type='Det3DDataPreprocessor',
         mean=[103.530, 116.280, 123.675],
@@ -221,13 +227,14 @@ test_pipeline = [
         sweeps_num=1,
         to_float32=True,
         pad_empty_sweeps=True,
+        optimized_inference=optimized_inference,
         sweep_range=[3,27]),
     dict(
         type='ResizeCropFlipImage', data_aug_conf=ida_aug_conf,
         training=False),
-    dict(type='Pack3DDetInputs', keys=['img'], meta_keys=['filename', 'ori_shape', 'img_shape', 'lidar2img', 'cam2img', 'lidar2cam',
-                'pad_shape', 'scale_factor', 'flip', 'box_mode_3d', 'box_type_3d',
-                'img_norm_cfg', 'sample_idx', 'timestamp', 'delta_timestamp'])
+    dict(type='Pack3DDetInputs', keys=['img'], meta_keys=['filename', 'ori_shape', 'img_shape', 'cam2img', 'lidar2cam',
+                'pad_shape', 'scale_factor', 'flip', 'box_mode_3d', 'box_type_3d', 'scene_token',
+                'img_norm_cfg', 'sample_idx', 'timestamp', 'delta_timestamp', 'img_timestamp', 'ego2global', 'lidar2ego'])
 ]
 
 train_dataloader = dict(
@@ -252,6 +259,8 @@ train_dataloader = dict(
         use_valid_flag=True,
         backend_args=backend_args))
 test_dataloader = dict(
+    batch_size=1,
+    num_workers=4,
     dataset=dict(
         type=dataset_type,
         ann_file='nuscenes_long_infos_val.pkl',
@@ -271,6 +280,8 @@ test_dataloader = dict(
         use_valid_flag=True,
         backend_args=backend_args))
 val_dataloader = dict(
+    batch_size=1,
+    num_workers=4,
     dataset=dict(
         type=dataset_type,
         ann_file='nuscenes_long_infos_val.pkl',
@@ -342,72 +353,3 @@ find_unused_parameters = False
 # https://drive.google.com/file/d/1ABI5BoQCkCkP4B0pO5KBJ3Ni0tei0gZi/view
 load_from = './pretrained/fcos3d_vovnet_imgbackbone-remapped.pth'
 resume = False
-
-# --------------Original---------------
-# mAP: 0.3778
-# mATE: 0.7463
-# mASE: 0.2718
-# mAOE: 0.4883
-# mAVE: 0.9062
-# mAAE: 0.2123
-# NDS: 0.4264
-# Eval time: 242.1s
-
-# Per-class results:
-# Object Class    AP      ATE     ASE     AOE     AVE     AAE
-# car     0.556   0.555   0.153   0.091   0.917   0.216
-# truck   0.330   0.805   0.218   0.119   0.859   0.250
-# bus     0.412   0.789   0.205   0.162   2.067   0.337
-# trailer 0.221   0.976   0.233   0.663   0.797   0.146
-# construction_vehicle    0.094   1.096   0.493   1.145   0.190   0.349
-# pedestrian      0.453   0.688   0.289   0.636   0.549   0.235
-# motorcycle      0.368   0.690   0.256   0.622   1.417   0.149
-# bicycle 0.341   0.609   0.270   0.812   0.455   0.017
-# traffic_cone    0.531   0.582   0.320   nan     nan     nan
-# barrier 0.472   0.673   0.281   0.145   nan     nan
-
-# --------------Refactored in mmdet3d v1.0---------------
-# mAP: 0.3827
-# mATE: 0.7375
-# mASE: 0.2703
-# mAOE: 0.4799
-# mAVE: 0.8699
-# mAAE: 0.2038
-# NDS: 0.4352
-# Eval time: 124.8s
-
-# Per-class results:
-# Object Class	  AP	  ATE	  ASE	  AOE	  AVE	  AAE
-# car	  0.574	  0.519	  0.150	  0.087	  0.865	  0.206
-# truck	  0.349	  0.773	  0.213	  0.117	  0.855	  0.220
-# bus	  0.423	  0.781	  0.204	  0.122	  1.902	  0.319
-# trailer 0.219	  1.034	  0.231	  0.608	  0.830	  0.149
-# construction_vehicle	  0.084	  1.062	  0.486	  1.245	  0.172	  0.360
-# pedestrian	  0.452	  0.681	  0.293	  0.646	  0.529	  0.231
-# motorcycle	  0.378	  0.670	  0.250	  0.567	  1.334	  0.130
-# bicycle	      0.347	  0.639	  0.264	  0.788	  0.472	  0.016
-# traffic_cone	  0.538	  0.553	  0.325	  nan	  nan	  nan
-# barrier	      0.464	  0.662	 0.287	  0.137	  nan	  nan
-
-# --------------Refactored in mmdet3d v1.1---------------
-# mAP: 0.3830
-# mATE: 0.7547
-# mASE: 0.2683
-# mAOE: 0.4948
-# mAVE: 0.8331
-# mAAE: 0.2056
-# NDS: 0.4358
-# Eval time: 118.7s
-
-# Per-class results:
-# Object Class	  AP	  ATE	  ASE	  AOE	  AVE	  AAE
-# car	  0.567	  0.538	  0.151	  0.086	  0.873	  0.212
-# truck	  0.341	  0.785	  0.213	  0.113	  0.821	  0.234
-# bus	  0.426	  0.766	  0.201	  0.128	  1.813	  0.343
-# trailer 0.216	  1.116	  0.227	  0.649	  0.640	  0.122
-# construction_vehicle	  0.093	  1.118	  0.483	  1.292	  0.217	  0.330
-# pedestrian	  0.453	  0.685	  0.293	  0.644	  0.535	  0.238
-# motorcycle	  0.374	  0.700	  0.253	  0.624	  1.291	  0.154
-# bicycle	      0.345	  0.622	  0.262	  0.775	  0.475	  0.011
-# traffic_cone	  0.539	  0.557	  0.319	  nan	  nan	  nan
-# barrier	      0.476	  0.661	  0.279	  0.142	  nan	  nan

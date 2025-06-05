@@ -19,36 +19,37 @@ FastBEV is a lightweight and deployment-friendly BEV object detector. We impleme
 
 ## Dataset Preperation
 
+### NuScenes
+
 Prepare the nuScenes dataset as per the MMDetection3D documentation [NuScenes Dataset Preperation](../../docs/en/advanced_guides/datasets/nuscenes.md). 
 
 After downloading nuScenes 3D detection dataset and unzipping all zip files, we typically need to organize the useful data information with a `.pkl` file in a specific style.
 To prepare these files for nuScenes, run the following command:
 
 ```bash
-python tools/create_data.py nuscenes --root-path ./data/nuscenes --out-dir ./data/nuscenes --extra-tag nuscenes --canbus ./data
+python tools/create_data.py nuscenes --root-path ./data/nuscenes --out-dir ./data/nuscenes --extra-tag nuscenes
 ```
 
 This command creates `.pkl` files for PETR, BEVFormer and FCOS3D. To include additional data fields for BEVDet and PETRv2, we should add `--bevdet` and `--petrv2`, respectively, to the command. For example,
 
 ```bash
-python tools/create_data.py nuscenes --root-path ./data/nuscenes --out-dir ./data/nuscenes --extra-tag nuscenes --canbus ./data --bevdet --petrv2
+python tools/create_data.py nuscenes --root-path ./data/nuscenes --out-dir ./data/nuscenes --extra-tag nuscenes --bevdet --petrv2
 ```
 
 FastBEV uses multiple temporal frames and therefore need to organize neighboring frames's information as well in a `.pkl` file for training. For this purpose, we should run the following script, which will create `nuscenes_infos_train_fastbev.pkl` from `nuscenes_infos_train.pkl`.
 
 ```bash
-python tools/dataset_converters/generate_fastbev_sweep_pkl.py n --root-path ./data/nuscenes --version 'v1.0-trainval'
+python tools/dataset_converters/generate_fastbev_sweep_pkl.py nuscenes --root-path ./data/nuscenes --version 'v1.0-trainval'
 ```
 
-The folder structure after processing should be as below.
+The directory structure after processing should be as below.
 
 ```
-mmdetection3d
+edgeai-mmdetection3d
 ├── mmdet3d
 ├── tools
 ├── configs
 ├── data
-│   ├── can_bus
 │   ├── nuscenes
 │   │   ├── maps
 │   │   ├── samples
@@ -64,6 +65,45 @@ mmdetection3d
 │   │   ├── nuscenes_dbinfos_train.pkl
 ```
 
+### PandaSet
+
+Download `pandaset.zip` from [HERE](https://huggingface.co/datasets/georghess/pandaset/tree/main) and unzip the file in `./data/pandaset`. Then run the following command to prepare base `.pkl` files:
+
+```bash
+python tools/create_data.py pandaset --root-path ./data/pandaset --out-dir ./data/pandaset --extra-tag pandaset
+```
+
+FastBEV uses multiple temporal frames and therefore need to organize neighboring frames's information as well in a `.pkl` file for training. For this purpose, we should run the following script, which will create `pandaset_infos_train_fastbev.pkl` from `pandaset_infos_train.pkl`.
+
+```bash
+python tools/dataset_converters/generate_fastbev_sweep_pkl.py pandaset --root-path ./data/nuscenes'
+```
+
+The directory structure after processing should look like:
+
+```
+edgeai-mmdetection3d
+├── mmdet3d
+├── tools
+├── configs
+├── data
+│   ├── pandaset
+│   │   ├── 001
+│   │   │   ├── annotations
+│   │   │   ├── camera
+│   │   │   ├── LICENSE.txt
+│   │   │   ├── lidar
+│   │   │   └── meta
+│   │   ├── 002 
+.   .   .
+.   .   .
+.   .   .
+│   │   ├── 158
+│   │   ├── pandaset_infos_train.pkl
+│   │   ├── pandaset_infos_train_fastbev.pkl
+│   │   ├── pandaset_infos_val.pkl
+```
+
 ## Get Started
 
 Refer the MMDetection3D documentation [Test and Train with Standard Datasets](../../docs/en/user_guides/train_test.md) for general floating point training/evaluation/testing steps for standard datasets. Use the below steps for training and evaluation of BEVFormer:
@@ -71,33 +111,44 @@ Refer the MMDetection3D documentation [Test and Train with Standard Datasets](..
 1. cd to installation directory <install_dir>/edgeai-mmdetection3d
 
 2. Do floating-model training using the command 
-    "./tools/dist_train.sh project/FastBEV/configs/fastbev_m2_r34_s256x704_v200x200x4_c224_d4_f4.py <num_gpus>"
+    "./tools/dist_train.sh <config_file> <num_gpus>"
 
     For example, to use 2 GPUs use the command
     ```bash
+    # NuScenes
     ./tools/dist_train.sh project/FastBEV/configs/fastbev_m2_r34_s256x704_v200x200x4_c224_d4_f4.py 2
+
+    # PandaSet
+    ./tools/dist_train.sh project/FastBEV/configs/fastbev_pandaset_m2_r34_s256x704_v200x200x4_c224_d4_f4.py 2
     ```
 
 3.  Do evalution using the command 
 
-    "python ./tools/test.py project/FastBEV/configs/fastbev_m2_r34_s256x704_v200x200x4_c224_d4_f4.py <latest.pth file generated from previous step #2>" 
+    "python ./tools/test.py <config_file> <latest.pth file generated from previous step #2>" 
 
     For example,
 
     ```bash
+    # NuScenes
     python ./tools/test.py project/FastBEV/configs/fastbev_m2_r34_s256x704_v200x200x4_c224_d4_f4.py ./work_dirs/fastbev_m2_r34_s256x704_v200x200x4_c224_d4_f4/epoch_20.pth
+
+    # PandaSet
+    python ./tools/test.py project/FastBEV/configs/fastbev_pandaset_m2_r34_s256x704_v200x200x4_c224_d4_f4.py ./work_dirs/fastbev_pandaset_m2_r34_s256x704_v200x200x4_c224_d4_f4/epoch_20.pth
+
     ```
     Note: This is single GPU evalution command. "./dist_test.sh" can be used for multiple GPU evalution process.
 
 
 ## Results
 
-fastbev_m0_r18_s256x704_v200x200x4_c192_d2_f1 uses a single temporal frame with ResNet18 as a backbone while fastbev_m2_r34_s256x704_v200x200x4_c224_d4_f4 four temporal frames with ResNet34. These results are less accurate than expected. The models will be retrained to achive better accuracies.
+fastbev_m0_r18_s256x704_v200x200x4_c192_d2_f1 and fastbev_pandaset_m0_r18_s256x704_v200x200x4_c192_d2_f1 use a current frame only with ResNet18 as a backbone, while fastbev_m2_r34_s256x704_v200x200x4_c224_d4_f4 and fastbev_pandaset_m2_r34_s256x704_v200x200x4_c224_d4_f4 three previous frames as well as a current frame with ResNet34.
 
-|                    Model                      | Mem (GB) | Inf time (fps) | mAP    | NDS   |
-| :-------------------------------------------: | :------: | :------------: | :---:  | :--:  |
-| fastbev_m0_r18_s256x704_v200x200x4_c192_d2_f1 |   0.33   |       TBA      | 23.12  | 29.95 | 
-| fastbev_m2_r34_s256x704_v200x200x4_c224_d4_f4 |   0.83   |       TBA      | 31.50  | 34.00 | 
+|  Dataset  |                          Model                         | Mem (GB) | Inf time (fps) |  mAP   |  NDS  |
+|:---------:|:------------------------------------------------------ | :------: | :------------: | :---:  | :---: |
+| NuScenes  | fastbev_m0_r18_s256x704_v200x200x4_c192_d2_f1          |   0.33   |       TBA      | 24.91  | 34.26 | 
+|           | fastbev_m2_r34_s256x704_v200x200x4_c224_d4_f4          |   0.83   |       TBA      | 34.71  | 47.65 | 
+| PandaSet  | fastbev_pandaset_m0_r18_s256x704_v200x200x4_c192_d2_f1 |   0.33   |       TBA      | 17.47  | 26.46 | 
+|           | fastbev_pandaset_m2_r34_s256x704_v200x200x4_c224_d4_f4 |   0.83   |       TBA      | 23.07  | 31.50 | 
 
 <!-- 
 ## 3D Object Detection Model Zoo

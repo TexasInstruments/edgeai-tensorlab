@@ -214,6 +214,21 @@ def transform_reference_points(reference_points, egopose, reverse=False, transla
     return reference_points
 
 
+class SELayer(nn.Module):
+    def __init__(self, channels, act_layer=nn.ReLU, gate_layer=nn.Sigmoid):
+        super().__init__()
+        self.conv_reduce = nn.Conv2d(channels, channels, 1, bias=True)
+        self.act1 = act_layer()
+        self.conv_expand = nn.Conv2d(channels, channels, 1, bias=True)
+        self.gate = gate_layer()
+
+    def forward(self, x, x_se):
+        x_se = self.conv_reduce(x_se)
+        x_se = self.act1(x_se)
+        x_se = self.conv_expand(x_se)
+        return x * self.gate(x_se)
+
+
 class SELayer_Linear(nn.Module):
     def __init__(self, channels, act_layer=nn.ReLU, gate_layer=nn.Sigmoid):
         super().__init__()
@@ -236,10 +251,11 @@ class MLN(nn.Module):
         f_dim (int): feature dimension
     '''
 
-    def __init__(self, c_dim, f_dim=256):
+    def __init__(self, c_dim, f_dim=256, use_ln=True):
         super().__init__()
         self.c_dim = c_dim
         self.f_dim = f_dim
+        self.use_ln = use_ln
 
         self.reduce = nn.Sequential(
             nn.Linear(c_dim, f_dim),
@@ -247,7 +263,8 @@ class MLN(nn.Module):
         )
         self.gamma = nn.Linear(f_dim, f_dim)
         self.beta = nn.Linear(f_dim, f_dim)
-        self.ln = nn.LayerNorm(f_dim, elementwise_affine=False)
+        if self.use_ln:
+            self.ln = nn.LayerNorm(f_dim, elementwise_affine=False)
         self.reset_parameters()
 
     def reset_parameters(self):
@@ -257,7 +274,8 @@ class MLN(nn.Module):
         nn.init.zeros_(self.beta.bias)
 
     def forward(self, x, c):
-        x = self.ln(x)
+        if self.use_ln:
+            x = self.ln(x)
         c = self.reduce(c)
         gamma = self.gamma(c)
         beta = self.beta(c)

@@ -244,7 +244,7 @@ class BEVFormerHead(AnchorFreeHead):
    
     def forward(self, mlvl_feats, img_metas, prev_bev=None,
                 rotation_grid = None,
-                reference_points_cam=None, 
+                reference_points_cam=None,
                 bev_mask_count=None,
                 bev_valid_indices=None,
                 bev_valid_indices_count=None,
@@ -316,34 +316,40 @@ class BEVFormerHead(AnchorFreeHead):
         )
 
         bev_embed, hs, init_reference, inter_references = outputs
-        hs = hs.permute(0, 2, 1, 3)
         outputs_classes = []
         outputs_coords = []
-        for lvl in range(hs.shape[0]):
-            if lvl == 0:
-                reference = init_reference
-            else:
-                reference = inter_references[lvl - 1]
-            reference = inverse_sigmoid(reference)
-            outputs_class = self.cls_branches[lvl](hs[lvl])
-            tmp = self.reg_branches[lvl](hs[lvl])
 
-            # TODO: check the shape of reference
-            assert reference.shape[-1] == 3
-            tmp[..., 0:1] = ((tmp[..., 0:1] + reference[..., 0:1]).sigmoid() * (self.pc_range[3] -
-                             self.pc_range[0]) + self.pc_range[0])
-            tmp[..., 1:2] = ((tmp[..., 1:2] + reference[..., 1:2]).sigmoid() * (self.pc_range[4] -
-                             self.pc_range[0]) + self.pc_range[0])
-            tmp[..., 4:5] = ((tmp[..., 4:5] + reference[..., 2:3]).sigmoid() * (self.pc_range[5] -
-                             self.pc_range[2]) + self.pc_range[2])
+        if torch.onnx.is_in_onnx_export():
+            batch_hs = hs.reshape(len(self.cls_branches), -1, hs.shape[-1])
+            outputs_classes = self.run_cls_branch(batch_hs)
+            outputs_coords = self.run_reg_branch(batch_hs, init_reference, inter_references)
+        else:
+            hs = hs.permute(0, 2, 1, 3)
+            for lvl in range(hs.shape[0]):
+                if lvl == 0:
+                    reference = init_reference
+                else:
+                    reference = inter_references[lvl - 1]
+                reference = inverse_sigmoid(reference)
+                outputs_class = self.cls_branches[lvl](hs[lvl])
+                tmp = self.reg_branches[lvl](hs[lvl])
 
-            # TODO: check if using sigmoid
-            outputs_coord = tmp
-            outputs_classes.append(outputs_class)
-            outputs_coords.append(outputs_coord)
+                # TODO: check the shape of reference
+                assert reference.shape[-1] == 3
+                tmp[..., 0:1] = ((tmp[..., 0:1] + reference[..., 0:1]).sigmoid() * (self.pc_range[3] -
+                                 self.pc_range[0]) + self.pc_range[0])
+                tmp[..., 1:2] = ((tmp[..., 1:2] + reference[..., 1:2]).sigmoid() * (self.pc_range[4] -
+                                 self.pc_range[1]) + self.pc_range[1])
+                tmp[..., 4:5] = ((tmp[..., 4:5] + reference[..., 2:3]).sigmoid() * (self.pc_range[5] -
+                                 self.pc_range[2]) + self.pc_range[2])
 
-        outputs_classes = torch.stack(outputs_classes)
-        outputs_coords = torch.stack(outputs_coords)
+                # TODO: check if using sigmoid
+                outputs_coord = tmp
+                outputs_classes.append(outputs_class)
+                outputs_coords.append(outputs_coord)
+
+            outputs_classes = torch.stack(outputs_classes)
+            outputs_coords = torch.stack(outputs_coords)
 
         outs = {
             'bev_embed': bev_embed,
@@ -354,6 +360,172 @@ class BEVFormerHead(AnchorFreeHead):
         }
 
         return outs
+
+
+    def run_reg_branch(self, batch_hs, init_reference, inter_references):
+        #reference = []
+        #for lvl in range(hs.shape[0]):
+        #    if lvl == 0:
+        #        reference.append(init_reference)
+        #    else:
+        #        reference.append(inter_references[lvl - 1])
+        #reference=torch.cat(reference, dim=0)
+        reference=torch.cat((init_reference, inter_references[0:5]), dim=0)
+        reference = inverse_sigmoid(reference)
+
+        #batch_hs = hs.squeeze(1)
+
+        reg_linear1_wgt = []
+        reg_linear1_bias = []
+        reg_linear2_wgt = []
+        reg_linear2_bias = []
+        reg_linear3_wgt = []
+        reg_linear3_bias = []
+
+        for lvl in range(len(self.reg_branches)):
+            reg_linear1_wgt.append(self.reg_branches[lvl][0].weight.transpose(1, 0))
+            reg_linear1_bias.append(self.reg_branches[lvl][0].bias.unsqueeze(0))
+            reg_linear2_wgt.append(self.reg_branches[lvl][2].weight.transpose(1, 0))
+            reg_linear2_bias.append(self.reg_branches[lvl][2].bias.unsqueeze(0))
+            reg_linear3_wgt.append(self.reg_branches[lvl][4].weight.transpose(1, 0))
+            reg_linear3_bias.append(self.reg_branches[lvl][4].bias.unsqueeze(0))
+
+        reg_linear1_wgt  = torch.stack(reg_linear1_wgt)
+        reg_linear1_bias = torch.stack(reg_linear1_bias)
+        reg_linear2_wgt  = torch.stack(reg_linear2_wgt)
+        reg_linear2_bias = torch.stack(reg_linear2_bias)
+        reg_linear3_wgt  = torch.stack(reg_linear3_wgt)
+        reg_linear3_bias = torch.stack(reg_linear3_bias)
+
+        # Run reg_branch
+        # 1. Linear
+        out  = torch.bmm(batch_hs, reg_linear1_wgt)
+        out  = torch.add(out, reg_linear1_bias)
+
+        # 2. ReLU
+        out = torch.relu(out)
+
+        # 3. Linear
+        out  = torch.bmm(out, reg_linear2_wgt)
+        out  = torch.add(out, reg_linear2_bias)
+
+        # 4. ReLU
+        out = torch.relu(out)
+
+        # 5. Linear
+        out  = torch.bmm(out, reg_linear3_wgt)
+        out  = torch.add(out, reg_linear3_bias)
+
+        """
+        out[..., 0:1] = ((out[..., 0:1] + reference[..., 0:1]).sigmoid() * (self.pc_range[3] -
+                         self.pc_range[0]) + self.pc_range[0])
+        out[..., 1:2] = ((out[..., 1:2] + reference[..., 1:2]).sigmoid() * (self.pc_range[4] -
+                         self.pc_range[1]) + self.pc_range[1])
+        out[..., 4:5] = ((out[..., 4:5] + reference[..., 2:3]).sigmoid() * (self.pc_range[5] -
+                         self.pc_range[2]) + self.pc_range[2])
+        """
+        # Use index_put_ directly to have a single ScatterND
+        temp = torch.cat((out[..., 0:2], out[...,4:5]), dim=-1)
+        temp = (temp + reference).sigmoid()
+        m0 = torch.Tensor([self.pc_range[3] - self.pc_range[0],
+                           self.pc_range[4] - self.pc_range[1], 
+                           self.pc_range[5] - self.pc_range[2]]).to(temp.device)
+        a0 = torch.Tensor([self.pc_range[0], self.pc_range[1], self.pc_range[2]]).to(temp.device)
+        temp  = temp*m0 + a0
+
+        d0 = temp.size(0)
+        d1 = temp.size(1)
+        d2 = temp.size(2)
+        p0 = torch.arange(0, d0).to(temp.device).view(-1, 1, 1).expand(d0, d1, d2)
+        p1 = torch.arange(0, d1).to(temp.device).view(1, -1, 1).expand(d0, d1, d2)
+        p2 = torch.Tensor([0,1,4]).to(torch.int64).to(temp.device).view(1, 1, -1).expand(d0, d1, d2)
+        indices = tuple([p0, p1, p2])
+        out.index_put_(indices, temp)
+
+        out = out.unsqueeze(1)
+        return out
+
+
+    def run_cls_branch(self, batch_hs):
+        #batch_hs = hs.squeeze(1)
+
+        cls_linear1_wgt = []
+        cls_linear1_bias = []
+        cls_linear2_wgt = []
+        cls_linear2_bias = []
+        cls_linear3_wgt = []
+        cls_linear3_bias = []
+        layer_norm1_wgt = []
+        layer_norm1_bias = []
+        layer_norm2_wgt = []
+        layer_norm2_bias = []
+        for lvl in range(len(self.cls_branches)):
+            cls_linear1_wgt.append(self.cls_branches[lvl][0].weight.transpose(1, 0))
+            cls_linear1_bias.append(self.cls_branches[lvl][0].bias.unsqueeze(0))
+            cls_linear2_wgt.append(self.cls_branches[lvl][3].weight.transpose(1, 0))
+            cls_linear2_bias.append(self.cls_branches[lvl][3].bias.unsqueeze(0))
+            cls_linear3_wgt.append(self.cls_branches[lvl][6].weight.transpose(1, 0))
+            cls_linear3_bias.append(self.cls_branches[lvl][6].bias.unsqueeze(0))
+
+            layer_norm1_wgt.append(self.cls_branches[lvl][1].weight.unsqueeze(0))
+            layer_norm1_bias.append(self.cls_branches[lvl][1].bias.unsqueeze(0))
+            layer_norm2_wgt.append(self.cls_branches[lvl][4].weight.unsqueeze(0))
+            layer_norm2_bias.append(self.cls_branches[lvl][4].bias.unsqueeze(0))
+
+        cls_linear1_wgt  = torch.stack(cls_linear1_wgt)
+        cls_linear1_bias = torch.stack(cls_linear1_bias)
+        cls_linear2_wgt  = torch.stack(cls_linear2_wgt)
+        cls_linear2_bias = torch.stack(cls_linear2_bias)
+        cls_linear3_wgt  = torch.stack(cls_linear3_wgt)
+        cls_linear3_bias = torch.stack(cls_linear3_bias)
+        layer_norm1_wgt  = torch.stack(layer_norm1_wgt)
+        layer_norm1_bias = torch.stack(layer_norm1_bias)
+        layer_norm2_wgt  = torch.stack(layer_norm2_wgt)
+        layer_norm2_bias = torch.stack(layer_norm2_bias)
+
+        # Run cls_branch
+        # 1. Linear
+        out  = torch.bmm(batch_hs, cls_linear1_wgt)
+        out  = torch.add(out, cls_linear1_bias)
+
+        # 2. LayerNorm
+        out1 = torch.mean(out, dim=-1, keepdim=True)
+        out  = torch.sub(out, out1)
+        out1 = torch.pow(out, 2.0)
+        out1 = torch.mean(out1, dim=-1, keepdim=True)
+        out1 = out1 + 1e-5
+        out1 = torch.sqrt(out1)
+        out  = torch.div(out, out1)
+        out  = torch.mul(out, layer_norm1_wgt)
+        out  = torch.add(out, layer_norm1_bias)
+
+        # 3. ReLU
+        out  = torch.relu(out)
+
+        # 4. Linear
+        out  = torch.bmm(out, cls_linear2_wgt)
+        out  = torch.add(out, cls_linear2_bias)
+
+        # 5. LayerNorm
+        out1 = torch.mean(out, dim=-1, keepdim=True)
+        out  = torch.sub(out, out1)
+        out1 = torch.pow(out, 2.0)
+        out1 = torch.mean(out1, dim=-1, keepdim=True)
+        out1 = out1 + 1e-5
+        out1 = torch.sqrt(out1)
+        out  = torch.div(out, out1)
+        out  = torch.mul(out, layer_norm2_wgt)
+        out  = torch.add(out, layer_norm2_bias)
+
+        # 6. ReLU
+        out  = torch.relu(out)
+
+        # 7. Linear
+        out  = torch.bmm(out, cls_linear3_wgt)
+        out  = torch.add(out, cls_linear3_bias)
+
+        out  = out.unsqueeze(1)
+        return out
 
     def _get_target_single(self,
                            cls_score,

@@ -131,17 +131,19 @@ class BEVFormerEncoder(TransformerLayerSequence):
         reference_points_cam[..., 0] /= img_metas[0]['img_shape'][0][1]
         reference_points_cam[..., 1] /= img_metas[0]['img_shape'][0][0]
 
+        # clip to [0, 1] to help quantization
+        reference_points_cam = torch.clip(reference_points_cam, min=0.0, max=1.0)
+
         bev_mask = (bev_mask & (reference_points_cam[..., 1:2] > 0.0)
                     & (reference_points_cam[..., 1:2] < 1.0)
                     & (reference_points_cam[..., 0:1] < 1.0)
                     & (reference_points_cam[..., 0:1] > 0.0))
-        
-                
+
         if digit_version(TORCH_VERSION) >= digit_version('1.8'):
             bev_mask = torch.nan_to_num(bev_mask)
         else:
             bev_mask = bev_mask.new_tensor(
-                np.nan_to_num(bev_mask.cpu().numpy()))                        
+                np.nan_to_num(bev_mask.cpu().numpy()))
 
         reference_points_cam = reference_points_cam.permute(2, 1, 3, 0, 4)
         bev_mask = bev_mask.permute(2, 1, 3, 0, 4).squeeze(-1)
@@ -205,7 +207,8 @@ class BEVFormerEncoder(TransformerLayerSequence):
 
         # bug: this code should be 'shift_ref_2d = ref_2d.clone()', we keep this bug for reproducing our results in paper.
         shift_ref_2d = ref_2d.clone()
-        shift_ref_2d += shift[:, None, None, :]  # account for ego motion
+        if shift is not None:
+            shift_ref_2d += shift[:, None, None, :]  # account for ego motion
 
         # (num_query, bs, embed_dims) -> (bs, num_query, embed_dims)
         bev_query = bev_query.permute(1, 0, 2)
@@ -215,11 +218,19 @@ class BEVFormerEncoder(TransformerLayerSequence):
             prev_bev = prev_bev.permute(1, 0, 2)
             prev_bev = torch.stack(
                 [prev_bev, bev_query], 1).reshape(bs*2, len_bev, -1)
-            hybird_ref_2d = torch.stack([shift_ref_2d, ref_2d], 1).reshape(
-                bs*2, len_bev, num_bev_level, 2)
+            if torch.onnx.is_in_onnx_export():
+                hybird_ref_2d = torch.cat([shift_ref_2d, ref_2d], 1).reshape(
+                    bs*2, len_bev, num_bev_level, 2)
+            else:
+                hybird_ref_2d = torch.stack([shift_ref_2d, ref_2d], 1).reshape(
+                    bs*2, len_bev, num_bev_level, 2)
         else:
-            hybird_ref_2d = torch.stack([ref_2d, ref_2d], 1).reshape(
-                bs*2, len_bev, num_bev_level, 2)
+            if torch.onnx.is_in_onnx_export():
+                hybird_ref_2d = torch.cat([ref_2d, ref_2d], 1).reshape(
+                    bs*2, len_bev, num_bev_level, 2)
+            else: 
+                hybird_ref_2d = torch.stack([ref_2d, ref_2d], 1).reshape(
+                    bs*2, len_bev, num_bev_level, 2)
 
         for lid, layer in enumerate(self.layers):
             output = layer(

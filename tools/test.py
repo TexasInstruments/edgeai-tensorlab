@@ -76,7 +76,8 @@ def parse_args(args=None):
     parser.add_argument('--quantize-calib-images', type=int, default=50)
     parser.add_argument('--max-eval-samples', type=int, default=2000)
     parser.add_argument('--export-onnx-model', action='store_true', default=False, help='whether to export the onnx network' )
-    parser.add_argument('--simplify', action='store_true', default=False, help='whether to simplify the onnx model or not model' )   
+    parser.add_argument('--simplify', action='store_true', default=False, help='whether to simplify the onnx model or not model' )
+    parser.add_argument('--preload-checkpoint', type=int, default=0, help='where to load the checkpoint 0: before any modification, 1: after model surgery, 2: after quantization' )
     # When using PyTorch version >= 2.0.0, the `torch.distributed.launch`
     # will pass the `--local-rank` parameter to `tools/test.py` instead
     # of `--local_rank`.
@@ -152,6 +153,8 @@ def main(args=None):
         cfg.test_dataloader.dataset.pipeline = cfg.tta_pipeline
         cfg.model = ConfigDict(**cfg.tta_model, module=cfg.model)
 
+    args.preload_checkpoint = cfg.get('preload_checkpoint', False) or args.preload_checkpoint
+    
     if hasattr(cfg,'save_onnx_model') is False:
         cfg.save_onnx_model = False
 
@@ -170,11 +173,27 @@ def main(args=None):
         # if 'runner_type' is set in the cfg
         runner = RUNNERS.build(cfg)
 
-    # Model optimization is applied only to FCOS3D
-    # Need to validate it for other models
+    # start testing
+    runner._init_model_weights()
+    del BaseModule.init_weights
+
+    runner.model.eval()
+    if args.preload_checkpoint == 0:
+        runner.load_or_resume()
+    ## this is requiured for model having original implementation of Deformable CONV
+    ## this will only change the Deformable Conv (of type ModulatedDeformConv2dTIDL and ModulatedDeformConv2dPack) to Split Offset and Mask
+    runner.model = replace_dform_conv_with_split_offset_mask(runner.model)
+    if args.preload_checkpoint == 1:
+        runner.load_or_resume()
+    if args.preload_checkpoint == 2:
+        ## this is required for loading checkpoint in quantized model
+        modify_runner_load_check_point_function(runner)
+
+    # Need to validate model optimization for other models
     if args.quantization and \
        (cfg.get("model")['type'] == 'FCOSMono3D' or \
-        cfg.get("model")['type'] == 'FastBEV'):
+        cfg.get("model")['type'] == 'FastBEV' or \
+        cfg.get("model")['type'] == 'PETR'):
 
         model_surgery = args.model_surgery
         if args.model_surgery is None:
@@ -187,8 +206,6 @@ def main(args=None):
         #     torch.nn.functional._interpolate_orig = torch.nn.functional.interpolate
         #     torch.nn.functional.interpolate = xnn.layers.resize_with_scale_factor
 
-        # model surgery
-
         is_wrapped = False
         if is_model_wrapper(runner.model):
             runner.model = runner.model.module
@@ -196,11 +213,21 @@ def main(args=None):
 
         example_inputs, example_kwargs = get_input(runner, cfg, train=False)
 
+        # # can we one unified transfomration_dict for all models?
+        # if cfg.get("model")['type'] == 'FCOSMono3D':
+        #     transformation_dict = dict(backbone=None, neck=None, bbox_head=xmodelopt.utils.TransformationWrapper(wrap_fn_for_bbox_head))
+        # elif cfg.get("model")['type'] == 'FastBEV':
+        #     transformation_dict = dict(backbone=None, neck=None, neck_fuse_0=None, neck_3d=None, bbox_head=xmodelopt.utils.TransformationWrapper(wrap_fn_for_bbox_head))
+
         # can we one unified transfomration_dict for all models?
         if cfg.get("model")['type'] == 'FCOSMono3D':
             transformation_dict = dict(backbone=None, neck=None, bbox_head=xmodelopt.utils.TransformationWrapper(wrap_fn_for_bbox_head))
-        else: #cfg.get("model")['type'] == 'FastBEV'
+        elif cfg.get("model")['type'] == 'FastBEV':
             transformation_dict = dict(backbone=None, neck=None, neck_fuse_0=None, neck_3d=None, bbox_head=xmodelopt.utils.TransformationWrapper(wrap_fn_for_bbox_head))
+        elif cfg.get("model")['type'] == 'PETR':
+            transformation_dict = dict(img_neck=None, img_backbone=None, grid_mask=None, pts_bbox_head=xmodelopt.utils.TransformationWrapper(wrap_fn_for_bbox_head))
+        else:
+            raise RuntimeError('Quantization is NOT supported for this model')
 
         copy_attrs=['train_step', 'val_step', 'test_step', 'data_preprocessor', 'parse_losses', 'bbox_head', '_run_forward']
 
@@ -228,18 +255,7 @@ def main(args=None):
             runner.model = runner.wrap_model(
                 runner.cfg.get('model_wrapper_cfg'), runner.model)
 
-        # runner._init_model_weights()
-        # start testing
-        # runner._init_model_weights()
-        # del BaseModule.init_weights
-
-        runner.model.eval()
-        # runner.call_hook('before_run')
-        modify_runner_load_check_point_function(runner)
-        runner.load_or_resume()
-        # runner.call_hook('after_run')
-        # runner.model = replace_dform_conv_with_split_offset_mask(runner.model)
-
+    # runner.load_or_resume()
     runner.test()
 
 

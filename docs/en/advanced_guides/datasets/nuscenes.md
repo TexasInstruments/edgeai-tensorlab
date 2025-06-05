@@ -4,17 +4,20 @@ This page provides specific tutorials about the usage of **EdgeAI-MMDetection3D*
 
 ## Before Preparation
 
-You can download nuScenes 3D detection `Full dataset (v1.0)` [HERE](https://www.nuscenes.org/download) and unzip all zip files. You have to download CAN bus expansion data as well and move it to data directory.3d
+You can download nuScenes 3D detection `Full dataset (v1.0)` [HERE](https://www.nuscenes.org/download) and unzip all zip files. <!-- You have to download CAN bus expansion data as well and move it to `data/nuscenes` directory -->
 
+<!--
 ```
 # Download 'can_bus.zip'
 unzip can_bus.zip
-# Move can_bus to data dir
+# Move can_bus to 'data/nuscenes' dir
+mv can_bus ./data/nuscenes/
 ```
+-->
 
 [//]: <> (If you want to implement 3D semantic segmentation task, you need to additionally download the `nuScenes-lidarseg` data annotation and place the extracted files in the nuScenes corresponding folder.)
 
-Like the general way to prepare dataset, it is recommended to symlink the dataset root to `edgeai-mmdetection3d/data`. The folder structure should be organized as follows before our processing.
+Like the general way to prepare dataset, it is recommended to symlink the nuScenes dataset root to `edgeai-mmdetection3d/data/nuscenes`. The folder structure should be organized as follows before our processing.
 
 ```
 edgeai-mmdetection3d
@@ -22,7 +25,6 @@ edgeai-mmdetection3d
 ├── tools
 ├── configs
 ├── data
-│   ├── can_bus
 │   ├── nuscenes
 │   │   ├── maps
 │   │   ├── samples
@@ -37,23 +39,23 @@ We typically need to organize the useful data information with a `.pkl` file in 
 To prepare these files for nuScenes, run the following command:
 
 ```bash
-python tools/create_data.py nuscenes --root-path ./data/nuscenes --out-dir ./data/nuscenes --extra-tag nuscenes --canbus ./data
+python tools/create_data.py nuscenes --root-path ./data/nuscenes --out-dir ./data/nuscenes --extra-tag nuscenes
 ```
 
 This command creates `.pkl` files for PETR, BEVFormer and FCOS3D. To include additional data fields for BEVDet and PETRv2, we should add `--bevdet` and `--petrv2`, respectively, to the command. For example,
 
 ```bash
-python tools/create_data.py nuscenes --root-path ./data/nuscenes --out-dir ./data/nuscenes --extra-tag nuscenes --canbus ./data --bevdet --petrv2
+python tools/create_data.py nuscenes --root-path ./data/nuscenes --out-dir ./data/nuscenes --extra-tag nuscenes --bevdet --petrv2
 ```
 
-FastBEV uses multiple temporal frames and therefore need to organize neighboring frames's information as well in a `.pkl` file for training. For this purpose, we should run the following script, which will create `nuscenes_infos_train_fastbev.pkl` from `nuscenes_infos_train.pkl`.
+FastBEV uses multiple temporal frames and therefore need to organize neighboring frames' information as well in a `.pkl` file for training. For this purpose, we should run the following script, which will create `nuscenes_infos_train_fastbev.pkl` from `nuscenes_infos_train.pkl`.
 
 ```bash
-python tools/dataset_converters/generate_fastbev_sweep_pkl.py n --root-path ./data/nuscenes --version 'v1.0-trainval'
+python tools/dataset_converters/generate_fastbev_sweep_pkl.py nuscenes --root-path ./data/nuscenes --version 'v1.0-trainval'
 ```
 
 
-The folder structure after processing should be as below.
+The diretory structure after processing should be as below.
 
 ```
 edgeai-mmdetection3d
@@ -61,7 +63,6 @@ edgeai-mmdetection3d
 ├── tools
 ├── configs
 ├── data
-│   ├── can_bus
 │   ├── nuscenes
 │   │   ├── maps
 │   │   ├── samples

@@ -20,7 +20,7 @@ from mmdet3d.structures.det3d_data_sample import ForwardResults, OptSampleList
 from .grid_mask import GridMask
 from .utils import locations
 
-from mmdet3d.models.detectors.onnx_export import export_StreamPETR
+from .onnx_export import export_StreamPETR
 
 
 @MODELS.register_module()
@@ -217,6 +217,7 @@ class PETR3D(MVXTwoStageDetector):
         else:
             img_metas[0]['prev_exists'] = img_feats.new_ones(1)
 
+        # location = memory_center
         outs = self.pts_bbox_head(location, img_feats, img_metas, topk_indexes)
         bbox_list = self.pts_bbox_head.get_bboxes(
             outs, img_metas)

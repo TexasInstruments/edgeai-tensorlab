@@ -223,15 +223,16 @@ def parse_args(args=None):
     parser.add_argument('--max-eval-samples', type=int, default=2000)
     parser.add_argument('--export-onnx-model', action='store_true', default=False, help='whether to export the onnx network' )
     parser.add_argument('--simplify', action='store_true', default=False, help='whether to simplify the onnx model or not model' )   
+    parser.add_argument('--preload-checkpoint', type=int, default=0, help='where to load the checkpoint 0: before any modification, 1: after model surgery, 2: after quantization' )
     
-    args = parser.parse_args()
+    args = parser.parse_args() if args is None else parser.parse_args(args)
     if 'LOCAL_RANK' not in os.environ:
         os.environ['LOCAL_RANK'] = str(args.local_rank)
     return args
 
 
-def main():
-    args = parse_args()
+def main(args=None):
+    args = parse_args(args)
 
     # load config
     cfg = Config.fromfile(args.config)
@@ -314,6 +315,8 @@ def main():
         os.environ["PYTHONHASHSEED"] = str(seed)
     '''
 
+    args.preload_checkpoint = cfg.get('preload_checkpoint', False) or args.preload_checkpoint
+    
     if hasattr(cfg,'save_onnx_model') is False:
         cfg.save_onnx_model = False
 
@@ -385,10 +388,27 @@ def main():
     # log_file_link = osp.join(cfg.work_dir, f'run.log')
     # xnn.utils.make_symlink(log_file, log_file_link)
 
-    # Model optimization is applied only to FCOS3D
+    # model surgery
+    runner._init_model_weights()
+    del BaseModule.init_weights
+
+    runner.model.eval()
+    if args.preload_checkpoint == 0:
+        runner.load_or_resume()
+    ## this is requiured for model having original implementation of Deformable CONV
+    ## this will only change the Deformable Conv (of type ModulatedDeformConv2dTIDL and ModulatedDeformConv2dPack) to Split Offset and Mask
+    runner.model = replace_dform_conv_with_split_offset_mask(runner.model)
+    if args.preload_checkpoint == 1:
+        runner.load_or_resume()
+    if args.preload_checkpoint == 2:
+        ## this is required for loading checkpoint in quantized model
+        modify_runner_load_check_point_function(runner)
+
     # Need to validate it for other models
-    if cfg.get("model")['type'] == 'FCOSMono3D' or \
-       cfg.get("model")['type'] == 'FastBEV':
+    if args.quantization and \
+       (cfg.get("model")['type'] == 'FCOSMono3D' or \
+        cfg.get("model")['type'] == 'FastBEV' or \
+        cfg.get("model")['type'] == 'PETR'):
 
         model_surgery = args.model_surgery
         if args.model_surgery is None:
@@ -400,13 +420,6 @@ def main():
         # if hasattr(cfg, 'resize_with_scale_factor') and cfg.resize_with_scale_factor:
         #     torch.nn.functional._interpolate_orig = torch.nn.functional.interpolate
         #     torch.nn.functional.interpolate = xnn.layers.resize_with_scale_factor
-
-        # model surgery
-        # runner._init_model_weights()
-        # del BaseModule.init_weights
-        # runner.load_or_resume()
-        # runner.model.eval()
-        # runner.model = replace_dform_conv_with_split_offset_mask(runner.model)
 
         is_wrapped = False
         if is_model_wrapper(runner.model):
@@ -420,6 +433,10 @@ def main():
             transformation_dict = dict(backbone=None, neck=None, bbox_head=xmodelopt.utils.TransformationWrapper(wrap_fn_for_bbox_head))
         elif cfg.get("model")['type'] == 'FastBEV':
             transformation_dict = dict(backbone=None, neck=None, neck_fuse_0=None, neck_3d=None, bbox_head=xmodelopt.utils.TransformationWrapper(wrap_fn_for_bbox_head))
+        elif cfg.get("model")['type'] == 'PETR':
+            transformation_dict = dict(img_neck=None, img_backbone=None, grid_mask=None, pts_bbox_head=xmodelopt.utils.TransformationWrapper(wrap_fn_for_bbox_head))
+        else:
+            raise RuntimeError('Quantization is NOT supported for the model')
 
         copy_attrs=['train_step', 'val_step', 'test_step', 'data_preprocessor', 'parse_losses', 'bbox_head', '_run_forward']
 
@@ -454,6 +471,7 @@ def main():
         print_log('model optimization done')
 
     # start training
+    # runner.load_or_resume()
     runner.train()
 
 

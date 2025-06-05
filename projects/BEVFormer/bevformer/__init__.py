@@ -23,6 +23,8 @@ from .util import normalize_bbox, denormalize_bbox
 
 from .nuscenes_dataset import CustomNuScenesDataset
 from .nuscenes_metric import CustomNuScenesMetric
+from .pandaset_dataset import CustomPandaSetDataset
+from .pandaset_metric import CustomPandaSetMetric
 
 from .data_preprocessor import BEVFormer3DDataPreprocessor
 
@@ -36,6 +38,7 @@ __all__ = [
     'NMSFreeCoder', 'BBox3DL1Cost', 'SmoothL1Cost',
     'denormalize_bbox', 'normalize_bbox',
     'CustomNuScenesDataset', 'CustomNuScenesMetric',
+    'CustomPandaSetDataset', 'CustomPandaSetMetric',
     'BEVFormer3DDataPreprocessor',
     'PadMultiViewImage', 'CustomMultiViewWrapper', 'RandomResize3D', 'NormalizeMultiviewImage',
     'CustomPack3DDetInputs', 'RandomScaleImageMultiViewImage',

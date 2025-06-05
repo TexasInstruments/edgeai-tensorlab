@@ -25,30 +25,31 @@ We implement and provide the results and checkpoints for PETR and PETRv2 on the 
 
 ## Dataset Preperation
 
+### NuScenes
+
 Prepare the nuScenes dataset as per the MMDetection3D documentation [NuScenes Dataset Preperation](../../docs/en/advanced_guides/datasets/nuscenes.md). 
 
 After downloading nuScenes 3D detection dataset and unzipping all zip files, we typically need to organize the useful data information with a `.pkl` file in a specific style.
 To prepare these files for nuScenes, run the following command:
 
 ```bash
-python tools/create_data.py nuscenes --root-path ./data/nuscenes --out-dir ./data/nuscenes --extra-tag nuscenes --canbus ./data
+python tools/create_data.py nuscenes --root-path ./data/nuscenes --out-dir ./data/nuscenes --extra-tag nuscenes
 ```
 
 This command creates `.pkl` files for PETR, BEVFormer and FCOS3D. To include additional data fields for BEVDet and PETRv2, we should add `--bevdet` and `--petrv2`, respectively, to the command. For example,
 
 ```bash
-python tools/create_data.py nuscenes --root-path ./data/nuscenes --out-dir ./data/nuscenes --extra-tag nuscenes --canbus ./data --bevdet --petrv2
+python tools/create_data.py nuscenes --root-path ./data/nuscenes --out-dir ./data/nuscenes --extra-tag nuscenes --bevdet --petrv2
 ```
 
-The folder structure after processing should be as below.
+The directory structure after processing should be as below.
 
 ```
-mmdetection3d
+edgeai-mmdetection3d
 ├── mmdet3d
 ├── tools
 ├── configs
 ├── data
-│   ├── can_bus
 │   ├── nuscenes
 │   │   ├── maps
 │   │   ├── samples
@@ -63,6 +64,38 @@ mmdetection3d
 │   │   ├── nuscenes_dbinfos_train.pkl
 ```
 
+### PandaSet
+
+Download `pandaset.zip` from [HERE](https://huggingface.co/datasets/georghess/pandaset/tree/main) and unzip the file in `./data/pandaset`. Then run the following command to prepare `.pkl` files:
+
+```bash
+python tools/create_data.py pandaset --root-path ./data/pandaset --out-dir ./data/pandaset --extra-tag pandaset
+```
+
+The directory structure after processing should look like:
+
+```
+edgeai-mmdetection3d
+├── mmdet3d
+├── tools
+├── configs
+├── data
+│   ├── pandaset
+│   │   ├── 001
+│   │   │   ├── annotations
+│   │   │   ├── camera
+│   │   │   ├── LICENSE.txt
+│   │   │   ├── lidar
+│   │   │   └── meta
+│   │   ├── 002 
+.   .   .
+.   .   .
+.   .   .
+│   │   ├── 158
+│   │   ├── pandaset_infos_train.pkl
+│   │   ├── pandaset_infos_val.pkl
+```
+
 ## Get Started
 
 Refer the MMDetection3D documentation [Test and Train with Standard Datasets](../../docs/en/user_guides/train_test.md) for general floating point training/evaluation/testing steps for standard datasets. Use the below steps for training and evaluation of BEVDet:
@@ -70,32 +103,43 @@ Refer the MMDetection3D documentation [Test and Train with Standard Datasets](..
 1. cd to installation directory <install_dir>/edgeai-mmdetection3d
 
 2. Do floating-model training using the command 
-    "./tools/dist_train.sh projects/PETR/configs/petr_vovnet_gridmask_p4_800x320.py <num_gpus>"
+    "./tools/dist_train.sh <config_file> <num_gpus>"
 
     For example, to use 2 GPUs use the command
     ```bash
+    # NuScenes
     ./tools/dist_train.sh projects/PETR/configs/petr_vovnet_gridmask_p4_800x320.py 2
+
+    # PandaSet
+    ./tools/dist_train.sh projects/PETR/configs/petr_pandaset_vovnet_gridmask_p4_960x352.py 2
     ```
 
 3.  Do evalution using the command 
 
-    "python ./tools/test.py projects/PETR/configs/petr_vovnet_gridmask_p4_800x320.py <latest.pth file generated from previous step #2>" 
+    "python <config_file> <latest.pth file generated from previous step #2>" 
 
     For example,
 
     ```bash
+    # NuScenes
     python ./tools/test.py projects/PETR/configs/petr_vovnet_gridmask_p4_800x320.py ./work_dirs/petr_vovnet_gridmask_p4_800x320/epoch_24.pth
+
+    # PandaSet
+    python ./tools/test.py projects/PETR/configs/petr_pandaset_vovnet_gridmask_p4_960x352.py ./work_dirs/petr_pandaset_vovnet_gridmask_p4_960x352/epoch_24.pth
     ```
     Note: This is single GPU evalution command. "./dist_test.sh" can be used for multiple GPU evalution process.
 
 ## Results
 
-This Result is trained by petr_vovnet_gridmask_p4_800x320.py and petrv2_vovnet_gridmask_p4_800x320.py.
+The following results are for PETR and PETRv2 with NuScenes and PandaSet, respectively. PETRv2 with PandaSet is not avaiable yet.
 
-|                    Model                      | Mem (GB) | Inf time (fps) | mAP    | NDS   |
-| :-------------------------------------------: | :------: | :------------: | :---:  | :--:  |
-| petr_vovnet_gridmask_p4_800x320               |   1.09   |       TBA      | 38.37  | 42.88 | 
-| petrv2_vovnet_gridmask_p4_800x320             |   1.87   |       TBA      | 37.94  | 46.40 | 
+
+|  Dataset  |                    Model                      | Mem (GB) | Inf time (fps) | mAP    | NDS   |
+|:---------:| :-------------------------------------------- | :------: | :------------: | :---:  | :--:  |
+| NuScenes  | petr_vovnet_gridmask_p4_800x320               |   1.09   |       TBA      | 37.83  | 43.11 |
+|           | petrv2_vovnet_gridmask_p4_800x320             |   1.87   |       TBA      | 39.36  | 47.89 |
+| PandaSet  | petr_pandaset_vovnet_gridmask_p4_960x352      |   1.34   |       TBA      | 25.37  | 28.88 |
+|           | petrv2_pandaset_vovnet_gridmask_p4_960x352    |          |                |        |       |
 
 
 <!--

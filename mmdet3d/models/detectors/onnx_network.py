@@ -6,7 +6,6 @@ import numpy as np
 import copy
 import math
 
-from mmdet.models.layers.transformer import inverse_sigmoid
 from mmdet3d.structures.bbox_3d.utils import get_lidar2img
 
 from mmengine.utils import digit_version
@@ -14,271 +13,6 @@ from mmengine.utils.dl_utils import TORCH_VERSION
 
 import torchvision.transforms.functional as tF
 import torchvision.transforms._functional_tensor as tF_t
-
-from mmseg.models.utils import resize
-
-
-class PETR_export_model(nn.Module):
-    def __init__(self,
-                 img_backbone,
-                 img_neck,
-                 pts_bbox_head):
-        super().__init__()
-
-        self.img_backbone   = img_backbone
-        self.img_neck       = img_neck
-        self.pts_bbox_head  = pts_bbox_head
-
-        # for camera frustum creation
-        # Image feature size after image backbone. 
-        # It may need update for different image backbone
-        self.B              = 1
-        self.N              = 6
-        self.C              = 256
-        self.H              = 20
-        self.W              = 50
-
-        self.position_level = self.pts_bbox_head.position_level
-        self.with_multiview = self.pts_bbox_head.with_multiview
-        self.LID            = self.pts_bbox_head.LID
-        self.depth_num      = self.pts_bbox_head.depth_num
-        self.depth_start    = self.pts_bbox_head.depth_start
-        self.position_range = self.pts_bbox_head.position_range
-
-
-    def add_lidar2img(self, img, batch_input_metas):
-        """add 'lidar2img' transformation matrix into batch_input_metas.
-
-        Args:
-            batch_input_metas (list[dict]): Meta information of multiple inputs
-                in a batch.
-        Returns:
-            batch_input_metas (list[dict]): Meta info with lidar2img added
-        """
-        for meta in batch_input_metas:
-            lidar2img_rts = []
-            # obtain lidar to image transformation matrix
-            for i in range(len(meta['cam2img'])):
-                lidar2cam_rt = torch.tensor(meta['lidar2cam'][i]).double()
-                intrinsic = torch.tensor(meta['cam2img'][i]).double()
-                viewpad = torch.eye(4).double()
-                viewpad[:intrinsic.shape[0], :intrinsic.shape[1]] = intrinsic
-                lidar2img_rt = (viewpad @ lidar2cam_rt)
-                # The extrinsics mean the transformation from lidar to camera.
-                # If anyone want to use the extrinsics as sensor to lidar,
-                # please use np.linalg.inv(lidar2cam_rt.T)
-                # and modify the ResizeCropFlipImage
-                # and LoadMultiViewImageFromMultiSweepsFiles.
-                lidar2img_rts.append(lidar2img_rt)
-            meta['lidar2img'] = lidar2img_rts
-            img_shape = meta['img_shape'][:3]
-            meta['img_shape'] = [img_shape] * len(img[0])
-
-        return batch_input_metas
-
-
-    def prepare_data(self, img, img_metas):
-        input_shape = img.shape[-2:]
-
-        self.img_metas = img_metas
-
-        # update real input shae of each single img
-        for img_meta in self.img_metas:
-            img_meta.update(input_shape=input_shape)
-
-
-    def create_coords3d(self, img):
-
-        batch_size = self.B
-        num_cams   = self.N
-
-        pad_h, pad_w = self.img_metas[0]['pad_shape']
-        masks = img.new_ones((batch_size, num_cams, pad_h, pad_w))
-        for img_id in range(batch_size):
-            for cam_id in range(num_cams):
-                img_h, img_w = self.img_metas[img_id]['img_shape'][cam_id]
-                masks[img_id, cam_id, :img_h, :img_w] = 0
-        
-        # interpolate masks to have the same spatial shape with x
-        masks = F.interpolate(masks, size=(self.H, self.W)).to(torch.bool)
-
-        eps = 1e-5
-
-        B, N, C, H, W = self.B, self.N, self.C, self.H, self.W
-        coords_h = torch.arange(
-            H, device=img.device).float() * pad_h / H
-        coords_w = torch.arange(
-            W, device=img.device).float() * pad_w / W
-
-        if self.LID:
-            index = torch.arange(
-                start=0,
-                end=self.depth_num,
-                step=1,
-                device=img.device).float()
-            index_1 = index + 1
-            bin_size = (self.position_range[3] - self.depth_start) / (
-                self.depth_num * (1 + self.depth_num))
-            coords_d = self.depth_start + bin_size * index * index_1
-        else:
-            index = torch.arange(
-                start=0,
-                end=self.depth_num,
-                step=1,
-                device=img.device).float()
-            bin_size = (self.position_range[3] -
-                        self.depth_start) / self.depth_num
-            coords_d = self.depth_start + bin_size * index
-
-        D = coords_d.shape[0]
-        coords = torch.stack(torch.meshgrid([coords_w, coords_h, coords_d
-                                             ])).permute(1, 2, 3,
-                                                         0)  # W, H, D, 3
-        coords = torch.cat((coords, torch.ones_like(coords[..., :1])), -1)
-        coords[..., :2] = coords[..., :2] * torch.maximum(
-            coords[..., 2:3],
-            torch.ones_like(coords[..., 2:3]) * eps)
-
-        img2lidars = []
-        for img_meta in self.img_metas:
-            img2lidar = []
-            for i in range(len(img_meta['lidar2img'])):
-                img2lidar.append(np.linalg.inv(img_meta['lidar2img'][i]))
-            img2lidars.append(np.asarray(img2lidar))
-        img2lidars = np.asarray(img2lidars)
-        img2lidars = coords.new_tensor(img2lidars)  # (B, N, 4, 4)
-
-        coords = coords.view(1, 1, W, H, D, 4, 1).repeat(B, N, 1, 1, 1, 1, 1)
-        img2lidars = img2lidars.view(B, N, 1, 1, 1, 4,
-                                     4).repeat(1, 1, W, H, D, 1, 1)
-        coords3d = torch.matmul(img2lidars, coords).squeeze(-1)[..., :3]
-        coords3d[..., 0:1] = (coords3d[..., 0:1] - self.position_range[0]) / (
-            self.position_range[3] - self.position_range[0])
-        coords3d[..., 1:2] = (coords3d[..., 1:2] - self.position_range[1]) / (
-            self.position_range[4] - self.position_range[1])
-        coords3d[..., 2:3] = (coords3d[..., 2:3] - self.position_range[2]) / (
-            self.position_range[5] - self.position_range[2])
-
-        coords_mask = (coords3d > 1.0) | (coords3d < 0.0)
-        coords_mask = coords_mask.flatten(-2).sum(-1) > (D * 0.5)
-        coords_mask = masks | coords_mask.permute(0, 1, 3, 2)
-        coords3d = coords3d.permute(0, 1, 4, 5, 3,
-                                    2).contiguous().view(B * N, -1, H, W)
-        coords3d = inverse_sigmoid(coords3d)
-
-        return masks, coords3d
-
-
-    def forward(self, img, coords3d):
-        B = 1
-        N, C, H, W = img.size()
-
-        img_feats = self.img_backbone(img)
-        img_feats = self.img_neck(img_feats)
-
-        img_feats_reshaped = []
-        for img_feat in img_feats:
-            BN, C, H, W = img_feat.size()
-            img_feats_reshaped.append(img_feat.view(B, int(BN / B), C, H, W))
-
-        outs = self.pts_bbox_head(img_feats_reshaped, self.img_metas, masks=None, coords3d=coords3d)
-
-        bbox_list = self.pts_bbox_head.get_bboxes_onnx(
-            outs, self.img_metas, rescale=False)
-
-        return bbox_list
-
-
-class StreamPETR_export_model(nn.Module):
-    def __init__(self,
-                 stride,
-                 use_grid_mask,
-                 grid_mask,
-                 img_backbone,
-                 img_neck,
-                 pts_bbox_head,
-                 prepare_location,
-                 forward_roi_head):
-        super().__init__()
-
-        self.stride           = stride
-        self.use_grid_mask    = use_grid_mask
-        self.img_backbone     = img_backbone
-        self.img_neck         = img_neck
-        self.pts_bbox_head    = pts_bbox_head
-        self.grid_mask        = grid_mask
-
-        self.aux_2d_only      = True
-        self.position_level   = 0
-        self.len_queue        = 1
-        self.prev_scene_token = None
-
-        # Image feature size after image backbone. 
-        # It may need update for different image backbone
-        self.B              = 1
-        self.N              = 6
-        self.C              = 256
-        self.H              = 16
-        self.W              = 44
-
-    def prepare_data(self, img, img_metas):
-        #input_shape = img.shape[-2:]
-        self.img_metas = img_metas
-
-        ## update real input shae of each single img
-        #for img_meta in self.img_metas:
-        #    img_meta.update(input_shape=input_shape)
-    
-    def prepare_location(self, img):
-        pad_h, pad_w = self.img_metas[0]['pad_shape']
-        bs, n, h, w = self.B, self.N, self.H, self.W
-
-        device = img.device
-
-        shifts_x = (torch.arange(
-            0, self.stride*w, step=self.stride,
-            dtype=torch.float32, device=device
-        ) + self.stride // 2 ) / pad_w
-        shifts_y = (torch.arange(
-            0, h * self.stride, step=self.stride,
-            dtype=torch.float32, device=device
-        ) + self.stride // 2) / pad_h
-
-        shift_y, shift_x = torch.meshgrid(shifts_y, shifts_x)
-        shift_x = shift_x.reshape(-1)
-        shift_y = shift_y.reshape(-1)
-
-        location = torch.stack((shift_x, shift_y), dim=1)
-        location = location.reshape(h, w, 2)[None].repeat(bs*n, 1, 1, 1)
-
-        return location
-
-
-    def forward(self, img, location,
-                memory_embedding, memory_reference_point,
-                memory_timestamp, memory_egopose, memory_velo):
-        B = 1
-        N, C, H, W = img.size()
-
-        if self.use_grid_mask:
-            img = self.grid_mask(img)
-
-        img_feats = self.img_backbone(img)
-        img_feats = self.img_neck(img_feats)
-
-        BN, C, H, W = img_feats[self.position_level].size()
-        img_feats_reshaped = img_feats[self.position_level].view(B, int(BN/B/self.len_queue), C, H, W)
-
-        #return img_feats_reshaped
-        topk_indexes = None
-        outs = self.pts_bbox_head(location, img_feats_reshaped, self.img_metas, topk_indexes,
-                                  memory_embedding, memory_reference_point, memory_timestamp, 
-                                  memory_egopose, memory_velo)
-
-        bbox_list = self.pts_bbox_head.get_bboxes(
-            outs, self.img_metas)
-
-        return bbox_list
 
 
 # BEVDet_R50 ONNX exporting model
@@ -728,6 +462,9 @@ class BEVFormer_export_model(nn.Module):
         reference_points_cam[..., 0] /= img_metas[0]['img_shape'][0][1]
         reference_points_cam[..., 1] /= img_metas[0]['img_shape'][0][0]
 
+        # clip to [0, 1] to help quantization
+        reference_points_cam = torch.clip(reference_points_cam, min=0.0, max=1.0)
+
         bev_mask = (bev_mask & (reference_points_cam[..., 1:2] > 0.0)
                     & (reference_points_cam[..., 1:2] < 1.0)
                     & (reference_points_cam[..., 0:1] < 1.0)
@@ -763,13 +500,17 @@ class BEVFormer_export_model(nn.Module):
         #    device=bev_query.device, dtype=bev_query.dtype)
         
         # Get image coors corresponding to ref_3d. bev_mask indicates valid coors
+        # bev_mask: 6x1x2500x4
+        # reference_points_cam: 6x1x2500x4x2
         reference_points_cam, bev_mask = self.point_sampling(
             ref_3d, self.pc_range, self.img_metas)
 
+        # bev_valid_indices has valid BEV grid indices. Invalid BEV grids is bev_h*bev_w
+        # bev_valid_indices_count has # of valid BEV grids
         bev_valid_indices = []
         bev_valid_indices_count = []
         for mask_per_img in bev_mask:
-            nzindex = mask_per_img[0].sum(-1).nonzero().squeeze(-1)
+            nzindex = mask_per_img[0].sum(-1).nonzero().squeeze(-1).to(torch.int32)
             index_query_per_img = nzindex.new_ones(self.bev_h * self.bev_w)*self.bev_h * self.bev_w
             index_query_per_img[:len(nzindex)] = nzindex
             bev_valid_indices.append(index_query_per_img)
@@ -800,7 +541,7 @@ class BEVFormer_export_model(nn.Module):
         shift_xy =  torch.tensor([[shift_x[0],shift_y[0]]]).to(torch.float32)
 
         #return ref_3d, ref_2d, reference_points_cam, bev_mask, torch.tensor([shift_y[0],shift_x[0]]), can_bus
-        return reference_points_cam, bev_mask_count, torch.stack(bev_valid_indices, dim=0), \
+        return reference_points_cam, bev_mask_count, torch.unsqueeze(torch.cat(bev_valid_indices, dim=0), dim=1), \
             torch.Tensor(bev_valid_indices_count).to(torch.int64), shift_xy, can_bus
 
 
@@ -892,195 +633,3 @@ class FCOS3D_export_model(nn.Module):
             pad_cam2img=pad_cam2img, inv_pad_cam2img=inv_pad_cam2img)
 
         return predictions
-
-"""
-@torch.no_grad()
-def get_points(n_voxels, voxel_size, origin):
-    points = torch.stack(
-        torch.meshgrid(
-            [
-                torch.arange(n_voxels[0]),
-                torch.arange(n_voxels[1]),
-                torch.arange(n_voxels[2]),
-            ]
-        )
-    )
-    new_origin = origin - n_voxels / 2.0 * voxel_size
-    points = points * voxel_size.view(3, 1, 1, 1) + new_origin.view(3, 1, 1, 1)
-    return points
-"""
-
-def backproject_tidl(features, xy_coor, n_voxels):
-    """
-    function: 2d feature + predefined point cloud -> 3d volume
-    """
-    n_images, n_channels, height, width = features.shape
-    n_x_voxels, n_y_voxels, n_z_voxels = n_voxels
-
-    features = features.permute(0, 2, 3, 1)
-    features = features.reshape(-1, n_channels)
-    features = F.pad(features,(0,0,0,1),"constant",0)
-
-    #volume   = torch.index_select(features, 0, xy_coor.to(features.device))
-    volume = features[xy_coor]
-
-    volume   = volume.permute(1,0)
-    #volume   = volume.view(1, n_channels, n_x_voxels, n_y_voxels, n_z_voxels)
-    return volume
-
-
-class FastBEV_export_model(nn.Module):
-    def __init__(self, model):
-        super().__init__()
-        #self.backbone        = model.backbone
-        #self.neck            = model.neck
-        #self.neck_fuse_0     = model.neck_fuse_0
-        #self.neck_3d         = model.neck_3d
-        #self.bbox_head       = model.bbox_head
-        self.backbone    = model.backbone.convert(make_copy=True) if hasattr(model.backbone, "convert") else model.backbone
-        self.neck        = model.neck.convert(make_copy=True) if hasattr(model.neck, "convert") else model.neck
-        self.neck_fuse_0 = model.neck_fuse_0.convert(make_copy=True) if hasattr(model.neck_fuse_0, "convert") else model.neck_fuse_0
-        self.neck_3d     = model.neck_3d.convert(make_copy=True) if hasattr(model.neck_3d, "convert") else model.neck_3d
-        if hasattr(model.bbox_head, "new_bbox_head"):
-            self.bbox_head  = copy.deepcopy(model.bbox_head)
-            # self.bbox_head.new_bbox_head loses the convert function after deepcopy so using the original
-            setattr(self.bbox_head, "new_bbox_head", model.bbox_head.new_bbox_head.convert(make_copy=True))
-            self.bbox_head.cpu()
-        elif hasattr(model.bbox_head, "convert"): # bbox_head is not quantized but rest of the network is quantized
-            self.bbox_head  = copy.deepcopy(model.bbox_head).cpu()
-        else:
-            self.bbox_head = model.bbox_head
-
-        self.multi_scale_id  = model.multi_scale_id
-        self.n_voxels        = model.n_voxels
-        self.backproject     = model.backproject
-        self.style           = model.style
-        self.extrinsic_noise = model.extrinsic_noise
-        self.voxel_size      = model.voxel_size
-
-        self._compute_projection  = model._compute_projection
-        self.get_temporal_feats   = model.get_temporal_feats
-        self.precompute_proj_info_for_inference = model.precompute_proj_info_for_inference
-
-        self.num_temporal_feats = model.num_temporal_feats
-        self.feats_size         = model.feats_size
-
-        if self.num_temporal_feats > 0:
-            self.memory          = model.memory
-            self.queue           = model.queue
-
-
-    def prepare_data(self, img_metas):
-        self.img_metas = img_metas
-
-
-    def extract_feat(self, img):
-        x = self.backbone(
-            img
-        )  # [6, 256, 232, 400]; [6, 512, 116, 200]; [6, 1024, 58, 100]; [6, 2048, 29, 50]
-
-        mlvl_feats = self.neck(x)
-        mlvl_feats = list(mlvl_feats)
-
-        if self.multi_scale_id is not None:
-            mlvl_feats_ = []
-            for msid in self.multi_scale_id:
-                # fpn output fusion
-                if getattr(self, f'neck_fuse_{msid}', None) is not None:
-                    fuse_feats = [mlvl_feats[msid]]
-                    for i in range(msid + 1, len(mlvl_feats)):
-                        resized_feat = resize(
-                            mlvl_feats[i],
-                            size=mlvl_feats[msid].size()[2:],
-                            mode="bilinear",
-                            align_corners=False)
-                        fuse_feats.append(resized_feat)
-
-                    if len(fuse_feats) > 1:
-                        fuse_feats = torch.cat(fuse_feats, dim=1)
-                    else:
-                        fuse_feats = fuse_feats[0]
-                    fuse_feats = getattr(self, f'neck_fuse_{msid}')(fuse_feats)
-                    mlvl_feats_.append(fuse_feats)
-                else:
-                    mlvl_feats_.append(mlvl_feats[msid])
-            mlvl_feats = mlvl_feats_
-
-        # v3 bev ms
-        if isinstance(self.n_voxels, list) and len(mlvl_feats) < len(self.n_voxels):
-            pad_feats = len(self.n_voxels) - len(mlvl_feats)
-            for _ in range(pad_feats):
-                mlvl_feats.append(mlvl_feats[0])
-
-        return mlvl_feats
-
-    def extract_feat_neck3d(self, img, img_metas, mlvl_feats, xy_coors):
-        batch_size = img.shape[0] // 6
-        mlvl_volumes = []
-        for lvl, mlvl_feat in enumerate(mlvl_feats):
-            # to reduce redundant operator
-            if batch_size == 1:
-                mlvl_feat_split = torch.split(mlvl_feat, 6, dim=0)
-            else:
-                # [bs*seq*nv, c, h, w] -> [bs, seq*nv, c, h, w]
-                mlvl_feat = mlvl_feat.reshape([batch_size, -1] + list(mlvl_feat.shape[1:]))
-                # [bs, seq*nv, c, h, w] -> list([bs, nv, c, h, w])
-                mlvl_feat_split = torch.split(mlvl_feat, 6, dim=1)
-
-            volume_list = []
-            for seq_id, mlvl_feat_i in enumerate(mlvl_feat_split):
-                volumes = []
-
-                for batch_id, seq_img_meta in enumerate(img_metas):
-                    if batch_size == 1:
-                        feat_i = mlvl_feat_i
-                    else:
-                        feat_i = mlvl_feat_i[batch_id]  # [nv, c, h, w]
-
-                    if len(mlvl_feat_split) > 1:
-                        volume = backproject_tidl(
-                            feat_i, xy_coors[seq_id], self.n_voxels[0])  # [c, vx, vy, vz]
-                    else:
-                        volume = backproject_tidl(
-                            feat_i, xy_coors, self.n_voxels[0])  # [c, vx, vy, vz]
-                    
-                    if batch_size == 1:
-                        volume = volume.view([1, feat_i.shape[1]] + self.n_voxels[0])
-                    else:
-                        volume = volume.view([feat_i.shape[1]] + self.n_voxels[0])
-                        volumes.append(volume)
-
-                # to reduce redundant operator
-                if batch_size ==1:
-                    volume_list.append(volume)
-                else:
-                    volume_list.append(torch.stack(volumes))  # list([bs, c, vx, vy, vz])
-    
-            mlvl_volumes.append(torch.cat(volume_list, dim=1))  # list([bs, seq*c, vx, vy, vz])
-
-        mlvl_volumes = torch.cat(mlvl_volumes, dim=1)  # [bs, lvl*seq*c, vx, vy, vz]
-        x = self.neck_3d(mlvl_volumes)
-        return x
-
-
-    def forward(self,
-                img,
-                xy_coors,
-                prev_feats_map=None):
-
-        mlvl_feats = self.extract_feat(img)
-        if prev_feats_map is None:
-            mlvl_feats_all = mlvl_feats
-        else:
-            concat_mlvl_feats = torch.cat((mlvl_feats[0], mlvl_feats[0]), dim=0)
-            mlvl_feats_all    = [torch.cat((concat_mlvl_feats[0:6], prev_feats_map), dim=0)]
-
-        feature_bev = self.extract_feat_neck3d(img, self.img_metas, mlvl_feats_all, xy_coors)
-        x = self.bbox_head(feature_bev)
-
-        bbox_list = self.bbox_head.get_bboxes(*x, self.img_metas, valid=None)
-
-        if prev_feats_map is None:
-            return bbox_list
-        else:
-            return bbox_list, concat_mlvl_feats[6:12]

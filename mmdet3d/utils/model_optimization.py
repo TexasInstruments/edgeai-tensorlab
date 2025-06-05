@@ -35,50 +35,10 @@ import types
 import edgeai_torchmodelopt
 from torch.fx import GraphModule
 from torch.fx.passes.utils.source_matcher_utils import SourcePartition
+
 from edgeai_torchmodelopt import xmodelopt, xops
 from projects.FCOS3D.fcos3d.modulated_deform_conv_tidl import ModulatedDeformConv2dTIDL
-
-
-def wrap_optimize_func(fn):
-    def wrapped(model, example_inputs, example_kwargs, *fn_args, **fn_kwargs):
-        out = None
-        if hasattr(model,'backbone'):
-            model.backbone = fn(model.backbone, example_inputs, example_kwargs, *fn_args, **fn_kwargs)
-            out= model.backbone(*example_inputs, **example_kwargs)
-        if hasattr(model,'neck')  and model.with_neck:
-            inputs = [out] if out else example_inputs
-            kwargs = {} if out else example_kwargs
-            model.neck = fn(model.neck, inputs, kwargs, *fn_args, **fn_kwargs)
-            out = model.neck(*inputs, **kwargs)
-        if hasattr(model,'bbox_head'):
-            inputs = [out] if out else example_inputs
-            kwargs = {} if out else example_kwargs
-            if hasattr(model.bbox_head,'new_bbox_head'):
-                model.bbox_head.new_bbox_head = fn(model.bbox_head.new_bbox_head, inputs, kwargs,  *fn_args, **fn_kwargs)
-            else:
-                new_bbox_head = fn(model.bbox_head, inputs, kwargs, *fn_args, **fn_kwargs)
-                if new_bbox_head is not model.bbox_head:    
-                    model.bbox_head.add_module('new_bbox_head',new_bbox_head)
-                    def new_forward(self, x: tuple[torch.Tensor]) -> tuple[list]:
-                        return self.new_bbox_head(x)
-                    model.bbox_head.forward = types.MethodType(new_forward, model.bbox_head)
-                    if isinstance(new_bbox_head,GraphModule):
-                        params = dict(model.bbox_head.named_parameters())
-                        for key in params:
-                            if key.startswith("new_bbox_head."):
-                                continue
-                            split = key.rsplit('.',1)
-                            if len(split) == 1:
-                                param_name = split[0]
-                                delattr(model.bbox_head,param_name)
-                            else:
-                                parent_module, param_name = split
-                                main_module = parent_module.split('.',1)[0]
-                                if hasattr(model.bbox_head, main_module):
-                                    delattr(model.bbox_head,main_module)
-            out = model.bbox_head(*inputs, **kwargs)
-        return model
-    return wrapped
+from mmcv.ops.modulated_deform_conv import ModulatedDeformConv2dPack
 
 
 def wrap_fn_for_bbox_head(fn, module:nn.Module, *args, **kwargs):
@@ -122,8 +82,8 @@ def get_input(runner, cfg, train=True, to_export=False):
     example_inputs = []
     example_kwargs = input_dict
     return example_inputs, example_kwargs
-    
-    
+
+
 def get_replacement_dict(model_surgery_version, cfg):
     from mmdet.models.backbones.csp_darknet import Focus, FocusLite
     if hasattr(cfg,'convert_to_lite_model') : 
@@ -342,7 +302,8 @@ def replace_maxpool2d_k_size_gt_3(model:nn.Module, verbose_mode=False, **kwargs)
 
 def replace_dform_conv_with_split_offset_mask(model):
     replacement_dict = {
-            'split_conv_in_deform_to_offset_mask': {ModulatedDeformConv2dTIDL: [replace_dform_conv_tidl]}
+            'split_conv_in_deform_to_offset_mask_tidl': {ModulatedDeformConv2dTIDL: [replace_dform_conv_tidl]},
+            'split_conv_in_deform_to_offset_mask_orig': {ModulatedDeformConv2dPack: [replace_dform_conv_tidl]},
         }
     model = xmodelopt.surgery.v1.convert_to_lite_model(model, replacement_dict)
     return model
@@ -358,8 +319,7 @@ def replace_dform_conv_tidl(m):
     dilation = m.dilation
     groups = m.groups
     output_padding = m.output_padding
-    
-    replaced_model = xops.DCNWithGSv2MMCV(in_channels, out_channels, kernel_size, stride, padding, dilation, groups, offset_clip=None)#, mode='nearest')
+    replaced_model = xops.DCNWithGSv2MMCV(in_channels, out_channels, kernel_size, stride, padding, dilation, groups, offset_clip=None, mode='nearest')
     replaced_model.is_initialized = True
     setattr(replaced_model, 'orig', m.forward)
     replaced_model.copy_weights(m)

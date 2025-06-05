@@ -1,28 +1,5 @@
 # Copyright (c) Phigent Robotics. All rights reserved.
 
-# mAP: 0.2843
-# mATE: 0.7585
-# mASE: 0.2807
-# mAOE: 0.6717
-# mAVE: 0.9227
-# mAAE: 0.2875
-# NDS: 0.3500
-# Eval time: 80.6s
-# 
-# Per-class results:
-# Object Class            AP      ATE     ASE     AOE     AVE     AAE   
-# car                     0.516   0.556   0.160   0.109   0.967   0.227 
-# truck                   0.240   0.754   0.224   0.162   0.799   0.258 
-# bus                     0.316   0.813   0.214   0.212   2.054   0.354 
-# trailer                 0.111   1.140   0.225   0.529   0.495   0.049 
-# construction_vehicle    0.039   1.053   0.496   1.352   0.115   0.424 
-# pedestrian              0.281   0.734   0.300   1.407   0.967   0.642 
-# motorcycle              0.267   0.743   0.258   0.795   1.519   0.243 
-# bicycle                 0.239   0.674   0.302   1.340   0.466   0.102 
-# traffic_cone            0.419   0.544   0.334   nan     nan     nan   
-# barrier                 0.417   0.573   0.293   0.139   nan     nan   
-
-
 _base_ = ['../../../configs/_base_/datasets/nus-3d.py',
           '../../../configs/_base_/default_runtime.py']
 
@@ -259,6 +236,8 @@ train_dataloader = dict(
 
 
 val_dataloader = dict(
+    batch_size=1,
+    num_workers=4,
     dataset=dict(
         type=dataset_type,
         ann_file='nuscenes_long_infos_val.pkl',
@@ -318,13 +297,13 @@ param_scheduler = [
 ]
 
 #runner = dict(type='EpochBasedRunner', max_epochs=24)
-train_cfg = dict(by_epoch=True, max_epochs=24, val_interval=12)
+train_cfg = dict(by_epoch=True, max_epochs=24, val_interval=24)
 val_cfg = dict(type='ValLoop')
 test_cfg = dict(type='TestLoop')
 
 default_hooks = dict(
     checkpoint=dict(
-        type='CheckpointHook', interval=2, max_keep_ckpts=4, save_last=True))
+        type='CheckpointHook', interval=1, max_keep_ckpts=4, save_last=True))
 
 custom_hooks = [
     dict(

@@ -4,8 +4,8 @@ class_names = [
     'car', 'truck', 'trailer', 'bus', 'construction_vehicle', 'bicycle',
     'motorcycle', 'pedestrian', 'traffic_cone', 'barrier'
 ]
-metainfo = dict(classes=class_names)
-# metainfo = dict(classes=class_names, version='v1.0-mini') # mini dataset
+metainfo = dict(classes=class_names) # full
+# metainfo = dict(classes=class_names, version='v1.0-mini') # mini
 # Input modality for nuScenes dataset, this is consistent with the submission
 # format which requires the information in input_modality.
 input_modality = dict(use_lidar=False, use_camera=True)
@@ -68,6 +68,7 @@ train_dataloader = dict(
             CAM_BACK_RIGHT='samples/CAM_BACK_RIGHT',
             CAM_BACK_LEFT='samples/CAM_BACK_LEFT'),
         ann_file='nuscenes_infos_train.pkl',
+        # ann_file='nuscenes_mini_infos_val.pkl', #mini
         load_type='mv_image_based',
         pipeline=train_pipeline,
         metainfo=metainfo,
@@ -95,7 +96,8 @@ val_dataloader = dict(
             CAM_BACK='samples/CAM_BACK',
             CAM_BACK_RIGHT='samples/CAM_BACK_RIGHT',
             CAM_BACK_LEFT='samples/CAM_BACK_LEFT'),
-        ann_file='nuscenes_infos_val.pkl',
+        ann_file='nuscenes_infos_val.pkl', #full
+        # ann_file='nuscenes_mini_infos_val.pkl', #mini
         load_type='mv_image_based',
         pipeline=test_pipeline,
         modality=input_modality,
@@ -109,7 +111,8 @@ test_dataloader = val_dataloader
 val_evaluator = dict(
     type='NuScenesMetric',
     data_root=data_root,
-    ann_file=data_root + 'nuscenes_infos_val.pkl',
+    ann_file=data_root + 'nuscenes_infos_val.pkl', # full 
+    # ann_file=data_root + 'nuscenes_mini_infos_val.pkl', # mini
     metric='bbox',
     backend_args=backend_args)
 
