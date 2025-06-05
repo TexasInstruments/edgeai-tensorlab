@@ -198,9 +198,12 @@ if not args.compare:
     if (len(args.operator) == 1) and re.search(r"^(.*)_(\d*)$", args.operator[0]):
         import shlex
         import shutil
+
+        LOGS_PATH = "../logs"
+        TIDL_TOOLS_PATH = "<extracted tidl tools folder path>"
         envs=["ARM64_GCC_PATH", "TIDL_RT_ONNX_VARDIM", "TIDL_RT_DDR_STATS", "TIDL_RT_DDR_STATS", "TIDL_RT_PERFSTATS", "TIDL_RT_AVX_REF", "TIDL_ARTIFACT_SYMLINKS"]
 
-        command = shlex.split("bash -c 'cd ../../ && source ./run_set_env.sh && env'")
+        command = shlex.split("bash -c 'cd ../../../ && source ./run_set_env.sh && env'")
         proc = subprocess.Popen(command, stdout = subprocess.PIPE, universal_newlines=True)
         for line in proc.stdout:
             (key, _, value) = line.partition("=")
@@ -209,8 +212,8 @@ if not args.compare:
             os.environ[key] = value.replace("\n", '')
         
         proc.communicate()
-        os.environ["TIDL_TOOLS_PATH"] = os.path.abspath("./temp/tidl_tools")
-        os.environ["LD_LIBRARY_PATH"] = os.path.abspath("./temp/tidl_tools")
+        os.environ["TIDL_TOOLS_PATH"] = os.path.abspath(TIDL_TOOLS_PATH)
+        os.environ["LD_LIBRARY_PATH"] = os.environ["TIDL_TOOLS_PATH"]
         
         if args.runtime and len(args.runtime):
             rts = args.runtime
@@ -221,7 +224,7 @@ if not args.compare:
             log_path = os.path.join(REPORT_PATH, rt, DEVICE, args.operator[0])
             script = [
                 "bash",
-                "run_test.sh",
+                "../run_test.sh",
                 "--test_suite=operator",
                 f"--tests={args.operator[0]}",
                 f"--runtime={rt}"
@@ -230,20 +233,20 @@ if not args.compare:
             if process.returncode != 0:
                 exit()
             
-            for file in os.listdir("logs"):
+            for file in os.listdir(LOGS_PATH):
                 if file.endswith(".html"):
                     if not os.path.exists(log_path):
                         os.makedirs(log_path)
-                    shutil.copy(os.path.join("logs", file),  f"{log_path}/compile_without_nc.html")
-                    os.remove(os.path.join("logs", file))
+                    shutil.copy(os.path.join(LOGS_PATH, file),  f"{log_path}/compile_without_nc.html")
+                    os.remove(os.path.join(LOGS_PATH, file))
                     
             process = subprocess.run(script + ["--run_compile=0"], text=True)
             if process.returncode != 0:
                 exit()
-            for file in os.listdir("logs"):
+            for file in os.listdir(LOGS_PATH):
                 if file.endswith(".html"):
-                    shutil.copy(os.path.join("logs", file),  f"{log_path}/infer_ref_without_nc.html")
-                    os.remove(os.path.join("logs", file))
+                    shutil.copy(os.path.join(LOGS_PATH, file),  f"{log_path}/infer_ref_without_nc.html")
+                    os.remove(os.path.join(LOGS_PATH, file))
             
         try:
             for env in envs:
@@ -256,15 +259,17 @@ if not args.compare:
         script = [
             'bash',
             'run_operator_test.sh',
-            f'--SOC={DEVICE}'
+            f'--SOC={DEVICE}',
+            '--compile_without_nc=1',   # Currently, only need to run without nc tests
+            '--compile_with_nc=0'
         ]
         if args.operator and len(args.operator):
-            script += ['--operators'] + args.operator
+            script += [f'--operators={" ".join(args.operator)}']
 
         if args.runtime and len(args.runtime):
-            script += ['--runtimes'] + args.runtime
+            script += [f'--runtimes={" ".join(args.runtime)}']
         else:
-            script += ['--runtimes'] + ALL_RUNTIMES
+            script += [f'--runtimes={" ".join(ALL_RUNTIMES)}']
         
         process = subprocess.run(script, text=True)
         if process.returncode == 1:

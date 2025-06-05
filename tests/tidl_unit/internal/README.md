@@ -150,12 +150,14 @@ Generate performance comparison between runtimes using `run_operator_comparison.
 ```bash
 python3 run_operator_comparison.py
 ```
-This generates test reports under `../operator_test_report_csv/comparison/`<br>
+This generates test reports under `../operator_test_report/comparison/`<br>
 ```text
 Optional Arguments:
     --runtime <RUNTIMES>    : Runtimes to run. If left empty, runs all runtimes defined under ALL_RUNTIMES inside the script
     --operator <OPERATORS>  : Operators to run. If left empty, runs full suite.
-    --compare               : Compare mode. Doesnt execute tests, uses existing reports to generate comparison report.    
+    --compare               : Compare mode. Doesnt execute tests, uses existing reports to generate comparison report.   
+
+If single tests are to be run, then only that should be passed.
 ```
 
 
@@ -176,6 +178,9 @@ python3 run_operator_comparison.py --operator Add
     
 # Runs comparison for Convolution
 python3 run_operator_comparison.py --compare --operator Convolution
+
+#Runs onnx and tvm tests for just MaxPool_2 test 
+python3 run_operator_comparison.py --operator MaxPool_2
 ```
 
 ## 9. Documentation

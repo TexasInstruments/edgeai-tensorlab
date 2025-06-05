@@ -407,7 +407,9 @@ do
     done
 
     # Generate summary report
+    cd internal
     python3 report_summary_generation.py --reports_path=$base_path_reports
+    cd ../
 done
 
 # Clear temporary files
