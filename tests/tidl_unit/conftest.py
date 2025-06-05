@@ -17,9 +17,12 @@ def pytest_addoption(parser):
     parser.addoption("--runtime", type=str, default="onnxrt")
 
 def pytest_sessionfinish(session):
-    plugin = session.config._json_report
-    json_path = session.config.option.htmlpath.replace(".html",".json")
-    plugin.save_report(json_path)
+    try:
+        plugin = session.config._json_report
+        json_path = session.config.option.htmlpath.replace(".html",".json")
+        plugin.save_report(json_path)
+    except:
+        pass
 
 # Configures html report name and path
 @pytest.hookimpl(tryfirst=True)
