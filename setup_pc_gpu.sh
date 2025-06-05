@@ -34,7 +34,7 @@ echo "Installing tidl-tools with CUDA GPU support and NVIDIA-HPC-SDK..."
 echo "Please ensure that you have NVIDIA CUDA GPUs and that the GPU drivers are installed."
 
 echo "Installing tidl-tools with CUDA GPU support..."
-TIDL_TOOLS_TYPE_SUFFIX="_gpu" ./setup_pc.sh "$@"
+TIDL_TOOLS_TYPE="gpu" ./setup_pc.sh "$@"
 
 ########################################################
 # NVIDIA-HPC-SDK

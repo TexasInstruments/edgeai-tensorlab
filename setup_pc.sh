@@ -31,15 +31,15 @@
 ######################################################################
 # change default tidl_tools version if needed
 # examples: 11.0 10.1 10.0
-TIDL_TOOLS_RELEASE_NAME=${1:-"11.0"}
-
+TIDL_TOOLS_VERSION=${TIDL_TOOLS_VERSION:-"11.0"}
+echo "TIDL_TOOLS_VERSION=${TIDL_TOOLS_VERSION}"
 
 #######################################################################
-# TIDL_TOOLS_TYPE_SUFFIX can be "" or "_gpu" from r9.2 onwards
-# TIDL_TOOLS_TYPE_SUFFIX="_gpu" (while running this setup) to install tidl-tools compiled with CUDA support
+# TIDL_TOOLS_TYPE can be "" or "_gpu" from r9.2 onwards
+# TIDL_TOOLS_TYPE="_gpu" (while running this setup) to install tidl-tools compiled with CUDA support
 # requires nvidia-hpc-sdk to be insalled for it to work: https://developer.nvidia.com/nvidia-hpc-sdk-237-downloads
-TIDL_TOOLS_TYPE_SUFFIX=${TIDL_TOOLS_TYPE_SUFFIX:-""}
-echo "TIDL_TOOLS_TYPE_SUFFIX=${TIDL_TOOLS_TYPE_SUFFIX}"
+TIDL_TOOLS_TYPE=${TIDL_TOOLS_TYPE:-""}
+echo "TIDL_TOOLS_TYPE=${TIDL_TOOLS_TYPE}"
 
 #######################################################################
 echo 'Installing system dependencies...'
@@ -72,10 +72,10 @@ if [ -d "${CURRENT_WORK_DIR}/../edgeai-tidl-tools" ]; then
 fi
 
 echo "--------------------------------------------------------------------------------------------------------------"
-echo "INFO: installing tidl-tools-package version: ${TIDL_TOOLS_RELEASE_NAME}"
+echo "INFO: installing tidl-tools-package version: ${TIDL_TOOLS_VERSION}"
 cd ${CURRENT_WORK_DIR}
-pip3 install -r ./tools/requirements/requirements_${TIDL_TOOLS_RELEASE_NAME}.txt
-python3 ./tools/setup.py develop --tools_version=${TIDL_TOOLS_RELEASE_NAME} --tools_type=${TIDL_TOOLS_TYPE_SUFFIX}
+pip3 install -r ./tools/requirements/requirements_${TIDL_TOOLS_VERSION}.txt
+TIDL_TOOLS_TYPE=${TIDL_TOOLS_TYPE} TIDL_TOOLS_VERSION=${TIDL_TOOLS_VERSION} python3 ./tools/setup.py develop
 
 cd ${CURRENT_WORK_DIR}
 echo 'INFO: installing local module using setup.py...'
