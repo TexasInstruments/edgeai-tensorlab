@@ -291,9 +291,7 @@ def download_and_extract_archive(
     return fpath
 
 
-def download_tidl_tools(TIDL_TOOLS_VERSION_NAME, TIDL_TOOLS_RELEASE_LABEL, TIDL_TOOLS_RELEASE_ID, TARGET_SOCS, TIDL_TOOLS_TYPE_SUFFIX, C7X_FIRMWARE_VERSION, DOWNLOAD_URLS=None):
-    tidl_tools_package_path = os.path.join(os.path.dirname(__file__), 'tidl_tools_package')
-
+def download_arm_gcc(tidl_tools_package_path):
     print("INFO: installing gcc arm required for tvm...")
     GCC_ARM_AARCH64_NAME="gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu"
     GCC_ARM_AARCH64_FILE=f"{GCC_ARM_AARCH64_NAME}.tar.xz"
@@ -308,105 +306,140 @@ def download_tidl_tools(TIDL_TOOLS_VERSION_NAME, TIDL_TOOLS_RELEASE_LABEL, TIDL_
         extract_archive(os.path.join(tidl_tools_package_path,GCC_ARM_AARCH64_FILE), tidl_tools_package_path)
     #
 
+
+def download_tidl_tools(download_url, download_path, **tidl_version_dict):
     print("INFO: installing tidl_tools_package...")
+    GCC_ARM_AARCH64_NAME="gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu"
     cwd = os.getcwd()
-    target_soc_version_dict = {}
-    for TARGET_SOC in TARGET_SOCS:
-        if isinstance(DOWNLOAD_URLS, dict):
-            url_name = DOWNLOAD_URLS[TARGET_SOC]
-        else:
-            url_name = f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{TIDL_TOOLS_RELEASE_ID}/TIDL_TOOLS/{TARGET_SOC}/tidl_tools{TIDL_TOOLS_TYPE_SUFFIX}.tar.gz"
+    # download_path = os.path.join(tidl_tools_package_path, TARGET_SOC)
+    download_tidl_tools_path = os.path.join(download_path, 'tidl_tools')
+    shutil.rmtree(download_path, ignore_errors=True)
+    os.makedirs(download_path, exist_ok=True)
+    try:
+        download_and_extract_archive(download_url, download_path, download_path)
+        os.chdir(download_tidl_tools_path)
+        os.symlink(os.path.join("..", "..", GCC_ARM_AARCH64_NAME), GCC_ARM_AARCH64_NAME)
+        with open(os.path.join(download_tidl_tools_path, 'version.yaml'), "w") as fp:
+            yaml.safe_dump(tidl_version_dict, fp)
         #
-        install_target_soc_path = os.path.join(tidl_tools_package_path, TARGET_SOC)
-        install_path = os.path.join(install_target_soc_path, 'tidl_tools')
-
-        shutil.rmtree(install_target_soc_path, ignore_errors=True)
-        os.makedirs(install_target_soc_path, exist_ok=True)
-
-        try:
-            download_and_extract_archive(url_name, install_target_soc_path, install_target_soc_path)
-            os.chdir(install_path)
-            os.symlink(os.path.join("..", "..", GCC_ARM_AARCH64_NAME), GCC_ARM_AARCH64_NAME)
-
-            version_dict = {
-                "version": TIDL_TOOLS_VERSION_NAME,
-                "release_label": TIDL_TOOLS_RELEASE_LABEL,
-                "target_device": TARGET_SOC,
-                "release_id": TIDL_TOOLS_RELEASE_ID,
-                "c7x_firmware_version": C7X_FIRMWARE_VERSION
-            }
-            with open(os.path.join(install_path, 'version.yaml'), "w") as fp:
-                yaml.safe_dump(version_dict, fp)
-            #
-            target_soc_version_dict.update({TARGET_SOC: version_dict})
-            #print(target_soc_version_dict)
-            os.chdir(cwd)
-        except:
-            print(f"ERROR: download_and_extract_archive: {url_name} - failed")
-            os.chdir(cwd)
-        #
-
+    except:
+        print(f"ERROR: download_and_extract_archive: {download_url} - failed")
+    #
     os.chdir(cwd)
     return None
 
 
-def download_tidl_tools_package_11_00_06_00(tools_version, tools_type):
+def download_tidl_tools_package_11_00(tools_version, tools_type):
     expected_tools_version=("11.0",)
     assert tools_version in expected_tools_version, f"ERROR: incorrect tools_version passed:{tools_version} - expected:{expected_tools_version}"
-    TIDL_TOOLS_VERSION_NAME=tools_version
-    TIDL_TOOLS_RELEASE_LABEL="r11.0"
-    TIDL_TOOLS_RELEASE_ID="11_00_06_00"
-    C7X_FIRMWARE_VERSION="11_00_00_00"
-    C7X_FIRMWARE_VERSION_POSSIBLE_UPDATE=None #TODO - udpate this
-    TARGET_SOCS=("TDA4VM", "AM68A", "AM69A", "AM67A", "AM62A")
-    TIDL_TOOLS_TYPE_SUFFIX=tools_type
-    print(f"INFO: you have chosen to install tidl_tools version:{TIDL_TOOLS_RELEASE_ID} with default SDK firmware version set to:{C7X_FIRMWARE_VERSION}")
-    if C7X_FIRMWARE_VERSION_POSSIBLE_UPDATE:
-        print(f"INFO: to leverage more features, set advanced_options:c7x_firmware_version while model compialtion and update firmware version in SDK to: {C7X_FIRMWARE_VERSION_POSSIBLE_UPDATE}")
+    tidl_tools_version_name=tools_version
+    tidl_tools_release_label="r11.0"
+    tidl_tools_release_id="11_00_06_00"
+    c7x_firmware_version="11_00_00_00" #TODO - udpate this for 11.0
+    c7x_firmware_version_possible_update=None #TODO - udpate this for 11.0
+    print(f"INFO: you have chosen to install tidl_tools version:{tidl_tools_release_id} with default SDK firmware version set to:{c7x_firmware_version}")
+    if c7x_firmware_version_possible_update:
+        print(f"INFO: to leverage more features, set advanced_options:c7x_firmware_version while model compialtion and update firmware version in SDK to: {c7x_firmware_version_possible_update}")
+        print(f"INFO: for more info, see version compatibiltiy table: https://github.com/TexasInstruments/edgeai-tidl-tools/blob/master/docs/version_compatibility_table.md")
     #
-    print(f"INFO: for more info, see version compatibiltiy table: https://github.com/TexasInstruments/edgeai-tidl-tools/blob/master/docs/version_compatibility_table.md")
-    download_tidl_tools(TIDL_TOOLS_VERSION_NAME, TIDL_TOOLS_RELEASE_LABEL, TIDL_TOOLS_RELEASE_ID, TARGET_SOCS, TIDL_TOOLS_TYPE_SUFFIX, C7X_FIRMWARE_VERSION)
+
+    tidl_tools_package_path = os.path.join(os.path.dirname(__file__), 'tidl_tools_package')
+    download_arm_gcc(tidl_tools_package_path)
+
+    tidl_tools_type_suffix=tools_type
+    target_soc_download_urls = {
+        "TDA4VM": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/TDA4VM",
+        "AM68A": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM68A",
+        "AM69A": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM69A",
+        "AM67A": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM67A",
+        "AM62A": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/10_01_04_01/TIDL_TOOLS/AM62A", # no update for AM62A in 11.0
+    }
+    tidl_version_dict = dict(version=tidl_tools_version_name, release_label=tidl_tools_release_label,
+                             release_id=tidl_tools_release_id, tools_type=tidl_tools_type_suffix,
+                             c7x_firmware_version=c7x_firmware_version)
+    for target_soc in target_soc_download_urls:
+        download_url_base = target_soc_download_urls[target_soc]
+        download_url = f"{download_url_base}/tidl_tools{tidl_tools_type_suffix}.tar.gz"
+        download_path = os.path.join(tidl_tools_package_path, target_soc)
+        download_tidl_tools(download_url, download_path, **tidl_version_dict, target_device=target_soc)
+    #
     requirements_file = os.path.realpath(os.path.join(os.path.dirname(__file__), f'requirements/requirements_11.0.txt'))
     return requirements_file
 
 
-def download_tidl_tools_package_10_01_04_01(tools_version, tools_type):
+def download_tidl_tools_package_10_01(tools_version, tools_type):
     expected_tools_version=("10.1",)
     assert tools_version in expected_tools_version, f"ERROR: incorrect tools_version passed:{tools_version} - expected:{expected_tools_version}"
-    TIDL_TOOLS_VERSION_NAME=tools_version
-    TIDL_TOOLS_RELEASE_LABEL="r10.1"
-    TIDL_TOOLS_RELEASE_ID="10_01_04_01"
-    C7X_FIRMWARE_VERSION="10_01_03_00"
-    C7X_FIRMWARE_VERSION_POSSIBLE_UPDATE="10_01_04_00"
-    TARGET_SOCS=("TDA4VM", "AM68A", "AM69A", "AM62A", "AM67A")
-    TIDL_TOOLS_TYPE_SUFFIX=tools_type
-    print(f"INFO: you have chosen to install tidl_tools version:{TIDL_TOOLS_RELEASE_ID} with default SDK firmware version set to:{C7X_FIRMWARE_VERSION}")
-    print(f"INFO: to leverage more features, set advanced_options:c7x_firmware_version while model compialtion and update firmware version in SDK to: {C7X_FIRMWARE_VERSION_POSSIBLE_UPDATE}")
+    tidl_tools_version_name=tools_version
+    tidl_tools_release_label="r10.1"
+    tidl_tools_release_id="10_01_04_01"
+    c7x_firmware_version="10_01_03_00"
+    c7x_firmware_version_possible_update="10_01_04_00"
+    print(f"INFO: you have chosen to install tidl_tools version:{tidl_tools_release_id} with default SDK firmware version set to:{c7x_firmware_version}")
+    print(f"INFO: to leverage more features, set advanced_options:c7x_firmware_version while model compialtion and update firmware version in SDK to: {c7x_firmware_version_possible_update}")
     print(f"INFO: for more info, see version compatibiltiy table: https://github.com/TexasInstruments/edgeai-tidl-tools/blob/master/docs/version_compatibility_table.md")
-    download_tidl_tools(TIDL_TOOLS_VERSION_NAME, TIDL_TOOLS_RELEASE_LABEL, TIDL_TOOLS_RELEASE_ID, TARGET_SOCS, TIDL_TOOLS_TYPE_SUFFIX, C7X_FIRMWARE_VERSION)
+
+    tidl_tools_package_path = os.path.join(os.path.dirname(__file__), 'tidl_tools_package')
+    download_arm_gcc(tidl_tools_package_path)
+
+    tidl_tools_type_suffix=tools_type
+    target_soc_download_urls = {
+        "TDA4VM": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/TDA4VM",
+        "AM68A": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM68A",
+        "AM69A": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM69A",
+        "AM67A": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM67A",
+        "AM62A": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM62A",
+    }
+    tidl_version_dict = dict(version=tidl_tools_version_name, release_label=tidl_tools_release_label,
+                             release_id=tidl_tools_release_id, tools_type=tidl_tools_type_suffix,
+                             c7x_firmware_version=c7x_firmware_version)
+    for target_soc in target_soc_download_urls:
+        download_url_base = target_soc_download_urls[target_soc]
+        download_url = f"{download_url_base}/tidl_tools{tidl_tools_type_suffix}.tar.gz"
+        download_path = os.path.join(tidl_tools_package_path, target_soc)
+        download_tidl_tools(download_url, download_path, **tidl_version_dict, target_device=target_soc)
+    #
     requirements_file = os.path.realpath(os.path.join(os.path.dirname(__file__), f'requirements/requirements_10.1.txt'))
     return requirements_file
 
 
-def download_tidl_tools_package_10_00_08_00(tools_version, tools_type):
+def download_tidl_tools_package_10_00(tools_version, tools_type):
     expected_tools_version=("10.0",)
     assert tools_version in expected_tools_version, f"ERROR: incorrect tools_version passed:{tools_version} - expected:{expected_tools_version}"
-    TIDL_TOOLS_VERSION_NAME=tools_version
-    TIDL_TOOLS_RELEASE_LABEL="r10.0"
-    TIDL_TOOLS_RELEASE_ID="10_00_08_00"
-    C7X_FIRMWARE_VERSION=""
-    TARGET_SOCS=("TDA4VM", "AM68A", "AM69A", "AM62A", "AM67A")
-    TIDL_TOOLS_TYPE_SUFFIX=tools_type
-    print(f"INFO: you have chosen to install tidl_tools version:{TIDL_TOOLS_RELEASE_ID} with default SDK firmware version:{C7X_FIRMWARE_VERSION}")
-    download_tidl_tools(TIDL_TOOLS_VERSION_NAME, TIDL_TOOLS_RELEASE_LABEL, TIDL_TOOLS_RELEASE_ID, TARGET_SOCS, TIDL_TOOLS_TYPE_SUFFIX, C7X_FIRMWARE_VERSION)
+    tidl_tools_version_name=tools_version
+    tidl_tools_release_label="r10.0"
+    tidl_tools_release_id="10_00_08_00"
+    c7x_firmware_version=""
+    print(f"INFO: you have chosen to install tidl_tools version:{tidl_tools_release_id} with default SDK firmware version:{c7x_firmware_version}")
+
+    tidl_tools_package_path = os.path.join(os.path.dirname(__file__), 'tidl_tools_package')
+    download_arm_gcc(tidl_tools_package_path)
+
+    tidl_tools_type_suffix=tools_type
+    target_soc_download_urls = {
+        "TDA4VM": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/TDA4VM",
+        "AM68A": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM68A",
+        "AM69A": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM69A",
+        "AM67A": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM67A",
+        "AM62A": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM62A",
+    }
+    tidl_version_dict = dict(version=tidl_tools_version_name, release_label=tidl_tools_release_label,
+                             release_id=tidl_tools_release_id, tools_type=tidl_tools_type_suffix,
+                             c7x_firmware_version=c7x_firmware_version)
+    for target_soc in target_soc_download_urls:
+        download_url_base = target_soc_download_urls[target_soc]
+        download_url = f"{download_url_base}/tidl_tools{tidl_tools_type_suffix}.tar.gz"
+        download_path = os.path.join(tidl_tools_package_path, target_soc)
+        download_tidl_tools(download_url, download_path, **tidl_version_dict, target_device=target_soc)
+    #
     requirements_file = os.path.realpath(os.path.join(os.path.dirname(__file__), f'requirements/requirements_10.0.txt'))
     return requirements_file
 
 
 down_tidl_tools_package_dict = {
-    "11.0":   download_tidl_tools_package_11_00_06_00,
-    "10.1":   download_tidl_tools_package_10_01_04_01,
-    "10.0":   download_tidl_tools_package_10_00_08_00,
+    "11.0":   download_tidl_tools_package_11_00,
+    "10.1":   download_tidl_tools_package_10_01,
+    "10.0":   download_tidl_tools_package_10_00,
 }
 
 
