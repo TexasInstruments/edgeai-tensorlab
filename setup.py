@@ -82,7 +82,7 @@ def main():
         long_description_content_type='text/markdown',
         url='https://github.com/TexasInstruments/edgeai-tensorlab/edgeai-benchmark',
         author='EdgeAI, TIDL & Analytics Algo Teams',
-        author_email='edgeai-devkit@list.ti.com',
+        author_email='edgeai-dev@list.ti.com',
         classifiers=[
             'Development Status :: 4 - Beta'
             'Programming Language :: Python :: 3.10'

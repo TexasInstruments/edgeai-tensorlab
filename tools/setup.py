@@ -418,7 +418,7 @@ down_tidl_tools_package_dict = {
 
 
 def setup_tidl_tools(install_path, tools_version, tools_type):
-    assert tools_version in down_tidl_tools_package_dict.keys(), f"unknown tools_version provided: {tools_version} at {__file__}"
+    assert tools_version in down_tidl_tools_package_dict.keys(), f"ERROR: unknown tools_version provided: {tools_version} at {__file__}"
     down_tidl_tools_package_func = down_tidl_tools_package_dict[tools_version]
     requirements_file = down_tidl_tools_package_func(install_path, tools_version, tools_type)
     os.system(f'pip install -r {requirements_file}')
@@ -436,7 +436,7 @@ def main(args):
         description='tidl_tools_package for edgeai-benchmark',
         long_description=long_description,
         long_description_content_type='text/markdown',
-        url='https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-benchmark/browse',
+        url='https://github.com/TexasInstruments/edgeai-tensorlab/edgeai-benchmark',
         author='EdgeAI, TIDL & Analytics Algo Teams',
         author_email='edgeai-dev@list.ti.com',
         classifiers=[
@@ -448,10 +448,30 @@ def main(args):
         packages=find_packages(),
         include_package_data=True,
         project_urls={
-            'Source': 'https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-benchmark/browse',
+            'Source': 'https://github.com/TexasInstruments/edgeai-tensorlab/edgeai-benchmark',
             'Bug Reports': 'https://e2e.ti.com/support/processors-group/processors/tags/TIDL',
         },
     )
+
+
+def main_download_tools(args):
+    cur_dir = os.getcwd()
+    repo_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    os.chdir(repo_dir)
+
+    try:
+        import tidl_tools_package
+        install_path = tidl_tools_package.__file__
+    except:
+        install_path = None
+        raise RuntimeError(f"ERROR: FAILED install tidl tools with: {vars(args)}")
+
+    if install_path:
+        args.install_path = os.path.dirname(install_path)
+        print(f'INFO: preparing to install tidl tools with: {vars(args)}')
+        setup_tidl_tools(args.install_path, args.tools_version, args.tools_type)
+    #
+    os.chdir(cur_dir)
 
 
 if __name__ == '__main__':
@@ -461,17 +481,16 @@ if __name__ == '__main__':
     args = argparse.Namespace()
     args.tools_version = os.environ.get("TIDL_TOOLS_VERSION", TIDL_TOOLS_VERSION_DEFAULT)
     args.tools_type = os.environ.get("TIDL_TOOLS_TYPE", TIDL_TOOLS_TYPE_DEFAULT)
+    args.setup_type = sys.argv[1]
+    args.install_path = None
     main(args)
 
-    cur_dir = os.getcwd()
-    repo_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    os.chdir(repo_dir)
-    try:
-        import tidl_tools_package
-        args.install_path = os.path.dirname(tidl_tools_package.__file__)
-        print(f"downloading tidl tools to {args.install_path} ...")
-    except:
-        raise RuntimeError(f"downloading tidl tools to {args.install_path} could not be completed - tools download FAILED")
-    #
-    # setup_tidl_tools(args.install_path, args.tools_version, args.tools_type)
-    os.chdir(cur_dir)
+    if args.setup_type in ('develop', 'install'):
+        main_download_tools(args)
+    else:
+        print("================================================ERROR======================================================")
+        raise RuntimeError(f"ERROR: as of now this tidl_tools_package can be installed only develop in mode - but obtained the command:{args.setup_type}"
+             f"\n    recommend to use one of these instead: "
+             f"\n    pip install -e ./tools/"
+             f"\n    python setup.py develop ./tools/")
+        print("==========================================================================================================")

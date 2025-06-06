@@ -1,5 +1,4 @@
 cython
-wheel
 pillow
 pycocotools
 colorama
