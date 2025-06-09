@@ -32,7 +32,19 @@ from .. import utils
 from .transforms import *
 from .keypoints import *
 from .object_6d_pose import *
-from .bev_detection import *
+import warnings
+try:
+    from .bev_detection import *
+except ImportError as e:
+    warnings.warn(f'WARNING: bev_detection postprocessing could not be imported - {str(e)}')
+    bev_detection = None
+    BEVDetNMS = None
+    Bbox3d2result = None
+    BEVImageSave = None
+    MultiClassNMS = None
+    MultiClassScaleNMS = None
+
+
 from . import transforms as postprocess_transform_types
 
 class PostProcessTransforms(utils.TransformsCompose):
@@ -247,73 +259,115 @@ class PostProcessTransforms(utils.TransformsCompose):
     # To REVISIT
     # Any necessary visualization funtions will be addeed in bev_detection.py
     def get_transform_bev_detection_base(self, data_layout=constants.NCHW):
-        postprocess_bev_detection_base = [Bbox3d2result()]
+        transforms = None
+        try:
+            postprocess_bev_detection_base = [Bbox3d2result()]
+        except Exception as message:
+            print(f'BEV postprocess could not be created: {message}')
 
         if self.settings.save_output:
             # To be updated
-            postprocess_bev_detection_base += [BEVImageSave(self.settings.num_output_frames,
-                                                            score_threshold=0.5,
-                                                            mode='frame')]
+            try:
+                postprocess_bev_detection_base += [BEVImageSave(self.settings.num_output_frames,
+                                                                score_threshold=0.5,
+                                                                mode='frame')]
+            except Exception as message:
+                print(f'BEV postprocess could not be created: {message}')    
 
-        transforms = PostProcessTransforms(None, postprocess_bev_detection_base,
+
+        try:
+            transforms = PostProcessTransforms(None, postprocess_bev_detection_base,
                                            data_layout=data_layout,
                                            save_output=self.settings.save_output)
+        except Exception as message:
+            print(f'BEV postprocess could not be created: {message}')
 
         return transforms
 
     def get_transform_bev_detection_bevdet(self, data_layout=constants.NCHW):
+        transforms = None
         # For bevDet_tiny_256x704_res50_parallel.onnx
         #postprocess_bev_detection_bevdet = [GetBEVDetBBoxes(),
         #                                    BEVDetNMS(),
         #                                    Bbox3d2result()]
 
         # For bevDet_tiny_256x704_res50_pp_parallel.onnx
-        postprocess_bev_detection_bevdet = [BEVDetNMS(),
-                                            Bbox3d2result()]
+        try:
+            postprocess_bev_detection_bevdet = [BEVDetNMS(),
+                                                Bbox3d2result()]
+        except Exception as message:
+            print(f'BEV postprocess could not be created: {message}')
 
         if self.settings.save_output:
             # To be updated
-            postprocess_bev_detection_bevdet += [BEVImageSave(self.settings.num_output_frames,
-                                                              score_threshold=0.5,
-                                                              mode='frame')]
+            try:
+                postprocess_bev_detection_bevdet += [BEVImageSave(self.settings.num_output_frames,
+                                                                score_threshold=0.5,
+                                                                mode='frame')]
+            except Exception as message:
+                print(f'BEV postprocess could not be created: {message}')              
 
-        transforms = PostProcessTransforms(None, postprocess_bev_detection_bevdet,
-                                           data_layout=data_layout,
-                                           save_output=self.settings.save_output)
+        try:
+            transforms = PostProcessTransforms(None, postprocess_bev_detection_bevdet,
+                                            data_layout=data_layout,
+                                            save_output=self.settings.save_output)
+        except Exception as message:
+            print(f'BEV postprocess could not be created: {message}')
 
         return transforms
 
     def get_transform_fcos3d(self, data_layout=constants.NCHW):
-        postprocess_fcos3d = [MultiClassNMS(),
-                              Bbox3d2result()]
+        transforms = None
+        try:
+            postprocess_fcos3d = [MultiClassNMS(),
+                                    Bbox3d2result()]
+        except Exception as message:
+            print(f'BEV postprocess could not be created: {message}')
 
         if self.settings.save_output:
             # To be updated
-            postprocess_fcos3d += [BEVImageSave(self.settings.num_output_frames,
-                                                score_threshold=0.2,
-                                                mode='mv_image')]
+            try:
+                postprocess_fcos3d += [BEVImageSave(self.settings.num_output_frames,
+                                                    score_threshold=0.2,
+                                                    mode='mv_image')]
+            except Exception as message:
+                print(f'BEV postprocess could not be created: {message}')    
 
-        transforms = PostProcessTransforms(None, postprocess_fcos3d,
+
+        try:
+            transforms = PostProcessTransforms(None, postprocess_fcos3d,
                                            data_layout=data_layout,
                                            save_output=self.settings.save_output)
+        except Exception as message:
+            print(f'BEV postprocess could not be created: {message}')
 
         return transforms
 
     def get_transform_bev_detection_fastbev(self, enable_nms=True, data_layout=constants.NCHW):
-        if enable_nms:
-            postprocess_bev_detection_fastbev = [MultiClassScaleNMS(),
-                                                 Bbox3d2result()]
-        else:
-            postprocess_bev_detection_fastbev = [Bbox3d2result()]
+        transforms = None
+        try:
+            if enable_nms:
+                postprocess_bev_detection_fastbev = [MultiClassScaleNMS(),
+                                                    Bbox3d2result()]
+            else:
+                postprocess_bev_detection_fastbev = [Bbox3d2result()]
+        except Exception as message:
+            print(f'BEV postprocess could not be created: {message}')
 
         if self.settings.save_output:
             # To be updated
-            postprocess_bev_detection_fastbev += [BEVImageSave(self.settings.num_output_frames,
-                                                               score_threshold=0.5,
-                                                               mode='frame')]
+            try:
+                postprocess_bev_detection_fastbev += [BEVImageSave(self.settings.num_output_frames,
+                                                                    score_threshold=0.5,
+                                                                    mode='frame')]
+            except Exception as message:
+                print(f'BEV postprocess could not be created: {message}')    
 
-        transforms = PostProcessTransforms(None, postprocess_bev_detection_fastbev,
+        try:
+            transforms = PostProcessTransforms(None, postprocess_bev_detection_fastbev,
                                            data_layout=data_layout,
                                            save_output=self.settings.save_output)
+        except Exception as message:
+            print(f'BEV postprocess could not be created: {message}')
 
         return transforms

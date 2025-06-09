@@ -40,10 +40,14 @@ import cv2
 from munkres import Munkres
 from numpy.lib.stride_tricks import as_strided
 import math
+import warnings
 
 from .. import constants
 from .keypoints import *
-from .bev_detection import *
+try:
+    from .bev_detection import *
+except ImportError as e:
+    warnings.warn(f'WARNING: bev_detection postprocessing could not be imported - {str(e)}')
 
 ##############################################################################
 from ..utils.config_utils.postprocess_utils import *
