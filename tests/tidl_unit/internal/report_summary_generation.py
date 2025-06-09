@@ -99,6 +99,10 @@ for dir in SOC_DIR:
     rows = []
     # Iterate over each folder in the reports directory
     folders = sorted([folder for folder in os.listdir(dir) if os.path.isdir(os.path.join(dir, folder))])
+
+    total = dict.fromkeys(headers, 0)
+    total["Operator name"] = "Total"
+
     for folder in folders:
         folder_path = os.path.join(dir, folder)
         if os.path.isdir(folder_path):
@@ -190,11 +194,24 @@ for dir in SOC_DIR:
             else:
                 offloaded_tests_percentage = ((float(offloaded_tests) / float(total_tests) * 100))
 
+            total["Total Test"] += total_tests if total_tests != "N/A" else 0
+            total["TIDL Offload Percentage"] += offloaded_tests if offloaded_tests != "N/A" else 0
+            total["Compile without NC"] += compile_without_nc_failures if compile_without_nc_failures != "N/A" else 0
+            total["Compile with NC"] += compile_with_nc_failures if compile_with_nc_failures != "N/A" else 0
+            total["Infer REF without NC"] += infer_ref_without_nc_failures if infer_ref_without_nc_failures != "N/A" else 0
+            total["Infer REF with NC"] += infer_ref_with_nc_failures if infer_ref_with_nc_failures != "N/A" else 0
+            total["Infer NATC with NC"] += infer_natc_with_nc_failures if infer_natc_with_nc_failures != "N/A" else 0
+            total["Infer CI with NC"] += infer_ci_with_nc_failures if infer_ci_with_nc_failures != "N/A" else 0
+            total["Infer TARGET with NC"] += infer_target_with_nc_failures if infer_target_with_nc_failures != "N/A" else 0
+
             rows.append([folder, str(total_tests), str(offloaded_tests_percentage),
                         str(compile_without_nc_failures), str(compile_with_nc_failures),
                         str(infer_ref_without_nc_failures), str(infer_ref_with_nc_failures),
                         str(infer_natc_with_nc_failures), str(infer_ci_with_nc_failures),
                         str(infer_target_with_nc_failures)])
+
+    total["TIDL Offload Percentage"] = (float(total["TIDL Offload Percentage"])/float(total["Total Test"]) * 100) if total["Total Test"] != 0 else 0.0
+    rows.append(total.values())
 
     drop_idx = []
     if drop_compile_without_nc:

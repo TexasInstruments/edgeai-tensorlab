@@ -9,6 +9,10 @@ Usage
     --compare:          Runs in compare mode. Doesn't run any test, uses the existing reports to generate
                         comparison report. Can specify the operators to compare.
 
+    --summary:          Used in compare mode. Generates summary_report.csv for each runtime.
+
+    --include_sg_fails  Modify tvmrt report summary to include subgraph failures for each operator.
+
 Example usage:
     python3 run_operator_comparison.py --runtime tvmrt --operator Relu Max
         Runs the tvmrt runtine tests for Relu and Max
@@ -48,6 +52,8 @@ parser = argparse.ArgumentParser(description="Run operator tests and generate re
 parser.add_argument("--runtime", nargs="*", help="Runtime to test. Runs all if not specified")
 parser.add_argument("--operator", nargs="*", help="Specify operators to test/compare. Runs all if not specified")
 parser.add_argument("--compare", action="store_true", help="Runs in compare mode. Specify operators to compare and generate report")
+parser.add_argument("--summary", action="store_true", help="Generates summary from the existing reports")
+parser.add_argument("--include_sg_fails", action="store_true", help="Modify tvmrt summary reports to include Subgraph failures")
 args = parser.parse_args()
 
 OPERATORS = []
@@ -64,7 +70,7 @@ def load_operators(path):
 if args.operator:
     OPERATORS = args.operator
 else:
-    OPERATORS = load_operators(os.path.abspath("../../tests/tidl_unit/tidl_unit_test_data/operator/"))
+    OPERATORS = load_operators(os.path.abspath("../tidl_unit_test_data/operators/"))
 
 REPORT_DIR = "operator_test_reports"
 REPORT_PATH = os.path.abspath(REPORT_DIR)
@@ -113,6 +119,7 @@ error_regex = [
     r"\nFailed:  (.*)",
     { "regex": r"DLRError", "error": "Compilation Failed" },
     { "regex": r"stopped exitcode=-SIGBUS>", "error": "Bus Error"},
+    { "regex": r"stopped exitcode=-SIGSEGV>", "error": "Segmentation Fault"},
     { "regex": r"assert None == 0", "error": "Timeout"}
 ]
 
@@ -195,7 +202,7 @@ if not args.compare:
     print("──────────────────────────── Running Testing Script ────────────────────────────")
 
     # If a single test is run, run it directly from here
-    if (len(args.operator) == 1) and re.search(r"^(.*)_(\d*)$", args.operator[0]):
+    if (len(OPERATORS) == 1) and re.search(r"^(.*)_(\d*)$", OPERATORS[0]):
         import shlex
         import shutil
 
@@ -221,12 +228,12 @@ if not args.compare:
             rts = ALL_RUNTIMES
 
         for rt in rts:
-            log_path = os.path.join(REPORT_PATH, rt, DEVICE, args.operator[0])
+            log_path = os.path.join(REPORT_PATH, rt, DEVICE, OPERATORS[0])
             script = [
                 "bash",
                 "../run_test.sh",
                 "--test_suite=operator",
-                f"--tests={args.operator[0]}",
+                f"--tests={OPERATORS[0]}",
                 f"--runtime={rt}"
             ]
             process = subprocess.run(script + ["--run_infer=0"], text=True)
@@ -250,7 +257,7 @@ if not args.compare:
             
         try:
             for env in envs:
-                    del os.environ[env]
+                del os.environ[env]
             del os.environ["LD_LIBRARY_PATH"]
             del os.environ["TIDL_TOOLS_PATH"]
         except:
@@ -341,6 +348,11 @@ complete_headers = [
     "Overall"                           # Overall functionality (Compilation Overall and Inference Pass)
 ]
 
+sg_sts = {
+    "with_nc": {},
+    "without_nc": {}
+}
+
 # Complete comparison report
 print("Writing Complete Comparisions >")
 for k in complete.keys():
@@ -348,6 +360,7 @@ for k in complete.keys():
     inference = rows[f"infer_ref_{k}"]
     compilation = rows[f"compile_{k}"]
     complete_rows = []
+    total_sg_fails = 0
     for comp in compilation:
         infer = list(filter(lambda x: x[1] == comp[1], inference))
         if not len(infer):
@@ -377,6 +390,14 @@ for k in complete.keys():
         row.append(overall)
         complete_rows.append(row)
 
+        if comp[0] not in sg_sts[k]:
+            sg_sts[k][comp[0]] = 0
+        if row[7] == "Failing":
+            sg_sts[k][comp[0]] += 1
+            total_sg_fails += 1
+        
+    sg_sts[k]["Total"] = total_sg_fails
+
     path = os.path.join(OUT_DIR, f"{k}_comparison.csv")
     if os.path.exists(path):
         os.remove(path)
@@ -386,3 +407,29 @@ for k in complete.keys():
         writer = csv.writer(f)
         writer.writerow(complete_headers)
         writer.writerows(complete_rows)
+
+if args.summary:
+    for runtime in ALL_RUNTIMES:
+        subprocess.run(["python3", "report_summary_generation.py", "--reports_path", os.path.join(REPORT_PATH, runtime)])
+
+if args.include_sg_fails:
+    print("Modifying TVMRT test report summary...")
+
+    try:
+        with open(os.path.join(REPORT_PATH, "tvmrt", DEVICE, "summary_report.csv"), "r") as f:
+            tvm_reader = csv.DictReader(f)
+            fields = tvm_reader.fieldnames
+            if "Number of Subgraphs Failing Tests in Compile" not in fields:
+                fields += ["Number of Subgraphs Failing Tests in Compile"]
+            new_rows = []
+            for row in tvm_reader:
+                row["Number of Subgraphs Failing Tests in Compile"] = sg_sts["without_nc"].get(row["Operator name"], 0)
+                new_rows.append(row)
+    except Exception as e:
+        print("Report summary not found, skipping")
+        exit()
+        
+    with open(os.path.join(REPORT_PATH, "tvmrt", DEVICE, "summary_report.csv"), "w") as f:
+        tvm_write = csv.DictWriter(f, fieldnames=fields)
+        tvm_write.writeheader()
+        tvm_write.writerows(new_rows)
