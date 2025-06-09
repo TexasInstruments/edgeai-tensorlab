@@ -451,5 +451,12 @@ def get_configs(settings, work_dir):
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/resnet50_v1.tflite'),
             model_info=dict(metric_reference={'accuracy_top1%':75.2}, model_shortlist=None, compact_name='resNet50-v1', shortlisted=False)
         ),
+        'automation_expt':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx(),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
+                runtime_options=settings.runtime_options_onnx_np2(),
+                model_path=f'/home/tensorlab-test/jenkins/workspace/edgeai-tensorlab-test/test_onnx_models/model.onnx'),
+            model_info=dict(metric_reference={'accuracy_top1%':None}, model_shortlist=100, compact_name='experiment_model', shortlisted=False)
+        ),
     }
     return pipeline_configs
