@@ -301,8 +301,7 @@ elif (args.test_suite == "TIDL_UNIT_TEST"):
         bin_file = os.path.abspath(os.path.join(artifacts_dir, dir, "artifacts/subgraph_0_tidl_net.bin"))
         artifacts_present = os.path.exists(io_file) and os.path.exists(bin_file)
         if artifacts_present == True:
-            test_name = dir.strip().split("_")
-            test_name = "_".join(i for i in test_name[:-1])
+            test_name = dir.strip().split("_")[0]
             if test_name not in TEST_MAP:
                 TEST_MAP[test_name] = []
             TEST_MAP[test_name].append(dir)

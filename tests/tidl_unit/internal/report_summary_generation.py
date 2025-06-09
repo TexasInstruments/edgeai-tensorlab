@@ -2,6 +2,7 @@ import os
 import csv
 from bs4 import BeautifulSoup
 import argparse
+import sys
 
 parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
 parser.add_argument('--reports_path', help='Path to pytest html reports', type=str, required=True)
@@ -47,9 +48,25 @@ def extract_test_results(html_path):
     # Find the total and passed test count
     summary_text = soup.find("h2", string="Summary").find_next("p").text
     total_tests = int(summary_text.split()[0])  # Extracting total test count
-    passed_span = soup.find("span", class_="passed")
+
+    passed_span  = soup.find("span", class_="passed")
+    skipped_span = soup.find("span", class_="skipped")
+    failed_span  = soup.find("span", class_="failed")
+    error_span   = soup.find("span", class_="error")
+    xfailed_span = soup.find("span", class_="xfailed")
+    xpassed_span = soup.find("span", class_="xpassed")
+
     passed_tests = int(passed_span.text.split()[0]) if passed_span else 0
-    return passed_tests,total_tests
+    skipped_tests = int(skipped_span.text.split()[0]) if skipped_span else 0
+    failed_tests = int(failed_span.text.split()[0]) if failed_span else 0
+    error_tests = int(error_span.text.split()[0]) if error_span else 0
+    xfailed_tests = int(xfailed_span.text.split()[0]) if xfailed_span else 0
+    xpassed_tests = int(xpassed_span.text.split()[0]) if xpassed_span else 0
+
+    total_tests  = passed_tests + skipped_tests + failed_tests + error_tests + xfailed_tests + xpassed_tests
+    total_passed = passed_tests + skipped_tests + xpassed_tests
+
+    return total_passed, total_tests
 
 if not os.path.exists(args.reports_path):
     print(f"[ERROR]: {args.reports_path} does not exist")

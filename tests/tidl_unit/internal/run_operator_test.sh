@@ -282,6 +282,19 @@ else
     fi
 fi
 
+# Add operators in remove_list which you don't want to run 
+# "Add" "Convolution" "Mul"
+# "ScatterElements" "TopK"
+remove_list=()
+filtered_list=()
+for item in "${OPERATORS[@]}"; do
+    if [[ ! " ${remove_list[@]} " =~ " ${item} " ]]; then
+        echo $item
+        filtered_list+=("$item")
+    fi
+done
+OPERATORS=("${filtered_list[@]}")
+
 ###############################################################################
 # Run tests for each runtime
 ###############################################################################
