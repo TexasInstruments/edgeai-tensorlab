@@ -289,7 +289,6 @@ remove_list=()
 filtered_list=()
 for item in "${OPERATORS[@]}"; do
     if [[ ! " ${remove_list[@]} " =~ " ${item} " ]]; then
-        echo $item
         filtered_list+=("$item")
     fi
 done
@@ -323,13 +322,19 @@ do
             rm -rf "$TIDL_TOOLS_PATH/ti_cnnperfsim.out"
 
             rm -rf logs/*
-            ./run_test.sh --test_suite=operator --tests=$operator --run_infer=0 --runtime=$runtime
+            ./run_test.sh --test_suite=operator --tests=$operator --run_infer=0 --temp_buffer_dir=$temp_buffer_dir --runtime=$runtime
             cp logs/*.html "$logs_path/compile_without_nc.html"
+            if [ "$temp_buffer_dir" != "/dev/shm" ]; then
+                rm -rf $temp_buffer_dir/vashm_buff*
+            fi
 
             rm -rf logs/*
             if [ "$run_ref" == "1" ]; then
-                ./run_test.sh --test_suite=operator --tests=$operator --run_compile=0 --runtime=$runtime
+                ./run_test.sh --test_suite=operator --tests=$operator --run_compile=0 --temp_buffer_dir=$temp_buffer_dir --runtime=$runtime
                 cp logs/*.html "$logs_path/infer_ref_without_nc.html"
+                if [ "$temp_buffer_dir" != "/dev/shm" ]; then
+                    rm -rf $temp_buffer_dir/vashm_buff*
+                fi
             fi
 
             if [ "$run_natc" == "1" ]; then
@@ -354,23 +359,35 @@ do
             rm -rf logs/*
             ./run_test.sh --test_suite=operator --tests=$operator --run_infer=0 --temp_buffer_dir=$temp_buffer_dir --runtime=$runtime
             cp logs/*.html "$logs_path/compile_with_nc.html"
+            if [ "$temp_buffer_dir" != "/dev/shm" ]; then
+                rm -rf $temp_buffer_dir/vashm_buff*
+            fi
 
             rm -rf logs/*
             if [ "$run_ref" == "1" ]; then
                 ./run_test.sh --test_suite=operator --tests=$operator --run_compile=0 --flow_ctrl=1 --temp_buffer_dir=$temp_buffer_dir --runtime=$runtime
                 cp logs/*.html "$logs_path/infer_ref_with_nc.html"
+                if [ "$temp_buffer_dir" != "/dev/shm" ]; then
+                    rm -rf $temp_buffer_dir/vashm_buff*
+                fi
             fi
 
             rm -rf logs/*
             if [ "$run_natc" == "1" ]; then
                 ./run_test.sh --test_suite=operator --tests=$operator --run_compile=0 --flow_ctrl=12 --temp_buffer_dir=$temp_buffer_dir --runtime=$runtime
                 cp logs/*.html "$logs_path/infer_natc_with_nc.html"
+                if [ "$temp_buffer_dir" != "/dev/shm" ]; then
+                    rm -rf $temp_buffer_dir/vashm_buff*
+                fi
             fi
 
             rm -rf logs/*
             if [ "$run_ci" == "1" ]; then
                 ./run_test.sh --test_suite=operator --tests=$operator --run_compile=0 --flow_ctrl=0 --temp_buffer_dir=$temp_buffer_dir --runtime=$runtime
                 cp logs/*.html "$logs_path/infer_ci_with_nc.html"
+                if [ "$temp_buffer_dir" != "/dev/shm" ]; then
+                    rm -rf $temp_buffer_dir/vashm_buff*
+                fi
             fi
 
             rm -rf logs/*
