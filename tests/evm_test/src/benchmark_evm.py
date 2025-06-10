@@ -27,7 +27,10 @@ class BenchmarkEvm():
         self.evm_config = evm_config
         self.soc = self.evm_config["soc"]
         self.eai_benchmark_mount_path = f"{ip_address}:{edgeai_benchmark_path}"
-        self.dataset_dir_mount_path = f"{ip_address}:{dataset_dir_path}" if dataset_dir_path is not None else None
+        if ':' in dataset_dir_path:
+            self.dataset_dir_mount_path = dataset_dir_path
+        else:
+            self.dataset_dir_mount_path = f"{ip_address}:{dataset_dir_path}"
         self.test_num = 0
         self.pass_num = 0
         self.restarts = 0
