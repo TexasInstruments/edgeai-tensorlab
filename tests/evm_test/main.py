@@ -255,10 +255,11 @@ if (args.test_suite == "BENCHMARK"):
     benchmark_evm = BenchmarkEvm(evm_config=evm_config,
                                 edgeai_benchmark_path=edgeai_benchmark_path,
                                 ip_address=ip_address,
+                                evm_local_ip=args.evm_local_ip,
                                 reboot_type=args.reboot_type,
                                 logs_dir=args.logs_dir,
                                 dataset_dir_path=args.dataset_dir,
-                                modelartifacts_path=artifacts_dir,
+                                model_artifacts_path=artifacts_dir,
                                 tensor_bits=args.tensor_bits,
                                 session_type_dict=args.session_type_dict)
 

@@ -24,7 +24,7 @@ def find_subdirectory(starting_string, root_dir='.'):
     return None
 
 class BenchmarkEvm(TIDLBaseEVMTest):
-    def __init__(self, evm_config, edgeai_benchmark_path, ip_address, dataset_dir_path, reboot_type="soft", logs_dir=None, model_artifacts_path=None, session_type_dict=None, tensor_bits=8):
+    def __init__(self, evm_config, edgeai_benchmark_path, ip_address, dataset_dir_path, reboot_type="soft", logs_dir=None, model_artifacts_path=None, session_type_dict=None, tensor_bits=8, evm_local_ip=""):
         if logs_dir == None:
             logs_dir = f"evm_test_logs/BENCHMARK/{evm_config['soc']}"
 
