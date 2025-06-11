@@ -3,6 +3,7 @@ import csv
 from bs4 import BeautifulSoup
 import argparse
 import sys
+from compare_report import compare_report
 
 parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
 parser.add_argument('--reports_path', help='Path to pytest html reports', type=str, required=True)
@@ -85,13 +86,13 @@ if len(SOC_DIR) == 0:
     sys.exit(-1)
 
 for dir in SOC_DIR:
-    drop_compile_without_nc=True
-    drop_compile_with_nc=True
-    drop_infer_ref_without_nc=True
-    drop_infer_ref_with_nc=True
-    drop_infer_natc_with_nc=True
-    drop_infer_ci_with_nc=True
-    drop_infer_target_with_nc=True
+    drop_compile_without_nc = True
+    drop_compile_with_nc = True
+    drop_infer_ref_without_nc = True
+    drop_infer_ref_with_nc = True
+    drop_infer_natc_with_nc = True
+    drop_infer_ci_with_nc = True
+    drop_infer_target_with_nc = True
 
     # Prepare the CSV headers
     headers = ["Operator name", "Total Test", "TIDL Offload Percentage", "Compile without NC", "Compile with NC", "Infer REF without NC", "Infer REF with NC", "Infer NATC with NC", "Infer CI with NC", "Infer TARGET with NC"]
@@ -105,6 +106,14 @@ for dir in SOC_DIR:
 
     for folder in folders:
         folder_path = os.path.join(dir, folder)
+        compile_without_nc = False
+        compile_with_nc = False
+        infer_ref_without_nc = False
+        infer_ref_with_nc = False
+        infer_natc_with_nc = False
+        infer_ci_with_nc = False
+        infer_target_with_nc = False
+
         if os.path.isdir(folder_path):
             # Paths to the expected report files
             compile_without_nc_path = os.path.join(folder_path, "compile_without_nc.html")
@@ -132,7 +141,8 @@ for dir in SOC_DIR:
                 if total_tests == "N/A":
                     total_tests = compile_without_nc_results[1]
                 compile_without_nc_failures = total_tests - compile_without_nc_results[0]
-                drop_compile_without_nc=False
+                drop_compile_without_nc = False
+                compile_without_nc = True
 
             if os.path.exists(compile_with_nc_path):
                 compile_with_nc_results = extract_test_results(compile_with_nc_path)
@@ -141,7 +151,8 @@ for dir in SOC_DIR:
                 if total_tests == "N/A":
                     total_tests = compile_with_nc_results[1]
                 compile_with_nc_failures = total_tests - compile_with_nc_results[0]
-                drop_compile_with_nc=False
+                drop_compile_with_nc = False
+                compile_with_nc = True
 
 
             if os.path.exists(infer_ref_without_nc_path):
@@ -151,7 +162,8 @@ for dir in SOC_DIR:
                 if total_tests == "N/A":
                     total_tests = infer_ref_without_nc_results[1]
                 infer_ref_without_nc_failures = total_tests - infer_ref_without_nc_results[0]
-                drop_infer_ref_without_nc=False
+                drop_infer_ref_without_nc = False
+                infer_ref_without_nc = True
 
             if os.path.exists(infer_ref_with_nc_path):
                 infer_ref_with_nc_results = extract_test_results(infer_ref_with_nc_path)
@@ -160,7 +172,8 @@ for dir in SOC_DIR:
                 if total_tests == "N/A":
                     total_tests = infer_ref_with_nc_results[1]
                 infer_ref_with_nc_failures = total_tests - infer_ref_with_nc_results[0]
-                drop_infer_ref_with_nc=False
+                drop_infer_ref_with_nc = False
+                infer_ref_with_nc = True
 
             if os.path.exists(infer_natc_with_nc_path):
                 infer_natc_with_nc_results = extract_test_results(infer_natc_with_nc_path)
@@ -169,7 +182,8 @@ for dir in SOC_DIR:
                 if total_tests == "N/A":
                     total_tests = infer_natc_with_nc_results[1]
                 infer_natc_with_nc_failures = total_tests - infer_natc_with_nc_results[0]
-                drop_infer_natc_with_nc=False
+                drop_infer_natc_with_nc = False
+                infer_natc_with_nc = True
 
             if os.path.exists(infer_ci_with_nc_path):
                 infer_ci_with_nc_results = extract_test_results(infer_ci_with_nc_path)
@@ -178,7 +192,8 @@ for dir in SOC_DIR:
                 if total_tests == "N/A":
                     total_tests = infer_ci_with_nc_results[1]
                 infer_ci_with_nc_failures = total_tests - infer_ci_with_nc_results[0]
-                drop_infer_ci_with_nc=False
+                drop_infer_ci_with_nc = False
+                infer_ci_with_nc = True
 
             if os.path.exists(infer_target_with_nc_path):
                 infer_target_with_nc_results = extract_test_results(infer_target_with_nc_path)
@@ -187,7 +202,8 @@ for dir in SOC_DIR:
                 if total_tests == "N/A":
                     total_tests = infer_target_with_nc_results[1]
                 infer_target_with_nc_failures = total_tests - infer_target_with_nc_results[0]
-                drop_infer_target_with_nc=False
+                drop_infer_target_with_nc = False
+                infer_target_with_nc = True
 
             if offloaded_tests == "N/A" or total_tests == "N/A":
                 offloaded_tests_percentage = "N/A"
@@ -209,6 +225,13 @@ for dir in SOC_DIR:
                         str(infer_ref_without_nc_failures), str(infer_ref_with_nc_failures),
                         str(infer_natc_with_nc_failures), str(infer_ci_with_nc_failures),
                         str(infer_target_with_nc_failures)])
+
+            if infer_ref_with_nc and infer_target_with_nc:
+                compare_report_path = os.path.join(folder_path, "infer_ref_vs_evm.txt")
+                infer_ref_vs_evm = compare_report(infer_ref_with_nc_path, infer_target_with_nc_path, output_path=compare_report_path)
+            if infer_ref_with_nc and infer_ref_without_nc:
+                compare_report_path = os.path.join(folder_path, "infer_ref_no_nc_vs_ref_nc.txt")
+                infer_ref_no_nc_vs_ref_nc = compare_report(infer_ref_without_nc_path, infer_ref_with_nc_path, output_path=compare_report_path)
 
     total["TIDL Offload Percentage"] = (float(total["TIDL Offload Percentage"])/float(total["Total Test"]) * 100) if total["Total Test"] != 0 else 0.0
     rows.append(total.values())
