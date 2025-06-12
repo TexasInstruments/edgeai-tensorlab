@@ -221,12 +221,12 @@ def get_configs(settings, work_dir):
                    det_options=True, ext_options={
                     'object_detection:meta_arch_type': 8,
                     'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/rtmdet_m_coco_orig_640x640_20250310_model.prototxt',
-                    # 'advanced_options:output_feature_16bit_names_list': '1,4,40,97,154,199,353,370,387,360,377,394'
+                    'advanced_options:output_feature_16bit_names_list': '360,377,394,353,370,387' #1,2,3,
                     }),
                 model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/rtmdet_m_coco_orig_640x640_20250310_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=[True,'corner'], formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 49.4}, model_shortlist=110, compact_name='rtmdet-m-orig-mmdet-coco-640x640', shortlisted=True, recommended=True)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 49.4}, model_shortlist=100, compact_name='rtmdet-m-orig-mmdet-coco-640x640', shortlisted=True, recommended=True)
         ),
         #rtmdet_m_lite
         'od-9206':utils.dict_update(common_cfg,
@@ -239,12 +239,12 @@ def get_configs(settings, work_dir):
                    det_options=True, ext_options={
                     'object_detection:meta_arch_type': 8,
                     'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/rtmdet_m_coco_lite_640x640_20250404_model.prototxt',
-                    'advanced_options:output_feature_16bit_names_list': '1,3,254,267,280,259,272,285'
+                    'advanced_options:output_feature_16bit_names_list': '254,267,280,259,272,285' #1,2,
                     }),
                 model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/rtmdet_m_coco_lite_640x640_20250404_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=[True,'corner'], formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': None}, model_shortlist=100, compact_name='rtmdet-m-lite-mmdet-coco-640x640', shortlisted=True, recommended=True)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 46.70}, model_shortlist=100, compact_name='rtmdet-m-lite-mmdet-coco-640x640', shortlisted=True, recommended=True)
         ),
         #rtmdet_l_orig
         'od-9208':utils.dict_update(common_cfg,
@@ -257,12 +257,12 @@ def get_configs(settings, work_dir):
                    det_options=True, ext_options={
                     'object_detection:meta_arch_type': 8,
                     'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/rtmdet_l_coco_orig_640x640_20250310_model.prototxt',
-                    # 'advanced_options:output_feature_16bit_names_list': '1,3'
+                    'advanced_options:output_feature_16bit_names_list': '455,472,489,448,465,482' #1,2,3,
                     }),
                 model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/rtmdet_l_coco_orig_640x640_20250310_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=[True,'corner'], formatter=postprocess.DetectionBoxSL2BoxLS()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 51.5}, model_shortlist=110, compact_name='rtmdet-l-orig-mmdet-coco-640x640', shortlisted=True, recommended=True)
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 51.5}, model_shortlist=100, compact_name='rtmdet-l-orig-mmdet-coco-640x640', shortlisted=True, recommended=True)
         ),
         #rtmdet_l_lite
         'od-9209':utils.dict_update(common_cfg,
@@ -275,7 +275,7 @@ def get_configs(settings, work_dir):
                    det_options=True, ext_options={
                     'object_detection:meta_arch_type': 8,
                     'object_detection:meta_layers_names_list':f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/rtmdet_l_coco_lite_640x640_20250310_model.prototxt',
-                    'advanced_options:output_feature_16bit_names_list': '1,3,187,319,332,345,324,337,350'
+                    'advanced_options:output_feature_16bit_names_list': '187,319,332,345,324,337,350' #1,2,
                     }),
                 model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/rtmdet_l_coco_lite_640x640_20250310_model.onnx'),
             postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
