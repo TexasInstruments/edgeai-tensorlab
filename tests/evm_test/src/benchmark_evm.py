@@ -42,7 +42,7 @@ class BenchmarkEvm(TIDLBaseEVMTest):
         self.restarts = 0
         self.setup_iter = 0
         self.model_artifacts_path = model_artifacts_path
-        self.session_type_dict = session_type_dict if session_type_dict is not None else "\"{'onnx':'onnxrt' ,'tflite':'tflitert' ,'mxnet':'tvmdlr'}\""
+        self.session_type_dict = session_type_dict if session_type_dict is not None else "{'onnx':'onnxrt' ,'tflite':'tflitert' ,'mxnet':'tvmdlr'}"
         self.tensor_bits = tensor_bits
 
     def init_setup(self):
@@ -92,7 +92,7 @@ class BenchmarkEvm(TIDLBaseEVMTest):
     def run_single_test(self, timeout=300, generate_report='0', model_selection='null', num_frames='0', total_test=1):
         test_itr = self.test_num + 1
         print(f"\n\n[ Info ] Running {test_itr}/{total_test} [{model_selection}]")
-        log_file_path = f'{self.logs_dir}/{self.soc}/{test_itr:>04}_{model_selection}.log'
+        log_file_path = f'{self.logs_dir}/{test_itr:>04}_{model_selection}.log'
 
         uart_interface = UartInterface(self.evm_config["dut_uart_info"],
                                        self.evm_config["dut_uart_info"],
@@ -111,7 +111,7 @@ class BenchmarkEvm(TIDLBaseEVMTest):
         if status:
             #TODO deal with timeout in better way
             if self.model_artifacts_path is not None:
-                command = f'cd && ./model_infer_benchmark.sh {self.soc} {timeout} {generate_report} {model_selection} {num_frames} {self.model_artifacts_path} {self.tensor_bits} \"{self.session_type_dict}\"'
+                command = f'cd && ./model_infer_benchmark.sh {self.soc} {timeout} {generate_report} {model_selection} {num_frames} {self.model_artifacts_path} {self.tensor_bits} {self.session_type_dict}'
             else:
                 command = f'cd && ./model_infer_benchmark.sh {self.soc} {timeout} {generate_report} {model_selection} {num_frames}'
 
