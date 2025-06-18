@@ -93,7 +93,7 @@ def get_configs(settings, work_dir):
                 runtime_options=settings.runtime_options_onnx_p2(),
                 model_path=f'{settings.models_path}/vision/segmentation/ade20k32/edgeai-tv/fpn_aspp_regnetx400mf_edgeailite_384x384_20210314_outby4.onnx'),
             postprocess=postproc_segmentation_onnx,
-            model_info=dict(metric_reference={'accuracy_mean_iou%':50.85}, model_shortlist=10, compact_name='fpnlite-aspp-regnetx400mf-ade20k32-384x384', shortlisted=True)
+            model_info=dict(metric_reference={'accuracy_mean_iou%':50.85}, model_shortlist=10, compact_name='fpnlite-aspp-regnetx400mf-ade20k32-384x384', shortlisted=True, recommended=True)
         ),
         # edgeai: segmentation - fpnlite_aspp_regnetx800mf_ade20k32_512x512_20210312-150048 expected_metric: 53.29% mean-iou
         'ss-8700':utils.dict_update(ade20k32_cfg,
