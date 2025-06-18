@@ -36,5 +36,5 @@ __all__ = ['run_gen_config']
 
 
 def run_gen_config(*args, **kwargs):
-    results_list = run_benchmark_config(*args, **kwargs)
+    results_list = run_benchmark_config(*args, return_result=True, **kwargs)
     return results_list

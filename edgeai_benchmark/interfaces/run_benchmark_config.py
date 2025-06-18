@@ -61,7 +61,7 @@ def run_benchmark_config_one_model_parallel(settings, entry_idx, proc_name, proc
     return proc
 
 def run_benchmark_config(settings, work_dir, pipeline_configs=None, modify_pipelines_func=None,
-    overall_timeout=None, instance_timeout=None, separate_import_inference=True):
+    overall_timeout=None, instance_timeout=None, separate_import_inference=True, return_result=False):
 
     # verify that targt device is correct
     if settings.target_device is not None and 'TIDL_TOOLS_PATH' in os.environ and \
@@ -137,7 +137,7 @@ def run_benchmark_config(settings, work_dir, pipeline_configs=None, modify_pipel
         else:
             print(f'\nWARNING: Benchmark - completed: {num_success}/{num_results}')
         #
-        return num_success
+        return result_entries if return_result else num_success
     except KeyboardInterrupt:
         if parallel_runner:
             parallel_runner.terminate_all(term_mesage="KeyboardInterrupt")

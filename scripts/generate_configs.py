@@ -107,11 +107,12 @@ if __name__ == '__main__':
     # configs.yaml
     configs_dict={'configs': {}}
     models_path_full = os.path.normpath(os.path.abspath(settings.models_path))
-    for result_dict in results_list:
+    for result_id, result_dict in results_list.items():
         if result_dict and isinstance(result_dict, dict) and 'config_path' in result_dict:
            config_path = result_dict['config_path']
            config_dict = result_dict['pipeline_param']
            model_id = config_dict['session']['model_id']
+           assert result_id == model_id, f'ERROR: :{result_id} vs model_id:{model_id} mismatch'
            config_path = os.path.normpath(os.path.abspath(config_path))
            config_path = config_path.replace(models_path_full+os.sep, '')
            configs_dict['configs'][model_id] = config_path
@@ -125,7 +126,7 @@ if __name__ == '__main__':
 
     # model_infos.py
     model_info_dicts = {}
-    for result_dict in results_list:
+    for result_id, result_dict in results_list.items():
         if result_dict and isinstance(result_dict, dict) and 'config_path' in result_dict:
            config_path = result_dict['config_path']
            config_dict = result_dict['pipeline_param']
