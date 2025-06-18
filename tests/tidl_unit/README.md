@@ -1,204 +1,157 @@
-# TIDL Unit Tests
-A production‑grade regression suite containing thousands of single‑operator ONNX models used to validate Texas Instruments Deep‑Learning (TIDL) kernels on any supported SoC.
+# TIDL backend test framework
+A unified pytest based test environment to test and verify Texas Instruments Deep-Learning (TIDL) models and library.
 
 ## 1. Features
-Fine‑grained coverage – Every operator / attribute / dtype combination is a separate minimal ONNX graph.<br>
-Deterministic I/O – Golden inputs & outputs ship with each model, enabling bit‑exact comparison.<br>
-Flexible execution – Run the full matrix or an ad‑hoc subset, locally or over NFS.<br>
-CI‑ready – Generates CSV/HTML reports and supports pytest-xdist for parallel runs.
+- Evaluate compilation and inference of your own models to check readiness for deployement to TI SOC <br>
+- Generates HTML reports and supports pytest-xdist for parallel runs.
 
 ## 2. Prerequisites
 | Dependency               | Minimum version | Notes |
 |--------------------------|-----------------|-------|
-| Python                   | 3.x             | Tested on 3.8 – 3.12 |
+| Python                   | 3.x             | Tested on 3.10(x86) and 3.12(EVM) |
 | pip                      | latest          | python -m pip install --upgrade pip |
 | Python packages          | —               | Install once in a fresh pyenv/conda env: pip install -r requirements.txt |
-| TIDL Models repo     	   | current `master`| Holds the ONNX operator assets |
-| TIDL tools tar file      | —               | — |
 
-**Setup on X86_PC**<br>
-Install pyenv using the following command.<br>
+## 3. Setup on X86_PC
+
+Note: Recommended to run this in a fresh python virtual environment
+
 ```bash
-curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
-echo '# pyenv settings ' >> ${HOME}/.bashrc
-echo 'command -v pyenv >/dev/null || export PATH=":${HOME}/.pyenv/bin:$PATH"' >> ${HOME}/.bashrc
-echo 'eval "$(pyenv init -)"' >> ${HOME}/.bashrc
-echo 'eval "$(pyenv virtualenv-init -)"' >> ${HOME}/.bashrc
-echo '' >> ${HOME}/.bashrc
-exec ${SHELL}
-```
-Create and activate pyenv.<br>
-```bash
-pyenv install 3.10
-pyenv virtualenv 3.10 benchmark
-pyenv activate benchmark
-pip install --upgrade pip setuptools
-```
-Setup scripts.<br>
-```bash
-./setup_pc.sh  #inside main benchmark directory 
+# inside edgeai-benchmark directory 
+./setup_pc.sh
+source ./run_set_env.sh "<SOC>"     # Allowed SOC values are (AM62A, AM67A, AM68A, AM69A, TDA4VM)
 cd tests/tidl_unit/
 pip install -r requirements.txt
 ```
 
-## 3. Obtaining Operator Assets
-```bash
-Clone (anywhere)
-git clone <tidl_models_repo>
-export TIDL_OPS=$PWD/tidl_models/unitTest/onnx/tidl_unit_test_assets/operators
+## 3. Structuring models and input/output buffer diectory
+Three things are needed for running tests on particular model, ``model.onnx``, ``input_0.pb``, ``output_0.pb``.
+These files needs to be present in a particular directory structure for pytest framework to retrieve and use them.
 ```
-
-### 3.1 Local symbolic‑link (dev workflow)
-```bash
-rm -rf tidl_unit_test_data/operator          # purge any stale link/dir
-ln -s "${TIDL_OPS}" tidl_unit_test_data/operator
+tidl_unit_test_data 
+│
+└───operators
+    │
+    └───<network_group_1>
+    │   │
+    │   └───<network_1>
+    │   |   │   model.onnx
+    │   |   └───test_data_set_0
+    |   |       │   input_0.pb
+    |   |       │   output_0.pb
+    |   |
+    |   └───<network_2>
+    │       │   model.onnx
+    │       └───test_data_set_0
+    |           │   input_0.pb
+    |           │   output_0.pb
+    |
+    |
+    └───<network_group_2>
+    │   │
+    │   └───<network_3>
+    │   |   │   model.onnx
+    │   |   └───test_data_set_0
+    |   |       │   input_0.pb
+    |   |       │   output_0.pb
 ```
-
-### 3.2 NFS mount (CI / farm)
-Mount from a local device with nfs mount
-
-## 4. Obtaining tools
-Generate/Fetch the tools tar ball for testing<br>
-Update the tools path inside run_operator_test.sh<br>
-```python
-# Configuration
-tools_path="<tidl_tools tarball path here>" #tools in name.tar.gz format
-```
-For taking tools from c7x use
-```bash
-tar -h -czvf tidl_tools.tar.gz tidl_tools/
-# Now place this tools tar file path to the above tools_path 
-```
-
-## 5. Running the Tests
-
-### 5.1 Full suite
-```bash
-./run_operator_test.sh <SOC>
-```
-&lt;SOC&gt; - AM62A, AM67A, AM68A, AM69A, TDA4VM 
-
-### 5.2 Subset
-Update the operators list inside run_operator_test.sh<br>
-```python
-# Configuration
-OPERATORS=()
-# Single operator like Max - OPERATORS=("Max")
-# Multi operator like Softmax, Convolution & Sqrt - OPERATORS=("Softmax" "Convolution" "Sqrt")
-# Full suite - OPERATORS=()
-```
-
-### 5.3 Additional Arguments
-Operators and runtimes can be directly passed from command line using `--operators` and `--runtimes` respectively. Multiple space separated values can be passed.<br>
-Accepted values for RUNTIMES are `onnxrt`, `tvmrt`. Default is `onnxrt`<br>
-Operators accept either full operator suite names, or single layer names. (For eg. Both `MaxPool` and `Slice_1` are valid)
-If not passed, OPERATORS and RUNTIMES list are taken from the script
-
-```bash
-# Examples
-
-# Run tests for Add_1 and Add_2 layer in 'tvm' runtime
-./run_operator_test.sh AM68A --runtimes tvmrt --operators Add_1 Add_2
-
-# Run tests for Reshape model and Slice_3 layer in 'onnx' and 'tvm' runtimes
-./run_operator_test.sh AM68A --runtimes tvmrt onnxrt --operators Slice_3 Reshape
-
-# Run all tests in 'onnx' runtime. (Runtime defaults to 'onnx' if not passed)
-./run_operator_test.sh AM68A
-```
+> **_NOTE:_** There can be multiple network groups and each network can have multiple networks to test. Make sure all the ``test names (<network_1>, <network_2>, <network_3>, etc.)`` should be unique across different directories also.
 
 
-## 6. Repository Layout
-```text
-tidl_unit_tests/
-├─ docs/                     	        # Usage notes
-├─ logs/						        # pass/fail logs
-├─ run_operator_test.sh                 # Operator testing script
-├─ run_test.sh  				        # Main entry‑point script
-├─ tidl_unit.yaml  				        # backend testing configuration
-├─ tidl_unit_test_data/                 # Symlink → operator assets
-├─ operator_test_report_comparison/     # CSV‑based comparison reports between runtimes
-├─ operator_test_report_csv/            # CSV‑based intensive test reports
-├─ operator_test_report_html/           # HTML reports
-├─ report_script/                       # Report‑generation scripts'
-├─ requirements.txt  			        # python requirements
-... other pytest requirements
-```
+## 4. Running the Tests
+You are now ready to run the tests. You can either directly invoke pytest or use a shell script to automatically run the tests. After test runs, an html report will be generated in ``logs`` directory
 
-## 7. Reports Layout
-```text
-tidl_unit_tests/
-├── operator_test_report_comparison/                # Comparison between runtimes
-│   ├── onnxrt/
-│   │   ├── <Operator_Name>/
-│   │   └── …
-│   ├── tvmrt/
-│   │   └── …
-│   ├── compile_with_nc_comparison.csv              # Compilation comparion (with NC)
-│   ├── compile_without_nc_comparison.csv           # Compilation comparion (without NC)
-│   ├── infer_with_nc_comparison.csv                # Inference comparion (with NC)
-│   ├── infer_without_nc_comparison.csv             # Inference comparion (without NC)
-│   ├── with_nc_comparison.csv                      # Combined comparison (with NC)
-│   └── without_nc_comparison.csv                   # Complete comparion (without NC)
-├── operator_test_report_csv/
-│   ├── onnxrt/                                     # Reports for ONNX Runtime
-│   │   ├── complete_test_reports/                  # Customer‑facing reports 
-│   │   │   ├── <Operator_Name>.csv                 # Operator‑specific report
-│   │   │   └── operator_test_report_summary.csv    # Aggregate summary
-│   │   └── customer_test_reports/                  # Customer‑facing reports 
-│   │       ├── …
-│   │       └── …
-│   └── tvmrt/                                      # Reports for TVM Runtime
-│       ├── …
-│       └── …
-└── operator_test_report_html/               
-    ├── onnxrt/
-    │   ├── <Operator_Name>/
-    │   └── …
-    └── tvmrt/
-        └── …
-```
+### Directly using pytest
+Here are some ways you might want to run these unit tests directly using pytest:
 
-## 8. Comparison Script
-Generate performance comparison between runtimes using `run_operator_comparison.py`
+Allowed arguments:
+- ``--run-infer`` - Runs model inference. If not given model compilation runs. Default: False
+- ``--runtime=*runtime*`` - Runtime to run tests. Allowed values are (onnxrt, tvmrt). Default: onnxrt
+- ``--disable-tidl-offload`` - Disbale tidl-offload, runs natively with given runtime. Default: False
+- ``--no-subprocess`` - Does not run tests as subprocess. Default: False
+- ``--exit-on-critical-error`` - Force stop pytest on critical error (Seg faults, OpenVX errors, etc.). Default: False
+- ``--timeout=*timeout*`` - Timeout per test run in seconds. Default: 300
 
+Along with arguments, you can also modify ``tidl_unit.yaml`` to set some compilation & inference options
 
-### 8.1 Running the script
-```bash
-python3 run_operator_comparison.py
-```
-This generates test reports under `./operator_test_report_comparison/`<br>
-```text
-Optional Arguments:
-    --runtime <RUNTIMES>    : Runtimes to run. If left empty, runs all runtimes defined under ALL_RUNTIMES inside the script
-    --operator <OPERATORS>  : Operators to run. If left empty, runs full suite.
-    --compare               : Compare mode. Doesnt execute tests, uses existing reports to generate comparison report.    
-```
+#### Compilation test 
+- Run compilation test for a single test case: 
+    ```bash
+    pytest test_tidl_unit.py::test_tidl_unit_operator[<network_1>]
+    ```
+- Run compilation test for a multiple test case: 
+    ```bash
+    pytest test_tidl_unit.py::test_tidl_unit_operator[<network_1>] test_tidl_unit.py::test_tidl_unit_operator[<network_2>] test_tidl_unit.py::test_tidl_unit_operator[<network_3>]
+    ```
+- Run compilation test for all test cases in tidl_unit_test_data/operators directory: 
+    ```bash
+    pytest
+    ```
+> **_NOTE:_** After compilation, the compiled model artifacts are present under work_dirs/modelartifacts
 
+#### Inference test 
+- Run inference test for a single test case: 
+    ```bash
+    pytest test_tidl_unit.py::test_tidl_unit_operator[<network_1>] --run-infer
+    ```
+- Run inference test for a multiple test case: 
+    ```bash
+    pytest test_tidl_unit.py::test_tidl_unit_operator[<network_1>] test_tidl_unit.py::test_tidl_unit_operator[<network_2>] test_tidl_unit.py::test_tidl_unit_operator[<network_3>]  --run-infer
+    ```
+- Run inference test for all test cases in tidl_unit_test_data/operators directory: 
+    ```bash
+    pytest  --run-infer
+    ```
+> **_NOTE:_** Inference test picks the compiled model artifacts from work_dirs/modelartifacts directory
 
-### 8.2 Customisation
-- Set device by setting `DEVICE` inside the script. Accepts allowed devices mentioned in section 5.1<br>
-- Change report location by changing `REPORT_DIR` and `OUT_DIR`<br>
-- Add runtimes by adding to `ALL_RUNTIMES` and `reports` dictionary.
-- Add known error patterns to `error_regex` list to capture them in the report.
+### Using shell script
+You can also use helper script (which internally invoke pytest) to run tests:
 
-```bash
-# Examples
+Allowed arguments:
+- ``--test_suite=*test_suite*`` - Defines test suite. Allowed values are (operator).
+- ``--runtime=*runtime*`` - Runtime to run tests. Allowed values are (onnxrt, tvmrt). Default: onnxrt
+- ``--run_compile=*run_compile*`` - Runs model compilation. Allowed values are (0, 1). Default: 1
+- ``--run_infer=*run_infer*`` - Runs model inference. Allowed values are (0, 1). Default: 1
+- ``--tidl_offload=*tidl_offload*`` - Enable tidl-offload. Allowed values are (0, 1). Default: 1  
+- ``--tests=*test_names*`` - Comma separated test names to run. If not given, will run all test based on test_suite. Ex: ``--tests="<network_group_1>,<network_1>,<network_3>"``
 
-# Runs the tvmrt runtine tests for Relu and Max
-python3 run_operator_comparison.py --runtime tvmrt --operator Relu Max
-    
-# Runs tests for Add for all the runtimes
-python3 run_operator_comparison.py --operator Add
-    
-# Runs comparison for Convolution
-python3 run_operator_comparison.py --compare --operator Convolution
-```
+#### Compilation test 
+- Run compilation test for a single test case: 
+    ```bash
+    ./run_test.sh --test_suite=operator --tests="<network_1>" --run_compile=1 --run_infer=0 
+    ```
+- Run compilation test for a multiple test case: 
+    ```bash
+    ./run_test.sh --test_suite=operator --tests="<network_1>,<network_2>,<network_group_2>" --run_compile=1 --run_infer=0 
+    ```
+- Run compilation test for all test cases in tidl_unit_test_data/operators directory: 
+    ```bash
+    ./run_test.sh --test_suite=operator --run_compile=1 --run_infer=0 
+    ```
+> **_NOTE:_** After compilation, the compiled model artifacts are present under work_dirs/modelartifacts
 
-## 9. Documentation
+#### Inference test 
+- Run inference test for a single test case: 
+    ```bash
+    ./run_test.sh --test_suite=operator --tests="<network_1>" --run_compile=0 --run_infer=1
+    ```
+- Run inference test for a multiple test case: 
+    ```bash
+    ./run_test.sh --test_suite=operator --tests="<network_1>,<network_2>,<network_group_2>" --run_compile=0 --run_infer=1
+    ```
+- Run inference test for all test cases in tidl_unit_test_data/operators directory: 
+    ```bash
+    ./run_test.sh --test_suite=operator --run_compile=0 --run_infer=1 
+    ```
 
-Usage notes: [usage-notes.md](docs/usage-notes.md)<br>
+- Run compilation and inference:
+    ```bash
+    ./run_test.sh --test_suite=operator --tests="<network_1>,<network_2>,<network_group_2>" 
+    ```
+
+> **_NOTE:_** Inference test picks the compiled model artifacts from work_dirs/modelartifacts directory
+
+## 5. Extra Documentation
+
 Pass/Fail Notes: [pass-fail-notes.md](docs/pass-fail-notes.md)<br>
 Code Outline: [code-outline.md](docs/code-outline.md)
-
-

@@ -12,6 +12,9 @@ model_shortlist: null
 parallel_processes : null
 run_missing : False
 
+# options are: 8 16 32
+tensor_bits : 8
+
 inference_nmse_thresholds : 
   default : 0.5
 # Example of overriding the default for a operator

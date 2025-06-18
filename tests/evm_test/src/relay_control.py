@@ -11,51 +11,76 @@ import sys
 import time
 
 class PowerRelayControl():
-    def __init__(self, executable, ip_address, relay_number, relay_type):
+    def __init__(self, executable, ip_address, relay_number, relay_type, relay_trigger_mechanism):
         self.relay_exe = executable
         self.relay_ip = ip_address
         self.relay_number = int(relay_number)
         self.relay_type = relay_type
+        self.relay_trigger_mechanism = relay_trigger_mechanism
         self.verify_relay()
-        if(relay_type=="DLI"):
+        if(self.relay_type=="DLI"):
             from dlipower import PowerSwitch
             os.environ['no_proxy'] = '*'
-            self.switch = PowerSwitch(hostname=ip_address, userid="admin", password="1234")
+            self.dli_switch = PowerSwitch(hostname=self.relay_ip, userid="admin", password="1234")
 
     def verify_relay(self):
         print(f"[ Info ] Verifying relay configurations")
         if self.relay_number < 1 and self.relay_number > 8:
             print(f"[ Error ] Relay number invalid")
             sys.exit(-1)
-        if self.relay_type not in ["Anel","DLI"]:
-            print(f"[ Error ] Relay type invalid - must be Anel or DLI")
+        if self.relay_type != "DLI" and self.relay_type != "ANEL":
+            print(f"[ Error ] Relay type invalid. Allowed values are (ANEL, DLI)")
             sys.exit(-1)
-        # if not os.path.exists(self.relay_exe):
-        #     print(f"[ Error ] {self.relay_exe} does not exist. Please provide a valid executable")
-        #     sys.exit(-1)
+        if self.relay_type == "ANEL":
+            if self.relay_trigger_mechanism != "LIB" and self.relay_trigger_mechanism != "EXE":
+                print(f"[ Error ] Relay trigger mechanism invalid. Allowed values are (LIB, EXE)")
+                sys.exit(-1)
+            if self.relay_trigger_mechanism == "EXE" and not os.path.exists(self.relay_exe):
+                print(f"[ Error ] {self.relay_exe} does not exist. Please provide a valid executable")
+                sys.exit(-1)
+            if self.relay_trigger_mechanism == "EXE" and not os.path.exists(self.relay_exe):
+                print(f"[ Error ] {self.relay_exe} does not exist. Please provide a valid executable")
+                sys.exit(-1)
 
-    def switch_relay(self, operation="toggle"):
+    def switch_relay(self,operation="toggle"):
         print(f"[ Info ] Switching relay [operation={operation}]")
 
-        if operation == "off":
-            self.switch_relay_off()
-        elif operation == "on":
-            self.switch_relay_on()
+        if operation == "on":
+            if self.relay_type=="ANEL":
+                self.switch_anel_on()
+            elif self.relay_type=="DLI":
+                self.switch_dli_on()
+        elif operation == "off":
+            if self.relay_type=="ANEL":
+                self.switch_anel_off()
+            elif self.relay_type=="DLI":
+                self.switch_dli_off()
         elif operation == "toggle":
-            self.switch_relay_off()
-            time.sleep(5)
-            self.switch_relay_on()
+            if self.relay_type=="ANEL":
+                self.switch_anel_off()
+                time.sleep(5)
+                self.switch_anel_on()
+            elif self.relay_type=="DLI":
+                self.switch_dli_off()
+                time.sleep(5)
+                self.switch_anel_on()
         else:
             print(f"[ Error ] Invalid operation value for relay. Allowed values are (off,on,toggle)")
-    
-    def switch_relay_on(self):
-        if(self.relay_type=="Anel"):
+
+    def switch_anel_on(self):
+        if (self.relay_trigger_mechanism == "LIB"):
             os.system(f"pypwrctrl -d -i 12347 -o 12345 on {self.relay_ip} {self.relay_number}")
-        else: # switch on using dlipower
-            self.switch.on(self.relay_number)
+        else:
+            os.system(f"{self.relay_exe} {self.relay_ip},12345,12347,rel,{self.relay_number},on,admin,anel")
     
-    def switch_relay_off(self):
-        if(self.relay_type=="Anel"):
+    def switch_anel_off(self):
+        if (self.relay_trigger_mechanism == "LIB"):
             os.system(f"pypwrctrl -d -i 12347 -o 12345 off {self.relay_ip} {self.relay_number}")
-        else: # switch off using dlipower
-            self.switch.off(self.relay_number)
+        else:
+            os.system(f"{self.relay_exe} {self.relay_ip},12345,12347,rel,{self.relay_number},off,admin,anel")
+
+    def switch_dli_on(self):
+        self.dli_switch.on(self.relay_number)
+    
+    def switch_dli_off(self):
+        self.dli_switch.off(self.relay_number)

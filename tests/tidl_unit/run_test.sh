@@ -61,6 +61,8 @@ tests=""
 run_compile=""
 run_infer=""
 tidl_offload=""
+flow_ctrl=""
+temp_buffer_dir=""
 runtime="onnxrt"
 
 while [ $# -gt 0 ]; do
@@ -79,6 +81,12 @@ while [ $# -gt 0 ]; do
         ;;
         --tidl_offload=*)
         tidl_offload="${1#*=}"
+        ;;
+        --flow_ctrl=*)
+        flow_ctrl="${1#*=}"
+        ;;
+        --temp_buffer_dir=*)
+        temp_buffer_dir="${1#*=}"
         ;;
         --runtime=*)
         runtime="${1#*=}"
@@ -111,30 +119,46 @@ fi
 if [[ "$tidl_offload" == "" ]]; then
    tidl_offload="1"
 fi
+if [[ "$flow_ctrl" == "" ]]; then
+   flow_ctrl="1"
+fi
+if [[ "$temp_buffer_dir" == "" ]]; then
+   temp_buffer_dir="/dev/shm"
+fi
 
-if [ "$run_compile" != "1" -a "$run_compile" != "0" ]; then
+if [ "$run_compile" != "1" ] && [ "$run_compile" != "0" ]; then
     echo "[ERROR]: RUN_COMPILE: $run_compile is not allowed."
     echo "         Allowed values are (0,1)"
     exit 1
 fi
-if [ "$run_infer" != "1" -a "$run_infer" != "0" ]; then
+if [ "$run_infer" != "1" ] && [ "$run_infer" != "0" ]; then
     echo "[ERROR]: RUN_INFER: $run_infer is not allowed."
     echo "         Allowed values are (0,1)"
     exit 1
 fi
-if [ "$tidl_offload" != "1" -a "$tidl_offload" != "0" ]; then
+if [ "$tidl_offload" != "1" ] && [ "$tidl_offload" != "0" ]; then
     echo "[ERROR]: TIDL_OFFLOAD: $tidl_offload is not allowed."
     echo "         Allowed values are (0,1)"
     exit 1
 fi
+if [ "$flow_ctrl" != "0" ] && [ "$flow_ctrl" != "1" ] && [ "$flow_ctrl" != "12" ]; then
+    echo "[ERROR]: flow_ctrl: $flow_ctrl is not allowed."
+    echo "         Allowed values are (0,1,12)"
+    exit 1
+fi
+if [ "$temp_buffer_dir" != "/dev/shm" ]; then
+    mkdir -p $temp_buffer_dir
+fi
 
 echo "##################################################################"
-echo "TEST_SUITE:   ${test_suite}"
-echo "TESTS:        ${tests}"
-echo "RUN_COMPILE:  ${run_compile}"
-echo "RUN_INFER:    ${run_infer}"
-echo "TIDL_OFFLOAD: ${tidl_offload}"
-echo "RUNTIME:      ${runtime}"
+echo "TEST_SUITE:         ${test_suite}"
+echo "TESTS:              ${tests}"
+echo "RUN_COMPILE:        ${run_compile}"
+echo "RUN_INFER:          ${run_infer}"
+echo "TIDL_OFFLOAD:       ${tidl_offload}"
+echo "FLOW_CTRL:          ${flow_ctrl}"
+echo "TEMP_BUFFER_DIR:    ${temp_buffer_dir}"
+echo "RUNTIME:            ${runtime}"
 echo "##################################################################"
 echo
 
@@ -147,10 +171,10 @@ if [[ "$test_suite" == "operator" ]]; then
 
 echo "##################################################################"
 
-OPERATOR_ROOT_FOLDER="${ROOT_DIR}/tidl_unit_test_data/operator"
+OPERATOR_ROOT_FOLDER="${ROOT_DIR}/tidl_unit_test_data/operators/"
 if [ ! -d "$OPERATOR_ROOT_FOLDER" ]; then
   echo "[ERROR]: $OPERATOR_ROOT_FOLDER does not exist."
-  echo "         All the data for operator suite needs to present in this directory. Refer to README for more information."
+  echo "         All the data for operators suite needs to present in this directory. Refer to README for more information."
 fi
 
 IFS=',' read -r -a test_array <<< "$tests"
@@ -204,9 +228,12 @@ fi
 
 # COMPILATION
 if [[ "$tidl_offload" == "0" ]]; then
-   extra_args="--disable-tidl-offload"
+   extra_args="${extra_args} --disable-tidl-offload"
 fi
-
+if [[ "$flow_ctrl" != "1" ]]; then
+   extra_args="${extra_args} --flow-control $flow_ctrl"
+fi
+extra_args="${extra_args} --temp-buffer-dir $temp_buffer_dir"
 extra_args="${extra_args} --runtime=${runtime}"
 
 if [[ "$run_compile" == "1" ]]; then
@@ -229,6 +256,10 @@ if [[ "$run_infer" == "1" ]]; then
     echo
 fi
 
+# Clean left-over buffers
+if [ "$temp_buffer_dir" != "/dev/shm" ]; then
+    rm -rf $temp_buffer_dir/*
+fi
 
 
 # RUN PYTEST END
