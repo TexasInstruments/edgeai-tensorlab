@@ -69,11 +69,7 @@ class ModelRunner():
         self.params.dataset.input_data_path = utils.absolute_path(self.params.dataset.input_data_path)
         self.params.dataset.input_annotation_path = utils.absolute_path(self.params.dataset.input_annotation_path)
 
-        
-
         self.params.common.run_name = self.resolve_run_name(self.params.common.run_name, self.params.training.model_name)
-        
-
 
         if self.params.training.train_output_path:
             self.params.common.projects_path = utils.absolute_path(self.params.training.train_output_path)
@@ -93,11 +89,6 @@ class ModelRunner():
                                         '_'.join(os.path.split(self.params.common.run_name))+'.tar.gz')
         self.params.dataset.extract_path = self.params.dataset.dataset_path
 
-        ##test
-        # if self.params.dataset.input_annotation_name:
-        #     self.params.dataset.input_annotation_path = os.path.join(self.params.dataset.dataset_path, 'annotations', self.params.dataset.input_annotation_name)
-
-
         assert self.params.common.target_device in constants.TARGET_DEVICES_ALL, f'common.target_device must be set to one of: {constants.TARGET_DEVICES_ALL}'
         # target_device_compilation_folder = self.params.common.target_device
 
@@ -115,7 +106,6 @@ class ModelRunner():
             self.params.compilation.model_packaged_path = os.path.join(self.params.compilation.compilation_path,
                                                                     '_'.join(os.path.split(
                                                                         self.params.common.run_name)) + f'_{self.params.common.target_device}.zip')
-
         # self.params.compilation.compilation_path = os.path.join(self.params.common.project_run_path, 'compilation', target_device_compilation_folder)
 
         if self.params.common.target_device in self.params.training.target_devices:
@@ -215,8 +205,12 @@ class ModelRunner():
             # we are done with training
             print(f'Trained model is at: {self.params.training.training_path}', flush=True)
             with open(self.params.training.log_file_path, 'a') as lfp:
-                print('\nSUCCESS: ModelMaker - Training completed.')
-                lfp.write('\nSUCCESS: ModelMaker - Training completed.')
+                if os.path.exists(self.params.training.model_export_path):
+                    print('\nSUCCESS: ModelMaker - Training completed.')
+                    lfp.write('\nSUCCESS: ModelMaker - Training completed.')
+                else:
+                    print('\nWARNING: ModelMaker - Training completed with errors.')
+                    lfp.write('\nWARNING: ModelMaker - Training completed with errors.')
             #
         #
 
@@ -226,6 +220,7 @@ class ModelRunner():
             self.model_compilation.clear()
             print(f'INFO: ModelMaker - running compilation - for detailed info see the log file: {self.params.compilation.log_file_path}')
             self.model_compilation.run()
+            os.makedirs(self.params.compilation.model_compiled_path, exist_ok=True)
             result = self.model_compilation.get_result()
             print(f'Compiled model is at: {self.params.compilation.model_packaged_path}', flush=True)
             with open(self.params.compilation.log_file_path, 'a') as lfp:
@@ -261,6 +256,14 @@ class ModelRunner():
         run_params_formatted = utils.ConfigDict(run_params_formatted)
         status_params.update(run_params_formatted)
         utils.write_dict(status_params, status_params_file)
+
+        if self.params.compilation.enable:
+            os.makedirs(os.path.join(self.params.compilation.compilation_path), exist_ok=True)
+            utils.write_dict(status_params, os.path.join(self.params.compilation.compilation_path, 'status.yaml'), write_yaml=False)
+        if self.params.training.enable:
+            os.makedirs(os.path.join(self.params.common.project_run_path, 'training'), exist_ok=True)
+            utils.write_dict(status_params, os.path.join(self.params.common.project_run_path, 'training', 'status.yaml'), write_yaml=False)
+
         return run_params_file
 
     def package_trained_model(self, input_files, tarfile_name):

@@ -5,11 +5,11 @@ ARG DOCKER_IMAGE_BASE="ubuntu:22.04"
 ARG DOCKER_REPO_LOCATION
 
 
+FROM ${DOCKER_REPO_LOCATION}${DOCKER_IMAGE_BASE}
+
 # build settings
 ARG PROJECT_NAME="edgeai-modelmaker"
 LABEL TI_IMAGE_SOURCE="https://bitbucket.itg.ti.com/projects/EDGEAI-ALGO/repos/edgeai-modelmaker/browse"
-
-FROM ${DOCKER_REPO_LOCATION}${DOCKER_IMAGE_BASE}
 
 # user
 ENV HOME_DIR=/opt/edgeai

@@ -537,6 +537,8 @@ class ModelTraining:
         config_strs += [f'val_evaluator = dict( \n'
                         f'    ann_file="{self.val_ann_file}") \n'
                         ]
+        config_strs += [f'base_lr ={self.params.training.learning_rate} \n'
+                        ]
         config_strs += [f'train_cfg = dict(max_epochs={self.params.training.training_epochs}, type="EpochBasedTrainLoop", val_interval=1)\n']
         # yolox_lr_config_str = \
         #                 f'    num_last_epochs={self.params.training.num_last_epochs},\n' if \
@@ -558,7 +560,7 @@ class ModelTraining:
         os.chdir(edgeai_mmdetection_path)
 
         # invoke the distributed training
-        if self.params.training.distributed and self.params.training.num_gpus > 0:
+        if self.params.training.distributed and self.params.training.num_gpus > 1:
             # launcher for the training
             run_launcher = distributed_run.__file__
             run_script = os.path.join(edgeai_mmdetection_tools_path,'train.py')
@@ -573,7 +575,8 @@ class ModelTraining:
             run_command = ['python3', run_launcher] + run_args
         else:
             # Non-cuda mode is currently supported only with non-distributed training
-            # os.environ['CUDA_VISIBLE_DEVICES'] = "-1"
+            if self.params.training.num_gpus < 1:
+                os.environ['CUDA_VISIBLE_DEVICES'] = "-1"
             run_script = os.path.join(edgeai_mmdetection_tools_path,'train.py')
             argv = [f'{config_file}']
             run_args = [str(arg) for arg in argv]

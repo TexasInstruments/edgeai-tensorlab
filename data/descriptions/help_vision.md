@@ -8,6 +8,7 @@ Bring your own data (BYOD): Retrain models from TI Model Zoo to fine-tune with y
 ## Tasks supported
 * Image Classification
 * Object Detection
+* Semantic Segmentation
 
 ## Target device setup overview
 In order to perform data capture from device, live preview or model deployment, a local area network connection (LAN) to the development board is required. To do this, please follow the steps below:
@@ -95,6 +96,17 @@ annotations/instances.json
 - The default annotation file name for image classification is instances.json
 - The format of the annotation file is similar to that of the COCO dataset - a json file containing 'info', 'images', 'categories' and 'annotations'. However, one difference is that the bounding box information is not used for classification task and need not be present. The category information in each annotation (called the 'id' field) is needed.
 - Look at the example dataset [animal_classification](https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01/datasets/animal_classification.zip) to understand more.
+
+#### Semantic Segmentation dataset format
+A semantic segmentation dataset should have the following structure.
+```
+images/the image files should be here
+annotations/instances.json
+```
+
+- The default annotation file name for semantic segmentation is instances.json
+- The format of the annotation file is similar to that of the [COCO dataset 2017 Train/Val annotations](https://cocodataset.org/#download) - a json file containing 'info', 'images', 'categories' and 'annotations'.
+- Look at the example dataset [tiscapes2017_driving](http://software-dl.ti.com/jacinto7/esd/modelzoo/latest/datasets/tiscapes2017_driving.zip) to understand more.
 
 ## Model deployment
 - The deploy page provides a button to download the compiled model artifacts to the development board. 
