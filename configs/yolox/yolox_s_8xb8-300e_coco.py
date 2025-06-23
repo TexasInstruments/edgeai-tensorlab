@@ -179,7 +179,7 @@ val_evaluator = dict(
 test_evaluator = val_evaluator
 
 # training settings
-max_epochs = 30
+max_epochs = 300
 num_last_epochs = 15
 interval = 1
 
