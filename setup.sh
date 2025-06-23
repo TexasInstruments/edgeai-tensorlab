@@ -63,4 +63,4 @@ pip install -e ../edgeai-modeloptimization/torchmodelopt
 
 ######################################################################
 pip3 install --no-input protobuf==3.20.2 onnx==1.14.0
-pip3 install --no-input onnxscript
+pip3 install --no-input onnxscript==0.2.5
