@@ -147,7 +147,8 @@ class ModelCompilation():
 
     def clear(self):
         # clear the dirs
-        shutil.rmtree(self.params.compilation.compilation_path, ignore_errors=True)
+        shutil.rmtree(os.path.join(self.params.compilation.compilation_path,'work'), ignore_errors=True)
+        shutil.rmtree(os.path.join(self.params.compilation.compilation_path,'pkg'), ignore_errors=True)
 
     def run(self):
         ''''
