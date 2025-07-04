@@ -265,9 +265,9 @@ def download_and_extract_archive(
 ###############################################################################
 def download_arm_gcc(tidl_tools_package_path):
     print("INFO: installing gcc arm required for tvm...")
-    GCC_ARM_AARCH64_NAME="gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu"
-    GCC_ARM_AARCH64_FILE=f"{GCC_ARM_AARCH64_NAME}.tar.xz"
-    GCC_ARM_AARCH64_PATH=f"https://developer.arm.com/-/media/Files/downloads/gnu-a/9.2-2019.12/binrel/{GCC_ARM_AARCH64_FILE}"
+    GCC_ARM_AARCH64_NAME="arm-gnu-toolchain-13.2.Rel1-x86_64-aarch64-none-linux-gnu"
+    GCC_ARM_AARCH64_FILE=f"arm-gnu-toolchain-13.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz"
+    GCC_ARM_AARCH64_PATH=f"https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/{GCC_ARM_AARCH64_FILE}"
     print(f"INFO: installing {tidl_tools_package_path}/{GCC_ARM_AARCH64_NAME}")
     if not os.path.exists(os.path.join(tidl_tools_package_path,GCC_ARM_AARCH64_NAME)):
         if not os.path.exists(os.path.join(tidl_tools_package_path,GCC_ARM_AARCH64_FILE)):
@@ -281,7 +281,7 @@ def download_arm_gcc(tidl_tools_package_path):
 
 def download_tidl_tools(download_url, download_path, **tidl_version_dict):
     print("INFO: installing tidl_tools_package...")
-    GCC_ARM_AARCH64_NAME="gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu"
+    GCC_ARM_AARCH64_NAME="arm-gnu-toolchain-13.2.Rel1-x86_64-aarch64-none-linux-gnu"
     cwd = os.getcwd()
     # download_path = os.path.join(tidl_tools_package_path, TARGET_SOC)
     download_tidl_tools_path = os.path.join(download_path, 'tidl_tools')

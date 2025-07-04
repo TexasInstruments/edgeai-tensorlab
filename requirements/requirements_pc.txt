@@ -15,4 +15,4 @@ graphviz
 colored
 # needs to be moved to main requirements after figuring out on how to install on evm
 nuscenes-devkit
-git+https://github.com/TexasInstruments/edgeai-tidl-tools.git@11_00_06_00#subdirectory=osrt-model-tools
+git+https://github.com/TexasInstruments/edgeai-tidl-tools.git@11_00_08_00#subdirectory=osrt-model-tools
