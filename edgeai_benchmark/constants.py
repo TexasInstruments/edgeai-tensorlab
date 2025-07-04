@@ -103,14 +103,17 @@ TIDL_FATAL_ERROR_LOGS_REGEX_LIST_TENSOR_BITS_NOT_32 = [
 
 
 # TIDL firmware versions
-TIDL_FIRMWARE_VERSION_10_01_03_00 = '10_01_03_00' # Compatible with the publicly released SDK 10.1 - Version: 10.01.00.04 - Release date: Dec 18, 2024
-TIDL_FIRMWARE_VERSION_10_01 = '10_01_04_00'       # Latest 10.1 - Not automatically enabled and also not compatible with publicly released version of SDK 10.1 - needs firmware update in SDK.
-TIDL_FIRMWARE_VERSION_11_00 = None                # No need to se this as of now - defaults are good.
+TIDL_FIRMWARE_VERSIONS = {
+    'TIDL_FIRMWARE_VERSION_10_01_DEFAULT': '10_01_03_00', # Compatible with the publicly released SDK 10.1 - Version: 10.01.00.04 - Release date: Dec 18, 2024
+    'TIDL_FIRMWARE_VERSION_10_01_LATEST' : '10_01_04_00', # Latest 10.1 - Not automatically enabled and also not compatible with publicly released version of SDK 10.1 - needs firmware update in SDK.
+    'TIDL_FIRMWARE_VERSION_11_00_DEFAULT': '11_00_06_00', # Compatible with the publicly released SDK 11.0 - Version: 11.00.00.08 - Release date: May 22, 2025
+    'TIDL_FIRMWARE_VERSION_11_00_LATEST' : '11_00_08_00', # Latest 11.0 - Not automatically enabled and also not compatible with publicly released version of SDK 11.0 - needs firmware update in SDK.
+}
 
 
 # shortlist of models to run based on priority (smaller shotlist means only higher priority models)
 MODEL_SHOTLIST_MINIMAL = 10
 MODEL_SHOTLIST_BASIC = 20
-MODEL_SHOTLIST_DEFAULT = 120
+MODEL_SHOTLIST_DEFAULT = 100
 MODEL_SHOTLIST_FULL = 200
 MODEL_SHORTLIST_ALL = None
