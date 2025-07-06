@@ -118,6 +118,11 @@ if __name__ == '__main__':
     #
 
     ####################################################################
+    print("\INFO: options for c7x_firmware_version")
+    for k, v in constants.TIDL_FIRMWARE_VERSIONS.items():
+        print(f"INFO: c7x_firmware_version: {v}")
+
+    ####################################################################
     # settigns model_shortlist will cause only selected models to be run
     # in ./configs folder, model configs have a model_shortlist associated with them
     # in this script, if --model_shortlist is set to 120, only those models with model_shortlist values <= 120 will run

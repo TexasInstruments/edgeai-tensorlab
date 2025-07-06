@@ -30,4 +30,5 @@ evm_wheels/
 /tools/tidl_tools_package/AM*
 /tools/tidl_tools_package/TDA*
 /tools/tidl_tools_package/gcc*
+/tools/tidl_tools_package/arm*
 /tools/tidl_tools_backup/
