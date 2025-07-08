@@ -1,4 +1,0 @@
-model location: 
-preprocessing: 
-Expected accuracy: 75.32 (val, os=16), 77.33 (val, os=8)
-Changes made:

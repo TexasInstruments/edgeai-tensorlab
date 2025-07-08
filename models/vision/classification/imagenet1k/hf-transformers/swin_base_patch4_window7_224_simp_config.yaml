@@ -41,7 +41,7 @@ session:
     advanced_options:add_data_convert_ops: 3
     onnxruntime:graph_optimization_level: null
   model_path: swin_base_patch4_window7_224_simp.onnx
-  model_id: cl-6770
+  model_id: cl-6732
   input_details: null
   output_details: null
   num_inputs: 1

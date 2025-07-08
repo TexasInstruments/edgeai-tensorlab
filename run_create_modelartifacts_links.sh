@@ -29,8 +29,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ##################################################################
-# target_device - use one of: TDA4VM AM62A AM68A AM69A AM67A AM62
-TARGET_SOC=${1:-TDA4VM}
+# target_device - use one of: AM68A AM69A AM67A AM62A TDA4VM AM62
+TARGET_SOC=${1:-AM68A}
 
 ##################################################################
 version=$(python3 version.py --delimiter=_)

@@ -52,6 +52,7 @@ postprocess:
 model_info:
   metric_reference:
     accuracy_mean_iou%: 50.85
-  model_shortlist: 90
+  model_shortlist: 10
   compact_name: fpnlite-aspp-regnetx400mf-ade20k32-384x384
-  shortlisted: false
+  shortlisted: true
+  recommended: true

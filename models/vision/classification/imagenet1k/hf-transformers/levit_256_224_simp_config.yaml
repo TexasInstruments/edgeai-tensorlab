@@ -41,7 +41,7 @@ session:
     advanced_options:add_data_convert_ops: 3
     onnxruntime:graph_optimization_level: null
   model_path: levit_256_224_simp.onnx
-  model_id: cl-6740
+  model_id: cl-6721
   input_details: null
   output_details: null
   num_inputs: 1

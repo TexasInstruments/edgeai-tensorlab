@@ -4,7 +4,7 @@
   run_dir: 6dpose-7200_onnxrt_ycbv_edgeai-yolox_yolox_s_object_pose_ti_lite_640x480_57p75_onnx
   session_name: onnxrt
   shortlisted: true
-  size: 54130066
+  size: 54157213
   task_type: object_6d_pose_estimation
 cl-0000_tflitert:
   model_name: TFL-CL-0000-mobileNetV1-mlperf
@@ -12,7 +12,87 @@ cl-0000_tflitert:
   run_dir: cl-0000_tflitert_imagenet1k_mlperf_mobilenet_v1_1.0_224_tflite
   session_name: tflitert
   shortlisted: true
-  size: 19584438
+  size: 19599365
+  task_type: classification
+cl-0010_tflitert:
+  model_name: TFL-CL-0010-mobileNetV2
+  recommended: false
+  run_dir: cl-0010_tflitert_imagenet1k_tf1-models_mobilenet_v2_1.0_224_tflite
+  session_name: tflitert
+  shortlisted: true
+  size: 16597292
+  task_type: classification
+cl-0040_tflitert:
+  model_name: TFL-CL-0040-InceptionNetV3
+  recommended: false
+  run_dir: cl-0040_tflitert_imagenet1k_tf1-models_inception_v3_tflite
+  session_name: tflitert
+  shortlisted: false
+  size: 109154058
+  task_type: classification
+cl-0080_tflitert:
+  model_name: TFL-CL-0080-mobileNet-edgeTPU-mlperf
+  recommended: false
+  run_dir: cl-0080_tflitert_imagenet1k_mlperf_mobilenet_edgetpu_224_1.0_float_tflite
+  session_name: tflitert
+  shortlisted: true
+  size: 19298290
+  task_type: classification
+cl-0090_tflitert:
+  model_name: TFL-CL-0090-efficientNet-edgeTPU-s
+  recommended: false
+  run_dir: cl-0090_tflitert_imagenet1k_tf-tpu_efficientnet-edgetpu-S_float_tflite
+  session_name: tflitert
+  shortlisted: true
+  size: 25671382
+  task_type: classification
+cl-0100_tflitert:
+  model_name: TFL-CL-0100-efficientNet-edgeTPU-m
+  recommended: false
+  run_dir: cl-0100_tflitert_imagenet1k_tf-tpu_efficientnet-edgetpu-M_float_tflite
+  session_name: tflitert
+  shortlisted: false
+  size: 32592417
+  task_type: classification
+cl-0130_tflitert:
+  model_name: TFL-CL-0130-efficientNet-lite0
+  recommended: false
+  run_dir: cl-0130_tflitert_imagenet1k_tf-tpu_efficientnet-lite0-fp32_tflite
+  session_name: tflitert
+  shortlisted: true
+  size: 21873059
+  task_type: classification
+cl-0140_tflitert:
+  model_name: TFL-CL-0140-efficientNet-lite4
+  recommended: false
+  run_dir: cl-0140_tflitert_imagenet1k_tf-tpu_efficientnet-lite4-fp32_tflite
+  session_name: tflitert
+  shortlisted: true
+  size: 61343573
+  task_type: classification
+cl-0160_tflitert:
+  model_name: TFL-CL-0160-resNet50V1p5-mlperf
+  recommended: false
+  run_dir: cl-0160_tflitert_imagenet1k_mlperf_resnet50_v1_tflite
+  session_name: tflitert
+  shortlisted: true
+  size: 116877443
+  task_type: classification
+cl-0170_tflitert:
+  model_name: TFL-CL-0170-efficientNet-lite1
+  recommended: false
+  run_dir: cl-0170_tflitert_imagenet1k_tf-tpu_efficientnet-lite1-fp32_tflite
+  session_name: tflitert
+  shortlisted: false
+  size: 25600527
+  task_type: classification
+cl-0200_tflitert:
+  model_name: TFL-CL-0200-mobileNetV2-1p4
+  recommended: false
+  run_dir: cl-0200_tflitert_imagenet1k_tf1-models_mobilenet_v2_float_1.4_224_tflite
+  session_name: tflitert
+  shortlisted: false
+  size: 28690328
   task_type: classification
 cl-3090_tvmdlr:
   model_name: TVM-CL-3090-mobileNetV2-tv
@@ -20,7 +100,79 @@ cl-3090_tvmdlr:
   run_dir: cl-3090_tvmdlr_imagenet1k_torchvision_mobilenet_v2_tv_onnx
   session_name: tvmdlr
   shortlisted: true
-  size: 45557714
+  size: 45570060
+  task_type: classification
+cl-6010_onnxrt:
+  model_name: ONR-CL-6010-resNet50V1p5-mlperf-onnx
+  recommended: false
+  run_dir: cl-6010_onnxrt_imagenet1k_mlperf_resnet50_v1_shape_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 116869713
+  task_type: classification
+cl-6080_onnxrt:
+  model_name: ONR-CL-6080-shuffleNetV2
+  recommended: false
+  run_dir: cl-6080_onnxrt_imagenet1k_torchvision_shufflenet_v2_x1.0_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 10763326
+  task_type: classification
+cl-6090_onnxrt:
+  model_name: ONR-CL-6090-mobileNetV2-tv
+  recommended: false
+  run_dir: cl-6090_onnxrt_imagenet1k_torchvision_mobilenet_v2_tv_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 16433667
+  task_type: classification
+cl-6098_onnxrt:
+  model_name: ONR-CL-6098-mobileNetV2-tv-qat
+  recommended: false
+  run_dir: cl-6098_onnxrt_imagenet1k_torchvision_mobilenet_v2_tv_qat-p2_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 15797840
+  task_type: classification
+cl-6100_onnxrt:
+  model_name: ONR-CL-6100-resNet18
+  recommended: false
+  run_dir: cl-6100_onnxrt_imagenet1k_torchvision_resnet18_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 53304056
+  task_type: classification
+cl-6110_onnxrt:
+  model_name: ONR-CL-6110-resNet50
+  recommended: false
+  run_dir: cl-6110_onnxrt_imagenet1k_torchvision_resnet50_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 117207725
+  task_type: classification
+cl-6160_onnxrt:
+  model_name: ONR-CL-6160-regNetX-400mf-tv
+  recommended: false
+  run_dir: cl-6160_onnxrt_imagenet1k_torchvision_regnet_x_400mf_tv_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 25671394
+  task_type: classification
+cl-6170_onnxrt:
+  model_name: ONR-CL-6170-regNetX-800mf-tv
+  recommended: false
+  run_dir: cl-6170_onnxrt_imagenet1k_torchvision_regnet_x_800mf_tv_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 33635287
+  task_type: classification
+cl-6180_onnxrt:
+  model_name: ONR-CL-6180-regNetX-1.6gf-tv
+  recommended: false
+  run_dir: cl-6180_onnxrt_imagenet1k_torchvision_regnet_x_1_6gf_tv_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 42457579
   task_type: classification
 cl-6360_onnxrt:
   model_name: ONR-CL-6360-regNetx-200mf
@@ -28,23 +180,287 @@ cl-6360_onnxrt:
   run_dir: cl-6360_onnxrt_imagenet1k_fbr-pycls_regnetx-200mf_onnx
   session_name: onnxrt
   shortlisted: true
-  size: 12706675
+  size: 12729862
   task_type: classification
+cl-6480_onnxrt:
+  model_name: ONR-CL-6480-mobv3-lite-small
+  recommended: false
+  run_dir: cl-6480_onnxrt_imagenet1k_edgeai-tv_mobilenet_v3_lite_small_20210429_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 9605071
+  task_type: classification
+cl-6488_onnxrt:
+  model_name: ONR-CL-6488-mobv3-lite-small-qat
+  recommended: false
+  run_dir: cl-6488_onnxrt_imagenet1k_edgeai-tv_mobilenet_v3_lite_small_qat-p2_20210429_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 8967196
+  task_type: classification
+cl-6490_onnxrt:
+  model_name: ONR-CL-6490-mobv3-lite-large
+  recommended: false
+  run_dir: cl-6490_onnxrt_imagenet1k_edgeai-tv_mobilenet_v3_lite_large_20210507_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 18218986
+  task_type: classification
+cl-6500_onnxrt:
+  model_name: ONR-CL-6500-mobileNetV2-lite-wtv2-224
+  recommended: false
+  run_dir: cl-6500_onnxrt_imagenet1k_edgeai-tv2_mobilenet_v2_lite_wt-v2_20231101_model_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 16582556
+  task_type: classification
+cl-6508_onnxrt:
+  model_name: ONR-CL-6508-mobileNetV2-lite-wtv2-qatv2-perc-224
+  recommended: false
+  run_dir: cl-6508_onnxrt_imagenet1k_edgeai-tv2_mobilenet_v2_lite_wt-v2_qat-v2-wc8-at8_20231120_model_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 6930292
+  task_type: classification
+cl-6510_onnxrt:
+  model_name: ONR-CL-6510-mobileNetV3-large-lite-wtv2-224
+  recommended: false
+  run_dir: cl-6510_onnxrt_imagenet1k_edgeai-tv2_mobilenet_v3_large_lite_wt-v2_20231011_model_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 18300402
+  task_type: classification
+cl-6530_onnxrt:
+  model_name: ONR-CL-6530-resNet50-wtv2-224
+  recommended: false
+  run_dir: cl-6530_onnxrt_imagenet1k_edgeai-tv2_resnet50_lite_wt-v2_20230919_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 116467921
+  task_type: classification
+cl-6540_onnxrt:
+  model_name: ONR-CL-6540-resNet101-wtv2-224
+  recommended: false
+  run_dir: cl-6540_onnxrt_imagenet1k_edgeai-tv2_resnet101_lite_wt-v2_20230919_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 203334169
+  task_type: classification
+cl-6550_onnxrt:
+  model_name: ONR-CL-6550-resNeXt50-32x4d-wtv2-224
+  recommended: false
+  run_dir: cl-6550_onnxrt_imagenet1k_edgeai-tv2_resnext50_32x4d_lite_wt-v2_20230920_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 114455859
+  task_type: classification
+cl-6560_onnxrt:
+  model_name: ONR-CL-6560-resNeXt101-32x8d-wtv2-224
+  recommended: false
+  run_dir: cl-6560_onnxrt_imagenet1k_edgeai-tv2_resnext101_32x8d_lite_wt-v2_20230920_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 404202656
+  task_type: classification
+cl-6570_onnxrt:
+  model_name: ONR-CL-6570-regNetX-1.6gf-wtv2-224
+  recommended: false
+  run_dir: cl-6570_onnxrt_imagenet1k_edgeai-tv2_regnet_x_1_6gf_lite_wt-v2_20230920_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 42334215
+  task_type: classification
+cl-6580_onnxrt:
+  model_name: ONR-CL-6580-regNetX-400mf-wtv2-224
+  recommended: false
+  run_dir: cl-6580_onnxrt_imagenet1k_edgeai-tv2_regnet_x_400mf_lite_wt-v2_20230920_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 25656810
+  task_type: classification
+cl-6590_onnxrt:
+  model_name: ONR-CL-6590-regNetX-800mf-wtv2-224
+  recommended: false
+  run_dir: cl-6590_onnxrt_imagenet1k_edgeai-tv2_regnet_x_800mf_lite_wt-v2_20230920_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 33545935
+  task_type: classification
+cl-6600_onnxrt:
+  model_name: ONR-CL-6600-mobileNetV2-wtv2-224
+  recommended: false
+  run_dir: cl-6600_onnxrt_imagenet1k_edgeai-tv2_mobilenet_v2_wt-v2_20240904_model_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 16455797
+  task_type: classification
+cl-6700_onnxrt:
+  model_name: ONR-CL-6700-ViT-tiny-patch16-transformer-224
+  recommended: false
+  run_dir: cl-6700_onnxrt_imagenet1k_hf-transformers_vit_tiny_patch16_224_simp_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 27177696
+  task_type: classification
+cl-6701_onnxrt:
+  model_name: ONR-CL-6701-ViT-base-patch16-transformer-224
+  recommended: false
+  run_dir: cl-6701_onnxrt_imagenet1k_hf-transformers_vit_base_patch16_224_simp_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 400454702
+  task_type: classification
+cl-6710_onnxrt:
+  model_name: ONR-CL-6710-DeiT-tiny-patch16-transformer-224
+  recommended: false
+  run_dir: cl-6710_onnxrt_imagenet1k_hf-transformers_deit_tiny_patch16_224_simp_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 27211356
+  task_type: classification
+cl-6711_onnxrt:
+  model_name: ONR-CL-6711-DeiT-small-patch16-transformer-224
+  recommended: false
+  run_dir: cl-6711_onnxrt_imagenet1k_hf-transformers_deit_small_patch16_224_simp_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 102761116
+  task_type: classification
+cl-6720_onnxrt:
+  model_name: ONR-CL-6720-LeViT-128-transformer-224
+  recommended: false
+  run_dir: cl-6720_onnxrt_imagenet1k_hf-transformers_levit_128_224_simp_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 44245819
+  task_type: classification
+cl-6721_onnxrt:
+  model_name: ONR-CL-6721-LeViT-256-transformer-224
+  recommended: false
+  run_dir: cl-6721_onnxrt_imagenet1k_hf-transformers_levit_256_224_simp_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 89373425
+  task_type: classification
+cl-6730_onnxrt:
+  model_name: ONR-CL-6730-Swin-tiny-patch4-window7-transformer-224
+  recommended: false
+  run_dir: cl-6730_onnxrt_imagenet1k_hf-transformers_swin_tiny_patch4_window7_224_simp_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 132147753
+  task_type: classification
+cl-6731_onnxrt:
+  model_name: ONR-CL-6731-Swin-small-patch4-window7-transformer-224
+  recommended: false
+  run_dir: cl-6731_onnxrt_imagenet1k_hf-transformers_swin_small_patch4_window7_224_simp_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 232028922
+  task_type: classification
+cl-6732_onnxrt:
+  model_name: ONR-CL-6732-Swin-base-patch4-window7-transformer-224
+  recommended: false
+  run_dir: cl-6732_onnxrt_imagenet1k_hf-transformers_swin_base_patch4_window7_224_simp_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 408544685
+  task_type: classification
+de-7300_onnxrt:
+  model_name: ONR-DE-7300-depth-est-fast-depth-224x224
+  recommended: false
+  run_dir: de-7300_onnxrt_nyudepthv2_fast-depth_fast-depth_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 6535906
+  task_type: depth_estimation
+de-7310_onnxrt:
+  model_name: ONR-DE-7310-depth-est-midas-small-256x256
+  recommended: false
+  run_dir: de-7310_onnxrt_nyudepthv2_MiDaS_midas-small_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 77656232
+  task_type: depth_estimation
 kd-7060_onnxrt:
   model_name: ONR-KD-7060-human-pose-yolox-s-640x640
   recommended: true
   run_dir: kd-7060_onnxrt_coco_edgeai-yolox_yolox_s_pose_ti_lite_640_20220301_model_onnx
   session_name: onnxrt
   shortlisted: true
-  size: 46586388
+  size: 46618709
   task_type: keypoint_detection
+kd-7070_onnxrt:
+  model_name: ONR-KD-7070-yoloxpose_tiny_lite_416x416_20240808_model
+  recommended: false
+  run_dir: kd-7070_onnxrt_coco_edgeai-mmpose_yoloxpose_tiny_lite_416x416_20240808_model_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 28194028
+  task_type: keypoint_detection
+kd-7080_onnxrt:
+  model_name: ONR-KD-7080-yoloxpose_s_lite_coco-640x640_20250119_model
+  recommended: false
+  run_dir: kd-7080_onnxrt_coco_edgeai-mmpose_yoloxpose_s_lite_coco-640x640_20250119_model_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 49707082
+  task_type: keypoint_detection
+od-2000_tflitert:
+  model_name: TFL-OD-2000-ssd-mobV1-coco-mlperf-300x300
+  recommended: false
+  run_dir: od-2000_tflitert_coco_mlperf_ssd_mobilenet_v1_coco_20180128_tflite
+  session_name: tflitert
+  shortlisted: true
+  size: 31407380
+  task_type: detection
+od-2010_tflitert:
+  model_name: TFL-OD-2010-ssd-mobV2-coco-mlperf-300x300
+  recommended: false
+  run_dir: od-2010_tflitert_coco_mlperf_ssd_mobilenet_v2_300_float_tflite
+  session_name: tflitert
+  shortlisted: true
+  size: 74653519
+  task_type: detection
 od-2020_tflitert:
   model_name: TFL-OD-2020-ssdLite-mobDet-DSP-coco-320x320
   recommended: true
   run_dir: od-2020_tflitert_coco_tf1-models_ssdlite_mobiledet_dsp_320x320_coco_20200519_tflite
   session_name: tflitert
   shortlisted: true
-  size: 33453488
+  size: 33316220
+  task_type: detection
+od-2030_tflitert:
+  model_name: TFL-OD-2030-ssdLite-mobDet-EdgeTPU-coco-320x320
+  recommended: false
+  run_dir: od-2030_tflitert_coco_tf1-models_ssdlite_mobiledet_edgetpu_320x320_coco_20200519_tflite
+  session_name: tflitert
+  shortlisted: true
+  size: 19783764
+  task_type: detection
+od-2070_tflitert:
+  model_name: TFL-OD-2070-ssd-mobV1-fpn-coco-tpu-8-640x640
+  recommended: false
+  run_dir: od-2070_tflitert_coco_tf2-models_ssd_mobilenet_v1_fpn_640x640_coco17_tpu-8_tflite
+  session_name: tflitert
+  shortlisted: false
+  size: 115027745
+  task_type: detection
+od-2080_tflitert:
+  model_name: TFL-OD-2080-ssd-mobV2-fpnlite-coco-tpu-8-320x320
+  recommended: false
+  run_dir: od-2080_tflitert_coco_tf2-models_ssd_mobilenet_v2_fpnlite_320x320_coco17_tpu-8_tflite
+  session_name: tflitert
+  shortlisted: true
+  size: 10735477
+  task_type: detection
+od-2150_tflitert:
+  model_name: TFL-OD-2150-efficientDet-lite1-relu-coco-384x384
+  recommended: false
+  run_dir: od-2150_tflitert_coco_google-automl_efficientdet_lite1_relu_tflite
+  session_name: tflitert
+  shortlisted: false
+  size: 22322357
   task_type: detection
 od-5120_tvmdlr:
   model_name: TVM-OD-5120-ssdLite-mobDet-DSP-coco-320x320
@@ -52,7 +468,15 @@ od-5120_tvmdlr:
   run_dir: od-5120_tvmdlr_coco_tf1-models_ssdlite_mobiledet_dsp_320x320_coco_20200519_tflite
   session_name: tvmdlr
   shortlisted: true
-  size: 90930422
+  size: 90955491
+  task_type: detection
+od-8000_onnxrt:
+  model_name: ONR-OD-8000-ssd1200-resNet34-mlperf-coco-1200x1200
+  recommended: false
+  run_dir: od-8000_onnxrt_coco_mlperf_ssd_resnet34-ssd1200_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 90679566
   task_type: detection
 od-8020_onnxrt:
   model_name: ONR-OD-8020-ssd-lite-mobv2-mmdet-coco-512x512
@@ -60,7 +484,15 @@ od-8020_onnxrt:
   run_dir: od-8020_onnxrt_coco_edgeai-mmdet_ssd_mobilenetv2_lite_512x512_20201214_model_onnx
   session_name: onnxrt
   shortlisted: true
-  size: 15250638
+  size: 15258584
+  task_type: detection
+od-8040_onnxrt:
+  model_name: ONR-OD-8040-ssd-lite-regNetX-200mf-fpn-bgr-mmdet-coco-320x320
+  recommended: false
+  run_dir: od-8040_onnxrt_coco_edgeai-mmdet_ssd_regnetx-200mf_fpn_bgr_lite_320x320_20201010_model_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 10303257
   task_type: detection
 od-8200_onnxrt:
   model_name: ONR-OD-8200-yolox-nano-lite-mmdet-coco-416x416
@@ -68,7 +500,15 @@ od-8200_onnxrt:
   run_dir: od-8200_onnxrt_coco_edgeai-mmdet_yolox_nano_lite_416x416_20220214_model_onnx
   session_name: onnxrt
   shortlisted: true
-  size: 10665385
+  size: 10682041
+  task_type: detection
+od-8210_onnxrt:
+  model_name: ONR-OD-8210-yolox-tiny-lite-mmdet-coco-416x416
+  recommended: false
+  run_dir: od-8210_onnxrt_coco_edgeai-mmdet_yolox_tiny_lite_416x416_20220217_model_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 23528165
   task_type: detection
 od-8220_onnxrt:
   model_name: ONR-OD-8220-yolox-s-lite-mmdet-coco-640x640
@@ -76,7 +516,23 @@ od-8220_onnxrt:
   run_dir: od-8220_onnxrt_coco_edgeai-mmdet_yolox_s_lite_640x640_20220221_model_onnx
   session_name: onnxrt
   shortlisted: true
-  size: 41322825
+  size: 41344064
+  task_type: detection
+od-8270_onnxrt:
+  model_name: ONR-OD-8270-yolox-pico-lite-mmdet-coco-320x320
+  recommended: true
+  run_dir: od-8270_onnxrt_coco_edgeai-mmdet_yolox_pico_lite_320x320_20230410_model_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 6152919
+  task_type: detection
+od-8410_onnxrt:
+  model_name: ONR-OD-8410-yolox-tiny-lite-mmdet-widerface-416x416
+  recommended: true
+  run_dir: od-8410_onnxrt_widerface_edgeai-mmdet_yolox_tiny_lite_416x416_20220318_model_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 23393669
   task_type: detection
 od-8420_onnxrt:
   model_name: ONR-OD-8420-yolox-s-lite-mmdet-widerface-640x640
@@ -84,7 +540,135 @@ od-8420_onnxrt:
   run_dir: od-8420_onnxrt_widerface_edgeai-mmdet_yolox_s_lite_640x640_20220307_model_onnx
   session_name: onnxrt
   shortlisted: true
-  size: 41701306
+  size: 41722439
+  task_type: detection
+od-8800_onnxrt:
+  model_name: od-8800_onnxrt_coco_scaled-yolov4-gplv3_scaled-yolov4-csp_lite_640x640_20240220_model_onnx
+  recommended: false
+  run_dir: od-8800_onnxrt_coco_scaled-yolov4-gplv3_scaled-yolov4-csp_lite_640x640_20240220_model_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 217778377
+  task_type: detection
+od-8810_onnxrt:
+  model_name: od-8810_onnxrt_coco_edgeai-mmyolo-gplv3_yolov5_nano-v61_lite_640x640_20240329_model_onnx
+  recommended: false
+  run_dir: od-8810_onnxrt_coco_edgeai-mmyolo-gplv3_yolov5_nano-v61_lite_640x640_20240329_model_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 8962410
+  task_type: detection
+od-8820_onnxrt:
+  model_name: od-8820_onnxrt_coco_edgeai-mmyolo-gplv3_yolov5_small-v61_lite_640x640_20240329_model_onnx
+  recommended: false
+  run_dir: od-8820_onnxrt_coco_edgeai-mmyolo-gplv3_yolov5_small-v61_lite_640x640_20240329_model_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 33584999
+  task_type: detection
+od-8850_onnxrt:
+  model_name: od-8850_onnxrt_coco_edgeai-mmyolo-gplv3_yolov7_tiny_lite_640x640_20230830_model_onnx
+  recommended: false
+  run_dir: od-8850_onnxrt_coco_edgeai-mmyolo-gplv3_yolov7_tiny_lite_640x640_20230830_model_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 28919003
+  task_type: detection
+od-8860_onnxrt:
+  model_name: od-8860_onnxrt_coco_edgeai-mmyolo-gplv3_yolov7_large_lite_640x640_20240119_model_onnx
+  recommended: false
+  run_dir: od-8860_onnxrt_coco_edgeai-mmyolo-gplv3_yolov7_large_lite_640x640_20240119_model_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 172033617
+  task_type: detection
+od-8870_onnxrt:
+  model_name: od-8870_onnxrt_coco_edgeai-mmyolo-gplv3_yolov8_nano_lite_640x640_20231118_model_onnx
+  recommended: false
+  run_dir: od-8870_onnxrt_coco_edgeai-mmyolo-gplv3_yolov8_nano_lite_640x640_20231118_model_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 14707978
+  task_type: detection
+od-8890_onnxrt:
+  model_name: od-8890_onnxrt_coco_edgeai-mmyolo-gplv3_yolox_tiny_lite_416x416_20231127_model_onnx
+  recommended: false
+  run_dir: od-8890_onnxrt_coco_edgeai-mmyolo-gplv3_yolox_tiny_lite_416x416_20231127_model_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 23537696
+  task_type: detection
+od-8900_onnxrt:
+  model_name: od-8900_onnxrt_coco_edgeai-mmyolo-gplv3_yolox_small_lite_640x640_20240319_model_onnx
+  recommended: false
+  run_dir: od-8900_onnxrt_coco_edgeai-mmyolo-gplv3_yolox_small_lite_640x640_20240319_model_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 41377415
+  task_type: detection
+od-8950_onnxrt:
+  model_name: ONR-OD-8950-CenterNet-r18-coco-672x448
+  recommended: false
+  run_dir: od-8950_onnxrt_coco_mmdet_centernet_r18_crop512_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 64626139
+  task_type: detection
+od-8970_onnxrt:
+  model_name: ONR-OD-8970-efficientDet-b0-bifpn-lite-coco-512x512
+  recommended: false
+  run_dir: od-8970_onnxrt_coco_edgeai-mmdet_efficientdet_effb0_bifpn_lite_512x512_20240612_model_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 20405781
+  task_type: detection
+od-9202_onnxrt:
+  model_name: ONR-OD-9202-yolov7-l-lite-mmdet-coco-640x640
+  recommended: false
+  run_dir: od-9202_onnxrt_coco_edgeai-mmdet_yolov7_l_coco_lite_640x640_20250109_model_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 171993838
+  task_type: detection
+od-9203_onnxrt:
+  model_name: ONR-OD-9203-yolov7-l-mmdet-coco-640x640
+  recommended: false
+  run_dir: od-9203_onnxrt_coco_edgeai-mmdet_yolov7_l_coco_orig_640x640_20250109_model_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 156185571
+  task_type: detection
+od-9206_onnxrt:
+  model_name: ONR-OD-9206-rtmdet-m-lite-mmdet-coco-640x640
+  recommended: true
+  run_dir: od-9206_onnxrt_coco_edgeai-mmdet_rtmdet_m_coco_lite_640x640_20250404_model_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 125251752
+  task_type: detection
+od-9207_onnxrt:
+  model_name: ONR-OD-9207-rtmdet-m-orig-mmdet-coco-640x640
+  recommended: true
+  run_dir: od-9207_onnxrt_coco_edgeai-mmdet_rtmdet_m_coco_orig_640x640_20250310_model_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 125807247
+  task_type: detection
+od-9208_onnxrt:
+  model_name: ONR-OD-9208-rtmdet-l-orig-mmdet-coco-640x640
+  recommended: true
+  run_dir: od-9208_onnxrt_coco_edgeai-mmdet_rtmdet_l_coco_orig_640x640_20250310_model_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 261580861
+  task_type: detection
+od-9209_onnxrt:
+  model_name: ONR-OD-9209-rtmdet-l-lite-mmdet-coco-640x640
+  recommended: true
+  run_dir: od-9209_onnxrt_coco_edgeai-mmdet_rtmdet_l_coco_lite_640x640_20250310_model_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 260157893
   task_type: detection
 ss-2580_tflitert:
   model_name: TFL-SS-2580-deeplabv3_mobv2-ade20k32-mlperf-512x512
@@ -92,7 +676,7 @@ ss-2580_tflitert:
   run_dir: ss-2580_tflitert_ade20k32_mlperf_deeplabv3_mnv2_ade20k32_float_tflite
   session_name: tflitert
   shortlisted: true
-  size: 11008637
+  size: 11006926
   task_type: segmentation
 ss-5710_tvmdlr:
   model_name: TVM-SS-5710-deeplabv3lite-mobv2-cocoseg21-512x512
@@ -100,7 +684,7 @@ ss-5710_tvmdlr:
   run_dir: ss-5710_tvmdlr_cocoseg21_edgeai-tv_deeplabv3plus_mobilenetv2_edgeailite_512x512_20210405_onnx
   session_name: tvmdlr
   shortlisted: true
-  size: 32074997
+  size: 32088421
   task_type: segmentation
 ss-7618_onnxrt:
   model_name: ONR-SS-7618-deeplabv3lite-mobv2-qat-robokit-768x432
@@ -108,7 +692,7 @@ ss-7618_onnxrt:
   run_dir: ss-7618_onnxrt_ti-robokit_edgeai-tv_deeplabv3plus_mnetv2_edgeailite_robokit_768x432_qat-p2_onnx
   session_name: onnxrt
   shortlisted: true
-  size: 5543223
+  size: 5548456
   task_type: segmentation
 ss-8610_onnxrt:
   model_name: ONR-SS-8610-deeplabv3lite-mobv2-ade20k32-512x512
@@ -116,7 +700,95 @@ ss-8610_onnxrt:
   run_dir: ss-8610_onnxrt_ade20k32_edgeai-tv_deeplabv3plus_mobilenetv2_edgeailite_512x512_20210308_outby4_onnx
   session_name: onnxrt
   shortlisted: true
-  size: 11960521
+  size: 11965526
+  task_type: segmentation
+ss-8630_onnxrt:
+  model_name: ONR-SS-8630-unetlite-aspp-mobv2-tv-ade20k32-512x512
+  recommended: false
+  run_dir: ss-8630_onnxrt_ade20k32_edgeai-tv_unet_aspp_mobilenetv2_edgeailite_512x512_20210306_outby2_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 12244450
+  task_type: segmentation
+ss-8650_onnxrt:
+  model_name: ONR-SS-8650-fpnlite-aspp-mobv2-ade20k32-512x512
+  recommended: false
+  run_dir: ss-8650_onnxrt_ade20k32_edgeai-tv_fpn_aspp_mobilenetv2_edgeailite_512x512_20210306_outby4_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 13192974
+  task_type: segmentation
+ss-8670_onnxrt:
+  model_name: ONR-SS-8670-fpnlite-aspp-mobv2-1p4-ade20k32-512x512
+  recommended: false
+  run_dir: ss-8670_onnxrt_ade20k32_edgeai-tv_fpn_aspp_mobilenetv2_1p4_edgeailite_512x512_20210307_outby4_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 25022707
+  task_type: segmentation
+ss-8690_onnxrt:
+  model_name: ONR-SS-8690-fpnlite-aspp-regnetx400mf-ade20k32-384x384
+  recommended: true
+  run_dir: ss-8690_onnxrt_ade20k32_edgeai-tv_fpn_aspp_regnetx400mf_edgeailite_384x384_20210314_outby4_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 28358958
+  task_type: segmentation
+ss-8700_onnxrt:
+  model_name: ONR-SS-8700-fpnlite-aspp-regnetx800mf-ade20k32-512x512
+  recommended: false
+  run_dir: ss-8700_onnxrt_ade20k32_edgeai-tv_fpn_aspp_regnetx800mf_edgeailite_512x512_20210312_outby4_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 38872556
+  task_type: segmentation
+ss-8710_onnxrt:
+  model_name: ONR-SS-8710-deeplabv3lite-mobv2-cocoseg21-512x512
+  recommended: false
+  run_dir: ss-8710_onnxrt_cocoseg21_edgeai-tv_deeplabv3plus_mobilenetv2_edgeailite_512x512_20210405_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 11920564
+  task_type: segmentation
+ss-8720_onnxrt:
+  model_name: ONR-SS-8720-deeplabv3lite-regnetx800mf-cocoseg21-512x512
+  recommended: false
+  run_dir: ss-8720_onnxrt_cocoseg21_edgeai-tv_fpn_aspp_regnetx800mf_edgeailite_512x512_20210405_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 38808895
+  task_type: segmentation
+ss-8730_onnxrt:
+  model_name: ONR-SS-8730-deeplabv3-mobv3-lite-large-cocoseg21-512x512
+  recommended: false
+  run_dir: ss-8730_onnxrt_cocoseg21_edgeai-tv_deeplabv3_mobilenet_v3_large_lite_512x512_20210527_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 42035161
+  task_type: segmentation
+ss-8740_onnxrt:
+  model_name: ONR-SS-8740-lraspp-mobV3-ti-lite-large-cocoseg21-512x512
+  recommended: false
+  run_dir: ss-8740_onnxrt_cocoseg21_edgeai-tv_lraspp_mobilenet_v3_large_lite_512x512_20210527_onnx
+  session_name: onnxrt
+  shortlisted: true
+  size: 8261057
+  task_type: segmentation
+ss-8750_onnxrt:
+  model_name: ONR-SS-8750-segformerB0-transformer-ade-512x512
+  recommended: false
+  run_dir: ss-8750_onnxrt_ade20k_hf-transformers_segformer_b0_finetuned_ade_512_512_simp_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 18183227
+  task_type: segmentation
+ss-8760_onnxrt:
+  model_name: ONR-SS-8760-segformerB1-transformer-ade-512x512
+  recommended: false
+  run_dir: ss-8760_onnxrt_ade20k_hf-transformers_segformer_b1_finetuned_ade_512_512_simp_onnx
+  session_name: onnxrt
+  shortlisted: false
+  size: 64627183
   task_type: segmentation
 visloc-7500_onnxrt:
   model_name: ONR-VISLOC-7500-tiad-dkaze-carla-768x384
@@ -124,5 +796,5 @@ visloc-7500_onnxrt:
   run_dir: visloc-7500_onnxrt_carla_edgeai-tv_tiad_dkaze_carla_768x384_model_onnx
   session_name: onnxrt
   shortlisted: false
-  size: 5460677
+  size: 5463582
   task_type: visual_localization
