@@ -106,8 +106,8 @@ TIDL_FATAL_ERROR_LOGS_REGEX_LIST_TENSOR_BITS_NOT_32 = [
 TIDL_FIRMWARE_VERSIONS = {
     #'TIDL_FIRMWARE_VERSION_10_01_DEFAULT': {'value':'10_01_03_00', 'help': 'Default 10.1 - Compatible with the publicly released SDK 10.1 - Release date: Dec, 2024'},
     #'TIDL_FIRMWARE_VERSION_10_01_LATEST' : {'value':'10_01_04_00', 'help':'Latest 10.1 - Not compatible with publicly released version of SDK 10.1 - to enable, set th option c7x_firmware_version to 10_01_04_00 - needs firmware update in SDK.'},
-    'TIDL_FIRMWARE_VERSION_11_00_DEFAULT': {'value':'11_00_06_00', 'help': 'Default 11.0 - Compatible with the publicly released SDK 11.0 - Release date: May, 2025'},
-    'TIDL_FIRMWARE_VERSION_11_00_LATEST' : {'value':'11_00_08_00', 'help': 'Latest 11.0 - Not compatible with publicly released version of SDK 11.0 - to enable, set the option c7x_firmware_version to 11_00_08_00 - needs firmware update in SDK.'}
+    'TIDL_FIRMWARE_VERSION_11_00_DEFAULT': {'c7x_firmware_version':'11_00_00_00', 'help': 'Default 11.0 - Compatible with the publicly released SDK 11.0 - Release date: May, 2025'},
+    'TIDL_FIRMWARE_VERSION_11_00_LATEST' : {'c7x_firmware_version':'11_00_08_00', 'help': 'Latest 11.0 - Not compatible with publicly released version of SDK 11.0 - to enable, set the option c7x_firmware_version to 11_00_08_00 - needs firmware update in SDK.'}
 }
 
 

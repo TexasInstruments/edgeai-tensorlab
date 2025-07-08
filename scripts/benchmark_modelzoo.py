@@ -118,9 +118,9 @@ if __name__ == '__main__':
     #
 
     ####################################################################
-    print("\INFO: options for c7x_firmware_version")
-    for k, v in constants.TIDL_FIRMWARE_VERSIONS.items():
-        print(f"INFO: c7x_firmware_version: {v}")
+    # print("\INFO: options for c7x_firmware_version")
+    # for k, v in constants.TIDL_FIRMWARE_VERSIONS.items():
+    #     print(f"INFO: c7x_firmware_version: {v}")
 
     ####################################################################
     # settigns model_shortlist will cause only selected models to be run
