@@ -1,11 +1,15 @@
 import torch
 import os
 from itertools import chain
-from torch.fx.node import _format_arg
-from torch.fx.graph import _parse_stack_trace
 import pydot 
 from torch import fx
-from torch.fx.passes.graph_drawer import FxGraphDrawer, _WEIGHT_TEMPLATE
+
+try:
+    from torch.fx.node import _format_arg
+    from torch.fx.graph import _parse_stack_trace
+    from torch.fx.passes.graph_drawer import FxGraphDrawer, _WEIGHT_TEMPLATE
+except:
+    print('WARNING: graph drawing functions for Pytorch models are not available - please update Pytorch to a more recent version to enable.')
 
 
 class CustomFxGraphDrawer(FxGraphDrawer):
