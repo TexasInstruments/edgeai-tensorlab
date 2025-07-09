@@ -9,10 +9,37 @@ Edge AI model training, quantization, compilation/benchmark & Model Zoo
 
 <hr>
 
+## Release 11.0
+* Release name: **11.0**
+* Git branch: **r11.0**
+* tidl_tools version: **11_00_08_00**
+* [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) git tag: [11_00_08_00](https://github.com/TexasInstruments/edgeai-tidl-tools/releases/tag/11_00_08_00)
+* Date: 2025 May - 2025 July
+
+### New models in edgeai-modelzoo / edgeai-benchmark
+We are in the process of adding support for several new models. Configs for models verified in this release are in this repository and the models are available in edgeai-modelzoo. The following new models have been verified:
+
+| Model name                    | Model Type                            | Source repository |
+|-------------------------------|---------------------------------------|------------------------|
+| rtmdet lite version (multiple flavours) | Object Detection                      | edgeai-mmdetection     |
+| fastbev (without temporal)    | Multi-view 3DOD for ADAS                      | edgeai-mmdetection3d     |
+| bevformer_tiny    | Multi-view 3DOD for ADAS                      | edgeai-mmdetection3d     |
+
+Note: The 3DOD models are trained with **pandaset dataset** (which is a Multi-view, Multi-modality ADAS / Automous Driving Dataset). edgeai-mmdetection3d and edgeai-benchmark now supports pandaset dataset. See more details of this dataset in edgeai-mmdetection3d.
+
+
+
+<hr>
+
 ## Release 10.1
 * Release name: **10.1**
-* Git branch: **r10.1**
+* git branch: **r10.1**
+* [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) git tag: [10_01_04_00](https://github.com/TexasInstruments/edgeai-tidl-tools/releases/tag/10_01_04_00)
 * tidl_tools version: **10_01_04_01**
+* Date: 2024 Dec ~ 2025 March
+
+### edgeai-benchmark core runtime apis
+[2025-03-29 update] edgai-benchmark/edgeai_benchmark/core contains simplified wrapper apis over the core runtimes that are easy to use and understand. See edgeai-benchmark/run_tutorials_script_pc.sh and edgeai-benchmark/tutorials to understand the usage of these core apis.
 
 ### New models in edgeai-modelzoo / edgeai-benchmark
 We are in the process of adding support for several new models. Configs for models verified in this release are in this repository and the models are available in edgeai-modelzoo. The following new models have been verified:
@@ -28,6 +55,8 @@ We are in the process of adding support for several new models. Configs for mode
 | efficientdet_effb0_bifpn_lite | Object Detection                      | edgeai-mmdetection     |
 | YOLOXPose                     | Keypoint detection / Human Pose       | edgeai-mmpose          |
 
+**Note**: some of these models don't work natively in 10.1, but require a **firmware update** in the SDK and model compilation with firmware version set corresponding to that in tidl-tools. A separate script called  run_benchmarks_firmware_update_pc.sh is provided in edgeai-benchmark to compile models with newer firmware.
+
 ### New models in edgeai-modelmaker
 | Model name                    | Model Type                            | Source repository      |
 |-------------------------------|---------------------------------------|------------------------|
@@ -39,6 +68,9 @@ We are in the process of adding support for several new models. Configs for mode
 
 ### Tech reports
 New Tech report on 3D Object Detection - see the section on "Tech Reports"
+
+### Deprecations
+edgeai-yolox repository is being deprecated - use [edgeai-mmpose](edgeai-mmpose) for Keypoint detection and [edgeai-mmdetection](edgeai-mmdetection) for detection YOLOX models. The previous version of edgeai-yolox is still available in the previous branches of this repository or [here](https://github.com/TexasInstruments/edgeai-yolox)
 
 <hr>
 <hr>

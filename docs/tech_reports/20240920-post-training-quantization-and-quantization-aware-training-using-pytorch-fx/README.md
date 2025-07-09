@@ -87,7 +87,8 @@ from torch import nn
 from torch.quantization import quantize_fx
 import copy
 
-backend = "fbgemm"  # running on a x86 CPU. Use "qnnpack" if running on ARM.
+#"qnnpack" is recommended. "fbgemm" uses reduce_range which will cause higher quantization error.
+backend = "qnnpack"
 
 model = nn.Sequential(
      nn.Conv2d(2,64,3),
@@ -121,7 +122,8 @@ QAT follows the same steps as PTQ, with the exception of the training loop befor
 import torch
 from torch import nn
 
-backend = "fbgemm"  # running on a x86 CPU. Use "qnnpack" if running on ARM.
+#"qnnpack" is recommended. "fbgemm" uses reduce_range which will cause higher quantization error.
+backend = "qnnpack"
 
 m = nn.Sequential(
      nn.Conv2d(2,64,8),
@@ -130,21 +132,16 @@ m = nn.Sequential(
      nn.ReLU()
 )
 
-"""Fuse"""
-torch.quantization.fuse_modules(m, ['0','1'], inplace=True) # fuse first Conv-ReLU pair
-torch.quantization.fuse_modules(m, ['2','3'], inplace=True) # fuse second Conv-ReLU pair
 
-"""Insert stubs"""
-m = nn.Sequential(torch.quantization.QuantStub(), 
-                  *m, 
-                  torch.quantization.DeQuantStub())
-
-"""Prepare"""
+"""Prepare
+Insert this above prepare_qat_fx in your training script before the training loop.
+"""
 m.train()
-m.qconfig = torch.quantization.get_default_qconfig(backend)
-torch.quantization.prepare_qat(m, inplace=True)
+m.qconfig = torch.quantization.get_default_qat_qconfig(backend)
+m = quantize_fx.prepare_qat_fx(m)
 
-"""Training Loop"""
+"""Training Loop - the following is just an example of simple a training loop - not to be used
+"""
 n_epochs = 10
 opt = torch.optim.SGD(m.parameters(), lr=0.1)
 loss_fn = lambda out, tgt: torch.pow(tgt-out, 2).mean()

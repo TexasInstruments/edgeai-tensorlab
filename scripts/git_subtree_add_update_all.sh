@@ -28,8 +28,9 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+# note: this script is for development only - not meant to be used by users
 
-RELEASE_BRANCH=${1-"r10.1"}
+RELEASE_BRANCH=${1-"r11.0"}
 
 GIT_REPOS=( edgeai-modelzoo edgeai-modelmaker edgeai-modeloptimization edgeai-benchmark edgeai-torchvision edgeai-tensorvision edgeai-mmdetection edgeai-mmdetection3d edgeai-mmpose edgeai-hf-transformers edgeai-mmdeploy edgeai-yolox )
 
@@ -41,3 +42,7 @@ do
   git subtree add --prefix ${GIT_REPO} ssh://git@bitbucket.itg.ti.com/edgeai-algo/${GIT_REPO}.git ${RELEASE_BRANCH}
   git subtree pull --prefix ${GIT_REPO} ssh://git@bitbucket.itg.ti.com/edgeai-algo/${GIT_REPO}.git ${RELEASE_BRANCH}
 done
+
+#cd edgeai-mlbackend
+#git pull --rebase
+#cd ..
