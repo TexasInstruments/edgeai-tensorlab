@@ -28,59 +28,31 @@ We are in the process of adding support for several new models. Configs for mode
 Note: The 3DOD models are trained with **pandaset dataset** (which is a Multi-view, Multi-modality ADAS / Automous Driving Dataset). edgeai-mmdetection3d and edgeai-benchmark now supports pandaset dataset. See more details of this dataset in edgeai-mmdetection3d.
 
 
-
-<hr>
-
-## Release 10.1
-* Release name: **10.1**
-* git branch: **r10.1**
-* [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) git tag: [10_01_04_00](https://github.com/TexasInstruments/edgeai-tidl-tools/releases/tag/10_01_04_00)
-* tidl_tools version: **10_01_04_01**
-* Date: 2024 Dec ~ 2025 March
-
-### edgeai-benchmark core runtime apis
-[2025-03-29 update] edgai-benchmark/edgeai_benchmark/core contains simplified wrapper apis over the core runtimes that are easy to use and understand. See edgeai-benchmark/run_tutorials_script_pc.sh and edgeai-benchmark/tutorials to understand the usage of these core apis.
-
-### New models in edgeai-modelzoo / edgeai-benchmark
-We are in the process of adding support for several new models. Configs for models verified in this release are in this repository and the models are available in edgeai-modelzoo. The following new models have been verified:
-
-| Model name                    | Model Type                            | Source repository |
-|-------------------------------|---------------------------------------|------------------------|
-| swin_tiny_patch4_window7_224  | Image Clasifiation, Transformer       | edgeai-hf-transformers |
-| deit_tiny_patch16_224         | Image Clasifiation, Transformer       | edgeai-hf-transformers |
-| levit_128_224                 | Image Clasifiation, Transformer       | edgeai-hf-transformers |
-| segformer_b0                  | Semantic Segmentation, Transformer    | edgeai-hf-transformers |
-| YOLOv7 (mutliple flavours)    | Object Detection                      | edgeai-mmdetection     |
-| YOLOv9 (multiple flavours)    | Object Detection                      | edgeai-mmdetection     |
-| efficientdet_effb0_bifpn_lite | Object Detection                      | edgeai-mmdetection     |
-| YOLOXPose                     | Keypoint detection / Human Pose       | edgeai-mmpose          |
-
-**Note**: some of these models don't work natively in 10.1, but require a **firmware update** in the SDK and model compilation with firmware version set corresponding to that in tidl-tools. A separate script called  run_benchmarks_firmware_update_pc.sh is provided in edgeai-benchmark to compile models with newer firmware.
-
-### New models in edgeai-modelmaker
-| Model name                    | Model Type                            | Source repository      |
-|-------------------------------|---------------------------------------|------------------------|
-| YOLOv7       | Object Detection                      | edgeai-mmdetection     |
-| YOLOv9       | Object Detection                      | edgeai-mmdetection     |
-| YOLOXPose                     | Keypoint detection / Human Pose       | edgeai-mmpose          |
-
 **More details are in the [Release Notes](./docs/release_notes.md)**
 
-### Tech reports
-New Tech report on 3D Object Detection - see the section on "Tech Reports"
-
-### Deprecations
-edgeai-yolox repository is being deprecated - use [edgeai-mmpose](edgeai-mmpose) for Keypoint detection and [edgeai-mmdetection](edgeai-mmdetection) for detection YOLOX models. The previous version of edgeai-yolox is still available in the previous branches of this repository or [here](https://github.com/TexasInstruments/edgeai-yolox)
 
 <hr>
-<hr>
 
-## Notice
-Our documentation landing pages are the following:
-- https://www.ti.com/edgeai : Technology page summarizing TI’s edge AI software/hardware products 
-- **https://github.com/TexasInstruments/edgeai** : Landing page for developers to understand overall software and tools offering. Read it before navigating into this repository.
+## Cloning this repository
+This repository is an aggregation of multiple repositories using git subtree. Due to large number of commits, git clone can be slow. Recommend to clone only the required depth. For example, to clone the main branch with a shallow depth=1:
 
-<hr>
+
+```
+git clone --depth 1 https://github.com/TexasInstruments/edgeai-tensorlab.git
+```
+
+If you have done a shallow clone and later need the full history, you can fetch more commits. This will convert the shallow clone into a full clone by fetching the entire history of commits.
+
+```
+git fetch --unshallow
+```
+
+Or, you can incrementally deepen the history:
+
+```
+git fetch --depth=<new_depth>
+```
+
 <hr>
 
 ## How to get started
