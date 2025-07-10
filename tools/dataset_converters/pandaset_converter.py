@@ -231,7 +231,7 @@ def get_gt_bevdet(instances, ego_bboxes, ego_velocities):
 
 
 def generate_camera_sweeps(info, seq, frame_idx, data_list):
-    num_prev = 5
+    num_prev = 1
     num_sweep = 0 # pandaset does't have non-keyframes
     
     l2g = info['lidar_points']['lidar2global']
@@ -609,7 +609,7 @@ def main(args=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset-path', type=str)
     parser.add_argument('--output-dir', type=str)
-    parser.add_argument('--info-prefix', type=str, default='')
+    parser.add_argument('--info-prefix', type=str, default='pandaset')
     parser.add_argument('--version', type=str, default='v1.0')
     parser.add_argument('--dataset-name', type=str, default='PandaSetDataset')
     parser.add_argument('--with-semseg',  action='store_true')
