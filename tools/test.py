@@ -184,22 +184,25 @@ def main(args=None):
         quantization_kwargs = dict(quantization_method='QAT', total_epochs=runner.max_epochs)
     else:
         quantization_kwargs = None
+    
+    if model_surgery == 1:
+        device = next(runner.model.parameters()).device
+        runner.model = xmodelopt.surgery.v1.convert_to_lite_model(runner.model, replacement_dict=model_surgery_kwargs['replacement_dict'])
+        runner.model = runner.model.to(torch.device(device))
+    else:
+        # orig_model = deepcopy(runner.model)
+        runner.model = xmodelopt.apply_model_optimization(runner.model,example_inputs,example_kwargs, model_surgery_version=model_surgery, quantization_version=args.quantization, model_surgery_kwargs=model_surgery_kwargs, quantization_kwargs=quantization_kwargs, transformation_dict=transformation_dict, copy_attrs=copy_attrs)
+    
     # if model_surgery_kwargs is not None and quantization_kwargs is None:
     runner.call_hook('before_run')
     runner.load_or_resume()
     runner.call_hook('after_run')
     
-    if model_surgery == 1:
-        runner.model = xmodelopt.surgery.v1.convert_to_lite_model(runner.model, replacement_dict=model_surgery_kwargs['replacement_dict'])
-    else:
-        orig_model = deepcopy(runner.model)
-        runner.model = xmodelopt.apply_model_optimization(runner.model,example_inputs,example_kwargs, model_surgery_version=model_surgery, quantization_version=args.quantization, model_surgery_kwargs=model_surgery_kwargs, quantization_kwargs=quantization_kwargs, transformation_dict=transformation_dict, copy_attrs=copy_attrs)
-    
     if is_wrapped:
         runner.model = runner.wrap_model(
             runner.cfg.get('model_wrapper_cfg'), runner.model)
     print_log('model optimization done')
-    # print(runner.model)
+    # print_log(runner.model)
     runner.test()
 
 

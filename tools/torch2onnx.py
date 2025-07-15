@@ -104,9 +104,11 @@ def main():
         model_surgery_kwargs = None
 
     if model_surgery == 1:
+        device = next(torch_model.parameters()).device
         torch_model = xmodelopt.surgery.v1.convert_to_lite_model(torch_model, replacement_dict=model_surgery_kwargs['replacement_dict'])
-    # else:
-        # torch_model = xmodelopt.apply_model_optimization(torch_model,example_inputs,example_kwargs, model_surgery_version=model_surgery, quantization_version=args.quantization, model_surgery_kwargs=model_surgery_kwargs, transformation_dict=transformation_dict, copy_attrs=copy_attrs)
+        torch_model = torch_model.to(torch.device(device))
+    else:
+        torch_model = xmodelopt.apply_model_optimization(torch_model,example_inputs,example_kwargs, model_surgery_version=model_surgery, model_surgery_kwargs=model_surgery_kwargs, transformation_dict=transformation_dict, copy_attrs=copy_attrs)
 
     print_log('model optimization done')
     
