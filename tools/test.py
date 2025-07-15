@@ -23,7 +23,6 @@ from mmdet.utils.model_optimization import get_replacement_dict, wrap_fn_for_bbo
 from edgeai_torchmodelopt import xmodelopt
 from edgeai_torchmodelopt import xnn
 
-
 # TODO: support fuse_conv_bn and format_only
 def parse_args(args = None):
     parser = argparse.ArgumentParser(
@@ -102,7 +101,6 @@ def main(args=None):
         cfg = trigger_visualization_hook(cfg, args)
 
     if args.tta:
-
         if 'tta_model' not in cfg:
             warnings.warn('Cannot find ``tta_model`` in config, '
                           'we will set it as default.')
