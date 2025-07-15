@@ -96,12 +96,18 @@ def main():
     
     transformation_dict = dict(backbone=None, neck=None, bbox_head=xmodelopt.utils.TransformationWrapper(wrap_fn_for_bbox_head))
     copy_attrs=['train_step', 'val_step', 'test_step', 'data_preprocessor', 'parse_losses', 'bbox_head', '_run_forward']
+
     if model_surgery:
         model_surgery_kwargs = dict(replacement_dict=get_replacement_dict(model_surgery, model_cfg))
     else:
         model_surgery_kwargs = None
 
-    torch_model = xmodelopt.apply_model_optimization(torch_model,example_inputs,example_kwargs, model_surgery_version=model_surgery, quantization_version=args.quantization, model_surgery_kwargs=model_surgery_kwargs, transformation_dict=transformation_dict, copy_attrs=copy_attrs)
+    if model_surgery == 1:
+        device = next(torch_model.parameters()).device
+        torch_model = xmodelopt.surgery.v1.convert_to_lite_model(torch_model, replacement_dict=model_surgery_kwargs['replacement_dict'])
+        torch_model = torch_model.to(torch.device(device))
+    else:
+        torch_model = xmodelopt.apply_model_optimization(torch_model,example_inputs,example_kwargs, model_surgery_version=model_surgery, model_surgery_kwargs=model_surgery_kwargs, transformation_dict=transformation_dict, copy_attrs=copy_attrs)
 
     print_log('model optimization done')
     
