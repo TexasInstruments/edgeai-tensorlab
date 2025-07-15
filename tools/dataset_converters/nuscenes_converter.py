@@ -63,7 +63,8 @@ def create_nuscenes_infos(root_path,
                           version='v1.0-trainval',
                           max_sweeps=10,
                           enable_bevdet=False,
-                          enable_strpetr=False):
+                          enable_strpetr=False,
+                          enable_sparse4d=False):
     """Create info file of nuscene dataset.
 
     Given the raw data, generate its related info file in pkl format.
@@ -120,7 +121,7 @@ def create_nuscenes_infos(root_path,
 
     train_nusc_infos, val_nusc_infos = _fill_trainval_infos(
         nusc, nusc_can_bus, train_scenes, val_scenes, test, max_sweeps=max_sweeps,
-        enable_bevdet=enable_bevdet, enable_strpetr=enable_strpetr)
+        enable_bevdet=enable_bevdet, enable_strpetr=enable_strpetr,enable_sparse4d=enable_sparse4d)
 
     metadata = dict(version=version)
     if test:
@@ -320,7 +321,8 @@ def _fill_trainval_infos(nusc,
                          test=False,
                          max_sweeps=10,
                          enable_bevdet=False,
-                         enable_strpetr=False):
+                         enable_strpetr=False,
+                         enable_sparse4d=False):
     """Generate the train/val infos from the raw data.
 
     Args:
@@ -444,6 +446,13 @@ def _fill_trainval_infos(nusc,
             gt_boxes = np.concatenate([locs, dims[:, [1, 0, 2]], rots], axis=1)
             assert len(gt_boxes) == len(
                 annotations), f'{len(gt_boxes)}, {len(annotations)}'
+            if enable_sparse4d:
+                info["instance_inds"] = np.array(
+                    [
+                        nusc.getind("instance", x["instance_token"])
+                        for x in annotations
+                    ]
+                )
             info['gt_boxes'] = gt_boxes
             info['gt_names'] = names
             info['gt_velocity'] = velocity.reshape(-1, 2)

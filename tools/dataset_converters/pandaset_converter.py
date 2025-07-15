@@ -15,6 +15,7 @@ from mmdet3d.datasets.convert_utils import convert_corners_to_bbox_for_lidar_box
 
 test_scenes_const  = ['014', '101', '069', '091', '120', '011', '115', '059', '117', '068', '086',
                       '112', '019', '013', '052', '039', '113', '044', '079', '024', '099']
+# test_scenes_const = ['014', ]#'101']
 train_scenes_const = ['041', '064', '067', '012', '073', '093', '106', '004', '057', '090', '051',
                       '063', '021', '035', '008', '119', '056', '102', '095', '065', '066', '005',
                       '017', '109', '023', '105', '043', '047', '034', '003', '104', '042', '033',
@@ -23,6 +24,7 @@ train_scenes_const = ['041', '064', '067', '012', '073', '093', '106', '004', '0
                       '074', '002', '078', '097', '062', '054', '116', '077', '124', '053', '027',
                       '071', '015', '045', '080', '072', '030', '123', '094', '092', '089', '028',
                       '055', '088', '038', '020', '032']
+# train_scenes_const = []
     
 def delete_obj(obj):
     if isinstance(obj, (list, tuple)):
@@ -286,7 +288,7 @@ def generate_camera_sweeps(info, seq, frame_idx, data_list):
     return info
 
 
-def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img, data_list, enable_petrv2=True, enable_strpetr=True):
+def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img, data_list, token_list, enable_petrv2=False, enable_strpetr=False, enable_sparse4d=False):
     scene_token = scene_id
     frame_token = f'{scene_id}_{frame_idx:02}'
     prev = (frame_idx-1) if frame_idx > 0 else None
@@ -329,6 +331,14 @@ def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img, data_li
     cam_velocities = {name: dict(zip(filtered_cuboids[:,0].tolist(),(np.linalg.inv(cam2global[name][:3,:3]) @ world_velocities.T).T.tolist())) for name in CAMERA_NAMES}
     cuboids_data = {value[0]: value[1:] for value in filtered_cuboids}
 
+    if enable_sparse4d:
+        instance_inds = []
+        for bbox in filtered_cuboids:
+            if bbox[0] not in token_list:
+                token_list.append(bbox[0])
+            instance_inds.append(token_list.index(bbox[0]))
+        frame_dict['instance_inds'] = instance_inds
+    
     lidar_bboxes = []
     ego_bboxes = []
     for cuboid in filtered_cuboids.tolist():
@@ -503,7 +513,7 @@ def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img, data_li
     return frame_dict
 
 
-def create_datalist_per_scene(scene_id, dataset, enable_petrv2=True, enable_strpetr=True):
+def create_datalist_per_scene(scene_id, dataset, token_list, enable_petrv2=False, enable_strpetr=False, enable_sparse4d=False):
     data_list = []
     seq = dataset[scene_id]
     seq.load()
@@ -515,7 +525,8 @@ def create_datalist_per_scene(scene_id, dataset, enable_petrv2=True, enable_strp
     with tqdm.tqdm(total=len(seq.lidar._data_structure)) as pbar:
 
         for frame_idx in range(len(seq.lidar._data_structure)):
-            frame_dict = create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img, data_list, enable_petrv2=enable_petrv2, enable_strpetr=enable_strpetr)
+            frame_dict = create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img, data_list,
+                                           token_list, enable_petrv2=enable_petrv2, enable_strpetr=enable_strpetr, enable_sparse4d=enable_sparse4d)
             data_list.append(copy.deepcopy(frame_dict))
             delete_obj(frame_dict)
             pbar.update()
@@ -538,7 +549,8 @@ def create_datalist_per_scene(scene_id, dataset, enable_petrv2=True, enable_strp
     return data_list
 
 
-def create_pickle_file( dataset, scenes, output_dir=None, info_prefix=None, version=None, dataset_name=None, train_split=True, enable_petrv2=True, enable_strpetr=True):
+def create_pickle_file( dataset, scenes, output_dir=None, info_prefix=None, version=None, dataset_name=None, train_split=True, 
+                       enable_petrv2=False, enable_strpetr=False, enable_sparse4d=False):
     output_dir = output_dir or os.getcwd()
     version = version or 'v1.0'
     dataset_name = dataset_name or 'PandaSetDataset'
@@ -555,10 +567,12 @@ def create_pickle_file( dataset, scenes, output_dir=None, info_prefix=None, vers
     os.makedirs(output_dir, exist_ok=True)
     output_file = os.path.join(output_dir, file_name)
     data_list = []
+    token_list = []
 
     for i, scene_id in enumerate(scenes):
         print(f"Scene({i+1}/{len(scenes)}): ",end='')
-        data_list.extend(create_datalist_per_scene(scene_id, dataset, enable_petrv2=enable_petrv2, enable_strpetr=enable_strpetr))
+        data_list.extend(create_datalist_per_scene(scene_id, dataset,  token_list,
+                                enable_petrv2=enable_petrv2, enable_strpetr=enable_strpetr, enable_sparse4d=enable_sparse4d))
 
     for i, frame in enumerate(data_list):
         frame['sample_idx'] = i
@@ -569,7 +583,8 @@ def create_pickle_file( dataset, scenes, output_dir=None, info_prefix=None, vers
 
 
 
-def create_pickle_files(dataset_path, output_dir, info_prefix, version, dataset_name, with_semseg=False, fixed_split=True, train_split=0.80, enable_petrv2=True, enable_strpetr=True):
+def create_pickle_files(dataset_path, output_dir, info_prefix, version, dataset_name, with_semseg=False, fixed_split=True, train_split=0.80, 
+                        enable_petrv2=False, enable_strpetr=False, enable_sparse4d=False):
     dataset = ps.DataSet(dataset_path)
     semseg_scenes = dataset.sequences(with_semseg=with_semseg)
     scenes = dataset.sequences()
@@ -590,19 +605,20 @@ def create_pickle_files(dataset_path, output_dir, info_prefix, version, dataset_
         pass
     else:
         print(f"Creating a test dataset of {len(test_scenes)} scenes")
-        create_pickle_file(dataset, test_scenes, output_dir, info_prefix, version, dataset_name, train_split=False, enable_petrv2=enable_petrv2, enable_strpetr=enable_strpetr)
+        create_pickle_file(dataset, test_scenes, output_dir, info_prefix, version, dataset_name, train_split=False, enable_petrv2=enable_petrv2, enable_strpetr=enable_strpetr, enable_sparse4d=enable_sparse4d)
         print(f"Creating a train dataset of {len(train_scenes)} scenes")
-        create_pickle_file(dataset, train_scenes, output_dir, info_prefix, version, dataset_name, enable_petrv2=enable_petrv2, enable_strpetr=enable_strpetr)
+        create_pickle_file(dataset, train_scenes, output_dir, info_prefix, version, dataset_name, enable_petrv2=enable_petrv2, enable_strpetr=enable_strpetr, enable_sparse4d=enable_sparse4d)
 
 def create_pandaset_infos(root_path,
                           info_prefix,
                           version,
                           dataset_name,
                           out_dir,
-                          enable_petrv2=True,
-                          enable_strpetr=True
+                          enable_petrv2=False,
+                          enable_strpetr=False, 
+                          enable_sparse4d=False
                           ):
-    create_pickle_files(root_path, out_dir, info_prefix, version, dataset_name,enable_petrv2=enable_petrv2, enable_strpetr=enable_strpetr)
+    create_pickle_files(root_path, out_dir, info_prefix, version, dataset_name,enable_petrv2=enable_petrv2, enable_strpetr=enable_strpetr, enable_sparse4d=enable_sparse4d)
     
 
 def main(args=None):

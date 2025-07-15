@@ -387,7 +387,7 @@ def generate_camera_sweeps(info, nusc, out_dir):
 
 def update_nuscenes_infos(pkl_path, out_dir, 
                           enable_bevdet=False, enable_petrv2=False,
-                          enable_strpetr=False):
+                          enable_strpetr=False, enable_sparse4d=False):
     camera_types = [
         'CAM_FRONT',
         'CAM_FRONT_RIGHT',
@@ -547,6 +547,9 @@ def update_nuscenes_infos(pkl_path, out_dir,
             temp_data_info['depths']        = ori_info_dict['depths']
             temp_data_info['bboxes_ignore'] = ori_info_dict['bboxes_ignore']
 
+        if enable_sparse4d is True and 'instance_inds' in ori_info_dict.keys():
+            temp_data_info['instance_inds'] = ori_info_dict['instance_inds']
+            
         converted_list.append(temp_data_info)
 
     pkl_name = Path(pkl_path).name
@@ -1314,7 +1317,7 @@ def parse_args():
 
 def update_pkl_infos(dataset, out_dir, pkl_path,
                      enable_bevdet=False, enable_petrv2=False,
-                     enable_strpetr=False):
+                     enable_strpetr=False, enable_sparse4d=False):
     if dataset.lower() == 'kitti':
         update_kitti_infos(pkl_path=pkl_path, out_dir=out_dir)
     elif dataset.lower() == 'waymo':
@@ -1328,7 +1331,7 @@ def update_pkl_infos(dataset, out_dir, pkl_path,
     elif dataset.lower() == 'nuscenes':
         update_nuscenes_infos(pkl_path=pkl_path, out_dir=out_dir,
                               enable_bevdet=enable_bevdet, enable_petrv2=enable_petrv2,
-                              enable_strpetr=enable_strpetr)
+                              enable_strpetr=enable_strpetr,enable_sparse4d=enable_sparse4d)
     elif dataset.lower() == 's3dis':
         update_s3dis_infos(pkl_path=pkl_path, out_dir=out_dir)
     else:
