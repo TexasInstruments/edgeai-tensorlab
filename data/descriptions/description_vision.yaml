@@ -209,7 +209,7 @@ model_descriptions:
       input_resize:
       - 512
       - 512
-      learning_rate: 0.002
+      learning_rate: 0.001
       log_file_path: null
       log_summary_regex: null
       model_architecture: backbone
@@ -242,11 +242,11 @@ model_descriptions:
         name: training_epochs
         type: integer
       - decimal_places: 3
-        default: 0.04
+        default: 0.001
         increment: 0.001
         label: Learning Rate
         max: 0.1
-        min: 0.001
+        min: 0.0001
         name: learning_rate
         type: float
       - default: 8
@@ -404,7 +404,7 @@ model_descriptions:
       input_resize:
       - 512
       - 512
-      learning_rate: 0.002
+      learning_rate: 0.001
       log_file_path: null
       log_summary_regex: null
       model_architecture: backbone
@@ -437,11 +437,11 @@ model_descriptions:
         name: training_epochs
         type: integer
       - decimal_places: 3
-        default: 0.04
+        default: 0.001
         increment: 0.001
         label: Learning Rate
         max: 0.1
-        min: 0.001
+        min: 0.0001
         name: learning_rate
         type: float
       - default: 8
@@ -583,7 +583,7 @@ model_descriptions:
       enable: true
       input_cropsize: 224
       input_resize: 256
-      learning_rate: 0.002
+      learning_rate: 0.001
       log_file_path: null
       log_summary_regex: null
       model_architecture: backbone
@@ -618,11 +618,11 @@ model_descriptions:
         name: training_epochs
         type: integer
       - decimal_places: 3
-        default: 0.04
+        default: 0.001
         increment: 0.001
         label: Learning Rate
         max: 0.1
-        min: 0.001
+        min: 0.0001
         name: learning_rate
         type: float
       - default: 8
@@ -776,7 +776,7 @@ model_descriptions:
       enable: true
       input_cropsize: 224
       input_resize: 256
-      learning_rate: 0.002
+      learning_rate: 0.001
       log_file_path: null
       log_summary_regex: null
       model_architecture: backbone
@@ -811,11 +811,11 @@ model_descriptions:
         name: training_epochs
         type: integer
       - decimal_places: 3
-        default: 0.04
+        default: 0.001
         increment: 0.001
         label: Learning Rate
         max: 0.1
-        min: 0.001
+        min: 0.0001
         name: learning_rate
         type: float
       - default: 8
@@ -969,7 +969,7 @@ model_descriptions:
       enable: true
       input_cropsize: 224
       input_resize: 256
-      learning_rate: 0.002
+      learning_rate: 0.001
       log_file_path: null
       log_summary_regex: null
       model_architecture: backbone
@@ -1004,11 +1004,11 @@ model_descriptions:
         name: training_epochs
         type: integer
       - decimal_places: 3
-        default: 0.04
+        default: 0.001
         increment: 0.001
         label: Learning Rate
         max: 0.1
-        min: 0.001
+        min: 0.0001
         name: learning_rate
         type: float
       - default: 8
@@ -1160,7 +1160,7 @@ model_descriptions:
       input_resize:
       - 512
       - 512
-      learning_rate: 0.002
+      learning_rate: 0.001
       log_file_path: null
       log_summary_regex: null
       model_architecture: backbone
@@ -1193,11 +1193,11 @@ model_descriptions:
         name: training_epochs
         type: integer
       - decimal_places: 3
-        default: 0.04
+        default: 0.001
         increment: 0.001
         label: Learning Rate
         max: 0.1
-        min: 0.001
+        min: 0.0001
         name: learning_rate
         type: float
       - default: 8
@@ -1339,7 +1339,7 @@ model_descriptions:
       enable: true
       input_cropsize: 640
       input_resize: 640
-      learning_rate: 0.002
+      learning_rate: 0.001
       log_file_path: null
       log_summary_regex: null
       model_architecture: yolov7
@@ -1374,11 +1374,11 @@ model_descriptions:
         name: training_epochs
         type: integer
       - decimal_places: 3
-        default: 0.04
+        default: 0.001
         increment: 0.001
         label: Learning Rate
         max: 0.1
-        min: 0.001
+        min: 0.0001
         name: learning_rate
         type: float
       - default: 8
@@ -1526,7 +1526,7 @@ model_descriptions:
       enable: true
       input_cropsize: 416
       input_resize: 416
-      learning_rate: 0.002
+      learning_rate: 0.001
       log_file_path: null
       log_summary_regex: null
       model_architecture: yolox
@@ -1561,11 +1561,11 @@ model_descriptions:
         name: training_epochs
         type: integer
       - decimal_places: 3
-        default: 0.04
+        default: 0.001
         increment: 0.001
         label: Learning Rate
         max: 0.1
-        min: 0.001
+        min: 0.0001
         name: learning_rate
         type: float
       - default: 8
@@ -1737,7 +1737,7 @@ model_descriptions:
       enable: true
       input_cropsize: 320
       input_resize: 320
-      learning_rate: 0.002
+      learning_rate: 0.001
       log_file_path: null
       log_summary_regex: null
       model_architecture: yolox
@@ -1772,11 +1772,11 @@ model_descriptions:
         name: training_epochs
         type: integer
       - decimal_places: 3
-        default: 0.04
+        default: 0.001
         increment: 0.001
         label: Learning Rate
         max: 0.1
-        min: 0.001
+        min: 0.0001
         name: learning_rate
         type: float
       - default: 8
@@ -1908,7 +1908,7 @@ model_descriptions:
       enable: true
       input_cropsize: 640
       input_resize: 640
-      learning_rate: 0.002
+      learning_rate: 0.001
       log_file_path: null
       log_summary_regex: null
       model_architecture: yolox
@@ -1943,11 +1943,11 @@ model_descriptions:
         name: training_epochs
         type: integer
       - decimal_places: 3
-        default: 0.04
+        default: 0.001
         increment: 0.001
         label: Learning Rate
         max: 0.1
-        min: 0.001
+        min: 0.0001
         name: learning_rate
         type: float
       - default: 8
@@ -2106,7 +2106,7 @@ model_descriptions:
       enable: true
       input_cropsize: 416
       input_resize: 416
-      learning_rate: 0.002
+      learning_rate: 0.001
       log_file_path: null
       log_summary_regex: null
       model_architecture: yolox
@@ -2141,11 +2141,11 @@ model_descriptions:
         name: training_epochs
         type: integer
       - decimal_places: 3
-        default: 0.04
+        default: 0.001
         increment: 0.001
         label: Learning Rate
         max: 0.1
-        min: 0.001
+        min: 0.0001
         name: learning_rate
         type: float
       - default: 8
@@ -2313,7 +2313,7 @@ model_descriptions:
       enable: true
       input_cropsize: 640
       input_resize: 640
-      learning_rate: 0.002
+      learning_rate: 0.001
       log_file_path: null
       log_summary_regex: null
       model_architecture: yolox
@@ -2348,11 +2348,11 @@ model_descriptions:
         name: training_epochs
         type: integer
       - decimal_places: 3
-        default: 0.04
+        default: 0.001
         increment: 0.001
         label: Learning Rate
         max: 0.1
-        min: 0.001
+        min: 0.0001
         name: learning_rate
         type: float
       - default: 8
@@ -2496,7 +2496,7 @@ model_descriptions:
       enable: true
       input_cropsize: 416
       input_resize: 416
-      learning_rate: 0.002
+      learning_rate: 0.001
       log_file_path: null
       log_summary_regex: null
       model_architecture: yolox
@@ -2531,11 +2531,11 @@ model_descriptions:
         name: training_epochs
         type: integer
       - decimal_places: 3
-        default: 0.04
+        default: 0.001
         increment: 0.001
         label: Learning Rate
         max: 0.1
-        min: 0.001
+        min: 0.0001
         name: learning_rate
         type: float
       - default: 8

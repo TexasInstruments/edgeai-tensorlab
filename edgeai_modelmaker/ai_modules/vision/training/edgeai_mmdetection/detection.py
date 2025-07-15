@@ -539,16 +539,35 @@ class ModelTraining:
                         ]
         config_strs += [f'base_lr ={self.params.training.learning_rate} \n'
                         ]
-        config_strs += [f'train_cfg = dict(max_epochs={self.params.training.training_epochs}, type="EpochBasedTrainLoop", val_interval=1)\n']
-        # yolox_lr_config_str = \
-        #                 f'    num_last_epochs={self.params.training.num_last_epochs},\n' if \
-        #                         self.params.training.model_architecture == 'yolox' else ''
-        # config_strs += [f'lr_config = dict(\n'
-        #                 f'    warmup_by_epoch=True,\n',
-        #                 f'    warmup_iters={self.params.training.warmup_epochs},\n',
-        #                 f'{yolox_lr_config_str}',
-        #                 f')\n',
-        #                 ]
+        config_strs += [f'train_cfg = dict(max_epochs={self.params.training.training_epochs}, type="EpochBasedTrainLoop", val_interval=1)\n'
+                        ]
+
+        config_strs += [f'param_scheduler = [\n'
+                        f'    dict(\n'
+                        f'        type=\'mmdet.QuadraticWarmupLR\',\n'
+                        f'        by_epoch=True,\n'
+                        f'        begin=0,\n'
+                        f'        end={self.params.training.warmup_epochs},\n'
+                        f'        convert_to_iter_based=True),\n'
+                        f'    dict(\n'
+                        f'        type=\'CosineAnnealingLR\',\n'
+                        f'        eta_min={self.params.training.learning_rate} * 0.05,\n'
+                        f'        begin={self.params.training.warmup_epochs},\n'
+                        f'        T_max={self.params.training.training_epochs} - {self.params.training.num_last_epochs},\n'
+                        f'        end={self.params.training.training_epochs} - {self.params.training.num_last_epochs},\n'
+                        f'        by_epoch=True,\n'
+                        f'        convert_to_iter_based=True),\n'
+                        f'    dict(\n'
+                        f'        # use fixed lr during last 15 epochs\n'
+                        f'        type=\'ConstantLR\',\n'
+                        f'        by_epoch=True,\n'
+                        f'        factor=1,\n'
+                        f'        begin={self.params.training.training_epochs} - {self.params.training.num_last_epochs},\n'
+                        f'        end={self.params.training.training_epochs},\n'
+                        f'    )\n'
+                        f']\n'
+                        ]
+    
         config_strs += [f'load_from   = "{os.path.abspath(self.params.training.pretrained_checkpoint_path)}"']
 
         # write the config file

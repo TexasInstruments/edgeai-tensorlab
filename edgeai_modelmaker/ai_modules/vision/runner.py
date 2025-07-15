@@ -252,7 +252,8 @@ class ModelRunner():
         status_params = utils.ConfigDict(status_params)
         # format the run_params to create status_params
         run_params_formatted = copy.deepcopy(self.params)
-        run_params_formatted.compilation = {self.params.common.target_device:run_params_formatted.compilation}
+        # run_params_formatted.compilation = {self.params.common.target_device:run_params_formatted.compilation}
+        run_params_formatted.compilation = run_params_formatted.compilation
         run_params_formatted = utils.ConfigDict(run_params_formatted)
         status_params.update(run_params_formatted)
         utils.write_dict(status_params, status_params_file)
