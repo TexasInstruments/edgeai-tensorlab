@@ -1,0 +1,21 @@
+include_files : ['../../settings_base.yaml']
+num_frames : 1
+calibration_frames : 1
+calibration_iterations : 1
+input_optimization : False
+runtime_selection : ['onnxrt', 'tvmdlr']
+parallel_processes : null
+target_machine : 'pc'
+run_import : True
+run_inference : False
+model_shortlist: null
+parallel_processes : null
+run_missing : False
+
+# options are: 8 16 32
+tensor_bits : 8
+
+inference_nmse_thresholds : 
+  default : 0.5
+# Example of overriding the default for a operator
+#  test_add_bcast : 0.6

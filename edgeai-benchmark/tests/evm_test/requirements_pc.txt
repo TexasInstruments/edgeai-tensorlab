@@ -1,0 +1,6 @@
+pyserial==3.5
+pexpect==4.8.0
+sockets
+wget
+dlipower
+git+https://github.com/Innovailable/pypwrctrl.git@master#egg=pypwrctrl

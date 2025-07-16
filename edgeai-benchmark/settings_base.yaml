@@ -1,0 +1,123 @@
+# execution pipeline type - currently only accuracy pipeline is defined
+pipeline_type : 'accuracy'
+
+# target_device indicates the SoC for which the model compilation will take place
+# the actual target_device depends on the tidl_tools being used.
+# currently this field is for information only - setting to null is fine
+# use one of: TDA4VM AM62A AM68A AM69A
+# (Note: until r8.5 only TDA4VM was supported)
+target_device : null
+
+# quantization bit precision
+# options are: 8 16 32
+tensor_bits : 8
+
+# number of frames for inference
+num_frames : 1000 #5000 #10000 #50000
+
+# number of frames to be used for post training quantization / calibration
+calibration_frames : 12 #25 #50
+
+# number of iterations to be used for post training quantization / calibration
+calibration_iterations : 12 #25 #50
+
+# runtime_options to be passed to the core session. default: null or a dict
+# eg. (in next line and with preceding spaces to indicate this is a dict entry) accuracy_level : 0
+# runtime_options :
+#   accuracy_level: 1    #this is automatically set as 1 if you set tensor bits as 8
+#   advanced_options:output_feature_16bit_names_list: '363,561' #layers that you want to be treated as 16 bit
+
+# folder where benchmark configs are defined. this should be python importable
+# # if this is None, the internally defined minimal set of configs will be used
+configs_path : './configs'
+
+# folder where models are available
+models_path : '../edgeai-modelzoo/models'
+
+# create your datasets under this folder
+datasets_path : './dependencies/datasets'
+
+# path where precompiled modelartifacts are placed
+modelartifacts_path : './work_dirs/modelartifacts/{target_device}'
+
+# path where the packaged precompiled modelartifacts are placed
+modelpackage_path : './work_dirs/modelpackage/{target_device}'
+
+# session types to use for each model type
+session_type_dict : {'onnx':'onnxrt', 'tflite':'tflitert', 'mxnet':'tvmdlr'}
+
+# wild card list to match against model_path, model_id or model_type - if null, all models wil be shortlisted
+# only models matching these criteria will be considered - even for model_selection
+#   examples: ['onnx'] ['tflite'] ['mxnet'] ['onnx', 'tflite']
+#   examples: ['resnet18.onnx', 'resnet50_v1.tflite'] ['classification'] ['imagenet1k'] ['torchvision'] ['coco']
+#   examples: [cl-0000, od-2020, ss-2580, cl-3090, od-5120, ss-5710, cl-6360, od-8020, od-8200, od-8220, od-8420, ss-8610, kd-7060, 3dod-7100, 6dpose-7200, ss-7618]
+#   examples: [cl-0000, od-2020, cl-6360, od-8200, od-8270, od-8410, ss-8610, ss-8630, ss-8710, ss-8720]
+#   examples: [3dod-7120 (PETR), 3dod-7130 (BEVDet), 3dod-7140 (BEVFormer), 3dod-7150 (FCOS3D), 3dod-7160 ~ 3dod-7163 (FastBEV)]  # NuScenes Experimental
+#   examples: [3dod-8160 ~ 3dod-8161 (FastBEV)] # PandaSet
+model_selection : null
+
+# model_shortlist can be a number, which indicates a predefined shortlist, and a fraction of the models will be selected
+# model_shortlist and model_selection are complimentary - they can be used together.
+# 0 means no models, 1 means 1 model, 15 means roughly 15% of models, 100 means all the models.
+#   suggested values: minimalset: 10, basicset: 20, defaultset: 120, fullset: 200, all: null
+#   example: null
+#   example: 10
+#   example: 20
+#   example: 120
+model_shortlist: 100
+
+# wild card list to match against the tasks. it null, all tasks will be run
+# example: ['classification', 'detection', 'segmentation', 'depth_estimation', 'keypoint_detection', 'detection_3d']
+# example: 'classification'
+# example: null (Note: null means no filter - run all the tasks)
+task_selection : null
+
+# wild card list to match against runtime name. if null, all runtimes will be considered
+# example: ['onnxrt', 'tflitert', 'tvmdlr']
+# example: ['onnxrt']
+runtime_selection : null
+
+# dataset_selection can be a list of dataset categories for which the models will be run
+# set this to null to run all the models
+# example: ['coco']
+# example: ['imagenet', 'coco', 'cocoseg21', 'ade20k', 'cocokpts', 'kitti_lidar_det', 'ti-robokit_semseg_zed1hd', 'ycbv']
+# example: ['nuscenes_frame' (PETR, BEVDet, BEVFormer, FastBEV), 'nuscenes_mv_image' (FCOS3D)]
+# example: ['pandaset_frame' (PETR, BEVDet, BEVFormer, FastBEV), 'pandaset_mv_image' (FCOS3D)]
+dataset_selection : null
+
+# use TIDL offload to speedup inference
+tidl_offload : True
+
+# input optimization to improve FPS: False or null
+# null will cause the default value set in sessions.__init__ to be used.
+input_optimization : null
+
+# detection threshold - set to True to set this automatically
+# recommend 0.3 for best fps, 0.05 for accuracy measurement
+detection_threshold : 0.3
+
+# detection  - top_k boxes that go into nms - set to True to set this automatically
+# (this is an intermediate set, not the final number of boxes that are kept)
+# recommend 200 for best fps, 500 for accuracy measurement
+detection_top_k : 200
+
+# verbose mode - print out more information
+verbose : False
+
+# save detection, segmentation, human pose estimation output
+save_output : False
+
+# wehther to apply predifened presets based on target_device
+target_device_preset : True
+
+# logging of the import, infer and the accuracy to a file. set to False to disable it.
+enable_logging: True
+
+# writing of dataset.yaml, config.yaml, param.yaml and result.yaml depends on this flag
+write_results: True
+
+# enable use of additional models - the actual model files may be in a different modelzoo repo (for example edgeai-modelzoo-cl)
+additional_models : False
+
+# enable use of experimental models - these model files may not be available in modelzoo in some cases
+experimental_models : False

@@ -1,0 +1,5 @@
+-r requirements.txt
+https://software-dl.ti.com/jacinto7/esd/tidl-tools/10_01_04_01/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/dlr-1.13.0-py3-none-any.whl
+https://software-dl.ti.com/jacinto7/esd/tidl-tools/10_01_04_01/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/tvm-0.12.0-cp310-cp310-linux_x86_64.whl
+https://software-dl.ti.com/jacinto7/esd/tidl-tools/10_01_04_01/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/onnxruntime_tidl-1.15.0-cp310-cp310-linux_x86_64.whl
+https://software-dl.ti.com/jacinto7/esd/tidl-tools/10_01_04_01/OSRT_TOOLS/X86_64_LINUX/UBUNTU_22_04/tflite_runtime-2.12.0-cp310-cp310-linux_x86_64.whl

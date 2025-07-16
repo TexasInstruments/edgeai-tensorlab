@@ -1,0 +1,18 @@
+-r requirements.txt
+opencv-python-headless
+onnxsim==0.4.35
+numpy==1.23.0
+scipy==1.10
+tflite
+flatbuffers==1.12.0
+requests
+pytest
+graphviz
+h5py
+#protobuf
+#onnx==1.14.0
+graphviz
+colored
+# needs to be moved to main requirements after figuring out on how to install on evm
+nuscenes-devkit
+git+https://github.com/TexasInstruments/edgeai-tidl-tools.git@11_00_08_00#subdirectory=osrt-model-tools
