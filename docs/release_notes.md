@@ -21,7 +21,8 @@ We are in the process of adding support for several new models. Configs for mode
 
 Note: The 3DOD models are trained with **pandaset dataset** (which is a Multi-view, Multi-modality ADAS / Automous Driving Dataset). edgeai-mmdetection3d and edgeai-benchmark now supports pandaset dataset. See more details of this dataset in edgeai-mmdetection3d.
 
-
+### Update on 2025 July 15
+* Accuracy fix for object detection models in edgeai-modelmaker and edgeai-mmdetection
 
 <hr>
 

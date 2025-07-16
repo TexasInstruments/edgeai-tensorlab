@@ -14,7 +14,7 @@ Edge AI model training, quantization, compilation/benchmark & Model Zoo
 * Git branch: **r11.0**
 * tidl_tools version: **11_00_08_00**
 * [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) git tag: [11_00_08_00](https://github.com/TexasInstruments/edgeai-tidl-tools/releases/tag/11_00_08_00)
-* Date: 2025 May - 2025 July
+* Date: 2025 July 9
 
 ### New models in edgeai-modelzoo / edgeai-benchmark
 We are in the process of adding support for several new models. Configs for models verified in this release are in this repository and the models are available in edgeai-modelzoo. The following new models have been verified:
@@ -26,6 +26,9 @@ We are in the process of adding support for several new models. Configs for mode
 | bevformer_tiny    | Multi-view 3DOD for ADAS                      | edgeai-mmdetection3d     |
 
 Note: The 3DOD models are trained with **pandaset dataset** (which is a Multi-view, Multi-modality ADAS / Automous Driving Dataset). edgeai-mmdetection3d and edgeai-benchmark now supports pandaset dataset. See more details of this dataset in edgeai-mmdetection3d.
+
+### Update on 2025 July 15
+* Accuracy fix for object detection models in edgeai-modelmaker and edgeai-mmdetection
 
 
 **More details are in the [Release Notes](./docs/release_notes.md)**
