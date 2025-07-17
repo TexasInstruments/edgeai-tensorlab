@@ -206,20 +206,25 @@ def main(args=None):
         quantization_kwargs = dict(quantization_method='QAT', total_epochs=runner.max_epochs)
     else:
         quantization_kwargs = None
+
+    if model_surgery == 1:
+        device = next(runner.model.parameters()).device
+        runner.model = xmodelopt.surgery.v1.convert_to_lite_model(runner.model, replacement_dict=model_surgery_kwargs['replacement_dict'])
+        runner.model = runner.model.to(torch.device(device))
+    else:
+        # orig_model = deepcopy(runner.model)
+        runner.model = xmodelopt.apply_model_optimization(runner.model,example_inputs,example_kwargs, model_surgery_version=model_surgery, quantization_version=args.quantization, model_surgery_kwargs=model_surgery_kwargs, quantization_kwargs=quantization_kwargs, transformation_dict=transformation_dict, copy_attrs=copy_attrs)
+    
     # if model_surgery_kwargs is not None and quantization_kwargs is None:
     runner.call_hook('before_run')
     runner.load_or_resume()
     runner.call_hook('after_run')
-    
-    orig_model = deepcopy(runner.model)
-    runner.model = xmodelopt.apply_model_optimization(runner.model,example_inputs,example_kwargs, model_surgery_version=model_surgery, quantization_version=args.quantization, model_surgery_kwargs=model_surgery_kwargs, quantization_kwargs=quantization_kwargs, transformation_dict=transformation_dict, copy_attrs=copy_attrs)
-    
+
     if is_wrapped:
         runner.model = runner.wrap_model(
             runner.cfg.get('model_wrapper_cfg'), runner.model)
     print_log('model optimization done')
     runner.train()
-    # print(runner.model)
     if xnn.utils.distributed_utils.is_main_process() and (args.export_onnx_model or (hasattr(cfg, 'export_onnx_model') and cfg.export_onnx_model)):
         # Exporting Model after Training : Uses custom mmdeploy
         try:
@@ -234,9 +239,8 @@ def main(args=None):
             runner.model = runner.model.module
             is_wrapped = True
         example_inputs, example_kwargs = get_input(runner.model, cfg, batch_size=1, to_export=True)
-        runner.model = xmodelopt.prepare_model_for_onnx(orig_model, runner.model
-                                                        , example_inputs, example_kwargs, model_surgery_version=model_surgery, quantization_version=args.quantization, model_surgery_kwargs=model_surgery_kwargs, quantization_kwargs=quantization_kwargs, transformation_dict=transformation_dict, copy_attrs=copy_attrs)
-        
+        # runner.model = xmodelopt.prepare_model_for_onnx(orig_model, runner.model
+        #                                                 , example_inputs, example_kwargs, model_surgery_version=model_surgery, quantization_version=args.quantization, model_surgery_kwargs=model_surgery_kwargs, quantization_kwargs=quantization_kwargs, transformation_dict=transformation_dict, copy_attrs=copy_attrs)
         
         torch2onnx(img='../edgeai-mmdetection/demo/demo.jpg', work_dir=cfg.work_dir, save_file=save_file, model_cfg = cfg, \
             deploy_cfg='../edgeai-mmdeploy/configs/mmdet/detection/detection_onnxruntime_static.py', torch_model = runner.model)
