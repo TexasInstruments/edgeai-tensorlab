@@ -367,24 +367,24 @@ def _save_mmyolo_proto_yolov7(cfg, model, input_size, output_filename, input_nam
 
     yolo_params = []
     for base_size_id, base_size in enumerate(base_sizes):
-        yolo_param = tidl_meta_arch_mmdet_pb2.TIDLYoloParams(input=proto_names[base_size_id],
+        yolo_param = tidl_meta_arch_mmdeploy_pb2.TIDLYoloParams(input=proto_names[base_size_id],
                                                         anchor_width=[base_size[idx*2] for idx in range(len(base_size)//2)],
                                                         anchor_height=[base_size[idx*2+1] for idx in range(len(base_size)//2)],
                                                          )
         yolo_params.append(yolo_param)
 
-    nms_param = tidl_meta_arch_mmdet_pb2.TIDLNmsParam(nms_threshold=0.65, top_k=200)
-    detection_output_param = tidl_meta_arch_mmdet_pb2.TIDLOdPostProc(num_classes=num_classes, share_location=True,
+    nms_param = tidl_meta_arch_mmdeploy_pb2.TIDLNmsParam(nms_threshold=0.65, top_k=200)
+    detection_output_param = tidl_meta_arch_mmdeploy_pb2.TIDLOdPostProc(num_classes=num_classes, share_location=True,
                                             background_label_id=background_label_id, nms_param=nms_param,
-                                            code_type=tidl_meta_arch_mmdet_pb2.CODE_TYPE_YOLO_V5, keep_top_k=200,
+                                            code_type=tidl_meta_arch_mmdeploy_pb2.CODE_TYPE_YOLO_V5, keep_top_k=200,
                                             confidence_threshold=0.001)
 
-    yolov7 = tidl_meta_arch_mmdet_pb2.TidlYoloOd(name='yolov7', output=output_names,
+    yolov7 = tidl_meta_arch_mmdeploy_pb2.TidlYoloOd(name='yolov7', output=output_names,
                                             in_width=input_size[3], in_height=input_size[2],
                                             yolo_param=yolo_params,
                                             detection_output_param=detection_output_param)
 
-    arch = tidl_meta_arch_mmdet_pb2.TIDLMetaArch(name='yolov7',  tidl_yolo=[yolov7])
+    arch = tidl_meta_arch_mmdeploy_pb2.TIDLMetaArch(name='yolov7',  tidl_yolo=[yolov7])
 
     with open(output_filename, 'wt') as pfile:
         txt_message = text_format.MessageToString(arch)
