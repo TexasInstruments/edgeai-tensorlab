@@ -1,0 +1,162 @@
+#################################################################################
+# Copyright (c) 2018-2021, Texas Instruments Incorporated - http://www.ti.com
+# All Rights Reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright notice, this
+#   list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+#
+# * Neither the name of the copyright holder nor the names of its
+#   contributors may be used to endorse or promote products derived from
+#   this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#################################################################################
+
+
+#################################################################################
+# The following fields in this section are used by EDGEAI CPP.
+# For EDGEAI inference, only these fields need to be specified.
+#################################################################################
+
+# Type of task that this model performs.
+# Options: classification, detection, segmentation
+task_type: segmentation
+
+# Parameters used for pre-processing the input
+# Currently supported pre-processing operations are
+#   resizing, croping, mean subtraction, reversing channels (eg. RGB to BGR)
+preprocess:
+  # Backend resizer module
+  # Options: cv2, pil
+  backend: cv2
+
+  # Crop size - used to crop the resized input.
+  # Options: a single integer or a list of two integers.
+  #   if this is a single integer, a square crop is done.
+  #   if this is a list [height,width], a rectangular crop is done.
+  crop:
+  - 512
+  - 512
+
+  # Data layout of the input tensor to be given out of pre-processing.
+  # Options: NHWC, NCHW
+  #   Typically tensorflow/tflite models use NHWC format, where as PyTorch/onnx models and MXNet models use NCHW format.
+  data_layout: NCHW
+
+  # Actual pixel interpolation type to be used the resizer.
+  # If the backend is cv2, these interpolation modes are valid:
+  #   cv::INTER_NEAREST, cv::INTER_LINEAR, cv::INTER_CUBIC, cv::INTER_AREA (default is cv::INTER_LINEAR)
+  #   https://docs.opencv.org/4.5.2/da/d54/group__imgproc__transform.html
+  # If the backend is pil, these interpolation modes are valid:
+  #   PIL.Image.NEAREST, PIL.Image.BOX, PIL.Image.BILINEAR, PIL.Image.BICUBIC (default is PIL.Image.BILINEAR)
+  #   https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Image.resize
+  # Can specify null to use linear interpolation irrespective of the backend.
+  interpolation: null
+
+  # Resize size - used to resize the input.
+  # Options: a single integer or a list of two integers.
+  #   if this is a single integer, the smallest side of the image is resized to this size.
+  #   if this is a list [height,width], a rectangular resize is done to fit the size exactly.
+  resize:
+  - 512
+  - 512
+
+  # If this option is enabled, aspect ration preserving resize is done
+  # and the remaining region outside is filled with pad_color
+  resize_with_pad: false
+
+  # Pad color that is used only when resize_with_pad is set
+  pad_color: 0
+  
+  # Reverse the order of channels - for example to convert RGB format to BGR.
+  reverse_channels: false
+
+# Parameters used to process or format the output prediction of the model
+postprocess:
+  # Data layout of the output tensor to be given out of the model.
+  data_layout: NCHW
+
+  # Save the output detections - for debug purpose only.
+  save_output: false
+
+  # Whether argmax is required or not. 
+  #   (if argmax is already done for segmentation inside the model, this can be false here)
+  with_argmax: false
+
+# Parameters for the inference session to be used
+session:
+  # Folder in which the imported model artifacts are located.
+  artifacts_folder: artifacts
+
+  # Folder in which the model is located. (eg. onnx, tflite, mxnet models are copied here)
+  model_folder: model
+
+  # The path to the actual model
+  model_path: model/deeplabv3_mnv2_ade20k_train_2018_12_03_512x512.onnx
+
+  # Name that identifies the inference sesssion that can be used to infer the given artifacts
+  # Options: tflitert, onnxrt, tvmdlr
+  session_name: onnxrt
+
+  # List of Mean values to be subtracted from the input tensor
+  # The number of entries in the list must mach the number of channels in input tensor.
+  input_mean:
+  - 123.675
+  - 116.28
+  - 103.53
+
+  # A list specifying scaling/multiplication to be done to the input values.
+  # The number of entries in the list must mach the number of channels in input tensor.
+  input_scale:
+  - 0.017125
+  - 0.017507
+  - 0.017429
+
+  # whether the input_mean and input_scale has been absorbed insode the model via operation inside the model or not
+  # if this is true input_mean and input_scale should be null.
+  input_optimization: false
+
+  # Data layout of the input tensor to be given out of pre-processing.
+  # Options: NHWC, NCHW
+  #   Typically tensorflow/tflite models use NHWC format, where as PyTorch/onnx models and MXNet models use NCHW format.
+  input_data_layout: NCHW
+
+  # Details of the input to the model
+  # Replace the name and shape with correct values
+  # type should be as given by the runtime - tensor(uint8) for onnxruntime, and <class 'numpy.uint8'> - for tflite_runtime for utint8 type
+  input_details:
+  - name: input.1Net_IN
+    shape:
+    - 1
+    - 3
+    - 512
+    - 512
+    type: tensor(uint8)
+
+  # Details of the model output
+  # Replace the name and shape with correct values
+  # type should be as given by the runtime - tensor(uint8) for onnxruntime, and <class 'numpy.uint8'> - for tflite_runtime for utint8 type
+  output_details:
+  - name: 556TIDL_cast_out
+    shape:
+    - 1
+    - 1
+    - 128
+    - 128
+    type: tensor(uint8)

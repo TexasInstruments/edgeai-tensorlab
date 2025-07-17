@@ -1,0 +1,17 @@
+-r requirements.txt
+opencv-python-headless
+onnxsim==0.4.35
+numpy==1.23.0
+scipy==1.10
+tflite
+flatbuffers==1.12.0
+requests
+pytest
+graphviz
+h5py
+#protobuf
+#onnx==1.14.0
+graphviz
+colored
+#git+ssh://git@bitbucket.itg.ti.com/processor-sdk-vision/edgeai-tidl-tools.git@master#subdirectory=osrt-model-tools
+git+https://github.com/TexasInstruments/edgeai-tidl-tools.git@10_01_04_00#subdirectory=osrt-model-tools
