@@ -45,7 +45,7 @@ this_dir_path = os.path.dirname(os.path.abspath(__file__))
 repo_parent_path = os.path.abspath(os.path.join(this_dir_path, '../../../../../../'))
 
 edgeai_modelzoo_path = os.path.join(repo_parent_path, 'edgeai-modelzoo')
-www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01'
+www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/10_01_00'
 edgeai_mmdetection_path = os.path.join(repo_parent_path, 'edgeai-mmdetection')
 edgeai_mmdetection_tools_path = os.path.join(edgeai_mmdetection_path, 'tools')
 
@@ -87,12 +87,12 @@ model_urls = {
             'download_path': os.path.join('{download_path}', 'pretrained', 'yolov7_l_lite')
         },
     ],
-    'yolov9_s_lite': [
-        {
-            'download_url': f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/yolov9_s_coco_lite_640x640_20250219_checkpoint.pth',
-            'download_path': os.path.join('{download_path}', 'pretrained', 'yolov9_s_lite')
-        },
-    ],
+    # 'yolov9_s_lite': [
+    #     {
+    #         'download_url': f'{www_modelzoo_path}/models/vision/detection/coco/edgeai-mmdet/yolov9_s_coco_lite_640x640_20250219_checkpoint.pth',
+    #         'download_path': os.path.join('{download_path}', 'pretrained', 'yolov9_s_lite')
+    #     },
+    # ],
 }
 
 
@@ -537,16 +537,37 @@ class ModelTraining:
         config_strs += [f'val_evaluator = dict( \n'
                         f'    ann_file="{self.val_ann_file}") \n'
                         ]
-        config_strs += [f'train_cfg = dict(max_epochs={self.params.training.training_epochs}, type="EpochBasedTrainLoop", val_interval=1)\n']
-        # yolox_lr_config_str = \
-        #                 f'    num_last_epochs={self.params.training.num_last_epochs},\n' if \
-        #                         self.params.training.model_architecture == 'yolox' else ''
-        # config_strs += [f'lr_config = dict(\n'
-        #                 f'    warmup_by_epoch=True,\n',
-        #                 f'    warmup_iters={self.params.training.warmup_epochs},\n',
-        #                 f'{yolox_lr_config_str}',
-        #                 f')\n',
-        #                 ]
+        config_strs += [f'base_lr ={self.params.training.learning_rate} \n'
+                        ]
+        config_strs += [f'train_cfg = dict(max_epochs={self.params.training.training_epochs}, type="EpochBasedTrainLoop", val_interval=1)\n'
+                        ]
+
+        config_strs += [f'param_scheduler = [\n'
+                        f'    dict(\n'
+                        f'        type=\'mmdet.QuadraticWarmupLR\',\n'
+                        f'        by_epoch=True,\n'
+                        f'        begin=0,\n'
+                        f'        end={self.params.training.warmup_epochs},\n'
+                        f'        convert_to_iter_based=True),\n'
+                        f'    dict(\n'
+                        f'        type=\'CosineAnnealingLR\',\n'
+                        f'        eta_min={self.params.training.learning_rate} * 0.05,\n'
+                        f'        begin={self.params.training.warmup_epochs},\n'
+                        f'        T_max={self.params.training.training_epochs} - {self.params.training.num_last_epochs},\n'
+                        f'        end={self.params.training.training_epochs} - {self.params.training.num_last_epochs},\n'
+                        f'        by_epoch=True,\n'
+                        f'        convert_to_iter_based=True),\n'
+                        f'    dict(\n'
+                        f'        # use fixed lr during last 15 epochs\n'
+                        f'        type=\'ConstantLR\',\n'
+                        f'        by_epoch=True,\n'
+                        f'        factor=1,\n'
+                        f'        begin={self.params.training.training_epochs} - {self.params.training.num_last_epochs},\n'
+                        f'        end={self.params.training.training_epochs},\n'
+                        f'    )\n'
+                        f']\n'
+                        ]
+    
         config_strs += [f'load_from   = "{os.path.abspath(self.params.training.pretrained_checkpoint_path)}"']
 
         # write the config file
@@ -558,7 +579,7 @@ class ModelTraining:
         os.chdir(edgeai_mmdetection_path)
 
         # invoke the distributed training
-        if self.params.training.distributed and self.params.training.num_gpus > 0:
+        if self.params.training.distributed and self.params.training.num_gpus > 1:
             # launcher for the training
             run_launcher = distributed_run.__file__
             run_script = os.path.join(edgeai_mmdetection_tools_path,'train.py')
@@ -573,7 +594,8 @@ class ModelTraining:
             run_command = ['python3', run_launcher] + run_args
         else:
             # Non-cuda mode is currently supported only with non-distributed training
-            # os.environ['CUDA_VISIBLE_DEVICES'] = "-1"
+            if self.params.training.num_gpus < 1:
+                os.environ['CUDA_VISIBLE_DEVICES'] = "-1"
             run_script = os.path.join(edgeai_mmdetection_tools_path,'train.py')
             argv = [f'{config_file}']
             run_args = [str(arg) for arg in argv]

@@ -46,6 +46,27 @@ edgeai_tensorvision_path = os.path.join(repo_parent_path, 'edgeai-tensorvision')
 edgeai_modelzoo_path = os.path.join(repo_parent_path, 'edgeai-modelzoo')
 www_modelzoo_path = 'https://software-dl.ti.com/jacinto7/esd/modelzoo/08_06_00_01'
 
+model_urls = {
+    'fpn_aspp_regnetx800mf_edgeailite': [
+        {
+            'download_url': f'{www_modelzoo_path}/models/vision/segmentation/cocoseg21/edgeai-tv/fpn_aspp_regnetx800mf_edgeailite_512x512_20210405_checkpoint.pth',
+            'download_path': os.path.join('{download_path}', 'pretrained', 'fpn_aspp_regnetx800mf_edgeailite')
+        },
+    ],
+    'unet_aspp_mobilenetv2_edgeailite': [
+        {
+            'download_url': f'{www_modelzoo_path}/models/vision/segmentation/cocoseg21/edgeai-tv/unet_aspp_mobilenetv2_edgeailite_512x512_20210407_checkpoint.pth',
+            'download_path': os.path.join('{download_path}', 'pretrained', 'unet_aspp_mobilenetv2_edgeailite')
+        },
+    ],
+    'deeplabv3plus_mobilenetv2_tv_edgeailite': [
+        {
+            'download_url': f'{www_modelzoo_path}/models/vision/segmentation/cocoseg21/edgeai-tv/deeplabv3plus_mobilenetv2_edgeailite_512x512_20210405_checkpoint.pth',
+            'download_path': os.path.join('{download_path}', 'pretrained', 'deeplabv3plus_mobilenetv2_tv_edgeailite')
+        },
+    ],
+}
+
 # Need to modify later based on the available models
 _model_descriptions = {
     'fpn_aspp_regnetx800mf_edgeailite': dict(

@@ -66,7 +66,7 @@ class ModelCompilation():
         if self.params.compilation.tidl_offload:
             progress_regex = \
                 {'type':'Progress', 'name':'Progress', 'description':'Progress of Compilation', 'unit':'Iteration', 'value':None,
-                  'regex':[{'op':'search', 'pattern':r'Calibration iteration number\s+(?<Progress>\d+)\s+completed', 'group':1}],
+                  'regex':[{'op':'search', 'pattern':r'Fixed-point\s+Calibration\s+Iteration\s+\[\s*(?<Progress>\d+)\s*/\s*\d+\s*\]:', 'group':1}],
                 }
         else:
             progress_regex = \
@@ -147,7 +147,8 @@ class ModelCompilation():
 
     def clear(self):
         # clear the dirs
-        shutil.rmtree(self.params.compilation.compilation_path, ignore_errors=True)
+        shutil.rmtree(os.path.join(self.params.compilation.compilation_path,'work'), ignore_errors=True)
+        shutil.rmtree(os.path.join(self.params.compilation.compilation_path,'pkg'), ignore_errors=True)
 
     def run(self):
         ''''

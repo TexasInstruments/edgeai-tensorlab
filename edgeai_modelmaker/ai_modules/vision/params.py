@@ -93,7 +93,7 @@ def init_params(*args, **kwargs):
             warmup_epochs=1,
             num_last_epochs=5,
             batch_size=8,
-            learning_rate=2e-3,
+            learning_rate=1e-3,
             num_classes=None,
             weight_decay=1e-4,
             input_resize=(512 ,512),
@@ -108,7 +108,7 @@ def init_params(*args, **kwargs):
                 dict(type="group", dynamic=False, name="train_group", label="Training Parameters",
                      default=["training_epochs", "learning_rate", "batch_size", "weight_decay"]),
                 dict(label="Epochs", name="training_epochs", type="integer", default=50, min=1, max=300),
-                dict(label="Learning Rate", name="learning_rate", type="float", default=0.04, min=0.001, max=0.1,
+                dict(label="Learning Rate", name="learning_rate", type="float", default=0.001, min=0.0001, max=0.1,
                      decimal_places=3, increment=0.001),
                 dict(label="Batch Size", name="batch_size", type="integer", default=8, min=1, max=128),
                 dict(label="Weight Decay", name="weight_decay", type="float", default=0.0001, min=0.0001, max=0.1,)
