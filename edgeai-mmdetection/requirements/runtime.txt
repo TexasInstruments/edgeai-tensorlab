@@ -1,0 +1,10 @@
+matplotlib
+numpy
+pycocotools
+scipy
+shapely
+six
+terminaltables
+tqdm
+loguru
+einops
