@@ -1,0 +1,159 @@
+task_type: detection
+dataset_category: coco
+calibration_dataset: coco
+input_dataset: coco
+preprocess:
+  resize: 320
+  crop: 320
+  data_layout: NCHW
+  reverse_channels: true
+  backend: cv2
+  interpolation: null
+  resize_with_pad:
+  - true
+  - corner
+  pad_color:
+  - 114
+  - 114
+  - 114
+session:
+  session_name: onnxrt
+  target_device: null
+  input_optimization: false
+  input_data_layout: NCHW
+  input_mean:
+  - 0.0
+  - 0.0
+  - 0.0
+  input_scale:
+  - 1.0
+  - 1.0
+  - 1.0
+  runtime_options:
+    advanced_options:quantization_scale_type: 4
+    tensor_bits: 8
+    accuracy_level: 1
+    advanced_options:high_resolution_optimization: 0
+    advanced_options:pre_batchnorm_fold: 1
+    advanced_options:calibration_frames: 12
+    advanced_options:calibration_iterations: 12
+    advanced_options:activation_clipping: 1
+    advanced_options:weight_clipping: 1
+    advanced_options:bias_calibration: 1
+    advanced_options:output_feature_16bit_names_list: 1033, 711, 712, 713, 727, 728,
+      729, 743, 744, 745
+    advanced_options:params_16bit_names_list: ''
+    advanced_options:add_data_convert_ops: 3
+    object_detection:meta_arch_type: 6
+    object_detection:meta_layers_names_list: yolox_pico_lite_320x320_20230410_model.prototxt
+  model_path: yolox_pico_lite_320x320_20230410_model.onnx
+  model_id: od-8270
+  input_details: null
+  output_details: null
+  num_inputs: 1
+postprocess:
+  detection_threshold: 0.3
+  formatter:
+    src_indices:
+    - 5
+    - 4
+    dst_indices:
+    - 4
+    - 5
+    name: DetectionBoxSL2BoxLS
+  resize_with_pad: true
+  normalized_detections: false
+  shuffle_indices: null
+  squeeze_axis: null
+  ignore_index: null
+  logits_bbox_to_bbox_ls: false
+metric:
+  label_offset_pred:
+    0: 1
+    1: 2
+    2: 3
+    3: 4
+    4: 5
+    5: 6
+    6: 7
+    7: 8
+    8: 9
+    9: 10
+    10: 11
+    11: 13
+    12: 14
+    13: 15
+    14: 16
+    15: 17
+    16: 18
+    17: 19
+    18: 20
+    19: 21
+    20: 22
+    21: 23
+    22: 24
+    23: 25
+    24: 27
+    25: 28
+    26: 31
+    27: 32
+    28: 33
+    29: 34
+    30: 35
+    31: 36
+    32: 37
+    33: 38
+    34: 39
+    35: 40
+    36: 41
+    37: 42
+    38: 43
+    39: 44
+    40: 46
+    41: 47
+    42: 48
+    43: 49
+    44: 50
+    45: 51
+    46: 52
+    47: 53
+    48: 54
+    49: 55
+    50: 56
+    51: 57
+    52: 58
+    53: 59
+    54: 60
+    55: 61
+    56: 62
+    57: 63
+    58: 64
+    59: 65
+    60: 67
+    61: 70
+    62: 72
+    63: 73
+    64: 74
+    65: 75
+    66: 76
+    67: 77
+    68: 78
+    69: 79
+    70: 80
+    71: 81
+    72: 82
+    73: 84
+    74: 85
+    75: 86
+    76: 87
+    77: 88
+    78: 89
+    79: 90
+    80: 91
+model_info:
+  metric_reference:
+    accuracy_ap[.5:.95]%: 17.9
+  model_shortlist: 20
+  compact_name: yolox-pico-lite-mmdet-coco-320x320
+  shortlisted: true
+  recommended: true

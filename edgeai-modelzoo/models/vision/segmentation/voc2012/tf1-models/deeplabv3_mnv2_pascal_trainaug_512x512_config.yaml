@@ -1,0 +1,57 @@
+task_type: segmentation
+dataset_category: voc2012
+calibration_dataset: voc2012
+input_dataset: voc2012
+preprocess:
+  resize:
+  - 512
+  - 512
+  crop:
+  - 512
+  - 512
+  data_layout: NHWC
+  reverse_channels: false
+  backend: cv2
+  interpolation: null
+  resize_with_pad: false
+  pad_color: 0
+session:
+  session_name: tflitert
+  target_device: null
+  input_optimization: false
+  input_data_layout: NHWC
+  input_mean:
+  - 127.5
+  - 127.5
+  - 127.5
+  input_scale:
+  - 0.007843
+  - 0.007843
+  - 0.007843
+  runtime_options:
+    advanced_options:quantization_scale_type: 4
+    tensor_bits: 8
+    accuracy_level: 1
+    advanced_options:high_resolution_optimization: 0
+    advanced_options:pre_batchnorm_fold: 1
+    advanced_options:calibration_frames: 12
+    advanced_options:calibration_iterations: 12
+    advanced_options:activation_clipping: 1
+    advanced_options:weight_clipping: 1
+    advanced_options:bias_calibration: 1
+    advanced_options:output_feature_16bit_names_list: ''
+    advanced_options:params_16bit_names_list: ''
+    advanced_options:add_data_convert_ops: 3
+  model_path: deeplabv3_mnv2_pascal_trainaug_512x512.tflite
+  model_id: ss-2600
+  input_details: null
+  output_details: null
+  num_inputs: 1
+postprocess:
+  save_output: false
+model_info:
+  metric_reference:
+    accuracy_mean_iou%: 77.33
+  model_shortlist: null
+  compact_name: deeplabv3_mobv2-pascal-trainaug-512x512
+  shortlisted: false

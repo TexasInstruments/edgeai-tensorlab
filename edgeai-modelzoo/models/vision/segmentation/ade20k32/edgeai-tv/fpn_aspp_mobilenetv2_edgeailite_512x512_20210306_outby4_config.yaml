@@ -1,0 +1,57 @@
+task_type: segmentation
+dataset_category: ade20k32
+calibration_dataset: ade20k32
+input_dataset: ade20k32
+preprocess:
+  resize:
+  - 512
+  - 512
+  crop:
+  - 512
+  - 512
+  data_layout: NCHW
+  reverse_channels: false
+  backend: cv2
+  interpolation: 3
+  resize_with_pad: false
+  pad_color: 0
+session:
+  session_name: onnxrt
+  target_device: null
+  input_optimization: false
+  input_data_layout: NCHW
+  input_mean:
+  - 128.0
+  - 128.0
+  - 128.0
+  input_scale:
+  - 0.015625
+  - 0.015625
+  - 0.015625
+  runtime_options:
+    advanced_options:quantization_scale_type: 4
+    tensor_bits: 8
+    accuracy_level: 1
+    advanced_options:high_resolution_optimization: 0
+    advanced_options:pre_batchnorm_fold: 1
+    advanced_options:calibration_frames: 12
+    advanced_options:calibration_iterations: 12
+    advanced_options:activation_clipping: 1
+    advanced_options:weight_clipping: 1
+    advanced_options:bias_calibration: 1
+    advanced_options:output_feature_16bit_names_list: ''
+    advanced_options:params_16bit_names_list: ''
+    advanced_options:add_data_convert_ops: 3
+  model_path: fpn_aspp_mobilenetv2_edgeailite_512x512_20210306_outby4.onnx
+  model_id: ss-8650
+  input_details: null
+  output_details: null
+  num_inputs: 1
+postprocess:
+  save_output: false
+model_info:
+  metric_reference:
+    accuracy_mean_iou%: 50.55
+  model_shortlist: 90
+  compact_name: fpnlite-aspp-mobv2-ade20k32-512x512
+  shortlisted: false
