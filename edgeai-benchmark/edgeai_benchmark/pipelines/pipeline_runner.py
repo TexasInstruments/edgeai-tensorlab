@@ -34,6 +34,7 @@ import copy
 import traceback
 import re
 import wurlitzer
+import tarfile
 
 from .. import utils
 from .. import datasets
@@ -261,6 +262,23 @@ class PipelineRunner():
         proc_errors_regex_list = constants.TIDL_FATAL_ERROR_LOGS_REGEX_LIST
         if settings.tensor_bits != 32:
             proc_errors_regex_list += constants.TIDL_FATAL_ERROR_LOGS_REGEX_LIST_TENSOR_BITS_NOT_32
+        #
+
+        # if the run_dir doesn't exist, check if tarfile exists or can be downloaded/untarred
+        run_dir = pipeline_config['session'].kwargs['run_dir']
+        if not os.path.exists(run_dir):
+            work_dir = os.path.dirname(run_dir)
+            tarfile_name = run_dir + '.tar.gz'
+            if not os.path.exists(tarfile_name):
+                tarfile_name = utils.download_file(tarfile_name, work_dir, extract_root=run_dir)
+            #
+            # extract the tar file
+            if (not os.path.exists(run_dir)) and tarfile_name is not None and os.path.exists(tarfile_name):
+                os.makedirs(run_dir, exist_ok=True)
+                tfp = tarfile.open(tarfile_name)
+                tfp.extractall(run_dir)
+                tfp.close()
+            #
         #
 
         # capture cwd - to set it later
