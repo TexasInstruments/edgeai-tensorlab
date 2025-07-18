@@ -72,13 +72,6 @@ class AccuracyPipeline(BasePipeline):
         self.write_log(utils.log_color('\nINFO', 'running', os.path.basename(self.run_dir)))
         self.write_log(utils.log_color('\nINFO', 'pipeline_config', self.pipeline_config))
 
-        # write the dataset_info file
-        if self.settings.write_results and self.dataset_info is not None:
-            with open(self.dataset_info_file, 'w') as fp:
-                yaml.safe_dump(self.dataset_info, fp, sort_keys=False)
-            #
-        #
-
         # now actually run the import and inference
         param_result = self._run(description=description)
 
@@ -94,6 +87,13 @@ class AccuracyPipeline(BasePipeline):
         run_import = ((not os.path.exists(self.param_yaml)) if self.settings.run_incremental else True) \
             if self.settings.run_import else False
         if run_import:
+            # write the dataset_info file
+            if self.settings.write_results and self.dataset_info is not None:
+                with open(self.dataset_info_file, 'w') as fp:
+                    yaml.safe_dump(self.dataset_info, fp, sort_keys=False)
+                #
+            #
+
             # dump the config params
             if self.settings.write_results:
                 param_dict = utils.pretty_object(self.pipeline_config)

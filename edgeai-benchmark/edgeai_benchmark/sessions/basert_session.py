@@ -127,22 +127,24 @@ class BaseRTSession(utils.ParamsBase):
         if not self.is_initialized:
             self.initialize()
         #
-        # if the run_dir doesn't exist, check if tarfile exists or can be downloaded/untarred
-        run_dir = self.kwargs['run_dir']
-        if not os.path.exists(run_dir):
-            work_dir = os.path.dirname(run_dir)
-            tarfile_name = run_dir + '.tar.gz'
-            if not os.path.exists(tarfile_name):
-                tarfile_name = utils.download_file(tarfile_name, work_dir, extract_root=run_dir)
-            #
-            # extract the tar file
-            if (not os.path.exists(run_dir)) and tarfile_name is not None and os.path.exists(tarfile_name):
-                os.makedirs(run_dir, exist_ok=True)
-                tfp = tarfile.open(tarfile_name)
-                tfp.extractall(run_dir)
-                tfp.close()
-            #
-        #
+
+        # moved to pipeline_runner:_run_pipeline()
+        # # if the run_dir doesn't exist, check if tarfile exists or can be downloaded/untarred
+        # run_dir = self.kwargs['run_dir']
+        # if not os.path.exists(run_dir):
+        #     work_dir = os.path.dirname(run_dir)
+        #     tarfile_name = run_dir + '.tar.gz'
+        #     if not os.path.exists(tarfile_name):
+        #         tarfile_name = utils.download_file(tarfile_name, work_dir, extract_root=run_dir)
+        #     #
+        #     # extract the tar file
+        #     if (not os.path.exists(run_dir)) and tarfile_name is not None and os.path.exists(tarfile_name):
+        #         os.makedirs(run_dir, exist_ok=True)
+        #         tfp = tarfile.open(tarfile_name)
+        #         tfp.extractall(run_dir)
+        #         tfp.close()
+        #     #
+        # #
 
         # create run_dir
         os.makedirs(self.kwargs['run_dir'], exist_ok=True)
