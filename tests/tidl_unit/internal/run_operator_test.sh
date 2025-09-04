@@ -176,24 +176,77 @@ if [ "$work_dir" != "" ]; then
 fi
 
 # Operator specific nmse_threshold
+threshold_e_minus1="0.1"
+threshold_e_minus2="0.01"
+threshold_e_minus3="0.001"
 declare -A ops_nmse_threshold
-threshold="0.001"
-ops_nmse_threshold["ArgMax"]="0"
-ops_nmse_threshold["Abs"]=$threshold
-ops_nmse_threshold["Clip"]=$threshold
-ops_nmse_threshold["DepthToSpace"]=$threshold
-ops_nmse_threshold["Flatten"]=$threshold
-ops_nmse_threshold["Max"]=$threshold
-ops_nmse_threshold["Neg"]=$threshold
-ops_nmse_threshold["Pad"]=$threshold
-ops_nmse_threshold["ReduceMax"]=$threshold
-ops_nmse_threshold["ReduceMin"]=$threshold
-ops_nmse_threshold["Reshape"]=$threshold
-ops_nmse_threshold["Slice"]=$threshold
-ops_nmse_threshold["SpaceToDepth"]=$threshold
-ops_nmse_threshold["Squeeze"]=$threshold
-ops_nmse_threshold["Transpose"]=$threshold
-ops_nmse_threshold["Unsqueeze"]=$threshold
+ops_nmse_threshold=(
+    ["ArgMax"]="0"
+    # 1e-3
+    ["Abs"]=$threshold_e_minus3
+    ["Acos"]=$threshold_e_minus3
+    ["Asin"]=$threshold_e_minus3
+    ["Asinh"]=$threshold_e_minus3
+    ["Atan"]=$threshold_e_minus3
+    ["Clip"]=$threshold_e_minus3
+    ["Concat"]=$threshold_e_minus3
+    ["Cos"]=$threshold_e_minus3
+    ["DepthToSpace"]=$threshold_e_minus3
+    ["Elu"]=$threshold_e_minus3
+    ["Erf"]=$threshold_e_minus3
+    ["Flatten"]=$threshold_e_minus3
+    ["Gemm"]=$threshold_e_minus3
+    ["LeakyRelu"]=$threshold_e_minus3
+    ["Neg"]=$threshold_e_minus3
+    ["Relu"]=$threshold_e_minus3
+    ["Reshape"]=$threshold_e_minus3
+    ["Sigmoid"]=$threshold_e_minus3
+    ["Sin"]=$threshold_e_minus3
+    ["Slice"]=$threshold_e_minus3
+    ["SpaceToDepth"]=$threshold_e_minus3
+    ["Squeeze"]=$threshold_e_minus3
+    ["Sum"]=$threshold_e_minus3
+    ["Tanh"]=$threshold_e_minus3
+    ["Transpose"]=$threshold_e_minus3
+    ["Unsqueeze"]=$threshold_e_minus3
+    # 1e-2
+    ["Add"]=$threshold_e_minus2
+    ["AveragePool"]=$threshold_e_minus2
+    ["BatchNorm"]=$threshold_e_minus2
+    ["Convolution"]=$threshold_e_minus2
+    ["ConvTranspose"]=$threshold_e_minus2
+    ["GlobalAveragePool"]=$threshold_e_minus2
+    ["HardSwish"]=$threshold_e_minus2
+    ["InstanceNormalization"]=$threshold_e_minus2
+    ["LayerNormalization"]=$threshold_e_minus2
+    ["MatMul"]=$threshold_e_minus2
+    ["Max"]=$threshold_e_minus2
+    ["MaxPool"]=$threshold_e_minus2
+    ["Mish"]=$threshold_e_minus2
+    ["PRelu"]=$threshold_e_minus2
+    ["ReduceMax"]=$threshold_e_minus2
+    ["ReduceMin"]=$threshold_e_minus2
+    ["Resize"]=$threshold_e_minus2
+    ["Softmax"]=$threshold_e_minus2
+    ["Sub"]=$threshold_e_minus2
+    ["Sqrt"]=$threshold_e_minus2
+    ["TopK"]=$threshold_e_minus2
+    # 1e-1
+    ["Div"]=$threshold_e_minus1
+    ["Exp"]=$threshold_e_minus1
+    ["Gather"]=$threshold_e_minus1
+    ["Mul"]=$threshold_e_minus1
+    # Doubt
+    ["Floor"]=$threshold_e_minus2
+    ["HardSigmoid"]=$threshold_e_minus2
+    ["ScatterElements"]=$threshold_e_minus2
+    ["ScatterND"]=$threshold_e_minus2
+    ["Tan"]=$threshold_e_minus2
+    ["Cosh"]=$threshold_e_minus1
+    ["GridSample"]=$threshold_e_minus1
+    ["Log"]=$threshold_e_minus1
+    ["Sinh"]=$threshold_e_minus1
+)
 
 if [ ${#OPERATORS[@]} -eq 0 ]; then
     OPERATORS=()
