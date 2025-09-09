@@ -32,6 +32,7 @@ import copy
 
 from . import presets
 from .basert_runtime import BaseRuntimeWrapper
+from .. import constants
 
 
 class TVMDLRRuntimeWrapper(BaseRuntimeWrapper):
@@ -80,13 +81,20 @@ class TVMDLRRuntimeWrapper(BaseRuntimeWrapper):
         self.kwargs["runtime_options"] = self._set_default_options(self.kwargs["runtime_options"])
         self.kwargs['input_details'] = self.get_input_details(None, self.kwargs.get('input_details', None))
         self.kwargs['output_details'] = self.get_output_details(None, self.kwargs.get('output_details', None))
-        # moved the import inside the function, so that dlr needs to be installed only if someone wants to use it
-        from dlr import DLRModel
+        # moved the import inside the function, so that tvm needs to be installed only if someone wants to use it
+        import tvm
+        from tvm.contrib import graph_executor as runtime
         artifacts_folder = self.kwargs['artifacts_folder']
         if not os.path.exists(artifacts_folder):
             return False
-        #
-        self.interpreter = DLRModel(artifacts_folder, 'cpu')
+        
+        loaded_json = open(artifacts_folder + "/deploy_graph.json").read()
+        loaded_lib = tvm.runtime.load_module(artifacts_folder + "/deploy_lib.so","so")
+        loaded_params = bytearray(open(artifacts_folder + "/deploy_param.params", "rb").read())
+        # create a runtime executor module
+        sess = runtime.create(loaded_json, loaded_lib, tvm.cpu())
+        sess.load_params(loaded_params)
+        self.interpreter = sess
         self._start_inference_done = True
         return self.interpreter
 
@@ -102,7 +110,13 @@ class TVMDLRRuntimeWrapper(BaseRuntimeWrapper):
         if self.kwargs.get('extra_inputs'):
             input_data.update(self.kwargs['extra_inputs'])
         #
-        outputs = self.interpreter.run(input_data)
+        # feed input data
+        for key, value in input_data.items():
+            self.interpreter.set_input(key, value)
+        self.interpreter.run()
+        outputs = []
+        for i in range(self.interpreter.get_num_outputs()):
+            outputs.append(self.interpreter.get_output(i).asnumpy())
         return outputs
 
     def _create_interpreter_for_import(self, calib_list):
@@ -119,75 +133,52 @@ class TVMDLRRuntimeWrapper(BaseRuntimeWrapper):
         input_shape = {inp_d['name']:inp_d['shape'] for inp_d in input_details}
         input_keys = list(input_shape.keys())
 
-        if model_type == 'onnx':
-            import onnx
-            onnx_model = onnx.load_model(model_file0)
-            tvm_model, params = relay.frontend.from_onnx(onnx_model, shape=input_shape)
-        elif model_type == 'tflite':
-            import tflite
-            with open(model_file0, 'rb') as fp:
-                tflite_model = tflite.Model.GetRootAsModel(fp.read(), 0)
-            #
-            tvm_model, params = relay.frontend.from_tflite(tflite_model, shape_dict=input_shape,
-                                                   dtype_dict={k:'float32' for k in input_shape})
-        elif model_type == 'mxnet':
-            model_json, arg_params, aux_params = self._load_mxnet_model(model_file0)
-            tvm_model, params = relay.frontend.from_mxnet(model_json, input_shape, arg_params=arg_params, aux_params=aux_params)
-        else:
-            assert False, f'unrecognized model type {model_type}'
-        #
-
-       # Create the TIDL compiler with appropriate parameters
-        if (not self.kwargs.get('tidl_offload', True)):
-            self.kwargs['runtime_options']['max_num_subgraphs'] = 0
-        #
-        compiler = tidl.TIDLCompiler(
-            c7x_codegen=self.kwargs.get('c7x_codegen', False),
-            **self.kwargs['runtime_options'],
-        )
-
         artifacts_folder = self.kwargs['artifacts_folder']
         os.makedirs(artifacts_folder, exist_ok=True)
 
-        # partition the graph into TIDL operations and TVM operations
-        tvm_model, status = compiler.enable(tvm_model, params, calib_list)
+        from tvm.contrib import tidl
 
         # the artifact files that are generated
         deploy_lib = 'deploy_lib.so'
         deploy_graph = 'deploy_graph.json'
-        deploy_params = 'deploy_params.params'
+        deploy_params = 'deploy_param.params'
 
         for target_machine in self.supported_machines:
-            if target_machine == presets.TARGET_MACHINE_EVM:
-                build_target = 'llvm -device=arm_cpu -mtriple=aarch64-linux-gnu'
-                cross_cc_args = {'cc' : os.path.join(os.environ['ARM64_GCC_PATH'], 'bin', 'aarch64-none-linux-gnu-gcc')}
-            elif target_machine == presets.TARGET_MACHINE_PC_EMULATION:
-                build_target = 'llvm'
-                cross_cc_args = {}
-            else:
-                assert False, f'unsupported target device {target_machine}'
-            #
-
-            # build the relay module into deployables
-            with tidl.build_config(tidl_compiler=compiler):
-                graph, lib, params = relay.build_module.build(tvm_model, target=build_target, params=params)
-
-            # remove nodes / params not needed for inference
-            tidl.remove_tidl_params(params)
-
+            if target_machine == constants.TARGET_MACHINE_EVM:
+                if(os.path.exists(os.path.join(artifacts_folder, f'{deploy_lib}.pc'))):
+                    print("Reusing TIDL artifacts from x86 compilation for target compilation")
+                    os.environ["REUSE_TIDL_ARTIFACTS"] = '1'
+            print(f"Compiling for target device -- {target_machine}")
+            status = tidl.compile_model(
+                                        platform = os.environ.get("TARGET_SOC", "am67a").lower(),
+                                        compile_for_device = (True if (target_machine == presets.TARGET_MACHINE_EVM) else False),
+                                        enable_tidl_offload = self.kwargs.get('tidl_offload', True),
+                                        delegate_options = self.kwargs['runtime_options'],
+                                        calibration_input_list = calib_list,
+                                        model_path = model_file0,
+                                        input_shape_dict = input_shape
+                                        ### Optional arguments: This API does model to Relay conversion internally, however it can be overridden using already converted IR module and params 
+                                        # mod = mod,   # Input Relay IR module.
+                                        # params = params   # The parameter dict used by Relay.
+                                        )
+            assert(status)
+            os.listdir(artifacts_folder)
+            
             # save the deployables
-            path_lib = os.path.join(artifacts_folder, f'{deploy_lib}.{target_machine}')
-            path_graph = os.path.join(artifacts_folder, f'{deploy_graph}.{target_machine}')
-            path_params = os.path.join(artifacts_folder, f'{deploy_params}.{target_machine}')
+            path_lib_orig = os.path.join(artifacts_folder, f'{deploy_lib}')
+            path_graph_orig = os.path.join(artifacts_folder, f'{deploy_graph}')
+            path_params_orig = os.path.join(artifacts_folder, f'{deploy_params}')
 
-            lib.export_library(path_lib, **cross_cc_args)
-            with open(path_graph, "w") as fo:
-                fo.write(graph)
-            #
-            with open(path_params, "wb") as fo:
-                fo.write(relay.save_param_dict(params))
-            #
-        #
+            path_lib_target_machine = os.path.join(artifacts_folder, f'{deploy_lib}.{target_machine}')
+            path_graph_target_machine = os.path.join(artifacts_folder, f'{deploy_graph}.{target_machine}')
+            path_params_target_machine = os.path.join(artifacts_folder, f'{deploy_params}.{target_machine}')
+
+            os.rename(path_lib_orig, path_lib_target_machine)
+            os.rename(path_graph_orig, path_graph_target_machine)
+            os.rename(path_params_orig, path_params_target_machine)
+
+            os.environ.pop("REUSE_TIDL_ARTIFACTS", None) # Clean up this env variable for next run
+
         # create a symbolic link to the deploy_lib specified in target_machine
         artifacts_folder = self.kwargs['artifacts_folder']
         target_machine = self.kwargs.get('target_machine', presets.TARGET_MACHINE_PC_EMULATION)
@@ -215,41 +206,24 @@ class TVMDLRRuntimeWrapper(BaseRuntimeWrapper):
 
     def _set_default_options(self, runtime_options):
         default_options = {
-            'platform':self.kwargs.get('platform', presets.TIDL_PLATFORM),
-            'version':self.kwargs.get('version', presets.TIDL_VERSION),
-            'data_layout':self.kwargs.get('data_layout', presets.NCHW),
+            "platform": presets.TIDL_PLATFORM,
+            "version": presets.TIDL_VERSION_STR,
             "tidl_tools_path": self.kwargs["tidl_tools_path"],
             "artifacts_folder": self.kwargs["artifacts_folder"],
             'tensor_bits':self.kwargs.get('tensor_bits', 8),
+            "import": self.kwargs.get("import", 'yes')
             # note: to add advanced options here, start it with 'advanced_options:'
             # example 'advanced_options:pre_batchnorm_fold':1
             # the code below will move those to a dict as required by the runtime interface
         }
         default_options.update(runtime_options)
-        # tvm need advanced options as a dict
-        # convert the entries starting with advanced_options: to a dict
-        advanced_options_prefix = 'advanced_options:'
-        advanced_options = {k.replace(advanced_options_prefix,''):v for k,v in default_options.items() \
-                            if k.startswith(advanced_options_prefix)}
-        default_options = {k:v for k,v in default_options.items() if not k.startswith(advanced_options_prefix)}
-        default_options.update(dict(advanced_options=advanced_options))
         return default_options
 
     def set_runtime_option(self, option, value):
-        advanced_options_prefix = 'advanced_options:'
-        if advanced_options_prefix in option:
-            option = option.replace(advanced_options_prefix, '')
-            self.kwargs["runtime_options"]['advanced_options'][option] = value
-        else:
-            self.kwargs["runtime_options"][option] = value
+        self.kwargs["runtime_options"][option] = value
 
     def get_runtime_option(self, option, default=None):
-        advanced_options_prefix = 'advanced_options:'
-        if advanced_options_prefix in option:
-            option = option.replace(advanced_options_prefix, '')
-            return self.kwargs["runtime_options"]['advanced_options'].get(option, default)
-        else:
-            return self.kwargs["runtime_options"].get(option, default)
+        return self.kwargs["runtime_options"].get(option, default)
 
     def get_input_details(self, dlr_interpreter, input_details=None):
         if input_details is None:
