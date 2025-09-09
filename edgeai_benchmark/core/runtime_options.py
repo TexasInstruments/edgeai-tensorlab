@@ -134,9 +134,11 @@ class ConfigRuntimeOptions(config_dict.ConfigDict):
             'advanced_options:add_data_convert_ops': 3,
             # max number of nodes in a subgraph (default is 864)
             'advanced_options:max_num_subgraph_nodes': 2000,
+            ############### TVM specific options
+            'advanced_options:c7x_codegen': 0,
             ##################################
             # additional options (internal / performance estimation)
-            "ti_internal_nc_flag" : 83886080, #1601
+            "ti_internal_nc_flag" : 83886080, #1601,
         }
 
         # additional options (firmware version)

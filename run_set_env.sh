@@ -49,8 +49,8 @@ export PYTHONPATH=:${PYTHONPATH}
 echo "PYTHONPATH=${PYTHONPATH}"
 
 # needed for TVM compilation
-export ARM64_GCC_PATH=$TIDL_TOOLS_PATH/arm-gnu-toolchain-13.2.Rel1-x86_64-aarch64-none-linux-gnu
-
+export ARM64_GCC_PATH=$(pwd)/tools/tidl_tools_package/arm-gnu-toolchain-13.2.Rel1-x86_64-aarch64-none-linux-gnu
+export CGT7X_ROOT=$(pwd)/tools/tidl_tools_package/ti-cgt-c7000_5.0.0.LTS
 #################################################################################
 # environement variable to help shape exchange between TIDL and onnxruntime
 export TIDL_RT_ONNX_VARDIM="1"
