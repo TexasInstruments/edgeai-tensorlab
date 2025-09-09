@@ -538,7 +538,7 @@ class BEVSensorsRead():
         info_dict['img_timestamp']  = [v['timestamp'] for k, v  in data['cams'].items()]
         info_dict['delta_timestamp']= [info_dict['timestamp'] - v['timestamp'] for k, v  in data['cams'].items()]
 
-        if info_dict['task_name'] == 'BEVFormer':
+        if 'BEVFormer' in info_dict['task_name']:
             info_dict['prev_bev_exist'] = True
             if info_dict['scene_token'] != self.prev_frame_info['scene_token']:
                 info_dict['prev_bev_exist'] = False
@@ -945,15 +945,15 @@ class GetBEVDetGeometry():
 
 class GetBEVFormerGeometry():
 
-    def __init__(self, crop):
+    def __init__(self, bev_size):
         # how to configure these params?
-        self.bev_h = 50
-        self.bev_w = 50
+        self.bev_h = bev_size[0]
+        self.bev_w = bev_size[1]
         self.num_points_in_pillar = 4
         self.pc_range = [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0]
 
-        self.real_h = 102.4
-        self.real_w = 102.4
+        self.real_h = self.pc_range[4] - self.pc_range[1]
+        self.real_w = self.pc_range[3] - self.pc_range[0]
 
         self.rotate_prev_bev =  True
         self.rotate_center = [100, 100]
@@ -1210,6 +1210,9 @@ class GetBEVFormerGeometry():
         # Not needed for the latest model (bevformer_tiny_plus_480x800_20250408.onnx)
         #data.append(bev_valid_indices_count)
         data.append(can_bus)
+
+        info_dict['bev_h'] = self.bev_h
+        info_dict['bev_w'] = self.bev_w
 
         return data, info_dict
 

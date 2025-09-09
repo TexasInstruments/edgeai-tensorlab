@@ -315,9 +315,9 @@ class AccuracyPipeline(BasePipeline):
             # For calibration, we cannot add prev_bev from the previous frames.
             # So simply set prev_bev to zero
             # To REVISIT with queue
-            if self.pipeline_config.get('task_name', {}) == 'BEVFormer':
+            if 'BEVFormer' in self.pipeline_config.get('task_name', {}):
                 if info_dict['prev_bev_exist'] is False:
-                    input_data.append(np.zeros((2500, 1, 256), dtype=np.float32))
+                    input_data.append(np.zeros((info_dict['bev_h']*info_dict['bev_w'], 1, 256), dtype=np.float32))
                 else:
                     input_data.append(prev_bev)
 
@@ -325,8 +325,8 @@ class AccuracyPipeline(BasePipeline):
             output, info_dict = session.run_import(input_data, info_dict)
         #
 
-            # For BEVFormer, save output for next frames 
-            if self.pipeline_config.get('task_name', {}) == 'BEVFormer':
+            # For BEVFormer, save output for next frames
+            if 'BEVFormer' in self.pipeline_config.get('task_name', {}):
                 prev_bev = output[3]
 
             # FastBEV: Update queue
@@ -396,9 +396,9 @@ class AccuracyPipeline(BasePipeline):
             data, info_dict = input_dataset(data_index, info_dict)
             data, info_dict = preprocess(data, info_dict)
 
-            if self.pipeline_config.get('task_name', {}) == 'BEVFormer':
+            if 'BEVFormer' in self.pipeline_config.get('task_name', {}):
                 if info_dict['prev_bev_exist'] is False:
-                    data.append(np.zeros((2500, 1, 256), dtype=np.float32))
+                    data.append(np.zeros((info_dict['bev_h']*info_dict['bev_w'], 1, 256), dtype=np.float32))
                 else:
                     data.append(prev_bev)
 
@@ -408,9 +408,18 @@ class AccuracyPipeline(BasePipeline):
             output, info_dict = session.run_inference(data, info_dict)
 
             # Save output for next frames
-            if self.pipeline_config.get('task_name', {}) == 'BEVFormer' or \
-               self.pipeline_config.get('task_name', {}) == 'FastBEV_f4':
+            if 'BEVFormer' in self.pipeline_config.get('task_name', {}) or \
+                self.pipeline_config.get('task_name', {}) == 'FastBEV_f4':
                 prev_bev = output[3]
+
+            # For BEVFormer_small or BEVFormer_base only
+            if self.pipeline_config.get('task_name', {}) == 'BEVFormer_small' or \
+                self.pipeline_config.get('task_name', {}) == 'BEVFormer_base':
+                # change box dim and yaw
+                # nus_box_dims = box_dims[:, [0, 1, 2]]
+                # box_yaw = -box_yaw - np.pi/2
+                output[0] = output[0][:, [0, 1, 2, 4, 3, 5, 6, 7, 8]]
+                output[0][:, 6] =  -output[0][:, 6] - np.pi/2
 
             # FastBEV: Update queue
             if self.queue is not None:
