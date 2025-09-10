@@ -4,11 +4,10 @@ import copy
 import torch.distributed
 import onnx
 from onnxsim import simplify
+from mmengine.dist.utils import master_only
 
 from .onnx_network import StreamPETR_export_model, \
                           Far3D_export_model, Far3D_export_img_backbone, Far3D_export_img_roi, Far3D_export_pts_bbox
-
-from  mmengine.dist.utils import  master_only
 
 
 @master_only
@@ -20,10 +19,7 @@ def export_StreamPETR(model, inputs=None, data_samples=None,
                                         model.grid_mask,
                                         model.img_backbone,
                                         model.img_neck,
-                                        model.pts_bbox_head,
-                                        model.prepare_location,
-                                        model.forward_roi_head)
-
+                                        model.pts_bbox_head)
     onnxModel.eval()
 
     # Should clone. Otherwise, when we run both export_model and self.predict,
@@ -31,13 +27,18 @@ def export_StreamPETR(model, inputs=None, data_samples=None,
     img = inputs['imgs'].clone()
 
     batch_img_metas = [ds.metainfo for ds in data_samples]
-    onnxModel.prepare_data(img, batch_img_metas)
+    onnxModel.prepare_data(batch_img_metas)
     location = onnxModel.prepare_location(img)
+    coords_3d, cone = onnxModel.create_coords3d(location)
 
     batch_img_metas[0]['prev_exists'] = img.new_zeros(1)
     x = batch_img_metas[0]['prev_exists'].to(img.device).to(torch.float32)
+
     memory_embedding, memory_reference_point, memory_timestamp, \
-        memory_egopose, memory_velo = onnxModel.pts_bbox_head.init_memory(x)
+        memory_egopose, memory_velo = onnxModel.get_memory(x) #onnxModel.pts_bbox_head.init_memory(x)
+    ego_pose, timestamp = onnxModel.get_ego_pose_and_timestamp()
+    ego_pose = ego_pose.to(img.device)
+    timestamp = timestamp.to(img.device)
 
     # Passed the squeezed img
     if img.dim() == 5 and img.size(0) == 1:
@@ -48,17 +49,24 @@ def export_StreamPETR(model, inputs=None, data_samples=None,
 
     modelInput = []
     modelInput.append(img)
-    modelInput.append(location)
+    #modelInput.append(location)
     modelInput.append(memory_embedding)
     modelInput.append(memory_reference_point)
     modelInput.append(memory_timestamp)
     modelInput.append(memory_egopose)
     modelInput.append(memory_velo)
+    modelInput.append(coords_3d)
+    modelInput.append(cone)
+    modelInput.append(ego_pose)
+    modelInput.append(timestamp)
 
     model_name   = 'streampetr.onnx'
-    input_names  = ["imgs", "location", "memory_embed", "memory_ref_point", "memory_ts", "memory_egopose", "memory_velo"]
-    output_names = ["bboxes", "scores", "labels"]
-    #output_names = ["features"]
+    input_names  = ["imgs", "memory_embed", "memory_ref_point", "memory_ts",
+                    "memory_egopose", "memory_velo", 
+                    "coords_3d", "cone", "ego_pose", "timestamp"]
+    output_names = ["bboxes", "scores", "labels",
+                    "out_memory_embed", "out_memory_ref_point", "out_memory_ts",
+                    "out_memory_egopose", "out_memory_velo"]
 
     torch.onnx.export(onnxModel,
                       tuple(modelInput),
@@ -104,7 +112,7 @@ def export_Far3D_combined(model, inputs=None, data_samples=None,
     batch_img_metas[0]['prev_exists'] = img.new_zeros(1)
     x = batch_img_metas[0]['prev_exists'].to(img.device).to(torch.float32)
     memory_embedding, memory_reference_point, memory_timestamp, \
-        memory_egopose, memory_velo = onnxModel.pts_bbox_head.init_memory(x) #onnxModel.get_memory(x)
+        memory_egopose, memory_velo = onnxModel.get_memory(x) # onnxModel.pts_bbox_head.init_memory(x)
 
     # Passed the squeezed img
     if img.dim() == 5 and img.size(0) == 1:
@@ -246,7 +254,7 @@ def export_Far3D(model, inputs=None, data_samples=None,
     batch_img_metas[0]['prev_exists'] = img_feats[0].new_zeros(1)
     x = batch_img_metas[0]['prev_exists'].to(img_feats[0].device).to(torch.float32)
     memory_embedding, memory_reference_point, memory_timestamp, \
-        memory_egopose, memory_velo = onnxModel_pts_bbox.pts_bbox_head.init_memory(x)
+        memory_egopose, memory_velo = onnxModel_pts_bbox.get_memory(x)  # onnxModel_pts_bbox.pts_bbox_head.init_memory(x)
 
     outs_roi = {
         'pred_depth': pred_depth, 

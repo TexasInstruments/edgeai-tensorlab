@@ -516,11 +516,11 @@ class FarHead(AnchorFreeHead):
                 self.memory_egopose = memory_refresh(self.memory_egopose[:, :self.memory_len], x)
                 self.memory_velo = memory_refresh(self.memory_velo[:, :self.memory_len], x)
 
-        # for the first frame, padding pseudo_reference_points (non-learnable)
-        if self.num_propagated > 0:
-            pseudo_reference_points = self.pseudo_reference_points.weight * (self.pc_range[3:6] - self.pc_range[0:3]) + self.pc_range[0:3]
-            self.memory_reference_point[:, :self.num_propagated]  = self.memory_reference_point[:, :self.num_propagated] + (1 - x).view(B, 1, 1) * pseudo_reference_points
-            self.memory_egopose[:, :self.num_propagated]  = self.memory_egopose[:, :self.num_propagated] + (1 - x).view(B, 1, 1, 1) * torch.eye(4, device=x.device)
+            # for the first frame, padding pseudo_reference_points (non-learnable)
+            if self.num_propagated > 0:
+                pseudo_reference_points = self.pseudo_reference_points.weight * (self.pc_range[3:6] - self.pc_range[0:3]) + self.pc_range[0:3]
+                self.memory_reference_point[:, :self.num_propagated]  = self.memory_reference_point[:, :self.num_propagated] + (1 - x).view(B, 1, 1) * pseudo_reference_points
+                self.memory_egopose[:, :self.num_propagated]  = self.memory_egopose[:, :self.num_propagated] + (1 - x).view(B, 1, 1, 1) * torch.eye(4, device=x.device)
 
 
     def post_update_memory(self, img_metas, rec_ego_pose, all_cls_scores, all_bbox_preds, outs_dec, mask_dict):
