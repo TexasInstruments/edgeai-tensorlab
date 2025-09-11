@@ -261,8 +261,9 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, work_dir
         print(f"\tDDR Write Bandwidth (MB/s)            :   {stats['write_total']:.2f}")
         print()
         
-        max_nmse = tidl_unit_dataset([results_list])['max_nmse']
-        max_mse  = tidl_unit_dataset([results_list])['max_mse']
+        max_nmse  = tidl_unit_dataset([results_list])['max_nmse']
+        max_mse   = tidl_unit_dataset([results_list])['max_mse']
+        max_delta = tidl_unit_dataset([results_list])['max_delta']
 
         if max_nmse == None:
             print("MAX_NMSE: None")
@@ -272,6 +273,10 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, work_dir
             print("MAX_MSE: None")
         else:
             print("MAX_MSE: {:.7f}".format(max_mse))
+        if max_delta == None:
+            print("MAX_DELTA: None")
+        else:
+            print("MAX_DELTA: {:.7f}".format(max_delta))
 
         # max_nmse can be none if output has zero variance - check max_mse in this case
         if max_nmse == None and max_mse == None:

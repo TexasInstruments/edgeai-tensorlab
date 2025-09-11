@@ -115,8 +115,9 @@ class TIDLUnitDataset(DatasetBase):
             output_dict[info.name] = output
 
         # Compute the max_nmse
-        max_nmse = None
-        max_mse  = None
+        max_nmse  = None
+        max_mse   = None
+        max_delta = None
         epsilon  = 1e-10
         for out_name, output in output_dict.items():
             expected_output = self.expected_outputs.get(out_name)
@@ -132,6 +133,7 @@ class TIDLUnitDataset(DatasetBase):
             expected_output = np.squeeze(expected_output.astype(float))
 
             assert expected_output.shape == output.shape, f" Shape mismatch! Expected {expected_output.shape} got {output.shape}"
+
             curr_mse = np.mean((expected_output - output)**2)
             curr_var = np.var(expected_output)
 
@@ -156,4 +158,13 @@ class TIDLUnitDataset(DatasetBase):
             else:
                 max_nmse = max(max_nmse, curr_nmse)
 
-        return {"max_nmse" : max_nmse, "max_mse" : max_mse}
+            delta = np.abs(expected_output - output)
+            curr_max_delta = np.max(delta)
+            if np.isnan(curr_max_delta) == True:
+                max_delta = None
+            elif max_delta is None:
+                max_delta = curr_max_delta
+            else:
+                max_delta = max(max_delta, curr_max_delta)
+
+        return {"max_nmse" : max_nmse, "max_mse" : max_mse, "max_delta" : max_delta}

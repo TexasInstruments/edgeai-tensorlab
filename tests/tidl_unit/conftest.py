@@ -42,6 +42,7 @@ def pytest_runtest_makereport(item, call):
     report.complete_tidl_offload = "Not detected"
     report.nmse = "-"
     report.mse = "-"
+    report.max_delta = "-"
     if report.when == 'call' or report.when == 'teardown':
         # Parsing subgraphs]
         if runtime == "onnxrt":
@@ -120,6 +121,10 @@ def pytest_runtest_makereport(item, call):
         if mse_regex:
             mse = mse_regex.group(1)
             report.mse = str(mse)
+        max_delta_regex = re.search(r'MAX_DELTA: (\d*\.\d+|\d+|None)', report.capstdout)
+        if max_delta_regex:
+            max_delta = max_delta_regex.group(1)
+            report.max_delta = str(max_delta)
 
 # Inserts the TIDL Subgraphs table header
 def pytest_html_results_table_header(cells):
@@ -127,6 +132,7 @@ def pytest_html_results_table_header(cells):
     cells.insert(3, html.th("Complete TIDL Offload"))
     cells.insert(4, html.th("NMSE"))
     cells.insert(5, html.th("MSE"))
+    cells.insert(6, html.th("Max Delta"))
 
 # Inserts the number of TIDL subgraphs for each row
 def pytest_html_results_table_row(report, cells):
@@ -138,3 +144,5 @@ def pytest_html_results_table_row(report, cells):
         cells.insert(4, html.td(report.nmse))
     if(hasattr(report,'mse')):
         cells.insert(5, html.td(report.mse))
+    if(hasattr(report,'max_delta')):
+        cells.insert(6, html.td(report.max_delta))
