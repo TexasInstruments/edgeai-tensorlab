@@ -298,6 +298,8 @@ class AccuracyPipeline(BasePipeline):
         # for BEVFormer
         # To Do: Use queue for BEVFormer
         prev_bev = None
+        # for StreamPETR
+        prev_memory = None
         for data_index in range(calibration_frames):
             info_dict = {'dataset_info': self.dataset_info, 
                          'label_offset_pred': self.pipeline_config.get('metric',{}).get('label_offset_pred',None),
@@ -309,25 +311,39 @@ class AccuracyPipeline(BasePipeline):
                 info_dict['queue'] = self.queue
                 info_dict['num_bev_temporal_frames'] = num_bev_temporal_frames
 
+            # For BEVFormer
+            if 'BEVFormer' in self.pipeline_config.get('task_name', {}):                
+                info_dict['prev_bev'] = prev_bev
+
+            # For StreamPETR
+            if self.pipeline_config.get('task_name', {}) == 'StreamPETR':
+                info_dict['prev_memory'] = prev_memory
+
             input_data, info_dict = calibration_dataset(data_index, info_dict)
             input_data, info_dict = preprocess(input_data, info_dict)
 
             # For calibration, we cannot add prev_bev from the previous frames.
             # So simply set prev_bev to zero
             # To REVISIT with queue
+            # Move to BEVFormer pre-processing
+            """
             if 'BEVFormer' in self.pipeline_config.get('task_name', {}):
                 if info_dict['prev_bev_exist'] is False:
                     input_data.append(np.zeros((info_dict['bev_h']*info_dict['bev_w'], 1, 256), dtype=np.float32))
                 else:
                     input_data.append(prev_bev)
+            """
 
             # this is the actual import
             output, info_dict = session.run_import(input_data, info_dict)
-        #
 
             # For BEVFormer, save output for next frames
             if 'BEVFormer' in self.pipeline_config.get('task_name', {}):
                 prev_bev = output[3]
+
+            # For StreamPETR
+            if self.pipeline_config.get('task_name', {}) == 'StreamPETR':
+                prev_memory = output[3:]
 
             # FastBEV: Update queue
             if self.queue is not None:
@@ -382,6 +398,8 @@ class AccuracyPipeline(BasePipeline):
         # for BEVFormer
         # To Do: Use queue for BEVFormer
         prev_bev = None
+        # for StreamPETR
+        prev_memory = None
         for data_index in utils.progress_step(range(num_frames), desc=pbar_desc, position=0):
             info_dict = {'dataset_info': self.dataset_info,
                          'label_offset_pred': self.pipeline_config.get('metric',{}).get('label_offset_pred',None),
@@ -393,14 +411,25 @@ class AccuracyPipeline(BasePipeline):
                 info_dict['queue'] = self.queue
                 info_dict['num_bev_temporal_frames'] = num_bev_temporal_frames
 
+            # For BEVFormer
+            if 'BEVFormer' in self.pipeline_config.get('task_name', {}):                
+                info_dict['prev_bev'] = prev_bev                
+
+            # For StreamPETR
+            if self.pipeline_config.get('task_name', {}) == 'StreamPETR':
+                info_dict['prev_memory'] = prev_memory
+
             data, info_dict = input_dataset(data_index, info_dict)
             data, info_dict = preprocess(data, info_dict)
 
+            # Move to BEVFormer pre-processing
+            """
             if 'BEVFormer' in self.pipeline_config.get('task_name', {}):
                 if info_dict['prev_bev_exist'] is False:
                     data.append(np.zeros((info_dict['bev_h']*info_dict['bev_w'], 1, 256), dtype=np.float32))
                 else:
                     data.append(prev_bev)
+            """
 
             # Save input arrays
             #for i in range(len(data)):
@@ -411,6 +440,10 @@ class AccuracyPipeline(BasePipeline):
             if 'BEVFormer' in self.pipeline_config.get('task_name', {}) or \
                 self.pipeline_config.get('task_name', {}) == 'FastBEV_f4':
                 prev_bev = output[3]
+
+            # For StreamPETR
+            if self.pipeline_config.get('task_name', {}) == 'StreamPETR':
+                prev_memory = output[3:]
 
             # For BEVFormer_small or BEVFormer_base only
             if self.pipeline_config.get('task_name', {}) == 'BEVFormer_small' or \

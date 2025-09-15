@@ -274,7 +274,7 @@ class PostProcessTransforms(utils.TransformsCompose):
                                                                 score_threshold=0.5,
                                                                 mode='frame')]
             except Exception as message:
-                print(f'BEV postprocess could not be created: {message}')    
+                print(f'BEV postprocess could not be created: {message}')
 
 
         try:
