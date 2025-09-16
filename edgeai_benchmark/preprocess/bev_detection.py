@@ -485,7 +485,7 @@ class BEVSensorsRead():
             post_tran = np.zeros(3)
 
             # imgsize is from info_dict
-            scale = self.resize[1] / self.imsize[1]
+            scale = max(self.resize[0] / self.imsize[0], self.resize[1] / self.imsize[1])
             post_rot[:2, :2] *= scale
             post_tran[:2] -= np.array(self.crop[:2])
 
@@ -1529,7 +1529,7 @@ class GetFastBEVGeometry():
 
 
 class GetStreamPETRGeometry():
-    def __init__(self, crop, featsize):
+    def __init__(self):
         # Params needed to generate coords3d: How to make them configurable?
         # Batch size
         self.B              = 1
@@ -1570,7 +1570,7 @@ class GetStreamPETRGeometry():
         shifts_y = (np.arange(
             0, h * self.stride, step=self.stride).astype(np.float32) + self.stride // 2) / pad_h
 
-        shift_y, shift_x = np.meshgrid(shifts_y, shifts_x)
+        shift_y, shift_x = np.meshgrid(shifts_y, shifts_x, indexing='ij')
         shift_x = shift_x.reshape(-1)
         shift_y = shift_y.reshape(-1)
 
@@ -1588,7 +1588,7 @@ class GetStreamPETRGeometry():
         for i in range(len(info_dict['lidar2imgs'])):
             img2lidar.append(np.linalg.inv(info_dict['lidar2imgs'][i]))
         img2lidars = np.expand_dims(np.asarray(img2lidar), 0)
-        intrinsics = info_dict['intrins']
+        intrinsics = info_dict['post_intrins']
 
         B = img2lidars.shape[0]
         intrinsic = np.stack([intrinsics[..., 0, 0], intrinsics[..., 1, 1]], axis=-1)
@@ -1673,7 +1673,7 @@ class GetStreamPETRGeometry():
     def get_ego_pose_and_timestamp(self, info_dict):
         ego_pose = info_dict['ego2globals'][0][0] @ info_dict['lidar2ego']
         ego_pose = np.expand_dims(ego_pose, 0).astype(np.float32)
-        timestamp = np.asarray([info_dict['timestamp']/1e-6])
+        timestamp = np.asarray([info_dict['timestamp']*1e-6])
 
         return ego_pose, timestamp
 
@@ -1706,5 +1706,127 @@ class GetStreamPETRGeometry():
         data_.append(cone)
         data_.append(ego_pose)
         data_.append(timestamp)
+
+        return data_, info_dict
+
+
+class GetFar3DGeometry():
+    def __init__(self):
+        # Params needed to generate coords3d: How to make them configurable?
+        # Batch size
+        self.B              = 1
+        self.N              = 6
+        #self.C              = 256
+        #self.H              = 16
+        #self.W              = 44
+        self.num_propagated = 256
+        self.memory_len     = 1024
+        self.embed_dims     = 256
+        self.prev_scene_token = None
+
+        #self.LID            = True
+        #self.stride         = 16
+        #self.depth_num      = 64
+        #self.depth_start    = 1
+        self.img_feat_sizes = [[80, 120], [40, 60], [20, 30], [10, 15]]
+        self.pc_range       = np.array([-51.2, -51.2, -5.0, 51.2, 51.2, 3.0]).astype(np.float32)
+        #self.position_range = np.array([-61.2, -61.2, -10.0, 61.2, 61.2, 10.0]).astype(np.float32)
+
+        self.pseudo_reference_points = np.random.uniform(low=0.0, high=1.0, size=(self.num_propagated, 3)).astype(np.float32)
+
+    def init_memory(self, prev_exists):
+        B = prev_exists.shape[0]
+        memory_embedding = np.zeros((B, self.memory_len, self.embed_dims), dtype=np.float32)
+        memory_reference_point = np.zeros((B, self.memory_len, 3), dtype=np.float32)
+        memory_timestamp = np.zeros((B, self.memory_len, 1), dtype=np.float32)
+        memory_egopose = np.zeros((B, self.memory_len, 4, 4), dtype=np.float32)
+        memory_velo = np.zeros((B, self.memory_len, 2), dtype=np.float32)
+
+        return memory_embedding, memory_reference_point, memory_timestamp, \
+            memory_egopose, memory_velo
+
+
+    def pre_update_memory(self, info_dict):
+        x = info_dict['prev_exists']
+        B = x.shape[0]
+        prev_memory = info_dict['prev_memory']
+        if prev_memory is None:
+            memory_embedding, memory_reference_point, memory_timestamp, \
+                memory_egopose, memory_velo = self.init_memory(x)
+        else:
+            ego_pose_inv = np.linalg.inv(info_dict['ego2globals'][0][0] @ info_dict['lidar2ego'])
+            ego_pose_inv = np.expand_dims(ego_pose_inv, 0).astype(np.float32)
+            timestamp = np.asarray([info_dict['timestamp']/1e-6])
+
+            memory_embedding       = info_dict['prev_memory'][0]
+            memory_reference_point = info_dict['prev_memory'][1]
+            memory_timestamp       = info_dict['prev_memory'][2]
+            memory_egopose         = info_dict['prev_memory'][3]
+            memory_velo            = info_dict['prev_memory'][4]
+
+            memory_timestamp += np.expand_dims(np.expand_dims(timestamp, -1), -1)
+            memory_egopose = np.expand_dims(ego_pose_inv, 1) @ memory_egopose
+            memory_reference_point = transform_reference_points(memory_reference_point, ego_pose_inv, reverse=False)
+            memory_timestamp = memory_refresh(memory_timestamp[:, :self.memory_len], x)
+            memory_reference_point = memory_refresh(memory_reference_point[:, :self.memory_len], x)
+            memory_embedding = memory_refresh(memory_embedding[:, :self.memory_len], x)
+            memory_egopose = memory_refresh(memory_egopose[:, :self.memory_len], x)
+            memory_velo = memory_refresh(memory_velo[:, :self.memory_len], x)
+
+        if self.num_propagated > 0:
+            pseudo_reference_points = self.pseudo_reference_points * (self.pc_range[3:6] - self.pc_range[0:3]) + self.pc_range[0:3]
+            memory_reference_point[:, :self.num_propagated]  = memory_reference_point[:, :self.num_propagated] + (1 - x).reshape(B, 1, 1) * pseudo_reference_points
+            memory_egopose[:, :self.num_propagated]  = memory_egopose[:, :self.num_propagated] + (1 - x).reshape(B, 1, 1, 1) * np.eye(4)
+
+        return memory_embedding, memory_reference_point, memory_timestamp.astype(np.float32), \
+               memory_egopose, memory_velo
+
+   
+    def prepare_sensor_matrices(self, info_dict):
+
+        lidar2imgs = []
+        img2lidars = []
+        intrinsics = []
+        for i in range(len(info_dict['lidar2imgs'])):
+            lidar2imgs.append(info_dict['lidar2imgs'][i])
+            img2lidars.append(np.linalg.inv(info_dict['lidar2imgs'][i]))
+            intrin = np.eye(4).astype(np.float32)
+            intrin[:3, :3] = info_dict['post_intrins'][0, i]
+            intrinsics.append(intrin)
+
+        lidar2imgs = np.expand_dims(np.asarray(lidar2imgs), 0)
+        img2lidars = np.expand_dims(np.asarray(img2lidars), 0)
+        intrinsics =  np.expand_dims(np.asarray(intrinsics), 0) / 1e3
+        extrinsics = np.expand_dims(np.asarray(info_dict['lidar2cams']), 0)[..., :3, :]
+
+        return intrinsics, extrinsics, lidar2imgs, img2lidars
+
+
+    def __call__(self, data, info_dict):
+        intrinsics, extrinsics, lidar2imgs, img2lidars = \
+            self.prepare_sensor_matrices(info_dict)
+
+        if info_dict['scene_token'] != self.prev_scene_token:
+            self.prev_scene_token = info_dict['scene_token']
+            info_dict['prev_exists'] = np.array([0], dtype=np.int32)
+        else:
+            info_dict['prev_exists'] = np.array([1], dtype=np.int32)
+
+        memory_embedding, memory_reference_point, memory_timestamp, \
+            memory_egopose, memory_velo = self.pre_update_memory(info_dict)
+
+        # Model inputs
+        data_ = []
+        # combine all 6 images into one
+        data_.append(np.concatenate(data, 0))
+        data_.append(memory_embedding)
+        data_.append(memory_reference_point)
+        data_.append(memory_timestamp)
+        data_.append(memory_egopose)
+        data_.append(memory_velo)
+        data_.append(intrinsics)
+        data_.append(extrinsics)
+        data_.append(lidar2imgs)
+        data_.append(img2lidars)
 
         return data_, info_dict

@@ -223,7 +223,7 @@ class PreProcessTransforms(utils.TransformsCompose):
                                           resize_with_pad=resize_with_pad, pad_color=pad_color)
         return transforms
 
-    def get_transform_bev_streampetr(self, imsize=256, resize=256, crop=224, featsize=(20, 50), data_layout=constants.NCHW, reverse_channels=False,
+    def get_transform_bev_streampetr(self, imsize=256, resize=256, crop=224, data_layout=constants.NCHW, reverse_channels=False,
                         backend='cv2', interpolation=cv2.INTER_AREA, resize_with_pad=False, pad_color=0):
         transforms_list = [
             BEVSensorsRead(imsize, resize, crop),
@@ -231,7 +231,26 @@ class PreProcessTransforms(utils.TransformsCompose):
             ImageResize(resize, interpolation=interpolation, resize_with_pad=resize_with_pad, pad_color=pad_color),
             ImageCrop(crop),
             ImageToNPTensor4D(data_layout=data_layout),
-            GetStreamPETRGeometry(crop, featsize)
+            GetStreamPETRGeometry()
+        ]
+
+        transforms = PreProcessTransforms(None, transforms_list,
+                                          imsize=imsize, resize=resize, crop=crop,
+                                          data_layout=data_layout, reverse_channels=reverse_channels,
+                                          backend=backend, interpolation=interpolation,
+                                          resize_with_pad=resize_with_pad, pad_color=pad_color)
+        return transforms
+
+
+    def get_transform_bev_far3d(self, imsize=256, resize=256, crop=224, data_layout=constants.NCHW, reverse_channels=False,
+                        backend='cv2', interpolation=cv2.INTER_AREA, resize_with_pad=False, pad_color=0):
+        transforms_list = [
+            BEVSensorsRead(imsize, resize, crop),
+            ImageRead(backend=backend, bgr_to_rgb=False),
+            ImageResize(resize, interpolation=interpolation, resize_with_pad=resize_with_pad, pad_color=pad_color),
+            ImageCrop(crop),
+            ImageToNPTensor4D(data_layout=data_layout),
+            GetFar3DGeometry()
         ]
 
         transforms = PreProcessTransforms(None, transforms_list,

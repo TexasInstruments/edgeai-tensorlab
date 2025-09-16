@@ -53,7 +53,8 @@ session_type_dict : {'onnx':'onnxrt', 'tflite':'tflitert', 'mxnet':'tvmdlr'}
 #   examples: [cl-0000, od-2020, ss-2580, cl-3090, od-5120, ss-5710, cl-6360, od-8020, od-8200, od-8220, od-8420, ss-8610, kd-7060, 3dod-7100, 6dpose-7200, ss-7618]
 #   examples: [cl-0000, od-2020, cl-6360, od-8200, od-8270, od-8410, ss-8610, ss-8630, ss-8710, ss-8720]
 #   examples: [3dod-7120 (PETR), 3dod-7121 (PETRv2), 3dod-7130 (BEVDet), 3dod-7140 (BEVFormer_tiny), 3dod-7140 (BEVFormer_small),
-#              3dod-7140 (BEVFormer_base), 3dod-7150 (FCOS3D), 3dod-7160 ~ 3dod-7163 (FastBEV)]  # NuScenes Experimental
+#              3dod-7140 (BEVFormer_base), 3dod-7150 (FCOS3D), 3dod-7160 ~ 3dod-7163 (FastBEV),
+#              3dod-7170 (StreamPETR), 3dod-7180 (Far3D)]  # NuScenes Experimental
 #   examples: [3dod-8160 ~ 3dod-8161 (FastBEV)] # PandaSet
 model_selection : null
 

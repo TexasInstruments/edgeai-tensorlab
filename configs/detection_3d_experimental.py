@@ -351,13 +351,26 @@ def get_configs(settings, work_dir):
         '3dod-7170':utils.dict_update(bev_frame_cfg,
             task_name='StreamPETR',
             # crop = (left, top, width, height)
-            preprocess=preproc_transforms.get_transform_bev_streampetr((900, 1600), (396, 704), (0, 140, 704, 256), featsize=(20, 50), backend='cv2', interpolation=cv2.INTER_CUBIC),
-            # Check RGB vs BGR
+            preprocess=preproc_transforms.get_transform_bev_streampetr((900, 1600), (396, 704), (0, 140, 704, 256), backend='cv2', interpolation=cv2.INTER_CUBIC),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=[(123.675, 116.280, 103.530)], input_scale=[(0.017125, 0.017507, 0.017429)], input_optimization=False),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
                     {'advanced_options:output_feature_16bit_names_list':''},
                     {'advanced_options:max_num_subgraph_nodes':300}),
                 model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/streampetr/streampetr_r50_256x704_20250910.onnx'),
+            postprocess=postproc_transforms.get_transform_bev_detection_base(),
+            metric=dict(),
+            model_info=dict(metric_reference={'mAP':0.4})
+        ),
+        # 3dod-7180: Far3D
+        '3dod-7180':utils.dict_update(bev_frame_cfg,
+            task_name='Far3D',
+            # crop = (left, top, width, height)
+            preprocess=preproc_transforms.get_transform_bev_far3d((900, 1600), (640, 1137), (88, 0, 960, 640), backend='cv2', interpolation=cv2.INTER_CUBIC),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=[(103.530, 116.280, 123.675)], input_scale=[(0.017429, 0.017507, 0.017125)], input_optimization=False),
+                runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
+                    {'advanced_options:output_feature_16bit_names_list':''},
+                    {'advanced_options:max_num_subgraph_nodes':300}),
+                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/far3d/far3d_vovnet_960x640_20250914.onnx'),
             postprocess=postproc_transforms.get_transform_bev_detection_base(),
             metric=dict(),
             model_info=dict(metric_reference={'mAP':0.4})

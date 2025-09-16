@@ -298,7 +298,7 @@ class AccuracyPipeline(BasePipeline):
         # for BEVFormer
         # To Do: Use queue for BEVFormer
         prev_bev = None
-        # for StreamPETR
+        # for StreamPETR/Far3D
         prev_memory = None
         for data_index in range(calibration_frames):
             info_dict = {'dataset_info': self.dataset_info, 
@@ -312,11 +312,12 @@ class AccuracyPipeline(BasePipeline):
                 info_dict['num_bev_temporal_frames'] = num_bev_temporal_frames
 
             # For BEVFormer
-            if 'BEVFormer' in self.pipeline_config.get('task_name', {}):                
+            if 'BEVFormer' in self.pipeline_config.get('task_name', {}):
                 info_dict['prev_bev'] = prev_bev
 
-            # For StreamPETR
-            if self.pipeline_config.get('task_name', {}) == 'StreamPETR':
+            # For StreamPETR/Far3D
+            if self.pipeline_config.get('task_name', {}) == 'StreamPETR' or \
+                self.pipeline_config.get('task_name', {}) == 'Far3D':
                 info_dict['prev_memory'] = prev_memory
 
             input_data, info_dict = calibration_dataset(data_index, info_dict)
@@ -341,8 +342,9 @@ class AccuracyPipeline(BasePipeline):
             if 'BEVFormer' in self.pipeline_config.get('task_name', {}):
                 prev_bev = output[3]
 
-            # For StreamPETR
-            if self.pipeline_config.get('task_name', {}) == 'StreamPETR':
+            # For StreamPETR/Far3D
+            if self.pipeline_config.get('task_name', {}) == 'StreamPETR' or \
+                self.pipeline_config.get('task_name', {}) == 'Far3D':
                 prev_memory = output[3:]
 
             # FastBEV: Update queue
@@ -398,7 +400,7 @@ class AccuracyPipeline(BasePipeline):
         # for BEVFormer
         # To Do: Use queue for BEVFormer
         prev_bev = None
-        # for StreamPETR
+        # for StreamPETR/Far3D
         prev_memory = None
         for data_index in utils.progress_step(range(num_frames), desc=pbar_desc, position=0):
             info_dict = {'dataset_info': self.dataset_info,
@@ -412,11 +414,12 @@ class AccuracyPipeline(BasePipeline):
                 info_dict['num_bev_temporal_frames'] = num_bev_temporal_frames
 
             # For BEVFormer
-            if 'BEVFormer' in self.pipeline_config.get('task_name', {}):                
-                info_dict['prev_bev'] = prev_bev                
+            if 'BEVFormer' in self.pipeline_config.get('task_name', {}):
+                info_dict['prev_bev'] = prev_bev
 
-            # For StreamPETR
-            if self.pipeline_config.get('task_name', {}) == 'StreamPETR':
+            # For StreamPETR/Far3D
+            if self.pipeline_config.get('task_name', {}) == 'StreamPETR' or \
+                self.pipeline_config.get('task_name', {}) == 'Far3D':
                 info_dict['prev_memory'] = prev_memory
 
             data, info_dict = input_dataset(data_index, info_dict)
@@ -441,8 +444,9 @@ class AccuracyPipeline(BasePipeline):
                 self.pipeline_config.get('task_name', {}) == 'FastBEV_f4':
                 prev_bev = output[3]
 
-            # For StreamPETR
-            if self.pipeline_config.get('task_name', {}) == 'StreamPETR':
+            # For StreamPETR/Far3D
+            if self.pipeline_config.get('task_name', {}) == 'StreamPETR' or \
+                self.pipeline_config.get('task_name', {}) == 'Far3D':
                 prev_memory = output[3:]
 
             # For BEVFormer_small or BEVFormer_base only
