@@ -9,11 +9,18 @@ def parse_args():
     parser.add_argument("--SOC", default="AM68A", help="SOC for the benchmark to run")
     parser.add_argument("--remote", default="ssh://git@bitbucket-mirror-india.itg.ti.com:7999/processor-sdk-vision/c7x-mma-tidl.git", help="Remote C7X git repository to fetch the golden reference from")
     parser.add_argument("--branch", default="c7x_benchmark_test", help="Branch to compare the benchmark report against eg. master-next")
+    parser.add_argument('--work_dir', type=str)
+    parser.add_argument('--out_dir', type=str)
+    parser.add_argument('--target_device', type=str)
+    parser.add_argument('--tensor_bits', type=int)
+    parser.add_argument('--modelartifacts_path', type=str)
+    parser.add_argument('--modelpackage_path', type=str)
+    parser.add_argument('--param_template_file', type=str, default='./examples/configs/yaml/param_template_package.yaml')
     args = parser.parse_args()
     return args
 
 
-def fetch_golden_reference(remote, branch, soc):
+def fetch_golden_reference(remote, branch, soc, modelartifacts_path):
     """
     Fetches the golden reference CSV file from the remote git repository at the latest state of the branch.
     """
@@ -26,7 +33,7 @@ def fetch_golden_reference(remote, branch, soc):
     file_path = f"ti_dl/utils/testAutomation/tidl/comparison/golden_reference/benchmark/{soc.lower()}_golden_benchmark_report.csv"
     commit_id = get_latest_commit_id(remote, branch)
     cmd = f"git archive --remote={remote} {branch} {file_path}".split(" ")
-    output_path = os.path.join("./work_dirs/modelartifacts", "ref_" + os.path.basename(file_path))
+    output_path = os.path.join(modelartifacts_path, "ref_" + os.path.basename(file_path))
 
     # Extract the file from the archive
     with open(output_path, "wb") as out_f:
@@ -179,15 +186,19 @@ def main():
     soc = args.SOC
     remote = args.remote
     branch = args.branch
-
-    report = glob.glob(os.path.join(f"work_dirs/modelartifacts/report_*.csv"))
+    modelartifacts_path = args.modelartifacts_path
+    
+    # modelartifacts_path contains the SOC subfolder
+    modelartifacts_path = os.path.dirname(modelartifacts_path)
+    print(f"Files in {modelartifacts_path}: {os.listdir(modelartifacts_path)}")
+    report = glob.glob(os.path.join(f"{modelartifacts_path}/report_*.csv"))
     if len(report) == 0:
         return
     report_path = report[0]
     report = pd.read_csv(report_path)
 
     # Fetch the golden reference report from remote git
-    latest_commit_id, ref_report_path = fetch_golden_reference(remote, branch, soc)
+    latest_commit_id, ref_report_path = fetch_golden_reference(remote, branch, soc, modelartifacts_path)
     ref_report = pd.read_csv(ref_report_path)
 
     results = generate_benchmark_report(report, ref_report)
@@ -199,7 +210,7 @@ def main():
     print("Inactive:", results["Inactive"])
 
     # Save results to Excel
-    save_results_to_excel(results, branch, latest_commit_id, os.path.join("./work_dirs/modelartifacts", "benchmark_comparison.xlsx"))
+    save_results_to_excel(results, branch, latest_commit_id, os.path.join(modelartifacts_path, "benchmark_comparison.xlsx"))
 
 
 if __name__ == "__main__":

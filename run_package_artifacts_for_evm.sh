@@ -51,7 +51,7 @@ SETTINGS_FILE=settings_infer_on_evm.yaml
 echo "==================================================================="
 echo "Generating benchmark report for ${TARGET_SOC} ..."
 pip3 install openpyxl
-python3 ./scripts/generate_benchmark_report.py --SOC ${TARGET_SOC}
+python3 ./scripts/generate_benchmark_report.py --SOC ${TARGET_SOC} "${@:2}"
 echo "==================================================================="
 
 echo "==================================================================="
