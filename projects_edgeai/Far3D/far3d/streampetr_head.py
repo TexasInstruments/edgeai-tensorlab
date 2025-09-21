@@ -356,11 +356,6 @@ class StreamPETRHead(AnchorFreeHead):
         else:
             # refresh the memory when the scene changes
             if self.memory_embedding is None:
-                #self.memory_embedding = x.new_zeros(B, self.memory_len, self.embed_dims)
-                #self.memory_reference_point = x.new_zeros(B, self.memory_len, 3)
-                #self.memory_timestamp = x.new_zeros(B, self.memory_len, 1)
-                #self.memory_egopose = x.new_zeros(B, self.memory_len, 4, 4)
-                #self.memory_velo = x.new_zeros(B, self.memory_len, 2)
                 self.memory_embedding, self.memory_reference_point, self.memory_timestamp, \
                     self.memory_egopose, self.memory_velo = self.init_memory(x)
             else:
@@ -387,7 +382,7 @@ class StreamPETRHead(AnchorFreeHead):
             # for the first frame, padding pseudo_reference_points (non-learnable)
             if self.num_propagated > 0:
                 pseudo_reference_points = self.pseudo_reference_points.weight * (self.pc_range[3:6] - self.pc_range[0:3]) + self.pc_range[0:3]
-                self.memory_reference_point[:, :self.num_propagated]  = self.memory_reference_point[:, :self.num_propagated] + (1 - x).view(B, 1, 1) * pseudo_reference_points
+                self.memory_reference_point[:, :self.num_propagated] = self.memory_reference_point[:, :self.num_propagated] + (1 - x).view(B, 1, 1) * pseudo_reference_points
                 self.memory_egopose[:, :self.num_propagated]  = self.memory_egopose[:, :self.num_propagated] + (1 - x).view(B, 1, 1, 1) * torch.eye(4, device=x.device)
 
     def post_update_memory(self, 

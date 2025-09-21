@@ -16,7 +16,7 @@ voxel_size = [0.2, 0.2, 8]
 img_norm_cfg = dict(
     mean=[103.530, 116.280, 123.675],
     std=[57.375, 57.120, 58.395],
-    to_rgb=False)
+    bgr_to_rgb=False)
 # For nuScenes we usually do 10-class detection
 class_names = [
     'car', 'truck', 'construction_vehicle', 'bus', 'trailer', 'barrier',
@@ -31,9 +31,7 @@ model = dict(
     quantized_model=True,
     data_preprocessor=dict(
         type='Det3DDataPreprocessor',
-        mean=[103.530, 116.280, 123.675],
-        std=[57.375, 57.120, 58.395],
-        bgr_to_rgb=False,
+        **img_norm_cfg,
         pad_size_divisor=32),
     use_grid_mask=True,
     img_backbone=dict(

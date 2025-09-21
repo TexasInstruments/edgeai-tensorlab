@@ -477,7 +477,7 @@ class Detr3DTemporalDecoderLayer(BaseModule):
 
 
 @MODELS.register_module()
-class DeformableFeatureAggregationCuda(BaseModule):
+class DeformableFeatureAggregation(BaseModule):
     def __init__(
             self,
             embed_dims=256,
@@ -491,7 +491,7 @@ class DeformableFeatureAggregationCuda(BaseModule):
             bias=1.,
             grid_sample_mode='bilinear',
             ):
-        super(DeformableFeatureAggregationCuda, self).__init__()
+        super(DeformableFeatureAggregation, self).__init__()
         self.embed_dims = embed_dims
         self.num_groups = num_groups
         self.group_dims = (self.embed_dims // self.num_groups)

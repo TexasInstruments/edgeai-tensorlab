@@ -1,13 +1,7 @@
 from typing import Dict, List, Optional
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import numpy as np
-import copy
-import math
-
-from mmdet.models.layers.transformer import inverse_sigmoid
-
 
 class StreamPETR_export_model(nn.Module):
     def __init__(self,
@@ -29,7 +23,6 @@ class StreamPETR_export_model(nn.Module):
         self.aux_2d_only      = True
         self.position_level   = 0
         self.len_queue        = 1
-        self.prev_scene_token = None
 
         # Image feature size after image backbone. 
         # It may need update for different image backbone
@@ -80,7 +73,6 @@ class StreamPETR_export_model(nn.Module):
     def create_coords3d(self, location):
         eps = 1e-5
         BN, H, W, _ = location.shape
-        #B = img_metas[0]['intrinsics'].size(0)
 
         intrinsics = []
         img2lidars = []
@@ -167,9 +159,7 @@ class StreamPETR_export_model(nn.Module):
                 memory_timestamp, memory_egopose, memory_velo,
                 coords_3d, cone,
                 ego_pose, timestamp):
-        B = 1
-        N, C, H, W = img.size()
-
+        B = self.B
         if self.use_grid_mask:
             img = self.grid_mask(img)
 
@@ -196,6 +186,210 @@ class StreamPETR_export_model(nn.Module):
 
         return bbox_list, out_memory_embedding, out_memory_reference_point, \
                out_memory_timestamp, out_memory_egopose, out_memory_velo
+
+
+class StreamPETR_export_img_backbone(nn.Module):
+    def __init__(self,
+                 use_grid_mask,
+                 grid_mask,
+                 img_backbone,
+                 img_neck):
+        super().__init__()
+
+        self.use_grid_mask    = use_grid_mask
+        self.img_backbone     = img_backbone
+        self.img_neck         = img_neck
+        self.grid_mask        = grid_mask
+
+        self.position_level   = 0
+        self.len_queue        = 1
+        self.B               = 1
+
+    def forward(self, img):
+        B = self.B
+        if self.use_grid_mask:
+            img = self.grid_mask(img)
+
+        img_feats = self.img_backbone(img)
+        img_feats = self.img_neck(img_feats)
+
+        BN, C, H, W = img_feats[self.position_level].size()
+        img_feats_reshaped = img_feats[self.position_level].view(B, int(BN/B/self.len_queue), C, H, W)
+
+        return img_feats_reshaped
+
+
+class StreamPETR_export_pts_bbox(nn.Module):
+    def __init__(self,
+                 stride,
+                 pts_bbox_head):
+        super().__init__()
+
+        self.stride           = stride
+        self.pts_bbox_head    = pts_bbox_head
+        self.img_metas        = None
+
+        # Image feature size after image backbone. 
+        # It may need update for different image backbone
+        self.B              = 1
+        self.N              = 6
+        self.C              = 256
+        self.H              = 16
+        self.W              = 44
+
+        self.num_propagated           = self.pts_bbox_head.num_propagated
+        self.pseudo_reference_points  = self.pts_bbox_head.pseudo_reference_points
+        self.pc_range                 = self.pts_bbox_head.pc_range
+        self.position_range           = self.pts_bbox_head.position_range
+        self.coords_d                 = self.pts_bbox_head.coords_d
+
+
+    def prepare_data(self, img_metas):
+        #input_shape = img.shape[-2:]
+        self.img_metas = img_metas
+
+        ## update real input shae of each single img
+        #for img_meta in self.img_metas:
+        #    img_meta.update(input_shape=input_shape)
+    
+    def prepare_location(self, img):
+        pad_h, pad_w = self.img_metas[0]['pad_shape']
+        bs, n, h, w = self.B, self.N, self.H, self.W
+
+        device = img.device
+
+        shifts_x = (torch.arange(
+            0, self.stride*w, step=self.stride,
+            dtype=torch.float32, device=device
+        ) + self.stride // 2 ) / pad_w
+        shifts_y = (torch.arange(
+            0, h * self.stride, step=self.stride,
+            dtype=torch.float32, device=device
+        ) + self.stride // 2) / pad_h
+
+        shift_y, shift_x = torch.meshgrid(shifts_y, shifts_x)
+        shift_x = shift_x.reshape(-1)
+        shift_y = shift_y.reshape(-1)
+
+        location = torch.stack((shift_x, shift_y), dim=1)
+        location = location.reshape(h, w, 2)[None].repeat(bs*n, 1, 1, 1)
+
+        return location
+
+    def create_coords3d(self, location):
+        eps = 1e-5
+        BN, H, W, _ = location.shape
+
+        intrinsics = []
+        img2lidars = []
+        for img_meta in self.img_metas:
+            intrinsic = []
+            img2lidar = []
+            for i in range(len(img_meta['intrinsics'])):
+                intrinsic.append(img_meta['intrinsics'][i])
+                img2lidar.append(np.linalg.inv(img_meta['lidar2img'][i]))
+            intrinsics.append(np.asarray(intrinsic))
+            img2lidars.append(np.asarray(img2lidar))
+        intrinsics = np.asarray(intrinsics)
+        intrinsics = location.new_tensor(intrinsics)  # (B, N, 4, 4)
+        img2lidars = np.asarray(img2lidars)
+        img2lidars = location.new_tensor(img2lidars)  # (B, N, 4, 4)
+
+        B = img2lidars.size(0)
+
+        intrinsic = torch.stack([intrinsics[..., 0, 0], intrinsics[..., 1, 1]], dim=-1)
+        intrinsic = torch.abs(intrinsic) / 1e3
+        intrinsic = intrinsic.repeat(1, H*W, 1).view(B, -1, 2)
+        LEN = intrinsic.size(1)
+        num_sample_tokens = LEN
+
+        pad_h, pad_w  = self.img_metas[0]['pad_shape']
+        location[..., 0] = location[..., 0] * pad_w
+        location[..., 1] = location[..., 1] * pad_h
+
+        D = self.coords_d.shape[0]
+
+        location = location.detach().view(B, num_sample_tokens, 1, 2)
+        topk_centers = location.repeat(1, 1, D, 1)
+        coords_d = self.coords_d.view(1, 1, D, 1).repeat(B, num_sample_tokens, 1 , 1)
+        coords = torch.cat([topk_centers, coords_d], dim=-1)
+        coords = torch.cat((coords, torch.ones_like(coords[..., :1])), -1)
+        coords[..., :2] = coords[..., :2] * torch.maximum(coords[..., 2:3], torch.ones_like(coords[..., 2:3])*eps)
+
+        coords = coords.unsqueeze(-1)
+
+        img2lidars = img2lidars.view(BN, 1, 1, 4, 4).repeat(1, H*W, D, 1, 1).view(B, LEN, D, 4, 4)
+
+        coords3d = torch.matmul(img2lidars, coords).squeeze(-1)[..., :3]
+        coords3d[..., 0:3] = (coords3d[..., 0:3] - self.position_range[0:3]) / (self.position_range[3:6] - self.position_range[0:3])
+        coords3d = coords3d.reshape(B, -1, D*3)
+
+        # for spatial alignment in focal petr
+        cone = torch.cat([intrinsic, coords3d[..., -3:], coords3d[..., -90:-87]], dim=-1)
+
+        return coords3d, cone
+
+
+    def get_memory(self, prev_exist):
+        B = prev_exist.size(0)
+        memory_embedding, memory_reference_point, memory_timestamp, \
+            memory_egopose, memory_velo = self.pts_bbox_head.init_memory(prev_exist)
+
+        if self.num_propagated > 0:
+            pseudo_reference_points = self.pseudo_reference_points.weight * (self.pc_range[3:6] - self.pc_range[0:3]) + self.pc_range[0:3]
+            memory_reference_point[:, :self.num_propagated]  = memory_reference_point[:, :self.num_propagated] + (1 - prev_exist).view(B, 1, 1) * pseudo_reference_points
+            memory_egopose[:, :self.num_propagated]  = memory_egopose[:, :self.num_propagated] + (1 - prev_exist).view(B, 1, 1, 1) * torch.eye(4, device=prev_exist.device)
+
+        return memory_embedding, memory_reference_point, memory_timestamp, memory_egopose, memory_velo
+
+
+    def get_ego_pose_and_timestamp(self):
+        ego_pose = []
+        timestamp = []
+        for img_meta in self.img_metas:
+            ego_pose.append(img_meta['ego_pose'])
+            timestamp.append(img_meta['timestamp'])
+        ego_pose = np.asarray(ego_pose)
+        ego_pose = torch.from_numpy(ego_pose).to(torch.float32)
+        timestamp = np.asarray(timestamp)
+        timestamp = torch.from_numpy(timestamp)
+
+        return ego_pose, timestamp
+
+
+    def forward(self, img_feats_reshaped,
+                memory_embedding, memory_reference_point,
+                memory_timestamp, memory_egopose, memory_velo,
+                coords_3d, cone,
+                ego_pose, timestamp):
+
+        # location = None, instead send coord_3d directly
+        # We can send cood_3d directly only when topk_indexes is None (i.e. self.aux_2d_only = True)
+        # if not, we have to send location intead of coord_3d
+        location = None
+        topk_indexes = None
+
+        if torch.onnx.is_in_onnx_export():
+            outs, out_memory_embedding, out_memory_reference_point, \
+                out_memory_timestamp, out_memory_egopose, out_memory_velo = \
+                    self.pts_bbox_head(location, img_feats_reshaped, self.img_metas, topk_indexes,
+                                       memory_embedding, memory_reference_point, memory_timestamp,
+                                       memory_egopose, memory_velo, coords_3d, cone,
+                                       ego_pose, timestamp)
+        else:
+            outs =  self.pts_bbox_head(location, img_feats_reshaped, self.img_metas, topk_indexes,
+                                       memory_embedding, memory_reference_point, memory_timestamp,
+                                       memory_egopose, memory_velo, coords_3d, cone,
+                                       ego_pose, timestamp)
+
+        bbox_list = self.pts_bbox_head.get_bboxes(
+            outs, self.img_metas)
+
+        if torch.onnx.is_in_onnx_export():
+            return bbox_list, out_memory_embedding, out_memory_reference_point, \
+                   out_memory_timestamp, out_memory_egopose, out_memory_velo
+        else:
+            return bbox_list
 
 
 class Far3D_export_model(nn.Module):
@@ -316,6 +510,19 @@ class Far3D_export_model(nn.Module):
 
         return memory_embedding, memory_reference_point, memory_timestamp, memory_egopose, memory_velo
 
+    def get_ego_pose_and_timestamp(self):
+        ego_pose = []
+        timestamp = []
+        for img_meta in self.img_metas:
+            ego_pose.append(img_meta['ego_pose'])
+            timestamp.append(img_meta['timestamp'])
+        ego_pose = np.asarray(ego_pose)
+        ego_pose = torch.from_numpy(ego_pose).to(torch.float32)
+        timestamp = np.asarray(timestamp)
+        timestamp = torch.from_numpy(timestamp)
+
+        return ego_pose, timestamp
+
     def forward(self,
                 img,
                 memory_embedding=None,
@@ -326,7 +533,9 @@ class Far3D_export_model(nn.Module):
                 intrinsics=None,
                 extrinsics=None,
                 lidar2imgs=None,
-                img2lidars=None):
+                img2lidars=None,
+                ego_pose=None,
+                timestamp=None):
         B = self.B
         if self.use_grid_mask:
             img = self.grid_mask(img)
@@ -345,14 +554,18 @@ class Far3D_export_model(nn.Module):
         bbox_dict = self.img_roi_head.predict_by_feat(outs_roi)
         outs_roi.update(bbox_dict)
 
-        outs = self.pts_bbox_head(img_feats_reshaped, self.img_metas, outs_roi,
-                                  memory_embedding, memory_reference_point, memory_timestamp,
-                                  memory_egopose, memory_velo,
-                                  intrinsics, extrinsics, lidar2imgs, img2lidars)
+        outs, out_memory_embedding, out_memory_reference_point, \
+           out_memory_timestamp, out_memory_egopose, out_memory_velo = \
+            self.pts_bbox_head(img_feats_reshaped, self.img_metas, outs_roi,
+                               memory_embedding, memory_reference_point, memory_timestamp,
+                               memory_egopose, memory_velo,
+                               intrinsics, extrinsics, lidar2imgs, img2lidars,
+                               ego_pose, timestamp)
 
         bbox_list = self.pts_bbox_head.get_bboxes(outs, self.img_metas)
 
-        return bbox_list
+        return bbox_list, out_memory_embedding, out_memory_reference_point, \
+               out_memory_timestamp, out_memory_egopose, out_memory_velo
 
 
 class Far3D_export_img_backbone(nn.Module):
@@ -374,21 +587,6 @@ class Far3D_export_img_backbone(nn.Module):
 
         self.position_level   = position_level
         self.B = 1
-
-    def prepare_data(self, img, img_metas):
-        self.img_metas = img_metas
-
-        intrinsics = []
-        extrinsics = []
-        for img_meta in img_metas:
-            intrinsics.append(img_meta['intrinsics'])
-            extrinsics.append(img_meta['extrinsics'])
-        intrinsics = np.asarray(intrinsics)
-        extrinsics = np.asarray(extrinsics)
-        intrinsics = torch.from_numpy(intrinsics).to(img.device)
-        extrinsics = torch.from_numpy(extrinsics).to(img.device)
-
-        return intrinsics, extrinsics
 
 
     def forward(self,
@@ -416,27 +614,11 @@ class Far3D_export_img_roi(nn.Module):
         super().__init__()
         self.img_roi_head     = img_roi_head
 
-    def prepare_data(self, img, img_metas):
-        self.img_metas = img_metas
-
-        intrinsics = []
-        extrinsics = []
-        for img_meta in img_metas:
-            intrinsics.append(img_meta['intrinsics'])
-            extrinsics.append(img_meta['extrinsics'])
-        intrinsics = np.asarray(intrinsics)
-        extrinsics = np.asarray(extrinsics)
-        intrinsics = torch.from_numpy(intrinsics).to(img.device)
-        extrinsics = torch.from_numpy(extrinsics).to(img.device)
-
-        return intrinsics, extrinsics
-
 
     def forward(self,
                 img_feats):
         outs_roi  = self.img_roi_head(img_feats)
         bbox_dict = self.img_roi_head.predict_by_feat(outs_roi)
-        bbox_roi  = bbox_dict['bbox_list']
         outs_roi.update(bbox_dict)
 
         # outs_roi have the following fields
@@ -514,6 +696,18 @@ class Far3D_export_pts_bbox(nn.Module):
 
         return memory_embedding, memory_reference_point, memory_timestamp, memory_egopose, memory_velo
 
+    def get_ego_pose_and_timestamp(self):
+        ego_pose = []
+        timestamp = []
+        for img_meta in self.img_metas:
+            ego_pose.append(img_meta['ego_pose'])
+            timestamp.append(img_meta['timestamp'])
+        ego_pose = np.asarray(ego_pose)
+        ego_pose = torch.from_numpy(ego_pose).to(torch.float32)
+        timestamp = np.asarray(timestamp)
+        timestamp = torch.from_numpy(timestamp)
+
+        return ego_pose, timestamp
 
     def forward(self,
                 img_feats,
@@ -526,13 +720,31 @@ class Far3D_export_pts_bbox(nn.Module):
                 intrinsics=None,
                 extrinsics=None,
                 lidar2imgs=None,
-                img2lidars=None):
-        outs = self.pts_bbox_head(img_feats, self.img_metas, outs_roi,
-                                  memory_embedding, memory_reference_point, memory_timestamp,
-                                  memory_egopose, memory_velo,
-                                  intrinsics, extrinsics, lidar2imgs, img2lidars)
+                img2lidars=None,
+                ego_pose=None,
+                timestamp=None):
+
+        if torch.onnx.is_in_onnx_export():
+            outs, out_memory_embedding, out_memory_reference_point, \
+                out_memory_timestamp, out_memory_egopose, out_memory_velo = \
+                    self.pts_bbox_head(img_feats, self.img_metas, outs_roi,
+                                       memory_embedding, memory_reference_point, memory_timestamp,
+                                       memory_egopose, memory_velo,
+                                       intrinsics, extrinsics, lidar2imgs, img2lidars,
+                                       ego_pose, timestamp)
+        else:
+            outs = self.pts_bbox_head(img_feats, self.img_metas, outs_roi,
+                                      memory_embedding, memory_reference_point, memory_timestamp,
+                                      memory_egopose, memory_velo,
+                                      intrinsics, extrinsics, lidar2imgs, img2lidars,
+                                      ego_pose, timestamp)
+
 
         bbox_list = self.pts_bbox_head.get_bboxes(outs, self.img_metas)
 
-        return bbox_list
+        if torch.onnx.is_in_onnx_export():
+            return bbox_list, out_memory_embedding, out_memory_reference_point, \
+                   out_memory_timestamp, out_memory_egopose, out_memory_velo
+        else:
+            return bbox_list
 

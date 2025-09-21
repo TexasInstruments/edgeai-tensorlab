@@ -18,9 +18,10 @@ from mmdet3d.structures.ops import bbox3d2result
 from mmdet3d.models.detectors.mvx_two_stage import MVXTwoStageDetector
 from mmdet3d.structures.det3d_data_sample import ForwardResults, OptSampleList
 
+from projects_edgeai.edgeai_mmdet3d.grid_mask import GridMask
 from .utils import locations
-from .onnx_export import export_StreamPETR
-from ...edgeai_mmdet3d.grid_mask import GridMask
+from .onnx_export import export_StreamPETR_whole, export_StreamPETR_subnets
+
 
 
 @MODELS.register_module()
@@ -30,6 +31,7 @@ class StreamPETR(MVXTwoStageDetector):
     def __init__(self,
                  use_grid_mask=False,
                  save_onnx_model=False,
+                 onnx_subnets=False,
                  pts_voxel_encoder=None,
                  pts_middle_encoder=None,
                  pts_fusion_layer=None,
@@ -71,6 +73,7 @@ class StreamPETR(MVXTwoStageDetector):
 
         # for onnx model export
         self.save_onnx_model = save_onnx_model
+        self.onnx_subnets = onnx_subnets
 
     def forward(self,
                 inputs: Union[dict, List[dict]],
@@ -130,7 +133,10 @@ class StreamPETR(MVXTwoStageDetector):
                 return self.aug_test(inputs, data_samples, **kwargs)
             else:
                 if self.save_onnx_model is True:
-                    export_StreamPETR(self, inputs, data_samples, opset_version=18, **kwargs)
+                    if self.onnx_subnets:
+                        export_StreamPETR_subnets(self, inputs, data_samples, opset_version=18, **kwargs)
+                    else:
+                        export_StreamPETR_whole(self, inputs, data_samples, opset_version=18, **kwargs)
                     # Export onnx only once
                     self.save_onnx_model = False
 
