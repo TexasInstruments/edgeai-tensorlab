@@ -13,7 +13,7 @@ point_cloud_range = [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0]
 
 voxel_size = [0.2, 0.2, 8]
 img_norm_cfg = dict(
-    mean=[103.530, 116.280, 123.675], std=[57.375, 57.120, 58.395], to_rgb=False)
+    mean=[103.530, 116.280, 123.675], std=[57.375, 57.120, 58.395], bgr_to_rgb=False)
 class_names = [
     'car', 'truck', 'construction_vehicle', 'bus', 'trailer', 'barrier',
     'motorcycle', 'bicycle', 'pedestrian', 'traffic_cone'
@@ -28,6 +28,8 @@ queue_length = 1
 num_frame_losses = 1
 collect_keys=['lidar2img', 'intrinsics', 'extrinsics','timestamp', 'img_timestamp', 'ego_pose', 'ego_pose_inv']
 depthnet_config = {'type': 0, 'hidden_dim': 256, 'num_depth_bins': 50, 'depth_min': 1e-1, 'depth_max': 110, 'stride': 8}
+
+# Use score threshold to get best prediction
 sample_with_score = True
 
 input_modality = dict(
@@ -40,14 +42,13 @@ input_modality = dict(
 model = dict(
     type='Far3D',
     save_onnx_model=False,
+    onnx_subnets=False,
     use_grid_mask=True,
     stride=[8, 16, 32, 64],
     position_level=[0, 1, 2, 3],
     data_preprocessor=dict(
         type='Far3DDataPreprocessor',
-        mean=[103.530, 116.280, 123.675],
-        std=[57.375, 57.120, 58.395],
-        bgr_to_rgb=False, # False always
+        **img_norm_cfg,
         pad_size_divisor=32),
     img_backbone=dict(
         type='VoVNet', ###use checkpoint to save memory
@@ -78,11 +79,10 @@ model = dict(
         reg_depth_level='p3',
         pred_depth_var=False,    # note 2d depth uncertainty
         loss_depth2d=dict(type='mmdet.L1Loss', loss_weight=1.0),
-        #sample_with_score=True,  # note threshold
         sample_with_score=sample_with_score,
         threshold_score=0.1,
-        topk_proposal=None,
-        #topk_proposal=10,
+        #topk_proposal=None,
+        topk_proposal=10,
         return_context_feat=True,
     ),
     pts_bbox_head=dict(
@@ -129,7 +129,7 @@ model = dict(
                             num_heads=8,
                             dropout=0.1),
                         dict(
-                            type='DeformableFeatureAggregationCuda',
+                            type='DeformableFeatureAggregation',
                             embed_dims=256,
                             num_groups=8,
                             num_levels=4,

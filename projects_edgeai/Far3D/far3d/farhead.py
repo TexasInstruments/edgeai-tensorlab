@@ -516,14 +516,15 @@ class FarHead(AnchorFreeHead):
                 self.memory_egopose = memory_refresh(self.memory_egopose[:, :self.memory_len], x)
                 self.memory_velo = memory_refresh(self.memory_velo[:, :self.memory_len], x)
 
-        # for the first frame, padding pseudo_reference_points (non-learnable)
-        if self.num_propagated > 0:
-            pseudo_reference_points = self.pseudo_reference_points.weight * (self.pc_range[3:6] - self.pc_range[0:3]) + self.pc_range[0:3]
-            self.memory_reference_point[:, :self.num_propagated]  = self.memory_reference_point[:, :self.num_propagated] + (1 - x).view(B, 1, 1) * pseudo_reference_points
-            self.memory_egopose[:, :self.num_propagated]  = self.memory_egopose[:, :self.num_propagated] + (1 - x).view(B, 1, 1, 1) * torch.eye(4, device=x.device)
+            # for the first frame, padding pseudo_reference_points (non-learnable)
+            if self.num_propagated > 0:
+                pseudo_reference_points = self.pseudo_reference_points.weight * (self.pc_range[3:6] - self.pc_range[0:3]) + self.pc_range[0:3]
+                self.memory_reference_point[:, :self.num_propagated]  = self.memory_reference_point[:, :self.num_propagated] + (1 - x).view(B, 1, 1) * pseudo_reference_points
+                self.memory_egopose[:, :self.num_propagated]  = self.memory_egopose[:, :self.num_propagated] + (1 - x).view(B, 1, 1, 1) * torch.eye(4, device=x.device)
 
 
-    def post_update_memory(self, img_metas, rec_ego_pose, all_cls_scores, all_bbox_preds, outs_dec, mask_dict):
+    def post_update_memory(self, img_metas, rec_ego_pose, all_cls_scores, all_bbox_preds, outs_dec, mask_dict,
+                           ego_pose=None, timestamp=None):
         if self.training and mask_dict and mask_dict['pad_size'] > 0:
             rec_reference_points = all_bbox_preds[:, :, mask_dict['pad_size']:, :3][-1]
             rec_velo = all_bbox_preds[:, :, mask_dict['pad_size']:, -2:][-1]
@@ -546,15 +547,17 @@ class FarHead(AnchorFreeHead):
         rec_velo = topk_gather(rec_velo, topk_indexes).detach()
 
         # For multiple batch
-        ego_pose = []
-        timestamp = []
-        for img_meta in img_metas:
-            ego_pose.append(img_meta['ego_pose'])
-            timestamp.append(img_meta['timestamp'])
-        ego_pose = np.asarray(ego_pose)
-        ego_pose = torch.from_numpy(ego_pose).to(all_bbox_preds.device).to(torch.float32)
-        timestamp = np.asarray(timestamp)
-        timestamp = torch.from_numpy(timestamp).to(all_bbox_preds.device)
+        if (torch.onnx.is_in_onnx_export() is not True and
+            (ego_pose is None or timestamp is None)):
+            ego_pose = []
+            timestamp = []
+            for img_meta in img_metas:
+                ego_pose.append(img_meta['ego_pose'])
+                timestamp.append(img_meta['timestamp'])
+            ego_pose = np.asarray(ego_pose)
+            ego_pose = torch.from_numpy(ego_pose).to(all_bbox_preds.device).to(torch.float32)
+            timestamp = np.asarray(timestamp)
+            timestamp = torch.from_numpy(timestamp).to(all_bbox_preds.device)
 
         self.memory_embedding = torch.cat([rec_memory, self.memory_embedding], dim=1)
         self.memory_timestamp = torch.cat([rec_timestamp, self.memory_timestamp], dim=1)
@@ -598,7 +601,9 @@ class FarHead(AnchorFreeHead):
                 intrinsics=None,
                 extrinsics=None,
                 lidar2imgs=None,
-                img2lidars=None):
+                img2lidars=None,
+                ego_pose=None,
+                timestamp=None):
         """Forward function.
         Args:
             mlvl_feats (tuple[Tensor]): Features from the upstream
@@ -653,7 +658,7 @@ class FarHead(AnchorFreeHead):
         query_pos = self.query_embedding(pos2posemb3d(reference_points))
 
         # img2lidar, lidar2img array build
-        if lidar2imgs is None:
+        if lidar2imgs is None and img2lidars is None:
             lidar2imgs = []
             img2lidars = []
             for img_meta in img_metas:
@@ -744,7 +749,7 @@ class FarHead(AnchorFreeHead):
         # prepare for the tgt and query_pos using mln.
         tgt, query_pos, reference_points, temp_memory, temp_pos, rec_ego_pose = self.temporal_alignment(query_pos, tgt, reference_points)
 
-        outs_dec = self.transformer(tgt, query_pos, feat_flatten, spatial_flatten, level_start_index, temp_memory, 
+        outs_dec = self.transformer(tgt, query_pos, feat_flatten, spatial_flatten, level_start_index, temp_memory,
                                     temp_pos, attn_mask, reference_points, self.pc_range, lidar2imgs, img_metas)
 
         outs_dec = torch.nan_to_num(outs_dec)
@@ -768,7 +773,8 @@ class FarHead(AnchorFreeHead):
         all_bbox_preds[..., 0:3] = (all_bbox_preds[..., 0:3] * (self.pc_range[3:6] - self.pc_range[0:3]) + self.pc_range[0:3])
         
         # update the memory bank
-        self.post_update_memory(img_metas, rec_ego_pose, all_cls_scores, all_bbox_preds, outs_dec, mask_dict)
+        self.post_update_memory(img_metas, rec_ego_pose, all_cls_scores, all_bbox_preds, outs_dec, mask_dict,
+                                ego_pose, timestamp)
 
         # cls_score_numpy = outputs_class.cpu().numpy()
         # path = img_metas[0]['scene_token']
@@ -794,7 +800,11 @@ class FarHead(AnchorFreeHead):
                 'reference_points2d': reference_points2d,
             }
 
-        return outs
+        if torch.onnx.is_in_onnx_export():
+            return outs, self.memory_embedding, self.memory_reference_point, \
+                   self.memory_timestamp, self.memory_egopose, self.memory_velo
+        else:
+            return outs
 
     def split_offline_pred2d(self, pred_bbox_list, device):
         pred_bbox_list = [torch.from_numpy(img_bbox).to(device) if len(img_bbox) > 0 else torch.zeros(0, 6).to(device)
@@ -836,7 +846,7 @@ class FarHead(AnchorFreeHead):
         depth_var_list = []
         h_max, w_max = pred_depth.shape[1:3]
         for ith, pred_bbox in enumerate(pred_bbox_list):
-            if bbox_nums[ith] != 0:
+            if bbox_nums[ith] != 0 or torch.onnx.is_in_onnx_export():
                 cur_depthmap = pred_depth[ith].flatten(0, 1)     # shape (HW, 1) or (HW, D)
                 cur_center2d = (pred_bbox[:, :2] / depth_downsample).round().long()      # first w then h
                 cur_center2d[cur_center2d < 0] = 0
@@ -911,7 +921,18 @@ class FarHead(AnchorFreeHead):
 
         #img2lidars = data['lidar2img'].inverse()  # (B, N, 4, 4)
         img2lidars = img2lidars.view(B*N, 1, 4, 4) # (BN, 1, 4, 4)
-        img2lidars_ = torch.cat([img2lidars[kth].repeat(num, 1, 1) for kth, num in enumerate(bbox_nums)], dim=0)    # (M, 4, 4)
+        if torch.onnx.is_in_onnx_export():
+            # Get 'num' from pred_bbox_list.
+            # Otherwise, num is exported as a constant in Tile operator
+            img2lidars_ = []
+            for i in range(len(pred_bbox_list)):
+                num = pred_bbox_list[i].shape[0]
+                img2lidars_.append(img2lidars[i].repeat(num, 1, 1))
+            img2lidars_ = torch.cat(img2lidars_, dim=0)
+        else:
+            img2lidars_ = torch.cat([img2lidars[kth].repeat(num, 1, 1) for kth, num in enumerate(bbox_nums)],
+                                    dim=0)  # (M, 4, 4)
+
         if self.add_multi_depth_proposal:
             if input_depth_logits and self.multi_depth_config.get('topk', -1) > 1:
                 img2lidars_extra = img2lidars_.repeat(topk - 1, 1, 1)
