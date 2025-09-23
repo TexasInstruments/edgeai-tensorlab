@@ -237,8 +237,8 @@ def get_configs(settings, work_dir):
             metric=dict(),
             model_info=dict(metric_reference={'mAP':0.4})
         ),
-        # 3dod-7141: BEVFormer for pandaset
-        '3dod-7141':utils.dict_update(bev_frame_cfg_ps,
+        # 3dod-7143: BEVFormer for pandaset
+        '3dod-7143':utils.dict_update(bev_frame_cfg_ps,
             task_name='BEVFormer',
             # pad = (left, top, right, bottom) = (0, 0, 0, 30)
             preprocess=preproc_transforms.get_transform_bev_bevformer((1080, 1920), (540, 960), (0, 0, 0, 4), backend='cv2', interpolation=cv2.INTER_CUBIC),
