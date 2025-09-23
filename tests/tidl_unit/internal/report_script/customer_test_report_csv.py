@@ -7,7 +7,7 @@ import argparse
 import shutil
 
 parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
-parser.add_argument('--reports_path', help='Path to pytest html test reports', type=str, required=True)
+parser.add_argument('--reports_path', help='Path to pytest html test reports (runtimewise)', type=str, required=True)
 args = parser.parse_args()
 
 reports_dir     = args.reports_path
@@ -36,21 +36,21 @@ def parse_html_report(html_path):
         offload = row.select_one("td.col-name + td + td").get_text(strip=True)
         if offload == "-":
             offload = "False"
-        if status.lower() == "error" or status.lower() == "xfailed":
+        if status.lower() == "error":
             status = "Failed"
 
         # extract the bracketed model name
         if "[" in test_cell and "]" in test_cell:
-            mn = test_cell.split("[",1)[1].split("]",1)[0]
+            model_name = test_cell.split("[",1)[1].split("]",1)[0]
         else:
-            mn = test_cell
+            model_name = test_cell
 
-        results[mn] = (status, subgraphs, offload)
+        results[model_name] = (status, subgraphs, offload)
     return results
 
 VARIANTS = [
-    ("infer_ref_with_nc",      "Inference Host"),
-    ("infer_target_with_nc",   "Inference Target"),
+    ("infer_ref_with_nc",  "Host Inference"),
+    ("infer_ci_with_nc",   "Target Inference"),
 ]
 
 operator_summaries = []
@@ -60,6 +60,8 @@ for soc in sorted(os.listdir(reports_dir)):
 
     for op in sorted(os.listdir(soc_dir)):
         op_dir = os.path.join(soc_dir, op)
+        if not os.path.isdir(op_dir):
+            continue
 
         mod_num = None
         if '_' in op:
@@ -72,19 +74,19 @@ for soc in sorted(os.listdir(reports_dir)):
         models = set().union(*[d.keys() for d in data.values()], *[])
 
         out_path = os.path.join(out_dir, f"{op}.csv")
-        header = ["Model name"]
-        header += ["TIDL_Offload"]
+        header = ["Model Name"]
+        header += ["TIDL Offload"]
         for _, label in VARIANTS:
-            col = label.replace(" ", "_")
-            header += [f"{col}"]
+            header += [f"{label}"]
 
         op_cfg_dir = os.path.join(configs_dir, op)
 
         model_attrs = {}
-        all_attr_keys = set()
+        all_attr_keys = []
 
         # Only read configs if directory exists
         if os.path.isdir(op_cfg_dir):
+            normalized_to_original = {}  # Mapping of normalized keys to original keys
             for fn in os.listdir(op_cfg_dir):
                 if not fn.endswith(".csv"):
                     continue
@@ -92,22 +94,27 @@ for soc in sorted(os.listdir(reports_dir)):
                 with open(path, newline="", encoding="utf-8") as csvfile:
                     reader = csv.DictReader(csvfile)
                     for row in reader:
-                        mn = row["model name"]
-                        if mod_num and f"{op}_{mod_num}" != mn:
+                        model_name = list(row.values())[0]
+                        if mod_num and f"{op}_{mod_num}" != model_name:
                             continue
-                        if mn not in model_attrs:
-                            model_attrs[mn] = {}
-                        for k,v in row.items():
-                            if k == "model name":
+                        if model_name not in model_attrs:
+                            model_attrs[model_name] = {}
+                        for i, (k,v) in enumerate(row.items()):
+                            if i == 0:
                                 continue
-                            model_attrs[mn][k] = v
-                            all_attr_keys.add(k)
-
-            header += sorted(all_attr_keys)
+                            normalized_key = k.lower().replace(" ", "_")
+                            if normalized_key == "onnx_file":
+                                continue
+                            normalized_to_original[normalized_key] = k
+                            model_attrs[model_name][normalized_key] = v
+                            if normalized_key not in all_attr_keys:
+                                all_attr_keys.append(normalized_key)
+            
+            header += [normalized_to_original[key] for key in all_attr_keys]
         else:
             # config dir missing - skip config columns
             model_attrs = {}
-            all_attr_keys = set()
+            all_attr_keys = []
 
         num_offload = 0
         total_tests = 0
@@ -118,52 +125,55 @@ for soc in sorted(os.listdir(reports_dir)):
 
             # If configs present, use models from model_attrs, else from parsed data
             if model_attrs:
-                model_list = sorted(model_attrs.keys())
+                model_list = model_attrs.keys()
             else:
-                model_list = sorted(models)
+                model_list = models
 
-            for mn in model_list:
-                attrs = model_attrs.get(mn, {})
+            for model in model_list:
+                attrs = model_attrs.get(model, {})
                 total_tests += 1
-                row = [mn]
+                row = [model]
 
                 # Find offload status from any variant available
                 offload_val = "-"
                 for key, _ in VARIANTS:
-                    if mn in data[key]:
-                        offload_val = data[key][mn][2].lower()
+                    if model in data[key]:
+                        offload_val = data[key][model][2].lower()
                         break
 
                 if offload_val == "true":
                     num_offload += 1
-                    row.append("true")
+                    row.append("True")
                 else:
-                    row.append("false")
+                    row.append("False")
 
                 for key, _ in VARIANTS:
-                    sa, subg, offload = data[key].get(mn, ("N/A", "", ""))
-                    row.append(sa)
+                    status, subg, offload = data[key].get(model, ("N/A", "", ""))
+                    row.append(status)
 
-                for k in sorted(all_attr_keys):
+                for k in all_attr_keys:
                     row.append(attrs.get(k, ""))
 
                 w.writerow(row)
 
-        op_summary = {"Operator": op, "TIDL_Offload_Percentage": num_offload, "Total_Tests": total_tests}
+        op_summary = {"Operator": op, "Total_Tests": total_tests, "TIDL_Offload_Percentage": num_offload}
         total_val = 0
-        for key, _ in VARIANTS:
+        passed_categories = ["passed", "xpassed", "skipped", "xfailed"]
+        for key, label in VARIANTS:
             da = data[key]
             if da:
-                p = sum(1 for s,__,___ in da.values() if s.lower() == "passed")
-                f = sum(1 for s,__,___ in da.values() if s.lower() != "passed")
-                op_summary["Inference_test_result_passed"] = str(p)
+                p = sum(1 for s,__,___ in da.values() if s.lower() in passed_categories)
+                f = sum(1 for s,__,___ in da.values() if s.lower() not in passed_categories)
+                op_summary[f"{label} Pass"] = str(p)
+                op_summary[f"{label} Fail"] = str(f)
                 total_val = p + f
             else:
-                op_summary["Inference_test_result_passed"] = "-"
+                op_summary[f"{label} Pass"] = "-"
+                op_summary[f"{label} Fail"] = "-"
 
         # Avoid division by zero
-        if total_val > 0:
-            op_summary["TIDL_Offload_Percentage"] = (num_offload / total_val) * 100
+        if total_tests > 0:
+            op_summary["TIDL_Offload_Percentage"] = (num_offload / total_tests) * 100
         else:
             op_summary["TIDL_Offload_Percentage"] = 0
 
@@ -172,7 +182,10 @@ for soc in sorted(os.listdir(reports_dir)):
 
 # --- FULL OPERATOR COMPARISON ---
 full_path = os.path.join(out_dir, "operator_test_report_summary.csv")
-fields = ["Operator", "TIDL_Offload_Percentage", "Total_Tests", "Inference_test_result_passed"]
+fields = ["Operator", "Total_Tests", "TIDL_Offload_Percentage"]
+for key, label in VARIANTS:
+    fields.append(f"{label} Pass")
+    fields.append(f"{label} Fail")
 
 with open(full_path, "w", newline="", encoding="utf-8") as f:
     w = csv.DictWriter(f, fieldnames=fields)
