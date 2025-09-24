@@ -21,6 +21,7 @@ echo \
     --nmse_threshold            Normalized Mean Squared Error (NMSE) threshold for inference output. Default: 0.5
     --operators                 List of operators (space separated string) to run. By default every operator under tidl_unit_test_data/operators
     --runtimes                  List of runtimes (space separated string) to run tests. Allowed values are (onnxrt, tvmrt). Default=onnxrt
+    --num_threads               Number of threads for test run. Default=auto
     --tidl_tools_path           Path of tidl tools tarball
 
     Example:
@@ -44,6 +45,7 @@ OPERATORS=()
 RUNTIMES=()
 tidl_tools_path=""
 nmse_threshold=""
+num_threads=""
 
 while [ $# -gt 0 ]; do
         case "$1" in
@@ -91,6 +93,9 @@ while [ $# -gt 0 ]; do
         ;;
         --runtimes=*)
         runtimes="${1#*=}"
+        ;;
+        --num_threads=*)
+        num_threads="${1#*=}"
         ;;
         --help)
         usage
@@ -268,6 +273,7 @@ echo "run_target                = $run_target"
 echo "work_dir                  = $work_dir"
 echo "save_model_artifacts      = $save_model_artifacts"
 echo "temp_buffer_dir           = $temp_buffer_dir"
+echo "num_threads               = $num_threads"
 
 current_dir="$PWD"
 path_edge_ai_benchmark="$current_dir/../../.."
@@ -416,7 +422,7 @@ do
             rm -rf "$TIDL_TOOLS_PATH/ti_cnnperfsim.out"
 
             rm -rf logs/*
-            ./run_test.sh --test_suite=operator --tests=$operator --tidl_offload=$tidl_offload --run_infer=0 --temp_buffer_dir=$temp_buffer_dir --runtime=$runtime --work_dir=$work_dir
+            ./run_test.sh --test_suite=operator --tests=$operator --tidl_offload=$tidl_offload --run_infer=0 --temp_buffer_dir=$temp_buffer_dir --runtime=$runtime --work_dir=$work_dir --num_threads=$num_threads
             cp logs/*.html "$logs_path/compile_without_nc.html"
             if [ "$temp_buffer_dir" != "/dev/shm" ]; then
                 rm -rf $temp_buffer_dir/vashm_buff*
@@ -424,7 +430,8 @@ do
 
             rm -rf logs/*
             if [ "$run_ref" == "1" ]; then
-                ./run_test.sh --test_suite=operator --tests=$operator --tidl_offload=$tidl_offload --run_compile=0 --temp_buffer_dir=$temp_buffer_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir
+                ./run_test.sh --test_suite=operator --tests=$operator --tidl_offload=$tidl_offload --run_compile=0 --temp_buffer_dir=$temp_buffer_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$wo
+                k_dir --num_threads=$num_threads
                 cp logs/*.html "$logs_path/infer_ref_without_nc.html"
                 if [ "$temp_buffer_dir" != "/dev/shm" ]; then
                     rm -rf $temp_buffer_dir/vashm_buff*
@@ -452,7 +459,7 @@ do
             cp -rp "$TIDL_TOOLS_PATH/../ti_cnnperfsim.out" "$TIDL_TOOLS_PATH"
 
             rm -rf logs/*
-            ./run_test.sh --test_suite=operator --tests=$operator --tidl_offload=$tidl_offload --run_infer=0 --temp_buffer_dir=$temp_buffer_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir
+            ./run_test.sh --test_suite=operator --tests=$operator --tidl_offload=$tidl_offload --run_infer=0 --temp_buffer_dir=$temp_buffer_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir --num_threads=$num_threads
             cp logs/*.html "$logs_path/compile_with_nc.html"
             if [ "$temp_buffer_dir" != "/dev/shm" ]; then
                 rm -rf $temp_buffer_dir/vashm_buff*
@@ -460,7 +467,7 @@ do
 
             rm -rf logs/*
             if [ "$run_ref" == "1" ]; then
-                ./run_test.sh --test_suite=operator --tests=$operator --tidl_offload=$tidl_offload --run_compile=0 --flow_ctrl=1 --temp_buffer_dir=$temp_buffer_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir
+                ./run_test.sh --test_suite=operator --tests=$operator --tidl_offload=$tidl_offload --run_compile=0 --flow_ctrl=1 --temp_buffer_dir=$temp_buffer_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir --num_threads=$num_threads
                 cp logs/*.html "$logs_path/infer_ref_with_nc.html"
                 if [ "$temp_buffer_dir" != "/dev/shm" ]; then
                     rm -rf $temp_buffer_dir/vashm_buff*
@@ -469,7 +476,7 @@ do
 
             rm -rf logs/*
             if [ "$run_natc" == "1" ]; then
-                ./run_test.sh --test_suite=operator --tests=$operator --tidl_offload=$tidl_offload --run_compile=0 --flow_ctrl=12 --temp_buffer_dir=$temp_buffer_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir
+                ./run_test.sh --test_suite=operator --tests=$operator --tidl_offload=$tidl_offload --run_compile=0 --flow_ctrl=12 --temp_buffer_dir=$temp_buffer_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir --num_threads=$num_threads
                 cp logs/*.html "$logs_path/infer_natc_with_nc.html"
                 if [ "$temp_buffer_dir" != "/dev/shm" ]; then
                     rm -rf $temp_buffer_dir/vashm_buff*
@@ -478,7 +485,7 @@ do
 
             rm -rf logs/*
             if [ "$run_ci" == "1" ]; then
-                ./run_test.sh --test_suite=operator --tests=$operator --tidl_offload=$tidl_offload --run_compile=0 --flow_ctrl=0 --temp_buffer_dir=$temp_buffer_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir
+                ./run_test.sh --test_suite=operator --tests=$operator --tidl_offload=$tidl_offload --run_compile=0 --flow_ctrl=0 --temp_buffer_dir=$temp_buffer_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir --num_threads=$num_threads
                 cp logs/*.html "$logs_path/infer_ci_with_nc.html"
                 if [ "$temp_buffer_dir" != "/dev/shm" ]; then
                     rm -rf $temp_buffer_dir/vashm_buff*
@@ -511,7 +518,7 @@ do
 
             rm -rf logs/*
             if [ "$run_ref" == "1" ]; then
-                ./run_test.sh --test_suite=operator --tests=$operator --tidl_offload=$tidl_offload --run_compile=0 --flow_ctrl=1 --temp_buffer_dir=$temp_buffer_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir
+                ./run_test.sh --test_suite=operator --tests=$operator --tidl_offload=$tidl_offload --run_compile=0 --flow_ctrl=1 --temp_buffer_dir=$temp_buffer_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir --num_threads=$num_threads
                 cp logs/*.html "$logs_path/infer_ref.html"
                 if [ "$temp_buffer_dir" != "/dev/shm" ]; then
                     rm -rf $temp_buffer_dir/vashm_buff*
@@ -520,7 +527,7 @@ do
 
             rm -rf logs/*
             if [ "$run_natc" == "1" ]; then
-                ./run_test.sh --test_suite=operator --tests=$operator --tidl_offload=$tidl_offload --run_compile=0 --flow_ctrl=12 --temp_buffer_dir=$temp_buffer_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir
+                ./run_test.sh --test_suite=operator --tests=$operator --tidl_offload=$tidl_offload --run_compile=0 --flow_ctrl=12 --temp_buffer_dir=$temp_buffer_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir --num_threads=$num_threads
                 cp logs/*.html "$logs_path/infer_natc.html"
                 if [ "$temp_buffer_dir" != "/dev/shm" ]; then
                     rm -rf $temp_buffer_dir/vashm_buff*
@@ -529,7 +536,7 @@ do
 
             rm -rf logs/*
             if [ "$run_ci" == "1" ]; then
-                ./run_test.sh --test_suite=operator --tests=$operator --tidl_offload=$tidl_offload --run_compile=0 --flow_ctrl=0 --temp_buffer_dir=$temp_buffer_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir
+                ./run_test.sh --test_suite=operator --tests=$operator --tidl_offload=$tidl_offload --run_compile=0 --flow_ctrl=0 --temp_buffer_dir=$temp_buffer_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir --num_threads=$num_threads
                 cp logs/*.html "$logs_path/infer_ci.html"
                 if [ "$temp_buffer_dir" != "/dev/shm" ]; then
                     rm -rf $temp_buffer_dir/vashm_buff*

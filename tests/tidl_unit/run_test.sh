@@ -66,6 +66,7 @@ tidl_offload=""
 flow_ctrl=""
 temp_buffer_dir=""
 nmse_threshold=""
+num_threads=""
 runtime="onnxrt"
 
 while [ $# -gt 0 ]; do
@@ -96,6 +97,9 @@ while [ $# -gt 0 ]; do
         ;;
         --nmse_threshold=*)
         nmse_threshold="${1#*=}"
+        ;;
+        --num_threads=*)
+        num_threads="${1#*=}"
         ;;
         --runtime=*)
         runtime="${1#*=}"
@@ -248,6 +252,9 @@ if [[ "$flow_ctrl" != "1" ]]; then
 fi
 if [[ "$nmse_threshold" != "" ]]; then
    extra_args="${extra_args} --nmse-threshold $nmse_threshold"
+fi
+if [[ "$num_threads" != "" ]]; then
+   extra_args="${extra_args} -n $num_threads"
 fi
 extra_args="${extra_args} --temp-buffer-dir $temp_buffer_dir"
 extra_args="${extra_args} --runtime=${runtime}"
