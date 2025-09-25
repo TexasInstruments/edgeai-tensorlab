@@ -65,6 +65,7 @@ work_dir=""
 tidl_offload=""
 flow_ctrl=""
 temp_buffer_dir=""
+temp_nc_dir=""
 nmse_threshold=""
 num_threads=""
 runtime="onnxrt"
@@ -94,6 +95,9 @@ while [ $# -gt 0 ]; do
         ;;
         --temp_buffer_dir=*)
         temp_buffer_dir="${1#*=}"
+        ;;
+        --temp_nc_dir=*)
+        temp_nc_dir="${1#*=}"
         ;;
         --nmse_threshold=*)
         nmse_threshold="${1#*=}"
@@ -146,6 +150,17 @@ if [ "$temp_buffer_dir" != "/dev/shm" ]; then
     fi
 fi
 
+if [[ "$temp_nc_dir" == "" ]]; then
+   temp_nc_dir="/tmp"
+fi
+if [ "$temp_nc_dir" != "/tmp" ]; then
+    mkdir -p $temp_nc_dir
+    if [ $? -ne 0 ]; then
+        echo "[WARNING]: Could not create $temp_nc_dir. Using default location for redirecting temporary buffers"
+        temp_nc_dir="/tmp"
+    fi
+fi
+
 if [ "$run_compile" != "1" ] && [ "$run_compile" != "0" ]; then
     echo "[ERROR]: RUN_COMPILE: $run_compile is not allowed."
     echo "         Allowed values are (0,1)"
@@ -175,6 +190,7 @@ echo "RUN_INFER:          ${run_infer}"
 echo "TIDL_OFFLOAD:       ${tidl_offload}"
 echo "FLOW_CTRL:          ${flow_ctrl}"
 echo "TEMP_BUFFER_DIR:    ${temp_buffer_dir}"
+echo "TEMP_NC_DIR:        ${temp_nc_dir}"
 echo "RUNTIME:            ${runtime}"
 echo "##################################################################"
 echo
@@ -257,6 +273,7 @@ if [[ "$num_threads" != "" ]]; then
    extra_args="${extra_args} -n $num_threads"
 fi
 extra_args="${extra_args} --temp-buffer-dir $temp_buffer_dir"
+extra_args="${extra_args} --temp-nc-dir $temp_nc_dir"
 extra_args="${extra_args} --runtime=${runtime}"
 if [[ "$work_dir" != "" ]]; then
     extra_args="${extra_args} --work-dir ${work_dir}"
@@ -285,6 +302,9 @@ fi
 # Clean left-over buffers
 if [ "$temp_buffer_dir" != "/dev/shm" ]; then
     rm -rf $temp_buffer_dir/*
+fi
+if [ "$temp_nc_dir" != "/tmp" ]; then
+    rm -rf $temp_nc_dir/*
 fi
 
 
