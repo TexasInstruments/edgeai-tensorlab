@@ -24,6 +24,9 @@ ALL_OPERATORS = ["Abs", "Acos", "Acosh", "Add", "ArgMax", "Asin", "Asinh", "Atan
                 "Softmax", "SpaceToDepth", "Sqrt", "Squeeze", "Sub", "Sum", "Tan", "Tanh", "TopK", "Transpose", \
                 "Unsqueeze"]
 
+# Operators which takes a lot of time
+LARGE_OPERATORS = ["Convolution", "Add", "Mul"]
+
 arguments_as_string = " ".join(sys.argv[1:])
 arguments_as_string = arguments_as_string.strip().split("--")
 
@@ -43,14 +46,58 @@ if OPERATORS == '':
     OPERATORS = " ".join(ALL_OPERATORS)
 
 OPERATORS = OPERATORS.split()
+OPERATORS = list(set(OPERATORS))
 print(f"[INFO] Total operators to process: {len(OPERATORS)} - {OPERATORS}")
+
+# Remove from large operators if it is not in operators under test
+for i in LARGE_OPERATORS[:]:
+    if i not in OPERATORS:
+        LARGE_OPERATORS.remove(i)
+
+# Remove pc_specific_operators if it is not in operators under test
+for pc, info in pc_config.items():
+    if "pc_specific_operators" in pc_config[pc]:
+        for i in pc_config[pc]["pc_specific_operators"][:]:
+            if i not in OPERATORS:
+                pc_config[pc]["pc_specific_operators"].remove(i)
+            if i in LARGE_OPERATORS:
+                LARGE_OPERATORS.remove(i)
+
+'''
+Sort PCs by highest number of threads avilable and assign LARGE_OPERATORS to
+these PCs
+'''
+sorted_pc_config = sorted(pc_config.items(), key=lambda item: item[1].get('num_threads', 32), reverse = True)
+sorted_pc_config_keys = [item[0] for item in sorted_pc_config]
+for i in range(len(LARGE_OPERATORS)):
+    if i >= len(sorted_pc_config_keys):
+        break
+    pc = sorted_pc_config_keys[i]
+    if "pc_specific_operators" not in pc_config[pc]:
+        pc_config[pc]["pc_specific_operators"] = []
+    pc_config[pc]["pc_specific_operators"].append(LARGE_OPERATORS[i])
+
+# Remove unused pc to avoid creating unecessary threads
+pc_config_keys_to_remove = []
+for pc, info in pc_config.items():
+    if "pc_specific_operators" not in info or len(info['pc_specific_operators']) < 1:
+        pc_config_keys_to_remove.append(pc)
+for key in pc_config_keys_to_remove:
+    if len(pc_config) <= len(OPERATORS):
+        break
+    del pc_config[key]
+
+# Remove pc_specific_operators from general operator queue
+for pc, info in pc_config.items():
+    if "pc_specific_operators" not in info:
+        continue
+    for i in info["pc_specific_operators"]:
+        if i in OPERATORS:
+            OPERATORS.remove(i)
 
 # Global variables for thread synchronization and operator management
 operators_queue = OPERATORS.copy()  # Create a copy for thread-safe operations
 operators_lock = threading.Lock()   # Lock for accessing the operators queue
-
-while len(OPERATORS) < len(pc_config):
-    pc_config.popitem()
 
 def get_next_operator():
     """
@@ -181,10 +228,9 @@ def execute_pc_commands(pc_name, pc_info, log_path, result_path):
         test_dir = pc_info["test_dir"]
         pyenv = pc_info["pyenv"]
         
-        setup_command = f"cd {test_dir} && git stash && git checkout 2025/gourav_unit && git fetch && git pull"
+        setup_command = f"cd {test_dir} && git stash && git checkout 2025/gourav_unit && git fetch && git pull && rm -rf {test_dir}/operator_test_reports/*"
         if  TIDL_TOOLS_TARBALL != '':
             setup_command = f"{setup_command} && rm -rf tidl_tools_tarball && wget -q -O tidl_tools_tarball {TIDL_TOOLS_TARBALL}"
-
         print(f"[INFO][{pc_name}] Running Setup command : {setup_command}")
         setup_result = execute_ssh_command(pc_name, setup_command, timeout=1200, command_type="setup_command")
         pc_name_result, setup_success, setup_stdout, setup_stderr = setup_result
@@ -209,7 +255,12 @@ def execute_pc_commands(pc_name, pc_info, log_path, result_path):
             
             # Process operators from the queue until empty
             while True:
-                operator = get_next_operator()
+                operator = None
+                if "pc_specific_operators" in pc_info and len(pc_info["pc_specific_operators"]) > 0:
+                    operator = pc_info["pc_specific_operators"].pop(0)
+                else:
+                    operator = get_next_operator()
+
                 if operator is None:
                     print(f"[INFO][{pc_name}] No more operators to process")
                     break
