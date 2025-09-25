@@ -268,19 +268,36 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, work_dir
         print(f"\tDDR Read Bandwidth (MB/s)             :   {stats['read_total']:.2f}")
         print(f"\tDDR Write Bandwidth (MB/s)            :   {stats['write_total']:.2f}")
         print()
+
+        nmse  = tidl_unit_dataset([results_list])['nmse']
+        mse   = tidl_unit_dataset([results_list])['mse']
+        delta = tidl_unit_dataset([results_list])['delta']
+
+        if any(x is None for x in nmse):
+            max_nmse = None
+        else:
+            max_nmse = max(nmse)
+
+        if any(x is None for x in mse):
+            max_mse = None
+        else:
+            max_mse = max(mse)
         
-        max_nmse  = tidl_unit_dataset([results_list])['max_nmse']
-        max_mse   = tidl_unit_dataset([results_list])['max_mse']
-        max_delta = tidl_unit_dataset([results_list])['max_delta']
+        if any(x is None for x in delta):
+            max_delta = None
+        else:
+            max_delta = max(delta)
 
         if max_nmse == None:
             print("MAX_NMSE: None")
         else:
             print("MAX_NMSE: {:.7f}".format(max_nmse))
+
         if max_mse == None:
             print("MAX_MSE: None")
         else:
             print("MAX_MSE: {:.7f}".format(max_mse))
+
         if max_delta == None:
             print("MAX_DELTA: None")
         else:
