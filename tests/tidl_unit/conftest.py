@@ -18,6 +18,8 @@ def pytest_addoption(parser):
     parser.addoption("--nmse-threshold", type=float, default=0.5)
     parser.addoption("--runtime", type=str, default="onnxrt")
     parser.addoption("--work-dir", type=str, default="")
+    parser.addoption("--test-file", type=str, default="")
+
 
 def pytest_sessionfinish(session):
     try:

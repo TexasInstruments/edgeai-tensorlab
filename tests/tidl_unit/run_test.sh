@@ -46,18 +46,24 @@ echo \
     --work_dir          Path to save/use model artifacts for inference.
     --tidl_offload      Enable TIDL Offload. Allowed values are (0,1). Default=1.
     --runtime           Select the Compiler Runtime to use. Allowed values are (onnxrt, tvmrt). Default=onnxrt
+    --test_file         Specify text file containing all tests to run. Default=null.
     --tests             Specify tests name. If null, will run all test based on test_suite. Default=null.
                         TEST_SUITE:
                             operator: You can specify comma seperated operator name (Ex: Convolution) or specific test (Ex: Softmax_1) 
 
+    NOTE: If 'test_file' is provided, it will take precedence over 'tests'
+
     Example:
     TEST_SUITE:
+        operator: ./run_test.sh --test_suite=operator --test_file=abc.txt --run_compile=1 --run_infer=1
+                   This will run all tests defined in abc.txt file
         operator: ./run_test.sh --test_suite=operator --tests=Convolution,Softmax_1,Unsqueeze,Flatten_3 --run_compile=1 --run_infer=1
                    This will run all tests under Convolution and Unsqueeze and also Softmax_1 and Flatten_3 test.
     "
 }
 
 test_suite=""
+test_file=""
 tests=""
 run_compile=""
 run_infer=""
@@ -74,6 +80,9 @@ while [ $# -gt 0 ]; do
         case "$1" in
         --test_suite=*)
         test_suite="${1#*=}"
+        ;;
+        --test_file=*)
+        test_file="${1#*=}"
         ;;
         --tests=*)
         tests="${1#*=}"
@@ -184,6 +193,7 @@ fi
 
 echo "##################################################################"
 echo "TEST_SUITE:         ${test_suite}"
+echo "TEST_FILE:          ${test_file}"
 echo "TESTS:              ${tests}"
 echo "RUN_COMPILE:        ${run_compile}"
 echo "RUN_INFER:          ${run_infer}"
@@ -212,44 +222,63 @@ fi
 
 IFS=',' read -r -a test_array <<< "$tests"
 all_test=()
-if [ -z "$test_array" ]; then
-    echo "[WARNING]: No tests specified. Running all tests under $OPERATOR_ROOT_FOLDER."
-    TOTAL=$(find $OPERATOR_ROOT_FOLDER -mindepth 2 -maxdepth 2  -type d | wc -l)
-    echo "Total tests:  ${TOTAL}"
-else
-    for test in "${test_array[@]}"
-    do
-        # Check if provided test is a directory
-        if [ -d "$OPERATOR_ROOT_FOLDER/$test" ]; then
-            counter=0
-            for D in $(find $OPERATOR_ROOT_FOLDER/$test -mindepth 1 -maxdepth 1 -type d) ; do
-                name=`basename $D`
-                all_test+=("$name")
-                counter=$((counter+1))
-            done
-            echo "Found ${counter} tests for $test"
-        else
-            REL_DIR=$(find $OPERATOR_ROOT_FOLDER -mindepth 2 -maxdepth 2  -type d -name $test)
-            if [ -z "$REL_DIR" ]; then
-                echo "Found 0 test for $test. Skipping."
+
+test_file_found=0
+if [[ "$test_file" != "" ]]; then
+    if [[ -f "$test_file" ]]; then
+        test_args="test_tidl_unit.py --test-file $test_file"
+        echo "Running all tests defined in $test_file"
+        TOTAL=$(grep -v "^[[:space:]]*#" $test_file | grep -v "^[[:space:]]*$" | wc -l)
+        echo "Total tests:  ${TOTAL}"
+        test_file_found=1
+    else
+        echo "[WARNING]: $test_file not found. Using 'tests' option."
+        test_file_found=0
+    fi
+fi
+
+if [[ $test_file_found -eq 0 ]]; then
+    if [ -z "$test_array" ]; then
+        echo "[WARNING]: No tests specified. Running all tests under $OPERATOR_ROOT_FOLDER."
+        TOTAL=$(find $OPERATOR_ROOT_FOLDER -mindepth 2 -maxdepth 2  -type d | wc -l)
+        echo "Total tests:  ${TOTAL}"
+        test_args="test_tidl_unit.py"
+    else
+        for test in "${test_array[@]}"
+        do
+            # Check if provided test is a directory
+            if [ -d "$OPERATOR_ROOT_FOLDER/$test" ]; then
+                counter=0
+                for D in $(find $OPERATOR_ROOT_FOLDER/$test -mindepth 1 -maxdepth 1 -type d) ; do
+                    name=`basename $D`
+                    all_test+=("$name")
+                    counter=$((counter+1))
+                done
+                echo "Found ${counter} tests for $test"
             else
-                echo "Found 1 test for $test"
-                all_test+=($test)
+                REL_DIR=$(find $OPERATOR_ROOT_FOLDER -mindepth 2 -maxdepth 2  -type d -name $test)
+                if [ -z "$REL_DIR" ]; then
+                    echo "Found 0 test for $test. Skipping."
+                else
+                    echo "Found 1 test for $test"
+                    all_test+=($test)
+                fi
             fi
-        fi
-    done
-    echo "Total tests:  ${#all_test[@]}"
+        done
+        echo "Total tests:  ${#all_test[@]}"
+    fi
+
+    if (( ${#all_test[@]} )); then
+        test_args=""
+        for test in "${all_test[@]}"
+        do
+            test_args="${test_args} test_tidl_unit.py::test_tidl_unit_operator[$test]"
+        done
+    fi
 fi
 
 echo "##################################################################"
 echo
-
-if (( ${#all_test[@]} )); then
-    for test in "${all_test[@]}"
-    do
-        test_args="${test_args} test_tidl_unit.py::test_tidl_unit_operator[$test]"
-    done
-fi
 
 fi
 # OPERATOR TEST SUITE END
