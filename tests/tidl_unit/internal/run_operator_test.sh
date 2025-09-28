@@ -24,6 +24,7 @@ echo \
     --temp_nc_dir               Path to redirect temporary NC buffers. Default is /tmp
     --nmse_threshold            Normalized Mean Squared Error (NMSE) threshold for inference output. Default: 0.5
     --runtimes                  List of runtimes (space separated string) to run tests. Allowed values are (onnxrt, tvmrt). Default=onnxrt
+    --tensor_bits               8/16/32. Default: 8
     --num_threads               Number of threads for test run. Default=auto
     --tidl_tools_path           Path of tidl tools tarball
 
@@ -60,6 +61,7 @@ RUNTIMES=()
 tidl_tools_path=""
 nmse_threshold=""
 num_threads=""
+tensor_bits="8"
 
 while [ $# -gt 0 ]; do
         case "$1" in
@@ -104,6 +106,9 @@ while [ $# -gt 0 ]; do
         ;;
         --nmse_threshold=*)
         nmse_threshold="${1#*=}"
+        ;;
+        --tensor_bits=*)
+        tensor_bits="${1#*=}"
         ;;
         --operators=*)
         operators="${1#*=}"
@@ -192,6 +197,11 @@ if [ "$tidl_offload" != "1" ] && [ "$tidl_offload" != "0" ]; then
     echo "[ERROR]: tidl_offload: $tidl_offload is not allowed."
     echo "         Allowed values are (0,1)"
     exit 1
+fi
+if [ "$tensor_bits" != "8" ] && [ "$tensor_bits" != "16" ] && [ "$tensor_bits" != "32" ]; then
+    echo "[WARNING]: tensor_bits: $tidl_offload is not allowed. Defaulting to 8."
+    echo "           Allowed values are (8, 16, 32)"
+    tensor_bits="8"
 fi
 for runtime in "${RUNTIMES[@]}"
 do
@@ -328,6 +338,7 @@ fi
 # Printing options
 echo "SOC                       = $SOC"
 echo "tidl_offload              = $tidl_offload"
+echo "tensor_bits               = $tensor_bits"
 echo "compile_without_nc        = $compile_without_nc"
 echo "compile_with_nc           = $compile_with_nc"
 echo "run_ref                   = $run_ref"
@@ -365,6 +376,7 @@ cd "$path_edge_ai_benchmark/tests/tidl_unit"
 # Set up tidl_tools
 mkdir -p temp
 cd temp && rm -rf *.tar.gz && rm -rf tidl_tools
+
 # Extract the filename from the path
 tarball_name=$(basename "$tidl_tools_path")
 cp "$tidl_tools_path" ./
@@ -373,6 +385,7 @@ if [ "$?" -ne 0 ]; then
     echo "[ERROR]: Could not untar $tidl_tools_path. Make sure it is a tarball"
     exit 1
 fi
+
 # Check if tidl_tools directory was created after extraction
 if [ ! -d "tidl_tools" ]; then
     echo "[ERROR]: tidl_tools directory not found after extracting $tidl_tools_path. The tarball may not contain the expected directory structure"
@@ -443,6 +456,9 @@ if [ "$tidl_offload" == "0" ]; then
     run_target="0"
     echo -e "\n[INFO]: tidl_offload is false, Running tests on CPU\n"
 fi
+
+# Change yaml file to set tensor bits
+sed -i "/tensor_bits/c\tensor_bits : ${tensor_bits}" tidl_unit.yaml
 
 # Add operators in remove_list which you don't want to run 
 # "Add" "Convolution" "Mul"
