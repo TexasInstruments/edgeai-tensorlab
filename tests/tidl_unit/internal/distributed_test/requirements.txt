@@ -3,3 +3,6 @@ subprocess
 threading
 os
 shutil
+Path
+tabulate
+pytest-html-merger
