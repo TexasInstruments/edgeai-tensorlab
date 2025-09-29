@@ -661,6 +661,16 @@ def execute_all_pc_commands(pc_config):
 
     dir_with_merge_html = list(set(dir_with_merge_html))
     for dir in dir_with_merge_html:
+
+        # Only merge if the dir has html files
+        merge = True
+        for file in os.listdir(dir):
+            if os.path.splitext(file)[-1].strip().lower() != '.html':
+                merge = False
+                break
+        if merge == False:
+            continue
+
         parent_dir = Path(dir).parent
         basename = os.path.basename(dir)
         output_path = os.path.join(parent_dir, f"{basename}.html")
