@@ -56,5 +56,5 @@ if __name__ == '__main__':
     print(f'settings: {settings}')
     sys.stdout.flush()
 
-    interfaces.run_report(settings, skip_pattern=skip_pattern)
-    print("Report generated at {}".format(settings.modelartifacts_path))
+    report_csv = interfaces.run_report(settings, skip_pattern=skip_pattern)
+    print("Report generated at: {}".format(report_csv))

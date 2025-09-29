@@ -209,6 +209,7 @@ def run_report(settings, rewrite_results=True, skip_pattern=None):
 
     date = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     report_csv = os.path.join(benchmark_dir, f'report_{date}.csv')
+    report_csv = os.path.abspath(report_csv)
     with open(report_csv, 'w') as wfp:
         title_str = ','.join(title_line)
         wfp.write(f'{title_str}\n')
@@ -221,6 +222,7 @@ def run_report(settings, rewrite_results=True, skip_pattern=None):
             wfp.write(f'{results_str}\n')
         #
     #
+    return report_csv
 
 
 def get_metric(pipeline_params, metric_keys, compilation_done):
