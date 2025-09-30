@@ -91,22 +91,26 @@ class TIDLUnitDataset(DatasetBase):
                 out_counter += 1
         
 
-    def __getitem__(self, idx, **kwargs):
+    def __getitem__(self, idx, info_dict=None, **kwargs):
         assert idx == 0
-        return self.inputs
+        return self.inputs, info_dict
 
 
     def __len__(self):
         return 1
+
+    def __call__(self, index, info_dict=None):
+        return self.__getitem__(index, info_dict)
     
     # Evaluate inference outputs by reporting the maximum normalized mean-squared-error (max NMSE) of all network outputs
-    def __call__(self, output_list, **kwargs):
+    def evaluate(self, output_list, **kwargs):
 
         
         assert isinstance(output_list, list) and len(output_list) == 1, \
             "Expected output_list is a nested list with one element"
-        output_list = output_list[0]
-
+        prediction = output_list[0]
+        prediction = prediction['output'] if isinstance(prediction, dict) and 'output' in prediction else prediction
+        output_list = prediction
         # Convert output_list to output_dict based on output names
         import onnx
         out_info = onnx.load(os.path.join(self.path, "model.onnx")).graph.output

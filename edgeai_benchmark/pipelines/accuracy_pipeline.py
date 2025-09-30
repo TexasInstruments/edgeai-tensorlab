@@ -172,7 +172,7 @@ class AccuracyPipeline(BasePipeline):
 
         for data_index in range(calibration_frames):
             info_dict = {'dataset_info': self.dataset_info, 'label_offset_pred': self.pipeline_config.get('metric',{}).get('label_offset_pred',None)}
-            input_data = calibration_dataset[data_index]
+            input_data, info_dict = calibration_dataset(data_index, info_dict)
             input_data, info_dict = preprocess(input_data, info_dict)
             # this is the actual import
             output, info_dict = session.run_import(input_data, info_dict)
@@ -206,7 +206,7 @@ class AccuracyPipeline(BasePipeline):
         pbar_desc = f'infer {description}: {run_dir_base}'
         for data_index in utils.progress_step(range(num_frames), desc=pbar_desc, position=0):
             info_dict = {'dataset_info': self.dataset_info, 'label_offset_pred': self.pipeline_config.get('metric',{}).get('label_offset_pred',None)}
-            data = input_dataset[data_index]
+            data, info_dict = input_dataset(data_index, info_dict)
             data, info_dict = preprocess(data, info_dict)
             output, info_dict = session.run_inference(data, info_dict)
 
@@ -309,7 +309,7 @@ class AccuracyPipeline(BasePipeline):
                 info_dict['queue'] = self.queue
                 info_dict['num_bev_temporal_frames'] = num_bev_temporal_frames
 
-            input_data = calibration_dataset[data_index]
+            input_data, info_dict = calibration_dataset(data_index, info_dict)
             input_data, info_dict = preprocess(input_data, info_dict)
 
             # For calibration, we cannot add prev_bev from the previous frames.
@@ -393,7 +393,7 @@ class AccuracyPipeline(BasePipeline):
                 info_dict['queue'] = self.queue
                 info_dict['num_bev_temporal_frames'] = num_bev_temporal_frames
 
-            data = input_dataset[data_index]
+            data, info_dict = input_dataset(data_index, info_dict)
             data, info_dict = preprocess(data, info_dict)
 
             if self.pipeline_config.get('task_name', {}) == 'BEVFormer':
@@ -505,7 +505,7 @@ class AccuracyPipeline(BasePipeline):
         inference_path = os.path.split(run_dir)[-1]
         output_dict.update({'infer_path':inference_path})
         for m, m_options in zip(metric, metric_options):
-            output = m(output_list, **m_options)
+            output = m.evaluate(output_list, **m_options)
             output_dict.update(output)
         #
         return output_dict

@@ -56,6 +56,7 @@ class PipelineRunner():
             self.pipeline_configs = self._sort_pipeline_configs(self.pipeline_configs)
         #
         self.pipeline_configs = self._filter_pipeline_configs(self.pipeline_configs)
+        self.pipeline_configs = self.load_datasets(self.pipeline_configs)
 
         if settings.model_shortlist is not None or len(self.pipeline_configs) == 0:
             print(utils.log_color('WARNING', f'model_shortlist={settings.model_shortlist}', 'this will cause only a subset of models to be selected for run'))
@@ -133,7 +134,9 @@ class PipelineRunner():
         if self.settings.model_transformation_dict is not None:
             pipelines_selected = model_transformation(self.settings, pipelines_selected)
         #
+        return pipelines_selected
 
+    def load_datasets(self, pipelines_selected):
         # check the datasets and download if they are missing
         pipeline_config_dataset_list = []
         for pipeline_key, pipeline_config in pipelines_selected.items():

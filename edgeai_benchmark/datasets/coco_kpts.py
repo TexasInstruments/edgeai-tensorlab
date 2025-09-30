@@ -280,11 +280,12 @@ class COCOKeypoints(DatasetBase):
         root = os.sep.join(os.path.split(path)[:-1])
         return root
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx, info_dict=None):
+        info_dict = info_dict or dict()
         img_id = self.img_ids[idx]
         img = self.coco_dataset.loadImgs([img_id])[0]
         image_path = os.path.join(self.image_dir, img['file_name'])
-        return image_path
+        return image_path, info_dict
 
     def __len__(self):
         return self.num_frames
@@ -294,8 +295,8 @@ class COCOKeypoints(DatasetBase):
             t.cleanup()
         #
 
-    def __call__(self, predictions, **kwargs):
-        return self.evaluate(predictions, **kwargs)
+    def __call__(self, index, info_dict=None):
+        return self.__getitem__(index, info_dict)
 
     def evaluate(self, outputs, **kwargs):
         # label_offset = kwargs.get('label_offset_pred', 0)
@@ -365,7 +366,9 @@ class COCOKeypoints(DatasetBase):
         areas = []
         bboxes = []
 
-        for output in outputs:
+        for prediction in outputs:
+            prediction = prediction['output'] if isinstance(prediction, dict) and 'output' in prediction else prediction
+            output = prediction
             preds.append(output['preds'])
             scores.append(output['scores'])
             image_paths.append(output['image_paths'][0])

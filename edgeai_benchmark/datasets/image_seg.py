@@ -43,16 +43,18 @@ class ImageSegmentation(ImagePixel2Pixel):
         self.num_classes = self.kwargs['num_classes']
         self.kwargs['dataset_info'] = self.get_dataset_info()
 
-    def __call__(self, predictions, **kwargs):
-        return self.evaluate(predictions, **kwargs)
+    def __call__(self, index, info_dict=None, **kwargs):
+        return self.__getitem__(index, info_dict, **kwargs)
 
     def evaluate(self, predictions, **kwargs):
         cmatrix = None
         for n in range(self.num_frames):
-            image_file, label_file = self.__getitem__(n, with_label=True)
+            image_file, info_dict, label_file = self.__getitem__(n, with_label=True)
             label_img = PIL.Image.open(label_file)
             # reshape prediction is needed
-            output = predictions[n]
+            prediction = predictions[n]
+            prediction = prediction['output'] if isinstance(prediction, dict) and 'output' in prediction else prediction
+            output = prediction
             output = output.astype(np.uint8)
             output = output[0] if (output.ndim > 2 and output.shape[0] == 1) else output
             output = output[:2] if (output.ndim > 2 and output.shape[2] == 1) else output

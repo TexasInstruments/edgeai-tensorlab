@@ -778,14 +778,17 @@ class NuScenesDataset(DatasetBase):
     def download(self, path, split_file):
         return None
 
-    def __getitem__(self, idx, **kwargs):
-        return self.data_infos['infos'][idx]
+    def __getitem__(self, idx, info_dict=None, **kwargs):
+        info_dict = info_dict or dict()
+        return self.data_infos['infos'][idx], info_dict
 
     def __len__(self):
         return len(self.data_infos['infos'])
 
+    def __call__(self, index, info_dict=None):
+        return self.__getitem__(index, info_dict)
+    
     # TO BE UPDATED for NuSCenes
-
     # https://github.com/open-mmlab/mmdetection3d/
     # Based on create_nuscenes_infos()
     def create_nuscenes_infos(self, read_anno=True, split_folder='train', version='v1.0-mini', max_sweeps=10):
@@ -850,7 +853,7 @@ class NuScenesDataset(DatasetBase):
             return data, val_scenes
 
 
-    def __call__(self, predictions, **kwargs):
+    def evaluate(self, predictions, **kwargs):
         result_dict = dict()
 
         if kwargs['task_name'] == 'FCOS3D' or \
@@ -948,7 +951,9 @@ class NuScenesDataset(DatasetBase):
         nusc_annos = {}
 
         print('Start to convert detection format...')
-        for i, det in enumerate(predictions):
+        for i, prediction in enumerate(predictions):
+            prediction = prediction['output'] if isinstance(prediction, dict) and 'output' in prediction else prediction
+            det = prediction
             annos = []
             boxes, attrs = output_to_nusc_box(det, kwargs['task_name'], bbox3d_type='lidar')
 
@@ -1070,7 +1075,9 @@ class NuScenesDataset(DatasetBase):
 
         CAM_NUM = 6
 
-        for i, det in enumerate(predictions):
+        for i, prediction in enumerate(predictions):
+            prediction = prediction['output'] if isinstance(prediction, dict) and 'output' in prediction else prediction
+            det = prediction
             # sample_idx in sequential order
             sample_idx = i
             frame_sample_idx = sample_idx // CAM_NUM

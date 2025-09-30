@@ -195,14 +195,15 @@ class COCOKeypointDetection(DatasetBase):
         root = os.sep.join(os.path.split(path)[:-1])
         return root
 
-    def __getitem__(self, idx, with_label=False):
+    def __getitem__(self, idx, info_dict=None, with_label=False):
+        info_dict = info_dict or dict()
         img_id = self.img_ids[idx]
         img = self.coco_dataset.loadImgs([img_id])[0]
         image_path = os.path.join(self.image_dir, img['file_name'])
         if with_label:
-            return image_path, None
+            return image_path, info_dict, None
         else:
-            return image_path
+            return image_path, info_dict
 
     def __len__(self):
         return min(self.num_frames, len(self.img_ids)) if self.num_frames else len(self.img_ids)
@@ -212,8 +213,8 @@ class COCOKeypointDetection(DatasetBase):
             t.cleanup()
         #
 
-    def __call__(self, predictions, **kwargs):
-        return self.evaluate(predictions, **kwargs)
+    def __call__(self, index, info_dict=None):
+        return self.__getitem__(index, info_dict)
 
     def evaluate(self, predictions, **kwargs):
         label_offset = kwargs.get('label_offset_pred', 0)
@@ -225,6 +226,7 @@ class COCOKeypointDetection(DatasetBase):
         # os.makedirs(run_dir, exist_ok=True)
         detections_formatted_list = []
         for frame_idx, det_frame in enumerate(predictions):
+            det_frame = det_frame['output'] if isinstance(det_frame, dict) and 'output' in det_frame else det_frame
             for i in range(len(det_frame['bbox'])):
                 det = np.concatenate([det_frame['bbox'][i], np.array(det_frame['scores'][i]).reshape(1,), np.array(det_frame['category_id'][i]).reshape(1,), det_frame['preds'][i].reshape(-1)])
                 # for det_id, det in enumerate(det_frame):

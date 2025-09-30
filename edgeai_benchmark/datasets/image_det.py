@@ -49,22 +49,23 @@ class ImageDetection(DatasetBase):
     def download(self, path, split_file):
         return None
 
-    def __getitem__(self, index, **kwargs):
+    def __getitem__(self, index, info_dict=None, **kwargs):
+        info_dict = info_dict or dict()
         with_label = kwargs.get('with_label', False)
         words = self.imgs[index]
         image_name = words[0]
         if with_label:
             # label and evaluation is not implemented
-            return image_name, None
+            return image_name, info_dict, None
         else:
-            return image_name
+            return image_name, info_dict
         #
 
     def __len__(self):
         return self.num_frames
 
-    def __call__(self, predictions, **kwargs):
-        return self.evaluate(predictions, **kwargs)
+    def __call__(self, index, info_dict=None):
+        return self.__getitem__(index, info_dict)
 
     def evaluate(self, predictions, **kwargs):
         # not implemented

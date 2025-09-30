@@ -71,16 +71,17 @@ class ImagePixel2Pixel(DatasetBase):
     def download(self, path, split_file):
         return None
 
-    def __getitem__(self, index, **kwargs):
+    def __getitem__(self, index, info_dict=None, **kwargs):
+        info_dict = info_dict or dict()
         with_label = kwargs.get('with_label', False)
         words = self.imgs[index]
         image_name = words[0]
         if with_label:
             assert len(words)>0, f'ground truth requested, but missing at the dataset entry for {words}'
             label_name = words[1]
-            return image_name, label_name
+            return image_name, info_dict, label_name
         else:
-            return image_name
+            return image_name, info_dict
         #
 
     def __len__(self):

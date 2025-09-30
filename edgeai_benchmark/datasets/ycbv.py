@@ -259,13 +259,11 @@ class YCBV(DatasetBase):
             pbar.close()
         json.dump(coco, outfile)
 
-
-
-    def __getitem__(self, idx):
+    def __getitem__(self, idx, info_dict=None, **kwargs):
         img_id = self.img_ids[idx]
         img = self.coco_dataset.loadImgs([img_id])[0]
         image_path = os.path.join(self.image_dir,  img['image_folder'], 'rgb', img['file_name'])
-        return image_path
+        return image_path, info_dict
 
     def __len__(self):
         return self.num_frames
@@ -275,8 +273,8 @@ class YCBV(DatasetBase):
             t.cleanup()
         #
 
-    def __call__(self, predictions, **kwargs):
-        return self.evaluate(predictions, **kwargs)
+    def __call__(self, index, info_dict=None):
+        return self.__getitem__(index, info_dict)
 
     def evaluate(self, preds, **kwargs):
         data_list = self.convert_to_coco_format(preds)
@@ -291,7 +289,9 @@ class YCBV(DatasetBase):
             if frame_index == len(preds):
                 break
             frame_data_list = []
-            pred = preds[frame_index]
+            prediction = preds[frame_index]
+            prediction = prediction['output'] if isinstance(prediction, dict) and 'output' in prediction else prediction
+            pred = prediction
             cls_pred = np.array(pred['cls'], dtype=np.int32)
             for target in frame_targets:
                 pred_gt_data = {

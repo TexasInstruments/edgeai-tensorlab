@@ -196,7 +196,8 @@ class COCOSegmentation(DatasetBase):
         root = os.sep.join(os.path.split(path)[:-1])
         return root
 
-    def __getitem__(self, idx, with_label=False):
+    def __getitem__(self, idx, info_dict=None, with_label=False):
+        info_dict = info_dict or dict()
         img_id = self.img_ids[idx]
         img = self.coco_dataset.loadImgs([img_id])[0]
         image_path = os.path.join(self.image_dir, img['file_name'])
@@ -212,9 +213,9 @@ class COCOSegmentation(DatasetBase):
             label_path = os.path.join(self.label_dir, image_basename)
             label_path = os.path.splitext(label_path)[0] + '.png'
             cv2.imwrite(label_path, target)
-            return image_path, label_path
+            return image_path, info_dict, label_path
         else:
-            return image_path
+            return image_path, info_dict
         #
 
     def __len__(self):
@@ -229,18 +230,20 @@ class COCOSegmentation(DatasetBase):
         # label has already been encoded
         return label_img
 
-    def __call__(self, predictions, **kwargs):
-        return self.evaluate(predictions, **kwargs)
+    def __call__(self, index, info_dict=None):
+        return self.__getitem__(index, info_dict)
 
     def evaluate(self, predictions, **kwargs):
         cmatrix = None
         num_frames = min(self.num_frames, len(predictions))
         for n in range(num_frames):
-            image_file, label_file = self.__getitem__(n, with_label=True)
+            image_file, info_dict, label_file = self.__getitem__(n, with_label=True)
             label_img = PIL.Image.open(label_file)
             label_img = self.encode_segmap(label_img)
             # reshape prediction is needed
-            output = predictions[n]
+            prediction = predictions[n]
+            prediction = prediction['output'] if isinstance(prediction, dict) and 'output' in prediction else prediction
+            output = prediction
             output = output.astype(np.uint8)
             output = output[0] if (output.ndim > 2 and output.shape[0] == 1) else output
             output = output[:2] if (output.ndim > 2 and output.shape[2] == 1) else output
@@ -349,7 +352,7 @@ if __name__ == '__main__':
     output_filelist = os.path.join(output_folder, f'{split}.txt')
     with open(output_filelist, 'w') as list_fp:
         for n in range(num_frames):
-            image_path, label_path = coco_seg.__getitem__(n, with_label=True)
+            image_path, info_dict, label_path = coco_seg.__getitem__(n, with_label=True)
             # not needed - encode_segmap doesn't do anything
             # image = PIL.Image.open(image_path)
             # label_img = PIL.Image.open(label_path)

@@ -57,9 +57,10 @@ class ONNXBackendDataset(DatasetBase):
                 out_counter += 1
         
 
-    def __getitem__(self, idx, **kwargs):
+    def __getitem__(self, idx, info_dict=None, **kwargs):
+        info_dict = info_dict or dict()
         assert idx == 0
-        return self.inputs
+        return self.inputs, info_dict
 
 
     def __len__(self):

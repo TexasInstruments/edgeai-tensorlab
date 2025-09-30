@@ -193,20 +193,21 @@ class COCODetection(DatasetBase):
         root = os.sep.join(os.path.split(path)[:-1])
         return root
 
-    def __getitem__(self, idx, with_label=False):
+    def __getitem__(self, idx, info_dict=None, with_label=False):
+        info_dict = info_dict or dict()
         img_id = self.img_ids[idx]
         img = self.coco_dataset.loadImgs([img_id])[0]
         image_path = os.path.join(self.image_dir, img['file_name'])
         if with_label:
-            return image_path, None
+            return image_path, info_dict, None
         else:
-            return image_path
+            return image_path, info_dict
 
     def __len__(self):
         return min(self.num_frames, len(self.img_ids)) if self.num_frames else len(self.img_ids)
 
-    def __call__(self, predictions, **kwargs):
-        return self.evaluate(predictions, **kwargs)
+    def __call__(self, index, info_dict=None):
+        return self.__getitem__(index, info_dict)
 
     def evaluate(self, predictions, **kwargs):
         label_offset = kwargs.get('label_offset_pred', 0)
@@ -215,6 +216,7 @@ class COCODetection(DatasetBase):
         #os.makedirs(run_dir, exist_ok=True)
         detections_formatted_list = []
         for frame_idx, det_frame in enumerate(predictions):
+            det_frame = det_frame['output'] if isinstance(det_frame, dict) and 'output' in det_frame else det_frame
             for det_id, det in enumerate(det_frame):
                 det = self._format_detections(det, frame_idx, label_offset=label_offset)
                 category_id = det['category_id'] if isinstance(det, dict) else det[4]
@@ -321,7 +323,7 @@ if __name__ == '__main__':
     output_filelist = os.path.join(output_folder, f'{split}.txt')
     with open(output_filelist, 'w') as list_fp:
         for n in range(num_frames):
-            image_path, label_path = coco_seg.__getitem__(n, with_label=True)
+            image_path, info_dict, label_path = coco_seg.__getitem__(n, with_label=True)
             # TODO: labels are not currently written to list file
             image_output_filename = os.path.join(images_output_folder, os.path.basename(image_path))
             shutil.copy2(image_path, image_output_filename)

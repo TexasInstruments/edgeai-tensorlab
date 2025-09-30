@@ -120,33 +120,35 @@ class VOC2012Segmentation(DatasetBase):
         print(utils.log_color('\nINFO', 'dataset ready', path))
         return
 
-    def __getitem__(self, idx, with_label=False):
+    def __getitem__(self, idx, info_dict=None, with_label=False):
         if with_label:
             image_file = self.imgs[idx]
             label_file = self.labels[idx]
-            return image_file, label_file
+            return image_file, info_dict, label_file
         else:
-            return self.imgs[idx]
+            return self.imgs[idx], info_dict
         #
 
     def __len__(self):
         return self.num_frames
 
-    def __call__(self, predictions, **kwargs):
-        return self.evaluate(predictions, **kwargs)
+    def __call__(self, index, info_dict=None):
+        return self.__getitem__(index, info_dict)
 
     def evaluate(self, predictions, **kwargs):
         cmatrix = None
         num_frames = min(self.num_frames, len(predictions))
         for n in range(num_frames):
-            image_file, label_file = self.__getitem__(n, with_label=True)
+            image_file, info_dict, label_file = self.__getitem__(n, with_label=True)
             # image = PIL.Image.open(image_file)
             label_img = PIL.Image.open(label_file)
             label_img = label_img.convert('L')
             label_img = np.array(label_img)
             #label_img = self.label_lut[label_img]
 
-            output = predictions[n]
+            prediction = predictions[n]
+            prediction = prediction['output'] if isinstance(prediction, dict) and 'output' in prediction else prediction
+            output = prediction
             output = output.astype(np.uint8)
             output = output[0] if (output.ndim > 2 and output.shape[0] == 1) else output
             output = output[:2] if (output.ndim > 2 and output.shape[2] == 1) else output

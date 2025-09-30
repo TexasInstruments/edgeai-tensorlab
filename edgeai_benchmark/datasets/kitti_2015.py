@@ -292,22 +292,23 @@ class Kitti2015(DatasetBase):
     def download(self, path, split):
         return None
 
-    def __getitem__(self, idx, with_label=False):
+    def __getitem__(self, idx, info_dict=None, with_label=False):
+        info_dict = info_dict or dict()
         if with_label:
             left_img_name  = self.left_imgs[idx]
             right_img_name = self.right_imgs[idx]
             gt_img_name    = self.gt_imgs[idx]    
-            return left_img_name, right_img_name, gt_img_name
+            return (left_img_name, right_img_name), info_dict, gt_img_name
         else:
             left_img_name  = self.left_imgs[idx]
             right_img_name = self.right_imgs[idx]
-            return left_img_name, right_img_name
+            return (left_img_name, right_img_name), info_dict
         #
     def __len__(self):
         return self.num_frames
 
-    def __call__(self, predictions, **kwargs):
-        return self.evaluate(predictions, **kwargs)
+    def __call__(self, index, info_dict=None):
+        return self.__getitem__(index, info_dict)
         
     def evaluate(self, predictions, **kwargs):        
         accuracy = 0.0
@@ -315,11 +316,12 @@ class Kitti2015(DatasetBase):
 
         num_frames = min(self.num_frames, len(predictions))
         for n in range(num_frames):
-            left_file, right_file, gt_file = self.__getitem__(n, with_label=True)
+            (left_file, right_file), info_dict, gt_file = self.__getitem__(n, with_label=True)
             gt_img = PIL.Image.open(gt_file)
             gt_img = np.array(gt_img, dtype=np.float32) / 256.
             prediction = predictions[n]
-
+            prediction = prediction['output'] if isinstance(prediction, dict) and 'output' in prediction else prediction
+            
             gt_img = F.center_crop(gt_img, (prediction.shape[0], prediction.shape[1]))
 
             mask = (gt_img < max_disp) & (gt_img > 0)

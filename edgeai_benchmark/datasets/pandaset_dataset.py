@@ -618,11 +618,15 @@ class PandaSetDataset(DatasetBase):
     def download(self, path, split_file):
         return None
 
-    def __getitem__(self, idx, **kwargs):
-        return self.data_infos['infos'][idx]
+    def __getitem__(self, idx, info_dict=None, **kwargs):
+        info_dict = info_dict or dict()
+        return self.data_infos['infos'][idx], info_dict
 
     def __len__(self):
         return len(self.data_infos['infos'])
+
+    def __call__(self, index, info_dict=None):
+        return self.__getitem__(index, info_dict)
     
     def create_pandaset_infos(self, read_anno=True, split_folder='train', version='v1.0-mini', max_sweeps=10):
         metadata = dict(version=version)
@@ -683,7 +687,9 @@ class PandaSetDataset(DatasetBase):
         pandaset_annos = {}
 
         print('Start to convert detection format...')
-        for i, det in enumerate(predictions):
+        for i, prediction in enumerate(predictions):
+            prediction = prediction['output'] if isinstance(prediction, dict) and 'output' in prediction else prediction
+            det = prediction
             annos = []
             boxes = det['bboxes_3d']
             # make (0.5, 0.5, 0.5) center
@@ -767,7 +773,9 @@ class PandaSetDataset(DatasetBase):
         CAM_NUM = 6
         NUM_CLASSES = len(det_classes)
 
-        for i, det in enumerate(predictions):
+        for i, prediction in enumerate(predictions):
+            prediction = prediction['output'] if isinstance(prediction, dict) and 'output' in prediction else prediction
+            det = prediction
             sample_idx = i
             camera_type_id = sample_idx % CAM_NUM
             camera_type = camera_types[camera_type_id]
@@ -864,7 +872,7 @@ class PandaSetDataset(DatasetBase):
 
         return pandaset_annos
     
-    def __call__(self, predictions, **kwargs):
+    def evaluate(self, predictions, **kwargs):
         result_dict = dict()
 
         class_to_name = class_to_name_type
