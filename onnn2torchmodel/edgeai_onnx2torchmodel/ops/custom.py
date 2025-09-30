@@ -1,0 +1,37 @@
+import torch
+import onnx_graphsurgeon as gs
+from . import utils
+
+custom_to_torch = {
+    
+}
+
+custom_add_2_torch_graph = {
+    
+}
+
+################
+#custom function should map
+# node.inputs to args
+# node.attrs to kwargs
+#
+# exact operator as key
+
+def add_custom_operator(func, operator, add_2_torch_graph=None):
+    # add_2_torch_graph  should follow the same signature as add_custom_node_2_torch_graph
+    add_2_torch_graph = add_2_torch_graph or add_custom_node_2_torch_graph
+    custom_to_torch[operator] = func
+    custom_add_2_torch_graph[operator] = add_2_torch_graph
+    def wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
+    return wrapper
+
+
+
+def add_custom_node_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
+    if node.op not in custom_to_torch:
+        raise NotImplementedError
+    types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
+    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    kwargs = dict(node.attrs)
+    torch_nodes[node.name] = torch_graph.call_function(custom_to_torch[node.op], tuple(args),  kwargs=kwargs, name=node.name)
