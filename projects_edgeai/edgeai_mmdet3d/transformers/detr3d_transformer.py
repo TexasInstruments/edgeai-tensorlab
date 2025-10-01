@@ -5,6 +5,9 @@ import torch.nn as nn
 from torch.nn import ModuleList
 import torch.utils.checkpoint as cp
 
+import onnx
+from onnxsim import simplify
+
 from mmengine.model import BaseModule, constant_init, xavier_init
 from mmengine.config import ConfigDict
 from mmcv.cnn import build_norm_layer
@@ -17,13 +20,91 @@ from mmdet3d.registry import MODELS
 from mmdet3d.models.utils.multi_scale_deform_attn import multi_scale_deformable_attn_pytorch
 
 
-
 # Disable warnings
 warnings.filterwarnings("ignore")
 
 def get_global_pos(points, pc_range):
     points = points * (pc_range[3:6] - pc_range[0:3]) + pc_range[0:3]
     return points
+
+import numpy as np
+class SelfAttentionONNX(nn.Module):
+    def __init__(self, self_attn_module):
+        super(SelfAttentionONNX, self).__init__()
+        self.self_attn_module = copy.deepcopy(self_attn_module)
+
+    def forward(self, query, key, value,
+                query_pos=None, key_pos=None,
+                identity=None,
+                attn_mask=None, key_padding_mask=None):
+        return self.self_attn_module(
+            query,
+            key,
+            value,
+            identity,
+            query_pos=query_pos,
+            key_pos=key_pos,
+            attn_mask=attn_mask,
+            key_padding_mask=key_padding_mask)
+
+
+class CrossAttentionONNX(nn.Module):
+    def __init__(self, cross_attn_module):
+        super(CrossAttentionONNX, self).__init__()
+        self.cross_attn_module = copy.deepcopy(cross_attn_module)
+
+    def forward(self, query, query_pos,
+                mlvl_feats, reference_points,
+                spatial_flatten, level_start_index,
+                pc_range, lidar2img, pad_shape):
+        return self.cross_attn_module(
+            query,
+            query_pos,
+            mlvl_feats,
+            reference_points,
+            spatial_flatten,
+            level_start_index,
+            pc_range,
+            lidar2img,
+            pad_shape)
+
+class SinleLayerONNX(nn.Module):
+    def __init__(self, layer_module, layer_id, img_metas, spatial_flatten):
+        super(SinleLayerONNX, self).__init__()
+        self.layer_module = copy.deepcopy(layer_module)
+        self.layer_id = layer_id
+        self.img_metas = img_metas
+        self.spatial_flatten = spatial_flatten
+        
+    def forward(self,
+                query,
+                query_pos,
+                mlvl_feats,
+                temp_memory,
+                temp_pos,
+                reference_points,
+                #spatial_flatten,
+                level_start_index,
+                pc_range,
+                lidar2img,
+                attn_masks=None):
+
+        return self.layer_module(
+            self.layer_id,
+            query,
+            query_pos,
+            mlvl_feats,
+            temp_memory,
+            temp_pos,
+            reference_points,
+            #spatial_flatten,
+            self.spatial_flatten,
+            level_start_index,
+            pc_range,
+            lidar2img,
+            self.img_metas,
+            attn_masks
+        )
 
 @MODELS.register_module()
 class Detr3DTransformer(BaseModule):
@@ -57,11 +138,11 @@ class Detr3DTransformer(BaseModule):
                 query_pos,
                 feat_flatten,
                 spatial_flatten,
-                level_start_index, 
-                temp_memory, 
+                level_start_index,
+                temp_memory,
                 temp_pos,
                 attn_masks,
-                reference_points, 
+                reference_points,
                 pc_range,
                 lidar2imgs,
                 img_metas,):
@@ -103,7 +184,6 @@ class Detr3DTransformer(BaseModule):
                     otherwise None.
         """
         #lidar2img = data['lidar2img']
-        
         inter_states = self.decoder(
             query=query,
             query_pos=query_pos,
@@ -131,6 +211,82 @@ class Detr3DTransformerDecoder(TransformerLayerSequence):
 
     def __init__(self, embed_dims, *args, **kwargs):
         super(Detr3DTransformerDecoder, self).__init__(*args, **kwargs)
+        self.set_layer_export = False
+
+    def export_single_layer(self,
+                            layer_id,
+                            layer_onnx,
+                            query,
+                            query_pos,
+                            mlvl_feats,
+                            temp_memory,
+                            temp_pos,
+                            reference_points,
+                            spatial_flatten,
+                            level_start_index,
+                            pc_range,
+                            lidar2img,
+                            attn_masks=None):
+
+        # Save inputs
+        query_np = query.to('cpu').numpy()
+        query_pos_np = query_pos.to('cpu').numpy()
+        mlvl_feats_np = mlvl_feats.to('cpu').numpy()
+        temp_memory_np = temp_memory.to('cpu').numpy()
+        temp_pos_np = temp_pos.to('cpu').numpy()
+        reference_points_np = reference_points.to('cpu').numpy()
+        #spatial_flatten_np = spatial_flatten.to('cpu').numpy()
+        level_start_index_np = level_start_index.to('cpu').numpy()
+        pc_range_np = pc_range.to('cpu').numpy()
+        lidar2img_np = lidar2img.to('cpu').numpy()
+        attn_masks_np = attn_masks.to('cpu').numpy() if attn_masks is not None else None
+
+        np.savez(f'single_layer_input_{layer_id}.npz',
+                 query=query_np, query_pos=query_pos_np,
+                 mlvl_feats=mlvl_feats_np, 
+                 temp_memory=temp_memory_np, temp_pos=temp_pos_np,
+                 reference_points=reference_points_np,
+                 #spatial_flatten=spatial_flatten_np, 
+                 level_start_index=level_start_index_np,
+                 pc_range=pc_range_np, lidar2img=lidar2img_np,
+                 attn_masks=attn_masks_np)
+
+        model_input=[]
+        input_names=[]
+        model_input.append(copy.deepcopy(query))
+        input_names.append('query')
+        model_input.append(copy.deepcopy(query_pos))
+        input_names.append('query_pos')
+        model_input.append(copy.deepcopy(mlvl_feats))
+        input_names.append('mlvl_feats')
+        model_input.append(copy.deepcopy(temp_memory))
+        input_names.append('temp_memory')
+        model_input.append(copy.deepcopy(temp_pos))
+        input_names.append('temp_pos')
+        model_input.append(copy.deepcopy(reference_points))
+        input_names.append('reference_points')
+        #model_input.append(copy.deepcopy(spatial_flatten))
+        #input_names.append('spatial_flatten')
+        model_input.append(copy.deepcopy(level_start_index))
+        input_names.append('level_start_index')
+        model_input.append(copy.deepcopy(pc_range))
+        input_names.append('pc_range')
+        model_input.append(copy.deepcopy(lidar2img))
+        input_names.append('lidar2img')
+        model_input.append(copy.deepcopy(attn_masks))
+        input_names.append('attn_masks')
+
+        model_name = f"single_layer_{layer_id}.onnx"
+        torch.onnx.export(
+            layer_onnx,
+            tuple(model_input),
+            model_name,
+            opset_version=18,
+            input_names=input_names,
+            output_names=['output'])
+        onnx_model, _ = simplify(model_name)
+        onnx.save(onnx_model, model_name)
+
 
     def forward(self,
                 query,
@@ -141,8 +297,8 @@ class Detr3DTransformerDecoder(TransformerLayerSequence):
                 reference_points,
                 spatial_flatten,
                 level_start_index,
-                pc_range, 
-                lidar2img, 
+                pc_range,
+                lidar2img,
                 img_metas,
                 attn_masks):
         """Forward function for `Detr3DTransformerDecoder`.
@@ -164,24 +320,44 @@ class Detr3DTransformerDecoder(TransformerLayerSequence):
         """
         intermediate = []
         for lid, layer in enumerate(self.layers):
-            
+            if self.set_layer_export is True:
+                layer_module = layer
+                layer_onnx = SinleLayerONNX(layer_module, lid, img_metas, spatial_flatten)
+                self.export_single_layer(lid,
+                                         layer_onnx,
+                                         query,
+                                         query_pos,
+                                         mlvl_feats,
+                                         temp_memory,
+                                         temp_pos,
+                                         reference_points,
+                                         spatial_flatten,
+                                         level_start_index,
+                                         pc_range,
+                                         lidar2img,
+                                         attn_masks)
+                print("Successfully export a single decoder layer to onnx!")
+
             query = layer(
+                lid,
                 query,
                 query_pos,
                 mlvl_feats,
-                temp_memory, 
+                temp_memory,
                 temp_pos,
                 reference_points,
                 spatial_flatten,
                 level_start_index,
-                pc_range, 
-                lidar2img, 
+                pc_range,
+                lidar2img,
                 img_metas,
                 attn_masks)
 
             intermediate.append(query)
 
+        self.set_layer_export=False
         return torch.stack(intermediate)
+
 
 @MODELS.register_module()
 class Detr3DTemporalDecoderLayer(BaseModule):
@@ -304,17 +480,156 @@ class Detr3DTemporalDecoderLayer(BaseModule):
         self.use_checkpoint = with_cp
         self.use_reentrant = use_reentrant
 
+        # For onnx model validation only
+        self.layer_export = False
+
+
+    def export_self_attn(self,
+                         layer_id,
+                         self_attn_onnx,
+                         query,
+                         key,
+                         value,
+                         identity,
+                         query_pos=None,
+                         key_pos=None,
+                         attn_mask=None,
+                         key_padding_mask=None):
+        # Save inputs
+        query_np = query.to('cpu').numpy()
+        key_np   = key.to('cpu').numpy()
+        value_np = value.to('cpu').numpy()
+        if identity is None:
+            identity_np = None
+        else:
+            identity_np = identity.to('cpu').numpy()
+        query_pos_np    = query_pos.to('cpu').numpy()
+        key_pos_np      = key_pos.to('cpu').numpy()
+        if attn_mask is None:
+            attn_mask_np = None
+        else:
+            attn_mask_np = attn_mask.to('cpu').numpy()
+        if key_padding_mask is None:
+            key_padding_mask_np = None
+        else:
+            key_padding_mask_np = key_padding_mask.to('cpu').numpy()
+
+        np.savez(f"self_attn_input_{layer_id}.npz",
+                 query=query_np, key=key_np,
+                 value=value_np, identity=identity_np,
+                 query_pos=query_pos_np, key_pos=key_pos_np,
+                 attn_mask=attn_mask_np, key_padding_mask=key_padding_mask_np)
+
+        model_input=[]
+        input_names=[]
+        model_input.append(copy.deepcopy(query))
+        input_names.append('query')
+        model_input.append(copy.deepcopy(key))
+        input_names.append('key')
+        model_input.append(copy.deepcopy(value))
+        input_names.append('value')
+        model_input.append(copy.deepcopy(query_pos))
+        input_names.append('query_pos')
+        model_input.append(copy.deepcopy(key_pos))
+        input_names.append('key_pos')
+        # put possible None variable in the end of input list
+        if identity is not None:
+            model_input.append(copy.deepcopy(identity))
+            input_names.append('identity')
+        if attn_mask is not None:
+            model_input.append(copy.deepcopy(attn_mask))
+            input_names.append('attn_mask')
+        if key_padding_mask is not None:
+            model_input.append(copy.deepcopy(key_padding_mask))
+            input_names.append('key_padding_mask')
+
+        model_name = f"self_attention_{layer_id}.onnx"
+        torch.onnx.export(
+            self_attn_onnx,
+            tuple(model_input),
+            model_name,
+            opset_version=18,
+            input_names=input_names,
+            output_names=['output']
+        )
+        onnx_model, _ = simplify(model_name)
+        onnx.save(onnx_model, model_name)
+
+    def export_cross_attn(self,
+                          layer_id,
+                          cross_attn_onnx,
+                          query,
+                          query_pos,
+                          mlvl_feats,
+                          reference_points,
+                          spatial_flatten,
+                          level_start_index,
+                          pc_range,
+                          lidar2img,
+                          pad_shape):
+
+        # Save inputs
+        query_np = query.to('cpu').numpy()
+        query_pos_np   = query_pos.to('cpu').numpy()
+        mlvl_feats_np = mlvl_feats.to('cpu').numpy()
+        reference_points_np = reference_points.to('cpu').numpy()
+        spatial_flatten_np    = spatial_flatten.to('cpu').numpy()
+        level_start_index_np      = level_start_index.to('cpu').numpy()
+        pc_range_np = pc_range.to('cpu').numpy()
+        lidar2img_np = lidar2img.to('cpu').numpy()
+        pad_shape_np = np.array(pad_shape)
+
+        np.savez(f'cross_attn_input_{layer_id}.npz',
+                 query=query_np, query_pos=query_pos_np,
+                 mlvl_feats=mlvl_feats_np, reference_points=reference_points_np,
+                 spatial_flatten=spatial_flatten_np, level_start_index=level_start_index_np,
+                 pc_range=pc_range_np, lidar2img=lidar2img_np, pad_shape=pad_shape_np)
+
+        model_input=[]
+        input_names=[]
+        model_input.append(copy.deepcopy(query))
+        input_names.append('query')
+        model_input.append(copy.deepcopy(query_pos))
+        input_names.append('query_pos')
+        model_input.append(copy.deepcopy(mlvl_feats))
+        input_names.append('mlvl_feats')
+        model_input.append(copy.deepcopy(reference_points))
+        input_names.append('reference_points')
+        model_input.append(copy.deepcopy(spatial_flatten))
+        input_names.append('spatial_flatten')
+        model_input.append(copy.deepcopy(level_start_index))
+        input_names.append('level_start_index')
+        model_input.append(copy.deepcopy(pc_range))
+        input_names.append('pc_range')
+        model_input.append(copy.deepcopy(lidar2img))
+        input_names.append('lidar2img')
+        model_input.append(torch.tensor(pad_shape))
+        input_names.append('pad_shape')
+
+        model_name = f"cross_attention_{layer_id}.onnx"
+        torch.onnx.export(
+            cross_attn_onnx,
+            tuple(model_input),
+            model_name,
+            opset_version=18,
+            input_names=input_names,
+            output_names=['output'])
+        onnx_model, _ = simplify(model_name)
+        onnx.save(onnx_model, model_name)
+
+
     def _forward(self,
+                layer_id,
                 query,
                 query_pos,
                 mlvl_feats,
-                temp_memory, 
+                temp_memory,
                 temp_pos,
                 reference_points,
                 spatial_flatten,
                 level_start_index,
-                pc_range, 
-                lidar2img, 
+                pc_range,
+                lidar2img,
                 img_metas,
                 attn_masks=None,
                 query_key_padding_mask=None,
@@ -377,6 +692,23 @@ class Detr3DTemporalDecoderLayer(BaseModule):
                 else:
                     temp_key = temp_value = query
                     temp_pos = query_pos
+
+                # For onnx model validation only
+                if self.layer_export is True:
+                    self_attn_module = self.attentions[attn_index]
+                    self_attn_onnx = SelfAttentionONNX(self_attn_module)
+                    self.export_self_attn(layer_id,
+                                          self_attn_onnx,
+                                          query,
+                                          temp_key,
+                                          temp_value,
+                                          identity if self.pre_norm else None,
+                                          query_pos=query_pos,
+                                          key_pos=temp_pos,
+                                          attn_mask=attn_masks[attn_index],
+                                          key_padding_mask=query_key_padding_mask)
+                    print("Successfully export self attention to onnx!")
+
                 query = self.attentions[attn_index](
                     query,
                     temp_key,
@@ -395,6 +727,23 @@ class Detr3DTemporalDecoderLayer(BaseModule):
                 norm_index += 1
 
             elif layer == 'cross_attn':
+                # For onnx model validation only
+                if self.layer_export is True:
+                    cross_attn_module = self.attentions[attn_index]
+                    cross_attn_onnx = CrossAttentionONNX(cross_attn_module)
+                    self.export_cross_attn(layer_id,
+                                           cross_attn_onnx,
+                                           query,
+                                           query_pos,
+                                           mlvl_feats,
+                                           reference_points,
+                                           spatial_flatten,
+                                           level_start_index,
+                                           pc_range,
+                                           lidar2img,
+                                           img_metas[0]['pad_shape'])
+                    print("Successfully export cross attention to onnx!")
+
                 query = self.attentions[attn_index](
                     query,
                     query_pos,
@@ -402,9 +751,9 @@ class Detr3DTemporalDecoderLayer(BaseModule):
                     reference_points,
                     spatial_flatten,
                     level_start_index,
-                    pc_range, 
-                    lidar2img, 
-                    img_metas,
+                    pc_range,
+                    lidar2img,
+                    img_metas[0]['pad_shape'],
                     **kwargs)
                 attn_index += 1
                 identity = query
@@ -414,9 +763,11 @@ class Detr3DTemporalDecoderLayer(BaseModule):
                     query, identity if self.pre_norm else None)
                 ffn_index += 1
 
+        self.layer_export=False
         return query
 
-    def forward(self, 
+    def forward(self,
+                layer_id,
                 query,
                 query_pos,
                 mlvl_feats,
@@ -430,7 +781,7 @@ class Detr3DTemporalDecoderLayer(BaseModule):
                 img_metas,
                 attn_masks=None,
                 query_key_padding_mask=None,
-                key_padding_mask=None,
+                key_padding_mask=None
                 ):
         """Forward function for `TransformerCoder`.
         Returns:
@@ -458,6 +809,7 @@ class Detr3DTemporalDecoderLayer(BaseModule):
                 )
         else:
             x = self._forward(
+            layer_id,
             query,
             query_pos,
             mlvl_feats,
@@ -471,7 +823,7 @@ class Detr3DTemporalDecoderLayer(BaseModule):
             img_metas,
             attn_masks,
             query_key_padding_mask,
-            key_padding_mask,
+            key_padding_mask
         )
         return x
 
@@ -515,16 +867,16 @@ class DeformableFeatureAggregation(BaseModule):
     def init_weight(self):
         constant_init(self.weights_fc, val=0.0, bias=0.0)
         xavier_init(self.output_proj, distribution="uniform", bias=0.0)
-        nn.init.uniform_(self.learnable_fc.bias.data, -self.bias, self.bias)    
+        nn.init.uniform_(self.learnable_fc.bias.data, -self.bias, self.bias)
 
-    def forward(self, instance_feature, query_pos,feat_flatten, reference_points, spatial_flatten, level_start_index, pc_range, lidar2img_mat, img_metas):
+    def forward(self, instance_feature, query_pos,feat_flatten, reference_points, spatial_flatten, level_start_index, pc_range, lidar2img_mat, pad_shape):
         bs, num_anchor = reference_points.shape[:2]
         reference_points = get_global_pos(reference_points, pc_range)
         key_points = reference_points.unsqueeze(-2) + self.learnable_fc(instance_feature).reshape(bs, num_anchor, -1, 3)
 
         weights = self._get_weights(instance_feature, query_pos, lidar2img_mat)
 
-        features = self.feature_sampling(feat_flatten, spatial_flatten, level_start_index, key_points, weights, lidar2img_mat, img_metas)
+        features = self.feature_sampling(feat_flatten, spatial_flatten, level_start_index, key_points, weights, lidar2img_mat, pad_shape)
 
         output = self.output_proj(features)
         output = self.drop(output) + instance_feature
@@ -539,15 +891,15 @@ class DeformableFeatureAggregation(BaseModule):
         weights = weights.reshape(bs, num_anchor, self.num_cams, -1, self.num_groups).permute(0, 2, 1, 4, 3).contiguous()
         return weights.flatten(end_dim=1)
 
-    def feature_sampling(self, feat_flatten, spatial_flatten, level_start_index, key_points, weights, lidar2img_mat, img_metas):
+    def feature_sampling(self, feat_flatten, spatial_flatten, level_start_index, key_points, weights, lidar2img_mat, pad_shape):
         bs, num_anchor, _ = key_points.shape[:3]
 
         pts_extand = torch.cat([key_points, torch.ones_like(key_points[..., :1])], dim=-1)
         points_2d = torch.matmul(lidar2img_mat[:, :, None, None], pts_extand[:, None, ..., None]).squeeze(-1)
 
         points_2d = points_2d[..., :2] / torch.clamp(points_2d[..., 2:3], min=1e-5)
-        points_2d[..., 0:1] = points_2d[..., 0:1] / img_metas[0]['pad_shape'][1]
-        points_2d[..., 1:2] = points_2d[..., 1:2] / img_metas[0]['pad_shape'][0]
+        points_2d[..., 0:1] = points_2d[..., 0:1] / pad_shape[1]
+        points_2d[..., 1:2] = points_2d[..., 1:2] / pad_shape[0]
 
         points_2d = points_2d.flatten(end_dim=1) #[b*6, 900, 13, 2]
         points_2d = points_2d[:, :, None, None, :, :].repeat(1, 1, self.num_groups, self.num_levels, 1, 1)

@@ -739,7 +739,6 @@ class Far3D_export_pts_bbox(nn.Module):
                                       intrinsics, extrinsics, lidar2imgs, img2lidars,
                                       ego_pose, timestamp)
 
-
         bbox_list = self.pts_bbox_head.get_bboxes(outs, self.img_metas)
 
         if torch.onnx.is_in_onnx_export():
