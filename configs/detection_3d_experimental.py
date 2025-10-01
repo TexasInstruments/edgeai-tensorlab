@@ -356,7 +356,7 @@ def get_configs(settings, work_dir):
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
                     {'advanced_options:output_feature_16bit_names_list':''},
                     {'advanced_options:max_num_subgraph_nodes':300}),
-                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/streampetr/streampetr_r50_256x704_20250910.onnx'),
+                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/streampetr/streampetr_r50_256x704_20250912.onnx'),
             postprocess=postproc_transforms.get_transform_bev_detection_base(),
             metric=dict(),
             model_info=dict(metric_reference={'mAP':0.4})
@@ -370,7 +370,7 @@ def get_configs(settings, work_dir):
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
                     {'advanced_options:output_feature_16bit_names_list':''},
                     {'advanced_options:max_num_subgraph_nodes':300}),
-                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/far3d/far3d_vovnet_960x640_20250914.onnx'),
+                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/far3d/far3d_vovnet_960x640_20251002.onnx'),
             postprocess=postproc_transforms.get_transform_bev_detection_base(),
             metric=dict(),
             model_info=dict(metric_reference={'mAP':0.4})

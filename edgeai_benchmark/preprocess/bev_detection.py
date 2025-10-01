@@ -2005,7 +2005,7 @@ class GetStreamPETRGeometry():
         coords3d = coords3d.reshape(B, -1, D*3)
 
         # for spatial alignment in focal petr
-        cone = np.concatenate([intrinsic, coords3d[..., -3:], coords3d[..., -90:-87]], axis=-1)
+        cone = np.concatenate([intrinsic, coords3d[..., -3:], coords3d[..., -90:-87]], axis=-1).astype(np.float32)
 
         return coords3d, cone
 
@@ -2178,7 +2178,7 @@ class GetFar3DGeometry():
             lidar2imgs.append(info_dict['lidar2imgs'][i])
             img2lidars.append(np.linalg.inv(info_dict['lidar2imgs'][i]))
             intrin = np.eye(4).astype(np.float32)
-            intrin[:3, :3] = info_dict['post_intrins'][0, i]
+            intrin[:3, :3] = info_dict['post_intrins'][i, :3, :3]
             intrinsics.append(intrin)
 
         lidar2imgs = np.expand_dims(np.asarray(lidar2imgs), 0)

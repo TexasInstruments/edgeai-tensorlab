@@ -2191,14 +2191,12 @@ class BEVImageSave():
 
             for i, single_img in enumerate(imgs):
                 trans2img = trans2imgs[i]
-                corners_2d = proj_lidar_bbox3d_to_img(corners_3d, trans2img)
-
-                corners_2d , depths_2d, valid_bbox_idx= proj_lidar_bbox3d_to_img(corners_3d, trans2img)
+                corners_2d, depths_2d, valid_bbox_idx= proj_lidar_bbox3d_to_img(corners_3d, trans2img)
                 labels = labels_3d[valid_bbox_idx]
 
                 for idx, corners in enumerate(corners_2d):
                     if _is_polygon_valid(corners, img_size):
-                        depths = depths_2d[i]
+                        depths = depths_2d[idx]
                         edges = (
                             (0,1),(1,2),(2,3),(3,0),
                             (4,5),(5,6),(6,7),(7,4),
@@ -2208,6 +2206,7 @@ class BEVImageSave():
                             a,b = adjust_edge_in_the_img(img_size, corners, depths, a, b , )
                             if a is not None:
                                 cv2.line(single_img, tuple(a), tuple(b), self.bbox_color[labels[idx]], self.thickness)
+
                 save_path = os.path.join(save_dir, 'output_frame-{:04d}_{}.png'.format(self.output_frame_idx, i))
                 cv2.imwrite(save_path, single_img)
 
