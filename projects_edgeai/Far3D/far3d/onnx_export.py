@@ -130,7 +130,13 @@ def export_StreamPETR_subnets(model, inputs=None, data_samples=None,
 
     modelInput = []
     modelInput.append(img)
-    
+
+    # Save input tensors
+    """
+    img_np              = img.to('cpu').numpy()
+    np.savez('streampetr_img_backbone_input.npz', img_feats=img_feats_np)
+    """
+
     model_name   = 'streampetr_img_backbone.onnx'
     input_names  = ["imgs"]
     output_names = ["img_faats"]
@@ -475,6 +481,7 @@ def export_Far3D_subnets(model, inputs=None, data_samples=None,
     modelInput.append(timestamp)
 
     # Save input tensors
+    """
     img_feats_np = []
     for idx, img_feat in enumerate(img_feats):
         img_feats_np.append(img_feat.to('cpu').numpy())
@@ -487,7 +494,6 @@ def export_Far3D_subnets(model, inputs=None, data_samples=None,
         else:
             outs_roi_np[key] = val.to('cpu').numpy()
 
-    """
     memory_embedding_np       = memory_embedding.to('cpu').numpy()
     memory_reference_point_np = memory_reference_point.to('cpu').numpy()
     memory_timestamp_np       = memory_timestamp.to('cpu').numpy()
@@ -537,6 +543,7 @@ def export_Far3D_subnets(model, inputs=None, data_samples=None,
                        }
     else:
         dynamic_axes = None
+
     torch.onnx.export(onnxModel_pts_bbox,
                       tuple(modelInput),
                       model_name,

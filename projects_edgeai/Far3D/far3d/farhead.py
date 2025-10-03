@@ -2,6 +2,10 @@ import torch
 import torch.nn as nn
 import numpy as np
 
+import copy
+import onnx
+from onnxsim import simplify
+
 from mmcv.cnn import Linear
 from mmengine.model.weight_init import bias_init_with_prob
 from mmengine.structures import InstanceData
@@ -20,6 +24,19 @@ from projects_edgeai.edgeai_mmdet3d.positional_encodings.positional_encoding imp
 from .positional_encoding import pos2posemb1d, nerf_positional_encoding
 from .utils import MLN, topk_gather, transform_reference_points, memory_refresh
 
+
+class TransformerONNX(nn.Module):
+    def __init__(self, transformer_module, pc_range, img_metas, spatial_flatten, level_start_index):
+        super(TransformerONNX, self).__init__()
+        self.transformer_module = copy.deepcopy(transformer_module)
+        self.pc_range = pc_range
+        self.img_metas = img_metas
+        self.spatial_flatten = spatial_flatten
+        self.level_start_index = level_start_index
+
+    def forward(self, query, query_pos, mlvl_feats, temp_memory, temp_pos, reference_points, lidar2imgs):
+        return self.transformer_module(query, query_pos, mlvl_feats, self.spatial_flatten, self.level_start_index,
+                                      temp_memory, temp_pos, None, reference_points, self.pc_range, lidar2imgs, self.img_metas)
 
 @MODELS.register_module()
 class FarHead(AnchorFreeHead):
@@ -231,9 +248,9 @@ class FarHead(AnchorFreeHead):
         self.pc_range = nn.Parameter(torch.tensor(
             self.bbox_coder.pc_range), requires_grad=False)
 
-
         self._init_layers()
         self.reset_memory()
+        self.transformer_export = False
 
     def _init_layers(self):
         """Initialize layers of the transformer head."""
@@ -590,7 +607,55 @@ class FarHead(AnchorFreeHead):
                 indices = -0.5 + 0.5 * torch.sqrt(1 + 8 * (pred_indices - depth_min) / bin_size)
                 indices = indices.type(torch.int64)
                 return indices
-    
+
+    def export_tranformer(self,
+                          transformer_onnx,
+                          query, query_pos, mlvl_feats, temp_memory, temp_pos, reference_points, lidar2imgs):
+        # save inputs
+        query_np = query.to('cpu').numpy()
+        query_pos_np = query_pos.to('cpu').numpy()
+        mlvl_feats_np = mlvl_feats.to('cpu').numpy()
+        temp_memory_np = temp_memory.to('cpu').numpy()
+        temp_pos_np = temp_pos.to('cpu').numpy()
+        reference_points_np = reference_points.to('cpu').numpy()
+        lidar2imgs_np = lidar2imgs.to('cpu').numpy()
+
+        np.savez('transformer_input.npz',
+                 query=query_np, query_pos=query_pos_np,
+                 mlvl_feats=mlvl_feats_np,
+                 temp_memory=temp_memory_np, temp_pos=temp_pos_np,
+                 reference_points=reference_points_np,
+                 lidar2imgs=lidar2imgs_np)
+
+        model_input=[]
+        input_names=[]
+        model_input.append(copy.deepcopy(query))
+        input_names.append('query')
+        model_input.append(copy.deepcopy(query_pos))
+        input_names.append('query_pos')
+        model_input.append(copy.deepcopy(mlvl_feats))
+        input_names.append('mlvl_feats')
+        model_input.append(copy.deepcopy(temp_memory))
+        input_names.append('temp_memory')
+        model_input.append(copy.deepcopy(temp_pos))
+        input_names.append('temp_pos')
+        model_input.append(copy.deepcopy(reference_points))
+        input_names.append('reference_points')
+        model_input.append(copy.deepcopy(lidar2imgs))
+        input_names.append('lidar2imgs')
+
+        model_name = "transformer.onnx"
+        torch.onnx.export(
+            transformer_onnx,
+            tuple(model_input),
+            model_name,
+            opset_version=18,
+            input_names=input_names,
+            output_names=['output'])
+        onnx_model, _ = simplify(model_name)
+        onnx.save(onnx_model, model_name)
+
+
     def forward(self, img_feats, img_metas,
                 outs_roi=None,
                 memory_embedding=None,
@@ -714,11 +779,11 @@ class FarHead(AnchorFreeHead):
             # depth input: specific bins or depth logits
             input_depth_logits = self.multi_depth_config.get('topk', -1) != -1 and not flag_use_gt_depth
             depth_input = pred_depth_ if not input_depth_logits else pred_depth.permute(0, 2, 3, 1)
+
             reference_points2d, context_feat = self.build_query2d_proposal(pred_bbox_list, depth_input, img2lidars, (B, N),
                 padHW, pred_depth_var=_pred_depth_var, input_depth_logits=input_depth_logits,
                 context2d_feat=context2d_feat, bbox2d_scores=bbox2d_scores)
 
-           
             pred_depth_var = None   # [Deprecated function]
             if (not self.pred_depth_var) and (pred_depth_var is not None):
                 self.pred_depth_var = True
@@ -727,6 +792,7 @@ class FarHead(AnchorFreeHead):
                 pro2d_num = reference_points2d.shape[1]
                 query_embeds2d = self.query_embedding(pos2posemb3d(reference_points2d))
                 query_pos = torch.cat([query_pos, query_embeds2d], dim=1)     # (B pad_size+num_Q+M C)
+
                 reference_points = torch.cat([reference_points, reference_points2d], dim=1)     # (B pad_size+num_Q+M 3)
                 if self.training:
                     pad_size = mask_dict['pad_size']
@@ -749,9 +815,18 @@ class FarHead(AnchorFreeHead):
         # prepare for the tgt and query_pos using mln.
         tgt, query_pos, reference_points, temp_memory, temp_pos, rec_ego_pose = self.temporal_alignment(query_pos, tgt, reference_points)
 
+        if self.transformer_export is True:
+            transformer_module = self.transformer
+            transformer_onnx = TransformerONNX(transformer_module, self.pc_range, img_metas, spatial_flatten, level_start_index)
+            self.export_tranformer(transformer_onnx,
+                                   tgt, query_pos, feat_flatten, temp_memory, temp_pos, reference_points, lidar2imgs)
+            self.transformer_export = False
+            print("Successfully export a transformer to onnx!")
+
         outs_dec = self.transformer(tgt, query_pos, feat_flatten, spatial_flatten, level_start_index, temp_memory,
                                     temp_pos, attn_mask, reference_points, self.pc_range, lidar2imgs, img_metas)
 
+        #return tgt, torch.cat([tgt, temp_memory], dim=1), torch.cat([tgt, temp_memory], dim=1), query_pos.to(torch.float64),  torch.cat([query_pos, temp_pos], dim=1).to(torch.float64), outs_dec
         outs_dec = torch.nan_to_num(outs_dec)
         outputs_classes = []
         outputs_coords = []
@@ -850,12 +925,18 @@ class FarHead(AnchorFreeHead):
                 cur_depthmap = pred_depth[ith].flatten(0, 1)     # shape (HW, 1) or (HW, D)
                 cur_center2d = (pred_bbox[:, :2] / depth_downsample).round().long()      # first w then h
                 cur_center2d[cur_center2d < 0] = 0
-                cur_center2d[:, 0][cur_center2d[:, 0] >= w_max] = w_max - 1
-                cur_center2d[:, 1][cur_center2d[:, 1] >= h_max] = h_max - 1
+                # These codes are not correctly exported to onnx, and 
+                # cause mismatch in the onnx model
+                # So replace it with torch.clip
+                #cur_center2d[:, 0][cur_center2d[:, 0] >= w_max] = w_max - 1
+                #cur_center2d[:, 1][cur_center2d[:, 1] >= h_max] = h_max - 1
+                cur_center2d[:, 0] = torch.clip(cur_center2d[:, 0], max=w_max-1)
+                cur_center2d[:, 1] = torch.clip(cur_center2d[:, 1], max=h_max-1)
 
-                #cur_center2d = cur_center2d.flip(dims=(-1, ))   # to obtain depth, obtain (h, w)
-                cur_center2d = cur_center2d[:, [1, 0]]
-                cur_center2d_ = cur_center2d[:, 0] * (pad_w/depth_downsample) + cur_center2d[:, 1]
+                # Combine two lines into one
+                #cur_center2d = cur_center2d[:, [1, 0]]
+                #cur_center2d_ = cur_center2d[:, 0] * (pad_w/depth_downsample) + cur_center2d[:, 1]
+                cur_center2d_ = cur_center2d[:, 1] * (pad_w/depth_downsample) + cur_center2d[:, 0]
                 if input_depth_logits:
                     cur_depth = torch.gather(cur_depthmap, 0, cur_center2d_.long().unsqueeze(1)
                                              .repeat(1, cur_depthmap.shape[1]))  # (Mi, D)
@@ -867,6 +948,7 @@ class FarHead(AnchorFreeHead):
                     cur_depth_var = torch.gather(pred_depth_var[ith], 0, cur_center2d_.long())    # (Mi)
                     depth_var_list.append(cur_depth_var)
         depths = torch.cat(depth_list, dim=0)  # (M, 1) or (M, D)
+
         if self.add_multi_depth_proposal:
             range_min = self.multi_depth_config.get('range_min', -1)
             if input_depth_logits and self.multi_depth_config.get('topk', -1) != -1:
