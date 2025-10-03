@@ -1,9 +1,6 @@
 import onnx_graphsurgeon as gs
 import onnx
 import onnx_ops
-import numpy as np
-import torch
-import onnxruntime
 
 
 def simplify_graph(graph:gs.Graph):
@@ -11,12 +8,12 @@ def simplify_graph(graph:gs.Graph):
         if node.name.isnumeric() or not node.name:
             node.name = f'{node.op}_{idx}'
         else:
-            node.name = node.name.replace('.','_').replace('/','_')
+            node.name = node.name.replace('.','_').replace('/','_').replace(':','_')
     for name, tensor in graph.tensors().items():
         if name.isnumeric():
             tensor. name = f'tensor_{name}'
         else:
-            tensor.name = tensor.name.replace('.','_').replace('/','_')
+            tensor.name = tensor.name.replace('.','_').replace('/','_').replace(':','_')
 
     return graph
 

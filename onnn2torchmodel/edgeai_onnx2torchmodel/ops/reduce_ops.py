@@ -4,7 +4,7 @@ from . import utils
 
 #TODO add support for noop_with_empty_axes
 def torch_reduce_max(x, axes, keepdims=True, noop_with_empty_axes = False):
-    return torch.max(x, dim=axes, keepdim=keepdims)
+    return torch.amax(x, dim=axes, keepdim=keepdims)
 
 def add_reduce_max_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert 1<=len(node.inputs)<= 2, f'{node.name} with operator {node.op} should have between 1 and 2 inputs, but got {len(node.inputs)}'

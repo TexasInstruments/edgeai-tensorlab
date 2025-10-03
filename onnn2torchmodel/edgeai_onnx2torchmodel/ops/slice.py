@@ -5,7 +5,7 @@ from operator import getitem
 
 def torch_slice(x, starts, ends, axes, steps=None):
     if steps is None:
-        steps = torch.ones_like(axes)
+        steps = torch.ones_like(torch.tensor(axes))
     slices = [[None, None, None] for _ in range(x.ndim)]
     for i, axis in enumerate(axes):
         slices[axis][0] = starts[i]
@@ -16,7 +16,7 @@ def torch_slice(x, starts, ends, axes, steps=None):
             continue
         slc_ = [slice(None, None, None) for _ in range(x.ndim)]
         slc_[i] = slice(*slc)
-        x = getitem(x, slc_)
+        x = getitem(x, tuple(slc_))
     return x
 
 def add_slice_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):

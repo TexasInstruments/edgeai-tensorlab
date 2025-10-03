@@ -3,25 +3,27 @@ import onnx_graphsurgeon as gs
 from operator import getitem
 from onnx import TensorProto
 import numpy as np
+class Buffer(torch.Tensor):
+    pass
 
 def get_input_from_node(inp:gs.Variable|gs.Constant, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module, attr_type:type=None, **kwargs):
     if inp.name in torch_nodes:
         return torch_nodes[inp.name]
     if isinstance(inp, gs.Constant):
         attr_type = attr_type or torch.Tensor
-        if attr_type not in (list, tuple, set, torch.Tensor, torch.nn.Parameter, torch.nn.Buffer):
+        if attr_type not in (list, tuple, set, torch.Tensor, torch.nn.Parameter, Buffer):
             raise ValueError(f"Unsupported type {attr_type}")
         val = inp.values
         if attr_type == list:
             val = val.tolist()
         elif attr_type in (tuple, set):
             val = attr_type(val)
-        if attr_type in (torch.Tensor, torch.nn.Parameter, torch.nn.Buffer):
+        if attr_type in (torch.Tensor, torch.nn.Parameter, Buffer):
             val = torch.from_numpy(val)
         try:
             if attr_type in (torch.Tensor, list, tuple, set):
                 setattr(torch_module, inp.name, val)
-            elif attr_type == torch.nn.Buffer:
+            elif attr_type == Buffer:
                 torch_module.register_buffer(inp.name, val,)
             elif attr_type == torch.nn.Parameter:
                 val = attr_type(val)

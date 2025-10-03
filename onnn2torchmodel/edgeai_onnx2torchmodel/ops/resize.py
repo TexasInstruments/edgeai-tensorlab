@@ -27,6 +27,13 @@ def torch_resize(x, roi=None, scales=None, sizes=None, coordinate_transformation
         scales = new_scales
         if scale_len and len(scales) < scale_len:
             scales = [1]*(scale_len-len(scales)) + scales
+        if len(scales) == 2:
+            if mode in ('linear','cubic'):
+                mode = 'bi' + mode 
+            
+        elif len(scales) == 3 and mode == 'linear':
+            mode = 'trilinear'
+        
     if sizes :
         new_sizes = []
         start= False
@@ -38,6 +45,11 @@ def torch_resize(x, roi=None, scales=None, sizes=None, coordinate_transformation
         sizes = new_sizes
         if scale_len and len(sizes) < scale_len:
             sizes = x.shape[-scale_len:-len(sizes)] + sizes
+        if len(sizes) == 2 :
+            if mode in ('linear','cubic'):
+                mode = 'bi' + mode 
+        elif len(sizes) == 3 and mode == 'linear':
+            mode = 'trilinear'
     
     return torch.nn.functional.interpolate(x, sizes, scales, mode=mode, **kwargs )
 

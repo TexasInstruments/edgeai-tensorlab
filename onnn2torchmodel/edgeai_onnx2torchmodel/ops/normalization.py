@@ -5,7 +5,7 @@ from . import utils
 
 def add_batchnorm_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert len(node.inputs) == 5, f'{node.name} with operator {node.op} should have 5 input, but got {len(node.inputs)}'
-    types = [torch.nn.Parameter, torch.nn.Parameter, torch.nn.Parameter, torch.nn.Buffer, torch.nn.Buffer]
+    types = [torch.nn.Parameter, torch.nn.Parameter, torch.nn.Parameter, utils.Buffer, utils.Buffer]
     inp, weight, bias, mean, var = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     epsilon = node.attrs.get('epsilon', 1e-5)
     momentum = node.attrs.get('momentum', 0.9)
