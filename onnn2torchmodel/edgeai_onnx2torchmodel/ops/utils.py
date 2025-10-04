@@ -60,4 +60,7 @@ onnx_2_torch_type_mapping = {
     TensorProto.INT64 : torch.int64,
     TensorProto.UINT64 : torch.uint64,
     TensorProto.BOOL : torch.bool,
+    TensorProto.BFLOAT16: torch.bfloat16,
+    TensorProto.COMPLEX64: torch.complex64,
+    TensorProto.COMPLEX128: torch.complex128,
 }

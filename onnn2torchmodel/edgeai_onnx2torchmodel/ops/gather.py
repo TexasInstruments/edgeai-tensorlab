@@ -8,8 +8,12 @@ def torch_gather(x, indices, axis=0):
         return torch.index_select(x, axis, indices)
     slices = [slice(None) for _ in range(x.ndim)]
     indices = indices.cpu().numpy().tolist()
-    indices += x.ndim
-    slices[axis] = slice(indices, indices+1)
+    if axis < 0:
+        axis += x.ndim
+    if indices<0:
+        indices += x.shape[axis]
+    slices[axis] = indices
+    shape = [x.shape[i] for i in range(x.ndim) if i != axis]
     return getitem(x, tuple(slices))
 
 def add_gather_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):

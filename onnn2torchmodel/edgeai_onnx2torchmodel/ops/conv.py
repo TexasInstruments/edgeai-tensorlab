@@ -21,7 +21,7 @@ def add_conv_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  tor
     elif auto_pad == 'VALID':
         pass
     
-    padding = [padding[0], padding[2]]
+    padding = padding[:len(kernel_size)]
     
     kwargs = dict(
         stride = stride,
@@ -64,7 +64,7 @@ def add_conv_transpose_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.G
     elif auto_pad == 'VALID':
         pass
     
-    padding = [padding[0], padding[2]]
+    padding = padding[:len(kernel_size)]
     kwargs = dict(
         stride = stride,
         padding = padding,
