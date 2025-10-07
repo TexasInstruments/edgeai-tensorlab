@@ -17,12 +17,12 @@ def add_avg_pool_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph, 
     
     kernel_size = node.attrs.get('kernel_shape')
     stride = node.attrs.get('strides')
-    padding = node.attrs.get('pads')
+    padding = node.attrs.get('pads', [0]*(2*len(kernel_size)))
     ceil_mode = node.attrs.get('ceil_mode', 0) == 1
     count_include_pad = node.attrs.get('count_include_pad', 0) == 1
 
     kernel_size = tuple(kernel_size)
-    padding = [padding[0], padding[2]]
+    padding = padding[:len(kernel_size)]
     kwargs = dict(
         kernel_size = kernel_size,
         stride = stride,
@@ -59,13 +59,13 @@ def add_max_pool_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph, 
     
     kernel_size = node.attrs.get('kernel_shape')
     stride = node.attrs.get('strides')
-    padding = node.attrs.get('pads')
+    padding = node.attrs.get('pads', [0]*(2*len(kernel_size)))
     ceil_mode = node.attrs.get('ceil_mode', 0) == 1
     storage_order = node.attrs.get('storage_order', 0) == 1
     return_indices = len(node.outputs) == 2
 
     kernel_size = tuple(kernel_size)
-    padding = [padding[0], padding[2]]
+    padding = padding[:len(kernel_size)]
     kwargs = dict(
         kernel_size = kernel_size,
         stride = stride,
@@ -85,3 +85,24 @@ def add_max_pool_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph, 
         if attr in kwargs:
             continue
         torch_nodes[node.name].meta[attr] = node.attrs[attr]
+
+def torch_global_avg_pool(x:torch.Tensor):
+    if x.ndim == 3:
+        func = torch.nn.functional.adaptive_avg_pool1d
+    elif x.ndim == 4:
+        func = torch.nn.functional.adaptive_avg_pool2d
+    elif x.ndim == 5:
+        func = torch.nn.functional.adaptive_avg_pool3d
+    else: 
+        raise NotImplementedError('global_avg_pool only supports 3d, 4d and 5d inputs but got {}D'.format(x.ndim))
+    return func(x, 1)
+
+
+def add_global_avg_pool_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
+    assert len(node.inputs) == 1, f'{node.name} with operator {node.op} should have 1 input, but got {len(node.inputs)}'
+    types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
+    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+
+    torch_nodes[node.name] = torch_graph.call_function( torch_global_avg_pool, tuple(args), name=node.name)
+
+

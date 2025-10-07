@@ -18,9 +18,20 @@ def simplify_graph(graph:gs.Graph):
     return graph
 
 
+def remove_identity(graph:gs.Graph):
+    for i, node in enumerate(graph.nodes):
+        if node.op == 'Identity':
+            outputs = list(node.outputs)
+            for out in outputs:
+                for o in out.outputs:
+                    o.inputs[o.inputs.index(out)] = node.inputs[0]
+            graph.nodes.remove(node)
+
+
 def convert(model_path):
     onnx_model = onnx.load(model_path)
     graph = gs.import_onnx(onnx_model)
+    remove_identity(graph)
     simplify_graph(graph)
     torch_model = onnx_ops.get_torch_graph_module(graph)
     return torch_model

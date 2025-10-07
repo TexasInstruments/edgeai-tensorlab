@@ -4,7 +4,7 @@ from .affine_grid import add_affine_grid_2_torch_graph
 from .custom import add_custom_operator, add_custom_node_2_torch_graph, custom_add_2_torch_graph
 from .argop import add_argop_2_torch_graph
 from .attention import add_attention_2_torch_graph
-from .pool import add_avg_pool_2_torch_graph, add_max_pool_2_torch_graph
+from .pool import add_avg_pool_2_torch_graph, add_max_pool_2_torch_graph, add_global_avg_pool_2_torch_graph
 from .normalization import add_batchnorm_2_torch_graph, add_instance_norm_2_torch_graph, add_layer_norm_2_torch_graph
 from .bernouli import add_bernouli_2_torch_graph
 from .bitshift import add_bitshift_2_torch_graph
@@ -25,7 +25,7 @@ from .dropout import add_dropout_2_torch_graph
 from .gather import add_gather_2_torch_graph
 from .grid_sample import add_grid_sample_2_torch_graph
 from .reduce_ops import add_reduce_max_2_torch_graph
-from .reshape import add_reshape_2_torch_graph
+from .reshape import add_reshape_2_torch_graph, add_flatten_2_torch_graph
 from .resize import add_resize_2_torch_graph
 from .slice import add_slice_2_torch_graph
 from .softmax import add_softmax_2_torch_graph
@@ -33,6 +33,7 @@ from .squeeze import add_squeeze_2_torch_graph
 from .topk import add_topk_2_torch_graph
 from .transpose import add_transpose_2_torch_graph
 from .unsqueeze import add_unsqueeze_2_torch_graph
+from .gemm import add_gemm_2_torch_graph
 from . import utils
 
 basic_ops_2_func_dict = {
@@ -107,6 +108,9 @@ basic_ops_2_func_dict = {
     'TopK': add_topk_2_torch_graph,
     'Transpose': add_transpose_2_torch_graph,
     'Unsqueeze': add_unsqueeze_2_torch_graph,
+    'Gemm': add_gemm_2_torch_graph,
+    'GlobalAveragePool': add_global_avg_pool_2_torch_graph,
+    'Flatten': add_flatten_2_torch_graph,
 }   
 
 __all__ = ['basic_ops_2_func_dict', 'add_custom_operator', 'add_custom_node_2_torch_graph', 'custom_add_2_torch_graph', 'utils']
