@@ -36,3 +36,5 @@
 
 echo 'installing the onnx2torch model toolkit...'
 python3 ./setup.py develop
+
+pip install onnx-graphsurgeon==0.3.26 --extra-index-url https://pypi.ngc.nvidia.com
