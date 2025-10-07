@@ -8,10 +8,17 @@ onnx_to_torch = {
     'Sub': torch.sub,
     'Div': torch.div,
     'And': torch.logical_and,
+    'Or': torch.logical_or,
+    'Xor': torch.logical_xor,
     'BitwiseAnd': torch.bitwise_and,
     'BitwiseOr': torch.bitwise_or,
     'BitwiseXor': torch.bitwise_xor,
-    'MatMul': torch.matmul
+    'MatMul': torch.matmul,
+    'Equal': torch.eq,
+    'Greater': torch.gt,
+    'Less': torch.lt,
+    'GreaterOrEqual': torch.ge,
+    'LessOrEqual': torch.le,
 }
 
 def add_node_2_torch_graph_multi_ip_1op(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):

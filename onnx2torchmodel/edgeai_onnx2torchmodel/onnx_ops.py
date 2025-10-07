@@ -20,7 +20,6 @@ class State:
     
 def get_torch_graph_module(graph:gs.Graph):
     inputs = list(graph.inputs)
-    outputs = list(graph.outputs)
     
     op_2_func_dict = basic_ops_2_func_dict.copy()
     op_2_func_dict.update(custom_add_2_torch_graph)
@@ -37,10 +36,15 @@ def get_torch_graph_module(graph:gs.Graph):
         func = op_2_func_dict[node.op]
         func(state, node, torch_graph, torch_nodes, root_module)
     
-    torch_outputs = []
-    for out in outputs:
-        torch_outputs.append(utils.get_input_from_node(out, torch_graph, torch_nodes, root_module))
-    torch_nodes['outputs'] = torch_graph.output(tuple(torch_outputs))
+    outputs = list(graph.outputs)
+    if len(outputs) == 1:
+        output = utils.get_input_from_node(outputs[0], torch_graph, torch_nodes, root_module)
+        torch_nodes['outputs'] = torch_graph.output(output)
+    else:
+        torch_outputs = [] 
+        for out in outputs:
+            torch_outputs.append(utils.get_input_from_node(out, torch_graph, torch_nodes, root_module))
+        torch_nodes['outputs'] = torch_graph.output(tuple(torch_outputs))
     
     
     return torch.fx.GraphModule(root_module, torch_graph)

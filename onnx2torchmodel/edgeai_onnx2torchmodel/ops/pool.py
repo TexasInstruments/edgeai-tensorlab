@@ -105,4 +105,20 @@ def add_global_avg_pool_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.
 
     torch_nodes[node.name] = torch_graph.call_function( torch_global_avg_pool, tuple(args), name=node.name)
 
+def add_global_max_pool_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
+    raise NotImplementedError(f'{node.name} with operator {node.op} is not implemented')
+
+def add_global_lp_pool_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
+    raise NotImplementedError(f'{node.name} with operator {node.op} is not implemented')
+
+def add_lp_pool_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
+    raise NotImplementedError(f'{node.name} with operator {node.op} is not implemented')
+
+def add_max_roi_pool_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
+    raise NotImplementedError(f'{node.name} with operator {node.op} is not implemented')
+
+def add_max_unpool_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
+    raise NotImplementedError(f'{node.name} with operator {node.op} is not implemented')
+
+
 

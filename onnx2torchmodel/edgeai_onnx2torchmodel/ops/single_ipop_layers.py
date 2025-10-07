@@ -10,6 +10,7 @@ onnx_to_torch = {
     'Asinh': torch.asinh,
     'Atan': torch.atan,
     'Atanh': torch.atanh,
+    'Not': torch.logical_not,
     'BitwiseNot': torch.bitwise_not,
     'Ceil': torch.ceil,
     'Cos': torch.cos,
@@ -22,7 +23,10 @@ onnx_to_torch = {
     'Sin': torch.sin,
     'Sinh': torch.sinh,
     'Tan': torch.tan,
-    'Tanh': torch.tanh
+    'Tanh': torch.tanh,
+    'Exp': torch.exp,
+    'Floor': torch.floor,
+    'IsNan': torch.isnan,
 }
 
 def add_node_2_torch_graph_1ip_1op(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):

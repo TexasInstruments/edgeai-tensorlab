@@ -49,3 +49,17 @@ def add_constant_of_shape_2_torch_graph(state, node:gs.Node, torch_graph:torch.f
     shape = utils.get_input_from_node(node.inputs[0], torch_graph, torch_nodes, torch_module, list)
     torch_nodes[node.name] = torch_graph.call_function(torch_costant_of_shape, (shape,), dict(value=value), name=node.name)
 
+def torch_eye_like(inp, dtype=torch.float,k=0 ):
+    assert inp.ndim == 2, f'eye_like only support 2D tensor, but got {inp.ndim}'
+    x = torch.zeros_like(inp, dtype=dtype)
+    for i in range(min(inp.shape[0],inp.shape[1])):
+        x[i,i+k] = 1
+    return x
+
+def add_eye_like_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
+    assert len(node.inputs) == 1, f'{node.name} with operator {node.op} should have 1 input, but got {len(node.inputs)}'
+    dtype = node.attrs.get('dtype',utils.TensorProto.FLOAT)
+    dtype = utils.onnx_2_torch_type_mapping[dtype]
+    k = node.attrs.get('k',0)
+    inp = utils.get_input_from_node(node.inputs[0], torch_graph, torch_nodes, torch_module, torch.nn.Parameter if inp.shape else torch.Tensor)
+    torch_nodes[node.name] = torch_graph.call_function(torch_eye_like, (inp,), dict(dtype=dtype,k=k), name=node.name)

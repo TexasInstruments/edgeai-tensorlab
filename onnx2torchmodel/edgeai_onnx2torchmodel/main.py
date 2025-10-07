@@ -15,6 +15,8 @@ def add_all_output(model_path):
     graph = gs.import_onnx(model)
     #%%
     for node in graph.nodes:
+        if node.op in ('Constant','ConstantOfShape '):
+            continue
         for out in node.outputs:
             if out in graph.outputs:
                 continue
@@ -31,7 +33,7 @@ def add_all_output(model_path):
 x = None
 
 
-def main(args=None):
+def main(args=None, inps=None):
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('model_path', type=str, help='Path to ONNX model')
@@ -39,6 +41,8 @@ def main(args=None):
     parser.add_argument('--export_txts' ,'-e', action='store_true', help='to export error txt')
     parser.add_argument('--threshold1' ,'-t1', type=float, default=1e-5, help='to export error txt')
     parser.add_argument('--threshold2' ,'-t2', type=float, default=1e-2, help='to export error txt')
+    parser.add_argument('--cuda','-c', action='store_true', help='to use cuda')
+    parser.add_argument('--simplify','-s', action='store_true', help='to simplify model')
     
     args = parser.parse_args() if args is None else parser.parse_args(args)
     directory = os.path.splitext(args.model_path)[0]
@@ -47,38 +51,49 @@ def main(args=None):
         args.model_path = add_all_output(args.model_path)
     sess_options = onnxruntime.SessionOptions()
     sess_options.graph_optimization_level = onnxruntime.GraphOptimizationLevel.ORT_DISABLE_ALL
-    session1 = onnxruntime.InferenceSession(args.model_path, sess_options, providers=['CPUExecutionProvider'])
     torch_model = convert(args.model_path)
-    torch_model.train()
+    session1 = onnxruntime.InferenceSession(args.model_path, sess_options, providers=['CPUExecutionProvider'])
+    torch_model.eval()
     if args.export_txts:
         with open(os.path.join(directory,'graph.txt'), 'w') as f:
             f.write(str(torch_model.graph))
         with open(os.path.join(directory,'code.txt'), 'w') as f:
             f.write(str(torch_model.code))
-    torch_model = torch_model.cuda()
+    if args.cuda:
+        torch_model = torch_model.cuda()
     inputs = []
     input_dict = {}
     dtype_mapping = {'tensor(float)' : np.float32, 
                  'tensor(int64)' : np.int64,
                  'tensor(uint8)' : np.uint8,
                  'tensor(int32)' : np.int32}
-    for inp in session1.get_inputs():
-        input_dict[inp.name] = np.ones(inp.shape, dtype=dtype_mapping[inp.type])
+    inps = [inp.numpy() if isinstance(inp, torch.Tensor) else inp for inp in inps]
+    for i, inp in enumerate(session1.get_inputs()):
+        input_dict[inp.name] = inps[i] if inps else np.ones(inp.shape, dtype=dtype_mapping[inp.type])
         inputs.append(  torch.from_numpy(input_dict[inp.name]))
-        inputs[-1] = inputs[-1].cuda()
+        if args.cuda:
+            inputs[-1] = inputs[-1].cuda()
+    output_names = [o.name for o in session1.get_outputs()]
     output1 = session1.run([], input_dict)
     output2 = torch_model(*inputs)
-    output2 = [o.detach().cpu() for o in output2]
-    output_names = [o.name for o in session1.get_outputs()]
+    if len(output1)==1:
+        output2 = [output2]
+    output2 = [o.detach() for o in output2]
+    if args.cuda:
+        output2 = [o.cpu() for o in output2]
     output1 = [torch.from_numpy(o) for o in output1]
     # output1 = [torch.round(o.float(), decimals=5) for o in output1]
     # output2 = [torch.round(o.float(), decimals=5) for o in output2]
     bv = [o1.shape == o2.shape and torch.all((o1-o2).abs() < (args.threshold1)) for o1, o2 in zip(output1, output2) ]
-    torch_model = torch_model.cpu()
-    inputs = [inp.cpu() for inp in inputs]
+    if args.cuda:
+        torch_model = torch_model.cpu()
+        inputs = [inp.cpu() for inp in inputs]
     torch.onnx.export(torch_model, tuple(inputs),args.model_path.replace('.onnx','1.onnx'))
     model = onnx.load(args.model_path.replace('.onnx','1.onnx'))
-    model , _= onnxsim.simplify(model)
+    if args.simplify:
+        model , _= onnxsim.simplify(model)
+    else:
+        model = onnx.shape_inference.infer_shapes(model)
     onnx.save(model,args.model_path.replace('.onnx','1.onnx'))
     session3 = onnxruntime.InferenceSession(args.model_path.replace('.onnx','1.onnx'), sess_options, providers=['CPUExecutionProvider'])
     input_dict1 = {inp.name : inputs[i].numpy() for i,inp in enumerate(session3.get_inputs())}
@@ -88,74 +103,79 @@ def main(args=None):
     # output3 = [torch.round(o.float(), decimals=5) for o in output3]
     if args.export_txts:
         with open(os.path.join(directory,'error1.txt'),'w') as f:
-            s = ''
+            s = 'status, (max_abs_error, max_abs_rel_error(non-zero), max_error(zero)),output1_name, output2_name\n'
             for i, b in enumerate(bv):
-                eps = output1[i].abs()
-                eps = eps**2
-                eps = eps[torch.where(eps > 0)]
-                eps = eps.min() if eps.numel() else args.threshold1**2
-                diff = (torch.abs(output1[i]-output2[i])) if isinstance(b, torch.Tensor) and output2[i].numel() else None
-                error = (diff.max() if isinstance(diff, torch.Tensor) else diff)
-                error = error, ((diff/(output1[i].abs()+eps)).max() if error or isinstance(error,(torch.Tensor)) else None)
+                o1 = output1[i]
+                o2 = output2[i]
+                max_error = None
+                diff = (torch.abs(o1-o2)) if isinstance(b, torch.Tensor) and o2.numel() else None
+                if torch.any(o1 == 0):
+                    max_error = diff[torch.where(o1==0)].max()
+                diff = diff[torch.where(o1!=0)] if diff is not None else None
+                o1 = o1[torch.where(o1!=0)].abs()
+                error = (diff.max() if isinstance(diff, torch.Tensor) and diff.numel() else None)
+                error = error, ((diff/(o1)).max() if error or isinstance(error,(torch.Tensor)) else None)
                 b = bv[i] = error[1]  < args.threshold2 if error[1] else b
-                s += (('' if b else 'not ')+f'matched, ({(error[0])}, {error[1]} ) , '+output_names[i]+', '+output_names1[i])
+                s += (('' if b else 'not ')+f'matched, ({(error[0])}, {error[1]}, {max_error} ) , '+output_names[i]+', '+output_names1[i])
                 s += '\n'
             f.write(s)
     bv1 = [o1.shape == o2.shape and torch.all((o1-o2).abs()<(args.threshold1)) for o1, o2 in zip(output1, output3) ]
     if args.export_txts:
         with open(os.path.join(directory,'error2.txt'),'w') as f:
-            s = ''
+            s = 'status, (max_abs_error, max_abs_rel_error(non-zero), max_error(zero)),output1_name, output2_name\n'
             for i, b in enumerate(bv1):
-                eps = output1[i].abs()
-                eps = eps**2
-                eps = eps[torch.where(eps > 0)]
-                eps = eps.min() if eps.numel() else args.threshold1**2
-                diff = torch.abs(output1[i]-output3[i]) if isinstance(b, torch.Tensor) and output3[i].numel() else None
-                error = (diff.max() if isinstance(diff, torch.Tensor) else diff)
-                error = error, ((diff/(output1[i].abs()+eps)).max() if error or isinstance(error,(torch.Tensor)) else None)
+                o1 = output1[i]
+                o2 = output3[i]
+                max_error = None
+                diff = (torch.abs(o1-o2)) if isinstance(b, torch.Tensor) and o2.numel() else None
+                if torch.any(o1 == 0):
+                    max_error = diff[torch.where(o1==0)].max()
+                diff = diff[torch.where(o1!=0)] if diff is not None else None
+                o1 = o1[torch.where(o1!=0)].abs()
+                error = (diff.max() if isinstance(diff, torch.Tensor) and diff.numel() else None)
+                error = error, ((diff/(o1)).max() if error or isinstance(error,(torch.Tensor)) else None)
                 b = bv1[i] = error[1]  < args.threshold2 if error[1] else b
-                s+= (('' if b else 'not ')+f'matched, ({( error[0])}, { error[1]}) , '+output_names[i]+', '+output_names1[i])
+                s+= (('' if b else 'not ')+f'matched, ({( error[0])}, { error[1]}, {max_error}) , '+output_names[i]+', '+output_names1[i])
                 s += '\n'
             f.write(s)
     bv2 = [o1.shape == o2.shape and torch.all((o1-o2).abs()<(args.threshold1)) for o1, o2 in zip(output2, output3) ]
     
     if args.export_txts:
         with open(os.path.join(directory,'error3.txt'),'w') as f:
-            s = ''
+            s = 'status, (max_abs_error, max_abs_rel_error(non-zero), max_error(zero)),output1_name, output2_name\n'
             for i, b in enumerate(bv2):
-                eps = output2[i].abs()
-                eps = eps**2
-                eps = eps[torch.where(eps > 0)]
-                eps = eps.min() if eps.numel() else args.threshold1**2
-                diff = torch.abs(output2[i]-output3[i]) if isinstance(b, torch.Tensor) and output3[i].numel() else None
-                error = (diff.max() if isinstance(diff, torch.Tensor) else diff)
-                error = error, ((diff/(output2[i].abs()+eps)).max() if error or isinstance(error,(torch.Tensor)) else None)
+                o1 = output2[i]
+                o2 = output3[i]
+                max_error = None
+                diff = (torch.abs(o1-o2)) if isinstance(b, torch.Tensor) and o2.numel() else None
+                if torch.any(o1 == 0):
+                    max_error = diff[torch.where(o1==0)].max()
+                diff = diff[torch.where(o1!=0)] if diff is not None else None
+                o1 = o1[torch.where(o1!=0)].abs()
+                error = (diff.max() if isinstance(diff, torch.Tensor) and diff.numel() else None)
+                error = error, ((diff/(o1)).max() if error or isinstance(error,(torch.Tensor)) else None)
                 b = bv1[i] = error[1]  < args.threshold2 if error[1] else b
-                s+= (('' if b else 'not ')+f'matched, ({( error[0])}, { error[1]}) , '+output_names[i]+', '+output_names1[i])
+                s+= (('' if b else 'not ')+f'matched, ({( error[0])}, { error[1]}, {max_error}) , '+output_names[i]+', '+output_names1[i])
                 s += '\n'
             f.write(s)
     
 
-    pass
+    return torch_model, output1, output2, output3
 
 if __name__ == '__main__':
-    t_model = torch.nn.Sequential(
-        torch.nn.Conv2d(in_channels=3, out_channels=16, kernel_size=3),
-        torch.nn.BatchNorm2d(num_features=16),
-        torch.nn.ReLU(),
-        torch.nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3),
-        torch.nn.BatchNorm2d(32),
-        torch.nn.ReLU(),
-        torch.nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3),
-        torch.nn.BatchNorm2d(64),
-        torch.nn.ReLU(),
+    old_model = torch.nn.Sequential(
+        torch.nn.Linear(3,2)
     )
-    t_model = models.resnet18(pretrained=True)
-    inp = torch.ones(1,3, 224,224)
-    torch.onnx.export(t_model, (inp,), '/data/ssd/files/a0507161/exps/onnx_exp/resnet18.onnx', training=torch.onnx.TrainingMode.EVAL)
-    model = onnx.load('/data/ssd/files/a0507161/exps/onnx_exp/resnet18.onnx')
+    old_model = models.vit_b_16(pretrained=True)
+    inp = torch.rand(1,3,224,224)
+    old_model.eval()
+    output = old_model(inp)
+    torch.onnx.export(old_model, (inp,), '/data/ssd/files/a0507161/exps/onnx_exp/test.onnx', training=torch.onnx.TrainingMode.PRESERVE)
+    model = onnx.load('/data/ssd/files/a0507161/exps/onnx_exp/test.onnx')
     # model,_ = onnxsim.simplify(model)
     model = onnx.shape_inference.infer_shapes(model)
-    onnx.save(model, '/data/ssd/files/a0507161/exps/onnx_exp/resnet18.onnx')
-    main(['/data/ssd/files/a0507161/exps/onnx_exp/resnet18.onnx', '-a', '-e'])
+    onnx.save(model, '/data/ssd/files/a0507161/exps/onnx_exp/test.onnx')
+    new_model, o1, o2, o3 = main(['/data/ssd/files/a0507161/exps/onnx_exp/test.onnx', '-e','-a', '-s'], inps=[inp])
+    # output1 = new_model(inp)
+    pass
     # main(['test.onnx', '-e'])
