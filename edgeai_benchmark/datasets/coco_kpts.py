@@ -345,11 +345,11 @@ class COCOKeypoints(DatasetBase):
                     #'bbox': [left_top[0], left_top[1], w, h]
                 })
         
-        res_file = os.path.join(kwargs['run_dir'], 'keypoint_results.json')
-        with open(res_file, 'w') as f:
-            json_tricks.dump(cat_results, f, sort_keys=True, indent=4)
+        #res_file = os.path.join(kwargs['run_dir'], 'keypoint_results.json')
+        #with open(res_file, 'w') as f:
+        #    json_tricks.dump(cat_results, f, sort_keys=True, indent=4)
 
-        coco_det = self.coco_dataset.loadRes(res_file)
+        coco_det = self.coco_dataset.loadRes(cat_results) #(res_file)
         coco_eval = COCOeval(self.coco_dataset, coco_det, 'keypoints')
         coco_eval.params.useSegm = None
         coco_eval.evaluate()
