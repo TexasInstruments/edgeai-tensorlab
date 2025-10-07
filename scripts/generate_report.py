@@ -61,6 +61,6 @@ if __name__ == '__main__':
 
     # Generate benchmark report
     soc = settings.target_device if settings.target_device is not None else "AM68A"
-    remote = "ssh://git@bitbucket-mirror-india.itg.ti.com:7999/processor-sdk-vision/c7x-mma-tidl.git"
+    remote = "ssh://git@bitbucket.itg.ti.com/processor-sdk-vision/c7x-mma-tidl.git"
     branch = "c7x_benchmark_test"
     generate_benchmark_report(soc, remote, branch, report_csv_path)

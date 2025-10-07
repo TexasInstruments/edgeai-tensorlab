@@ -7,7 +7,7 @@ import subprocess
 def parse_args():
     parser = argparse.ArgumentParser(description="Generate Benchmark Report")
     parser.add_argument("--SOC", default="AM68A", help="SOC for the benchmark to run")
-    parser.add_argument("--remote", default="ssh://git@bitbucket-mirror-india.itg.ti.com:7999/processor-sdk-vision/c7x-mma-tidl.git", help="Remote C7X git repository to fetch the golden reference from")
+    parser.add_argument("--remote", default="ssh://git@bitbucket.itg.ti.com/processor-sdk-vision/c7x-mma-tidl.git", help="Remote C7X git repository to fetch the golden reference from")
     parser.add_argument("--branch", default="c7x_benchmark_test", help="Branch to compare the benchmark report against eg. master-next")
     parser.add_argument("--report_path", default="./work_dirs/modelartifacts/*.csv", help="Path to the report.csv")
     args = parser.parse_args()
@@ -190,6 +190,8 @@ def main(soc, remote, branch, report_path):
     print("Disabled:", results["Disabled"])
     print("Enabled:", results["Enabled"])
     print("Inactive:", results["Inactive"])
+    print("Same:", results["Same"])
 
     # Save results to Excel
     save_results_to_excel(results, branch, latest_commit_id, os.path.join(modelartifacts_path, "benchmark_comparison.xlsx"))
+    print(os.listdir(modelartifacts_path))
