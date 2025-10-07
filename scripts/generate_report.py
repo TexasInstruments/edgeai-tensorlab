@@ -32,7 +32,7 @@ import sys
 import argparse
 
 from edgeai_benchmark import *
-from scripts.generate_benchmark_report import main as generate_benchmark_report
+
 
 if __name__ == '__main__':
     # the cwd must be the root of the repository
@@ -58,9 +58,3 @@ if __name__ == '__main__':
 
     report_csv_path = interfaces.run_report(settings, skip_pattern=skip_pattern)
     print("Report generated at {}".format(report_csv_path))
-
-    # Generate benchmark report
-    soc = settings.target_device if settings.target_device is not None else "AM68A"
-    remote = "ssh://git@bitbucket.itg.ti.com/processor-sdk-vision/c7x-mma-tidl.git"
-    branch = "c7x_benchmark_test"
-    generate_benchmark_report(soc, remote, branch, report_csv_path)

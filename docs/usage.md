@@ -64,6 +64,12 @@ A consolidated CSV report containing all your benchmarking results can be genera
 run_generate_report.sh 
 ```
 
+## Comparing reports
+Compare new report with a previous report - see degradations and improvements in accuracy.
+```
+python3 scripts/compare_report.py --report_path <path> --ref_report_path <path>
+```
+
 ## Packing the artifacts to be used for inferece in the EVM
 * The imported artifacts can be used to run inference on the target device (eg. EVM)
 * If you have compiled models yourself and would like to run those model artifacts in the target device, run the script 

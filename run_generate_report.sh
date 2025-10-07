@@ -47,7 +47,6 @@ source ./run_set_env.sh ${TARGET_SOC} ${TARGET_MACHINE}
 SETTINGS_FILE=settings_import_on_pc.yaml
 
 echo "-------------------------------------------------------------------"
-pip3 install openpyxl
 python3 ./scripts/generate_report.py ${SETTINGS_FILE} --target_device ${TARGET_SOC} ${@:2}
 
 # add the following to report perfsim results as well.
