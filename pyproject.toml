@@ -56,6 +56,7 @@ pc = [
     "h5py",
     "graphviz",
     "colored",
+    "openpyxl",
     "nuscenes-devkit", ## nuscenes-devkit needs to be moved to main requirements after figuring out on how to install on evm
     "osrt_model_tools@git+https://github.com/TexasInstruments/edgeai-tidl-tools.git@11_01_06_00#subdirectory=osrt-model-tools", ##"osrt_model_tools@git+ssh://git@bitbucket.itg.ti.com/processor-sdk-vision/edgeai-tidl-tools.git@main#subdirectory=osrt-model-tools",
 ]

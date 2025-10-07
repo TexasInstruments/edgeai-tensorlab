@@ -6,38 +6,10 @@ import subprocess
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Generate Benchmark Report")
-    parser.add_argument("--SOC", default="AM68A", help="SOC for the benchmark to run")
-    parser.add_argument("--remote", default="ssh://git@bitbucket.itg.ti.com/processor-sdk-vision/c7x-mma-tidl.git", help="Remote C7X git repository to fetch the golden reference from")
-    parser.add_argument("--branch", default="c7x_benchmark_test", help="Branch to compare the benchmark report against eg. master-next")
-    parser.add_argument("--report_path", default="./work_dirs/modelartifacts/*.csv", help="Path to the report.csv")
+    parser.add_argument("--report_path", required=True, help="Path to the report.csv")
+    parser.add_argument("--ref_report_path", required=True, help="Path to the reference report.csv")
     args = parser.parse_args()
     return args
-
-
-def fetch_golden_reference(remote, branch, soc, modelartifacts_path):
-    """
-    Fetches the golden reference CSV file from the remote git repository at the latest state of the branch.
-    """
-
-    def get_latest_commit_id(remote_repo, branch):
-        cmd = f"git ls-remote {remote_repo} refs/heads/{branch}".split(" ")
-        commit_id = subprocess.check_output(cmd).decode().split()[0]
-        return commit_id
-
-    file_path = f"ti_dl/utils/testAutomation/tidl/comparison/golden_reference/benchmark/{soc.lower()}_golden_benchmark_report.csv"
-    commit_id = get_latest_commit_id(remote, branch)
-    cmd = f"git archive --remote={remote} {branch} {file_path}".split(" ")
-    output_path = os.path.join(modelartifacts_path, "ref_" + os.path.basename(file_path))
-
-    # Extract the file from the archive
-    with open(output_path, "wb") as out_f:
-        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-        tar_cmd = ["tar", "-xO", file_path]
-        proc2 = subprocess.Popen(tar_cmd, stdin=proc.stdout, stdout=out_f)
-        proc.stdout.close()
-        proc2.communicate()
-
-    return commit_id, output_path
 
 def generate_benchmark_report(report, ref_report):
     """
@@ -94,7 +66,7 @@ def generate_benchmark_report(report, ref_report):
 
     return results
 
-def save_results_to_excel(results, branch_name, commit_id, output_path="benchmark_comparison.xlsx"):
+def save_results_to_excel(results, output_path="report_comparison.xlsx"):
     """
     Save all groups in a single worksheet, each group as a colored banner row (merged and centered), followed by full rows from report with a diff column, and a gap row between groups.
     Banner and diff column are colored.
@@ -127,8 +99,6 @@ def save_results_to_excel(results, branch_name, commit_id, output_path="benchmar
     ref_metric_col = ref_report.columns[8]
     num_cols = len(report.columns) + 1
 
-    # Add ref_branch and commit row at the top, merged and centered
-    ws.append([f"Reference branch: {branch_name}, commit: {commit_id}"] + [""] * (num_cols - 1))
     row_idx = ws.max_row
     ws.merge_cells(start_row=row_idx, start_column=1, end_row=row_idx, end_column=num_cols)
     cell = ws.cell(row=row_idx, column=1)
@@ -175,12 +145,10 @@ def save_results_to_excel(results, branch_name, commit_id, output_path="benchmar
     wb.save(output_path)
 
 
-def main(soc, remote, branch, report_path):
+def main(report_path, ref_report_path):
     report = pd.read_csv(report_path)
     modelartifacts_path = os.path.dirname(report_path)
 
-    # Fetch the golden reference report from remote git
-    latest_commit_id, ref_report_path = fetch_golden_reference(remote, branch, soc, modelartifacts_path)
     ref_report = pd.read_csv(ref_report_path)
 
     results = generate_benchmark_report(report, ref_report)
@@ -193,5 +161,9 @@ def main(soc, remote, branch, report_path):
     print("Same:", results["Same"])
 
     # Save results to Excel
-    save_results_to_excel(results, branch, latest_commit_id, os.path.join(modelartifacts_path, "benchmark_comparison.xlsx"))
-    print(os.listdir(modelartifacts_path))
+    save_results_to_excel(results, os.path.join(modelartifacts_path, "report_comparison.xlsx"))
+
+
+if __name__ == "__main__":
+    args = parse_args()
+    main(args.report_path, args.ref_report_path)
