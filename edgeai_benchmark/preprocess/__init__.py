@@ -166,7 +166,8 @@ class PreProcessTransforms(utils.TransformsCompose):
         return transforms
 
 
-    def get_transform_bev_bevformer(self, imsize=256, resize=256, pad=224, bev_size=(50, 50), data_layout=constants.NCHW, reverse_channels=False,
+    def get_transform_bev_bevformer(self, imsize=256, resize=256, pad=224, bev_size=(50, 50), pc_range=(-51.2, -51.2, -5.0, 51.2, 51.2, 3.0),
+                        data_layout=constants.NCHW, reverse_channels=False,
                         backend='cv2', interpolation=cv2.INTER_AREA, resize_with_pad=False, pad_color=0):
         transforms_list = [
             BEVSensorsRead(imsize, resize, (0, 0, resize[1]+pad[2], resize[0]+pad[3])),
@@ -174,7 +175,7 @@ class PreProcessTransforms(utils.TransformsCompose):
             ImageResize(resize, interpolation=interpolation, resize_with_pad=resize_with_pad, pad_color=pad_color),
             ImagePad(pad),
             ImageToNPTensor4D(data_layout=data_layout),
-            GetBEVFormerGeometry(bev_size)
+            GetBEVFormerGeometry(bev_size, pc_range)
         ]
 
         transforms = PreProcessTransforms(None, transforms_list,

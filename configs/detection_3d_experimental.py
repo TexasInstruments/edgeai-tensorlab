@@ -160,25 +160,6 @@ def get_configs(settings, work_dir):
             metric=dict(),
             model_info=dict(metric_reference={'mAP':0.4})
         ),
-        #TODO Details like denylist and prototxt aren't fixed yet
-        # 3dod-7125: petrv2 
-        '3dod-7125':utils.dict_update(bev_frame_cfg,
-            task_name='PETRv2',
-            # crop = (left, top, width, height)
-            preprocess=preproc_transforms.get_transform_bev_petr((900, 1600), (450, 800), (0, 130, 800, 320), featsize=(20, 50), backend='cv2', interpolation=cv2.INTER_CUBIC),
-            # Check RGB vs BGR
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=[(103.530, 116.280, 123.675)], input_scale=[(0.017429, 0.017507, 0.017125)], input_optimization=False,
-                                                                        deny_list_from_start_end_node = {'/pts_bbox_head/Concat_129':None,
-                                                                                                         '/pts_bbox_head/Concat_130':None,
-                                                                                                         '/pts_bbox_head/transformer/Transpose_2':'/pts_bbox_head/transformer/Transpose_2',}),
-                runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(bev_options={'bev_options:num_temporal_frames': 1}),
-                    {'advanced_options:output_feature_16bit_names_list':''},
-                    {'advanced_options:max_num_subgraph_nodes':300}),
-                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/petrv2/petrv2_mod_vovnet_320x800_20250519.onnx'),
-            postprocess=postproc_transforms.get_transform_bev_detection_base(),
-            metric=dict(),
-            model_info=dict(metric_reference={'mAP':0.4})
-        ),
         # 3dod-7130: BEVDet
         '3dod-7130':utils.dict_update(bev_frame_cfg,
             task_name='BEVDet',
@@ -354,8 +335,7 @@ def get_configs(settings, work_dir):
             preprocess=preproc_transforms.get_transform_bev_streampetr((900, 1600), (396, 704), (0, 140, 704, 256), backend='cv2', interpolation=cv2.INTER_CUBIC),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=[(123.675, 116.280, 103.530)], input_scale=[(0.017125, 0.017507, 0.017429)], input_optimization=False),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
-                    {'advanced_options:output_feature_16bit_names_list':''},
-                    {'advanced_options:max_num_subgraph_nodes':300}),
+                    {'advanced_options:output_feature_16bit_names_list':''}),
                 model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/streampetr/streampetr_r50_256x704_20250912.onnx'),
             postprocess=postproc_transforms.get_transform_bev_detection_base(),
             metric=dict(),
@@ -368,9 +348,24 @@ def get_configs(settings, work_dir):
             preprocess=preproc_transforms.get_transform_bev_far3d((900, 1600), (640, 1137), (88, 0, 960, 640), backend='cv2', interpolation=cv2.INTER_CUBIC),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=[(103.530, 116.280, 123.675)], input_scale=[(0.017429, 0.017507, 0.017125)], input_optimization=False),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
-                    {'advanced_options:output_feature_16bit_names_list':''},
-                    {'advanced_options:max_num_subgraph_nodes':300}),
+                    {'advanced_options:output_feature_16bit_names_list':''}),
                 model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/far3d/far3d_vovnet_960x640_20251002.onnx'),
+            postprocess=postproc_transforms.get_transform_bev_detection_base(),
+            metric=dict(),
+            model_info=dict(metric_reference={'mAP':0.4})
+        ),
+        # 3dod-8100: VAD
+        '3dod-8100':utils.dict_update(bev_frame_cfg,
+            task_name='VAD',
+            # pad = (left, top, right, bottom) = (0, 0, 0, 24)
+            # VAD uses the same pre-processing as BEVFormer but different input size
+            preprocess=preproc_transforms.get_transform_bev_bevformer(
+                (900, 1600), (360, 640), (0, 0, 0, 24), (100, 100), pc_range=(-15.0, -30.0, -2.0, 15.0, 30.0, 2.0), backend='cv2', interpolation=cv2.INTER_CUBIC),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir,
+                input_mean=[(123.675, 116.280, 103.530)], input_scale=[(0.017125, 0.017507, 0.017429)], input_optimization=False),
+                runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
+                    {'advanced_options:output_feature_16bit_names_list':''}),
+                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/vad/vad_tiny_mod_384x640_20251006_opt.onnx'),
             postprocess=postproc_transforms.get_transform_bev_detection_base(),
             metric=dict(),
             model_info=dict(metric_reference={'mAP':0.4})

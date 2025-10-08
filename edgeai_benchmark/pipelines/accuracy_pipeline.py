@@ -311,8 +311,9 @@ class AccuracyPipeline(BasePipeline):
                 info_dict['queue'] = self.queue
                 info_dict['num_bev_temporal_frames'] = num_bev_temporal_frames
 
-            # For BEVFormer
-            if 'BEVFormer' in self.pipeline_config.get('task_name', {}):
+            # For BEVFormer and VAD
+            if 'BEVFormer' in self.pipeline_config.get('task_name', {}) or \
+                self.pipeline_config.get('task_name', {}) == 'VAD':
                 info_dict['prev_bev'] = prev_bev
 
             # For StreamPETR/Far3D
@@ -338,9 +339,10 @@ class AccuracyPipeline(BasePipeline):
             # this is the actual import
             output, info_dict = session.run_import(input_data, info_dict)
 
-            # For BEVFormer, save output for next frames
-            if 'BEVFormer' in self.pipeline_config.get('task_name', {}):
-                prev_bev = output[3]
+            # For BEVFormer and VAD, save output for next frames
+            if 'BEVFormer' in self.pipeline_config.get('task_name', {}) or \
+                self.pipeline_config.get('task_name', {}) == 'VAD':
+                prev_bev = output[-1]
 
             # For StreamPETR/Far3D
             if self.pipeline_config.get('task_name', {}) == 'StreamPETR' or \
@@ -414,7 +416,8 @@ class AccuracyPipeline(BasePipeline):
                 info_dict['num_bev_temporal_frames'] = num_bev_temporal_frames
 
             # For BEVFormer
-            if 'BEVFormer' in self.pipeline_config.get('task_name', {}):
+            if 'BEVFormer' in self.pipeline_config.get('task_name', {}) or \
+                self.pipeline_config.get('task_name', {}) == 'VAD':
                 info_dict['prev_bev'] = prev_bev
 
             # For StreamPETR/Far3D
@@ -439,10 +442,10 @@ class AccuracyPipeline(BasePipeline):
             #    data[i].tofile(f"./testdata/bevdet_frame_{data_index:03d}_input_{i}.dat")
             output, info_dict = session.run_inference(data, info_dict)
 
-            # Save output for next frames
+            # For BEVFormer and VAD, save output for next frames
             if 'BEVFormer' in self.pipeline_config.get('task_name', {}) or \
-                self.pipeline_config.get('task_name', {}) == 'FastBEV_f4':
-                prev_bev = output[3]
+                self.pipeline_config.get('task_name', {}) == 'VAD':
+                prev_bev = output[-1]
 
             # For StreamPETR/Far3D
             if self.pipeline_config.get('task_name', {}) == 'StreamPETR' or \
@@ -450,6 +453,8 @@ class AccuracyPipeline(BasePipeline):
                 prev_memory = output[3:]
 
             # For BEVFormer_small or BEVFormer_base only
+            # The following codes are needed because the onnx model is from
+            # the pre-trained model using old pikle data file format.
             if self.pipeline_config.get('task_name', {}) == 'BEVFormer_small' or \
                 self.pipeline_config.get('task_name', {}) == 'BEVFormer_base':
                 # change box dim and yaw

@@ -943,7 +943,7 @@ class BEVSensorsRead():
         info_dict['img_timestamp']  = [v['timestamp'] for k, v  in data['cams'].items()]
         info_dict['delta_timestamp']= [info_dict['timestamp'] - v['timestamp'] for k, v  in data['cams'].items()]
 
-        if 'BEVFormer' in info_dict['task_name']:
+        if 'BEVFormer' in info_dict['task_name'] or info_dict['task_name'] == 'VAD':
             info_dict['prev_bev_exist'] = True
             if info_dict['scene_token'] != self.prev_frame_info['scene_token']:
                 info_dict['prev_bev_exist'] = False
@@ -951,7 +951,17 @@ class BEVSensorsRead():
             # can_bus
             matrot = ego2globals[0]
             rotation = transform.Rotation.from_matrix(matrot[:3, :3]).as_quat()
-            rotation = Quaternion(a=rotation[3], i=rotation[0], j=rotation[1], k=rotation[2])
+
+            if info_dict['task_name'] == 'VAD':
+                # VAD uses a different coordinate system, need to invert the quaternion
+                # After retraining with the right coordinate system, this should not be needed
+                rotation = -1*Quaternion(a=rotation[3], i=rotation[0], j=rotation[1], k=rotation[2])
+            else:
+                rotation = Quaternion(a=rotation[3], i=rotation[0], j=rotation[1], k=rotation[2])
+
+            if 'BEVFormer' in info_dict['task_name']:
+                # Reset can_bus to zeros(18) because BEVFormer initiailizes can_bus to zeros(18)
+                data['can_bus'] = np.zeros(18, dtype=float)
 
             can_bus = data['can_bus']
             can_bus[:3] = matrot[:3, 3]
@@ -1153,7 +1163,7 @@ class GetPETRGeometry():
             del info_dict['queue_mem']
             del info_dict['queue']
 
-            # Support only batch_size = 1s
+            # Support only batch_size = 1
             for i in range(1, num_prevs+1):
                 cur_sample_idx = info_dict['sample_idx']
 
@@ -1350,12 +1360,13 @@ class GetBEVDetGeometry():
 
 class GetBEVFormerGeometry():
 
-    def __init__(self, bev_size):
+    def __init__(self, bev_size, pc_range):
         # how to configure these params?
         self.bev_h = bev_size[0]
         self.bev_w = bev_size[1]
         self.num_points_in_pillar = 4
-        self.pc_range = [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0]
+        #self.pc_range = [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0]
+        self.pc_range = pc_range
 
         self.real_h = self.pc_range[4] - self.pc_range[1]
         self.real_w = self.pc_range[3] - self.pc_range[0]
