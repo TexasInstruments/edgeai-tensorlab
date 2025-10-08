@@ -27,15 +27,13 @@ class RandomScaleImageMultiViewImage(BaseTransform):
         """
         rand_ind = np.random.permutation(range(len(self.scales)))[0]
         rand_scale = self.scales[rand_ind]
+        results['ori_shape'] = [img.shape for img in results['img']]
 
         y_size = [int(img.shape[0] * rand_scale) for img in results['img']]
         x_size = [int(img.shape[1] * rand_scale) for img in results['img']]
-
         results['img'] = [mmcv.imresize(img, (x_size[idx], y_size[idx]), return_scale=False) for idx, img in
                           enumerate(results['img'])]
-
         results['img_shape'] = [img.shape for img in results['img']]
-        results['ori_shape'] = [img.shape for img in results['img']]
 
         ####
         scale_factor = np.eye(3)

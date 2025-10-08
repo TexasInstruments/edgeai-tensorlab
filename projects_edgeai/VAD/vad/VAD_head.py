@@ -716,7 +716,7 @@ class VADHead(AnchorFreeHead):
         # In BEVFormer, hs is returned as [900, 1, 256] for onnx export
         # We reshape it to the tensor shape in normal inference 
         if torch.onnx.is_in_onnx_export():
-            hs=hs.reshape(map_hs.shape[0], -1, 1, self.embed_dims)
+            hs = hs.reshape(map_hs.shape[0], -1, 1, self.embed_dims)
             hs = hs.permute(0, 2, 1, 3)
 
         for lvl in range(map_hs.shape[0]):
@@ -738,7 +738,6 @@ class VADHead(AnchorFreeHead):
             map_outputs_classes.append(map_outputs_class)
             map_outputs_coords.append(map_outputs_coord)
             map_outputs_pts_coords.append(map_outputs_pts_coord)
-
 
         if self.motion_decoder is not None:
             batch_size, num_agent = outputs_coords_bev[-1].shape[:2]
@@ -908,14 +907,14 @@ class VADHead(AnchorFreeHead):
                  ego_map_query.permute(1, 0, 2)],
                 dim=-1
             )  # [B, 1, 2D]
-        elif self.ego_his_encoder is None and self.ego_lcf_feat_idx is not None:                
+        elif self.ego_his_encoder is None and self.ego_lcf_feat_idx is not None:
             ego_feats = torch.cat(
                 [ego_agent_query.permute(1, 0, 2),
                  ego_map_query.permute(1, 0, 2),
                  ego_lcf_feat.squeeze(1)[..., self.ego_lcf_feat_idx]],
                 dim=-1
             )  # [B, 1, 2D+2]
-        elif self.ego_his_encoder is None and self.ego_lcf_feat_idx is None:                
+        elif self.ego_his_encoder is None and self.ego_lcf_feat_idx is None:
             ego_feats = torch.cat(
                 [ego_agent_query.permute(1, 0, 2),
                  ego_map_query.permute(1, 0, 2)],
@@ -2072,7 +2071,9 @@ class VADHead(AnchorFreeHead):
         batch_max_pnum = 0
         for i in range(map_score.shape[0]):
             pnum = map_idx[i].sum()
-            if pnum > batch_max_pnum:
+            # To make the following line visible in onnx model always,
+            # replace > with >=.
+            if pnum >= batch_max_pnum:
                 batch_max_pnum = pnum
 
         selected_map_query, selected_map_pos, selected_padding_mask = [], [], []
@@ -2081,6 +2082,7 @@ class VADHead(AnchorFreeHead):
             valid_pnum = map_idx[i].sum()
             valid_map_query = map_query[i, map_idx[i]]
             valid_map_pos = min_map_pos[i, map_idx[i]]
+            # For batch_size = 1, pad_pnum is always 0
             pad_pnum = batch_max_pnum - valid_pnum
             padding_mask = torch.tensor([False], device=map_score.device).repeat(batch_max_pnum)
             if pad_pnum != 0:
@@ -2108,10 +2110,11 @@ class VADHead(AnchorFreeHead):
         # filter far map inst for each agent
         map_dis = torch.sqrt(selected_map_dist[..., 0]**2 + selected_map_dist[..., 1]**2)
         valid_map_inst = (map_dis <= dis_thresh)  # [B, A, max_P]
+        # Updates to make the exported onnx model valid.
         #invalid_map_inst = (valid_map_inst == False)
+        #selected_padding_mask = selected_padding_mask + invalid_map_inst
         invalid_map_inst = (~valid_map_inst)
-
-        selected_padding_mask = selected_padding_mask + invalid_map_inst
+        selected_padding_mask = selected_padding_mask | invalid_map_inst
 
         selected_map_query = selected_map_query.flatten(0, 1)
         selected_map_pos = selected_map_pos.flatten(0, 1)
