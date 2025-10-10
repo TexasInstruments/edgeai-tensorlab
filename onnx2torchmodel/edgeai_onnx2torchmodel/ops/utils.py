@@ -1,3 +1,32 @@
+# Copyright (c) 2018-2025, Texas Instruments
+# All Rights Reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright notice, this
+#   list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+#
+# * Neither the name of the copyright holder nor the names of its
+#   contributors may be used to endorse or promote products derived from
+#   this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
 import torch
 import onnx_graphsurgeon as gs
 from operator import getitem
@@ -63,4 +92,35 @@ onnx_2_torch_type_mapping = {
     TensorProto.BFLOAT16: torch.bfloat16,
     TensorProto.COMPLEX64: torch.complex64,
     TensorProto.COMPLEX128: torch.complex128,
+}
+np_2_torch_type_mapping = {
+    np.float16 : torch.float16,
+    np.float32 : torch.float32,
+    np.float64 : torch.float64,
+    np.int8 : torch.int8,
+    np.uint8 : torch.uint8,
+    np.int16 : torch.int16,
+    np.uint16 : torch.uint16,
+    np.int32 : torch.int32,
+    np.uint32 : torch.uint32,
+    np.int64 : torch.int64,
+    np.uint64 : torch.uint64,
+    np.bool_ : torch.bool,
+    np.complex64 : torch.complex64,
+    np.complex128 : torch.complex128,
+    np.dtype('float16'): torch.float16,
+    np.dtype('float32'): torch.float32,
+    np.dtype('float64'): torch.float64,
+    np.dtype('int8'): torch.int8,
+    np.dtype('uint8'): torch.uint8,
+    np.dtype('int16'): torch.int16,
+    np.dtype('uint16'): torch.uint16,
+    np.dtype('int32'): torch.int32,
+    np.dtype('uint32'): torch.uint32,   
+    np.dtype('int64'): torch.int64,
+    np.dtype('uint64'): torch.uint64,
+    np.dtype('bool'): torch.bool,
+    np.dtype('complex64'): torch.complex64,
+    np.dtype('complex128'): torch.complex128,
+    None:None
 }
