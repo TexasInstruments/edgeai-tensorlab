@@ -67,9 +67,9 @@ def add_reshape_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  
 def torch_flatten(x:torch.Tensor, axis):
     if axis == 0:
         return x.reshape(1, -1)
-    shape = list(x.shape)
-    prod = torch.prod(torch.tensor(shape[:axis]))
-    return x.reshape(prod, -1)
+    if axis == 1:
+        return x.flatten(1)
+    return x.flatten(axis).flatten(0,axis-1)
 
 def add_flatten_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module ):
     assert len(node.inputs) == 1, f'{node.name} with operator {node.op} should have 1 input, but got {len(node.inputs)}'
