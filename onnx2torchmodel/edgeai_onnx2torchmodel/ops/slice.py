@@ -41,7 +41,7 @@ def torch_slice(x, starts, ends, axes, steps=None):
     if not  isinstance(x, torch.Tensor):
         temp = x
         x = torch.tensor(x)
-    dim = x.ndim
+    dim = x.dim()
     slices = [[None, None, None] for _ in range(dim)]
     x = temp or x
     for i, axis in enumerate(axes):

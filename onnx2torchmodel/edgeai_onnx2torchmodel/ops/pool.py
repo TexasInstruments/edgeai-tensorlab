@@ -116,14 +116,14 @@ def add_max_pool_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph, 
         torch_nodes[node.name].meta[attr] = node.attrs[attr]
 
 def torch_global_avg_pool(x:torch.Tensor):
-    if x.ndim == 3:
+    if x.dim() == 3:
         func = torch.nn.functional.adaptive_avg_pool1d
-    elif x.ndim == 4:
+    elif x.dim() == 4:
         func = torch.nn.functional.adaptive_avg_pool2d
-    elif x.ndim == 5:
+    elif x.dim() == 5:
         func = torch.nn.functional.adaptive_avg_pool3d
     else: 
-        raise NotImplementedError('global_avg_pool only supports 3d, 4d and 5d inputs but got {}D'.format(x.ndim))
+        raise NotImplementedError('global_avg_pool only supports 3d, 4d and 5d inputs but got {}D'.format(x.dim()))
     return func(x, 1)
 
 

@@ -135,7 +135,7 @@ def main(args=None):
 if __name__ == '__main__':
     # print(tv.models.list_models())
     # exit()
-    model_names = ['resnet18', 'mobilenet_v2', 'vit_b_16']
+    model_names = ['vit_b_16', 'resnet18', 'mobilenet_v2', ]
     args = ['./workdir/torch2torch_test','-e','-s']
     for model_name in model_names:
         model = main([model_name] + args)[0]
@@ -159,9 +159,22 @@ if __name__ == '__main__':
 
 
         student_model1 = convert_pt2e(student_model)
-        print('pt2e_model.graph',pt2e_model.graph, 'pt2e_model.code',pt2e_model.code, sep='\n\n')
-        print('student_model.graph',student_model.graph, 'student_model.code',student_model.code, sep='\n\n')
-        print('student_model1.graph',student_model1.graph, 'student_model1.code',student_model1.code, sep='\n\n')
+        directory = f'./workdir/torch2torch_test/{model_name}'
+        with open(os.path.join(directory,'pt2e_model_graph.txt'), 'w') as f:
+            f.write(str(pt2e_model.graph))
+        with open(os.path.join(directory,'pt2e_model_code.txt'), 'w') as f:
+            f.write(pt2e_model.code)
+        with open(os.path.join(directory,'student_model_graph.txt'), 'w') as f:
+            f.write(str(student_model.graph))
+        with open(os.path.join(directory,'student_model_code.txt'), 'w') as f:
+            f.write(student_model.code)
+        with open(os.path.join(directory,'student_model1_graph.txt'), 'w') as f:
+            f.write(str(student_model1.graph))
+        with open(os.path.join(directory,'student_model1_code.txt'), 'w') as f:
+            f.write(student_model1.code)
+        # print('pt2e_model.graph',pt2e_model.graph, 'pt2e_model.code',pt2e_model.code, sep='\n\n')
+        # print('student_model.graph',student_model.graph, 'student_model.code',student_model.code, sep='\n\n')
+        # print('student_model1.graph',student_model1.graph, 'student_model1.code',student_model1.code, sep='\n\n')
         
         break
         # break

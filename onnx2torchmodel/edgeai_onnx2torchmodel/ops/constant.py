@@ -84,7 +84,7 @@ def add_constant_of_shape_2_torch_graph(state, node:gs.Node, torch_graph:torch.f
     torch_nodes[node.name] = torch_graph.call_function(torch_costant_of_shape, (shape,), dict(value=value), name=node.name)
 
 def torch_eye_like(inp, dtype=torch.float,k=0 ):
-    assert inp.ndim == 2, f'eye_like only support 2D tensor, but got {inp.ndim}'
+    assert inp.dim() == 2, f'eye_like only support 2D tensor, but got {inp.dim()}'
     x = torch.zeros_like(inp, dtype=dtype)
     for i in range(min(inp.shape[0],inp.shape[1])):
         x[i,i+k] = 1

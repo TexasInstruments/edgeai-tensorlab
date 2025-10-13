@@ -32,13 +32,13 @@ import onnx_graphsurgeon as gs
 from . import utils
 
 def torch_pad(x, pad, value=0.0, axes=None, mode='constant',):
-    axes = axes or list(range(x.ndim))
+    axes = axes or list(range(x.dim()))
     t_axes = list(set(axes))
     assert len(t_axes) == len(axes), f'got duplicate axes, {axes}'
     if not isinstance(value, torch.Tensor):
         value = torch.tensor(value).to(x.dtype)
-    # axes = [axes if axes>=0 else axes+x.ndim for axes in axes]
-    temp = [[0,0] for _ in range(x.ndim)]
+    # axes = [axes if axes>=0 else axes+x.dim() for axes in axes]
+    temp = [[0,0] for _ in range(x.dim())]
     for i, ax in enumerate(axes):
         temp[ax][0] = pad[i]
         temp[ax][1] = pad[i+len(axes)]
