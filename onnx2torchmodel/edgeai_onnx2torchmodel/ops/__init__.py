@@ -88,7 +88,7 @@ from .image_decoder import add_image_decoder_2_torch_graph
 from .bool_ops import add_is_inf_2_torch_graph, add_non_zero_2_torch_graph
 from .lrn import add_lrn_2_torch_graph
 from .lstm import add_lstm_2_torch_graph
-from .matmul_int import add_matmul_int_2_torch_graph
+from .matmul import add_matmul_int_2_torch_graph
 from .stats_ops import add_stat_op_2_torch_graph
 from .multinomial import add_multinomial_2_torch_graph
 from .loss import add_negative_log_likelihood_loss_2_torch_graph,add_softmax_cross_entropy_loss_2_torch_graph

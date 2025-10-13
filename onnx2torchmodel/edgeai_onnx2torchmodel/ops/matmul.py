@@ -31,6 +31,21 @@ import torch
 import onnx_graphsurgeon as gs
 from . import utils
 
+def add_matmul_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
+    assert len(node.inputs) == 2, f'{node.name} with operator {node.op} should have 2 inputs, but got {len(node.inputs)}'
+    types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
+    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    if isinstance(node.inputs[0], gs.Variable) and isinstance(node.inputs[1], gs.Constant) and len(node.inputs[1].shape) == 2:
+        m,n = node.inputs[1].shape
+        m = torch.nn.Linear(m,n, bias=False)
+        weight = getattr(torch_module, node.inputs[1].name)
+        weight = torch.nn.Parameter(weight.T)
+        m.weight = weight
+        m.training = torch_module.training
+        torch_module.add_module(node.name, m)
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args[0:1]),)
+    else:        
+        torch_nodes[node.name] = torch_graph.call_function(torch.matmul, tuple(args),  name=node.name)
 def add_matmul_int_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     raise NotImplementedError(f"{node.name} with operator {node.op} is not implemented")
 

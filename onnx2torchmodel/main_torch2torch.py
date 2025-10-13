@@ -138,5 +138,31 @@ if __name__ == '__main__':
     model_names = ['resnet18', 'mobilenet_v2', 'vit_b_16']
     args = ['./workdir/torch2torch_test','-e','-s']
     for model_name in model_names:
-        main([model_name] + args)
+        model = main([model_name] + args)[0]
+        example_inputs = []
+        for inp, info in model.input_info.items():
+            example_inputs.append(torch.rand(info['shape'], dtype=info['dtype']))
+            
+        pt2e_model = torch.export.export(model, tuple(example_inputs)).module()
+
+        # Step 2. quantization
+        from torchao.quantization.pt2e.quantize_pt2e import (prepare_qat_pt2e, convert_pt2e,)
+        # install executorch: `pip install executorch`
+        from executorch.backends.xnnpack.quantizer.xnnpack_quantizer import (get_symmetric_quantization_config, XNNPACKQuantizer,)
+
+
+        # backend developer will write their own Quantizer and expose methods to allow
+        # users to express how they
+        # want the model to be quantized
+        quantizer = XNNPACKQuantizer().set_global(get_symmetric_quantization_config(is_per_channel=True, is_qat=True))
+        student_model = prepare_qat_pt2e(pt2e_model, quantizer)
+
+
+        student_model1 = convert_pt2e(student_model)
+        print('pt2e_model.graph',pt2e_model.graph, 'pt2e_model.code',pt2e_model.code, sep='\n\n')
+        print('student_model.graph',student_model.graph, 'student_model.code',student_model.code, sep='\n\n')
+        print('student_model1.graph',student_model1.graph, 'student_model1.code',student_model1.code, sep='\n\n')
+        
+        break
+        # break
     

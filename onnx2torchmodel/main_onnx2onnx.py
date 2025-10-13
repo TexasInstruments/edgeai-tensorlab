@@ -65,6 +65,7 @@ def main(args=None, inps=None):
     parser.add_argument('model_path', type=str, help='Path to ONNX model')
     parser.add_argument('--all_output' ,'-a', action='store_true', help='to export model with outputs of all nodes')
     parser.add_argument('--export_txts' ,'-e', action='store_true', help='to export error txt')
+    parser.add_argument('--for-training','-t', action='store_true', help='to use training mode')
     parser.add_argument('--threshold1' ,'-t1', type=float, default=1e-5, help='to export error txt')
     parser.add_argument('--threshold2' ,'-t2', type=float, default=1e-2, help='to export error txt')
     parser.add_argument('--cuda','-c', action='store_true', help='to use cuda')
@@ -77,7 +78,7 @@ def main(args=None, inps=None):
         args.model_path = add_all_output(args.model_path)
     sess_options = onnxruntime.SessionOptions()
     sess_options.graph_optimization_level = onnxruntime.GraphOptimizationLevel.ORT_DISABLE_ALL
-    torch_model = convert(args.model_path)
+    torch_model = convert(args.model_path, args.for_training)
     session1 = onnxruntime.InferenceSession(args.model_path, sess_options, providers=['CPUExecutionProvider'])
     torch_model.eval()
     if args.export_txts:
@@ -167,7 +168,7 @@ if __name__ == '__main__':
             model_names.append(model_name)
     for model_name in model_names:
         print(model_name)
-        main([os.path.join('./workdir/onnx2onnx_test',f'{model_name}'), '-e','-a','-s'],)
+        main([os.path.join('./workdir/onnx2onnx_test',f'{model_name}'), '-e','-a','-s', '-t'],)
     # output1 = new_model(inp)
     pass
     # main(['test.onnx', '-e'])

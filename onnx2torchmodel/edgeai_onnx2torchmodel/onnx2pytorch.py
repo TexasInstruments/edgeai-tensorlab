@@ -63,12 +63,12 @@ def remove_identity(graph:gs.Graph):
                 graph.outputs.remove(out)
 
 
-def convert(model_path):
+def convert(model_path, for_training=False):
     onnx_model = onnx.load(model_path)
     graph = gs.import_onnx(onnx_model)
     remove_identity(graph)
     simplify_graph(graph)
-    torch_model = onnx_ops.get_torch_graph_module(graph)
+    torch_model = onnx_ops.get_torch_graph_module(graph, for_training=for_training)
     model = gs.export_onnx(graph)
     onnx.save_model(model, model_path)
     return torch_model

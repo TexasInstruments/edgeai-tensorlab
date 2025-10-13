@@ -28,19 +28,19 @@
 
 
 import torch
+import warnings
 import onnx_graphsurgeon as gs
 from . import utils
+from . import normalization 
 
-
-def add_conv_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
-    assert 3>=len(node.inputs) >= 2, f'{node.name} with operator {node.op} should have between 2 and 3 inputs, but got {len(node.inputs)}'
-    types = [torch.nn.Parameter  for inp in node.inputs]
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+def get_torch_conv_module(node:gs.Node, torch_module:torch.nn.Module):
+    group = node.attrs.get('group', 1)
+    out, inc = node.inputs[1].shape[:2]
+    inc = inc*group
     kernel_size = node.attrs.get('kernel_shape')
     stride = node.attrs.get('strides')
     padding = node.attrs.get('pads')
     dilation = node.attrs.get('dilations')
-    groups = node.attrs.get('group', 1)
     auto_pad = node.attrs.get('auto_pad', 'NOTSET')
     # TODO auto_pad cases install
     if auto_pad == 'SAME_UPPER':
@@ -51,23 +51,86 @@ def add_conv_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  tor
         pass
     
     padding = padding[:len(kernel_size)]
-    
-    kwargs = dict(
-        stride = stride,
-        padding = padding,
-        dilation = dilation,
-        groups = groups,
-    )
-    
-    if len(kernel_size) == 1:
-        func = torch.nn.functional.conv1d
-    elif len(kernel_size) == 2:
-        func = torch.nn.functional.conv2d
-    elif len(kernel_size) == 3:
-        func = torch.nn.functional.conv3d
+    has_bias = len(node.inputs) == 3
+    if len(kernel_size)==1:
+        cls = torch.nn.Conv1d
+        bn_cls = torch.nn.BatchNorm1d
+    elif len(kernel_size)==2:
+        cls = torch.nn.Conv2d
+        bn_cls = torch.nn.BatchNorm2d
+    elif len(kernel_size)==3:
+        cls = torch.nn.Conv3d
+        bn_cls = torch.nn.BatchNorm3d
     else:
-        raise ValueError(f'node {node.name} has no kernel_size')
-    torch_nodes[node.name] = torch_graph.call_function(func, tuple(args),  kwargs, name=node.name)
+        raise NotImplementedError('conv only supports 1d, 2d and 3d inputs but got {}D'.format(len(kernel_size)))
+    module = cls(inc, out, kernel_size, stride, padding, dilation, groups=group, bias=has_bias)
+    module.weight = getattr(torch_module, node.inputs[1].name)
+    if has_bias:
+        module.bias = getattr(torch_module, node.inputs[2].name)
+    if torch_module.training:
+        module = torch.nn.Sequential(
+            module,
+            bn_cls(out, eps=1e-5, momentum=0.1),
+        )
+        module[1].running_var *= 1-(1e-5)
+    module.training = torch_module.training
+    torch_module.add_module(node.name, module)
+    return module
+
+def add_conv_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
+    assert 3>=len(node.inputs) >= 2, f'{node.name} with operator {node.op} should have between 2 and 3 inputs, but got {len(node.inputs)}'
+    changed = False
+    if len(node.outputs[0].outputs) == 1 and node.outputs[0].outputs[0].op == 'BatchNormalization':
+        state.training = False
+        torch_module.training = False
+        changed = True
+    types = [torch.nn.Parameter  for inp in node.inputs]
+    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    node_name = node.name+'_'+node.op        
+    if state.training  and not  all(isinstance(t,c) for t,c in zip(node.inputs,(gs.Variable, gs.Constant, gs.Constant))):
+        warnings.warn(f'{node_name} with operator {node.op} is suitable for conversion with training mode changing to inference mode.\n'
+                    'this operator should only have variable input, constant weight and bias (if any) for training.')
+        state.training = False
+        torch_module.training = False
+        changed = True
+    if all(isinstance(t,c) for t,c in zip(node.inputs,(gs.Variable, gs.Constant, gs.Constant))):
+        module = get_torch_conv_module(node, torch_module)
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args[0:1]),)
+    else:
+        kernel_size = node.attrs.get('kernel_shape')
+        stride = node.attrs.get('strides')
+        padding = node.attrs.get('pads')
+        dilation = node.attrs.get('dilations')
+        groups = node.attrs.get('group', 1)
+        auto_pad = node.attrs.get('auto_pad', 'NOTSET')
+        # TODO auto_pad cases install
+        if auto_pad == 'SAME_UPPER':
+            pass
+        elif auto_pad == 'SAME_LOWER':
+            pass
+        elif auto_pad == 'VALID':
+            pass
+        
+        padding = padding[:len(kernel_size)]
+        
+        kwargs = dict(
+            stride = stride,
+            padding = padding,
+            dilation = dilation,
+            groups = groups,
+        )
+        if len(kernel_size) == 1:
+            func = torch.nn.functional.conv1d
+        elif len(kernel_size) == 2:
+            func = torch.nn.functional.conv2d
+        elif len(kernel_size) == 3:
+            func = torch.nn.functional.conv3d
+        else:
+            raise ValueError(f'node {node.name} has no kernel_size')
+        torch_nodes[node.name] = torch_graph.call_function(func, tuple(args),  kwargs, name=node.name)
+    if changed:
+        state.training = True
+        torch_module.training = True
 
 def add_conv_integer_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     raise NotImplementedError(f"{node.name} with operator {node.op} is not implemented")

@@ -73,7 +73,7 @@ def get_graph_info(graph:gs.Graph):
     output_info = {out.name: get_tensor_info(out) for out in outputs}
     return node_info, input_info, output_info
 
-def check_convertable(graph:gs.Graph, op_2_func_dict=None)-> dict:
+def check_convertable(graph:gs.Graph, op_2_func_dict=None, for_training=False)-> dict:
     op_2_func_dict = op_2_func_dict or basic_ops_2_func_dict
     error_dict = {}
     for node in graph.nodes:
@@ -85,8 +85,10 @@ def check_convertable(graph:gs.Graph, op_2_func_dict=None)-> dict:
         temp_graph.opset = graph.opset
         torch_graph = torch.fx.Graph()
         state = State()
+        state.training = for_training
         state.graph = temp_graph
         root_module = torch.nn.Module()
+        root_module.training = for_training
         try:
             for inp in temp_graph.inputs:
                 torch_nodes[inp.name] = torch_graph.placeholder(inp.name)
@@ -108,13 +110,13 @@ def check_convertable(graph:gs.Graph, op_2_func_dict=None)-> dict:
             error_dict[(node.name, node.op)] = e
     return error_dict
 
-def get_torch_graph_module(graph:gs.Graph):
+def get_torch_graph_module(graph:gs.Graph, for_training=False):
     inputs = list(graph.inputs)
     
     op_2_func_dict = basic_ops_2_func_dict.copy()
     op_2_func_dict.update(custom_add_2_torch_graph)
     
-    error_dict = check_convertable(graph, op_2_func_dict=op_2_func_dict)
+    error_dict = check_convertable(graph, op_2_func_dict=op_2_func_dict,for_training=for_training)
     if error_dict:
         for name, op in error_dict:
             print(f'Failed to convert {name} with operator {op} because of error {error_dict[(name, op)]}')
@@ -122,8 +124,10 @@ def get_torch_graph_module(graph:gs.Graph):
     
     state = State()
     state.graph = graph
+    state.training = for_training
     torch_graph = torch.fx.Graph()
     root_module = torch.nn.Module()
+    root_module.training = for_training
     torch_nodes = {}
     for inp in inputs:
         torch_nodes[inp.name] = torch_graph.placeholder(inp.name)

@@ -42,7 +42,6 @@ onnx_to_torch = {
     'BitwiseAnd': torch.bitwise_and,
     'BitwiseOr': torch.bitwise_or,
     'BitwiseXor': torch.bitwise_xor,
-    'MatMul': torch.matmul,
     'Equal': torch.eq,
     'Greater': torch.gt,
     'Less': torch.lt,
