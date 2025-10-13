@@ -88,7 +88,7 @@ from .image_decoder import add_image_decoder_2_torch_graph
 from .bool_ops import add_is_inf_2_torch_graph, add_non_zero_2_torch_graph
 from .lrn import add_lrn_2_torch_graph
 from .lstm import add_lstm_2_torch_graph
-from .matmul import add_matmul_int_2_torch_graph
+from .matmul import add_matmul_int_2_torch_graph, add_matmul_2_torch_graph
 from .stats_ops import add_stat_op_2_torch_graph
 from .multinomial import add_multinomial_2_torch_graph
 from .loss import add_negative_log_likelihood_loss_2_torch_graph,add_softmax_cross_entropy_loss_2_torch_graph
@@ -199,7 +199,7 @@ basic_ops_2_func_dict = {
     'Loop': add_loop_2_torch_graph,
     'LpNormalization': add_lp_norm_2_torch_graph,
     'LpPool': add_lp_pool_2_torch_graph,
-    'MatMul': add_node_2_torch_graph_multi_ip_1op,
+    'MatMul': add_matmul_2_torch_graph,
     'MatMulInteger': add_matmul_int_2_torch_graph,
     'Max': add_stat_op_2_torch_graph,
     'MaxPool': add_max_pool_2_torch_graph,
