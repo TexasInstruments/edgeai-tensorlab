@@ -147,6 +147,15 @@ def get_torch_graph_module(graph:gs.Graph, for_training=False):
         torch_nodes['outputs'] = torch_graph.output(tuple(torch_outputs))
     
     
+    with torch_graph.inserting_after():
+        hanging_nodes = [node for node in torch_graph.nodes if len(node.users)  == 0 and node.op != 'output']
+        while(len(hanging_nodes)):
+            for node in hanging_nodes:
+                torch_graph.erase_node(node)    
+            hanging_nodes = [node for node in torch_graph.nodes if len(node.users)  == 0 and node.op != 'output']
+    torch_graph.lint()
+    # model.recompile()
+    
     torch_module = torch.fx.GraphModule(root_module, torch_graph)
     torch_module.node_info, torch_module.input_info, torch_module.output_info = get_graph_info(graph)
     return torch_module

@@ -144,6 +144,11 @@ if __name__ == '__main__':
             example_inputs.append(torch.rand(info['shape'], dtype=info['dtype']))
             
         pt2e_model = torch.export.export(model, tuple(example_inputs)).module()
+        directory = f'./workdir/torch2torch_test/{model_name}'
+        with open(os.path.join(directory,'pt2e_model_graph.txt'), 'w') as f:
+            f.write(str(pt2e_model.graph))
+        with open(os.path.join(directory,'pt2e_model_code.txt'), 'w') as f:
+            f.write(pt2e_model.code)
 
         # Step 2. quantization
         from torchao.quantization.pt2e.quantize_pt2e import (prepare_qat_pt2e, convert_pt2e,)
@@ -156,18 +161,13 @@ if __name__ == '__main__':
         # want the model to be quantized
         quantizer = XNNPACKQuantizer().set_global(get_symmetric_quantization_config(is_per_channel=True, is_qat=True))
         student_model = prepare_qat_pt2e(pt2e_model, quantizer)
-
-
-        student_model1 = convert_pt2e(student_model)
-        directory = f'./workdir/torch2torch_test/{model_name}'
-        with open(os.path.join(directory,'pt2e_model_graph.txt'), 'w') as f:
-            f.write(str(pt2e_model.graph))
-        with open(os.path.join(directory,'pt2e_model_code.txt'), 'w') as f:
-            f.write(pt2e_model.code)
         with open(os.path.join(directory,'student_model_graph.txt'), 'w') as f:
             f.write(str(student_model.graph))
         with open(os.path.join(directory,'student_model_code.txt'), 'w') as f:
             f.write(student_model.code)
+
+
+        student_model1 = convert_pt2e(student_model)
         with open(os.path.join(directory,'student_model1_graph.txt'), 'w') as f:
             f.write(str(student_model1.graph))
         with open(os.path.join(directory,'student_model1_code.txt'), 'w') as f:
