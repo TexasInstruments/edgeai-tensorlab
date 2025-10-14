@@ -285,81 +285,17 @@ class AccuracyPipeline(BasePipeline):
         is_ok = session.start_import()
         assert is_ok, utils.log_color('\nERROR', f'start_import() did not succeed for:', run_dir_base)
 
-        # Number of temporal frames in BEV detection
-        num_bev_temporal_frames = 0
-        if 'bev_options:num_temporal_frames' in runtime_options:
-            num_bev_temporal_frames = runtime_options['bev_options:num_temporal_frames']
-
-        # Queue for previous feature maps
-        if num_bev_temporal_frames > 0:
-            self.queue_mem = dict()
-            self.queue = queue.Queue(maxsize=num_bev_temporal_frames)
-
-        # for BEVFormer
-        # To Do: Use queue for BEVFormer
-        prev_bev = None
-        # for StreamPETR/Far3D
-        prev_memory = None
         for data_index in range(calibration_frames):
-            info_dict = {'dataset_info': self.dataset_info, 
+            info_dict = {'dataset_info': self.dataset_info,
                          'label_offset_pred': self.pipeline_config.get('metric',{}).get('label_offset_pred',None),
+                         'sample_idx': data_index,
                          'task_name': self.pipeline_config.get('task_name',{})}
-            # Add feature queues to info_dict for preprocessing
-            if self.queue is not None:
-                info_dict['sample_idx'] = data_index
-                info_dict['queue_mem'] = self.queue_mem
-                info_dict['queue'] = self.queue
-                info_dict['num_bev_temporal_frames'] = num_bev_temporal_frames
-
-            # For BEVFormer and VAD
-            if 'BEVFormer' in self.pipeline_config.get('task_name', {}) or \
-                self.pipeline_config.get('task_name', {}) == 'VAD':
-                info_dict['prev_bev'] = prev_bev
-
-            # For StreamPETR/Far3D
-            if self.pipeline_config.get('task_name', {}) == 'StreamPETR' or \
-                self.pipeline_config.get('task_name', {}) == 'Far3D':
-                info_dict['prev_memory'] = prev_memory
 
             input_data, info_dict = calibration_dataset(data_index, info_dict)
             input_data, info_dict = preprocess(input_data, info_dict)
 
-            # For calibration, we cannot add prev_bev from the previous frames.
-            # So simply set prev_bev to zero
-            # To REVISIT with queue
-            # Move to BEVFormer pre-processing
-            """
-            if 'BEVFormer' in self.pipeline_config.get('task_name', {}):
-                if info_dict['prev_bev_exist'] is False:
-                    input_data.append(np.zeros((info_dict['bev_h']*info_dict['bev_w'], 1, 256), dtype=np.float32))
-                else:
-                    input_data.append(prev_bev)
-            """
-
             # this is the actual import
             output, info_dict = session.run_import(input_data, info_dict)
-
-            # For BEVFormer and VAD, save output for next frames
-            if 'BEVFormer' in self.pipeline_config.get('task_name', {}) or \
-                self.pipeline_config.get('task_name', {}) == 'VAD':
-                prev_bev = output[-1]
-
-            # For StreamPETR/Far3D
-            if self.pipeline_config.get('task_name', {}) == 'StreamPETR' or \
-                self.pipeline_config.get('task_name', {}) == 'Far3D':
-                prev_memory = output[3:]
-
-            # FastBEV: Update queue
-            if self.queue is not None:
-                if self.queue.full():
-                    pop_key = self.queue.get()
-                    self.queue_mem.pop(pop_key)
-
-                # add the current feature map
-                # it should be batch_size = 1
-                self.queue_mem[info_dict['sample_idx']] = \
-                    dict(feature_map=output[-1], img_meta=info_dict)
-                self.queue.put(info_dict['sample_idx'])
 
         # close the interpreter
         session.close_interpreter()
@@ -389,95 +325,16 @@ class AccuracyPipeline(BasePipeline):
         output_list = []
         pbar_desc = f'infer {description}: {run_dir_base}'
 
-        # Number of temporal frames in BEV detection
-        num_bev_temporal_frames = 0
-        if 'bev_options:num_temporal_frames' in runtime_options:
-            num_bev_temporal_frames = runtime_options['bev_options:num_temporal_frames']
-
-        # Queue for previous feature maps
-        if num_bev_temporal_frames > 0:
-            self.queue_mem = dict()
-            self.queue = queue.Queue(maxsize=num_bev_temporal_frames)
-
-        # for BEVFormer
-        # To Do: Use queue for BEVFormer
-        prev_bev = None
-        # for StreamPETR/Far3D
-        prev_memory = None
         for data_index in utils.progress_step(range(num_frames), desc=pbar_desc, position=0):
             info_dict = {'dataset_info': self.dataset_info,
                          'label_offset_pred': self.pipeline_config.get('metric',{}).get('label_offset_pred',None),
+                         'sample_idx': data_index,
                          'task_name': self.pipeline_config.get('task_name',{})}
-            # Add feature queues to info_dict for preforce
-            if self.queue is not None:
-                info_dict['sample_idx'] = data_index
-                info_dict['queue_mem'] = self.queue_mem
-                info_dict['queue'] = self.queue
-                info_dict['num_bev_temporal_frames'] = num_bev_temporal_frames
-
-            # For BEVFormer
-            if 'BEVFormer' in self.pipeline_config.get('task_name', {}) or \
-                self.pipeline_config.get('task_name', {}) == 'VAD':
-                info_dict['prev_bev'] = prev_bev
-
-            # For StreamPETR/Far3D
-            if self.pipeline_config.get('task_name', {}) == 'StreamPETR' or \
-                self.pipeline_config.get('task_name', {}) == 'Far3D':
-                info_dict['prev_memory'] = prev_memory
 
             data, info_dict = input_dataset(data_index, info_dict)
             data, info_dict = preprocess(data, info_dict)
 
-            # Move to BEVFormer pre-processing
-            """
-            if 'BEVFormer' in self.pipeline_config.get('task_name', {}):
-                if info_dict['prev_bev_exist'] is False:
-                    data.append(np.zeros((info_dict['bev_h']*info_dict['bev_w'], 1, 256), dtype=np.float32))
-                else:
-                    data.append(prev_bev)
-            """
-
-            # Save input arrays
-            #for i in range(len(data)):
-            #    data[i].tofile(f"./testdata/bevdet_frame_{data_index:03d}_input_{i}.dat")
             output, info_dict = session.run_inference(data, info_dict)
-
-            # For BEVFormer and VAD, save output for next frames
-            if 'BEVFormer' in self.pipeline_config.get('task_name', {}) or \
-                self.pipeline_config.get('task_name', {}) == 'VAD':
-                prev_bev = output[-1]
-
-            # For StreamPETR/Far3D
-            if self.pipeline_config.get('task_name', {}) == 'StreamPETR' or \
-                self.pipeline_config.get('task_name', {}) == 'Far3D':
-                prev_memory = output[3:]
-
-            # For BEVFormer_small or BEVFormer_base only
-            # The following codes are needed because the onnx model is from
-            # the pre-trained model using old pikle data file format.
-            if self.pipeline_config.get('task_name', {}) == 'BEVFormer_small' or \
-                self.pipeline_config.get('task_name', {}) == 'BEVFormer_base':
-                # change box dim and yaw
-                # nus_box_dims = box_dims[:, [0, 1, 2]]
-                # box_yaw = -box_yaw - np.pi/2
-                output[0] = output[0][:, [0, 1, 2, 4, 3, 5, 6, 7, 8]]
-                output[0][:, 6] =  -output[0][:, 6] - np.pi/2
-
-            # FastBEV: Update queue
-            if self.queue is not None:
-                if self.queue.full():
-                    pop_key = self.queue.get()
-                    self.queue_mem.pop(pop_key)
-
-                # add the current feature map
-                # it should be batch_size = 1
-                self.queue_mem[info_dict['sample_idx']] = \
-                    dict(feature_map=output[-1], img_meta=info_dict)
-                self.queue.put(info_dict['sample_idx'])
-
-            # Save output arrays
-            #for i in range(len(output)):
-            #    output[i].tofile(f"./testdata/bevdet_frame_{data_index:03d}_output_{i}.dat")
 
             stats_dict = session.infer_stats()
             if self.settings.target_machine == constants.TARGET_MACHINE_EVM:

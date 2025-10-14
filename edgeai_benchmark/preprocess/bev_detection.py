@@ -1129,7 +1129,8 @@ class GetPETRGeometry():
         e2g_p = np.array(prev_img_meta['ego2globals'][0][0])
         l2e_p = np.array(prev_img_meta['lidar2ego'])
 
-        prev_post_intrins = np.array(prev_img_meta['post_intrins'][0])
+        #prev_post_intrins = np.array(prev_img_meta['post_intrins'][0])
+        prev_post_intrins = np.array(prev_img_meta['post_intrins'])
 
         for i in range(len(info_dict['lidar2cams'])):
             l2c_p = np.array(prev_img_meta['lidar2cams'][i])
@@ -1139,7 +1140,8 @@ class GetPETRGeometry():
             lidar2cam_p_c = np.linalg.inv(cam2lidar_p_c)
             # Transform [R|t] from the current lidar to the (temporal) previous image
             post_intrins = np.eye(4)
-            post_intrins[:3, :3] = prev_post_intrins[i]
+            #post_intrins[:3, :3] = prev_post_intrins[i]
+            post_intrins[:3, :3] = prev_post_intrins[i][:3, :3]
             lidar2img_p_c = post_intrins @ lidar2cam_p_c
 
             # info_dict['post_intrins'].append(prev_post_intrins[i])
@@ -1156,21 +1158,17 @@ class GetPETRGeometry():
         prev_feats = []
         prev_img_metas = []
 
-        if 'queue' in info_dict:
+        if 'queue_mem' in info_dict:
             num_prevs   = info_dict['num_bev_temporal_frames']
-            queue_mem   = copy.deepcopy(info_dict['queue_mem'])
-            feats_queue = info_dict['queue']
-            del info_dict['queue_mem']
-            del info_dict['queue']
+            queue_mem   = info_dict['queue_mem']
 
             # Support only batch_size = 1
             for i in range(1, num_prevs+1):
                 cur_sample_idx = info_dict['sample_idx']
 
-                if i > feats_queue.qsize() or \
+                if i > len(queue_mem) or \
                     info_dict['scene_token'] != queue_mem[cur_sample_idx - i]['img_meta']['scene_token']:
                     if prev_feat is None:
-                        #prev_feats.append(np.zeros(self.feats_size, dtype=img.dtype))
                         prev_feats.append(np.zeros(self.feats_size, dtype=np.float32))
                         prev_img_metas.append(prev_img_meta)
                     else:
@@ -1209,7 +1207,7 @@ class GetPETRGeometry():
                 valid_prev_feats= 0
             else:
                 valid_prev_feats = 1
-            data.append(np.array(valid_prev_feats, dtype=np.float32)) 
+            data.append(np.array(valid_prev_feats, dtype=np.int32))
             data.append(prev_feats_map)
 
         return data, info_dict
@@ -1354,6 +1352,18 @@ class GetBEVDetGeometry():
         # append bev_feat and lidar_coor_1d
         data.append(bev_feat)
         data.append(lidar_coor_1d)
+
+        return data, info_dict
+
+
+class SetupTemporalQueue():
+    def __init__(self, queue_length=1):
+        self.queue_length = queue_length
+        self.queue_mem = dict()
+
+    def __call__(self, data, info_dict):
+        info_dict['queue_mem'] = self.queue_mem
+        info_dict['num_bev_temporal_frames'] = self.queue_length
 
         return data, info_dict
 
@@ -1630,7 +1640,9 @@ class GetBEVFormerGeometry():
         if info_dict['prev_bev_exist'] is False:
             data.append(np.zeros((self.bev_h*self.bev_w, 1, 256), dtype=np.float32))
         else:
-            data.append(info_dict['prev_bev'])
+            queue_mem = copy.deepcopy(info_dict['queue_mem'])
+            prev_feat = queue_mem[info_dict['sample_idx'] - 1]['feature_map']
+            data.append(prev_feat)
 
         #info_dict['bev_h'] = self.bev_h
         #info_dict['bev_w'] = self.bev_w
@@ -1741,12 +1753,14 @@ class GetFastBEVGeometry():
 
         for cam_id in range(len(img_meta['lidar2imgs'])):
             lidar2cam = img_meta['lidar2cams'][cam_id]
-            intrinsic = img_meta['intrins'][0][cam_id]
+            #intrinsic = img_meta['intrins'][0][cam_id]
+            intrinsic = img_meta['intrins'][cam_id]
 
             viewpad = np.eye(4)
             if post_rot is not None:
                 assert post_tran is not None, [post_rot, post_tran]
-                viewpad[:intrinsic.shape[0], :intrinsic.shape[1]] = post_rot @ intrinsic
+                #viewpad[:intrinsic.shape[0], :intrinsic.shape[1]] = post_rot @ intrinsic
+                viewpad[:3, :3] = post_rot @ intrinsic[:3, :3]
                 viewpad[:3, 2] += post_tran
             else:
                 viewpad[:intrinsic.shape[0], :intrinsic.shape[1]] = intrinsic
@@ -1794,7 +1808,8 @@ class GetFastBEVGeometry():
             n_times = info_dict['num_bev_temporal_frames'] + 1
         stride_i = math.ceil(data[0].shape[-1] / self.feats_size[-1])
 
-        for batch_id in range(len(info_dict['intrins'])):
+        #for batch_id in range(len(info_dict['intrins'])):
+        for batch_id in range(len(info_dict['sensor2egos'])):
             img_meta_list = []
             img_meta = copy.deepcopy(info_dict)
 
@@ -1822,9 +1837,12 @@ class GetFastBEVGeometry():
                     prev_img_meta['lidar2cams'][cam_id] = np.linalg.inv(mat)
 
                     # obtain lidar to image transformation matrix
-                    prev_img_meta['intrins'][batch_id][cam_id] = \
-                        img_meta['intrins'][batch_id][cam_id]
-                    intrin = prev_img_meta['intrins'][batch_id][cam_id]
+                    #prev_img_meta['intrins'][batch_id][cam_id] = \
+                    #    img_meta['intrins'][batch_id][cam_id]
+                    #intrin = prev_img_meta['intrins'][batch_id][cam_id]
+                    prev_img_meta['intrins'][cam_id] = \
+                        img_meta['intrins'][cam_id]
+                    intrin = prev_img_meta['intrins'][cam_id]
                     viewpad = np.eye(4)
                     viewpad[:intrin.shape[0], :intrin.shape[1]] = intrin
                     prev_img_meta['lidar2imgs'][cam_id] = \
@@ -1876,21 +1894,17 @@ class GetFastBEVGeometry():
         prev_feats = []
         prev_img_metas = []
 
-        if 'queue' in info_dict:
+        if 'queue_mem' in info_dict:
             num_prevs   = info_dict['num_bev_temporal_frames']
-            queue_mem   = copy.deepcopy(info_dict['queue_mem'])
-            feats_queue = info_dict['queue']
-            del info_dict['queue_mem']
-            del info_dict['queue']
+            queue_mem   = info_dict['queue_mem']
 
-            # Support only batch_size = 1s
+            # Support only batch_size = 1
             for i in range(1, num_prevs+1):
                 cur_sample_idx = info_dict['sample_idx']
 
-                if i > feats_queue.qsize() or \
+                if i > len(queue_mem) or \
                     info_dict['scene_token'] != queue_mem[cur_sample_idx - i]['img_meta']['scene_token']:
                     if prev_feat is None:
-                        #prev_feats.append(np.zeros(self.feats_size, dtype=img.dtype))
                         prev_feats.append(np.zeros(self.feats_size, dtype=np.float32))
                         prev_img_metas.append(prev_img_meta)
                     else:
@@ -2036,8 +2050,9 @@ class GetStreamPETRGeometry():
     def pre_update_memory(self, info_dict):
         x = info_dict['prev_exists']
         B = x.shape[0]
-        prev_memory = info_dict['prev_memory']
-        if prev_memory is None:
+
+        queue_mem = info_dict['queue_mem']
+        if len(queue_mem) == 0:
             memory_embedding, memory_reference_point, memory_timestamp, \
                 memory_egopose, memory_velo = self.init_memory(x)
         else:
@@ -2045,11 +2060,12 @@ class GetStreamPETRGeometry():
             ego_pose_inv = np.expand_dims(ego_pose_inv, 0).astype(np.float32)
             timestamp = np.asarray([info_dict['timestamp']*1e-6])
 
-            memory_embedding       = info_dict['prev_memory'][0]
-            memory_reference_point = info_dict['prev_memory'][1]
-            memory_timestamp       = info_dict['prev_memory'][2]
-            memory_egopose         = info_dict['prev_memory'][3]
-            memory_velo            = info_dict['prev_memory'][4]
+            cur_sample_idx         = info_dict['sample_idx']
+            memory_embedding       = queue_mem[cur_sample_idx - 1]['feature_map'][0]
+            memory_reference_point = queue_mem[cur_sample_idx - 1]['feature_map'][1]
+            memory_timestamp       = queue_mem[cur_sample_idx - 1]['feature_map'][2]
+            memory_egopose         = queue_mem[cur_sample_idx - 1]['feature_map'][3]
+            memory_velo            = queue_mem[cur_sample_idx - 1]['feature_map'][4]
 
             memory_timestamp += np.expand_dims(np.expand_dims(timestamp, -1), -1)
             memory_egopose = np.expand_dims(ego_pose_inv, 1) @ memory_egopose
@@ -2147,8 +2163,9 @@ class GetFar3DGeometry():
     def pre_update_memory(self, info_dict):
         x = info_dict['prev_exists']
         B = x.shape[0]
-        prev_memory = info_dict['prev_memory']
-        if prev_memory is None:
+
+        queue_mem = info_dict['queue_mem']
+        if len(queue_mem) == 0:
             memory_embedding, memory_reference_point, memory_timestamp, \
                 memory_egopose, memory_velo = self.init_memory(x)
         else:
@@ -2156,11 +2173,12 @@ class GetFar3DGeometry():
             ego_pose_inv = np.expand_dims(ego_pose_inv, 0).astype(np.float32)
             timestamp = np.asarray([info_dict['timestamp']*1e-6])
 
-            memory_embedding       = info_dict['prev_memory'][0]
-            memory_reference_point = info_dict['prev_memory'][1]
-            memory_timestamp       = info_dict['prev_memory'][2]
-            memory_egopose         = info_dict['prev_memory'][3]
-            memory_velo            = info_dict['prev_memory'][4]
+            cur_sample_idx         = info_dict['sample_idx']
+            memory_embedding       = queue_mem[cur_sample_idx - 1]['feature_map'][0]
+            memory_reference_point = queue_mem[cur_sample_idx - 1]['feature_map'][1]
+            memory_timestamp       = queue_mem[cur_sample_idx - 1]['feature_map'][2]
+            memory_egopose         = queue_mem[cur_sample_idx - 1]['feature_map'][3]
+            memory_velo            = queue_mem[cur_sample_idx - 1]['feature_map'][4]
 
             memory_timestamp += np.expand_dims(np.expand_dims(timestamp, -1), -1)
             memory_egopose = np.expand_dims(ego_pose_inv, 1) @ memory_egopose
