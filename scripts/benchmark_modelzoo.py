@@ -87,6 +87,11 @@ if __name__ == '__main__':
     parser = get_arg_parser()
     args = parser.parse_args()
 
+    # support nargs with comma separated values and space separated values
+    for arg_name in ('model_selection', 'model_exclusion', 'task_selection', 'runtime_selection', 'parallel_devices_list'):
+        if getattr(args, arg_name, None):
+            setattr(args, arg_name, utils.formatted_nargs(getattr(args, arg_name)))
+
     kwargs = vars(args)
     settings_file = kwargs.pop('settings_file')
 
