@@ -255,3 +255,16 @@ def inverse_sigmoid(x, eps = 1e-5):
     x1 = x.clip(min=eps, max=1)
     x2 = (1 - x).clip(min=eps, max=1)
     return np.log(x1 / x2)
+
+
+def formatted_nargs(nargs_list, delimiters=(' ', ',')):
+    for delimiter in delimiters:
+        formatted_arg = []
+        for arg in nargs_list:
+            new_arg = [m.strip() for m in arg.split(delimiter)]
+            formatted_arg.extend(new_arg)
+        #
+        nargs_list = formatted_arg
+    #
+    formatted_arg = list(filter(lambda x: x != '', formatted_arg))
+    return formatted_arg
