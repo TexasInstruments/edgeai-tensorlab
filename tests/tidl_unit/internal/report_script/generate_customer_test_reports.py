@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 import sys
 import argparse
 import shutil
+import pandas as pd
 
 parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
 parser.add_argument('--reports_path', help='Path to pytest html test reports (runtimewise)', type=str, required=True)
@@ -156,7 +157,7 @@ for soc in sorted(os.listdir(reports_dir)):
 
                 w.writerow(row)
 
-        op_summary = {"Operator": op, "Total_Tests": total_tests, "TIDL_Offload_Percentage": num_offload}
+        op_summary = {"Operator": op, "Total Tests": total_tests, "TIDL Offloads": num_offload}
         total_val = 0
         passed_categories = ["passed", "xpassed", "skipped", "xfailed"]
         for key, label in VARIANTS:
@@ -171,26 +172,77 @@ for soc in sorted(os.listdir(reports_dir)):
                 op_summary[f"{label} Pass"] = "-"
                 op_summary[f"{label} Fail"] = "-"
 
-        # Avoid division by zero
-        if total_tests > 0:
-            op_summary["TIDL_Offload_Percentage"] = (num_offload / total_tests) * 100
-        else:
-            op_summary["TIDL_Offload_Percentage"] = 0
-
         operator_summaries.append(op_summary)
-        print(f"Wrote {out_path}")
+        print(f"Generated {out_path}")
 
-# --- FULL OPERATOR COMPARISON ---
-full_path = os.path.join(out_dir, "operator_test_report_summary.csv")
-fields = ["Operator", "Total_Tests", "TIDL_Offload_Percentage"]
+summary_report = os.path.join(out_dir, "Summary.csv")
+fields = ["Operator", "Total Tests", "TIDL Offloads"]
 for key, label in VARIANTS:
     fields.append(f"{label} Pass")
     fields.append(f"{label} Fail")
 
-with open(full_path, "w", newline="", encoding="utf-8") as f:
+with open(summary_report, "w", newline="", encoding="utf-8") as f:
     w = csv.DictWriter(f, fieldnames=fields)
     w.writeheader()
     for rec in sorted(operator_summaries, key=lambda x: x["Operator"]):
         w.writerow(rec)
 
-print(f"Wrote consolidated comparison → {full_path}")
+print(f"Generated Summary of all operators → {summary_report}")
+
+# --- COMBINE CSV FILES INTO EXCEL ---
+def combine_csv_to_excel(reports_dir, output_dir):
+    """
+    Combine all CSV files in the reports directory into a single Excel file
+    """
+    from openpyxl.styles import Font
+    
+    output_excel_file = os.path.join(output_dir, "combined_customer_report.xlsx")
+    
+    # Create a Pandas Excel writer using openpyxl as the engine
+    with pd.ExcelWriter(output_excel_file, engine='openpyxl') as writer:
+        # First, collect all CSV files and sort them to ensure Summary sheet comes first
+        csv_files = [f for f in os.listdir(reports_dir) if f.endswith(".csv")]
+        
+        # Sort files to put Summary first
+        csv_files.sort(key=lambda x: (x != 'Summary.csv', x))
+        
+        # Iterate over all CSV files in the directory
+        for csv_file in csv_files:
+            # Full path to the CSV file
+            csv_path = os.path.join(reports_dir, csv_file)
+            
+            # Read the CSV file into a DataFrame
+            df = pd.read_csv(csv_path)
+            
+            # Remove Dataset Number column if it exists
+            if 'Dataset Number' in df.columns:
+                df = df.drop('Dataset Number', axis=1)
+            
+            # Remove file paths from columns that contain "file" in their name
+            for col in df.columns:
+                if 'file' in col.lower():  # Check for "file" in column name
+                    df = df.drop(col, axis=1)
+            
+            # Use the CSV file name (without extension) as the sheet name
+            sheet_name = os.path.splitext(csv_file)[0]
+            
+            # Write the DataFrame to the Excel file as a new sheet
+            df.to_excel(writer, sheet_name=sheet_name, index=False)
+            
+            # Get the worksheet and apply bold formatting to header row
+            worksheet = writer.sheets[sheet_name]
+            bold_font = Font(bold=True)
+            
+            # Apply bold formatting to the first row (header row)
+            for cell in worksheet[1]:  # Row 1 is the header row
+                cell.font = bold_font
+    
+    print(f"All CSV files have been combined into {output_excel_file}")
+    return output_excel_file
+
+# Combine all generated CSV files into Excel
+combined_report_path = "combined_report"
+if os.path.isdir(combined_report_path):
+    shutil.rmtree(combined_report_path)
+os.makedirs(combined_report_path, exist_ok=True)
+combine_csv_to_excel(out_dir, combined_report_path)

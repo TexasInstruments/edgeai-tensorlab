@@ -6,3 +6,4 @@ pytest-json-report==1.5.0
 pytest-timeout
 pytest-html-merger
 bs4
+pandas
