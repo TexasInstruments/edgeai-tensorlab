@@ -61,7 +61,7 @@ def get_input_from_node(inp:gs.Variable|gs.Constant, torch_graph:torch.fx.Graph,
             raise ValueError(f"Failed to register {inp.name} in the root module with Exception {e}. # Fix it")
         torch_nodes[inp.name] = torch_graph.get_attr(inp.name)
         return torch_nodes[inp.name]
-    if inp.shape is None and inp.dtype is None:
+    if inp.shape is None and inp.dtype is None and len(inp.inputs) == 0:
         return None
     if len(inp.inputs) == 0:
         # graph input case 
