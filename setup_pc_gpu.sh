@@ -38,7 +38,7 @@ NVIDIA_HPC_SDK_VERSION="23.7"
 NVIDIA_HPC_SDK_PATH="/opt/nvidia/hpc_sdk/Linux_x86_64/${NVIDIA_HPC_SDK_VERSION}"
 NVIDIA_HPC_SDK_APT_NAME="nvhpc-23-7"
 
-echo "Checking whether NVIDIA_HPC_SDK version ${NVIDIA_HPC_SDK_VERSION} is installed:"
+echo "INFO: checking whether NVIDIA_HPC_SDK version ${NVIDIA_HPC_SDK_VERSION} is installed:"
 if [ ! -d "${NVIDIA_HPC_SDK_PATH}" ]; then
   echo "${NVIDIA_HPC_SDK_PATH} does not exist. installing it ..."
   # https://developer.nvidia.com/nvidia-hpc-sdk-237-downloads
@@ -52,9 +52,9 @@ else
 fi
 
 echo "============================================================"
-echo "Please make sure that NVIDIA GPU drivers are installed."
-echo "This can be ignored is the latest nvidia gpu driver is already installed:"
-echo "Check by running the command: nvidia-smi"
+echo "INFO: please make sure that NVIDIA GPU drivers are installed."
+echo "INFO: this can be ignored is the latest nvidia gpu driver is already installed:"
+echo "INFO: check by running the command: nvidia-smi"
 echo "Option 1 - for ubuntu only - details are here: https://ubuntu.com/server/docs/nvidia-drivers-installation"
 echo "  sudo ubuntu-drivers list"
 echo "  sudo ubuntu-drivers install"
@@ -69,4 +69,4 @@ echo "============================================================"
 
 
 #######################################################################
-echo 'Completed installation.'
+echo 'INFO: completed installation.'
