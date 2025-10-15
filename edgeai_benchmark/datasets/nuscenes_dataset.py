@@ -1181,7 +1181,3 @@ class NuScenesDataset(DatasetBase):
                 nusc_annos[sample_token] = annos
 
         return nusc_annos
-
-    def evaluate(self, predictions, **kwargs):
-        return 0
-
