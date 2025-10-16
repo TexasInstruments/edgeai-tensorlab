@@ -105,10 +105,7 @@ class AccuracyPipeline(BasePipeline):
             start_time = time.time()
             self.write_log(utils.log_color('\nINFO', f'import {description}', self.run_dir_base + ' - this may take some time...'))
             # import stats
-            if self.pipeline_config['task_type'] != 'bev_detection':
-                self._import_model(description)
-            else:
-                self._import_bev_model(description)
+            self._import_model(description)
             elapsed_time = time.time() - start_time
             self.write_log(utils.log_color('\nINFO', f'import completed {description}', f'{self.run_dir_base} - {elapsed_time:.0f} sec'))
 
@@ -132,10 +129,7 @@ class AccuracyPipeline(BasePipeline):
         if self.settings.run_inference:
             start_time = time.time()
             self.write_log(utils.log_color('\nINFO', f'infer {description}', self.run_dir_base + ' - this may take some time...'))
-            if self.pipeline_config['task_type'] != 'bev_detection':
-                output_list = self._infer_frames(description)
-            else:
-                output_list = self._infer_bev_frames(description)
+            output_list = self._infer_frames(description)
             elapsed_time = time.time() - start_time
             self.write_log(utils.log_color('\nINFO', f'infer completed {description}', f'{self.run_dir_base} - {elapsed_time:.0f} sec'))
             result_dict = self._evaluate(output_list)
@@ -171,7 +165,11 @@ class AccuracyPipeline(BasePipeline):
         assert is_ok, utils.log_color('\nERROR', f'start_import() did not succeed for:', run_dir_base)
 
         for data_index in range(calibration_frames):
-            info_dict = {'dataset_info': self.dataset_info, 'label_offset_pred': self.pipeline_config.get('metric',{}).get('label_offset_pred',None)}
+            info_dict = {'dataset_info': self.dataset_info,
+                         'label_offset_pred': self.pipeline_config.get('metric',{}).get('label_offset_pred',None),
+                         'sample_idx': data_index,
+                         'task_name': self.pipeline_config.get('task_name',{})}
+
             input_data, info_dict = calibration_dataset(data_index, info_dict)
             input_data, info_dict = preprocess(input_data, info_dict)
             # this is the actual import
@@ -205,7 +203,11 @@ class AccuracyPipeline(BasePipeline):
         output_list = []
         pbar_desc = f'infer {description}: {run_dir_base}'
         for data_index in utils.progress_step(range(num_frames), desc=pbar_desc, position=0):
-            info_dict = {'dataset_info': self.dataset_info, 'label_offset_pred': self.pipeline_config.get('metric',{}).get('label_offset_pred',None)}
+            info_dict = {'dataset_info': self.dataset_info,
+                         'label_offset_pred': self.pipeline_config.get('metric',{}).get('label_offset_pred',None),
+                         'sample_idx': data_index,
+                         'task_name': self.pipeline_config.get('task_name',{})}
+
             data, info_dict = input_dataset(data_index, info_dict)
             data, info_dict = preprocess(data, info_dict)
             output, info_dict = session.run_inference(data, info_dict)
@@ -243,129 +245,6 @@ class AccuracyPipeline(BasePipeline):
 
             output, info_dict = postprocess(output, info_dict)
             output_list.append(output)
-        #
-        # compute and populate final stats so that it can be used in result
-        self.infer_stats_dict = {
-            'num_subgraphs': stats_dict['num_subgraphs'],
-        }
-        if self.settings.target_machine == constants.TARGET_MACHINE_EVM:
-            self.infer_stats_dict.update({
-                'infer_time_invoke_ms': invoke_time * constants.MILLI_CONST / num_frames,
-                'infer_time_core_ms': core_time * constants.MILLI_CONST / num_frames,
-                'infer_time_subgraph_ms': subgraph_time * constants.MILLI_CONST / num_frames,
-                'ddr_transfer_mb': (ddr_transfer / num_frames_ddr / constants.MEGA_CONST) if num_frames_ddr > 0 else 0
-            })
-        #
-        if 'perfsim_time' in stats_dict:
-            self.infer_stats_dict.update({'perfsim_time_ms': stats_dict['perfsim_time'] * constants.MILLI_CONST})
-        #
-        if 'perfsim_ddr_transfer' in stats_dict:
-            self.infer_stats_dict.update({'perfsim_ddr_transfer_mb': stats_dict['perfsim_ddr_transfer'] / constants.MEGA_CONST})
-        #
-        if 'perfsim_macs' in stats_dict:
-            self.infer_stats_dict.update({'perfsim_gmacs': stats_dict['perfsim_macs'] / constants.GIGA_CONST})
-        #
-        # close the interpreter
-        session.close_interpreter()
-        return output_list
-
-    def _import_bev_model(self, description=''):
-        session = self.pipeline_config['session']
-        calibration_dataset = self.pipeline_config['calibration_dataset']
-        assert calibration_dataset is not None, f'got input_dataset={calibration_dataset}. please check settings.dataset_loading'
-        preprocess = self.pipeline_config['preprocess']
-        runtime_options = self.pipeline_config['session'].peek_param('runtime_options')
-        calibration_frames = runtime_options['advanced_options']['calibration_frames'] \
-            if 'advanced_options' in runtime_options else runtime_options['advanced_options:calibration_frames']
-        assert len(calibration_dataset) >= calibration_frames, \
-            utils.log_color('\nERROR', 'import', f'too few calibration data - calibration dataset size ({len(calibration_dataset)}) '
-                                                 f'should be >= calibration_frames ({calibration_frames})')
-        run_dir_base = os.path.split(session.get_param('run_dir'))[-1]
-
-        is_ok = session.start_import()
-        assert is_ok, utils.log_color('\nERROR', f'start_import() did not succeed for:', run_dir_base)
-
-        for data_index in range(calibration_frames):
-            info_dict = {'dataset_info': self.dataset_info,
-                         'label_offset_pred': self.pipeline_config.get('metric',{}).get('label_offset_pred',None),
-                         'sample_idx': data_index,
-                         'task_name': self.pipeline_config.get('task_name',{})}
-
-            input_data, info_dict = calibration_dataset(data_index, info_dict)
-            input_data, info_dict = preprocess(input_data, info_dict)
-
-            # this is the actual import
-            output, info_dict = session.run_import(input_data, info_dict)
-
-        # close the interpreter
-        session.close_interpreter()
-
-
-    def _infer_bev_frames(self, description=''):
-        session = self.pipeline_config['session']
-        input_dataset = self.pipeline_config['input_dataset']
-        assert input_dataset is not None, f'got input_dataset={input_dataset}. please check settings.dataset_loading'
-        preprocess = self.pipeline_config['preprocess']
-        postprocess = self.pipeline_config['postprocess']
-        runtime_options = session.kwargs['runtime_options']
-        run_dir_base = os.path.split(session.get_param('run_dir'))[-1]
-        num_frames = self.pipeline_config.get('num_frames', self.settings.num_frames)
-        num_frames = min(len(input_dataset), num_frames) if num_frames else len(input_dataset)
-
-        is_ok = session.start_inference()
-        assert is_ok, utils.log_color('\nERROR', f'start_infer() did not succeed for:', run_dir_base)
-
-        if self.settings.target_machine == constants.TARGET_MACHINE_EVM:
-            invoke_time = 0.0
-            core_time = 0.0
-            subgraph_time = 0.0
-            ddr_transfer = 0.0
-            num_frames_ddr = 0
-
-        output_list = []
-        pbar_desc = f'infer {description}: {run_dir_base}'
-
-        for data_index in utils.progress_step(range(num_frames), desc=pbar_desc, position=0):
-            info_dict = {'dataset_info': self.dataset_info,
-                         'label_offset_pred': self.pipeline_config.get('metric',{}).get('label_offset_pred',None),
-                         'sample_idx': data_index,
-                         'task_name': self.pipeline_config.get('task_name',{})}
-
-            data, info_dict = input_dataset(data_index, info_dict)
-            data, info_dict = preprocess(data, info_dict)
-
-            output, info_dict = session.run_inference(data, info_dict)
-
-            stats_dict = session.infer_stats()
-            if self.settings.target_machine == constants.TARGET_MACHINE_EVM:
-                invoke_time += info_dict['session_invoke_time']
-                core_time += stats_dict['core_time']
-                subgraph_time += stats_dict['subgraph_time']
-                if stats_dict['write_total'] >= 0  and stats_dict['read_total'] >= 0 :
-                    ddr_transfer += (stats_dict['write_total'] + stats_dict['read_total'])
-                    num_frames_ddr += 1
-
-            if self.settings.flip_test:
-                outputs_flip, info_dict = session.run_inference(info_dict['flip_img'], info_dict)
-                info_dict['outputs_flip'] = outputs_flip
-
-                stats_dict = session.infer_stats()
-                if self.settings.target_machine == constants.TARGET_MACHINE_EVM:
-                    invoke_time += info_dict['session_invoke_time']
-                    core_time += stats_dict['core_time']
-                    subgraph_time += stats_dict['subgraph_time']
-                    if stats_dict['write_total'] >= 0  and stats_dict['read_total'] >= 0 :
-                        ddr_transfer += (stats_dict['write_total'] + stats_dict['read_total'])
-                        num_frames_ddr += 1
-            else:
-                info_dict['outputs_flip'] = None
-
-            # needed in postprocess to understand the detection threshold set
-            info_dict['runtime_options'] = runtime_options
-
-            output, info_dict = postprocess(output, info_dict)
-            output_list.append(output)
-
         #
         # compute and populate final stats so that it can be used in result
         self.infer_stats_dict = {
