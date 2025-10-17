@@ -31,12 +31,12 @@ import torch
 import warnings
 import onnx_graphsurgeon as gs
 from . import utils
-from . import normalization 
+from .pad import Pad
 
 def get_torch_conv_module(node:gs.Node, torch_module:torch.nn.Module):
-    group = node.attrs.get('group', 1)
+    groups = node.attrs.get('group', 1)
     out, inc = node.inputs[1].shape[:2]
-    inc = inc*group
+    inc = inc*groups
     kernel_size = node.attrs.get('kernel_shape')
     stride = node.attrs.get('strides')
     padding = node.attrs.get('pads')
@@ -49,8 +49,16 @@ def get_torch_conv_module(node:gs.Node, torch_module:torch.nn.Module):
         pass
     elif auto_pad == 'VALID':
         pass
-    
-    padding = padding[:len(kernel_size)]
+    add_padding = False
+    if padding:
+        if padding[:len(kernel_size)] == padding[len(kernel_size):]:
+            padding = padding[:len(kernel_size)]
+        else:
+            add_padding = True
+            old_padding = padding
+            padding = [0]*len(kernel_size)
+    else:
+        padding = [0]*len(kernel_size)
     has_bias = len(node.inputs) == 3
     if len(kernel_size)==1:
         cls = torch.nn.Conv1d
@@ -63,16 +71,21 @@ def get_torch_conv_module(node:gs.Node, torch_module:torch.nn.Module):
         bn_cls = torch.nn.BatchNorm3d
     else:
         raise NotImplementedError('conv only supports 1d, 2d and 3d inputs but got {}D'.format(len(kernel_size)))
-    module = cls(inc, out, kernel_size, stride, padding, dilation, groups=group, bias=has_bias)
+    module = cls(inc, out, kernel_size, stride=stride, padding=padding, dilation=dilation, groups=groups, bias=has_bias)
     module.weight = getattr(torch_module, node.inputs[1].name)
     if has_bias:
         module.bias = getattr(torch_module, node.inputs[2].name)
+    if add_padding and padding:
+        module = torch.nn.Sequential(Pad(old_padding), module)
+    else:
+        module = torch.nn.Sequential(module)
+
     if torch_module.training:
-        module = torch.nn.Sequential(
-            module,
+        module.append(
             bn_cls(out, eps=1e-5, momentum=0.1),
         )
-        module[1].running_var *= 1-(1e-5)
+        module[-1].running_var *= 1-(1e-5)
+            
     module.training = torch_module.training
     torch_module.add_module(node.name, module)
     return module
@@ -88,7 +101,7 @@ def add_conv_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  tor
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     node_name = node.name+'_'+node.op        
     if state.training  and not  all(isinstance(t,c) for t,c in zip(node.inputs,(gs.Variable, gs.Constant, gs.Constant))):
-        warnings.warn(f'{node_name} with operator {node.op} is suitable for conversion with training mode changing to inference mode.\n'
+        warnings.warn(f'{node_name} with operator {node.op} is not suitable for conversion with training mode changing to inference mode.\n'
                     'this operator should only have variable input, constant weight and bias (if any) for training.')
         state.training = False
         torch_module.training = False
@@ -110,8 +123,16 @@ def add_conv_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  tor
             pass
         elif auto_pad == 'VALID':
             pass
-        
-        padding = padding[:len(kernel_size)]
+        add_padding = False
+        if padding:
+            if padding[:len(kernel_size)] == padding[len(kernel_size):]:
+                padding = padding[:len(kernel_size)]
+            else:
+                add_padding = True
+                old_padding = padding
+                padding = [0]*len(kernel_size)
+        else:
+            padding = [0]*len(kernel_size)
         
         kwargs = dict(
             stride = stride,
@@ -127,6 +148,11 @@ def add_conv_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  tor
             func = torch.nn.functional.conv3d
         else:
             raise ValueError(f'node {node.name} has no kernel_size')
+        if add_padding and padding:
+            pad_module = Pad(old_padding)
+            torch_module.add_module(node.name+'_pad', pad_module)
+            padding_node = torch_graph.call_module(node.name+'_pad', tuple(args[0:1]))
+            args[0] = padding_node
         torch_nodes[node.name] = torch_graph.call_function(func, tuple(args),  kwargs, name=node.name)
     if changed:
         state.training = True
@@ -135,16 +161,15 @@ def add_conv_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  tor
 def add_conv_integer_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     raise NotImplementedError(f"{node.name} with operator {node.op} is not implemented")
 
-def add_conv_transpose_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
-    assert 3>=len(node.inputs) >= 2, f'{node.name} with operator {node.op} should have between 2 and 3 inputs, but got {len(node.inputs)}'
-    types = [torch.nn.Parameter  for inp in node.inputs]
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+def get_torch_conv_transpose_module(node:gs.Node, torch_module:torch.nn.Module):
+    groups = node.attrs.get('group', 1)
+    out, inc = node.inputs[1].shape[:2]
+    inc = inc*groups
     kernel_size = node.attrs.get('kernel_shape')
     stride = node.attrs.get('strides')
     padding = node.attrs.get('pads')
     output_padding = node.attrs.get('output_padding')
     dilation = node.attrs.get('dilations')
-    groups = node.attrs.get('group',1)
     auto_pad = node.attrs.get('auto_pad', 'NOTSET')
     # TODO add support for output_shape
     output_shape = node.attrs.get('output_shape')
@@ -156,7 +181,17 @@ def add_conv_transpose_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.G
     elif auto_pad == 'VALID':
         pass
     
-    padding = padding[:len(kernel_size)]
+    add_padding = False
+    if padding:
+        if padding[:len(kernel_size)] == padding[len(kernel_size):]:
+            padding = padding[:len(kernel_size)]
+        else:
+            add_padding = True
+            old_padding = padding
+            padding = [0]*len(kernel_size)
+    else:
+        padding = [0]*len(kernel_size)
+    
     kwargs = dict(
         stride = stride,
         padding = padding,
@@ -164,16 +199,89 @@ def add_conv_transpose_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.G
         groups = groups,
         output_padding = output_padding,
     )
-    
-    if len(kernel_size) == 1:
-        func = torch.nn.functional.conv_transpose1d
-    elif len(kernel_size) == 2:
-        func = torch.nn.functional.conv_transpose2d
-    elif len(kernel_size) == 3:
-        func = torch.nn.functional.conv_transpose3d
+    has_bias = len(node.inputs) == 3
+    if len(kernel_size)==1:
+        cls = torch.nn.ConvTranspose1d
+        # bn_cls = torch.nn.BatchNorm1d
+    elif len(kernel_size)==2:
+        cls = torch.nn.ConvTranspose2d
+        # bn_cls = torch.nn.BatchNorm2d
+    elif len(kernel_size)==3:
+        cls = torch.nn.ConvTranspose3d
+        # bn_cls = torch.nn.BatchNorm3d
     else:
-        raise ValueError(f'node {node.name} has no kernel_size')
-    torch_nodes[node.name] = torch_graph.call_function(func, tuple(args),  kwargs, name=node.name)
+        raise NotImplementedError('conv only supports 1d, 2d and 3d inputs but got {}D'.format(len(kernel_size)))
+    module = torch.nn.ConvTranspose1d(inc, out, kernel_size, stride=stride, padding=padding, output_padding=output_padding, dilation=dilation, groups=groups, bias=has_bias)
+    module.weight = getattr(torch_module, node.inputs[1].name)
+    if has_bias:
+        module.bias = getattr(torch_module, node.inputs[2].name)
+    if add_padding and padding:
+        module = torch.nn.Sequential(Pad(old_padding), module)
+    else:
+        module = torch.nn.Sequential(module)
+            
+    module.training = torch_module.training
+    torch_module.add_module(node.name, module)
+    return module
+
+def add_conv_transpose_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
+    assert 3>=len(node.inputs) >= 2, f'{node.name} with operator {node.op} should have between 2 and 3 inputs, but got {len(node.inputs)}'
+    types = [torch.nn.Parameter  for inp in node.inputs]
+    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    if all(isinstance(t,c) for t,c in zip(node.inputs,(gs.Variable, gs.Constant, gs.Constant))):
+        module = get_torch_conv_module(node, torch_module)
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args[0:1]),)
+    else:
+        kernel_size = node.attrs.get('kernel_shape')
+        stride = node.attrs.get('strides')
+        padding = node.attrs.get('pads')
+        output_padding = node.attrs.get('output_padding')
+        dilation = node.attrs.get('dilations')
+        groups = node.attrs.get('group',1)
+        auto_pad = node.attrs.get('auto_pad', 'NOTSET')
+        # TODO add support for output_shape
+        output_shape = node.attrs.get('output_shape')
+        # TODO auto_pad cases install
+        if auto_pad == 'SAME_UPPER':
+            pass
+        elif auto_pad == 'SAME_LOWER':
+            pass
+        elif auto_pad == 'VALID':
+            pass
+        
+        add_padding = False
+        if padding:
+            if padding[:len(kernel_size)] == padding[len(kernel_size):]:
+                padding = padding[:len(kernel_size)]
+            else:
+                add_padding = True
+                old_padding = padding
+                padding = [0]*len(kernel_size)
+        else:
+            padding = [0]*len(kernel_size)
+        
+        kwargs = dict(
+            stride = stride,
+            padding = padding,
+            dilation = dilation,
+            groups = groups,
+            output_padding = output_padding,
+        )
+        
+        if len(kernel_size) == 1:
+            func = torch.nn.functional.conv_transpose1d
+        elif len(kernel_size) == 2:
+            func = torch.nn.functional.conv_transpose2d
+        elif len(kernel_size) == 3:
+            func = torch.nn.functional.conv_transpose3d
+        else:
+            raise ValueError(f'node {node.name} has no kernel_size')
+        if add_padding and padding:
+            pad_module = Pad(old_padding)
+            torch_module.add_module(node.name+'_pad', pad_module)
+            padding_node = torch_graph.call_module(node.name+'_pad', tuple(args[0:1]))
+            args[0] = padding_node
+        torch_nodes[node.name] = torch_graph.call_function(func, tuple(args),  kwargs, name=node.name)
 
 # TODO add support for offset_group
 def deform_conv2d (x, weight, offset, bias=None, mask=None, kernl_size=None, stride=1, padding=0, dilation=1, groups=1, offset_group=1):

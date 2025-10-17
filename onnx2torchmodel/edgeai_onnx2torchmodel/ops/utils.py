@@ -50,6 +50,8 @@ def get_input_from_node(inp:gs.Variable|gs.Constant, torch_graph:torch.fx.Graph,
         if attr_type in (torch.Tensor, torch.nn.Parameter, Buffer):
             val = torch.from_numpy(val)
         try:
+            if inp.dtype not in (np.float32,np.float16, np.float64,np.complex64, np.complex128) and attr_type in (torch.nn.Parameter, Buffer):
+                attr_type = torch.Tensor
             if attr_type in (torch.Tensor, list, tuple, set):
                 setattr(torch_module, inp.name, val)
             elif attr_type == Buffer:

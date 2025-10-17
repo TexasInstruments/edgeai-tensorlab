@@ -36,15 +36,15 @@ from onnx import TensorProto
 def torch_cast(x, dtype):
     if isinstance(x, torch.Tensor):
         return x.to(dtype)
-    if isinstance(x, (list, tuple)):
-        return torch.tensor(x).to(dtype)
+    # if isinstance(x, (list, tuple)):
+    return torch.tensor(x).to(dtype).tolist()
     raise NotImplementedError
 
 def torch_cast_like(x, y):
     if isinstance(x, torch.Tensor):
         return x.to(y.dtype)
-    if isinstance(x, (list, tuple)):
-        return torch.tensor(x).to(y.dtype)
+    # if isinstance(x, (list, tuple)):
+    return torch.tensor(x).to(y.dtype).tolist()
     raise NotImplementedError
 
 # TODO add support for round and saturate

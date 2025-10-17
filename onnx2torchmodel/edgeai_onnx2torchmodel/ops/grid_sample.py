@@ -47,6 +47,50 @@ def add_grid_sample_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Grap
     )
     torch_nodes[node.name] = torch_graph.call_function(torch.nn.functional.grid_sample, tuple(args),  kwargs, name=node.name)
 
+def torch_upsample(x, sizes=None, scales=None, mode='nearest', align_corners=None):
+    kwargs = dict(
+    )
+    scale_len = x.dim()-2
+    if scales :
+        new_scales = []
+        start= False
+        for scale in scales:
+            if not start and scale == 1:
+                continue
+            start= True
+            new_scales.append(scale)
+        scales = new_scales
+        if len(scales) == 0:
+            scales = [1.0]
+        if scale_len and len(scales) < scale_len:
+            scales = [1.0]*(scale_len-len(scales)) + scales
+        if len(scales) == 2:
+            if mode in ('linear','cubic'):
+                mode = 'bi' + mode 
+            
+        elif len(scales) == 3 and mode == 'linear':
+            mode = 'trilinear'
+        
+    if sizes :
+        new_sizes = []
+        start= False
+        for i, size in enumerate(sizes):
+            if not start and size == x.shape[i]:
+                continue
+            start= True
+            new_sizes.append(size)
+        sizes = new_sizes
+        if len(sizes) == 0:
+            sizes = x.shape[-1:]
+        if scale_len and len(sizes) < scale_len:
+            sizes = x.shape[-scale_len:-len(sizes)] + tuple(sizes)
+        if len(sizes) == 2 :
+            if mode in ('linear','cubic'):
+                mode = 'bi' + mode 
+        elif len(sizes) == 3 and mode == 'linear':
+            mode = 'trilinear'
+    return torch.nn.functional.interpolate(x, sizes, scale, mode, align_corners)
+    
 
 def add_upsample_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert len(node.inputs) == 2, f'{node.name} with operator {node.op} should have 2 inputs, but got {len(node.inputs)}'
@@ -67,4 +111,4 @@ def add_upsample_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph, 
         kwargs['width_scale'] = node.attrs.get('width_scale',1)
         args .append((kwargs['height_scale'],kwargs['width_scale']))
     
-    torch_nodes[node.name] = torch_graph.call_function(torch.nn.functional.upsample, tuple(args),  kwargs, name=node.name)
+    torch_nodes[node.name] = torch_graph.call_function(torch_upsample, tuple(args),  kwargs, name=node.name)

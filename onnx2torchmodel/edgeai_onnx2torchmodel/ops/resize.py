@@ -36,15 +36,7 @@ def torch_resize(x, roi=None, scales=None, sizes=None, coordinate_transformation
     kwargs = dict(
         antialias=antialias
     )
-    if mode in ('linear','bilinear', 'bicubic', 'trilinear'):
-        kwargs.update(dict(align_corners=coordinate_transformation_mode == 'align_corners'))
-    scale_len = 0
-    if mode == 'linear':
-        scale_len = 1
-    elif mode in ('bilinear', 'bicubic'):
-        scale_len = 2
-    elif mode == 'trilinear':
-        scale_len = 3
+    scale_len = x.dim()-2
     if scales :
         new_scales = []
         start= False
@@ -54,8 +46,10 @@ def torch_resize(x, roi=None, scales=None, sizes=None, coordinate_transformation
             start= True
             new_scales.append(scale)
         scales = new_scales
+        if len(scales) == 0:
+            scales = [1.0]
         if scale_len and len(scales) < scale_len:
-            scales = [1]*(scale_len-len(scales)) + scales
+            scales = [1.0]*(scale_len-len(scales)) + scales
         if len(scales) == 2:
             if mode in ('linear','cubic'):
                 mode = 'bi' + mode 
@@ -72,13 +66,18 @@ def torch_resize(x, roi=None, scales=None, sizes=None, coordinate_transformation
             start= True
             new_sizes.append(size)
         sizes = new_sizes
+        if len(sizes) == 0:
+            sizes = x.shape[-1:]
         if scale_len and len(sizes) < scale_len:
-            sizes = x.shape[-scale_len:-len(sizes)] + sizes
+            sizes = x.shape[-scale_len:-len(sizes)] + tuple(sizes)
         if len(sizes) == 2 :
             if mode in ('linear','cubic'):
                 mode = 'bi' + mode 
         elif len(sizes) == 3 and mode == 'linear':
             mode = 'trilinear'
+            
+    if mode in ('linear','bilinear', 'bicubic', 'trilinear'):
+        kwargs.update(dict(align_corners=coordinate_transformation_mode == 'align_corners'))
     
     return torch.nn.functional.interpolate(x, sizes, scales, mode=mode, **kwargs )
 

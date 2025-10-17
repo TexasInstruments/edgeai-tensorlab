@@ -31,6 +31,18 @@ import torch
 import onnx_graphsurgeon as gs
 from . import utils
 
+class Pad(torch.nn.Module):
+    def  __init__(self, padding, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.padding = []
+        num_axes = len(padding)//2
+        for i in list(range(num_axes))[::-1]:
+            self.padding.append(padding[i])
+            self.padding.append(padding[i+num_axes])
+            
+    def forward(self, x):
+        return torch.nn.functional.pad(x, self.padding)
+
 def torch_pad(x, pad, value=0.0, axes=None, mode='constant',):
     axes = axes or list(range(x.dim()))
     t_axes = list(set(axes))

@@ -34,33 +34,34 @@ from . import utils
 import numpy as np
 
 def torch_gather(x, indices, axis=0):
-    if isinstance(indices, torch.Tensor) and indices.shape:
-        return torch.index_select(x, axis, indices)
-    slices = [slice(None) for _ in range(x.dim())]
-    if isinstance(indices, torch.Tensor):
-        indices = indices.cpu()
-        indices = indices.tolist()
-    elif isinstance(indices, np.ndarray):
-        indices = indices.tolist()
-        
     if axis < 0:
-        axis += x.dim()
+        axis += x.dim() if isinstance(x, torch.Tensor) else len(x)
+    if  isinstance(indices, torch.Tensor) and indices.dtype!=torch.int:
+        indices = indices.to(torch.int)
+    if axis==0:
+        return x[indices]
+    slices = [slice(None) for _ in range(x.dim() if isinstance(x, torch.Tensor) else 1 ) ]
     slices[axis] = indices
-    return getitem(x, tuple(slices))
+    if isinstance(x, torch.Tensor):
+        return getitem(x, tuple(slices))
+    assert len(slices) == 1
+    return getitem(x, slices[0])
 
 def add_gather_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert len(node.inputs) == 2, f'{node.name} with operator {node.op} should have 2 inputs, but got {len(node.inputs)}'
     types = [torch.nn.Parameter, torch.Tensor]
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     if args[1].op == 'get_attr':
-        args[1] = getattr(torch_module, args[1].target).tolist() # TODO: TBD either to make it fixed
+        if isinstance(args[1], torch.Tensor) and args[1].dim()==0:
+            args[1] = getattr(torch_module, args[1].target)
+            args[1] = args[1].cpu().tolist() # TODO: TBD either to make it fixed
     axis = node.attrs.get('axis', 0)
     torch_nodes[node.name] = torch_graph.call_function(torch_gather, tuple(args),  dict(axis=axis), name=node.name)
 
 def torch_gather_elements(x:torch.Tensor, indices:torch.Tensor, axis=0):
     # Handle negative axis
     if axis < 0:
-        axis = x.dim() + axis
+        axis = (x.dim() if isinstance(x, torch.Tensor) else len(x)) + axis
         
     # Use torch.gather which is the direct equivalent
     return torch.gather(x, dim=axis, index=indices)
@@ -97,7 +98,7 @@ def torch_gather_nd(data:torch.Tensor, indices:torch.Tensor, batch_dims=0):
         index_tuples.append(indices[..., dim])
     
     # Use basic indexing to gather values
-    return data[index_tuples]
+    return data[tuple(index_tuples)]
 
 def add_gather_nd_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert len(node.inputs) == 2, f'{node.name} with operator {node.op} should have 2 inputs, but got {len(node.inputs)}'

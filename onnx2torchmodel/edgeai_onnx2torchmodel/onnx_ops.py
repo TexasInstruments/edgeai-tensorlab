@@ -117,9 +117,16 @@ def get_torch_graph_module(graph:gs.Graph, for_training=False):
     op_2_func_dict.update(custom_add_2_torch_graph)
     
     error_dict = check_convertable(graph, op_2_func_dict=op_2_func_dict,for_training=for_training)
+    # error_dict = None
     if error_dict:
+        not_implemented = []
         for name, op in error_dict:
+            if isinstance(error_dict[(name, op)], NotImplementedError):
+                not_implemented.append(( op)) if op not in not_implemented else None
+                continue
             print(f'Failed to convert {name} with operator {op} because of error {error_dict[(name, op)]}')
+        if not_implemented:
+            print("Not Implemented Operator Present:", not_implemented)
         raise Exception('Failed to convert the model because of above errors')
     
     state = State()

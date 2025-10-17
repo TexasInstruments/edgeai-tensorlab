@@ -30,6 +30,7 @@
 import torch
 import onnx_graphsurgeon as gs
 from . import utils
+from .pad import Pad 
 
 def add_avg_pool_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert len(node.inputs) == 1, f'{node.name} with operator {node.op} should have 1 input, but got {len(node.inputs)}'
@@ -51,7 +52,17 @@ def add_avg_pool_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph, 
     count_include_pad = node.attrs.get('count_include_pad', 0) == 1
 
     kernel_size = tuple(kernel_size)
-    padding = padding[:len(kernel_size)]
+    add_padding = False
+    if padding:
+        if padding[:len(kernel_size)] == padding[len(kernel_size):]:
+            padding = padding[:len(kernel_size)]
+        else:
+            add_padding = True
+            old_padding = padding
+            padding = [0]*len(kernel_size)
+    else:
+        padding = [0]*len(kernel_size)
+    
     kwargs = dict(
         kernel_size = kernel_size,
         stride = stride,
@@ -66,6 +77,11 @@ def add_avg_pool_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph, 
         func = torch.nn.functional.avg_pool2d
     if len(kernel_size) == 3:
         func = torch.nn.functional.avg_pool3d
+    if add_padding and padding:
+            pad_module = Pad(old_padding)
+            torch_module.add_module(node.name+'_pad', pad_module)
+            padding_node = torch_graph.call_module(node.name+'_pad', tuple(args[0:1]))
+            args[0] = padding_node
     torch_nodes[node.name] = torch_graph.call_function( func, tuple(args),  kwargs, name=node.name)
     for attr in node.attrs:
         if attr in kwargs:
@@ -90,16 +106,28 @@ def add_max_pool_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph, 
     stride = node.attrs.get('strides')
     padding = node.attrs.get('pads', [0]*(2*len(kernel_size)))
     ceil_mode = node.attrs.get('ceil_mode', 0) == 1
+    dilation = node.attrs.get('dilations', [1]*len(kernel_size))
     storage_order = node.attrs.get('storage_order', 0) == 1
     return_indices = len(node.outputs) == 2
 
     kernel_size = tuple(kernel_size)
-    padding = padding[:len(kernel_size)]
+    add_padding =False
+    if padding:
+        if padding[:len(kernel_size)] == padding[len(kernel_size):]:
+            padding = padding[:len(kernel_size)]
+        else:
+            add_padding = True
+            old_padding = padding
+            padding = [0]*len(kernel_size)
+    else:
+        padding = [0]*len(kernel_size)
+    
     kwargs = dict(
         kernel_size = kernel_size,
         stride = stride,
         padding = padding,
         ceil_mode = ceil_mode,
+        dilation=dilation,
         return_indices = return_indices
     )
     
@@ -109,6 +137,11 @@ def add_max_pool_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph, 
         func = torch.nn.functional.max_pool2d
     if len(kernel_size) == 3:
         func = torch.nn.functional.max_pool3d
+    if add_padding and padding:
+            pad_module = Pad(old_padding)
+            torch_module.add_module(node.name+'_pad', pad_module)
+            padding_node = torch_graph.call_module(node.name+'_pad', tuple(args[0:1]))
+            args[0] = padding_node
     torch_nodes[node.name] = torch_graph.call_function( func, tuple(args),  kwargs, name=node.name)
     for attr in node.attrs:
         if attr in kwargs:

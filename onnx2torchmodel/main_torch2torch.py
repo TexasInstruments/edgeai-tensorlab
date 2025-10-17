@@ -52,7 +52,7 @@ def main(args=None):
     output_dir = os.path.join(args.output_dir, args.model_name)
     os.makedirs(output_dir, exist_ok=True)
     model = tv.models.get_model(args.model_name, pretrained=True)
-    inp = torch.rand((1, 3, 224, 224))
+    inp = torch.rand((1, 3, 2048, 1024))
     model.eval()
     if args.cuda:
         model = model.cuda()
@@ -135,7 +135,7 @@ def main(args=None):
 if __name__ == '__main__':
     # print(tv.models.list_models())
     # exit()
-    model_names = ['vit_b_16', 'resnet18', 'mobilenet_v2', ]
+    model_names = ['efficientnet_v2_s','vit_b_16', 'resnet18', 'mobilenet_v2', ]
     args = ['./workdir/torch2torch_test','-e','-s']
     for model_name in model_names:
         model = main([model_name] + args)[0]

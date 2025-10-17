@@ -34,6 +34,8 @@ from . import utils
 def torch_unsqueeze(x, dim):
     if isinstance(dim,torch.Tensor):
         dim = dim.tolist()
+    if not isinstance(x, torch.Tensor):
+        x = torch.tensor(x)
     if isinstance(dim, (list, tuple)):
         if len(dim) == 1:
             return torch.unsqueeze(x, dim[0])

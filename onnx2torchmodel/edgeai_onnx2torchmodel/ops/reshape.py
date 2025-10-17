@@ -79,11 +79,16 @@ def add_flatten_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  
     torch_nodes[node.name] = torch_graph.call_function(torch_flatten, tuple(args),  dict(axis=axis), name=node.name)
 
 
+def torch_shape(x):
+    if hasattr(x, 'shape'):
+        return x.shape
+    return len(x)
+
 def add_shape_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert len(node.inputs) == 1, f'{node.name} with operator {node.op} should have 1 input, but got {len(node.inputs)}'
     types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
-    torch_nodes[node.name] = torch_graph.call_function(getattr, (args[0],'shape'), name=node.name)
+    torch_nodes[node.name] = torch_graph.call_function(torch_shape, tuple(args), name=node.name)
 
 def add_size_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert len(node.inputs) == 1, f'{node.name} with operator {node.op} should have 1 input, but got {len(node.inputs)}'

@@ -52,8 +52,11 @@ def add_is_inf_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  t
     else:
         torch_nodes[node.name] = torch_graph.call_function(torch_isinf, tuple(args), dict(det_neg=det_neg, det_pos=det_pos), name=node.name)
 
+def torch_nonzero(x):
+    return torch.nonzero(x).transpose(0,1)
+
 def add_non_zero_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert len(node.inputs) == 1, f'{node.name} with operator {node.op} should have 1 input, but got {len(node.inputs)}'
     types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module, t) for inp,t in zip(node.inputs, types)]
-    torch_nodes[node.name] = torch_graph.call_function(torch.nonzero, tuple(args), name=node.name)
+    torch_nodes[node.name] = torch_graph.call_function(torch_nonzero, tuple(args), name=node.name)

@@ -45,7 +45,9 @@ def add_scatter_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  
 
 def torch_scatter_elements(x:torch.Tensor, indices:torch.Tensor, updates:torch.Tensor, axis=0, reduce='none'):
     # Use torch.scatter which is the direct equivalent
-    return torch.scatter(x, axis,indices, updates, reduce)
+    if reduce is None or reduce == 'none':
+        return torch.scatter(x, axis,indices, updates)
+    return torch.scatter(x, axis,indices, updates, reduce=reduce)
 
 def add_scatter_elements_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert len(node.inputs) == 3, f'{node.name} with operator {node.op} should have 3 inputs, but got {len(node.inputs)}'
@@ -70,7 +72,7 @@ def torch_np_index(shape):
 def torch_scatter_nd(data:torch.Tensor, indices:torch.Tensor, updates:torch.Tensor, reduce='none'):
     # Handle batch dimensions
     output = data.clone()
-    indices = [indices[:, i] for i in range(indices.shape[1])]
+    indices = tuple([indices[..., i].long() for i in range(indices.shape[-1])])
     
     # Apply the update
     if reduce is None or reduce == 'none':
@@ -88,7 +90,7 @@ def add_scatter_nd_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph
     assert len(node.inputs) == 3, f'{node.name} with operator {node.op} should have 3 inputs, but got {len(node.inputs)}'
     types = [torch.nn.Parameter, torch.Tensor, torch.Tensor]
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
-    reduce = node.attrs.get('reduction', 0)
+    reduce = node.attrs.get('reduction', 'none')
     torch_nodes[node.name] = torch_graph.call_function(torch_scatter_nd, tuple(args),  dict(reduce=reduce), name=node.name)
 
 def add_tensor_scatter_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):

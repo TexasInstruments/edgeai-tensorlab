@@ -26,6 +26,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import onnx.shape_inference
 import onnxruntime
 import numpy as np
 import torch
@@ -33,11 +34,16 @@ import onnxsim
 import onnx
 import onnx_graphsurgeon as gs
 import os
+import yaml
 
 from edgeai_onnx2torchmodel.onnx2pytorch import convert
+model_zoo_path = '/data/ssd/files/a0507161/edgeai/edgeai-modelzoo/models/'
+exp_path = './workdir/onnx2onnx_test/modelzoo'
 
-def add_all_output(model_path):
+def add_all_output(model_path, output_path=None):
     model = onnx.load(model_path)
+    model = onnx.shape_inference.infer_shapes(model)
+    output_path = output_path or os.path.dirname(model_path)
     graph = gs.import_onnx(model)
     #%%
     for node in graph.nodes:
@@ -49,8 +55,9 @@ def add_all_output(model_path):
             graph.outputs.append(out)
     #%%
     try:
+        os.makedirs(output_path, exist_ok=True)
         model = gs.export_onnx(graph)
-        output_path = model_path.replace('.onnx', '/all.onnx')
+        output_path = os.path.join(output_path, os.path.basename(model_path).replace('.onnx', '_all.onnx'))
         onnx.save_model(model, output_path)
     except Exception as e:
         print(f"Failed to add all outputs to model's output because of error {e}")
@@ -62,6 +69,7 @@ x = None
 def main(args=None, inps=None):
     import argparse
     parser = argparse.ArgumentParser()
+    parser.add_argument('model_name', type=str, help='Path to ONNX model')
     parser.add_argument('model_path', type=str, help='Path to ONNX model')
     parser.add_argument('--all_output' ,'-a', action='store_true', help='to export model with outputs of all nodes')
     parser.add_argument('--export_txts' ,'-e', action='store_true', help='to export error txt')
@@ -72,14 +80,17 @@ def main(args=None, inps=None):
     parser.add_argument('--simplify','-s', action='store_true', help='to simplify model')
     
     args = parser.parse_args() if args is None else parser.parse_args(args)
-    directory = os.path.splitext(args.model_path)[0]
+    directory = os.path.join(exp_path, args.model_name.replace('-','_'))
+    model_path = args.model_path
     os.makedirs(directory, exist_ok=True)
     if args.all_output:
-        args.model_path = add_all_output(args.model_path)
+        model_path = add_all_output(model_path, directory)
+        # onnx.shape_inference.infer_shapes_path(model_path, model_path)
     sess_options = onnxruntime.SessionOptions()
     sess_options.graph_optimization_level = onnxruntime.GraphOptimizationLevel.ORT_DISABLE_ALL
-    torch_model = convert(args.model_path, args.for_training)
-    session1 = onnxruntime.InferenceSession(args.model_path, sess_options, providers=['CPUExecutionProvider'])
+    torch_model = convert(model_path, args.for_training)
+    return torch_model,None
+    session1 = onnxruntime.InferenceSession(model_path, sess_options, providers=['CPUExecutionProvider'])
     torch_model.eval()
     if args.export_txts:
         with open(os.path.join(directory,'graph.txt'), 'w') as f:
@@ -117,7 +128,7 @@ def main(args=None, inps=None):
     if args.cuda:
         torch_model = torch_model.cpu()
         inputs = [inp.cpu() for inp in inputs]
-    new_path = os.path.join(os.path.dirname(args.model_path), 'converted', os.path.basename(args.model_path))
+    new_path = os.path.join(directory, os.path.basename(model_path))
     torch.onnx.export(torch_model, tuple(inputs),new_path)
     model = onnx.load(new_path)
     if args.simplify:
@@ -164,51 +175,107 @@ def main(args=None, inps=None):
 
 if __name__ == '__main__':
     model_names = []
-    for model_name in os.listdir('./workdir/onnx2onnx_test'):
-        if model_name.endswith('.onnx'):
-            model_names.append(model_name)
+    config_path = os.path.join(model_zoo_path, 'configs.yaml')
+    config = yaml.load(open(config_path, 'r'), Loader=yaml.Loader)['configs']
+    status = {}
+    failed = ['od-8920']
+    failed = [
+        # 'cl-6508', # QDQ
+        # 'cl-6507', QDQ
+        # 'od-8950', # use actual input
+        # 'od-8080', # use actual input
+    ]
+    total_count = 0
+    model_names = sorted(config.keys())
+    # model_names = failed
     for model_name in model_names:
-        print(model_name)
-        torch_model = main([os.path.join('./workdir/onnx2onnx_test',f'{model_name}'), '-e','-s', '-t'],)[0]
-        model_name = model_name[:-5]
-        directory = f'./workdir/onnx2onnx_test/{model_name}'
-        example_inputs = []
-        for inp, info in torch_model.input_info.items():
-            example_inputs.append(torch.rand(info['shape'], dtype=info['dtype']))
+    # for model_name, path in config.items():
+        path = config[model_name]
+        path = os.path.join(model_zoo_path, path)
+        if not os.path.exists(path):
+            print(f"Config {path} of Model {model_name} does not exist")
+            status[model_name] = "yaml not found"
+            continue
+        model_config = yaml.load(open(path, 'r'), Loader=yaml.Loader)
+        model_path = model_config['session']['model_path']
+        model_path = os.path.join(os.path.dirname(path), model_path)
+        if not os.path.exists(model_path):
+            print(f"Model {model_path} does not exist")
+            status[model_name] = 'onnx not found'
+            continue
+        if not model_path.endswith('.onnx'):
+            continue
+        # else:
+        try:
+            print("#######################################################")
+            print(model_name)
+            total_count += 1
+            torch_model = main([model_name, model_path, '-e','-s', '-t',],)[0]
+            example_inputs = []
+            for inp, info in torch_model.input_info.items():
+                if info['dtype'] not in [ torch.int8, torch.uint8, torch.int16, torch.uint16, torch.int32, torch.uint32, torch.int64, torch.uint64,]:
+                    example_inputs.append(torch.rand(info['shape'], dtype=info['dtype']))
+                else:
+                    example_inputs.append(torch.randint(low=0, high=255, size=info['shape'], dtype=info['dtype']))
+            torch_model.eval()
+            outputs1 = torch_model(*example_inputs)
+            # pt2e_model = torch.export.export(torch_model, tuple(example_inputs)).module()
+            # pt2e_model.eval()
+            # outputs2 = pt2e_model(*example_inputs)
+            print(f"Successfully converted model {model_name}")
+            status[model_name] = 'passed'
+        except Exception as e:
+            print(f"Failed to convert model {model_name} because of error {e}")
+            status[model_name] = 'failed'
+            continue
+        # Step 1. export
+        # model_name = model_name[:-5]
+        
+        # directory = f'./workdir/onnx2onnx_test/{model_name}'
             
-        ep = torch.export.export(torch_model, tuple(example_inputs))
-        pt2e_model = ep.module()
-        # torch.export.save()
-        with open(os.path.join(directory,'pt2e_model_graph.txt'), 'w') as f:
-            f.write(str(pt2e_model.graph))
-        with open(os.path.join(directory,'pt2e_model_code.txt'), 'w') as f:
-            f.write(pt2e_model.code)
+        # ep = torch.export.export(torch_model, tuple(example_inputs))
+        # pt2e_model = ep.module()
+        # # torch.export.save()
+        # with open(os.path.join(directory,'pt2e_model_graph.txt'), 'w') as f:
+        #     f.write(str(pt2e_model.graph))
+        # with open(os.path.join(directory,'pt2e_model_code.txt'), 'w') as f:
+        #     f.write(pt2e_model.code)
+        # # break
+        # # Step 2. quantization
+        # from torchao.quantization.pt2e.quantize_pt2e import (prepare_qat_pt2e, convert_pt2e,)
+        # # install executorch: `pip install executorch`
+        # from executorch.backends.xnnpack.quantizer.xnnpack_quantizer import (get_symmetric_quantization_config, XNNPACKQuantizer,)
+
+
+        # # backend developer will write their own Quantizer and expose methods to allow
+        # # users to express how they
+        # # want the model to be quantized
+        # quantizer = XNNPACKQuantizer().set_global(get_symmetric_quantization_config(is_per_channel=True, is_qat=True))
+        # student_model = prepare_qat_pt2e(pt2e_model, quantizer)
+        
+        
+        # with open(os.path.join(directory,'student_model_graph.txt'), 'w') as f:
+        #     f.write(str(student_model.graph))
+        # with open(os.path.join(directory,'student_model_code.txt'), 'w') as f:
+        #     f.write(student_model.code)
+
+
+        # student_model1 = convert_pt2e(student_model)
+        # with open(os.path.join(directory,'student_model1_graph.txt'), 'w') as f:
+        #     f.write(str(student_model1.graph))
+        # with open(os.path.join(directory,'student_model1_code.txt'), 'w') as f:
+        #     f.write(student_model1.code)
         # break
-        # Step 2. quantization
-        from torchao.quantization.pt2e.quantize_pt2e import (prepare_qat_pt2e, convert_pt2e,)
-        # install executorch: `pip install executorch`
-        from executorch.backends.xnnpack.quantizer.xnnpack_quantizer import (get_symmetric_quantization_config, XNNPACKQuantizer,)
-
-
-        # backend developer will write their own Quantizer and expose methods to allow
-        # users to express how they
-        # want the model to be quantized
-        quantizer = XNNPACKQuantizer().set_global(get_symmetric_quantization_config(is_per_channel=True, is_qat=True))
-        student_model = prepare_qat_pt2e(pt2e_model, quantizer)
-        
-        
-        with open(os.path.join(directory,'student_model_graph.txt'), 'w') as f:
-            f.write(str(student_model.graph))
-        with open(os.path.join(directory,'student_model_code.txt'), 'w') as f:
-            f.write(student_model.code)
-
-
-        student_model1 = convert_pt2e(student_model)
-        with open(os.path.join(directory,'student_model1_graph.txt'), 'w') as f:
-            f.write(str(student_model1.graph))
-        with open(os.path.join(directory,'student_model1_code.txt'), 'w') as f:
-            f.write(student_model1.code)
-        break
     # output1 = new_model(inp)
     pass
     # main(['test.onnx', '-e'])
+    count = 0
+    failed = []
+    for k, v in status.items():
+        # print(f'\t\t{k},# {"passed" if v else "failed"}')
+        if v != 'failed': 
+            continue
+        failed.append(k)
+        count += 1
+    print('failed',count, 'out of', total_count)
+    print(failed)
