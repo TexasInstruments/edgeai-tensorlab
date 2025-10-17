@@ -260,10 +260,15 @@ class PostProcessTransforms(utils.TransformsCompose):
     ###############################################################
     # To REVISIT
     # Any necessary visualization funtions will be addeed in bev_detection.py
-    def get_transform_bev_detection_base(self, data_layout=constants.NCHW):
+    def get_transform_bev_detection_base(self, queue_length=0, data_layout=constants.NCHW):
         transforms = None
+
         try:
-            postprocess_bev_detection_base = [Bbox3d2result()]
+            if queue_length > 0:
+                postprocess_bev_detection_base = [UpdateTemporalQueue(queue_length=queue_length),
+                                                  Bbox3d2result()]
+            else:
+                postprocess_bev_detection_base = [Bbox3d2result()]
         except Exception as message:
             print(f'BEV postprocess could not be created: {message}')
 
@@ -274,8 +279,7 @@ class PostProcessTransforms(utils.TransformsCompose):
                                                                 score_threshold=0.5,
                                                                 mode='frame')]
             except Exception as message:
-                print(f'BEV postprocess could not be created: {message}')    
-
+                print(f'BEV postprocess could not be created: {message}')
 
         try:
             transforms = PostProcessTransforms(None, postprocess_bev_detection_base,
@@ -322,7 +326,7 @@ class PostProcessTransforms(utils.TransformsCompose):
         transforms = None
         try:
             postprocess_fcos3d = [MultiClassNMS(),
-                                    Bbox3d2result()]
+                                  Bbox3d2result()]
         except Exception as message:
             print(f'BEV postprocess could not be created: {message}')
 
@@ -345,14 +349,24 @@ class PostProcessTransforms(utils.TransformsCompose):
 
         return transforms
 
-    def get_transform_bev_detection_fastbev(self, enable_nms=True, data_layout=constants.NCHW):
+    def get_transform_bev_detection_fastbev(self, enable_nms=True, queue_length=0, data_layout=constants.NCHW):
         transforms = None
+
+        postprocess_bev_detection_fastbev = []
+        if enable_nms:
+            try:
+                postprocess_bev_detection_fastbev += [MultiClassScaleNMS()]
+            except Exception as message:
+                print(f'BEV postprocess could not be created: {message}')
+
+        if queue_length > 0:
+            try:
+                postprocess_bev_detection_fastbev += [UpdateTemporalQueue(queue_length=queue_length)]
+            except Exception as message:
+                print(f'BEV postprocess could not be created: {message}')
+
         try:
-            if enable_nms:
-                postprocess_bev_detection_fastbev = [MultiClassScaleNMS(),
-                                                    Bbox3d2result()]
-            else:
-                postprocess_bev_detection_fastbev = [Bbox3d2result()]
+            postprocess_bev_detection_fastbev += [Bbox3d2result()]
         except Exception as message:
             print(f'BEV postprocess could not be created: {message}')
 

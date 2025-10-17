@@ -128,7 +128,8 @@ class PreProcessTransforms(utils.TransformsCompose):
         return transforms_list
     """
 
-    def get_transform_bev_petr(self, imsize=256, resize=256, crop=224, featsize=(20, 50), data_layout=constants.NCHW, reverse_channels=False,
+    def get_transform_bev_petr(self, imsize=256, resize=256, crop=224, featsize=(20, 50), queue_length=0,
+                        data_layout=constants.NCHW, reverse_channels=False,
                         backend='cv2', interpolation=cv2.INTER_AREA, resize_with_pad=False, pad_color=0):
         transforms_list = [
             BEVSensorsRead(imsize, resize, crop),
@@ -136,7 +137,13 @@ class PreProcessTransforms(utils.TransformsCompose):
             ImageResize(resize, interpolation=interpolation, resize_with_pad=resize_with_pad, pad_color=pad_color),
             ImageCrop(crop),
             ImageToNPTensor4D(data_layout=data_layout),
-            GetPETRGeometry(crop, featsize)
+        ]
+
+        if queue_length > 0:
+            transforms_list += [SetupTemporalQueue(queue_length=queue_length)]
+        
+        transforms_list += [
+            GetPETRGeometry(crop, featsize),
         ]
 
         transforms = PreProcessTransforms(None, transforms_list,
@@ -166,7 +173,8 @@ class PreProcessTransforms(utils.TransformsCompose):
         return transforms
 
 
-    def get_transform_bev_bevformer(self, imsize=256, resize=256, pad=224, data_layout=constants.NCHW, reverse_channels=False,
+    def get_transform_bev_bevformer(self, imsize=256, resize=256, pad=224, bev_size=(50, 50), pc_range=(-51.2, -51.2, -5.0, 51.2, 51.2, 3.0),
+                        queue_length=0, data_layout=constants.NCHW, reverse_channels=False,
                         backend='cv2', interpolation=cv2.INTER_AREA, resize_with_pad=False, pad_color=0):
         transforms_list = [
             BEVSensorsRead(imsize, resize, (0, 0, resize[1]+pad[2], resize[0]+pad[3])),
@@ -174,7 +182,13 @@ class PreProcessTransforms(utils.TransformsCompose):
             ImageResize(resize, interpolation=interpolation, resize_with_pad=resize_with_pad, pad_color=pad_color),
             ImagePad(pad),
             ImageToNPTensor4D(data_layout=data_layout),
-            GetBEVFormerGeometry(pad)
+        ]
+
+        if queue_length > 0:
+            transforms_list += [SetupTemporalQueue(queue_length=queue_length)]
+
+        transforms_list += [
+            GetBEVFormerGeometry(bev_size, pc_range),
         ]
 
         transforms = PreProcessTransforms(None, transforms_list,
@@ -205,7 +219,8 @@ class PreProcessTransforms(utils.TransformsCompose):
 
 
 
-    def get_transform_bev_fastbev(self, imsize=256, resize=256, crop=224, data_layout=constants.NCHW, reverse_channels=False,
+    def get_transform_bev_fastbev(self, imsize=256, resize=256, crop=224, queue_length=0,
+                        data_layout=constants.NCHW, reverse_channels=False,
                         backend='cv2', interpolation=cv2.INTER_AREA, resize_with_pad=False, pad_color=0):
         transforms_list = [
             BEVSensorsRead(imsize, resize, crop),
@@ -213,7 +228,64 @@ class PreProcessTransforms(utils.TransformsCompose):
             ImageResize(resize, interpolation=interpolation, resize_with_pad=resize_with_pad, pad_color=pad_color),
             ImageCrop(crop),
             ImageToNPTensor4D(data_layout=data_layout),
+        ]
+
+        if queue_length > 0:
+            transforms_list += [SetupTemporalQueue(queue_length=queue_length)]
+
+        transforms_list += [
             GetFastBEVGeometry(crop)
+        ]
+
+        transforms = PreProcessTransforms(None, transforms_list,
+                                          imsize=imsize, resize=resize, crop=crop,
+                                          data_layout=data_layout, reverse_channels=reverse_channels,
+                                          backend=backend, interpolation=interpolation,
+                                          resize_with_pad=resize_with_pad, pad_color=pad_color)
+        return transforms
+
+    def get_transform_bev_streampetr(self, imsize=256, resize=256, crop=224, queue_length=0,
+                        data_layout=constants.NCHW, reverse_channels=False,
+                        backend='cv2', interpolation=cv2.INTER_AREA, resize_with_pad=False, pad_color=0):
+        transforms_list = [
+            BEVSensorsRead(imsize, resize, crop),
+            ImageRead(backend=backend, bgr_to_rgb=True),
+            ImageResize(resize, interpolation=interpolation, resize_with_pad=resize_with_pad, pad_color=pad_color),
+            ImageCrop(crop),
+            ImageToNPTensor4D(data_layout=data_layout),
+        ]
+
+        if queue_length > 0:
+            transforms_list += [SetupTemporalQueue(queue_length=queue_length)]
+
+        transforms_list += [
+            GetStreamPETRGeometry()
+        ]
+
+        transforms = PreProcessTransforms(None, transforms_list,
+                                          imsize=imsize, resize=resize, crop=crop,
+                                          data_layout=data_layout, reverse_channels=reverse_channels,
+                                          backend=backend, interpolation=interpolation,
+                                          resize_with_pad=resize_with_pad, pad_color=pad_color)
+        return transforms
+
+
+    def get_transform_bev_far3d(self, imsize=256, resize=256, crop=224, queue_length=0,
+                        data_layout=constants.NCHW, reverse_channels=False,
+                        backend='cv2', interpolation=cv2.INTER_AREA, resize_with_pad=False, pad_color=0):
+        transforms_list = [
+            BEVSensorsRead(imsize, resize, crop),
+            ImageRead(backend=backend, bgr_to_rgb=False),
+            ImageResize(resize, interpolation=interpolation, resize_with_pad=resize_with_pad, pad_color=pad_color),
+            ImageCrop(crop),
+            ImageToNPTensor4D(data_layout=data_layout),
+        ]
+
+        if queue_length > 0:
+            transforms_list += [SetupTemporalQueue(queue_length=queue_length)]
+
+        transforms_list += [
+            GetFar3DGeometry()
         ]
 
         transforms = PreProcessTransforms(None, transforms_list,
