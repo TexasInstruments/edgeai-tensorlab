@@ -493,7 +493,7 @@ def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img, data_li
                 gt_2dlabels.append(info['bbox_label'])
                 center2d.append(info['center_2d'])
                 depths.append(info['depth'])
-                if info['bbox_3d_isvalid']:
+                if not info['bbox_3d_isvalid']:
                     gt_2dbboxes_ignore.append(info['bbox'])
             gt_2dbboxes_cams.append(np.array(gt_2dbboxes, dtype = np.float32))
             gt_3dbboxes_cams.append(np.array(gt_3dbboxes_cam, dtype = np.float32))

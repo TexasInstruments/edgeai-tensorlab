@@ -4,8 +4,7 @@ from os import path as osp
 import os
 import numpy as np
 import cv2
-from mmengine import print_log
-import mmcv
+from mmengine import print_log, load
 
 from tools.dataset_converters import indoor_converter as indoor
 from tools.dataset_converters import kitti_converter as kitti
@@ -29,7 +28,7 @@ def get_kmeans_anchor(
     dataset="nuscenes",
     verbose=False,
 ):
-    data = mmcv.load(ann_file, file_format="pkl")
+    data = load(ann_file, file_format="pkl")
     gt_boxes = []
     for info in data["data_list"]:
         for instance in info['instances']:
