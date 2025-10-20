@@ -421,11 +421,16 @@ def update_nuscenes_infos(pkl_path, out_dir,
         temp_data_info['sample_idx'] = i
 
         # for bevFormer
-        temp_data_info['frame_idx'] = ori_info_dict['frame_idx']
-        temp_data_info['prev'] = ori_info_dict['prev']
-        temp_data_info['next'] = ori_info_dict['next']
-        temp_data_info['can_bus'] = ori_info_dict['can_bus']
-        temp_data_info['scene_token'] = ori_info_dict['scene_token']
+        if 'frame_idx' in ori_info_dict:
+            temp_data_info['frame_idx'] = ori_info_dict['frame_idx']
+        if 'prev' in ori_info_dict:
+            temp_data_info['prev'] = ori_info_dict['prev']
+        if 'next' in ori_info_dict:
+            temp_data_info['next'] = ori_info_dict['next']
+        if 'can_bus' in ori_info_dict:
+            temp_data_info['can_bus'] = ori_info_dict['can_bus']
+        if 'scene_token' in ori_info_dict:
+            temp_data_info['scene_token'] = ori_info_dict['scene_token']
 
         # for BEVDet
         if enable_bevdet is True and 'ann_infos' in ori_info_dict.keys():
