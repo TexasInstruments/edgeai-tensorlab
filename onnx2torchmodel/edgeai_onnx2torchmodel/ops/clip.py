@@ -40,7 +40,13 @@ def add_clip_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  tor
         kwargs['min'] = node.attrs['min']
     if 'max' in node.attrs:
         kwargs['max'] = node.attrs['max']
-    torch_nodes[node.name] = torch_graph.call_function(torch.clip, tuple(args), kwargs, name=node.name)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, torch.clip, args, kwargs)
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch.clip, tuple(args), kwargs, name=node.name)
     for attr in node.attrs:
         if attr in kwargs:
             continue

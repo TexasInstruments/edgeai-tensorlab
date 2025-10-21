@@ -33,26 +33,30 @@ from . import utils
 
 def torch_unsqueeze(x, dim):
     if isinstance(dim,torch.Tensor):
-        dim = dim.tolist()
+        dim = dim.cpu().tolist()
+
     if not isinstance(x, torch.Tensor):
         x = torch.tensor(x)
+
     if isinstance(dim, (list, tuple)):
         if len(dim) == 1:
-            return torch.unsqueeze(x, dim[0])
-        shape =list(x.shape)
-        output_rank = len(shape)+len(dim)
-        output_shape = [0]*output_rank
-        for d in dim:
-            output_shape[d] = 1
-        j=0
-        for i in range(output_rank):
-            if output_shape[i] == 1:
-                continue
-            output_shape[i] = shape[j]
-            j+=1
-        return torch.reshape(x, output_shape)
+            result = torch.unsqueeze(x, dim[0])
+        else:
+            shape =list(x.shape)
+            output_rank = len(shape)+len(dim)
+            output_shape = [0]*output_rank
+            for d in dim:
+                output_shape[d] = 1
+            j=0
+            for i in range(output_rank):
+                if output_shape[i] == 1:
+                    continue
+                output_shape[i] = shape[j]
+                j+=1
+            result = torch.reshape(x, output_shape)
     else:
-        return torch.unsqueeze(x, dim)
+        result = torch.unsqueeze(x, dim)
+    return result
 
 def add_unsqueeze_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert 1<= len(node.inputs) <= 2, f'{node.name} with operator {node.op} should have between 1 and 2 inputs, but got {len(node.inputs)}'
@@ -61,5 +65,10 @@ def add_unsqueeze_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,
     kwargs = dict()
     if 'axes' in node.attrs:
         kwargs['dim'] = node.attrs['axes'] 
-
-    torch_nodes[node.name] = torch_graph.call_function(torch_unsqueeze, tuple(args),  kwargs, name=node.name)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, torch_unsqueeze, args, kwargs,)
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch_unsqueeze, tuple(args),  kwargs, name=node.name)

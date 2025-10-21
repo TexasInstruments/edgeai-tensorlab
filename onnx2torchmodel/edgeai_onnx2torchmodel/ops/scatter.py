@@ -41,7 +41,13 @@ def add_scatter_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  
     types = [torch.nn.Parameter, torch.Tensor, torch.Tensor]
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     axis = node.attrs.get('axis', 0)
-    torch_nodes[node.name] = torch_graph.call_function(torch_scatter, tuple(args),  dict(axis=axis), name=node.name)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, torch_scatter, args, dict(axis=axis),)
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch_scatter, tuple(args),  dict(axis=axis), name=node.name)
 
 def torch_scatter_elements(x:torch.Tensor, indices:torch.Tensor, updates:torch.Tensor, axis=0, reduce='none'):
     # Use torch.scatter which is the direct equivalent
@@ -55,7 +61,13 @@ def add_scatter_elements_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     axis = node.attrs.get('axis', 0)
     reduce = node.attrs.get('reduction', 'none')
-    torch_nodes[node.name] = torch_graph.call_function(torch_scatter_elements, tuple(args),  dict(axis=axis, reduce=reduce), name=node.name)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, torch_scatter_elements, args, dict(axis=axis, reduce=reduce))
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch_scatter_elements, tuple(args),  dict(axis=axis, reduce=reduce), name=node.name)
 
 reduce_func_dict = {
     'mul': torch.mul,
@@ -91,7 +103,13 @@ def add_scatter_nd_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph
     types = [torch.nn.Parameter, torch.Tensor, torch.Tensor]
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     reduce = node.attrs.get('reduction', 'none')
-    torch_nodes[node.name] = torch_graph.call_function(torch_scatter_nd, tuple(args),  dict(reduce=reduce), name=node.name)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, torch_scatter_nd, args, dict(reduce=reduce))
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch_scatter_nd, tuple(args),  dict(reduce=reduce), name=node.name)
 
 def add_tensor_scatter_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     raise ValueError(f'{node.name} with operator {node.op} is not implemented')

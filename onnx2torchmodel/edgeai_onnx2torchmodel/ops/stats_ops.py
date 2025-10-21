@@ -46,6 +46,11 @@ def add_stat_op_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  
     assert node.op in onnx_2_torch, f'{node.name} with operator {node.op} is not implemented'
     func = onnx_2_torch[node.op]
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module, torch.Tensor) for inp in node.inputs]
-    torch_nodes[node.name] = torch_graph.call_function(apply_func_to_all_tensors, (func, args), name=node.name)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, apply_func_to_all_tensors )
+        torch_module.add_module(node.name, module)
+        torch_nodes[node.name] = torch_graph.call_module(node.name, (func, args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(apply_func_to_all_tensors, (func, args), name=node.name)
     
 

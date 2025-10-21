@@ -37,14 +37,14 @@ def torch_cast(x, dtype):
     if isinstance(x, torch.Tensor):
         return x.to(dtype)
     # if isinstance(x, (list, tuple)):
-    return torch.tensor(x).to(dtype).tolist()
+    return torch.tensor(x).to(dtype)
     raise NotImplementedError
 
 def torch_cast_like(x, y):
     if isinstance(x, torch.Tensor):
-        return x.to(y.dtype)
+        return x.to(y.dtype).to(y.device)
     # if isinstance(x, (list, tuple)):
-    return torch.tensor(x).to(y.dtype).tolist()
+    return torch.tensor(x).to(y.dtype)
     raise NotImplementedError
 
 # TODO add support for round and saturate
@@ -56,7 +56,13 @@ def add_cast_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  tor
     round_mode = node.attrs.get('rounding_mode','up')
     saturate = node.attrs.get('saturate', 1) == 1
     dtype = utils.onnx_2_torch_type_mapping[dtype]
-    torch_nodes[node.name] = torch_graph.call_function(torch_cast, tuple(args),  dict(dtype=dtype), name=node.name)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, torch_cast, args, dict(dtype=dtype,))
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch_cast, tuple(args),  dict(dtype=dtype), name=node.name)
 
 def add_cast_like_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert len(node.inputs) == 2, f'{node.name} with operator {node.op} should have 2 inputs, but got {len(node.inputs)}'
@@ -64,4 +70,10 @@ def add_cast_like_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     round_mode = node.attrs.get('rounding_mode','up')
     saturate = node.attrs.get('saturate', 1) == 1
-    torch_nodes[node.name] = torch_graph.call_function(torch_cast_like, tuple(args),  name=node.name)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, torch_cast_like, args)
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch_cast_like, tuple(args),  name=node.name)

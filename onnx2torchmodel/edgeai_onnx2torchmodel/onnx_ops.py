@@ -73,7 +73,7 @@ def get_graph_info(graph:gs.Graph):
     output_info = {out.name: get_tensor_info(out) for out in outputs}
     return node_info, input_info, output_info
 
-def check_convertable(graph:gs.Graph, op_2_func_dict=None, for_training=False)-> dict:
+def check_convertable(graph:gs.Graph, op_2_func_dict=None, for_training=False, module_based=True)-> dict:
     op_2_func_dict = op_2_func_dict or basic_ops_2_func_dict
     error_dict = {}
     for node in graph.nodes:
@@ -86,6 +86,7 @@ def check_convertable(graph:gs.Graph, op_2_func_dict=None, for_training=False)->
         torch_graph = torch.fx.Graph()
         state = State()
         state.training = for_training
+        state.module_based = module_based
         state.graph = temp_graph
         root_module = torch.nn.Module()
         root_module.training = for_training
@@ -110,14 +111,14 @@ def check_convertable(graph:gs.Graph, op_2_func_dict=None, for_training=False)->
             error_dict[(node.name, node.op)] = e
     return error_dict
 
-def get_torch_graph_module(graph:gs.Graph, for_training=False):
+def get_torch_graph_module(graph:gs.Graph, for_training=False, module_based=True):
     inputs = list(graph.inputs)
     
     op_2_func_dict = basic_ops_2_func_dict.copy()
     op_2_func_dict.update(custom_add_2_torch_graph)
     
-    error_dict = check_convertable(graph, op_2_func_dict=op_2_func_dict,for_training=for_training)
-    # error_dict = None
+    error_dict = check_convertable(graph, op_2_func_dict=op_2_func_dict,for_training=for_training, module_based=module_based)
+    error_dict = None
     if error_dict:
         not_implemented = []
         for name, op in error_dict:
@@ -132,6 +133,7 @@ def get_torch_graph_module(graph:gs.Graph, for_training=False):
     state = State()
     state.graph = graph
     state.training = for_training
+    state.module_based = module_based
     torch_graph = torch.fx.Graph()
     root_module = torch.nn.Module()
     root_module.training = for_training

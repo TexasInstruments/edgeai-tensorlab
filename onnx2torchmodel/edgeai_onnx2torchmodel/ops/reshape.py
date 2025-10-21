@@ -33,7 +33,7 @@ from . import utils
 
 def torch_reshape(x, shape, allowzero=False):
     if isinstance(shape, torch.Tensor):
-        shape = shape.tolist()
+        shape = shape.cpu().tolist()
     if allowzero:
         return torch.reshape(x, shape)
     for i, s in enumerate(shape):
@@ -58,7 +58,13 @@ def add_reshape_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  
         kwargs['shape'] = node.attrs['shape']
     kwargs['allowzero'] = allowzero
 
-    torch_nodes[node.name] = torch_graph.call_function(torch_reshape, tuple(args),  kwargs, name=node.name)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, torch_reshape, args, kwargs,)
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch_reshape, tuple(args),  kwargs, name=node.name)
     for attr in node.attrs:
         if attr in kwargs:
             continue
@@ -76,22 +82,40 @@ def add_flatten_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  
     types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     axis = node.attrs.get('axis', 1)
-    torch_nodes[node.name] = torch_graph.call_function(torch_flatten, tuple(args),  dict(axis=axis), name=node.name)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, torch_flatten, args, dict(axis=axis),)
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch_flatten, tuple(args),  dict(axis=axis), name=node.name)
 
 
 def torch_shape(x):
     if hasattr(x, 'shape'):
-        return x.shape
+        return torch.tensor(x.shape).to(x.device)
     return len(x)
 
 def add_shape_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert len(node.inputs) == 1, f'{node.name} with operator {node.op} should have 1 input, but got {len(node.inputs)}'
     types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
-    torch_nodes[node.name] = torch_graph.call_function(torch_shape, tuple(args), name=node.name)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, torch_shape, args)
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch_shape, tuple(args), name=node.name)
 
 def add_size_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert len(node.inputs) == 1, f'{node.name} with operator {node.op} should have 1 input, but got {len(node.inputs)}'
     types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
-    torch_nodes[node.name] = torch_graph.call_method('numel', (args,),)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, torch.numel, args, )
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_method('numel', (args,),)

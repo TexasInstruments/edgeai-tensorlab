@@ -51,4 +51,10 @@ def add_where_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  to
     assert len(node.inputs) == 3, f'{node.name} with operator {node.op} should have 3 input, but got {len(node.inputs)}'
     types = [torch.Tensor for inp in node.inputs]
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module, t) for inp,t in zip(node.inputs, types)]
-    torch_nodes[node.name] = torch_graph.call_function(torch_where, tuple(args), name=node.name)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, torch_where, args,)
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch_where, tuple(args), name=node.name)

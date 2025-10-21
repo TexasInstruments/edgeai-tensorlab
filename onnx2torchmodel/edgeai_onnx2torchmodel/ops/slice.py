@@ -50,7 +50,7 @@ def torch_slice(x, starts, ends, axes, steps=None):
     dim = x.dim() if isinstance(x, torch.Tensor) else len(x)
     slices = [[None, None, None] for _ in range(dim)]
     x = temp or x
-    for i, axis in enumerate(axes.tolist()):
+    for i, axis in enumerate(axes.cpu().tolist()):
         slices[axis][0] = starts[i]
         slices[axis][1] = ends[i]
         slices[axis][2] = steps[i]
@@ -83,4 +83,10 @@ def add_slice_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  to
     if 'steps' in node.attrs:
         steps = node.attrs.get('steps')
         kwargs['steps'] = steps
-    torch_nodes[node.name] = torch_graph.call_function(torch_slice, tuple(args),  kwargs, name=node.name)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, torch_slice, args, kwargs,)
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch_slice, tuple(args),  kwargs, name=node.name)

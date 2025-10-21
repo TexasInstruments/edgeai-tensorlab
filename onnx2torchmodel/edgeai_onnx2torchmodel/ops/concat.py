@@ -37,9 +37,10 @@ def torch_concat(tensors, dim=0):
     if all(isinstance( t, torch.Tensor) for t in tensors):
         return torch.concatenate(tensors, dim)
     if any (isinstance( t, (list, tuple)) for t in tensors):
+        tensors = [t.cpu() if isinstance( t, torch.Tensor) else t for t in tensors]
         tensors = [t.tolist() if isinstance( t, (torch.Tensor, np.ndarray)) else t for t in tensors]
         tensors = [torch.tensor(t) for t in tensors]
-        return torch.concat(tensors, axis=dim).tolist()
+        return torch.concat(tensors, axis=dim)
     raise NotImplementedError
 
 
@@ -47,16 +48,22 @@ def add_concat_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  t
     types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     dim = node.attrs.get('axis')
-    torch_nodes[node.name] = torch_graph.call_function(torch_concat, tuple([args]),  dict(dim=dim), name=node.name)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, torch_concat, kwargs=dict(dim=dim))
+        torch_module.add_module(node.name, module)
+        # args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple([args]))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch_concat, tuple([args]),  dict(dim=dim), name=node.name)
 
 def torch_stack(tensors, dim=0):
-    if isinstance(tensors[0], torch.Tensor):
-        assert all(isinstance( t, torch.Tensor) for t in tensors)
+    if all(isinstance( t, torch.Tensor) for t in tensors):
         return torch.stack(tensors, dim)
-    if isinstance(tensors[0], (list, tuple)):
-        assert all(isinstance( t, (list, tuple)) for t in tensors)
-        tensors = [np.array(t) for t in tensors]
-        return np.stack(tensors, axis=dim).tolist()
+    if any (isinstance( t, (list, tuple)) for t in tensors):
+        tensors = [t.cpu() if isinstance( t, torch.Tensor) else t for t in tensors]
+        tensors = [t.tolist() if isinstance( t, (torch.Tensor, np.ndarray)) else t for t in tensors]
+        tensors = [torch.tensor(t) for t in tensors]
+        return torch.stack(tensors, axis=dim)
     raise NotImplementedError
 
 def add_concat_from_sequence_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
@@ -65,18 +72,30 @@ def add_concat_from_sequence_2_torch_graph(state, node:gs.Node, torch_graph:torc
     dim = node.attrs.get('axis')
     new_axis = node.attrs.get('new_axis', 0) == 1
     func = torch_stack if new_axis else torch_concat
-    torch_nodes[node.name] = torch_graph.call_function(func, tuple([args]),  dict(dim=dim), name=node.name)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, func, kwargs=dict(dim=dim))
+        torch_module.add_module(node.name, module)
+        # args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple([args]))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(func, tuple([args]),  dict(dim=dim), name=node.name)
 
 def torch_expand(x:torch.Tensor, shape):
     if isinstance(shape, torch.Tensor):
         shape = shape.int().tolist()
-    return x*torch.ones(shape)
+    return x*torch.ones(shape).to(x.device)
 
 def add_expand_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert len(node.inputs) == 2, f'{node.name} with operator {node.op} should have 2 inputs, but got {len(node.inputs)}'
     types = [torch.nn.Parameter, list]
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
-    torch_nodes[node.name] = torch_graph.call_function(torch_expand, tuple(args),   name=node.name)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, torch_expand, args, )
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch_expand, tuple(args),   name=node.name)
 
 
 def torch_split(input, split, dim=0):
@@ -103,7 +122,13 @@ def add_split_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  to
     if 'num_outputs' in node.attrs:
         split= node.attrs.get('num_outputs')
         args.append(split) if len(args)<2 else None
-    torch_nodes[node.name] = torch_graph.call_function(torch_split, tuple(args),  kwargs, name=node.name)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, torch_split, args, kwargs)
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch_split, tuple(args),  kwargs, name=node.name)
 
 def torch_tile(input, dims):
     if isinstance(dims, torch.Tensor):
@@ -114,7 +139,13 @@ def add_tile_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  tor
     assert len(node.inputs) == 2, f'{node.name} with operator {node.op} should have 2 inputs, but got {len(node.inputs)}'
     types = [torch.nn.Parameter, list]
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
-    torch_nodes[node.name] = torch_graph.call_function(torch_tile, tuple(args),  name=node.name)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, torch_tile, args)
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch_tile, tuple(args),  name=node.name)
 
 def add_split_to_sequence_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     raise NotImplementedError(f"{node.name} with operator {node.op} is not implemented")

@@ -147,21 +147,21 @@ def torch_non_max_suppression(boxes: Tensor, scores: Tensor, max_output_boxes_pe
         [batch_index, class_index, box_index].
     """
     if isinstance(max_output_boxes_per_class, torch.Tensor):
-        max_output_boxes_per_class = max_output_boxes_per_class.tolist()
+        max_output_boxes_per_class = max_output_boxes_per_class.cpu().tolist()
     if isinstance(max_output_boxes_per_class, (list, tuple)):
         if len(max_output_boxes_per_class) == 1:
             max_output_boxes_per_class = max_output_boxes_per_class[0]
         else:
             raise ValueError('max_output_boxes_per_class should be an int or a list/tuple of length 1, but got {}.'.format(max_output_boxes_per_class))
     if isinstance(iou_threshold, torch.Tensor):
-        iou_threshold = iou_threshold.tolist()
+        iou_threshold = iou_threshold.cpu().tolist()
     if isinstance(iou_threshold, (list, tuple)):
         if len(iou_threshold) == 1:
             iou_threshold = iou_threshold[0]
         else:
             raise ValueError('iou_threshold should be an int or a list/tuple of length 1, but got {}.'.format(iou_threshold))
     if isinstance(score_threshold, torch.Tensor):
-        score_threshold = score_threshold.tolist()
+        score_threshold = score_threshold.cpu().tolist()
     if isinstance(score_threshold, (list, tuple)):
         if len(score_threshold) == 1:
             score_threshold = score_threshold[0]
@@ -175,4 +175,10 @@ def add_non_max_suppression_2_torch_graph(state, node:gs.Node, torch_graph:torch
     types = [torch.Tensor for inp in node.inputs]
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module, t) for inp,t in zip(node.inputs, types)]
     center_point_box = node.attrs.get('center_point_box', 0)
-    torch_nodes[node.name] = torch_graph.call_function(torch_non_max_suppression, tuple(args), dict(center_point_box=center_point_box), name=node.name)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, torch_non_max_suppression, args, dict(center_point_box=center_point_box))
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch_non_max_suppression, tuple(args), dict(center_point_box=center_point_box), name=node.name)

@@ -35,6 +35,45 @@ import numpy as np
 class Buffer(torch.Tensor):
     pass
 
+class WrappedModule(torch.nn.Module):
+    def __init__(self,onnx_op, parent_module:torch.nn.Module, func, args=None, kwargs=None,):
+        super().__init__()
+        self.onnx_op = onnx_op
+        self.func = func
+        args = args or []
+        args = list(args)
+        kwargs = kwargs or {}
+        self.args = args.copy()
+        self.arg_names = [a.name if isinstance(a, torch.fx.Node) else a for a in args]
+        self.variable_indices = [i for i, arg in enumerate(args) if isinstance(arg, torch.fx.Node) and arg.op != 'get_attr']
+        for i, arg in enumerate(self.args):
+            if isinstance(arg, torch.fx.Node) and arg.op == 'get_attr':
+                param = getattr(parent_module, arg.target)
+                if arg.target in list(parent_module.state_dict().keys()):
+                    if isinstance(param, torch.nn.Parameter):
+                        param = torch.nn.Parameter(param.data, param.requires_grad)
+                        self.register_parameter(arg.target, param)
+                    else:
+                        self.register_buffer(arg.target, param)
+                else:
+                    setattr(self, arg.target, param)
+        self.kwargs = kwargs
+    def forward(self, *args,):
+        temp_args = self.args.copy()
+        for i, arg in enumerate(temp_args):
+            if isinstance(arg, torch.fx.Node) and arg.op == 'get_attr':
+                temp_args[i] = getattr(self, arg.target)
+        if temp_args:
+            assert len(args) == len(self.variable_indices), f"Expected {len(self.variable_indices)} arguments but got {len(args)}"
+            for i, arg in  zip(self.variable_indices, args):
+                temp_args[i] = arg
+            return self.func(*temp_args, **self.kwargs)
+        else:
+            return self.func(*args, **self.kwargs)
+    
+    def __repr__(self):
+        return f"WrappedModule(func={self.func.__name__}, args = {self.arg_names},  kwargs="+ r'{' + ', '.join([f'{k} = {v}' for k, v in self.kwargs.items()]) + r'})'
+
 def get_input_from_node(inp:gs.Variable|gs.Constant, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module, attr_type:type=None, **kwargs):
     if inp.name in torch_nodes:
         return torch_nodes[inp.name]

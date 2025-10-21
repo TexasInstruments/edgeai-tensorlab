@@ -41,4 +41,10 @@ def add_bernouli_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph, 
     seed = node.attrs.get('seed', None)
     if seed is not None:
         raise NotImplementedError(f'for {node.name} with operator {node.op} : seed is not implemented')
-    torch_nodes[node.name] = torch_graph.call_function(torch.bernoulli, tuple(args),  kwargs, name=node.name)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, torch.bernoulli, args, kwargs)
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch.bernoulli, tuple(args),  kwargs, name=node.name)

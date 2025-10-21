@@ -30,12 +30,11 @@
 import torch
 import onnx_graphsurgeon as gs
 from . import utils
-
 def torch_squeeze(input, dims=None):
     if isinstance(input, (list, tuple)):
         return input[0]
     if isinstance(dims,torch.Tensor):
-        dims = dims.tolist()
+        dims = dims.cpu().tolist()
     if isinstance(dims, (list, tuple)):
         if len(dims) == 1:
             return torch.squeeze(input, dims[0])
@@ -51,4 +50,10 @@ def add_squeeze_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  
     kwargs = {}
     if 'axes' in node.attrs:
         kwargs['dims'] = node.attrs['axes']
-    torch_nodes[node.name] = torch_graph.call_function(torch_squeeze, tuple(args), kwargs, name=node.name)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, torch_squeeze, args, kwargs,)
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch_squeeze, tuple(args), kwargs, name=node.name)

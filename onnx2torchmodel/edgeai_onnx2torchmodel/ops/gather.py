@@ -56,7 +56,13 @@ def add_gather_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  t
             args[1] = getattr(torch_module, args[1].target)
             args[1] = args[1].cpu().tolist() # TODO: TBD either to make it fixed
     axis = node.attrs.get('axis', 0)
-    torch_nodes[node.name] = torch_graph.call_function(torch_gather, tuple(args),  dict(axis=axis), name=node.name)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, torch_gather, args, dict(axis=axis),)
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch_gather, tuple(args),  dict(axis=axis), name=node.name)
 
 def torch_gather_elements(x:torch.Tensor, indices:torch.Tensor, axis=0):
     # Handle negative axis
@@ -71,7 +77,13 @@ def add_gather_elements_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.
     types = [torch.nn.Parameter, torch.Tensor]
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     axis = node.attrs.get('axis', 0)
-    torch_nodes[node.name] = torch_graph.call_function(torch_gather_elements, tuple(args),  dict(axis=axis), name=node.name)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, torch_gather_elements, args, dict(axis=axis),)
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch_gather_elements, tuple(args),  dict(axis=axis), name=node.name)
 
 def torch_gather_nd(data:torch.Tensor, indices:torch.Tensor, batch_dims=0):
     # Handle batch dimensions
@@ -105,4 +117,10 @@ def add_gather_nd_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,
     types = [torch.nn.Parameter, torch.Tensor]
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     batch_dims = node.attrs.get('batch_dims', 0)
-    torch_nodes[node.name] = torch_graph.call_function(torch_gather_nd, tuple(args),  dict(batch_dims=batch_dims), name=node.name)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, torch_gather_nd, args, dict(batch_dims=batch_dims),)
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch_gather_nd, tuple(args),  dict(batch_dims=batch_dims), name=node.name)

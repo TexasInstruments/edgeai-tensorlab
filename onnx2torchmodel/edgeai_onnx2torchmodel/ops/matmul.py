@@ -45,7 +45,14 @@ def add_matmul_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  t
         torch_module.add_module(node.name, m)
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args[0:1]),)
     else:        
-        torch_nodes[node.name] = torch_graph.call_function(torch.matmul, tuple(args),  name=node.name)
+        if state.module_based:
+            module = utils.WrappedModule(node.op, torch_module, torch.matmul, args)
+            torch_module.add_module(node.name, module)
+            args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+
+            torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+        else:
+            torch_nodes[node.name] = torch_graph.call_function(torch.matmul, tuple(args),  name=node.name)
 def add_matmul_int_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     raise NotImplementedError(f"{node.name} with operator {node.op} is not implemented")
 

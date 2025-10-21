@@ -53,6 +53,7 @@ def add_custom_operator(func, operator, add_2_torch_graph=None):
     custom_add_2_torch_graph[operator] = add_2_torch_graph
     def wrapper(*args, **kwargs):
         return func(*args, **kwargs)
+    wrapper.orig_func = func
     return wrapper
 
 
@@ -63,4 +64,10 @@ def add_custom_node_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Grap
     types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     kwargs = dict(node.attrs)
-    torch_nodes[node.name] = torch_graph.call_function(custom_to_torch[node.op], tuple(args),  kwargs=kwargs, name=node.name)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, custom_to_torch[node.op], args, kwargs)
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(custom_to_torch[node.op], tuple(args),  kwargs=kwargs, name=node.name)

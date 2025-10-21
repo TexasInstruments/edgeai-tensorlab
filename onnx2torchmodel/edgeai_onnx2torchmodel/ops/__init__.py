@@ -82,7 +82,7 @@ from .rnn import *
 from .random import *
 from .stft import *
 from .scatter import *
-from .space2depth import *
+from .space_to_depth import *
 from . import utils
 
 basic_ops_2_func_dict = {

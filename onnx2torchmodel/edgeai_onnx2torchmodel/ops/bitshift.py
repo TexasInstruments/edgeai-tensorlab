@@ -40,4 +40,10 @@ def add_bitshift_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph, 
         func = torch.bitwise_right_shift
     elif direction == 'LEFT':
         func = torch.bitwise_left_shift
-    torch_nodes[node.name] = torch_graph.call_function(func, tuple(args),  name=node.name)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, func, args, )
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(func, tuple(args),  name=node.name)

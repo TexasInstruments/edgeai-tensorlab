@@ -53,5 +53,12 @@ def add_depth_to_space_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.G
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     block_size = node.attrs.get('block_size')
     mode = node.attrs.get('mode','DCR')
-    torch_nodes[node.name] = torch_graph.call_function(torch_depth_to_space, tuple(args),  dict(block_size=block_size, mode=mode), name=node.name)
+    
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, torch_depth_to_space,  args, dict(block_size=block_size, mode=mode))
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch_depth_to_space, tuple(args),  dict(block_size=block_size, mode=mode), name=node.name)
     

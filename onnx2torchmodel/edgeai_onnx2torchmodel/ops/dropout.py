@@ -65,11 +65,12 @@ def add_dropout_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  
         if len(args) == 2:
             args.append(False)
         inp, ratio, training_mode = args
-        torch_nodes[node.name+'_p'] = torch_graph.call_function(setattr,(module,'p',ratio),  name=node.name+'_p')
-        if isinstance(node.outputs[2], gs.Variable):
-            torch_nodes[node.name+'_t'] = training_mode = torch_graph.call_method('bool', (training_mode,),  )
-        torch_nodes[node.name+'_t_bool'] = torch_graph.call_function(setattr,(module,'training',training_mode),  name=node.name+'_t_bool')
-        
+        if len(node.inputs)<=2:
+            assert isinstance(node.inputs[1], gs.Constant), f'node {node.name} with operator {node.op} should have ratio as constant but got {type(node.inputs[1])}'
+        if len(node.inputs) == 3:
+            assert isinstance(node.inputs[2], gs.Constant), f'node {node.name} with operator {node.op} should have training_mode as constant but got {type(node.inputs[1])}'
+        module.p = ratio
+        module.training = training_mode
         torch_nodes[node.name] = torch_graph.call_module(node.name, (inp,),  name=node.name)
         torch_nodes[node.name].meta['seed'] = seed
     elif  state.graph.opset>=7:

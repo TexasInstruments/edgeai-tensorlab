@@ -71,9 +71,11 @@ def add_constant_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph, 
     torch_nodes[node.name] = torch_graph.get_attr(node.name)
 
 def torch_costant_of_shape(shape, value=0.0):
+    device = 'cpu'
     if isinstance(shape, torch.Tensor):
+        device = shape.device
         shape = shape.tolist()
-    return torch.ones(shape)*value
+    return torch.ones(shape).to(device)*value
 
 def add_constant_of_shape_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert 'value' in node.attrs, f'node {node.name} with op {node.op} has no value'
@@ -81,7 +83,14 @@ def add_constant_of_shape_2_torch_graph(state, node:gs.Node, torch_graph:torch.f
     if isinstance(value, gs.Constant):
         value = value.values.tolist()[0]
     shape = utils.get_input_from_node(node.inputs[0], torch_graph, torch_nodes, torch_module, list)
-    torch_nodes[node.name] = torch_graph.call_function(torch_costant_of_shape, (shape,), dict(value=value), name=node.name)
+    if state.module_based:
+        args = [shape]
+        module = utils.WrappedModule(node.op, torch_module, torch_costant_of_shape, args, dict(value=value))
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch_costant_of_shape, (shape,), dict(value=value), name=node.name)
 
 def torch_eye_like(inp, dtype=torch.float,k=0 ):
     assert (inp.dim() if isinstance(inp, torch.Tensor) else len(inp))== 2, f'eye_like only support 2D tensor, but got {inp.dim()if isinstance(inp, torch.Tensor) else len(inp)}D'
@@ -96,4 +105,10 @@ def add_eye_like_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph, 
     dtype = utils.onnx_2_torch_type_mapping[dtype]
     k = node.attrs.get('k',0)
     inp = utils.get_input_from_node(node.inputs[0], torch_graph, torch_nodes, torch_module, torch.nn.Parameter if inp.shape else torch.Tensor)
-    torch_nodes[node.name] = torch_graph.call_function(torch_eye_like, (inp,), dict(dtype=dtype,k=k), name=node.name)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, torch_eye_like, args, dict(dtype=dtype,k=k))
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch_eye_like, (inp,), dict(dtype=dtype,k=k), name=node.name)

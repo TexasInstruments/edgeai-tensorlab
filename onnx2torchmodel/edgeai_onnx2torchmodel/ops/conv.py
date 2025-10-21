@@ -101,8 +101,7 @@ def add_conv_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  tor
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     node_name = node.name+'_'+node.op        
     if state.training  and not  all(isinstance(t,c) for t,c in zip(node.inputs,(gs.Variable, gs.Constant, gs.Constant))):
-        warnings.warn(f'{node_name} with operator {node.op} is not suitable for conversion with training mode changing to inference mode.\n'
-                    'this operator should only have variable input, constant weight and bias (if any) for training.')
+        warnings.warn(f'{node_name} with operator {node.op} is not suitable for conversion with training mode changing to inference mode. this operator should only have variable input, constant weight and bias (if any) for training.')
         state.training = False
         torch_module.training = False
         changed = True
@@ -153,7 +152,13 @@ def add_conv_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  tor
             torch_module.add_module(node.name+'_pad', pad_module)
             padding_node = torch_graph.call_module(node.name+'_pad', tuple(args[0:1]))
             args[0] = padding_node
-        torch_nodes[node.name] = torch_graph.call_function(func, tuple(args),  kwargs, name=node.name)
+        if state.module_based:
+            module = utils.WrappedModule(node.op, torch_module, func, args, kwargs)
+            torch_module.add_module(node.name, module)
+            args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+            torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+        else:
+            torch_nodes[node.name] = torch_graph.call_function(func, tuple(args),  kwargs, name=node.name)
     if changed:
         state.training = True
         torch_module.training = True
@@ -281,7 +286,13 @@ def add_conv_transpose_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.G
             torch_module.add_module(node.name+'_pad', pad_module)
             padding_node = torch_graph.call_module(node.name+'_pad', tuple(args[0:1]))
             args[0] = padding_node
-        torch_nodes[node.name] = torch_graph.call_function(func, tuple(args),  kwargs, name=node.name)
+        if state.module_based:
+            module = utils.WrappedModule(node.op, torch_module, func, args, kwargs)
+            torch_module.add_module(node.name, module)
+            args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+            torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+        else:
+            torch_nodes[node.name] = torch_graph.call_function(func, tuple(args),  kwargs, name=node.name)
 
 # TODO add support for offset_group
 def deform_conv2d (x, weight, offset, bias=None, mask=None, kernl_size=None, stride=1, padding=0, dilation=1, groups=1, offset_group=1):
@@ -404,5 +415,11 @@ def add_deform_conv_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Grap
         offset_group = offset_group
     )
     
-    torch_nodes[node.name] = torch_graph.call_function(torch_deform_conv, tuple(args),  kwargs, name=node.name)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, torch_deform_conv, args, kwargs)
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch_deform_conv, tuple(args),  kwargs, name=node.name)
         

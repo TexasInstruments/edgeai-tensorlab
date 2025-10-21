@@ -30,7 +30,6 @@
 import torch
 import onnx_graphsurgeon as gs
 from . import utils
-
 def add_grid_sample_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert len(node.inputs) == 2, f'{node.name} with operator {node.op} should have 2 inputs, but got {len(node.inputs)}'
     types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
@@ -45,7 +44,13 @@ def add_grid_sample_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Grap
         align_corners=align_corners,
         padding_mode=padding_mode
     )
-    torch_nodes[node.name] = torch_graph.call_function(torch.nn.functional.grid_sample, tuple(args),  kwargs, name=node.name)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, torch.nn.functional.grid_sample, args, kwargs)
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch.nn.functional.grid_sample, tuple(args),  kwargs, name=node.name)
 
 def torch_upsample(x, sizes=None, scales=None, mode='nearest', align_corners=None):
     kwargs = dict(
@@ -111,4 +116,10 @@ def add_upsample_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph, 
         kwargs['width_scale'] = node.attrs.get('width_scale',1)
         args .append((kwargs['height_scale'],kwargs['width_scale']))
     
-    torch_nodes[node.name] = torch_graph.call_function(torch_upsample, tuple(args),  kwargs, name=node.name)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, torch_upsample, (args), kwargs)
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch_upsample, tuple(args),  kwargs, name=node.name)

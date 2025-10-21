@@ -43,4 +43,10 @@ def add_blackman_window_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.
         raise NotImplementedError(f'for {node.name} with operator {node.op} : periodic is not implemented')
     periodic = periodic == 1
     kwargs = dict(dtype=output_dtype,)
-    torch_nodes[node.name] = torch_graph.call_function(torch.blackman_window, tuple(args),  name=node.name)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, torch.blackman_window, args,)
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch.blackman_window, tuple(args),  name=node.name)

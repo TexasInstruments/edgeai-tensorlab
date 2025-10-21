@@ -36,14 +36,24 @@ def add_celu_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  tor
     assert len(node.inputs) == 1, f'{node.name} with operator {node.op} should have 1 input, but got {len(node.inputs)}'
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module, t) for inp,t in zip(node.inputs, types)]
     alpha = node.attrs.get('alpha', 1.0)
-    torch_nodes[node.name] = torch_graph.call_function(torch.nn.functional.celu, tuple(args), dict(alpha=alpha), name=node.name)
+    if state.module_based:
+        module = torch.nn.CELU(alpha=alpha)
+        torch_module.add_module(node.name, module)
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch.nn.functional.celu, tuple(args), dict(alpha=alpha), name=node.name)
 
 def add_elu_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
     assert len(node.inputs) == 1, f'{node.name} with operator {node.op} should have 1 input, but got {len(node.inputs)}'
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module, t) for inp,t in zip(node.inputs, types)]
     alpha = node.attrs.get('alpha', 1.0)
-    torch_nodes[node.name] = torch_graph.call_function(torch.nn.functional.elu, tuple(args), dict(alpha=alpha), name=node.name)
+    if state.module_based:
+        module = torch.nn.ELU(alpha=alpha)
+        torch_module.add_module(node.name, module)
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch.nn.functional.elu, tuple(args), dict(alpha=alpha), name=node.name)
 
 def torch_hardsigmoid(x, alpha=0.2, beta=0.5):
     return torch.clip(alpha*x+beta, 0, 1)
@@ -54,13 +64,29 @@ def add_hardsigmoid_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Grap
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module, t) for inp,t in zip(node.inputs, types)]
     alpha = node.attrs.get('alpha', 0.5)
     beta = node.attrs.get('beta', 0.5)
-    torch_nodes[node.name] = torch_graph.call_function(torch_hardsigmoid, tuple(args), dict(alpha=alpha, beta=beta), name=node.name)
+    if state.module_based:
+        if alpha == 1/6 and beta == 1/2:
+            module = torch.nn.Hardsigmoid()
+        else:
+            module = utils.WrappedModule(node.op, torch_module, torch_hardsigmoid, args, dict(alpha=alpha, beta=beta), )
+        torch_module.add_module(node.name, module)
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch_hardsigmoid, tuple(args), dict(alpha=alpha, beta=beta), name=node.name)
+
+def torch_hardswish(x):
+    return x*torch_hardsigmoid(x, alpha=1/6, beta=0.5)
 
 def add_hardswish_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
     assert len(node.inputs) == 1, f'{node.name} with operator {node.op} should have 1 input, but got {len(node.inputs)}'
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module, t) for inp,t in zip(node.inputs, types)]
-    torch_nodes[node.name] = torch_graph.call_function(torch_hardsigmoid, tuple(args),dict(alpha=1/6, beta=0.5), name=node.name)
+    if state.module_based:
+        module = torch.nn.Hardswish()
+        torch_module.add_module(node.name, module)
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch_hardswish, tuple(args), name=node.name)
 
 def torch_hardmax(input_tensor, axis=-1):
     if axis < 0:
@@ -86,33 +112,58 @@ def add_hardmax_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  
     assert len(node.inputs) == 1, f'{node.name} with operator {node.op} should have 1 input, but got {len(node.inputs)}'
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module, t) for inp,t in zip(node.inputs, types)]
     axis = node.attrs.get('axis', -1)
-    torch_nodes[node.name] = torch_graph.call_function(torch_hardmax, tuple(args), dict(axis=axis), name=node.name)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, torch_hardmax, args, dict(axis=axis),)
+        torch_module.add_module(node.name, module)
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch_hardmax, tuple(args), dict(axis=axis), name=node.name)
 
 def add_leakyrelu_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
     assert len(node.inputs) == 1, f'{node.name} with operator {node.op} should have 1 input, but got {len(node.inputs)}'
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module, t) for inp,t in zip(node.inputs, types)]
     alpha = node.attrs.get('alpha', 0.01)
-    torch_nodes[node.name] = torch_graph.call_function(torch.nn.functional.leaky_relu, tuple(args), dict(negative_slope=alpha), name=node.name)
+    if state.module_based:
+        module = torch.nn.LeakyReLU(negative_slope=alpha)
+        torch_module.add_module(node.name, module)
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch.nn.functional.leaky_relu, tuple(args), dict(negative_slope=alpha), name=node.name)
 
 def add_log_softmax_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
     assert len(node.inputs) == 1, f'{node.name} with operator {node.op} should have 1 input, but got {len(node.inputs)}'
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module, t) for inp,t in zip(node.inputs, types)]
     axis = node.attrs.get('axis', -1)
-    torch_nodes[node.name] = torch_graph.call_function(torch.log_softmax, tuple(args), dict(dim=axis), name=node.name)
+    if state.module_based:
+        module = torch.nn.LogSoftmax(dim=axis)
+        torch_module.add_module(node.name, module)
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch.log_softmax, tuple(args), dict(dim=axis), name=node.name)
 
 def add_mish_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
     assert len(node.inputs) == 1, f'{node.name} with operator {node.op} should have 1 input, but got {len(node.inputs)}'
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module, t) for inp,t in zip(node.inputs, types)]
-    torch_nodes[node.name] = torch_graph.call_function(torch.nn.functional.mish, tuple(args), name=node.name)
+    if state.module_based:
+        module = torch.nn.Mish()
+        torch_module.add_module(node.name, module)
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch.nn.functional.mish, tuple(args), name=node.name)
 
 def add_relu_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
     assert len(node.inputs) == 1, f'{node.name} with operator {node.op} should have 1 input, but got {len(node.inputs)}'
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module, t) for inp,t in zip(node.inputs, types)]
-    torch_nodes[node.name] = torch_graph.call_function(torch.relu, tuple(args), name=node.name)
+    if state.module_based:
+        module = torch.nn.ReLU()
+        torch_module.add_module(node.name, module)
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch.relu, tuple(args), name=node.name)
 
 def add_selu_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
@@ -121,20 +172,35 @@ def add_selu_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  tor
     alpha = node.attrs.get('alpha', 1.6732632423543772)
     gamma = node.attrs.get('gamma', 1.0507009873554805)
     assert alpha == 1.6732632423543772 and gamma == 1.0507009873554805, f'{node.name} with operator {node.op} should have alpha=1.6732632423543772 and gamma=1.0507009873554805, but got alpha={alpha} and gamma={gamma}'
-    torch_nodes[node.name] = torch_graph.call_function(torch.nn.functional.selu, tuple(args), name=node.name)
+    if state.module_based:
+        module = torch.nn.SELU()
+        torch_module.add_module(node.name, module)
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch.nn.functional.selu, tuple(args), name=node.name)
 
 def add_sigmoid_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
     assert len(node.inputs) == 1, f'{node.name} with operator {node.op} should have 1 input, but got {len(node.inputs)}'
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module, t) for inp,t in zip(node.inputs, types)]
-    torch_nodes[node.name] = torch_graph.call_function(torch.sigmoid, tuple(args), name=node.name)
+    if state.module_based:
+        module = torch.nn.Sigmoid()
+        torch_module.add_module(node.name, module)
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch.sigmoid, tuple(args), name=node.name)
 
 def add_softmax_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
     assert len(node.inputs) == 1, f'{node.name} with operator {node.op} should have 1 input, but got {len(node.inputs)}'
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module, t) for inp,t in zip(node.inputs, types)]
     axis = node.attrs.get('axis', -1)
-    torch_nodes[node.name] = torch_graph.call_function(torch.softmax, tuple(args), dict(dim=axis), name=node.name)
+    if state.module_based:
+        module = torch.nn.Softmax(dim=axis)
+        torch_module.add_module(node.name, module)
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch.softmax, tuple(args), dict(dim=axis), name=node.name)
 
 def torch_swish(x, alpha=1.0):
     return x * torch.sigmoid(x * alpha)
@@ -144,32 +210,61 @@ def add_swish_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  to
     assert len(node.inputs) == 1, f'{node.name} with operator {node.op} should have 1 input, but got {len(node.inputs)}'
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module, t) for inp,t in zip(node.inputs, types)]
     alpha = node.attrs.get('alpha', 1.0)
-    torch_nodes[node.name] = torch_graph.call_function(torch_swish, tuple(args),dict(alpha=alpha), name=node.name)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, torch_swish, args, dict(alpha=alpha), )
+        torch_module.add_module(node.name, module)
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch_swish, tuple(args),dict(alpha=alpha), name=node.name)
 
 def add_prelu_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
     assert len(node.inputs) == 2, f'{node.name} with operator {node.op} should have 2 input, but got {len(node.inputs)}'
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module, t) for inp,t in zip(node.inputs, types)]
-    torch_nodes[node.name] = torch_graph.call_function(torch.nn.functional.prelu, tuple(args), name=node.name)
+    if state.module_based:
+        module = torch.nn.PReLU()
+        weight = args[1]
+        if args[1].op == 'get_attr':
+            args = args[0:1]
+            module.weight = getattr(torch_module, weight.target)
+        torch_module.add_module(node.name, module)
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch.nn.functional.prelu, tuple(args), name=node.name)
 
 def add_softplus_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
     assert len(node.inputs) == 1, f'{node.name} with operator {node.op} should have 1 input, but got {len(node.inputs)}'
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module, t) for inp,t in zip(node.inputs, types)]
-    torch_nodes[node.name] = torch_graph.call_function(torch.nn.functional.softplus, tuple(args), name=node.name)
+    if state.module_based:
+        module = torch.nn.Softplus()
+        torch_module.add_module(node.name, module)
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch.nn.functional.softplus, tuple(args), name=node.name)
 
 def add_softsign_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
     assert len(node.inputs) == 1, f'{node.name} with operator {node.op} should have 1 input, but got {len(node.inputs)}'
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module, t) for inp,t in zip(node.inputs, types)]
-    torch_nodes[node.name] = torch_graph.call_function(torch.nn.functional.softsign, tuple(args), name=node.name)
+    if state.module_based:
+        module = torch.nn.Softsign()
+        torch_module.add_module(node.name, module)
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch.nn.functional.softsign, tuple(args), name=node.name)
 
 def add_thresholded_relu_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
     assert len(node.inputs) == 1, f'{node.name} with operator {node.op} should have 1 input, but got {len(node.inputs)}'
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module, t) for inp,t in zip(node.inputs, types)]
     alpha = node.attrs.get('alpha', 1.0)
-    torch_nodes[node.name] = torch_graph.call_function(torch.nn.functional.threshold, tuple(args, alpha,0), name=node.name)
+    if state.module_based:
+        module = torch.nn.Threshold(alpha,0)
+        torch_module.add_module(node.name, module)
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch.nn.functional.threshold, tuple(args, alpha,0), name=node.name)
 
 def add_trilu_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     types = [torch.nn.Parameter, list]
@@ -178,7 +273,11 @@ def add_trilu_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  to
     if len(args)<2:
         args = args[0],0
     upper = node.attrs.get('upper', 1)==1
-    if upper:
-        torch_nodes[node.name] = torch_graph.call_function(torch.triu, tuple(args), name=node.name)
+    func = torch.triu if upper else torch.tril
+    torch_nodes[node.name] = torch_graph.call_function( func, tuple(args), name=node.name)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, func, args )
+        torch_module.add_module(node.name, module)
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
     else:
         torch_nodes[node.name] = torch_graph.call_function(torch.tril, tuple(args), name=node.name)

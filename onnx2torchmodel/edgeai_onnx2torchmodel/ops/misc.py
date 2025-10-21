@@ -31,12 +31,31 @@ import torch
 import onnx_graphsurgeon as gs
 from . import utils
 
+def torch_range(start, end, step=1):
+    device = 'cpu'
+    if isinstance(start, torch.Tensor):
+        device = start.device
+        start = start.cpu().tolist()
+    elif isinstance(end, torch.Tensor):
+        device = end.device
+        end = end.cpu().tolist()
+    elif isinstance(step, torch.Tensor):
+        device = step.device
+        step = step.cpu().tolist()
+    return torch.arange(start, end, step, device=torch.device(device))
+
 
 def add_range_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert len(node.inputs)==3, f'{node.name} with operator {node.op} should have 3 inputs, but got {len(node.inputs)}'
     types = [list, list, list]
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module, t) for inp,t in zip(node.inputs, types)]
-    torch_nodes[node.name] = torch_graph.call_function(torch.arange, tuple(args), name=node.name)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, torch_range, args)
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch_range, tuple(args), name=node.name)
 
 def add_unique_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     raise NotImplementedError(f"{node.name} with operator {node.op} is not implemented")

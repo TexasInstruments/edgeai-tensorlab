@@ -64,16 +64,24 @@ def add_pad_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torc
         paddings = node.attrs.get('paddings')
         value = node.attrs.get('value',0.0)
         inp = utils.get_input_from_node(node.inputs[0], torch_graph,torch_nodes, torch_module, torch.nn.Parameter if inp.shape else torch.Tensor)
-        torch_nodes[node.name] = torch_graph.call_function(torch.nn.functional.pad, (inp,paddings, value), dict(mode=mode), name=node.name)
+        args = [inp, paddings, value]
+        # torch_nodes[node.name] = torch_graph.call_function(torch.nn.functional.pad, (inp,paddings, value), dict(mode=mode), name=node.name)
     elif state.graph.opset <18:
         assert len(node.inputs) ==3 , f'{node.name} with operator {node.op} should have 3 inputs in opset (11 to 17), but got {len(node.inputs)}'
         types = [torch.nn.Parameter, list, list]
         args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module, t) for inp,t in zip(node.inputs, types)]
         mode = node.attrs.get('mode','constant')
-        torch_nodes[node.name] = torch_graph.call_function(torch.nn.functional.pad, tuple(args), dict(mode=mode), name=node.name)
+        # torch_nodes[node.name] = torch_graph.call_function(torch.nn.functional.pad, tuple(args), dict(mode=mode), name=node.name)
     else:
         assert len(node.inputs) ==4 , f'{node.name} with operator {node.op} should have 4 inputs in opset (18 to 17), but got {len(node.inputs)}'
         types = [torch.nn.Parameter, list, list, list]
         args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module, t) for inp,t in zip(node.inputs, types)]
         mode = node.attrs.get('mode','constant')
+    
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, torch_pad, args, dict(mode=mode),)
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
         torch_nodes[node.name] = torch_graph.call_function(torch.nn.functional.pad, tuple(args), dict(mode=mode), name=node.name) 

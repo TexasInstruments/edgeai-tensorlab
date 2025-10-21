@@ -38,7 +38,13 @@ def add_affine_grid_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Grap
     kwargs = dict(
         align_corners = node.attrs.get('align_corners', 0) == 1,
     )
-    torch_nodes[node.name] = torch_graph.call_function(torch.nn.functional.affine_grid, tuple(args),  kwargs, name=node.name)
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, torch.nn.functional.affine_grid, args, kwargs)
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch.nn.functional.affine_grid, tuple(args),  kwargs, name=node.name)
     for attr in node.attrs:
         if attr in kwargs:
             continue

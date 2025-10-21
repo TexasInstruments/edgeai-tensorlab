@@ -53,11 +53,13 @@ onnx_to_torch = {
 
 def wrap_for_tensor(fn):
     def wrapped(x,y):
-        if not isinstance(x, torch.Tensor):
-            x = torch.tensor(x)
-        if not isinstance(y, torch.Tensor):
-            y = torch.tensor(y)
+        args = [x,y]
+        device = [a.device for a in args if isinstance(a, torch.Tensor)]
+        if len(device) == 1:
+            args = [a if isinstance(a, torch.Tensor) else torch.tensor(a, device=device[0]) for a in args]
+        x,y = args
         return fn(x,y)
+    wrapped.orig_func = fn
     return wrapped
 
 def add_node_2_torch_graph_multi_ip_1op(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
@@ -67,25 +69,44 @@ def add_node_2_torch_graph_multi_ip_1op(state, node:gs.Node, torch_graph:torch.f
         args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
         func = onnx_to_torch[node.op]
         # if func.__module__ == 'torch':
-        func =wrap_for_tensor(func)
-        torch_nodes[node.name] = torch_graph.call_function(func, tuple(args),  name=node.name)
+        func = wrap_for_tensor(func)
+
+        if state.module_based:
+            module = utils.WrappedModule(node.op, torch_module, func, args)
+            torch_module.add_module(node.name, module)
+            args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+
+            torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+        else:
+            torch_nodes[node.name] = torch_graph.call_function(func, tuple(args),  name=node.name)
     else:
         raise NotImplementedError (f"{node.name} with operator {node.op} is not implemented")
 
-def torch_mod(x,y, fmod=False):
-    if not fmod:
-        return torch.remainder(x,y)
-    else:
-        return torch.fmod(x,y)
 
 def add_mod_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert len(node.inputs) == 2, f'{node.name} with operator {node.op} should have 2 inputs, but got {len(node.inputs)}'
     types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     fmod = node.attrs.get('fmod', 0)==1
-    torch_nodes[node.name] = torch_graph.call_function(torch_mod, tuple(args), dict(fmod=fmod), name=node.name)
+    if fmod:
+        func = torch.fmod
+    else:  
+        func = torch.remainder
+    if state.module_based:
+        module = utils.WrappedModule(node.op, torch_module, func, args)
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(func, tuple(args), dict(fmod=fmod), name=node.name)
 
 def add_sum_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
-    torch_nodes[node.name] = torch_graph.call_function(torch.sum, tuple(args),  name=node.name)
+    if state.module_based:
+        module = torch.sum
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch.sum, tuple(args),  name=node.name)

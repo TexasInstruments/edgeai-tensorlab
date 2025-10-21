@@ -72,5 +72,12 @@ def add_gemm_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  tor
         torch_module.add_module(node.name, module)
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args[0:1]),)
     else:
-        torch_nodes[node.name] = torch_graph.call_function(torch_gemm, tuple(args), dict(alpha=alpha, beta=beta, transA=transA, transB=transB), name=node.name)
+        if state.module_based:
+            module = utils.WrappedModule(node.op, torch_module, torch_gemm, args, dict(alpha=alpha, beta=beta, transA=transA, transB=transB))
+            torch_module.add_module(node.name, module)
+            args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+
+            torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+        else:
+            torch_nodes[node.name] = torch_graph.call_function(torch_gemm, tuple(args), dict(alpha=alpha, beta=beta, transA=transA, transB=transB), name=node.name)
     
