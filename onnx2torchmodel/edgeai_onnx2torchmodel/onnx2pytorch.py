@@ -29,6 +29,15 @@
 
 import onnx_graphsurgeon as gs
 import onnx
+import torch
+
+import tempfile
+import types
+import atexit
+import os
+import sys
+import importlib
+
 from . import onnx_ops
 
 
@@ -63,7 +72,64 @@ def remove_identity(graph:gs.Graph):
                 graph.outputs.remove(out)
 
 
-def convert(model_path, for_training=False):
+pre_text = """
+import torch
+
+def create_forward_method():
+"""
+
+post_text = """
+    return forward
+"""
+
+def change_forward_method(model:torch.fx.GraphModule):
+    nodes = [node for node in model.graph.nodes if node.op !='placeholder']
+    node_names = [node.name for node in nodes]
+    code_lines = model.code.split('\n')[3:-1]
+    new_forward = pre_text+'\n' + f'    {code_lines[0]}\n'
+    node_count = 0
+    for i, line in enumerate(code_lines[1:]):
+        node = nodes[node_count]
+        if ';' in line:
+            end = line.index(';')
+            line = line[:end]
+        if '=' not in line:
+            new_forward += f'    {line}\n'
+            node_count += 1
+            continue
+        index = line.index(' =')
+        if line[:index].lstrip() not in node_names:
+            new_forward += f'    {line}\n'
+            continue
+        if node.op == 'call_function' and '(' in  line:
+            i = line.index('= ')+2
+            j = line.index('(')
+            line = line[:i] + f'self.name_to_func_dict["{node.name}"]' + line[j:]
+            new_forward += f'    {line}\n'
+        else:
+            new_forward += f'    {line}\n'
+        node_count += 1
+    
+    return new_forward+'\n'+post_text
+
+def import_file_folder(file_or_folder_name):
+    if file_or_folder_name.endswith(os.sep):
+        file_or_folder_name = file_or_folder_name[:-1]
+    #
+    parent_folder = os.path.dirname(file_or_folder_name)
+    basename = os.path.splitext(os.path.basename(file_or_folder_name))[0]
+    sys.path.insert(0, parent_folder)
+    imported_module = importlib.import_module(basename, __name__)
+    sys.path.pop(0)
+    return imported_module
+
+
+def new_del(self):
+    if hasattr(self, 'forward_path'):
+        os.remove(self.forward_path)
+    super().__del__()
+
+def convert(model_path, for_training=False, modify_forward=True):
     onnx_model = onnx.load(model_path)
     graph = gs.import_onnx(onnx_model)
     remove_identity(graph)
@@ -76,4 +142,20 @@ def convert(model_path, for_training=False):
         pass
 
     torch_model = onnx_ops.get_torch_graph_module(graph, for_training=for_training)
+    if modify_forward:
+        torch_model.name_to_func_dict = {node.name:node.target for node in torch_model.graph.nodes if node.op == 'call_function'}
+        
+        new_forward_text = change_forward_method(torch_model)
+        with tempfile.NamedTemporaryFile(suffix='.py', mode='w', delete=False) as f:
+            f.write(new_forward_text)
+            f.flush()
+            temp_py_path = f.name
+        
+        temp_module = import_file_folder(temp_py_path)
+        new_forward_forward = temp_module.create_forward_method()
+        torch_model.forward_path = temp_py_path
+        torch_model.forward = types.MethodType(new_forward_forward, torch_model)
+        torch_model.__del__ = types.MethodType(new_del, torch_model)
+        atexit.register(lambda: os.remove(torch_model.forward_path) if hasattr(torch_model, 'forward_path') else None)
+    # os.remove(temp_py_path)
     return torch_model

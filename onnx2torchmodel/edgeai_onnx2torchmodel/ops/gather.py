@@ -39,7 +39,7 @@ def torch_gather(x, indices, axis=0):
     if  isinstance(indices, torch.Tensor) and indices.dtype!=torch.int:
         indices = indices.to(torch.int)
     if axis==0:
-        return x[indices]
+        return getitem(x, indices)
     slices = [slice(None) for _ in range(x.dim() if isinstance(x, torch.Tensor) else 1 ) ]
     slices[axis] = indices
     if isinstance(x, torch.Tensor):
@@ -98,7 +98,7 @@ def torch_gather_nd(data:torch.Tensor, indices:torch.Tensor, batch_dims=0):
         index_tuples.append(indices[..., dim])
     
     # Use basic indexing to gather values
-    return data[tuple(index_tuples)]
+    return getitem(data,tuple(index_tuples))
 
 def add_gather_nd_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert len(node.inputs) == 2, f'{node.name} with operator {node.op} should have 2 inputs, but got {len(node.inputs)}'
