@@ -5,8 +5,7 @@ from .streampetr_head import StreamPETRHead
 from .farhead import FarHead
 from .yolox_head import YOLOXHeadCustom
 from .focal_head import FocalHead
-from .transforms_3d import (GlobalRotScaleTransImage, ResizeCropFlipRotImage,
-                            CustomPack3DDetInputs)
+from .transforms_3d import (ResizeCropFlipRotImage, CustomPack3DDetInputs)
 from .loading import StreamPETRLoadAnnotations3D
 
 from .nuscenes_dataset import Far3DNuScenesDataset
@@ -16,7 +15,7 @@ from .hook import UseGtDepthHook
 
 
 __all__ = [
-    'GlobalRotScaleTransImage', 'ResizeCropFlipRotImage',
+    'ResizeCropFlipRotImage',
     'CustomPack3DDetInputs',
     'StreamPETRHead', 'FarHead', 'FocalHead', 'YOLOXHeadCustom',
     'HungarianAssigner2D',
