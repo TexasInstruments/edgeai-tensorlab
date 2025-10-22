@@ -313,13 +313,13 @@ class_to_name_type_2 = {
 }
 
 
-def load_nuscenes(path):
+def load_nuscenes(path, version='v1.0-mini'):
     assert os.path.exists(path) and os.path.isdir(path), \
         utils.log_color('\nERROR', 'dataset path is empty, and cannot load nuscenes dataset', path)
 
     from nuscenes.nuscenes import NuScenes
     from nuscenes.can_bus.can_bus_api import NuScenesCanBus
-    nusc = NuScenes(version='v1.0-mini', dataroot=path, verbose=True)
+    nusc = NuScenes(version=version, dataroot=path, verbose=True)
     try:
         nusc_can_bus = NuScenesCanBus(dataroot=path)
     except:
@@ -376,9 +376,10 @@ def get_available_scenes(nusc: NuScenes):
 # From _fill_trainval_infos()
 def _fill_trainval_infos(nusc,
                          nusc_can_bus,
+                         max_frames,
                          train_scenes=None,
                          val_scenes=None,
-                         data_ids=None,
+                         #data_ids=None,
                          read_anno=True,
                          max_sweeps=10):
     """Generate the train/val infos from the raw data.
@@ -395,13 +396,121 @@ def _fill_trainval_infos(nusc,
         tuple[list[dict]]: Information of training set and validation set
             that will be saved to the info file.
     """
-
     nusc_infos = []
 
-    for idx, sample in enumerate(nusc.sample):
-        if not (str(idx) in data_ids or idx in data_ids):
-            continue
+    assert train_scenes is not None or val_scenes is not None, \
+        'train_scenes and val_scenes cannot be both None'
 
+    if train_scenes is not None:
+        scene_list = list(train_scenes)
+    elif val_scenes is not None:
+        scene_list = list(val_scenes)
+
+    for _, scene in enumerate(scene_list):
+        scene = nusc.get('scene', scene)
+        cur_sample_token = scene['first_sample_token']
+
+        while True:
+            sample = nusc.get('sample', cur_sample_token)
+
+            lidar_token = sample['data']['LIDAR_TOP']
+            sd_rec = nusc.get('sample_data', sample['data']['LIDAR_TOP'])
+            cs_record = nusc.get('calibrated_sensor',
+                                 sd_rec['calibrated_sensor_token'])
+            pose_record = nusc.get('ego_pose', sd_rec['ego_pose_token'])
+            lidar_path, boxes, _ = nusc.get_sample_data(lidar_token)
+
+            if not os.path.isfile(lidar_path):
+                raise FileNotFoundError('file "{}" does not exist'.format(lidar_path))
+
+            if nusc_can_bus is not None:
+                can_bus = _get_can_bus_info(nusc, nusc_can_bus, sample)
+            else:
+                can_bus = np.zeros(18, dtype=float)
+
+            info = {
+                'lidar_path': lidar_path,
+                'num_features': 5,
+                'token': sample['token'],
+                'sweeps': [],
+                'cams': dict(),
+                'can_bus': can_bus,
+                'lidar2ego_translation': cs_record['translation'],
+                'lidar2ego_rotation': cs_record['rotation'],
+                'ego2global_translation': pose_record['translation'],
+                'ego2global_rotation': pose_record['rotation'],
+                'timestamp': sample['timestamp'],
+                'prev': sample['prev'],
+                'next': sample['next'],
+                'scene_token': sample['scene_token'],
+                'data': sample['data'],
+            }
+
+            l2e_r = info['lidar2ego_rotation']
+            l2e_t = info['lidar2ego_translation']
+            e2g_r = info['ego2global_rotation']
+            e2g_t = info['ego2global_translation']
+            l2e_r_mat = Quaternion(l2e_r).rotation_matrix
+            e2g_r_mat = Quaternion(e2g_r).rotation_matrix
+
+            info['ego2global'] = convert_quaternion_to_matrix(
+                info['ego2global_rotation'], info['ego2global_translation'])
+            info['lidar2ego'] = convert_quaternion_to_matrix(
+                info['lidar2ego_rotation'], info['lidar2ego_translation'])
+
+            # obtain 6 image's information per frame
+            camera_types = [
+                'CAM_FRONT',
+                'CAM_FRONT_RIGHT',
+                'CAM_FRONT_LEFT',
+                'CAM_BACK',
+                'CAM_BACK_LEFT',
+                'CAM_BACK_RIGHT',
+            ]
+            for cam in camera_types:
+                cam_token = sample['data'][cam]
+                cam_path, _, cam_intrinsic = nusc.get_sample_data(cam_token)
+                cam_info = obtain_sensor2top(nusc, cam_token, l2e_t, l2e_r_mat,
+                                             e2g_t, e2g_r_mat, cam)
+                cam_info.update(cam_intrinsic=cam_intrinsic)
+                info['cams'].update({cam: cam_info})
+
+            # obtain sweeps for a single key-frame
+            sd_rec = nusc.get('sample_data', sample['data']['LIDAR_TOP'])
+            sweeps = []
+            while len(sweeps) < max_sweeps:
+                if not sd_rec['prev'] == '':
+                    sweep = obtain_sensor2top(nusc, sd_rec['prev'], l2e_t,
+                                              l2e_r_mat, e2g_t, e2g_r_mat, 'lidar')
+                    sweeps.append(sweep)
+                    sd_rec = nusc.get('sample_data', sd_rec['prev'])
+                else:
+                    break
+            info['sweeps'] = sweeps
+
+            # obtain annotation
+            if read_anno:
+                info['anns'] = sample['anns']
+
+            nusc_infos.append(info)
+
+            # break if reached max frames
+            loaded_frame = len(nusc_infos)
+            print(f'Loading {loaded_frame}/{max_frames}', end='\r')
+            if loaded_frame >= max_frames:
+                break
+            if sample['token'] == scene['last_sample_token']:
+                break
+
+            cur_sample_token = sample['next']
+
+        if loaded_frame >= max_frames:
+            break
+
+    '''
+    for idx, sample in enumerate(nusc.sample):
+        #if not (str(idx) in data_ids or idx in data_ids):
+        #    continue
         if train_scenes is not None and sample['scene_token'] not in train_scenes:
             continue
         elif val_scenes is not None and sample['scene_token'] not in val_scenes:
@@ -489,6 +598,13 @@ def _fill_trainval_infos(nusc,
 
         nusc_infos.append(info)
 
+        # break if reached max frames
+        loaded_frame = len(nusc_infos)
+        print(f'Loading {loaded_frame}/{max_frames}', end='\r')
+        if loaded_frame >= max_frames:
+            break
+    '''
+
     return nusc_infos
 
 
@@ -497,7 +613,7 @@ def _fill_trainval_infos(nusc,
 def _fill_trainval_infos_mv_image(nusc,
                                   train_scenes=None,
                                   val_scenes=None,
-                                  data_ids=None,
+                                  #data_ids=None,
                                   read_anno=True):
     """Generate the train/val infos from the raw data.
 
@@ -516,12 +632,12 @@ def _fill_trainval_infos_mv_image(nusc,
     nusc_infos = []
 
     for idx, sample in enumerate(nusc.sample):
-        if not (str(idx) in data_ids or idx in data_ids):
-            continue
+        #if not (str(idx) in data_ids or idx in data_ids):
+        #    continue
 
         if train_scenes is not None and sample['scene_token'] not in train_scenes:
             continue
-        elif val_scenes is not None and sample['scene_token'] not in val_scenes: 
+        elif val_scenes is not None and sample['scene_token'] not in val_scenes:
             continue
 
         lidar_token = sample['data']['LIDAR_TOP']
@@ -704,6 +820,7 @@ class NuScenesDataset(DatasetBase):
 
         path = self.kwargs['path']
         split_folder = self.kwargs['split']
+        self.version = self.kwargs['version']
         # load_type: frame_based, mv_image_based, fov_image_based
         self.load_type = self.kwargs['load_type']
 
@@ -723,17 +840,21 @@ class NuScenesDataset(DatasetBase):
         self.nusc_can_bus = nusc_can_bus
 
         # create list of images and classes
+        """
         if os.path.exists(path + "/data_ids.txt"):
             self.data_ids = utils.get_data_list(input= path + "/data_ids.txt", dest_dir=dest_dir)
         else:
             self.data_ids = list(np.arange(0, 404))
 
         self.num_frames = self.kwargs['num_frames'] = self.kwargs.get('num_frames',len(self.data_ids))
-
         shuffle = self.kwargs.get('shuffle', False)
         if shuffle:
             random.seed(int(shuffle))
             random.shuffle(self.data_ids)
+        """
+        self.num_frames = self.kwargs['num_frames']
+        shuffle = self.kwargs.get('shuffle', False)
+        assert shuffle == False, 'Shuffling is not supported for NuScenesDataset'
 
         self.num_classes = kwargs['num_classes']
         # FCOS3D, FastBEV
@@ -750,7 +871,7 @@ class NuScenesDataset(DatasetBase):
         #    9: 'barrier'
         #}
         #self.classes = [self.class_to_name[i] for i in range(self.num_classes)]
-        self.data_infos, self.data_scene_infos = self.create_nuscenes_infos(read_anno, split_folder)
+        self.data_infos, self.data_scene_infos = self.create_nuscenes_infos(read_anno, split_folder, self.version)
 
         # For validation dataset, read annotaiton for evaluation
         if read_anno:
@@ -797,14 +918,11 @@ class NuScenesDataset(DatasetBase):
     # Based on create_nuscenes_infos()
     def create_nuscenes_infos(self, read_anno=True, split_folder='train', version='v1.0-mini', max_sweeps=10):
 
-        #from nuscenes.nuscenes import NuScenes
-        #nusc = NuScenes(version='v1.0-mini', dataroot=os.path.join(self.kwargs['path'], 'nuscenes'), verbose=True)
         from nuscenes.utils import splits
-
         metadata = dict(version=version)
 
         if split_folder == 'train':
-            train_scenes = splits.mini_train
+            train_scenes = splits.mini_train if version=='v1.0-mini' else splits.train
             available_scenes = get_available_scenes(self.nusc)
             available_scene_names = [s['name'] for s in available_scenes]
             # filter existing scenes.
@@ -818,10 +936,10 @@ class NuScenesDataset(DatasetBase):
 
             if self.load_type == 'mv_image_based':
                 train_nusc_infos = _fill_trainval_infos_mv_image(self.nusc, train_scenes=train_scenes, val_scenes=None,
-                    data_ids=self.data_ids, read_anno=read_anno)
+                    read_anno=read_anno)
             else:
-                train_nusc_infos = _fill_trainval_infos(self.nusc, self.nusc_can_bus, train_scenes=train_scenes, val_scenes=None,
-                    data_ids=self.data_ids, read_anno=read_anno, max_sweeps=max_sweeps)
+                train_nusc_infos = _fill_trainval_infos(self.nusc, self.nusc_can_bus, self.num_frames, train_scenes=train_scenes, val_scenes=None,
+                    read_anno=read_anno, max_sweeps=max_sweeps)
                 # Sort with timestamp
                 train_nusc_infos = list(sorted(train_nusc_infos, key=lambda e: e['timestamp']))
 
@@ -830,7 +948,7 @@ class NuScenesDataset(DatasetBase):
 
             return data, train_scenes
         else:
-            val_scenes = splits.mini_val
+            val_scenes = splits.mini_val if version=='v1.0-mini' else splits.val
             available_scenes = get_available_scenes(self.nusc)
             available_scene_names = [s['name'] for s in available_scenes]
             # filter existing scenes.
@@ -844,10 +962,10 @@ class NuScenesDataset(DatasetBase):
 
             if self.load_type == 'mv_image_based':
                 val_nusc_infos = _fill_trainval_infos_mv_image(self.nusc, train_scenes=None, val_scenes=val_scenes,
-                    data_ids=self.data_ids, read_anno=read_anno)
+                    read_anno=read_anno)
             else:
-                val_nusc_infos = _fill_trainval_infos(self.nusc, self.nusc_can_bus, train_scenes=None, val_scenes=val_scenes,
-                    data_ids=self.data_ids, read_anno=read_anno, max_sweeps=max_sweeps)
+                val_nusc_infos = _fill_trainval_infos(self.nusc, self.nusc_can_bus, self.num_frames, train_scenes=None, val_scenes=val_scenes,
+                    read_anno=read_anno, max_sweeps=max_sweeps)
                 # Sort with timestamp
                 val_nusc_infos = list(sorted(val_nusc_infos, key=lambda e: e['timestamp']))
 
@@ -888,7 +1006,7 @@ class NuScenesDataset(DatasetBase):
     # Evaluation in Nuscenes protocol
     # https://github.com/open-mmlab/mmdetection3d/
     # Based on nus_evaluate()
-    def nus_evaluate(self, 
+    def nus_evaluate(self,
                      result_dict,
                      det_classes = None,
                      metric = 'bbox'):
@@ -915,9 +1033,9 @@ class NuScenesDataset(DatasetBase):
             self.data_infos,
             self.data_scene_infos,
             pred_boxes,
-            data_ids=self.data_ids,
+            #data_ids=self.data_ids,
             config=self.eval_detection_configs,
-            eval_set='mini_val',
+            eval_set='mini_val' if self.version=='v1.0-mini' else 'val',
             output_dir=output_dir,
             verbose=False)
         nusc_eval.main()

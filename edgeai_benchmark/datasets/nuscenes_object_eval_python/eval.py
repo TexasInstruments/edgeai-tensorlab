@@ -9,14 +9,14 @@ import json
 import os
 
 from nuscenes import NuScenes
-from nuscenes.eval.common.config import config_factory
 from nuscenes.eval.common.data_classes import EvalBoxes
-from nuscenes.eval.common.loaders import load_prediction, load_gt, add_center_dist, filter_eval_boxes
+from nuscenes.eval.common.loaders import add_center_dist, filter_eval_boxes
 from nuscenes.eval.detection.algo import accumulate, calc_ap, calc_tp
 from nuscenes.eval.detection.constants import TP_METRICS
 from nuscenes.eval.detection.data_classes import DetectionConfig, DetectionMetrics, DetectionBox, \
     DetectionMetricDataList
-from nuscenes.eval.detection.render import summary_plot, class_pr_curve, class_tp_curve, dist_pr_curve, visualize_sample
+from nuscenes.utils.splits import create_splits_scenes
+#from nuscenes.eval.detection.render import summary_plot, class_pr_curve, class_tp_curve, dist_pr_curve, visualize_sample
 from nuscenes.eval.detection.utils import category_to_detection_name
 
 
@@ -45,7 +45,7 @@ class NuScenesEval:
                  data_infos: dict,
                  data_scene_infos: dict,
                  pred_boxes: dict,
-                 data_ids: List,
+                 #data_ids: List,
                  config: DetectionConfig,
                  eval_set: str,
                  output_dir: str = None,
@@ -63,7 +63,7 @@ class NuScenesEval:
         self.data_infos = data_infos
         self.data_scene_infos = data_scene_infos
         self.pred_boxes = pred_boxes
-        self.data_ids = data_ids
+        #self.data_ids = data_ids
         self.eval_set = eval_set
         self.output_dir = output_dir
         self.verbose = verbose
@@ -127,7 +127,6 @@ class NuScenesEval:
 
             # self.nusc.get() work, but it is okay to use self.data_infos except for FCOS3D
             sample = self.nusc.get('sample', sample_token)
-            #sample = self.data_infos['infos'][idx]
             sample_annotation_tokens = sample['anns']
 
             sample_boxes = []

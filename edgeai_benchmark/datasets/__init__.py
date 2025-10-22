@@ -125,7 +125,7 @@ dataset_info_dict = {
     'ycbv': {'task_type':'object_6d_pose_estimation', 'category':DATASET_CATEGORY_YCBV, 'type': YCBV, 'size':900, 'split':'test'},
     #----------------------- BEV Detection datasets for PandaSet --------------------------#
     'pandaset_frame': {'task_type':'bev-detection', 'category':DATASET_CATEGORY_PANDASET_FRAME, 'type':PandaSetDataset, 'size':404, 'split':'val'},
-    'pandaset_mv_image': {'task_type':'bev-detection', 'category':DATASET_CATEGORY_PANDASET_MV_IMAGE, 'type':PandaSetDataset, 'size':404, 'split':'val'},    
+    'pandaset_mv_image': {'task_type':'bev-detection', 'category':DATASET_CATEGORY_PANDASET_MV_IMAGE, 'type':PandaSetDataset, 'size':404, 'split':'val'},
  }
 
 
@@ -735,13 +735,17 @@ def get_datasets(settings, download=False, dataset_list=None):
 
         if check_dataset_load(settings, DATASET_CATEGORY_NUSCENES_FRAME) and (DATASET_CATEGORY_NUSCENES_FRAME in dataset_list):
             print(utils.log_color("\nINFO", f"loading dataset", f"category:{DATASET_CATEGORY_NUSCENES_FRAME} variant:{DATASET_CATEGORY_NUSCENES_FRAME}"))
+            # nusc_version: 'v1.0-mini', 'v1.0-trainval'
+            nusc_version = settings.get('datasets_version', 'v1.0-mini')
+            val_num_frames = 81 if nusc_version == 'v1.0-mini' else 6019
             dataset_calib_cfg = dict(
                 path=f'{settings.datasets_path}/nuscenes/',
                 split='train',
                 num_classes=10,
                 load_type='frame_based',
+                version=nusc_version,
                 shuffle=False,
-                num_frames=min(81, calibration_frames_nx),
+                num_frames=min(50, calibration_frames_nx),
                 name=DATASET_CATEGORY_NUSCENES_FRAME)
 
             # dataset parameters for actual inference
@@ -750,14 +754,15 @@ def get_datasets(settings, download=False, dataset_list=None):
                 split='val',
                 num_classes=10,
                 load_type='frame_based',
+                version=nusc_version,
                 shuffle=False,
-                num_frames=min(settings.num_frames, 81),
+                num_frames=val_num_frames,
                 name=DATASET_CATEGORY_NUSCENES_FRAME)
 
             if dataset_cache[DATASET_CATEGORY_NUSCENES_FRAME]['dataset_init'] is False:
                 try:
                     # load nuscnes dataset first
-                    nusc, nusc_can_bus = load_nuscenes(dataset_calib_cfg['path'])
+                    nusc, nusc_can_bus = load_nuscenes(dataset_calib_cfg['path'], dataset_calib_cfg['version'])
                     dataset_cache[DATASET_CATEGORY_NUSCENES_FRAME]['calibration_dataset'] = \
                         NuScenesDataset(**dataset_calib_cfg, nusc=nusc, nusc_can_bus=nusc_can_bus, download=False, read_anno=False)
                     dataset_cache[DATASET_CATEGORY_NUSCENES_FRAME]['input_dataset'] = \
@@ -788,7 +793,7 @@ def get_datasets(settings, download=False, dataset_list=None):
                 num_classes=10,
                 load_type='mv_image_based',
                 shuffle=False,
-                num_frames=min(settings.num_frames, 456),
+                num_frames=min(settings.num_frames, 486),
                 name=DATASET_CATEGORY_NUSCENES_MV_IMAGE)
 
             # To revisit
