@@ -352,6 +352,7 @@ class PETRTransformerDecoderLayer(BaseTransformerLayer):
         return x
 
     def forward(self,
+                layer_id,
                 query,
                 key=None,
                 value=None,
