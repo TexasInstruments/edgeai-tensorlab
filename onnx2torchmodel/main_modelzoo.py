@@ -36,6 +36,7 @@ import onnx_graphsurgeon as gs
 import os
 import yaml
 import time
+import copy
 
 from edgeai_onnx2torchmodel.onnx2pytorch import convert
 model_zoo_path = '/data/ssd/files/a0507161/edgeai/edgeai-modelzoo/models/'
@@ -184,8 +185,8 @@ if __name__ == '__main__':
     failed = [
         'cl-6508', # QDQ
         'cl-6507', #QDQ
-        'od-8080', # use actual input
-        'od-8940', # CUDA Memory Error
+        # 'od-8080', # use actual input
+        # 'od-8940', # CUDA Memory Error
         # 'od-8020', # use actual input
         # 'od-8950', # use actual input
         # 'od-8090', # use actual input
@@ -195,8 +196,8 @@ if __name__ == '__main__':
     total_count = 0
     model_names = sorted(config.keys())
     model_names = [name for name in model_names if name not in failed]
-    # model_names = ['od-8940']
-    model_names = model_names[:142]
+    model_names = ['od-8920']
+    # model_names = model_names[:142]
     for i, model_name in enumerate(model_names):
     # for model_name, path in config.items():
         path = config[model_name]
@@ -212,8 +213,8 @@ if __name__ == '__main__':
             print(f"Model {model_path} does not exist")
             status[model_name] = 'onnx not found'
             continue
-        torch.cuda.empty_cache()
         def main_job(all=False):
+            torch.cuda.empty_cache()
             print("#######################################################")
             print(i, model_name, os.path.basename(model_path))
             global total_count
@@ -233,13 +234,39 @@ if __name__ == '__main__':
             torch_model = torch_model.cuda()
             example_inputs = [example_input.cuda() for example_input in example_inputs]
             outputs1 = torch_model(*example_inputs)
-            example_inputs = [example_input.cpu() for example_input in example_inputs]
             torch_model = torch_model.cpu()
             outputs1 = [output.cpu() for output in outputs1]
-            # pt2e_model = torch.export.export(torch_model, tuple(example_inputs), strict=True).module()
-            # pt2e_model.eval()
-            # outputs2 = pt2e_model(*example_inputs)
+            example_inputs = [example_input.cpu() for example_input in example_inputs]
             print(f"Successfully converted model {model_name}")
+            
+            model2 = copy.deepcopy(torch_model)
+            
+            if True:
+                print('Trying PT2E')
+                pt2e_model = torch.export.export(torch_model, tuple(example_inputs), strict=True).module()
+                # pt2e_model.eval()
+                pt2e_model = pt2e_model.cuda()
+                example_inputs = [example_input.cuda() for example_input in example_inputs]
+                outputs2 = pt2e_model(*example_inputs)
+                example_inputs = [example_input.cpu() for example_input in example_inputs]
+                outputs2 = [output.cpu() for output in outputs2]
+                pt2e_model = pt2e_model.cpu()
+                print('PT2E Done')
+            if False:            
+                print('Trying QAT')
+                from torchao.quantization.pt2e.quantize_pt2e import (prepare_qat_pt2e, convert_pt2e,)
+                from executorch.backends.xnnpack.quantizer.xnnpack_quantizer import (get_symmetric_quantization_config, XNNPACKQuantizer,)  
+                quantizer =  XNNPACKQuantizer().set_global(get_symmetric_quantization_config(is_per_channel=True, is_qat=True))
+                student_model = prepare_qat_pt2e(pt2e_model, quantizer)
+                student_model = student_model.cuda()
+                with torch.no_grad():
+                    for _ in range(10):
+                        inputs = [torch.rand_like(example_input).cuda() for example_input in example_inputs]
+                        student_model(*inputs)
+                student_model = student_model.cpu()
+                student_model1 = convert_pt2e(student_model)
+                print('QAT Done')
+                
             status[model_name] = 'passed'
             end_time = time.time()
             print(f"Model {model_name} took {end_time - start_time} seconds to convert")
@@ -249,7 +276,7 @@ if __name__ == '__main__':
         
         main_job(False)
         # try:
-            # main_job()    
+        #     main_job()    
         # except Exception as e:
         #     print(f"Failed to convert model {model_name} because of error {e}")
         #     status[model_name] = 'failed'
