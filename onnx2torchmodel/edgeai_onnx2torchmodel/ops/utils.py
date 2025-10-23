@@ -68,7 +68,7 @@ class WrappedModule(torch.nn.Module):
                     temp_args[i] = args[var_arg_counter]
                     var_arg_counter+=1
                 else:
-                    temp_args[i] = getattr(self, arg)
+                    temp_args[i] = getattr(self, arg) if isinstance(arg, str) and hasattr(self, arg) else arg
             return self.func(*temp_args, **self.kwargs)
         else:
             return self.func(*args, **self.kwargs)
