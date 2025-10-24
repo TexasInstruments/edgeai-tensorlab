@@ -82,9 +82,9 @@ def _adjust_qparams_power2_scale(min_val, max_val, quant_min, quant_max, scale, 
 # (MSE based and includes merging of histograms across iterations)
 class CumulativeMSEHistogramObserver(torch.ao.quantization.HistogramObserver):
     def __init__(self, *args, range_shrink_percentile=None, fast_mode=False, **kwargs):
-        super().__init__(*args, bins=256, upsample_rate=16, **kwargs)
+        super().__init__(*args, bins=256, **kwargs)
         self.fast_mode = fast_mode
-
+        
     def forward(self, x_orig: torch.Tensor) -> torch.Tensor:
         fast_stride = 2
         fast_stride2 = fast_stride * 2
@@ -105,11 +105,10 @@ class CumulativeMSEHistogramObserver(torch.ao.quantization.HistogramObserver):
 
 class MSEHistogramObserver(CumulativeMSEHistogramObserver):
     def __init__(self, *args, range_shrink_percentile=None, **kwargs):
-        super().__init__(*args, bins=256, upsample_rate=16, **kwargs)
+        super().__init__(*args, bins=256, **kwargs)
 
     def forward(self, x_orig: torch.Tensor) -> torch.Tensor:
-        self.min_val = float("inf")
-        self.max_val = float("-inf")
+        self.reset_histogram(x_orig, x_orig.min(), x_orig.max())
         super().forward(x_orig)
 
 
