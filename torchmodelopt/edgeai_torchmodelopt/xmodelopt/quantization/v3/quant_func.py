@@ -83,17 +83,19 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
 
     orig_model = copy.deepcopy(model)
         
-    decomposition_table = {torch.ops.aten.layer_norm.default: quant_utils.native_layer_norm}
-    
-    m, guards = torchdynamo.export(orig_model, aten_graph=True, assume_static_by_default=True, pre_dispatch=True, decomposition_table=decomposition_table)(*example_inputs, **example_kwargs)
-    print("Dynamo Export Completed ! \n\n")
+    # decomposition_table = {torch.ops.aten.layer_norm.default: quant_utils.native_layer_norm}
+    # m, guards = torchdynamo.export(orig_model, aten_graph=True, assume_static_by_default=True, pre_dispatch=True, decomposition_table=decomposition_table)(*example_inputs, **example_kwargs)
+    # print("Dynamo Export Completed ! \n\n")
+    example_inputs = (example_inputs,) if not isinstance(example_inputs, (list, tuple)) else tuple(example_inputs)
+    m = torch.export.export(orig_model, example_inputs).module()
     
     is_fake_quantize = True if is_qat else is_fake_quantize
     qconfig_type = qconfig_type or qconfig_types.QConfigType.DEFAULT
     qconfig_mode = qconfig_types.get_qconfig(qconfig_type, is_fake_quantize=is_fake_quantize, fast_mode=fast_mode)
     
     # methods to quantize individual layers/modules types are in quantizer
-    quantizer = quantizer or TIDLRTQuantizer(is_qat=is_qat, fast_mode=fast_mode, is_fake_quantize=is_fake_quantize, device=next(iter(m.named_parameters()))[1].device)
+    device=next(iter(m.named_parameters()))[1].device
+    quantizer = quantizer or TIDLRTQuantizer(is_qat=is_qat, fast_mode=fast_mode, is_fake_quantize=is_fake_quantize, device=device)
     quantizer.set_global(qconfig_mode)
     
     # for copy_arg in copy_args:
