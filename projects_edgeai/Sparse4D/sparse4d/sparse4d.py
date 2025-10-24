@@ -2,112 +2,75 @@
 from inspect import signature
 
 import torch
-import numpy as np
+from mmengine.structures import InstanceData
 
 # from mmengine.model.base_module import force_fp32, auto_fp16
-from mmengine.registry import build_from_cfg
-from mmengine.model.base_module import BaseModule
-from mmengine.registry import MODELS
-from .grid_mask import GridMask
+from mmdet3d.registry import MODELS
 from mmdet3d.models.detectors.mvx_two_stage import MVXTwoStageDetector
-from mmdet3d.structures.det3d_data_sample import Det3DDataSample 
+from mmdet3d.structures.det3d_data_sample import ForwardResults, OptSampleList
+
+from projects_edgeai.edgeai_mmdet3d.grid_mask import GridMask
 
 try:
-    from .ops import DeformableAggregationFunction as DAF
+    from .ops import feature_maps_format
+    DAF_VALID = True
 except:
-    DAF = None
+    DAF_VALID = False
+
 
 __all__ = ["Sparse4D"]
-
-def format_value(val):
-    if val is None:
-        return val
-    if isinstance(val, (list, tuple)) and all(isinstance(x, (list,tuple)) for x in val):
-        try:
-            new_val = np.array(val)
-            temp = np.max(val).astype(np.float32)
-            val = new_val
-        except:
-            pass
-    if isinstance(val, (list, tuple)) and all(isinstance(x, np.ndarray) for x in val):
-        val = np.stack(val)
-    try:
-        new_val = np.array(val)
-        temp = np.max(val).astype(np.float32)
-        val = new_val
-    except:
-        pass
-    if isinstance(val, np.ndarray):
-        val = torch.from_numpy(val)
-    return val
-
-
-def get_metas(img,data_Samples: list[Det3DDataSample], move_to_img_device_keys=[]):
-    metas = {}
-    keys = list(data_Samples[0].keys()) + list(data_Samples[0].metainfo.keys())
-    for key in keys:
-        if key not in metas:
-            metas[key] = []
-        for data_sample in data_Samples:
-            if key in data_sample.metainfo:
-                val = data_sample.metainfo[key]
-            else:
-                val = getattr(data_sample,key)
-            val = format_value(val)
-            metas[key].append(val)
-        if all(isinstance(t, torch.Tensor) for t in metas[key]):
-            metas[key] = torch.stack(metas[key])
-        
-        if key in move_to_img_device_keys:
-            try:
-                metas[key] = metas[key].to(img[0].device) # comment the below line and uncomment this if no stacking(torch.stack(metas[key])) is used
-                # metas[key] = [t.to(img.device) for t in metas[key]] # comment the above line and uncomment this if no stacking(torch.stack(metas[key])) is not used
-            except Exception as e:
-                print(f"Got error: for key({key}): {e}")
-                print(f"please make sure that all the entries for {key} in datasample are tensors at this point")
-                
-    return metas
-
 
 @MODELS.register_module()
 class Sparse4D(MVXTwoStageDetector):
     def __init__(
         self,
-        img_backbone,
-        head,
+        use_grid_mask=True,
+        use_deformable_func=False,
+        data_preprocessor=None,
+        pts_voxel_encoder=None,
+        pts_middle_encoder=None,
+        pts_fusion_layer=None,
+        img_backbone=None,
+        pts_backbone=None,
         img_neck=None,
+        pts_neck=None,
+        pts_bbox_head=None,
+        img_roi_head=None,
+        img_rpn_head=None,
         init_cfg=None,
         train_cfg=None,
         test_cfg=None,
         pretrained=None,
-        use_grid_mask=True,
-        use_deformable_func=False,
         depth_branch=None,
     ):
-        super(Sparse4D, self).__init__(init_cfg=init_cfg)
+        super(Sparse4D, self).__init__(data_preprocessor=data_preprocessor,
+                                       img_backbone=img_backbone,
+                                       img_neck=img_neck,
+                                       pts_bbox_head=pts_bbox_head,
+                                       init_cfg=init_cfg,
+                                       train_cfg=train_cfg,
+                                       test_cfg=test_cfg)
         if pretrained is not None:
             img_backbone.pretrained = pretrained
-        self.img_backbone = build_from_cfg(img_backbone, MODELS)
-        if img_neck is not None:
-            self.img_neck = build_from_cfg(img_neck, MODELS)
-        self.head = build_from_cfg(head, MODELS)
+
         self.use_grid_mask = use_grid_mask
-        self.use_deformable_func = use_deformable_func and DAF is not None
-        if self.use_deformable_func:
-            self.deformable_func = DAF()
-        if depth_branch is not None:
-            self.depth_branch = build_from_cfg(depth_branch, MODELS)
-        else:
-            self.depth_branch = None
         if use_grid_mask:
             self.grid_mask = GridMask(
-                True, True, rotate=1, offset=False, ratio=0.5, mode=1, prob=0.7
-            )
+                True, True, rotate=1, offset=False, ratio=0.5, mode=1, prob=0.7)
+        
+        if use_deformable_func:
+            assert DAF_VALID, "deformable_aggregation needs to be set up."
+        self.use_deformable_func = use_deformable_func
+
+        if depth_branch is not None:
+            self.depth_branch = MODELS.build(depth_branch)
+        else:
+            self.depth_branch = None
 
     # @auto_fp16(apply_to=("img",), out_fp32=True)
     def extract_feat(self, img, return_depth=False, metas=None):
-        if isinstance(img, (list,tuple)):
-            img = torch.stack(img)
+        #if isinstance(img, (list,tuple)):
+        #    img = torch.stack(img)
         bs = img.shape[0]
         if img.dim() == 5:  # multi-view
             num_cams = img.shape[1]
@@ -131,60 +94,54 @@ class Sparse4D(MVXTwoStageDetector):
         else:
             depths = None
         if self.use_deformable_func:
-            feature_maps = self.deformable_func.feature_maps_format(feature_maps)
+            feature_maps = feature_maps_format(feature_maps)
         if return_depth:
             return feature_maps, depths
         return feature_maps
 
     # @force_fp32(apply_to=("img",))
-    def _forward(self,inputs, data_samples,  return_depth=False, **kwargs):
-        img = inputs.pop("img")
-        move_to_img_device_keys = ["projection_mat", "image_wh"]
-        metas = []
-        metas = get_metas(img, data_samples, move_to_img_device_keys)
-        if return_depth:
-            feature_maps, depths = self.extract_feat(img, return_depth, metas)
-        else:
-            feature_maps = self.extract_feat(img, )
-        
-        if "data_queue" in kwargs or "future_data_queue" in kwargs:
-            feature_queue = []
-            meta_queue = []
-            with torch.no_grad():
-                for d in kwargs.get("data_queue", []) + kwargs.get(
-                    "future_data_queue", []
-                ):
-                    img = d["inputs"].pop("img")
-                    feature_queue.append(self.extract_feat(img))
-                    meta_queue.append(get_metas(img, d['data_samples'], move_to_img_device_keys))
-        else:
-            feature_queue = None
-            meta_queue = None
+    def _forward(self, inputs, data_samples, **kwargs):
+        raise NotImplementedError('tensor mode is yet to add')
 
-        cls_scores, reg_preds = self.head(
-            feature_maps, metas, feature_queue, meta_queue
-        )
-        if return_depth:
-            return cls_scores, reg_preds, depths
-        else:
-            return cls_scores, reg_preds
-    
+
     def loss(self, inputs, data_samples, **kwargs):
-        cls_scores, reg_preds, depths = self(inputs, data_samples, return_depth=True,**kwargs)
-        if self.use_deformable_func:
-            feature_maps = self.deformable_func.feature_maps_format(feature_maps, inverse=True)
-        output = self.head.loss(cls_scores, reg_preds, kwargs, feature_maps)
-        if depths is not None and "gt_depth" in kwargs:
+
+        rec_img = inputs['imgs']
+        batch_img_metas = [ds.metainfo for ds in data_samples]
+        
+        feature_maps, depths = self.extract_feat(img, True, data)
+        model_outs = self.pts_bbox_head(feature_maps, data)
+        output = self.pts_bbox_head.loss(model_outs, data)
+        if depths is not None and "gt_depth" in data:
             output["loss_dense_depth"] = self.depth_branch.loss(
-                depths, kwargs["gt_depth"]
+                depths, data["gt_depth"]
             )
         return output
 
-    def predict(self,inputs, data_samples,  **kwargs):
-        cls_scores, reg_preds = self(inputs, data_samples, **kwargs)
-        results = self.head.post_process(cls_scores, reg_preds)
-        output = [{"img_bbox": result} for result in results]
-        return output
+    def predict(self, inputs, data_samples,  **kwargs):
+        img = inputs['imgs']
+        batch_img_metas = [ds.metainfo for ds in data_samples]
+        for var, name in [(batch_img_metas, 'img_metas')]:
+            if not isinstance(var, list):
+                raise TypeError('{} must be a list, but got {}'.format(
+                    name, type(var)))
+        img = [img] if img is None else img
+
+        feature_maps = self.extract_feat(img)
+
+        model_outs = self.pts_bbox_head(feature_maps, batch_img_metas)
+        results = self.pts_bbox_head.post_process(model_outs, batch_img_metas)
+
+        bbox_list = [dict() for i in range(len(batch_img_metas))]
+        for result_dict, pts_bbox in zip(bbox_list, results):
+            result_dict['pts_bbox'] = pts_bbox
+
+        for i, data_sample in enumerate(data_samples):
+            bbox_list_i = InstanceData(
+                metainfo=bbox_list[i]['pts_bbox'])
+            data_sample.pred_instances_3d = bbox_list_i
+            data_sample.pred_instances = InstanceData()
+        return data_samples
 
     def aug_test(self, inputs, data_samples, **kwargs):
         # fake test time augmentation
@@ -194,10 +151,10 @@ class Sparse4D(MVXTwoStageDetector):
         return self.predict(inputs, data_samples, **kwargs)
 
     def forward(self,
-                inputs, data_samples, 
-                # OptSampleList = None,
+                inputs,
+                data_samples: OptSampleList = None,
                 mode: str = 'tensor',
-                **kwargs):
+                **kwargs) -> ForwardResults:
         """The unified entry for a forward process in both training and test.
 
         The method should accept three modes: "tensor", "predict" and "loss":
@@ -247,11 +204,10 @@ class Sparse4D(MVXTwoStageDetector):
                                                   'time augmentation.'
                 return self.aug_test(inputs, data_samples, **kwargs)
             else:
-                if self.save_onnx_model is True:
-                    # export_PETR(self, inputs, data_samples,
-                        # quantized_model=self.quantized_model, opset_version=18, **kwargs)
-                    # Export onnx only once
-                    self.save_onnx_model = False
+                # TBA
+                #if self.save_onnx_model is True:
+                #    #Export onnx only once
+                #    self.save_onnx_model = False
 
                 return self.predict(inputs, data_samples, **kwargs)
         elif mode == 'tensor':

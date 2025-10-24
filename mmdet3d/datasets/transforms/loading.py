@@ -38,7 +38,7 @@ class LoadMultiViewImageFromFiles(BaseTransform):
                  to_float32: bool = False,
                  color_type: str = 'unchanged',
                  backend_args: Optional[dict] = None,
-                 num_views: int = 5,
+                 num_views: int = 6,
                  num_ref_frames: int = -1,
                  test_mode: bool = False,
                  set_default_scale: bool = True) -> None:

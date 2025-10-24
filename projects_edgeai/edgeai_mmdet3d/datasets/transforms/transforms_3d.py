@@ -117,9 +117,11 @@ class ResizeCropFlipImage(BaseTransform):
             new_imgs.append(np.array(img).astype(np.float32))
             results['cam2img'][
                 i][:3, :3] = ida_mat @ results['cam2img'][i][:3, :3]
+            if 'lidar2img' in results:
+                results['lidar2img'][i] = results['cam2img'][i] @ results['lidar2cam'][i]
 
         results['img'] = new_imgs
-
+        results['img_shape'] = [img.shape[:2] for img in results['img']]
         return results
 
     def _get_rot(self, h):

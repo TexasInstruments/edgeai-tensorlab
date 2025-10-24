@@ -211,232 +211,175 @@ class ResizeCropFlipRotImage(BaseTransform):
 
 
 @TRANSFORMS.register_module()
-class ResizeCropFlipImage(BaseTransform):
-    """Random resize, Crop and flip the image
-    Args:
-        size (tuple, optional): Fixed padding size.
-    """
+class CircleObjectRangeFilter(BaseTransform):
+    def __init__(
+        self, class_dist_thred=[52.5] * 5 + [31.5] + [42] * 3 + [31.5]
+    ):
+        self.class_dist_thred = class_dist_thred
 
-    def __init__(self, data_aug_conf=None, training=True):
-        self.data_aug_conf = data_aug_conf
-        self.training = training
-
-    def transform(self, results):
-        """Call function to pad images, masks, semantic segmentation maps.
-
-        Args:
-            results (dict): Result dict from loading pipeline.
-        Returns:
-            dict: Updated result dict.
-        """
-
-        imgs = results['img']
-        N = len(imgs)
-        new_imgs = []
-        resize, resize_dims, crop, flip, rotate = self._sample_augmentation()
-        results['lidar2cam'] = np.array(results['lidar2cam'])
-        for i in range(N):
-            intrinsic = np.array(results['cam2img'][i])
-            viewpad = np.eye(4)
-            viewpad[:intrinsic.shape[0], :intrinsic.shape[1]] = intrinsic
-            results['cam2img'][i] = viewpad
-            img = Image.fromarray(np.uint8(imgs[i]))
-            # augmentation (resize, crop, horizontal flip, rotate)
-            # different view use different aug (BEV Det)
-            img, ida_mat = self._img_transform(
-                img,
-                resize=resize,
-                resize_dims=resize_dims,
-                crop=crop,
-                flip=flip,
-                rotate=rotate,
+    def transform(self, input_dict):
+        gt_bboxes_3d = input_dict["gt_bboxes_3d"]
+        gt_labels_3d = input_dict["gt_labels_3d"]
+        dist = np.sqrt(
+            np.sum(gt_bboxes_3d[:, :2] ** 2, axis=-1)
+        )
+        mask = np.array([False] * len(dist))
+        for label_idx, dist_thred in enumerate(self.class_dist_thred):
+            mask = np.logical_or(
+                mask,
+                np.logical_and(gt_labels_3d == label_idx, dist <= dist_thred),
             )
-            new_imgs.append(np.array(img).astype(np.float32))
-            results['cam2img'][
-                i][:3, :3] = ida_mat @ results['cam2img'][i][:3, :3]
 
-        results['img'] = new_imgs
+        gt_bboxes_3d = gt_bboxes_3d[mask]
+        gt_labels_3d = gt_labels_3d[mask]
 
-        return results
+        input_dict["gt_bboxes_3d"] = gt_bboxes_3d
+        input_dict["gt_labels_3d"] = gt_labels_3d
+        if "instance_inds" in input_dict:
+            input_dict["instance_inds"] = input_dict["instance_inds"][mask]
 
-    def _get_rot(self, h):
+        return input_dict
 
-        return torch.Tensor([
-            [np.cos(h), np.sin(h)],
-            [-np.sin(h), np.cos(h)],
-        ])
+    def __repr__(self):
+        """str: Return a string that describes the module."""
+        repr_str = self.__class__.__name__
+        repr_str += f"(class_dist_thred={self.class_dist_thred})"
+        return repr_str
 
-    def _img_transform(self, img, resize, resize_dims, crop, flip, rotate):
-        ida_rot = torch.eye(2)
-        ida_tran = torch.zeros(2)
-        # adjust image
-        img = img.resize(resize_dims)
-        img = img.crop(crop)
-        if flip:
-            img = img.transpose(method=Image.FLIP_LEFT_RIGHT)
-        img = img.rotate(rotate)
-
-        # post-homography transformation
-        ida_rot *= resize
-        ida_tran -= torch.Tensor(crop[:2])
-        if flip:
-            A = torch.Tensor([[-1, 0], [0, 1]])
-            b = torch.Tensor([crop[2] - crop[0], 0])
-            ida_rot = A.matmul(ida_rot)
-            ida_tran = A.matmul(ida_tran) + b
-        A = self._get_rot(rotate / 180 * np.pi)
-        b = torch.Tensor([crop[2] - crop[0], crop[3] - crop[1]]) / 2
-        b = A.matmul(-b) + b
-        ida_rot = A.matmul(ida_rot)
-        ida_tran = A.matmul(ida_tran) + b
-        ida_mat = torch.eye(3)
-        ida_mat[:2, :2] = ida_rot
-        ida_mat[:2, 2] = ida_tran
-        return img, ida_mat
-
-    def _sample_augmentation(self):
-        H, W = self.data_aug_conf['H'], self.data_aug_conf['W']
-        fH, fW = self.data_aug_conf['final_dim']
-        if self.training:
-            resize = np.random.uniform(*self.data_aug_conf['resize_lim'])
-            resize_dims = (int(W * resize), int(H * resize))
-            newW, newH = resize_dims
-            crop_h = int(
-                (1 - np.random.uniform(*self.data_aug_conf['bot_pct_lim'])) *
-                newH) - fH
-            crop_w = int(np.random.uniform(0, max(0, newW - fW)))
-            crop = (crop_w, crop_h, crop_w + fW, crop_h + fH)
-            flip = False
-            if self.data_aug_conf['rand_flip'] and np.random.choice([0, 1]):
-                flip = True
-            rotate = np.random.uniform(*self.data_aug_conf['rot_lim'])
-        else:
-            resize = max(fH / H, fW / W)
-            resize_dims = (int(W * resize), int(H * resize))
-            newW, newH = resize_dims
-            crop_h = int(
-                (1 - np.mean(self.data_aug_conf['bot_pct_lim'])) * newH) - fH
-            crop_w = int(max(0, newW - fW) / 2)
-            crop = (crop_w, crop_h, crop_w + fW, crop_h + fH)
-            flip = False
-            rotate = 0
-        return resize, resize_dims, crop, flip, rotate
 
 @TRANSFORMS.register_module()
-class GlobalRotScaleTransImage(BaseTransform):
-    """Random resize, Crop and flip the image
+class NuScenesSparse4DAdaptor(BaseTransform):
+    def __init(self):
+        pass
+
+    def transform(self, input_dict):
+        input_dict["projection_mat"] = to_tensor(
+            np.stack(input_dict["lidar2img"])
+        )
+        input_dict["image_wh"] = to_tensor(input_dict["img_shape"])[:, :2][:, [1, 0]].to(torch.float32)
+
+        input_dict["T_global_inv"] = to_tensor(np.linalg.inv(input_dict["lidar2global"]))
+        input_dict["T_global"] = to_tensor(input_dict["lidar2global"])
+        if "cam2img" in input_dict:
+            input_dict["cam_intrinsic"] = np.float32(
+                np.stack(input_dict["cam2img"])
+            )
+            input_dict["focal"] = input_dict["cam_intrinsic"][..., 0, 0]
+        if "instance_inds" in input_dict:
+            input_dict["instance_id"] = input_dict["instance_inds"]
+
+        if "gt_bboxes_3d" in input_dict:
+            input_dict["gt_bboxes_3d"][:, 6] = self.limit_period(
+                input_dict["gt_bboxes_3d"][:, 6], offset=0.5, period=2 * np.pi
+            )
+            #input_dict["gt_bboxes_3d"] = to_tensor(input_dict["gt_bboxes_3d"]).float()
+        #if "gt_labels_3d" in input_dict:
+        #    input_dict["gt_labels_3d"] = to_tensor(input_dict["gt_labels_3d"]).long()
+
+        #imgs = [img.transpose(2, 0, 1) for img in input_dict["img"]]
+        #imgs = np.ascontiguousarray(np.stack(imgs, axis=0))
+        #input_dict["img"] = to_tensor(imgs)
+        #input_dict["img"] = imgs
+        return input_dict
+
+    def limit_period(
+        self, val: np.ndarray, offset: float = 0.5, period: float = np.pi
+    ) -> np.ndarray:
+        limited_val = val - np.floor(val / period + offset) * period
+        return limited_val
+
+
+@TRANSFORMS.register_module()
+class MultiScaleDepthMapGenerator(BaseTransform):
+    def __init__(self, downsample=1, max_depth=60):
+        if not isinstance(downsample, (list, tuple)):
+            downsample = [downsample]
+        self.downsample = downsample
+        self.max_depth = max_depth
+
+    def transform(self, input_dict):
+        points = input_dict["points"][..., :3, None]
+        gt_depth = []
+        for i, lidar2img in enumerate(input_dict["lidar2img"]):
+            H, W = input_dict["img_shape"][i][:2]
+
+            pts_2d = (
+                np.squeeze(lidar2img[:3, :3] @ points, axis=-1)
+                + lidar2img[:3, 3]
+            )
+            pts_2d[:, :2] /= pts_2d[:, 2:3]
+            U = np.round(pts_2d[:, 0]).astype(np.int32)
+            V = np.round(pts_2d[:, 1]).astype(np.int32)
+            depths = pts_2d[:, 2]
+            mask = np.logical_and.reduce(
+                [
+                    V >= 0,
+                    V < H,
+                    U >= 0,
+                    U < W,
+                    depths >= 0.1,
+                    # depths <= self.max_depth,
+                ]
+            )
+            V, U, depths = V[mask], U[mask], depths[mask]
+            sort_idx = np.argsort(depths)[::-1]
+            V, U, depths = V[sort_idx], U[sort_idx], depths[sort_idx]
+            depths = np.clip(depths, 0.1, self.max_depth)
+            for j, downsample in enumerate(self.downsample):
+                if len(gt_depth) < j + 1:
+                    gt_depth.append([])
+                h, w = (int(H / downsample), int(W / downsample))
+                u = np.floor(U / downsample).astype(np.int32)
+                v = np.floor(V / downsample).astype(np.int32)
+                depth_map = np.ones([h, w], dtype=np.float32) * -1
+                depth_map[v, u] = depths
+                gt_depth[j].append(depth_map)
+
+        input_dict["gt_depth"] = [np.stack(x) for x in gt_depth]
+        return input_dict
+
+
+@TRANSFORMS.register_module()
+class InstanceNameFilter(BaseTransform):
+    """Filter GT objects by their names.
+
     Args:
-        size (tuple, optional): Fixed padding size.
+        classes (list[str]): List of class names to be kept for training.
     """
 
-    def __init__(
-        self,
-        rot_range=[-0.3925, 0.3925],
-        scale_ratio_range=[0.95, 1.05],
-        translation_std=[0, 0, 0],
-        reverse_angle=False,
-        training=True,
-    ):
+    def __init__(self, classes):
+        self.classes = classes
+        self.labels = list(range(len(self.classes)))
 
-        self.rot_range = rot_range
-        self.scale_ratio_range = scale_ratio_range
-        self.translation_std = translation_std
-
-        self.reverse_angle = reverse_angle
-        self.training = training
-
-    def transform(self, results):
-        """Call function to pad images, masks, semantic segmentation maps.
+    def transform(self, input_dict):
+        """Call function to filter objects by their names.
 
         Args:
-            results (dict): Result dict from loading pipeline.
+            input_dict (dict): Result dict from loading pipeline.
+
         Returns:
-            dict: Updated result dict.
+            dict: Results after filtering, 'gt_bboxes_3d', 'gt_labels_3d' \
+                keys are updated in the result dict.
         """
-        # random rotate
-        rot_angle = np.random.uniform(*self.rot_range)
+        gt_labels_3d = input_dict["gt_labels_3d"]
+        gt_bboxes_mask = np.array(
+            [n in self.labels for n in gt_labels_3d], dtype=np.bool_
+        )
+        input_dict["gt_bboxes_3d"] = input_dict["gt_bboxes_3d"][gt_bboxes_mask]
+        input_dict["gt_labels_3d"] = input_dict["gt_labels_3d"][gt_bboxes_mask]
+        if "instance_inds" in input_dict:
+            input_dict["instance_inds"] = input_dict["instance_inds"][
+                gt_bboxes_mask
+            ]
 
-        self.rotate_bev_along_z(results, rot_angle)
-        if self.reverse_angle:
-            rot_angle *= -1
-        results['gt_bboxes_3d'].rotate(np.array(rot_angle))
+        return input_dict
 
-        # random scale
-        scale_ratio = np.random.uniform(*self.scale_ratio_range)
-        self.scale_xyz(results, scale_ratio)
-        results['gt_bboxes_3d'].scale(scale_ratio)
+    def __repr__(self):
+        """str: Return a string that describes the module."""
+        repr_str = self.__class__.__name__
+        repr_str += f"(classes={self.classes})"
+        return repr_str
 
-        # TODO: support translation
-        if not self.reverse_angle:
-            gt_bboxes_3d = results['gt_bboxes_3d'].numpy()
-            gt_bboxes_3d[:, 6] -= 2 * rot_angle
-            results['gt_bboxes_3d'] = LiDARInstance3DBoxes(
-                gt_bboxes_3d, box_dim=9)
-
-        return results
-
-    def rotate_bev_along_z(self, results, angle):
-        rot_cos = torch.cos(torch.tensor(angle))
-        rot_sin = torch.sin(torch.tensor(angle))
-
-        if self.reverse_angle:
-            rot_mat = torch.tensor([[rot_cos, rot_sin, 0, 0],
-                                    [-rot_sin, rot_cos, 0, 0], [0, 0, 1, 0],
-                                    [0, 0, 0, 1]])
-        else:
-            rot_mat = torch.tensor([[rot_cos, -rot_sin, 0, 0],
-                                    [rot_sin, rot_cos, 0, 0], [0, 0, 1, 0],
-                                    [0, 0, 0, 1]])
-
-        rot_mat_inv = torch.inverse(rot_mat)
-        num_view = len(results['lidar2cam'])
-        for view in range(num_view):
-            #results['lidar2cam'][view] = (
-            #    torch.tensor(np.array(results['lidar2cam'][view]).T).float()
-            #    @ rot_mat_inv).T.numpy()
-            results["lidar2cam"][view] = \
-                (torch.tensor(results["lidar2cam"][view]).float() @ rot_mat_inv).numpy()
-
-        # For StreamPETR
-        if 'ego_pose' in results:
-            results['ego_pose'] = (torch.tensor(results["ego_pose"]).float() @ rot_mat_inv).numpy()
-        if 'ego_pose_inv' in results:
-            results['ego_pose_inv'] = (rot_mat.float() @ torch.tensor(results["ego_pose_inv"]).float()).numpy()
-        if 'lidar2img' in results:
-            for view in range(num_view):
-                results["lidar2img"][view] = (torch.tensor(results["lidar2img"][view]).float() @ rot_mat_inv).numpy()
-
-        return
-
-    def scale_xyz(self, results, scale_ratio):
-        scale_mat = torch.tensor([
-            [scale_ratio, 0, 0, 0],
-            [0, scale_ratio, 0, 0],
-            [0, 0, scale_ratio, 0],
-            [0, 0, 0, 1],
-        ])
-
-        scale_mat_inv = torch.inverse(scale_mat)
-
-        num_view = len(results['lidar2cam'])
-        for view in range(num_view):
-            #results['lidar2cam'][view] = (torch.tensor(
-            #    scale_mat_inv.T
-            #    @ results['lidar2cam'][view].T).float()).T.numpy()
-            results['lidar2cam'][view] = \
-                (torch.tensor(results["lidar2cam"][view]).float() @ scale_mat_inv).numpy()
-
-
-        # For StreamPETR
-        if 'ego_pose' in results:
-            results['ego_pose'] = (torch.tensor(results["ego_pose"]).float() @ scale_mat_inv).numpy()
-        if 'ego_pose_inv' in results:
-            results['ego_pose_inv'] = (scale_mat @ torch.tensor(results["ego_pose_inv"]).float()).numpy()
-        if 'lidar2img' in results:
-            for view in range(num_view):
-                results["lidar2img"][view] = (torch.tensor(results["lidar2img"][view]).float() @ scale_mat_inv).numpy()
-
-        return
 
 
 @TRANSFORMS.register_module()
@@ -474,24 +417,7 @@ class NormalizeMultiviewImage(BaseTransform):
         repr_str += f'(mean={self.mean}, std={self.std}, to_rgb={self.to_rgb})'
         return repr_str
 
-@TRANSFORMS.register_module()
-class NuScenesSparse4DAdaptorV1(BaseTransform):
-    def transform(self, input_dict):
-        input_dict["projection_mat"] = np.float32(
-            np.stack(input_dict["lidar2img"])
-        )
-        input_dict["image_wh"] = np.ascontiguousarray(
-            np.array(input_dict["img_shape"], dtype=np.float32)[:2][::-1]
-        )
-        input_dict["T_global_inv"] = np.linalg.inv(input_dict["lidar2global"])
-        input_dict["T_global"] = input_dict["lidar2global"]
-        # if "cam_intrinsic" in input_dict:
-        input_dict["cam_intrinsic"] = np.float32(
-            np.stack(input_dict["intrinsics"])
-        )
-        input_dict["focal"] = input_dict["cam_intrinsic"][..., 0, 0]
-        return input_dict
-
+'''
 @TRANSFORMS.register_module()
 class CustomPack3DDetInputs(Pack3DDetInputs):
     INSTANCEDATA_3D_KEYS = [
@@ -632,7 +558,7 @@ class CustomPack3DDetInputs(Pack3DDetInputs):
         packed_results['inputs'] = inputs
 
         return packed_results
-
+'''
 
 @TRANSFORMS.register_module()
 class PhotoMetricDistortionMultiViewImage(BaseTransform):

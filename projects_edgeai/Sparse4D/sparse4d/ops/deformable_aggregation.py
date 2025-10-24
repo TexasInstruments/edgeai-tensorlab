@@ -1,15 +1,18 @@
 import torch
 from torch.autograd.function import Function, once_differentiable
 
-from mmengine.model.base_module import BaseModule
+from . import deformable_aggregation_ext
 
+'''
+from mmengine.model.base_module import BaseModule
 try:
     from . import deformable_aggregation_ext
     has_deformable_aggregation_ext = True
 except:
     has_deformable_aggregation_ext = False
-import torch
+
 import torch.nn.functional as F
+
 
 def bilinear_sampling(feature_map:torch.Tensor, sampling_locations:torch.Tensor):
     """
@@ -25,7 +28,7 @@ def bilinear_sampling(feature_map:torch.Tensor, sampling_locations:torch.Tensor)
     """
     batch_size, channels, height, width = feature_map.shape
     n_points = sampling_locations.shape[1]
-    
+
     # Convert sampling locations from [0, height/width] to [-1, 1] format required by grid_sample
     normalized_locations = sampling_locations.clone()
     normalized_locations[:, :, 0] = 2.0 * normalized_locations[:, :, 0] / (width - 1) - 1.0  # x coordinate
@@ -33,16 +36,16 @@ def bilinear_sampling(feature_map:torch.Tensor, sampling_locations:torch.Tensor)
     
     # Reshape grid for grid_sample
     grid = normalized_locations.unsqueeze(1)  # [batch_size, 1, n_points, 2]
-    
+
     # Perform sampling
     sampled = F.grid_sample(
-        feature_map, 
-        grid, 
-        mode='bilinear', 
-        padding_mode='zeros', 
+        feature_map,
+        grid,
+        mode='bilinear',
+        padding_mode='zeros',
         align_corners=True
     )
-    
+
     # Output shape: [batch_size, channels, 1, n_points]
     return sampled.squeeze(2)  # [batch_size, channels, n_points]
 
@@ -141,9 +144,9 @@ class DeformableAggregationFunction(BaseModule):
     
     def feature_maps_format(self,feature_maps, inverse=False):
         return DeformableAggregationFunction1.feature_maps_format(feature_maps, inverse)
+'''
 
-
-class DeformableAggregationFunction1(Function):
+class DeformableAggregationFunction(Function):
     @staticmethod
     def forward(
         ctx,
@@ -153,7 +156,6 @@ class DeformableAggregationFunction1(Function):
         sampling_location,
         weights,
     ):
-
         # output: [bs, num_pts, num_embeds]
         mc_ms_feat = mc_ms_feat.contiguous().float()
         spatial_shape = spatial_shape.contiguous().int()
@@ -213,45 +215,3 @@ class DeformableAggregationFunction1(Function):
             grad_sampling_location,
             grad_weights,
         )
-
-    @staticmethod
-    def feature_maps_format(feature_maps, inverse=False):
-        bs, num_cams = feature_maps[0].shape[:2]
-        if not inverse:
-            spatial_shape = []
-            scale_start_index = [0]
-
-            col_feats = []
-            for i, feat in enumerate(feature_maps):
-                spatial_shape.append(feat.shape[-2:])
-                scale_start_index.append(
-                    feat.shape[-1] * feat.shape[-2] + scale_start_index[-1]
-                )
-                col_feats.append(torch.reshape(
-                    feat, (bs, num_cams, feat.shape[2], -1)
-                ))
-            scale_start_index.pop()
-            col_feats = torch.cat(col_feats, dim=-1).permute(0, 1, 3, 2)
-            feature_maps = [
-                col_feats,
-                torch.tensor(
-                    spatial_shape,
-                    dtype=torch.int64,
-                    device=col_feats.device,
-                ),
-                torch.tensor(
-                    scale_start_index,
-                    dtype=torch.int64,
-                    device=col_feats.device,
-                ),
-            ]
-        else:
-            spatial_shape = feature_maps[1].int()
-            split_size = (spatial_shape[:, 0] * spatial_shape[:, 1]).tolist()
-            feature_maps = feature_maps[0].permute(0, 1, 3, 2)
-            feature_maps = list(torch.split(feature_maps, split_size, dim=-1))
-            for i, feat in enumerate(feature_maps):
-                feature_maps[i] = feat.reshape(
-                    feat.shape[:3] + (spatial_shape[i, 0], spatial_shape[i, 1])
-                )
-        return feature_maps
