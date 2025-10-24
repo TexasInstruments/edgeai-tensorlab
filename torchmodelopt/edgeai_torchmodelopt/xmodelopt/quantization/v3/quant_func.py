@@ -122,7 +122,7 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
     model.__quant_params__.total_epochs = total_epochs
     model.__quant_params__.outlier_hooks = []
     model.__quant_params__.bias_hooks = []
-    model.__quant_params__.bias_calibration_factor = kwargs.get("bias_calibration_factor", 0)
+    model.__quant_params__.bias_calibration_factor = kwargs.get("bias_calibration_factor", 0.05)
     model.__quant_params__.original_model = orig_model
 
     if add_methods:
@@ -144,16 +144,15 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
         model.export = types.MethodType(export, model)
         model.__deepcopy__ = types.MethodType(deepcopy_graphmodule, model)
     #
+    model = insert_all_hooks(model, kwargs.get('outlier_clipping',(not is_qat)), kwargs.get('bias_calibration',(not is_qat)))
     print("Model Preparation is now complete! ")
-    
-    model = insert_all_hooks(model)
     return model
 
 
-def insert_all_hooks(model, insert_outlier_hook=True, insert_bias_hook = True):
-    if len(model.__quant_params__.outlier_hooks)==0 and insert_outlier_hook:
+def insert_all_hooks(model, outlier_clipping, bias_calibration):
+    if len(model.__quant_params__.outlier_hooks)==0 and outlier_clipping:
         model.__quant_params__.outlier_hooks += quant_utils.add_fc_outlier_supression_hook(model)
-    if len(model.__quant_params__.bias_hooks)==0 and insert_bias_hook:
+    if len(model.__quant_params__.bias_hooks)==0 and bias_calibration:
         model.__quant_params__.bias_hooks += quant_utils.add_bias_calibration_hook(model, \
                 calibration_factor = model.__quant_params__.bias_calibration_factor)
     return model
