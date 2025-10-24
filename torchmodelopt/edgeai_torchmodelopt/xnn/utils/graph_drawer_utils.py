@@ -9,8 +9,12 @@ from torch.fx.passes.graph_drawer import FxGraphDrawer, _WEIGHT_TEMPLATE
 try:
     from torch.fx.graph_drawer import _parse_stack_trace
 except ImportError:
-    def _parse_stack_trace(stack_trace): return None
-    print("Warning: _parse_stack_trace not found in torch.fx.graph_drawer. Using a dummy function.")
+    print("Warning: _parse_stack_trace not found in torch.fx.graph_drawer.trying from torch.fx.graph.")
+    try:
+        from torch.fx.graph import _parse_stack_trace
+    except:
+        print("Warning: _parse_stack_trace not found in torch.fx.graph Using a dummy function.")
+        def _parse_stack_trace(stack_trace): return None
 
 
 class CustomFxGraphDrawer(FxGraphDrawer):
