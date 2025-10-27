@@ -1,8 +1,4 @@
-json
-subprocess
-threading
-os
-shutil
+jsons
 Path
 tabulate
 pytest-html-merger
