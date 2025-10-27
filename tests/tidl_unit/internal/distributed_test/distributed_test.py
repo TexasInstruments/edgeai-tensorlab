@@ -34,7 +34,7 @@ arguments_as_string = arguments_as_string.strip().split("--")
 
 OPERATORS = ''
 SPLIT_ACROSS_PC_OEPRATORS = ''
-
+EDGEAI_BENCHMARK_BRANCH = 'develop'
 TIDL_TOOLS_TARBALL = ''
 arguments_as_string_filtered = ''
 for i in arguments_as_string:
@@ -43,6 +43,8 @@ for i in arguments_as_string:
         OPERATORS = i.split("=")[-1].strip()
     elif i.startswith("split_across_pc="):
         SPLIT_ACROSS_PC_OEPRATORS = i.split("=")[-1].strip()
+    elif i.startswith("edgeai_benchmark_branch="):
+        EDGEAI_BENCHMARK_BRANCH = i.split("=")[-1].strip()
     elif i.startswith("tidl_tools_path="):
         TIDL_TOOLS_TARBALL=i.split("=")[-1].strip()
     elif i != '' and not i.startswith("temp_buffer_dir=") and not i.startswith("temp_nc_dir=") and not i.startswith("num_threads="):
@@ -113,7 +115,7 @@ def execute_scp_command(pc_name, command, timeout=300):
     Copy from remote PC via SCP
     
     Args:
-        pc_name (str): The PC hostname/username combination (e.g., "tidl@tidl-said-pc02.dhcp.ti.com")
+        pc_name (str): The PC hostname/username combination
         command (str): The command to execute
         command_type (str): Type of command for logging purposes
     
@@ -151,7 +153,7 @@ def execute_ssh_command(pc_name, command, timeout=300, command_type="command"):
     Execute a command on a remote PC via SSH
     
     Args:
-        pc_name (str): The PC hostname/username combination (e.g., "tidl@tidl-said-pc02.dhcp.ti.com")
+        pc_name (str): The PC hostname/username combination
         command (str): The command to execute
         command_type (str): Type of command for logging purposes
     
@@ -292,7 +294,7 @@ def execute_pc_commands(pc_name, pc_info, log_path, result_path):
         test_dir = pc_info["test_dir"]
         pyenv = pc_info["pyenv"]
 
-        setup_command = f"cd {test_dir}/../ && git clean -fxd -e 'tidl_unit_test_data' && cd {test_dir} && git stash && git checkout 2025/gourav_unit && git fetch && git pull --rebase && rm -rf {test_dir}/operator_test_reports/*"
+        setup_command = f"cd {test_dir}/../ && git clean -fxd -e 'tidl_unit_test_data' && cd {test_dir} && git stash && git checkout {EDGEAI_BENCHMARK_BRANCH} && git fetch && git pull --rebase && rm -rf {test_dir}/operator_test_reports/*"
         if  TIDL_TOOLS_TARBALL != '':
             setup_command = f"{setup_command} && rm -rf tidl_tools_tarball && wget -q -O tidl_tools_tarball {TIDL_TOOLS_TARBALL}"
         print(f"[INFO][{pc_name}] Running Setup command : {setup_command}")
