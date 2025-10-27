@@ -32,6 +32,7 @@
 import functools
 import math
 import random
+import warnings
 import torch
 import torch.ao.quantization
 
@@ -61,12 +62,28 @@ class AdaptiveWeightObserver(torch.ao.quantization.MinMaxObserver):
         self.fixed_range = fixed_range
         self.freeze_observer = False
 
+    def _correct_min_max(self, min_val: torch.Tensor, max_val: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, bool]:
+        return observer_utils._correct_min_max(min_val, max_val)
+
+    def _check_min_max_valid(self, min_val: torch.Tensor, max_val: torch.Tensor) -> bool:
+        return observer_utils._check_min_max_valid(min_val, max_val)
+    
     @torch.jit.export
     def _calculate_qparams(self, min_val, max_val):
         r"""Calculates the quantization parameters."""
+        if not self.check_min_max_valid(min_val, max_val):
+            print(f"WARNING: max_val ({max_val}) should be > min_val ({min_val}) for calculating qparams.")
+            min_val = -torch.abs(min_val) 
+            max_val = torch.abs(max_val)
+        #
         # weights qparams are always symmetric and this is ensured inside the super class, no need to handle it here.
-        scale, zero_point = super()._calculate_qparams(min_val, max_val)
-        
+        min_val, max_val, range_valid = self._correct_min_max(min_val, max_val)
+        if range_valid:
+            scale, zero_point = super()._calculate_qparams(min_val, max_val)
+        else:
+            scale = torch.tensor(1.0, device=min_val.device)
+            zero_point = torch.tensor(0, device=min_val.device, dtype=torch.int64)
+        #
         if self.power2_scale:
             scale, zero_point = observer_utils._adjust_qparams_power2_scale(
                 min_val, max_val, self.quant_min, self.quant_max, scale, zero_point, self.eps)
@@ -99,12 +116,23 @@ class AdaptivePerChannelWeightObserver(torch.ao.quantization.PerChannelMinMaxObs
         self.fixed_range = fixed_range
         self.freeze_observer = False
 
+    def _correct_min_max(self, min_val: torch.Tensor, max_val: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, bool]:
+        return observer_utils._correct_min_max(min_val, max_val)
+
+    def _check_min_max_valid(self, min_val: torch.Tensor, max_val: torch.Tensor) -> bool:
+        return observer_utils._check_min_max_valid(min_val, max_val)
+    
     @torch.jit.export
     def _calculate_qparams(self, min_val, max_val):
         r"""Calculates the quantization parameters."""
         # weights qparams are always symmetric and this is ensured inside the super class, no need to handle it here.
-        scale, zero_point = super()._calculate_qparams(min_val, max_val)
-
+        min_val, max_val, range_valid = self._correct_min_max(min_val, max_val)
+        if range_valid:
+            scale, zero_point = super()._calculate_qparams(min_val, max_val)
+        else:
+            scale = torch.tensor(1.0, device=min_val.device)
+            zero_point = torch.tensor(0, device=min_val.device, dtype=torch.int64)
+        #
         if self.power2_scale:
             scale, zero_point = observer_utils._adjust_qparams_power2_scale(
                 min_val, max_val, self.quant_min, self.quant_max, scale, zero_point, self.eps)
@@ -139,6 +167,12 @@ class AdaptiveActivationObserver(observer_utils.CumulativeMSEHistogramObserver):
         self.fixed_range = fixed_range
         self.freeze_observer = False
 
+    def _correct_min_max(self, min_val: torch.Tensor, max_val: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, bool]:
+        return observer_utils._correct_min_max(min_val, max_val)
+
+    def _check_min_max_valid(self, min_val: torch.Tensor, max_val: torch.Tensor) -> bool:
+        return observer_utils._check_min_max_valid(min_val, max_val)
+
     @torch.jit.export
     def _calculate_qparams(self, min_val, max_val):
         r"""Calculates the quantization parameters."""
@@ -147,15 +181,19 @@ class AdaptiveActivationObserver(observer_utils.CumulativeMSEHistogramObserver):
             max_abs = torch.max(torch.abs(min_val), torch.abs(max_val))
             min_val = -max_abs if signed_range else max_abs * 0.0
             max_val = max_abs
-
-        scale, zero_point = super()._calculate_qparams(min_val, max_val)
-
+        #
+        min_val, max_val, range_valid = self._correct_min_max(min_val, max_val)
+        if range_valid:
+            scale, zero_point = super()._calculate_qparams(min_val, max_val)
+        else:
+            scale = torch.tensor(1.0, device=min_val.device)
+            zero_point = torch.tensor(0, device=min_val.device, dtype=torch.int64)
+        #
         if self.power2_scale:
             scale, zero_point = observer_utils._adjust_qparams_power2_scale(
                 min_val, max_val, self.quant_min, self.quant_max, scale, zero_point, self.eps)
-
+        #
         return scale, zero_point
-
 
     def forward(self, x_orig):
         if self.freeze_observer:
@@ -191,6 +229,12 @@ class AdaptiveMinMaxActivationObserver(torch.ao.quantization.MinMaxObserver):
         self.fixed_range = fixed_range
         self.freeze_observer = False
 
+    def _correct_min_max(self, min_val: torch.Tensor, max_val: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, bool]:
+        return observer_utils._correct_min_max(min_val, max_val)
+
+    def _check_min_max_valid(self, min_val: torch.Tensor, max_val: torch.Tensor) -> bool:
+        return observer_utils._check_min_max_valid(min_val, max_val)
+    
     @torch.jit.export
     def _calculate_qparams(self, min_val, max_val):
         r"""Calculates the quantization parameters."""
@@ -199,15 +243,19 @@ class AdaptiveMinMaxActivationObserver(torch.ao.quantization.MinMaxObserver):
             max_abs = torch.max(torch.abs(min_val), torch.abs(max_val))
             min_val = -max_abs if signed_range else max_abs * 0.0
             max_val = max_abs
-
-        scale, zero_point = super()._calculate_qparams(min_val, max_val)
-
+        #
+        min_val, max_val, range_valid = self._correct_min_max(min_val, max_val)
+        if range_valid:
+            scale, zero_point = super()._calculate_qparams(min_val, max_val)
+        else:
+            scale = torch.tensor(1.0, device=min_val.device)
+            zero_point = torch.tensor(0, device=min_val.device, dtype=torch.int64)
+        #
         if self.power2_scale:
             scale, zero_point = observer_utils._adjust_qparams_power2_scale(
                 min_val, max_val, self.quant_min, self.quant_max, scale, zero_point, self.eps)
-
+        #
         return scale, zero_point
-
 
     def forward(self, x_orig):
         if self.freeze_observer:
@@ -238,6 +286,12 @@ class AdaptiveMovingAverageMinMaxActivationObserver(torch.ao.quantization.Moving
         self.fixed_range = fixed_range
         self.freeze_observer = False
 
+    def _correct_min_max(self, min_val: torch.Tensor, max_val: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, bool]:
+        return observer_utils._correct_min_max(min_val, max_val)
+
+    def _check_min_max_valid(self, min_val: torch.Tensor, max_val: torch.Tensor) -> bool:
+        return observer_utils._check_min_max_valid(min_val, max_val)
+    
     @torch.jit.export
     def _calculate_qparams(self, min_val, max_val):
         r"""Calculates the quantization parameters."""
@@ -246,15 +300,19 @@ class AdaptiveMovingAverageMinMaxActivationObserver(torch.ao.quantization.Moving
             max_abs = torch.max(torch.abs(min_val), torch.abs(max_val))
             min_val = -max_abs if signed_range else max_abs * 0.0
             max_val = max_abs
-
-        scale, zero_point = super()._calculate_qparams(min_val, max_val)
-
+        #
+        min_val, max_val, range_valid = self._correct_min_max(min_val, max_val)
+        if range_valid:
+            scale, zero_point = super()._calculate_qparams(min_val, max_val)
+        else:
+            scale = torch.tensor(1.0, device=min_val.device)
+            zero_point = torch.tensor(0, device=min_val.device, dtype=torch.int64)
+        #
         if self.power2_scale:
             scale, zero_point = observer_utils._adjust_qparams_power2_scale(
                 min_val, max_val, self.quant_min, self.quant_max, scale, zero_point, self.eps)
-
+        #
         return scale, zero_point
-
 
     def forward(self, x_orig):
         if self.freeze_observer:

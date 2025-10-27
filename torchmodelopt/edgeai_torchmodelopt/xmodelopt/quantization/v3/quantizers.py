@@ -163,21 +163,37 @@ class TIDLRTQuantizer(Quantizer):
         self.is_qat = is_qat 
         self.fast_mode = fast_mode
         self.is_fake_quantize = is_fake_quantize
-        self.single_input_single_output_shared_nodes = [torch.ops.aten.max_pool2d.default, 
-                                                        torch.ops.aten.flatten.using_ints, 
-                                                        torch.ops.aten.slice.Tensor,
-                                                        torch.ops.aten.dropout.default,
-                                                        torch.ops.aten.reshape.default,
-                                                        torch.ops.aten.pad.default] # dont want to requantize pad (just data movement)
+
+        # dont want to requantize these (just data movement)
+        # self.single_input_single_output_shared_nodes = [torch.ops.aten.max_pool2d.default, 
+        #                                                 torch.ops.aten.flatten.using_ints, 
+        #                                                 torch.ops.aten.slice.Tensor,
+        #                                                 torch.ops.aten.dropout.default,
+        #                                                 torch.ops.aten.reshape.default,
+        #                                                 torch.ops.aten.pad.default]
+        self.single_input_single_output_shared_nodes = []
+
         self.single_input_single_output_different_nodes = [ torch.ops.aten.leaky_relu.default, 
                                                             torch.ops.aten.gelu.default,
                                                             torch.ops.aten.relu.default,
                                                             torch.ops.aten.sigmoid.default,
                                                             torch.ops.aten.softmax.int]
+        
         self.two_inputs_single_output_nodes = [torch.ops.aten.mul.Tensor, 
                                                 torch.ops.aten.div.Tensor,
                                                 torch.ops.aten.add.Tensor,
                                                 torch.ops.aten.sub.Tensor,]
+        
+        self.skip_quantization_symbols = ['bbox_coder']
+
+        self.skip_quantization_nodes = [torch.ops.aten.max_pool2d.default, 
+                                        torch.ops.aten.flatten.using_ints, 
+                                        torch.ops.aten.slice.Tensor,
+                                        torch.ops.aten.dropout.default,
+                                        torch.ops.aten.reshape.default,
+                                        torch.ops.aten.pad.default,
+                                        torch.ops.aten.index.Tensor]
+
         if device is not None:
             self.device = device
         else:
@@ -206,7 +222,8 @@ class TIDLRTQuantizer(Quantizer):
         # quantize the weight of that layer as well as the output to 16 bit, however, input is still 8 bit quantized
         # further, the quantization also flows, which means, if the input is 16 bit, then weights will also be in 16 bit
         # but the output will be in 8 bit
-        self._skip_annotation(model, config)
+        self._skip_annotation_symbols(model, config)
+        self._skip_annotation_nodes(model, config)
         self._annotate_deformconv2d(model, config)
         self._annotate_layernorm(model, config) # the weights and bias also need to be quantized, first so not to quantize nodes internally which might happen later on
         self._annotate_single_input_single_output_different(model, config)
@@ -221,14 +238,27 @@ class TIDLRTQuantizer(Quantizer):
         return model
 
 
-    def _skip_annotation(
+    def _skip_annotation_symbols(
         self, gm: torch.fx.GraphModule, quantization_config: QuantizationConfig
     ) -> None:
         for node in gm.graph.nodes:
-            if 'stack_trace' in node.meta and 'bbox_coder' in node.meta['stack_trace']:  #skipping the annotation for bbox coder in fcos3d
+            for symbol_name in self.skip_quantization_symbols:
+                if 'stack_trace' in node.meta and symbol_name in node.meta['stack_trace']:  #skipping the annotation for bbox coder in fcos3d
+                    node.meta["quantization_annotation"] = QuantizationAnnotation(  # type: ignore[union-attr]
+                        _annotated=True,
+                    )
+
+    def _skip_annotation_nodes(
+        self, gm: torch.fx.GraphModule, quantization_config: QuantizationConfig
+    ) -> None:
+        for node in gm.graph.nodes:
+            if node.target in self.skip_quantization_nodes:
                 node.meta["quantization_annotation"] = QuantizationAnnotation(  # type: ignore[union-attr]
                     _annotated=True,
                 )
+            #
+        #
+    #
 
     def _annotate_deformconv2d(
         self, gm: torch.fx.GraphModule, quantization_config: QuantizationConfig

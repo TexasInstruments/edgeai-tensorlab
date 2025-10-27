@@ -32,6 +32,7 @@
 import functools
 import math
 import random
+import warnings
 import torch
 import torch
 import torch.ao.quantization
@@ -76,6 +77,30 @@ def _adjust_qparams_power2_scale(min_val, max_val, quant_min, quant_max, scale, 
         zero_point = torch.clamp(zero_point, quant_min, quant_max)
     return scale, zero_point
 
+
+def _correct_min_max(min_val: torch.Tensor, max_val: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, bool]:
+    range_valid = True
+    if min_val.numel() == 0 or max_val.numel() == 0:
+        warnings.warn(f"must run observer before calling calculate_qparams. min_val={min_val} max_val={max_val}")
+        range_valid = False
+    elif torch.any(torch.isinf(min_val)) or torch.any(torch.isinf(max_val)):
+        warnings.warn(f"must run observer before calling calculate_qparams. min_val={min_val} max_val={max_val}")
+        range_valid = False
+    elif torch.any(torch.isnan(min_val)) or torch.any(torch.isnan(max_val)):
+        warnings.warn(f"invalid range: min_val={min_val} max_val={max_val}")
+        range_valid = False
+    elif torch.any(min_val == max_val and min_val == 0.0):
+        range_valid = False
+    elif torch.any(min_val >= max_val):
+        min_val = -torch.abs(min_val) 
+        max_val = torch.abs(max_val)
+    #
+    return min_val, max_val, range_valid
+    
+
+def _check_min_max_valid(min_val: torch.Tensor, max_val: torch.Tensor) -> bool:
+    return True
+    
 
 ####################################################################
 # histogram observer from torch.ao.quantization
