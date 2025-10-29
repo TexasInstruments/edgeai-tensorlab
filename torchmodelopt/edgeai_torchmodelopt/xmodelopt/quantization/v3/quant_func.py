@@ -36,11 +36,13 @@ from torch.fx import GraphModule
 import torch.ao.quantization
 from torch.ao.quantization.quantize_pt2e import prepare_pt2e, prepare_qat_pt2e, convert_pt2e 
 
+from .quantizer.tidlrt.tidlrt_quantizer_advanced import get_tidlrt_quantizer_advanced as get_tidlrt_quantizer
+#from .quantizer.tidlrt.tidlrt_quantizer_basic import get_tidlrt_quantizer_basic as get_tidlrt_quantizer
+	
 from .... import xnn
 from ... import utils
 from . import qconfig_types
 from . import quant_utils
-from .quantizers import TIDLRTQuantizer
 
 import copy
 import os
@@ -95,7 +97,7 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
     
     # methods to quantize individual layers/modules types are in quantizer
     device=next(iter(m.named_parameters()))[1].device
-    quantizer = quantizer or TIDLRTQuantizer(is_qat=is_qat, fast_mode=fast_mode, is_fake_quantize=is_fake_quantize, device=device)
+    quantizer = quantizer or get_tidlrt_quantizer(is_qat=is_qat, fast_mode=fast_mode, is_fake_quantize=is_fake_quantize, device=device)
     quantizer.set_global(qconfig_mode)
     
     # for copy_arg in copy_args:

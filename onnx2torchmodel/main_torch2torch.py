@@ -151,7 +151,7 @@ if __name__ == '__main__':
             f.write(pt2e_model.code)
 
         # Step 2. quantization
-        from torchao.quantization.pt2e.quantize_pt2e import (prepare_qat_pt2e, convert_pt2e,)
+        from torch.ao.quantization.pt2e.quantize_pt2e import (prepare_qat_pt2e, convert_pt2e,)
         # install executorch: `pip install executorch`
         from executorch.backends.xnnpack.quantizer.xnnpack_quantizer import (get_symmetric_quantization_config, XNNPACKQuantizer,)
 

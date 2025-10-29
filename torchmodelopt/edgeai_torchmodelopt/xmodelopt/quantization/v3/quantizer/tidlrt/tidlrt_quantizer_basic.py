@@ -30,38 +30,43 @@
 #################################################################################
 
 import torch
-import torch.ao.quantization
-from torch.ao.quantization.quantizer.utils import (
-    _annotate_input_qspec_map,
-    _annotate_output_qspec
-)
-from torch.ao.quantization.quantizer.xnnpack_quantizer_utils import (
-    get_input_act_qspec,
-    get_output_act_qspec,
-    get_bias_qspec,
-    get_weight_qspec,
-    OperatorConfig,
-    QuantizationConfig,
-)
-from torch.ao.quantization.quantizer.quantizer import (
-    Quantizer,
-    QuantizationAnnotation,
-    SharedQuantizationSpec,
-    QuantizationSpec,
-    DerivedQuantizationSpec
-)
+
+try:
+    import torchao
+except:
+    import torch.ao as torchao
+    from torch.ao.quantization.quantizer.utils import (
+        _annotate_input_qspec_map,
+        _annotate_output_qspec
+    )
+    from torch.ao.quantization.quantizer.xnnpack_quantizer_utils import (
+        get_input_act_qspec,
+        get_output_act_qspec,
+        get_bias_qspec,
+        get_weight_qspec,
+        OperatorConfig,
+        QuantizationConfig,
+    )
+    from torch.ao.quantization.quantizer.quantizer import (
+        Quantizer,
+        QuantizationAnnotation,
+        SharedQuantizationSpec,
+        QuantizationSpec,
+        DerivedQuantizationSpec
+    )
+
 # might move to torch/ao/quantization/utils.py later on
 # from torch.ao.quantization.pt2e.utils import _is_conv_or_conv_transpose_node
 # from torch.nn.utils.fusion import fuse_conv_bn_weights
 import itertools
 import operator
 from typing import Dict, List, Optional, Any
-
 from torch.fx import Node, GraphModule
 
 from torch.fx.passes.utils.source_matcher_utils import get_source_partitions
+#from ....utils import get_source_partitions
 
-from . import qconfig_types
+from .. import qconfig_types
 
 import warnings
 
@@ -154,8 +159,8 @@ def _derived_bias_quant_spec(weight_node, input_act_node, curr_node) -> DerivedQ
             qscheme=torch.per_channel_symmetric,
         )
 
-class TIDLRTQuantizer(Quantizer):
 
+class TIDLRTQuantizerBasic(Quantizer):
     def __init__(self, is_qat, fast_mode=False, is_fake_quantize=True, device=None):
         super().__init__()
         self.global_config: QuantizationConfig = None  # type: ignore[assignment]
@@ -192,6 +197,7 @@ class TIDLRTQuantizer(Quantizer):
                                         torch.ops.aten.dropout.default,
                                         torch.ops.aten.reshape.default,
                                         torch.ops.aten.pad.default,
+                                        torch.ops.aten.index_select.default,
                                         torch.ops.aten.index.Tensor]
 
         if device is not None:
@@ -263,8 +269,8 @@ class TIDLRTQuantizer(Quantizer):
     def _annotate_deformconv2d(
         self, gm: torch.fx.GraphModule, quantization_config: QuantizationConfig
     ) -> None:
-        from ....xops import DCNWithGSv2
-        from ....xmodelopt import get_source_partitions
+        from .....xops import DCNWithGSv2
+        from ....utils import get_source_partitions
         deform_conv_partitions = get_source_partitions(
             gm.graph, [DCNWithGSv2]
         )
@@ -746,3 +752,8 @@ class TIDLRTQuantizer(Quantizer):
     @classmethod
     def get_supported_operators(cls) -> List[OperatorConfig]:
         return []
+    
+
+def get_tidlrt_quantizer_basic(**kwargs):
+    return TIDLRTQuantizerBasic(**kwargs)
+

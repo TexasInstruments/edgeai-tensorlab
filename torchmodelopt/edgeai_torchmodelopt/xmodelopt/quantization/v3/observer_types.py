@@ -55,7 +55,8 @@ from . import observer_utils
 
 ####################################################################
 class AdaptiveWeightObserver(torch.ao.quantization.MinMaxObserver):
-    def __init__(self, *args, quant_min=-128, quant_max=+127, dtype=torch.qint8, qscheme=torch.per_tensor_symmetric, power2_scale=False, range_max=None, fixed_range=False, **kwargs):
+    def __init__(self, *args, quant_min=-128, quant_max=+127, dtype=torch.qint8, qscheme=torch.per_tensor_symmetric, power2_scale=False, 
+                 range_max=None, fixed_range=False, **kwargs):
         super().__init__(*args, quant_min=quant_min, quant_max=quant_max, dtype=dtype, qscheme=qscheme, **kwargs)
         self.power2_scale = power2_scale
         self.range_max = range_max
@@ -109,7 +110,8 @@ class AdaptiveWeightObserver(torch.ao.quantization.MinMaxObserver):
 
 
 class AdaptivePerChannelWeightObserver(torch.ao.quantization.PerChannelMinMaxObserver):
-    def __init__(self, *args, quant_min=-128, quant_max=+127, dtype=torch.qint8, qscheme=torch.per_channel_symmetric, power2_scale=False, range_max=None, fixed_range=False, **kwargs):
+    def __init__(self, *args, quant_min=-128, quant_max=+127, dtype=torch.qint8, qscheme=torch.per_channel_symmetric, power2_scale=False, 
+                 range_max=None, fixed_range=False, **kwargs):
         super().__init__(*args, quant_min=quant_min, quant_max=quant_max, dtype=dtype, qscheme=qscheme, **kwargs)
         self.power2_scale = power2_scale
         self.range_max = range_max
@@ -158,7 +160,8 @@ class AdaptivePerChannelWeightObserver(torch.ao.quantization.PerChannelMinMaxObs
 
 
 class AdaptiveActivationObserver(observer_utils.CumulativeMSEHistogramObserver):
-    def __init__(self, *args, quant_min=0, quant_max=255, dtype=torch.quint8, qscheme=torch.per_tensor_affine, power2_scale=False, range_max=None, fixed_range=False, **kwargs):
+    def __init__(self, *args, quant_min=0, quant_max=255, dtype=torch.quint8, qscheme=torch.per_tensor_affine, power2_scale=False, 
+                 range_max=None, fixed_range=False, **kwargs):
         super().__init__(*args, quant_min=quant_min, quant_max=quant_max, dtype=dtype, qscheme=qscheme, **kwargs)
 		# activation quantization cannot use torch.per_channel_symmetric, it has to be torch.per_tensor_symmetric
         self.symmetric = (qscheme in (torch.per_channel_symmetric, torch.per_tensor_symmetric))
@@ -220,7 +223,8 @@ class AdaptiveActivationObserverFast(AdaptiveActivationObserver):
 
 
 class AdaptiveMinMaxActivationObserver(torch.ao.quantization.MinMaxObserver):
-    def __init__(self, *args, quant_min=0, quant_max=255, dtype=torch.quint8, qscheme=torch.per_tensor_affine, power2_scale=False, range_max=None, fixed_range=False, range_shrink_percentile=0, **kwargs):
+    def __init__(self, *args, quant_min=0, quant_max=255, dtype=torch.quint8, qscheme=torch.per_tensor_affine, power2_scale=False, 
+                 range_max=None, fixed_range=False, range_shrink_percentile=0, **kwargs):
         super().__init__(*args, quant_min=quant_min, quant_max=quant_max, dtype=dtype, qscheme=qscheme, **kwargs)
 		# activation quantization cannot use torch.per_channel_symmetric, it has to be torch.per_tensor_symmetric
         self.symmetric = (qscheme in (torch.per_channel_symmetric, torch.per_tensor_symmetric))
@@ -277,7 +281,8 @@ class AdaptiveMinMaxActivationObserver(torch.ao.quantization.MinMaxObserver):
 
 
 class AdaptiveMovingAverageMinMaxActivationObserver(torch.ao.quantization.MovingAverageMinMaxObserver):
-    def __init__(self, *args, quant_min=0, quant_max=255, dtype=torch.quint8, qscheme=torch.per_tensor_affine, power2_scale=False, range_max=None, fixed_range=False, range_shrink_percentile=0, **kwargs):
+    def __init__(self, *args, quant_min=0, quant_max=255, dtype=torch.quint8, qscheme=torch.per_tensor_affine, power2_scale=False, 
+                 range_max=None, fixed_range=False, range_shrink_percentile=0, **kwargs):
         super().__init__(*args, quant_min=quant_min, quant_max=quant_max, dtype=dtype, qscheme=qscheme, **kwargs)
 		# activation quantization cannot use torch.per_channel_symmetric, it has to be torch.per_tensor_symmetric
         self.symmetric = (qscheme in (torch.per_channel_symmetric, torch.per_tensor_symmetric))

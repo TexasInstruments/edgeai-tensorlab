@@ -31,14 +31,16 @@
 
 import torch
 import statistics
-from torch.onnx import symbolic_helper, register_custom_op_symbolic, _type_utils
-from torch.onnx._internal import jit_utils
+from torch.onnx import symbolic_helper, register_custom_op_symbolic
 from torch import nn
 from torch import fx
 from functools import partial
-from torch.fx.passes.utils.source_matcher_utils import get_source_partitions
 import itertools
 from torch.fx import Node
+#from torch.onnx._internal import jit_utils # for jit_utils.GraphContext
+
+from torch.fx.passes.utils.source_matcher_utils import get_source_partitions
+# from ...utils import get_source_partitions
 
 from . import fake_quantize_types
 from . import qconfig_types
@@ -122,7 +124,7 @@ def native_layer_norm(input, normalized_shape, weight, bias, eps: float = 1e-5,)
     
 def register_onnx_symbolics(opset_version=17):
     
-    def aten_softmax(g: jit_utils.GraphContext, input, dim, *args):
+    def aten_softmax(g, input, dim, *args):
         output = g.op("Softmax", input) #FIXME need to pass dim as well, TIDL needs axis, default works though
         return output
 
@@ -300,7 +302,7 @@ def remove_to_device_node(model):
     model.recompile()
     return model      
 
-def _bias_calibration_hook(m, x, y, calibration_factor, bias_module):
+def _bias_calibration_hook(calibration_factor, bias_module, m, x, y):
     bias_error = 0
     if isinstance(x, tuple):
         x = x[0]
@@ -375,15 +377,19 @@ def add_bias_calibration_hook(model, calibration_factor=0):
     return all_hooks
 
 
-def _fc_outlier_supression_hook(m, x):
+def _fc_outlier_supression_pre_hook(m, x):
     if isinstance(x, tuple):
+        is_tuple = True
         x = x[0]
+    else:
+        is_tuple = False
+    #
     mean_val = x.mean(dim=(0,1))
     std_val = x.std(dim=(0,1))
     clip_val_max = mean_val + 3*std_val
     clip_val_min = mean_val - 3*std_val
     x = torch.clip(x, min=clip_val_min, max = clip_val_max)
-    return tuple([x])
+    return tuple([x]) if is_tuple else x
 
 
 def is_mlp_fc2_layer(node, find_level, found_gelu=False, gelu_node=None):
@@ -440,7 +446,7 @@ def add_fc_outlier_supression_hook(model):
                         act_node = output_node
                     else:
                         act_node = output_node.next
-                this_hook1 = getattr(model, act_node.target).register_forward_pre_hook(_fc_outlier_supression_hook)
+                this_hook1 = getattr(model, act_node.target).register_forward_pre_hook(_fc_outlier_supression_pre_hook)
                 # this_hook2 = getattr(model, gelu_node.next.target).register_forward_pre_hook(_fc_outlier_supression_hook)
                 all_hooks.append(this_hook1)
                 # all_hooks.append(this_hook2)

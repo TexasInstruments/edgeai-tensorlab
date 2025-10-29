@@ -89,7 +89,7 @@ def _correct_min_max(min_val: torch.Tensor, max_val: torch.Tensor) -> tuple[torc
     elif torch.any(torch.isnan(min_val)) or torch.any(torch.isnan(max_val)):
         warnings.warn(f"invalid range: min_val={min_val} max_val={max_val}")
         range_valid = False
-    elif torch.any(min_val == max_val and min_val == 0.0):
+    elif torch.any((min_val == max_val) & (min_val == 0.0)):
         range_valid = False
     elif torch.any(min_val >= max_val):
         min_val = -torch.abs(min_val) 

@@ -44,8 +44,12 @@ def get_source_partitions(graph:fx.Graph, wanted_sources:list, filter_fn = None)
             if source_fn[1] not in wanted_sources:
                 continue
             add_node_to_partition(source_fn, node)
-        else:
-            continue
+        elif not found and (source_fn_st := node.meta.get("torch_fn", None)):
+            source_fn = source_fn_st[-1]
+            if source_fn[1] not in wanted_sources:
+                continue
+            add_node_to_partition(source_fn, node)
+
 
     
     def make_partition(nodes: List[fx.Node], module_type: Type) -> SourcePartition:

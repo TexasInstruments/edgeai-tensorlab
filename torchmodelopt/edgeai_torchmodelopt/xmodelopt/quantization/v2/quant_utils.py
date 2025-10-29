@@ -38,8 +38,8 @@ from torch.ao.quantization import FakeQuantize
 import statistics
 from functools import partial
 from torch.onnx import symbolic_helper
-from torch.onnx._internal import jit_utils
 from torch import nn
+# from torch.onnx._internal import jit_utils # for jit_utils.GraphContext
 
 from .... import xnn
 
@@ -54,13 +54,13 @@ def is_fake_quant_with_param(self, pmodule, cmodule, fake_quant_types):
     return isinstance(cmodule, fake_quant_types) and num_params > 0
 
 
-def quantized_softmax(g: jit_utils.GraphContext, x, dim, op_scale, op_zero_point):
+def quantized_softmax(g, x, dim, op_scale, op_zero_point):
     x, _, _, _ = symbolic_helper.dequantize_helper(g, x)
     output = g.op("Softmax", x)
     return symbolic_helper.quantize_helper(g, output, op_scale, op_zero_point)
 
 
-def quantized_matmul(g: jit_utils.GraphContext, x, y, op_scale, op_zero_point):
+def quantized_matmul(g, x, y, op_scale, op_zero_point):
     x, _, _, _ = symbolic_helper.dequantize_helper(g, x)
     y, _, _, _ = symbolic_helper.dequantize_helper(g, y)
     output = g.op("MatMul", x, y)
