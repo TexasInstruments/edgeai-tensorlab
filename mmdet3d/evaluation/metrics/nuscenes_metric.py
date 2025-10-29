@@ -187,6 +187,7 @@ class NuScenesMetric(BaseMetric):
                      result_dict: dict,
                      metric: str = 'bbox',
                      classes: Optional[List[str]] = None,
+                     tracking: Optional[bool] = False,
                      logger: Optional[MMLogger] = None) -> Dict[str, float]:
         """Evaluation in Nuscenes protocol.
 
@@ -205,7 +206,7 @@ class NuScenesMetric(BaseMetric):
         for name in result_dict:
             print(f'Evaluating bboxes of {name}')
             ret_dict = self._evaluate_single(
-                result_dict[name], classes=classes, result_name=name)
+                result_dict[name], classes=classes, tracking=tracking, result_name=name)
             metric_dict.update(ret_dict)
         return metric_dict
 
@@ -213,6 +214,7 @@ class NuScenesMetric(BaseMetric):
             self,
             result_path: str,
             classes: Optional[List[str]] = None,
+            tracking: Optional[bool] = False,
             result_name: str = 'pred_instances_3d') -> Dict[str, float]:
         """Evaluation for a single model in nuScenes protocol.
 
@@ -227,7 +229,6 @@ class NuScenesMetric(BaseMetric):
             Dict[str, float]: Dictionary of evaluation details.
         """
         from nuscenes import NuScenes
-        from nuscenes.eval.detection.evaluate import NuScenesEval
 
         output_dir = osp.join(*osp.split(result_path)[:-1])
         nusc = NuScenes(
@@ -236,39 +237,88 @@ class NuScenesMetric(BaseMetric):
             'v1.0-mini': 'mini_val',
             'v1.0-trainval': 'val',
         }
-        nusc_eval = NuScenesEval(
-            nusc,
-            config=self.eval_detection_configs,
-            result_path=result_path,
-            eval_set=eval_set_map[self.version],
-            output_dir=output_dir,
-            verbose=False)
-        nusc_eval.main(render_curves=False)
 
-        # record metrics
-        metrics = mmengine.load(osp.join(output_dir, 'metrics_summary.json'))
-        detail = dict()
-        metric_prefix = f'{result_name}_NuScenes'
-        for name in classes:
-            for k, v in metrics['label_aps'][name].items():
-                val = float(f'{v:.4f}')
-                detail[f'{metric_prefix}/{name}_AP_dist_{k}'] = val
-            for k, v in metrics['label_tp_errors'][name].items():
-                val = float(f'{v:.4f}')
-                detail[f'{metric_prefix}/{name}_{k}'] = val
-            for k, v in metrics['tp_errors'].items():
-                val = float(f'{v:.4f}')
-                detail[f'{metric_prefix}/{self.ErrNameMapping[k]}'] = val
+        if not tracking:
+            from nuscenes.eval.detection.evaluate import NuScenesEval
+            nusc_eval = NuScenesEval(
+                nusc,
+                config=self.eval_detection_configs,
+                result_path=result_path,
+                eval_set=eval_set_map[self.version],
+                output_dir=output_dir,
+                verbose=False)
+            nusc_eval.main(render_curves=False)
 
-        detail[f'{metric_prefix}/NDS'] = metrics['nd_score']
-        detail[f'{metric_prefix}/mAP'] = metrics['mean_ap']
+            # record metrics
+            metrics = mmengine.load(osp.join(output_dir, 'metrics_summary.json'))
+            detail = dict()
+            metric_prefix = f'{result_name}_NuScenes'
+            for name in classes:
+                for k, v in metrics['label_aps'][name].items():
+                    val = float(f'{v:.4f}')
+                    detail[f'{metric_prefix}/{name}_AP_dist_{k}'] = val
+                for k, v in metrics['label_tp_errors'][name].items():
+                    val = float(f'{v:.4f}')
+                    detail[f'{metric_prefix}/{name}_{k}'] = val
+                for k, v in metrics['tp_errors'].items():
+                    val = float(f'{v:.4f}')
+                    detail[f'{metric_prefix}/{self.ErrNameMapping[k]}'] = val
+
+            detail[f'{metric_prefix}/NDS'] = metrics['nd_score']
+            detail[f'{metric_prefix}/mAP'] = metrics['mean_ap']
+        else:
+            from nuscenes.eval.tracking.evaluate import TrackingEval
+            if hasattr(self, 'track3d_eval_configs'):
+                track3d_eval_configs = self.track3d_eval_configs
+            else:
+                track3d_eval_configs = None
+            nusc_eval = TrackingEval(
+                config=track3d_eval_configs,
+                result_path=result_path,
+                eval_set=eval_set_map[self.version],
+                output_dir=output_dir,
+                verbose=True,
+                nusc_version=self.version,
+                nusc_dataroot=self.data_root,
+            )
+            metrics = nusc_eval.main()
+
+            # record metrics
+            metrics = mmengine.load(osp.join(output_dir, "metrics_summary.json"))
+            print(metrics)
+            detail = dict()
+            metric_prefix = f"{result_name}_NuScenes"
+            keys = [
+                "amota",
+                "amotp",
+                "recall",
+                "motar",
+                "gt",
+                "mota",
+                "motp",
+                "mt",
+                "ml",
+                "faf",
+                "tp",
+                "fp",
+                "fn",
+                "ids",
+                "frag",
+                "tid",
+                "lgd",
+            ]
+            for key in keys:
+                detail["{}/{}".format(metric_prefix, key)] = metrics[key]
+
         return detail
 
     def format_results(
         self,
         results: List[dict],
         classes: Optional[List[str]] = None,
-        jsonfile_prefix: Optional[str] = None
+        jsonfile_prefix: Optional[str] = None,
+        tracking: Optional[bool] = False,
+        tracking_threshold: Optional[float] = None,
     ) -> Tuple[dict, Union[tempfile.TemporaryDirectory, None]]:
         """Format the mmdet3d results to standard NuScenes json file.
 
@@ -305,7 +355,8 @@ class NuScenesMetric(BaseMetric):
                 box_type_3d = type(results_[0]['bboxes_3d'])
                 if box_type_3d == LiDARInstance3DBoxes:
                     result_dict[name] = self._format_lidar_bbox(
-                        results_, sample_idx_list, classes, tmp_file_)
+                        results_, sample_idx_list, classes, tmp_file_,
+                        tracking=tracking, tracking_threshold=tracking_threshold)
                 elif box_type_3d == CameraInstance3DBoxes:
                     result_dict[name] = self._format_camera_bbox(
                         results_, sample_idx_list, classes, tmp_file_)
@@ -486,7 +537,9 @@ class NuScenesMetric(BaseMetric):
                            results: List[dict],
                            sample_idx_list: List[int],
                            classes: Optional[List[str]] = None,
-                           jsonfile_prefix: Optional[str] = None) -> str:
+                           jsonfile_prefix: Optional[str] = None,
+                           tracking: Optional[bool] = False,
+                           tracking_threshold: Optional[float] = None) -> str:
         """Convert the results to the standard format.
 
         Args:
@@ -506,7 +559,8 @@ class NuScenesMetric(BaseMetric):
         print('Start to convert detection format...')
         for i, det in enumerate(mmengine.track_iter_progress(results)):
             annos = []
-            boxes, attrs = output_to_nusc_box(det)
+            boxes, attrs = output_to_nusc_box(
+                det, threshold=tracking_threshold if tracking else None)
             sample_idx = sample_idx_list[i]
             sample_token = self.data_infos[sample_idx]['token']
             boxes = lidar_nusc_box_to_global(self.data_infos[sample_idx],
@@ -514,6 +568,15 @@ class NuScenesMetric(BaseMetric):
                                              self.eval_detection_configs)
             for i, box in enumerate(boxes):
                 name = classes[box.label]
+
+                # Sparse4D tracking
+                if tracking and name in [
+                    "barrier",
+                    "traffic_cone",
+                    "construction_vehicle",
+                ]:
+                    continue
+
                 if np.sqrt(box.velocity[0]**2 + box.velocity[1]**2) > 0.2:
                     if name in [
                             'car',
@@ -540,10 +603,23 @@ class NuScenesMetric(BaseMetric):
                     translation=box.center.tolist(),
                     size=box.wlh.tolist(),
                     rotation=box.orientation.elements.tolist(),
-                    velocity=box.velocity[:2].tolist(),
-                    detection_name=name,
-                    detection_score=box.score,
-                    attribute_name=attr)
+                    velocity=box.velocity[:2].tolist())
+                if not tracking:
+                    nusc_anno.update(
+                        dict(
+                            detection_name=name,
+                            detection_score=box.score,
+                            attribute_name=attr,
+                        )
+                    )
+                else:
+                    nusc_anno.update(
+                        dict(
+                            tracking_name=name,
+                            tracking_score=box.score,
+                            tracking_id=str(box.token),
+                        )
+                    )
                 annos.append(nusc_anno)
             nusc_annos[sample_token] = annos
         nusc_submissions = {
@@ -558,7 +634,8 @@ class NuScenesMetric(BaseMetric):
 
 
 def output_to_nusc_box(
-        detection: dict) -> Tuple[List[NuScenesBox], Union[np.ndarray, None]]:
+        detection: dict,
+        threshold: Optional[float] = None) -> Tuple[List[NuScenesBox], Union[np.ndarray, None]]:
     """Convert the output to the box class in the nuScenes.
 
     Args:
@@ -578,6 +655,22 @@ def output_to_nusc_box(
     attrs = None
     if 'attr_labels' in detection:
         attrs = detection['attr_labels'].numpy()
+
+    # Sparse4D
+    if "instance_ids" in detection:
+        ids = detection["instance_ids"]  # .numpy()
+
+    if threshold is not None:
+        if "cls_scores" in detection:
+            mask = detection["cls_scores"].numpy() >= threshold
+        else:
+            mask = scores >= threshold
+        bbox3d = bbox3d[mask]
+        scores = scores[mask]
+        labels = labels[mask]
+        if 'attr_labels' in detection:
+            attrs = attrs[mask]
+        ids = ids[mask]
 
     box_gravity_center = bbox3d.gravity_center.numpy()
     box_dims = bbox3d.dims.numpy()
@@ -602,6 +695,9 @@ def output_to_nusc_box(
                 label=labels[i],
                 score=scores[i],
                 velocity=velocity)
+            # Sparse4D
+            if "instance_ids" in detection:
+                box.token = ids[i]
             box_list.append(box)
     elif isinstance(bbox3d, CameraInstance3DBoxes):
         # our Camera coordinate system -> nuScenes box coordinate system

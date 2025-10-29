@@ -68,7 +68,7 @@ class BEVFormerEncoder(TransformerLayerSequence):
             ref_3d = torch.stack((xs, ys, zs), -1)
             ref_3d = ref_3d.permute(0, 3, 1, 2).flatten(2).permute(0, 2, 1)
             ref_3d = ref_3d[None].repeat(bs, 1, 1, 1)
-            return ref_3d
+            return ref_3d.to(torch.float32)
 
         # reference points on 2D bev plane, used in temporal self-attention (TSA).
         elif dim == '2d':
@@ -82,7 +82,9 @@ class BEVFormerEncoder(TransformerLayerSequence):
             ref_x = ref_x.reshape(-1)[None] / W
             ref_2d = torch.stack((ref_x, ref_y), -1)
             ref_2d = ref_2d.repeat(bs, 1, 1).unsqueeze(2)
-            return ref_2d
+            # Sometimes, ref_2d is exported to float64 even though it is float32
+            # Therefore, type cast to float32 explicitly
+            return ref_2d.to(torch.float32)
 
     # This function must use fp32!!!    
     def point_sampling(self, reference_points, pc_range,  img_metas):

@@ -1,5 +1,8 @@
 # Copyright (c) OpenMMLab. All rights reserved.
+# Some of the classes are copied from projects/PETR/petr/transforms_3d.py 
+###############################
 import numpy as np
+from numpy import random
 import torch
 from mmcv.transforms import BaseTransform
 from PIL import Image
@@ -7,6 +10,7 @@ from PIL import Image
 from mmdet3d.registry import TRANSFORMS
 from mmdet3d.structures import BaseInstance3DBoxes, Det3DDataSample, PointData
 from mmdet3d.structures.bbox_3d import LiDARInstance3DBoxes
+from mmdet3d.structures.points import BasePoints
 from mmdet3d.datasets.transforms.formating import Pack3DDetInputs,  to_tensor
 from mmdet3d.datasets.transforms.test_time_aug import MultiScaleFlipAug3D
 
@@ -78,7 +82,6 @@ class ResizeCropFlipRotImage(BaseTransform):
         results['depths'] = new_depths
         results['img'] = new_imgs
         results['lidar2img'] = [results['intrinsics'][i] @ results['extrinsics'][i] for i in range(len(results['extrinsics']))]
-        results['img_shape'] = [img.shape for img in results['img']]
 
         return results
 
@@ -189,6 +192,7 @@ class ResizeCropFlipRotImage(BaseTransform):
             newW, newH = resize_dims
             crop_h = int((1 - np.random.uniform(*self.data_aug_conf["bot_pct_lim"])) * newH) - fH
             crop_w = int(np.random.uniform(0, max(0, newW - fW)))
+            #crop_w = int(max(0, newW - fW) / 2)
             crop = (crop_w, crop_h, crop_w + fW, crop_h + fH)
             flip = False
             if self.data_aug_conf["rand_flip"] and np.random.choice([0, 1]):
@@ -206,6 +210,214 @@ class ResizeCropFlipRotImage(BaseTransform):
         return resize, resize_dims, crop, flip, rotate
 
 
+@TRANSFORMS.register_module()
+class CircleObjectRangeFilter(BaseTransform):
+    def __init__(
+        self, class_dist_thred=[52.5] * 5 + [31.5] + [42] * 3 + [31.5]
+    ):
+        self.class_dist_thred = class_dist_thred
+
+    def transform(self, input_dict):
+        gt_bboxes_3d = input_dict["gt_bboxes_3d"]
+        gt_labels_3d = input_dict["gt_labels_3d"]
+        dist = np.sqrt(
+            np.sum(gt_bboxes_3d[:, :2] ** 2, axis=-1)
+        )
+        mask = np.array([False] * len(dist))
+        for label_idx, dist_thred in enumerate(self.class_dist_thred):
+            mask = np.logical_or(
+                mask,
+                np.logical_and(gt_labels_3d == label_idx, dist <= dist_thred),
+            )
+
+        gt_bboxes_3d = gt_bboxes_3d[mask]
+        gt_labels_3d = gt_labels_3d[mask]
+
+        input_dict["gt_bboxes_3d"] = gt_bboxes_3d
+        input_dict["gt_labels_3d"] = gt_labels_3d
+        if "instance_inds" in input_dict:
+            input_dict["instance_inds"] = input_dict["instance_inds"][mask]
+
+        return input_dict
+
+    def __repr__(self):
+        """str: Return a string that describes the module."""
+        repr_str = self.__class__.__name__
+        repr_str += f"(class_dist_thred={self.class_dist_thred})"
+        return repr_str
+
+
+@TRANSFORMS.register_module()
+class NuScenesSparse4DAdaptor(BaseTransform):
+    def __init(self):
+        pass
+
+    def transform(self, input_dict):
+        input_dict["projection_mat"] = to_tensor(
+            np.stack(input_dict["lidar2img"])
+        )
+        input_dict["image_wh"] = to_tensor(input_dict["img_shape"])[:, :2][:, [1, 0]].to(torch.float32)
+
+        input_dict["T_global_inv"] = to_tensor(np.linalg.inv(input_dict["lidar2global"]))
+        input_dict["T_global"] = to_tensor(input_dict["lidar2global"])
+        if "cam2img" in input_dict:
+            input_dict["cam_intrinsic"] = np.float32(
+                np.stack(input_dict["cam2img"])
+            )
+            input_dict["focal"] = input_dict["cam_intrinsic"][..., 0, 0]
+        if "instance_inds" in input_dict:
+            input_dict["instance_id"] = input_dict["instance_inds"]
+
+        if "gt_bboxes_3d" in input_dict:
+            input_dict["gt_bboxes_3d"][:, 6] = self.limit_period(
+                input_dict["gt_bboxes_3d"][:, 6], offset=0.5, period=2 * np.pi
+            )
+            #input_dict["gt_bboxes_3d"] = to_tensor(input_dict["gt_bboxes_3d"]).float()
+        #if "gt_labels_3d" in input_dict:
+        #    input_dict["gt_labels_3d"] = to_tensor(input_dict["gt_labels_3d"]).long()
+
+        #imgs = [img.transpose(2, 0, 1) for img in input_dict["img"]]
+        #imgs = np.ascontiguousarray(np.stack(imgs, axis=0))
+        #input_dict["img"] = to_tensor(imgs)
+        #input_dict["img"] = imgs
+        return input_dict
+
+    def limit_period(
+        self, val: np.ndarray, offset: float = 0.5, period: float = np.pi
+    ) -> np.ndarray:
+        limited_val = val - np.floor(val / period + offset) * period
+        return limited_val
+
+
+@TRANSFORMS.register_module()
+class MultiScaleDepthMapGenerator(BaseTransform):
+    def __init__(self, downsample=1, max_depth=60):
+        if not isinstance(downsample, (list, tuple)):
+            downsample = [downsample]
+        self.downsample = downsample
+        self.max_depth = max_depth
+
+    def transform(self, input_dict):
+        points = input_dict["points"][..., :3, None]
+        gt_depth = []
+        for i, lidar2img in enumerate(input_dict["lidar2img"]):
+            H, W = input_dict["img_shape"][i][:2]
+
+            pts_2d = (
+                np.squeeze(lidar2img[:3, :3] @ points, axis=-1)
+                + lidar2img[:3, 3]
+            )
+            pts_2d[:, :2] /= pts_2d[:, 2:3]
+            U = np.round(pts_2d[:, 0]).astype(np.int32)
+            V = np.round(pts_2d[:, 1]).astype(np.int32)
+            depths = pts_2d[:, 2]
+            mask = np.logical_and.reduce(
+                [
+                    V >= 0,
+                    V < H,
+                    U >= 0,
+                    U < W,
+                    depths >= 0.1,
+                    # depths <= self.max_depth,
+                ]
+            )
+            V, U, depths = V[mask], U[mask], depths[mask]
+            sort_idx = np.argsort(depths)[::-1]
+            V, U, depths = V[sort_idx], U[sort_idx], depths[sort_idx]
+            depths = np.clip(depths, 0.1, self.max_depth)
+            for j, downsample in enumerate(self.downsample):
+                if len(gt_depth) < j + 1:
+                    gt_depth.append([])
+                h, w = (int(H / downsample), int(W / downsample))
+                u = np.floor(U / downsample).astype(np.int32)
+                v = np.floor(V / downsample).astype(np.int32)
+                depth_map = np.ones([h, w], dtype=np.float32) * -1
+                depth_map[v, u] = depths
+                gt_depth[j].append(depth_map)
+
+        input_dict["gt_depth"] = [np.stack(x) for x in gt_depth]
+        return input_dict
+
+
+@TRANSFORMS.register_module()
+class InstanceNameFilter(BaseTransform):
+    """Filter GT objects by their names.
+
+    Args:
+        classes (list[str]): List of class names to be kept for training.
+    """
+
+    def __init__(self, classes):
+        self.classes = classes
+        self.labels = list(range(len(self.classes)))
+
+    def transform(self, input_dict):
+        """Call function to filter objects by their names.
+
+        Args:
+            input_dict (dict): Result dict from loading pipeline.
+
+        Returns:
+            dict: Results after filtering, 'gt_bboxes_3d', 'gt_labels_3d' \
+                keys are updated in the result dict.
+        """
+        gt_labels_3d = input_dict["gt_labels_3d"]
+        gt_bboxes_mask = np.array(
+            [n in self.labels for n in gt_labels_3d], dtype=np.bool_
+        )
+        input_dict["gt_bboxes_3d"] = input_dict["gt_bboxes_3d"][gt_bboxes_mask]
+        input_dict["gt_labels_3d"] = input_dict["gt_labels_3d"][gt_bboxes_mask]
+        if "instance_inds" in input_dict:
+            input_dict["instance_inds"] = input_dict["instance_inds"][
+                gt_bboxes_mask
+            ]
+
+        return input_dict
+
+    def __repr__(self):
+        """str: Return a string that describes the module."""
+        repr_str = self.__class__.__name__
+        repr_str += f"(classes={self.classes})"
+        return repr_str
+
+
+
+@TRANSFORMS.register_module()
+class NormalizeMultiviewImage(BaseTransform):
+    """Normalize the image.
+    Added key is "img_norm_cfg".
+    Args:
+        mean (sequence): Mean values of 3 channels.
+        std (sequence): Std values of 3 channels.
+        to_rgb (bool): Whether to convert the image from BGR to RGB,
+            default is true.
+    """
+
+    def __init__(self, mean, std, to_rgb=True):
+        self.mean = np.array(mean, dtype=np.float32)
+        self.std = np.array(std, dtype=np.float32)
+        self.to_rgb = to_rgb
+
+    def transform(self, results):
+        """Call function to normalize images.
+        Args:
+            results (dict): Result dict from loading pipeline.
+        Returns:
+            dict: Normalized results, 'img_norm_cfg' key is added into
+                result dict.
+        """
+
+        results['img'] = [mmcv.imnormalize(img, self.mean, self.std, self.to_rgb) for img in results['img']]
+        results['img_norm_cfg'] = dict(
+            mean=self.mean, std=self.std, to_rgb=self.to_rgb)
+        return results
+
+    def __repr__(self):
+        repr_str = self.__class__.__name__
+        repr_str += f'(mean={self.mean}, std={self.std}, to_rgb={self.to_rgb})'
+        return repr_str
+
+'''
 @TRANSFORMS.register_module()
 class CustomPack3DDetInputs(Pack3DDetInputs):
     INSTANCEDATA_3D_KEYS = [
@@ -269,7 +481,7 @@ class CustomPack3DDetInputs(Pack3DDetInputs):
         for key in [
                 'proposals', 'gt_bboxes', 'gt_bboxes_ignore', 'gt_labels',
                 'gt_bboxes_labels', 'attr_labels', 'pts_instance_mask',
-                'pts_semantic_mask', 'centers_2d', 'depths', 'gt_labels_3d', 'prev_exists'
+                'pts_semantic_mask', 'centers_2d', 'depths', 'gt_labels_3d', 'prev_exists', 'instance_id'
         ]:
             if key not in results:
                 continue
@@ -346,3 +558,110 @@ class CustomPack3DDetInputs(Pack3DDetInputs):
         packed_results['inputs'] = inputs
 
         return packed_results
+'''
+
+@TRANSFORMS.register_module()
+class PhotoMetricDistortionMultiViewImage(BaseTransform):
+    """Apply photometric distortion to image sequentially, every transformation
+    is applied with a probability of 0.5. The position of random contrast is in
+    second or second to last.
+    1. random brightness
+    2. random contrast (mode 0)
+    3. convert color from BGR to HSV
+    4. random saturation
+    5. random hue
+    6. convert color from HSV to BGR
+    7. random contrast (mode 1)
+    8. randomly swap channels
+    Args:
+        brightness_delta (int): delta of brightness.
+        contrast_range (tuple): range of contrast.
+        saturation_range (tuple): range of saturation.
+        hue_delta (int): delta of hue.
+    """
+
+    def __init__(
+        self,
+        brightness_delta=32,
+        contrast_range=(0.5, 1.5),
+        saturation_range=(0.5, 1.5),
+        hue_delta=18,
+    ):
+        self.brightness_delta = brightness_delta
+        self.contrast_lower, self.contrast_upper = contrast_range
+        self.saturation_lower, self.saturation_upper = saturation_range
+        self.hue_delta = hue_delta
+
+    def transform(self, results):
+        """Call function to perform photometric distortion on images.
+        Args:
+            results (dict): Result dict from loading pipeline.
+        Returns:
+            dict: Result dict with images distorted.
+        """
+        imgs = results["img"]
+        new_imgs = []
+        for img in imgs:
+            assert img.dtype == np.float32, (
+                "PhotoMetricDistortion needs the input image of dtype np.float32,"
+                ' please set "to_float32=True" in "LoadImageFromFile" pipeline'
+            )
+            # random brightness
+            if random.randint(2):
+                delta = random.uniform(
+                    -self.brightness_delta, self.brightness_delta
+                )
+                img += delta
+
+            # mode == 0 --> do random contrast first
+            # mode == 1 --> do random contrast last
+            mode = random.randint(2)
+            if mode == 1:
+                if random.randint(2):
+                    alpha = random.uniform(
+                        self.contrast_lower, self.contrast_upper
+                    )
+                    img *= alpha
+
+            # convert color from BGR to HSV
+            img = mmcv.bgr2hsv(img)
+
+            # random saturation
+            if random.randint(2):
+                img[..., 1] *= random.uniform(
+                    self.saturation_lower, self.saturation_upper
+                )
+
+            # random hue
+            if random.randint(2):
+                img[..., 0] += random.uniform(-self.hue_delta, self.hue_delta)
+                img[..., 0][img[..., 0] > 360] -= 360
+                img[..., 0][img[..., 0] < 0] += 360
+
+            # convert color from HSV to BGR
+            img = mmcv.hsv2bgr(img)
+
+            # random contrast
+            if mode == 0:
+                if random.randint(2):
+                    alpha = random.uniform(
+                        self.contrast_lower, self.contrast_upper
+                    )
+                    img *= alpha
+
+            # randomly swap channels
+            if random.randint(2):
+                img = img[..., random.permutation(3)]
+            new_imgs.append(img)
+        results["img"] = new_imgs
+        return results
+
+    def __repr__(self):
+        repr_str = self.__class__.__name__
+        repr_str += f"(\nbrightness_delta={self.brightness_delta},\n"
+        repr_str += "contrast_range="
+        repr_str += f"{(self.contrast_lower, self.contrast_upper)},\n"
+        repr_str += "saturation_range="
+        repr_str += f"{(self.saturation_lower, self.saturation_upper)},\n"
+        repr_str += f"hue_delta={self.hue_delta})"
+        return repr_str

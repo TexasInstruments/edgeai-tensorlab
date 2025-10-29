@@ -4,7 +4,7 @@ from os import path as osp
 import os
 import numpy as np
 import cv2
-from mmengine import print_log
+from mmengine import print_log, load
 
 from tools.dataset_converters import indoor_converter as indoor
 from tools.dataset_converters import kitti_converter as kitti
@@ -15,6 +15,39 @@ from tools.dataset_converters import pandaset_converter
 from tools.dataset_converters.create_gt_database import (
     GTDatabaseCreater, create_groundtruth_database)
 from tools.dataset_converters.update_infos_to_v2 import update_pkl_infos
+
+# Sparse4D
+from sklearn.cluster import KMeans
+X, Y, Z, W, L, H, SIN_YAW, COS_YAW, VX, VY, VZ = list(range(11))  # undecoded
+CNS, YNS = 0, 1  # centerness and yawness indices in qulity
+YAW = 6  # decoded
+def get_kmeans_anchor(
+    ann_file,
+    num_anchor=900,
+    detection_range=55,
+    dataset="nuscenes",
+    verbose=False,
+):
+    data = load(ann_file, file_format="pkl")
+    gt_boxes = []
+    for info in data["data_list"]:
+        for instance in info['instances']:
+            gt_boxes.append(np.array(instance['bbox_3d']).reshape(1,-1))
+    gt_boxes = np.concatenate(gt_boxes, axis=0)
+    distance = np.linalg.norm(gt_boxes[:, :3], axis=-1, ord=2)
+    mask = distance <= detection_range
+    gt_boxes = gt_boxes[mask]
+    clf = KMeans(n_clusters=num_anchor, verbose=verbose)
+    print("===========Starting kmeans, please wait.===========")
+    clf.fit(gt_boxes[:, [X, Y, Z]])
+    anchor = np.zeros((num_anchor, 11))
+    anchor[:, [X, Y, Z]] = clf.cluster_centers_
+    anchor[:, [W, L, H]] = np.log(gt_boxes[:, [W, L, H]].mean(axis=0))
+    anchor[:, COS_YAW] = 1
+    output_file_name = os.path.join(os.path.dirname(ann_file),f"{dataset}_kmeans{num_anchor}.npy")
+    np.save(output_file_name, anchor)
+    print(f"===========Done! Save results to {output_file_name}.===========")
+
 
 export_2d_anno = False
 
@@ -184,7 +217,8 @@ def nuscenes_data_prep(root_path,
                        max_sweeps=10,
                        enable_bevdet=False,
                        enable_petrv2=False,
-                       enable_strpetr=False):
+                       enable_strpetr=False,
+                       enable_sparse4d=False):
     """Prepare data related to nuScenes dataset.
 
     Related data consists of '.pkl' files recording basic infos,
@@ -201,13 +235,13 @@ def nuscenes_data_prep(root_path,
     """
     nuscenes_converter.create_nuscenes_infos(
         root_path, can_bus_root_path, info_prefix, version=version, max_sweeps=max_sweeps,
-        enable_bevdet=enable_bevdet, enable_strpetr=enable_strpetr)
+        enable_bevdet=enable_bevdet, enable_strpetr=enable_strpetr,enable_sparse4d=enable_sparse4d)
 
     if version == 'v1.0-test':
         info_test_path = osp.join(out_dir, f'{info_prefix}_infos_test.pkl')
         update_pkl_infos('nuscenes', out_dir=out_dir, pkl_path=info_test_path,
                          enable_bevdet=enable_bevdet, enable_petrv2=enable_petrv2,
-                         enable_strpetr=enable_strpetr)
+                         enable_strpetr=enable_strpetr,enable_sparse4d=enable_sparse4d)
 
         if export_2d_anno is True:
             nuscenes_converter.export_2d_annotation(
@@ -218,10 +252,13 @@ def nuscenes_data_prep(root_path,
     info_val_path = osp.join(out_dir, f'{info_prefix}_infos_val.pkl')
     update_pkl_infos('nuscenes', out_dir=out_dir, pkl_path=info_train_path,
                      enable_bevdet=enable_bevdet, enable_petrv2=enable_petrv2, 
-                     enable_strpetr=enable_strpetr)
+                     enable_strpetr=enable_strpetr,enable_sparse4d=enable_sparse4d)
+    if enable_sparse4d:
+        get_kmeans_anchor(info_train_path,dataset='nuscenes')
+        
     update_pkl_infos('nuscenes', out_dir=out_dir, pkl_path=info_val_path,
                      enable_bevdet=enable_bevdet, enable_petrv2=enable_petrv2,
-                     enable_strpetr=enable_strpetr)
+                     enable_strpetr=enable_strpetr,enable_sparse4d=enable_sparse4d)
 
     if export_2d_anno is True:
         nuscenes_converter.export_2d_annotation(root_path, info_train_path, version=version)
@@ -413,9 +450,13 @@ def pandaset_data_prep(root_path,
                        dataset_name,
                        out_dir,
                        enable_petrv2=False,
-                       enable_strpetr=False
+                       enable_strpetr=False,
+                       enable_sparse4d=False
                        ):
-    pandaset_converter.create_pandaset_infos(root_path, info_prefix, version, dataset_name, out_dir, enable_petrv2, enable_strpetr)
+    pandaset_converter.create_pandaset_infos(root_path, info_prefix, version, dataset_name, out_dir, enable_petrv2, enable_strpetr,enable_sparse4d)
+    info_tain_path = os.path.join(out_dir, f'{info_prefix}_infos_train.pkl')
+    if enable_sparse4d:
+        get_kmeans_anchor(info_tain_path,dataset='pandaset')
 
 
 parser = argparse.ArgumentParser(description='Data converter arg parser')
@@ -482,6 +523,10 @@ parser.add_argument(
     '--strpetr',
     action='store_true',
     help='''Whether to add info needed for StreamPETR in a pickle file''')
+parser.add_argument(
+    '--sparse4d',
+    action='store_true',
+    help='''Whether to add info needed for Sparse4D in a pickle file''')
 
 args = parser.parse_args()
 # args = parser.parse_args(['nuscenes','--root-path','data/nuscenes','--out-dir','/data/nuscenes','--extra-tag','nuscenes','--petrv2'])
@@ -533,7 +578,8 @@ if __name__ == '__main__':
                 max_sweeps=args.max_sweeps,
                 enable_bevdet=args.bevdet,
                 enable_petrv2=args.petrv2,
-                enable_strpetr=args.strpetr)
+                enable_strpetr=args.strpetr,
+                enable_sparse4d=args.sparse4d)
             test_version = f'{args.version}-test'
             nuscenes_data_prep(
                 root_path=args.root_path,
@@ -545,7 +591,8 @@ if __name__ == '__main__':
                 max_sweeps=args.max_sweeps,
                 enable_bevdet=args.bevdet,
                 enable_petrv2=args.petrv2,
-                enable_strpetr=args.strpetr)
+                enable_strpetr=args.strpetr,
+                enable_sparse4d=args.sparse4d)
     elif args.dataset == 'nuscenes' and args.version == 'v1.0-mini':
         if args.only_gt_database:
             create_groundtruth_database('NuScenesDataset', args.root_path,
@@ -563,7 +610,8 @@ if __name__ == '__main__':
                 max_sweeps=args.max_sweeps,
                 enable_bevdet=args.bevdet,
                 enable_petrv2=args.petrv2,
-                enable_strpetr=args.strpetr)
+                enable_strpetr=args.strpetr,
+                enable_sparse4d=args.sparse4d)
     elif args.dataset == 'pandaset':
         pandaset_data_prep(
             root_path=args.root_path,
@@ -572,7 +620,8 @@ if __name__ == '__main__':
             dataset_name='PandasetDataset',
             out_dir=args.out_dir,
             enable_petrv2=args.petrv2,
-            enable_strpetr=args.strpetr)
+            enable_strpetr=args.strpetr,
+            enable_sparse4d=args.sparse4d)
     elif args.dataset == 'waymo':
         waymo_data_prep(
             root_path=args.root_path,

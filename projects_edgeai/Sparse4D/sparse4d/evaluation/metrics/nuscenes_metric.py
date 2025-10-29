@@ -3,12 +3,14 @@ from os import path as osp
 from typing import Dict, List, Optional, Union
 from mmengine import load
 from mmengine.logging import MMLogger
+from nuscenes.eval.common.config import config_factory as track_configs
 
 from mmdet3d.registry import METRICS
 from mmdet3d.evaluation.metrics.nuscenes_metric import NuScenesMetric
 
+
 @METRICS.register_module()
-class SortedNuScenesMetric(NuScenesMetric):
+class Sparse4DNuScenesMetric(NuScenesMetric):
     """Nuscenes evaluation metric with data sorted.
 
     Args:
@@ -36,6 +38,31 @@ class SortedNuScenesMetric(NuScenesMetric):
         backend_args (dict, optional): Arguments to instantiate the
             corresponding backend. Defaults to None.
     """
+
+    def __init__(self,
+                 data_root: str,
+                 ann_file: str,
+                 metric: Union[str, List[str]] = 'bbox',
+                 modality: dict = dict(use_camera=False, use_lidar=True),
+                 prefix: Optional[str] = None,
+                 format_only: bool = False,
+                 jsonfile_prefix: Optional[str] = None,
+                 eval_version: str = 'detection_cvpr_2019',
+                 track3d_eval_version: str = "tracking_nips_2019",
+                 collect_device: str = 'cpu',
+                 tracking: Optional[bool] = False,
+                 tracking_threshold: Optional[float] = None,
+                 backend_args: Optional[dict] = None) -> None:
+        super(Sparse4DNuScenesMetric, self).__init__(
+            data_root, ann_file, metric, modality, prefix, format_only,
+            jsonfile_prefix, eval_version, collect_device, backend_args)
+
+        self.tracking = tracking
+        self.tracking_threshold = tracking_threshold
+        self.track3d_eval_version = track3d_eval_version
+        self.track3d_eval_configs = track_configs(self.track3d_eval_version)
+
+
     def compute_metrics(self, results: List[dict]) -> Dict[str, float]:
         """Compute the metrics from processed results.
 
@@ -50,29 +77,35 @@ class SortedNuScenesMetric(NuScenesMetric):
 
         classes = self.dataset_meta['classes']
         self.version = self.dataset_meta['version']
+
         # load annotations
         self.data_infos = load(
             self.ann_file, backend_args=self.backend_args)['data_list']
-
         # sort data_infos
         self.data_infos = list(sorted(self.data_infos, key=lambda e: e['timestamp']))
 
-        result_dict, tmp_dir = self.format_results(results, classes,
-                                                   self.jsonfile_prefix)
-
         metric_dict = {}
+        for metric in ["detection", "tracking"]:
+            tracking = metric == "tracking"
+            if tracking and not self.tracking:
+                continue
 
-        if self.format_only:
-            logger.info(
-                f'results are saved in {osp.basename(self.jsonfile_prefix)}')
-            return metric_dict
+            result_dict, tmp_dir = self.format_results(results,
+                                                       classes,
+                                                       self.jsonfile_prefix,
+                                                       tracking=tracking,
+                                                       tracking_threshold=self.tracking_threshold)
+            if self.format_only:
+                logger.info(
+                    f'results are saved in {osp.basename(self.jsonfile_prefix)}')
+            else:
+                for metric in self.metrics:
+                    ap_dict = self.nus_evaluate(
+                        result_dict, classes=classes, metric=metric, tracking=tracking, logger=logger)
+                    for result in ap_dict:
+                        metric_dict[result] = ap_dict[result]
 
-        for metric in self.metrics:
-            ap_dict = self.nus_evaluate(
-                result_dict, classes=classes, metric=metric, logger=logger)
-            for result in ap_dict:
-                metric_dict[result] = ap_dict[result]
+            if tmp_dir is not None:
+                tmp_dir.cleanup()
 
-        if tmp_dir is not None:
-            tmp_dir.cleanup()
         return metric_dict

@@ -11,7 +11,7 @@ from mmdet3d.models.detectors.mvx_two_stage import MVXTwoStageDetector
 from mmdet3d.datasets.transforms.formating import to_tensor
 
 from .metric_stp3 import PlanningMetric
-from .onnx_export import create_onnx_VAD, export_VAD
+from .onnx_export import export_VAD_whole, export_VAD_subnets
 from ...edgeai_mmdet3d.grid_mask import GridMask
 
 
@@ -23,6 +23,7 @@ class VAD(MVXTwoStageDetector):
     def __init__(self,
                  use_grid_mask=False,
                  save_onnx_model=False,
+                 onnx_subnets=False,
                  data_preprocessor=None,
                  pts_voxel_layer=None,
                  pts_voxel_encoder=None,
@@ -69,8 +70,11 @@ class VAD(MVXTwoStageDetector):
 
         self.planning_metric = None
 
-        self.onnx_model = None
+        self.onnx_whole = None
+        self.onnx_img_backbone = None
+        self.onnx_pts_bbox_head = None
         self.save_onnx_model = save_onnx_model
+        self.onnx_subnets = onnx_subnets
 
 
     def extract_img_feat(self, img, img_metas, len_queue=None):
@@ -172,10 +176,10 @@ class VAD(MVXTwoStageDetector):
                 return self.aug_test(inputs, data_samples, **kwargs)
             else:
                 if self.save_onnx_model is True:
-                    if self.onnx_model is None:
-                        self.onnx_model = create_onnx_VAD(self)
-
-                    export_VAD(self.onnx_model, inputs, data_samples, **kwargs)
+                    if self.onnx_subnets:
+                        export_VAD_subnets(self, inputs, data_samples, opset_version=18, **kwargs)
+                    else:
+                        export_VAD_whole(self, inputs, data_samples, opset_version=18, **kwargs)
                     self.save_onnx_model = False
 
                 return self.predict(inputs, data_samples, **kwargs)

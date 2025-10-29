@@ -50,6 +50,7 @@ model = dict(
     use_grid_mask=True,
     video_test_mode=True,
     save_onnx_model=False,
+    onnx_subnets=False,
     data_preprocessor=dict(
         type='BEVFormer3DDataPreprocessor', **img_norm_cfg, pad_size_divisor=32),
     img_backbone=dict(
