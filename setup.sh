@@ -74,6 +74,11 @@ echo "Installing mmdetection"
 echo "For more details, see: https://github.com/open-mmlab/mmdetection/blob/master/docs/get_started.md and https://github.com/open-mmlab/mmdetection"
 pip install -v -e .
 
+echo "Compiling Sparse4D custom ops..."
+cd projects_edgeai/Sparse4D/sparse4d/ops
+python setup.py develop
+cd ../../../../
+
 ######################################################################
 # apply patch to support latest torch with older mmcv
 python3 ./tools/deployment/torch_onnx_patch/torch_onnx_patch.py

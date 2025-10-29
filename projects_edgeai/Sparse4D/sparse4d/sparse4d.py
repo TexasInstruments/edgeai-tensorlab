@@ -17,6 +17,7 @@ try:
 except:
     DAF_VALID = False
 
+from .onnx_export import export_Sparse4D, export_Sparse4D_subnets
 
 __all__ = ["Sparse4D"]
 
@@ -26,6 +27,8 @@ class Sparse4D(MVXTwoStageDetector):
         self,
         use_grid_mask=True,
         use_deformable_func=False,
+        save_onnx_model=False,
+        onnx_subnets=False,
         data_preprocessor=None,
         pts_voxel_encoder=None,
         pts_middle_encoder=None,
@@ -67,10 +70,14 @@ class Sparse4D(MVXTwoStageDetector):
         else:
             self.depth_branch = None
 
-    # @auto_fp16(apply_to=("img",), out_fp32=True)
+        self.save_onnx_model    = save_onnx_model
+        self.onnx_subnets       = onnx_subnets
+        self.onnx_model         = None
+        self.onnx_img_backbone  = None
+        self.onnx_pts_bbox_head = None
+
+
     def extract_feat(self, img, return_depth=False, metas=None):
-        #if isinstance(img, (list,tuple)):
-        #    img = torch.stack(img)
         bs = img.shape[0]
         if img.dim() == 5:  # multi-view
             num_cams = img.shape[1]
@@ -204,10 +211,12 @@ class Sparse4D(MVXTwoStageDetector):
                                                   'time augmentation.'
                 return self.aug_test(inputs, data_samples, **kwargs)
             else:
-                # TBA
-                #if self.save_onnx_model is True:
-                #    #Export onnx only once
-                #    self.save_onnx_model = False
+                if self.save_onnx_model is True:
+                    if self.onnx_subnets:
+                        export_Sparse4D_subnets(self, inputs, data_samples, opset_version=18, **kwargs)
+                    else:
+                        export_Sparse4D(self, inputs, data_samples, opset_version=18, **kwargs)
+                    self.save_onnx_model = False
 
                 return self.predict(inputs, data_samples, **kwargs)
         elif mode == 'tensor':

@@ -62,6 +62,8 @@ class InstanceBank(nn.Module):
             requires_grad=feat_grad,
         )
         self.reset()
+        #self.reset_history = True
+        #self.aux_cached_anchor = torch.zeros(1, self.num_temp_instances, VZ+1)
 
     def init_weight(self):
         self.anchor.data = self.anchor.data.new_tensor(self.anchor_init)
@@ -78,11 +80,86 @@ class InstanceBank(nn.Module):
         self.instance_id = None
         self.prev_id = 0
 
-    def get(self, batch_size, metas=None, dn_metas=None):
+    def get(self, batch_size, metas=None, dn_metas=None,
+            history=None, time_interval=None, T_temp2cur=None):
+        # Tile operator is exported, but
+        # has an issue while being simplified
+        """
         instance_feature = torch.tile(
             self.instance_feature[None], (batch_size, 1, 1)
         )
+        """
         anchor = torch.tile(self.anchor[None], (batch_size, 1, 1))
+        instance_feature = self.instance_feature[None].repeat(batch_size, 1, 1)
+        anchor = self.anchor[None].repeat(batch_size, 1, 1)
+
+        if history is not None:
+            self.cached_feature = history['cached_feature']
+            self.cached_anchor = history['cached_anchor']
+            self.prev_id = history['prev_id']
+            self.instance_id = history['instance_id']
+            self.confidence = history['confidence']
+            self.temp_confidence = history['temp_confidence']
+
+        """
+        # For branching
+        if reset_history is None:
+            reset_history = self.reset_history or \
+                            batch_size != self.cached_anchor.shape[0]
+
+        # First branch: With history
+        if time_interval is None:
+            history_time = self.metas[0]["timestamp"]
+            time_interval = (self.metas[0]["timestamp"] if metas is None else metas[0]["timestamp"]) - history_time
+            time_interval = torch.Tensor([time_interval]).to(
+                instance_feature.device
+            )
+        self.mask = torch.abs(time_interval) <= self.max_time_interval
+
+        if self.anchor_handler is not None:
+            if T_temp2cur is None:
+                T_temp2cur = self.cached_anchor.new_tensor(
+                    np.stack(
+                        [
+                            x["T_global_inv"]
+                            @ self.metas[i]["T_global"]
+                            for i, x in enumerate(self.metas if metas is None else metas)
+                        ]
+                    )
+                )
+            self.cached_anchor = self.anchor_handler.anchor_projection(
+                self.aux_cached_anchor if self.cached_anchor is None else self.cached_anchor,
+                [T_temp2cur],
+                time_intervals=[-time_interval],
+            )[0]
+
+        if (
+            self.anchor_handler is not None
+            and dn_metas is not None
+            and batch_size == dn_metas["dn_anchor"].shape[0]
+        ):
+            num_dn_group, num_dn = dn_metas["dn_anchor"].shape[1:3]
+            dn_anchor = self.anchor_handler.anchor_projection(
+                dn_metas["dn_anchor"].flatten(1, 2),
+                [T_temp2cur],
+                time_intervals=[-time_interval],
+            )[0]
+            dn_metas["dn_anchor"] = dn_anchor.reshape(
+                batch_size, num_dn_group, num_dn, -1
+            )
+
+        time_interval_1 = torch.where(
+            torch.logical_and(time_interval != 0, self.mask),
+            time_interval,
+            time_interval.new_tensor(self.default_time_interval),
+        )
+
+        # Second branch
+        self.reset()
+        time_interval_2 = instance_feature.new_tensor(
+            [self.default_time_interval] * batch_size
+        )
+        """
 
         if (
             self.cached_anchor is not None
@@ -91,31 +168,26 @@ class InstanceBank(nn.Module):
             # batch idx: 0
             # For inference, batch_size = 1
             # Check if it works for training as well
-            history_time = self.metas[0]["timestamp"]
-            time_interval = metas[0]["timestamp"] - history_time
-            #time_interval = time_interval.to(dtype=instance_feature.dtype)
-            time_interval = torch.Tensor([time_interval]).to(
-                instance_feature.device
-            )
+            if time_interval is None:
+                history_time = self.metas[0]["timestamp"]
+                time_interval = metas[0]["timestamp"] - history_time
+                #time_interval = time_interval.to(dtype=instance_feature.dtype)
+                time_interval = torch.Tensor([time_interval]).to(
+                    instance_feature.device
+                )
             self.mask = torch.abs(time_interval) <= self.max_time_interval
 
             if self.anchor_handler is not None:
-                T_temp2cur = self.cached_anchor.new_tensor(
-                    #np.stack(
-                    #    [
-                    #        x["T_global_inv"]
-                    #        @ self.metas["img_metas"][i]["T_global"]
-                    #        for i, x in enumerate(metas["img_metas"])
-                    #    ]
-                    #)
-                    np.stack(
-                        [
-                            x["T_global_inv"]
-                            @ self.metas[i]["T_global"]
-                            for i, x in enumerate(metas)
-                        ]
-                    )                    
-                )
+                if T_temp2cur is None:
+                    T_temp2cur = self.cached_anchor.new_tensor(
+                        np.stack(
+                            [
+                                x["T_global_inv"]
+                                @ self.metas[i]["T_global"]
+                                for i, x in enumerate(metas)
+                            ]
+                        )
+                    )
                 self.cached_anchor = self.anchor_handler.anchor_projection(
                     self.cached_anchor,
                     [T_temp2cur],

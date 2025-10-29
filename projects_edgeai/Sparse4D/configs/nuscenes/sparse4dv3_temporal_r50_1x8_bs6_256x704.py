@@ -105,7 +105,7 @@ class_names = [
     "traffic_cone",
 ]
 
-metainfo = dict(classes=class_names, version='v1.0-mini')
+metainfo = dict(classes=class_names)
 
 num_classes = len(class_names)
 embed_dims = 256
@@ -131,6 +131,8 @@ model = dict(
     type="Sparse4D",
     use_grid_mask=True,
     use_deformable_func=use_deformable_func,
+    save_onnx_model=False,
+    onnx_subnets=False,
     data_preprocessor=dict(
         type='Det3DDataPreprocessor',
         #mean=[0.0, 0.0, 0.0],
@@ -419,7 +421,7 @@ train_dataloader = dict(
         data_root=data_root,
         modality=input_modality,
         metainfo=metainfo,
-        ann_file='nuscenes_sparse4d_mini_infos_train.pkl',
+        ann_file='nuscenes_sparse4d_infos_train.pkl',
         data_prefix=dict(
             pts='samples/LIDAR_TOP',
             CAM_FRONT='samples/CAM_FRONT',
@@ -452,7 +454,7 @@ test_dataloader = dict(
         data_root=data_root,
         modality=input_modality,
         metainfo=metainfo,
-        ann_file='nuscenes_sparse4d_mini_infos_val.pkl',
+        ann_file='nuscenes_sparse4d_infos_val.pkl',
         data_prefix=dict(
             pts='samples/LIDAR_TOP',
             CAM_FRONT='samples/CAM_FRONT',
@@ -466,41 +468,6 @@ test_dataloader = dict(
         backend_args=backend_args))
 
 val_dataloader = test_dataloader
-
-"""
-data = dict(
-    samples_per_gpu=batch_size,
-    workers_per_gpu=batch_size,
-    train=dict(
-        **data_basic_config,
-        ann_file=anno_root + "nuscenes-mini_infos_train.pkl",
-        pipeline=train_pipeline,
-        test_mode=False,
-        data_aug_conf=data_aug_conf,
-        with_seq_flag=True,
-        sequences_split_num=2,
-        keep_consistent_seq_aug=True,
-    ),
-    val=dict(
-        **data_basic_config,
-        ann_file=anno_root + "nuscenes-mini_infos_val.pkl",
-        pipeline=test_pipeline,
-        data_aug_conf=data_aug_conf,
-        test_mode=True,
-        tracking=tracking_test,
-        tracking_threshold=tracking_threshold,
-    ),
-    test=dict(
-        **data_basic_config,
-        ann_file=anno_root + "nuscenes-mini_infos_val.pkl",
-        pipeline=test_pipeline,
-        data_aug_conf=data_aug_conf,
-        test_mode=True,
-        tracking=tracking_test,
-        tracking_threshold=tracking_threshold,
-    ),
-)
-"""
 
 # ================== training ========================
 param_scheduler = [
@@ -550,7 +517,7 @@ vis_pipeline = [
 val_evaluator = dict(
     type='Sparse4DNuScenesMetric',
     data_root=data_root,
-    ann_file=data_root + 'nuscenes_sparse4d_mini_infos_val.pkl',
+    ann_file=data_root + 'nuscenes_sparse4d_infos_val.pkl',
     metric='bbox',
     tracking=tracking_test,
     tracking_threshold=tracking_threshold,

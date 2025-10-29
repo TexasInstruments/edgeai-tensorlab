@@ -127,9 +127,19 @@ class SparseBox3DRefinementModule(BaseModule):
     ):
         feature = instance_feature + anchor_embed
         output = self.layers(feature)
+        # It causes onnx export issue
+        #   torch.onnx.errors.CheckerError:
+        #   Node (/pts_bbox_head/layers.3/Add_2)'s input 0 is marked single but
+        #   has an empty string in the graph
+        """
         output[..., self.refine_state] = (
             output[..., self.refine_state] + anchor[..., self.refine_state]
         )
+        """
+        output[..., :len(self.refine_state)] = (
+            output[..., :len(self.refine_state)] + anchor[..., :len(self.refine_state)]
+        )
+
         if self.normalize_yaw:
             output[..., [SIN_YAW, COS_YAW]] = torch.nn.functional.normalize(
                 output[..., [SIN_YAW, COS_YAW]], dim=-1

@@ -156,6 +156,9 @@ class Sparse4DHead(BaseModule):
         self,
         feature_maps: Union[torch.Tensor, List],
         metas: dict,
+        bank_history=None,
+        time_interval=None,
+        T_temp2cur=None,
     ):
         if isinstance(feature_maps, torch.Tensor):
             feature_maps = [feature_maps]
@@ -174,7 +177,8 @@ class Sparse4DHead(BaseModule):
             temp_anchor,
             time_interval,
         ) = self.instance_bank.get(
-            batch_size, metas, dn_metas=self.sampler.dn_metas
+            batch_size, metas, dn_metas=self.sampler.dn_metas,
+            history=bank_history, time_interval=time_interval, T_temp2cur=T_temp2cur
         )
 
         # ========= prepare for denosing training ============
@@ -402,7 +406,19 @@ class Sparse4DHead(BaseModule):
                 cls, anchor, self.decoder.score_threshold
             )
             output["instance_id"] = instance_id
-        return output
+
+        if torch.onnx.is_in_onnx_export():
+            instance_bank_history = {
+                "cached_feature": self.instance_bank.cached_feature,
+                "cached_anchor": self.instance_bank.cached_anchor,
+                "prev_id": self.instance_bank.prev_id,
+                "instance_id": self.instance_bank.instance_id,
+                "confidence": self.instance_bank.confidence,
+                "temp_confidence": self.instance_bank.temp_confidence,
+            }
+            return output, instance_bank_history
+        else:
+            return output
 
     #@force_fp32(apply_to=("model_outs"))
     def loss(self, model_outs, data, feature_maps=None):
@@ -556,6 +572,7 @@ class Sparse4DHead(BaseModule):
             code_size = bboxes.shape[-1]
 
             bboxes[:, 2] = bboxes[:, 2] - bboxes[:, 5] * 0.5
-            preds['bboxes_3d'] = img_metas[i]['box_type_3d'](bboxes, code_size)
+            if not torch.onnx.is_in_onnx_export():
+                preds['bboxes_3d'] = img_metas[i]['box_type_3d'](bboxes, code_size)
 
         return preds_dicts

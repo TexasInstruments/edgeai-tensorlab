@@ -46,8 +46,11 @@ class SparseBox3DDecoder(object):
         cls_scores = cls_scores[output_idx].sigmoid()
 
         if squeeze_cls:
-            cls_scores, cls_ids = cls_scores.max(dim=-1)
-            cls_scores = cls_scores.unsqueeze(dim=-1)
+            #cls_scores, cls_ids = cls_scores.max(dim=-1)
+            #cls_scores = cls_scores.unsqueeze(dim=-1)
+            # The above two lines can be replaced with the following line
+            # And the above two lines couldn't be exported correctly in ONNX
+            cls_scores, cls_ids = cls_scores.max(dim=-1, keepdim=True)
 
         box_preds = box_preds[output_idx]
         bs, num_pred, num_cls = cls_scores.shape
