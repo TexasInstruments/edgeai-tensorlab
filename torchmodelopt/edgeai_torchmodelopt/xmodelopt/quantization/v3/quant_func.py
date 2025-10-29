@@ -50,7 +50,7 @@ import types
 
 def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None, example_kwargs=None, qconfig_type=None,
         qconfig_mode=qconfig_types.QConfigMode.DEFAULT, num_batch_norm_update_epochs=None, num_observer_update_epochs=None, 
-        add_methods=True, fast_mode=False, is_fake_quantize=True, **kwargs):
+        add_methods=True, fast_mode=False, **kwargs):
     
     if hasattr(model, '__quant_params__'):
         print('IGNORED: quant init called on a model that was already quantized \n\n\n')
@@ -64,10 +64,7 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
         utils.add_example_args_kwargs(model, example_inputs=example_inputs, example_kwargs=example_kwargs)
     
     if not total_epochs:
-        if not is_qat:
-            total_epochs = 2
-        else:
-            raise RuntimeError("total_epochs must be provided")
+        raise RuntimeError("total_epochs must be provided")
 
     example_inputs = example_inputs if example_inputs is not None else \
         torch.ones(1,3,224,224).to(next(model.parameters()).device)
@@ -91,13 +88,12 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
     example_inputs = (example_inputs,) if not isinstance(example_inputs, (list, tuple)) else tuple(example_inputs)
     m = torch.export.export(orig_model, example_inputs).module()
     
-    is_fake_quantize = True if is_qat else is_fake_quantize
     qconfig_type = qconfig_type or qconfig_types.QConfigType.DEFAULT
-    qconfig_mode = qconfig_types.get_qconfig(qconfig_type, is_fake_quantize=is_fake_quantize, fast_mode=fast_mode)
+    qconfig_mode = qconfig_types.get_qconfig(qconfig_type, is_qat=is_qat, fast_mode=fast_mode)
     
     # methods to quantize individual layers/modules types are in quantizer
     device=next(iter(m.named_parameters()))[1].device
-    quantizer = quantizer or get_tidlrt_quantizer(is_qat=is_qat, fast_mode=fast_mode, is_fake_quantize=is_fake_quantize, device=device)
+    quantizer = quantizer or get_tidlrt_quantizer(is_qat=is_qat, fast_mode=fast_mode, device=device)
     quantizer.set_global(qconfig_mode)
     
     # for copy_arg in copy_args:
@@ -146,7 +142,10 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
         model.export = types.MethodType(export, model)
         model.__deepcopy__ = types.MethodType(deepcopy_graphmodule, model)
     #
-    model = insert_all_hooks(model, kwargs.get('outlier_clipping',(not is_qat)), kwargs.get('bias_calibration',(not is_qat)))
+    # this is based on module hooks - it will not work currently in pt2e
+    # all modules exect the fakequant/observers in torch.export.export() model are changed to ops
+    # but module hooks on fakequant/observers will work and it may be possible to change the implementation that way
+    model = insert_all_hooks(model, kwargs.get('outlier_clipping',False), kwargs.get('bias_calibration',False))
     print("Model Preparation is now complete! ")
     return model
 

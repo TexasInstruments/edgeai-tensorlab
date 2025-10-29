@@ -332,7 +332,7 @@ def _bias_calibration_hook(calibration_factor, bias_module, m, x, y):
 def add_bias_calibration_hook(model, calibration_factor=0):
     all_hooks = []    
     module_partitions = get_source_partitions(
-        model.graph, [torch.nn.Linear, torch.nn.functional.linear, torch.nn.Conv2d, torch.nn.functional.conv2d]
+        model.graph, [torch.nn.Linear, torch.nn.functional.linear, torch.nn.Conv2d, torch.nn.functional.conv2d, 'linear', 'conv2d']
     )
 
     for module_or_fn_type, partitions in module_partitions.items():
@@ -419,7 +419,7 @@ def add_fc_outlier_supression_hook(model):
     all_hooks = []
     
     module_partitions = get_source_partitions(
-        model.graph, [torch.nn.Linear, torch.nn.functional.linear]
+        model.graph, [torch.nn.Linear, torch.nn.functional.linear, 'linear']
     )
     
     for module_or_fn_type, partitions in module_partitions.items():

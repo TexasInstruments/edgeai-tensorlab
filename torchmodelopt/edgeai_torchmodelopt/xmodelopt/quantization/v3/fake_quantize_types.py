@@ -31,7 +31,7 @@
 
 import math
 import torch
-from torch.ao.quantization import MovingAverageMinMaxObserver, MovingAveragePerChannelMinMaxObserver, FakeQuantize
+from torch.ao.quantization import FakeQuantize
 from .... import xnn
 
 

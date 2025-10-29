@@ -52,7 +52,8 @@ class PTQPT2EModule(QuantPT2EBaseModule):
     
     def prepare(self, model, *args, is_qat=False, **kwargs):
         return QuantPT2EBaseModule.prepare(self, model, *args, is_qat=is_qat, **kwargs)
-    
+
+
 class PTQCalibratePT2EModule():
     def __init__(self, *args, backend='qnnpack', is_qat=False, **kwargs):
         raise NotImplementedError("PTQCalibratePT2E Quantization is not supported yet")
