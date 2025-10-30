@@ -33,3 +33,6 @@
 
 from torch.ao.quantization.quantizer.xnnpack_quantizer import XNNPACKQuantizer
 
+
+def get_quantizer(device=None, **kwargs):
+    return XNNPACKQuantizer()

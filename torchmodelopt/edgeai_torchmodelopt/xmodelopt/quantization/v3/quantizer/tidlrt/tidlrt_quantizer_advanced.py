@@ -31,10 +31,11 @@
 #################################################################################
 
 
-def get_tidlrt_quantizer_advanced(**kwargs):
-    from ..xnnpack import XNNPACKQuantizer
-    class TIDLRTQuantizerAdvanced(XNNPACKQuantizer):
-        pass
-    #
-    return TIDLRTQuantizerAdvanced()
+from ..xnnpack import XNNPACKQuantizer
 
+class TIDLRTQuantizerAdvanced(XNNPACKQuantizer):
+    pass
+#
+
+def get_quantizer(**kwargs):
+    return TIDLRTQuantizerAdvanced(**kwargs)

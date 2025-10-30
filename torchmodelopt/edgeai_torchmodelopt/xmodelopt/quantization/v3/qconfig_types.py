@@ -89,19 +89,11 @@ class QConfigType():
     WC16_AT16 = "WC16_AT16"
     WC32_AT32 = "WC32_AT32"
 
+    FLOAT32 = "FLOAT32"                         # no quantization, all layers in float32
+
     @classmethod
     def choices(cls):
         return [value for value in dir(cls) if not value.startswith('__') and value != 'choices']
-
-
-class QConfigMode(enum.Enum):
-    DEFAULT = 0
-    FREEZE_DEPTHWISE_LAYERS = 1
-    FREEZE_UNSTABLE_LAYERS = 2
-
-    @classmethod
-    def choices(cls):
-        return [e.value for e in cls]
 
 
 def get_repr_string_from_dict(input_dict):
@@ -113,94 +105,125 @@ def get_repr_string_from_dict(input_dict):
 
 
 ####################################################################
-
-def get_weight_quantization_config(weight_qconfig, is_qat=True):
+def get_weight_quantization_spec(weight_qconfig, is_qat=True):
     observer_name = 'CustomAdaptiveWeightObserver' + '__' + get_repr_string_from_dict(weight_qconfig)
-    weight_bitwidth = weight_qconfig.get('bitwidth', 8) # needed for 4-bit quantization simulation
-    weight_qscheme = weight_qconfig.get('qscheme', torch.per_channel_symmetric)
     weight_dtype = weight_qconfig.get('dtype', torch.int8)
 
-    WeightObserverBaseToUse = observer_types.AdaptivePerChannelWeightObserver \
-        if weight_qscheme == torch.per_channel_symmetric else observer_types.AdaptiveWeightObserver
-    
-    weight_observer = xnn.utils.partialclass(WeightObserverBaseToUse,
-                                             quant_min=weight_qconfig.get('quant_min', -(2 ** (weight_bitwidth-1))),
-                                             quant_max=weight_qconfig.get('quant_max', (2 ** (weight_bitwidth-1)) - 1),
-                                             dtype=weight_dtype,
-                                             qscheme=weight_qscheme,
-                                             power2_scale=weight_qconfig.get('power2_scale', False),
-                                             range_max=weight_qconfig.get('range_max', None),
-                                             fixed_range=weight_qconfig.get('fixed_range', False),
-                                             class_name=weight_qconfig.get('observer_name', observer_name)
-                                             )
-    
-    fake_quantized_weight_observer = fake_quantize_types.AdaptiveWeightFakeQuantize.with_args(
-        observer=weight_observer, 
-        quant_min=weight_qconfig.get('quant_min', -(2 ** (weight_bitwidth-1))),
-        quant_max=weight_qconfig.get('quant_max', (2 ** (weight_bitwidth-1)) - 1),
-        dtype=weight_dtype) if is_qat else weight_observer
+    if weight_dtype in (torch.int8, torch.int16, torch.int32):
+        weight_bitwidth = weight_qconfig.get('bitwidth', 8) # needed for 4-bit quantization simulation
+        weight_qscheme = weight_qconfig.get('qscheme', torch.per_channel_symmetric)
+
+
+        WeightObserverBaseToUse = observer_types.AdaptivePerChannelWeightObserver \
+            if weight_qscheme == torch.per_channel_symmetric else observer_types.AdaptiveWeightObserver
         
-    weight_quantization_spec = QuantizationSpec(
-        dtype=weight_dtype,
-        quant_min=weight_qconfig.get('quant_min', -(2 ** (weight_bitwidth-1))),  
-        quant_max=weight_qconfig.get('quant_max', (2 ** (weight_bitwidth-1)) - 1),
-        qscheme=weight_qscheme,
-        ch_axis=weight_qconfig.get('ch_axis', 0),
-        is_dynamic=weight_qconfig.get('is_dynamic', False),
-        observer_or_fake_quant_ctr=fake_quantized_weight_observer                         
-    )
+        weight_observer = xnn.utils.partialclass(WeightObserverBaseToUse,
+                                                quant_min=weight_qconfig.get('quant_min', -(2 ** (weight_bitwidth-1))),
+                                                quant_max=weight_qconfig.get('quant_max', (2 ** (weight_bitwidth-1)) - 1),
+                                                dtype=weight_dtype,
+                                                qscheme=weight_qscheme,
+                                                power2_scale=weight_qconfig.get('power2_scale', False),
+                                                range_max=weight_qconfig.get('range_max', None),
+                                                fixed_range=weight_qconfig.get('fixed_range', False),
+                                                class_name=weight_qconfig.get('observer_name', observer_name)
+                                                )
+        
+        fake_quantized_weight_observer = fake_quantize_types.AdaptiveWeightFakeQuantize.with_args(
+            observer=weight_observer, 
+            quant_min=weight_qconfig.get('quant_min', -(2 ** (weight_bitwidth-1))),
+            quant_max=weight_qconfig.get('quant_max', (2 ** (weight_bitwidth-1)) - 1),
+            dtype=weight_dtype) if is_qat else weight_observer
+            
+        weight_quantization_spec = QuantizationSpec(
+            dtype=weight_dtype,
+            quant_min=weight_qconfig.get('quant_min', -(2 ** (weight_bitwidth-1))),  
+            quant_max=weight_qconfig.get('quant_max', (2 ** (weight_bitwidth-1)) - 1),
+            qscheme=weight_qscheme,
+            ch_axis=weight_qconfig.get('ch_axis', 0),
+            is_dynamic=weight_qconfig.get('is_dynamic', False),
+            observer_or_fake_quant_ctr=fake_quantized_weight_observer                         
+        )
+    elif weight_dtype == torch.float32:
+        weight_quantization_spec = QuantizationSpec(
+            dtype=weight_dtype,
+            quant_min=None,
+            quant_max=None,
+            qscheme=torch.per_tensor_symmetric,
+            is_dynamic=False,
+            observer_or_fake_quant_ctr=None
+        )
+    else:
+        raise RuntimeError("ERROR: Unsupported weight quantization dtype: " + str(weight_dtype))
+    #
     return weight_quantization_spec
 	
 
-def get_act_quantization_config(activation_qconfig, is_qat=True, fast_mode=False):
+def get_act_quantization_spec(activation_qconfig, is_qat=True, fast_mode=False):
     observer_name = 'CustomAdaptiveActivationObserver' + get_repr_string_from_dict(activation_qconfig)
-    activation_bitwidth = activation_qconfig.get('bitwidth', 8)
     activation_dtype = activation_qconfig.get('dtype', torch.uint8)
 
-    # TODO - create a more optimized observer involving both histogram and min-max observer
-    # transformers required histogram, bev requires min max - merge them somehow
-    # AdaptiveActivationObserverToUse = observer_types.AdaptiveActivationObserverFast if fast_mode else observer_types.AdaptiveActivationObserver
-    AdaptiveActivationObserverToUse = observer_types.AdaptiveMovingAverageMinMaxActivationObserver
-    
-    activation_observer = xnn.utils.partialclass(AdaptiveActivationObserverToUse,
-                                             quant_min=activation_qconfig.get('quant_min', torch.iinfo(activation_dtype).min),
-                                             quant_max=activation_qconfig.get('quant_max', torch.iinfo(activation_dtype).max),
-                                             dtype=activation_dtype,
-                                             qscheme=activation_qconfig.get('qscheme', torch.per_tensor_affine),
-                                             power2_scale=activation_qconfig.get('power2_scale', False),
-                                             range_max=activation_qconfig.get('range_max', None),
-                                             fixed_range=activation_qconfig.get('fixed_range', False),
-                                             class_name=activation_qconfig.get('observer_name', observer_name),
-                                             range_shrink_percentile=activation_qconfig.get('range_shrink_percentile', 0.01))
-                
-    fake_quantized_activation_observer = fake_quantize_types.AdaptiveActivationFakeQuantize.with_args(
-        observer=activation_observer, 
-        quant_min=activation_qconfig.get('quant_min', torch.iinfo(activation_dtype).min),
-        quant_max=activation_qconfig.get('quant_max', torch.iinfo(activation_dtype).max),
-        dtype=activation_dtype) if is_qat else activation_observer
-    
-    act_quantization_spec = QuantizationSpec(
-        dtype=activation_dtype,
-        quant_min=activation_qconfig.get('quant_min', torch.iinfo(activation_dtype).min),
-        quant_max=activation_qconfig.get('quant_max', torch.iinfo(activation_dtype).max),
-        qscheme=activation_qconfig.get('qscheme', torch.per_tensor_affine),
-        is_dynamic=activation_qconfig.get('is_dynamic', False),
-        observer_or_fake_quant_ctr=fake_quantized_activation_observer
-    )
+    if activation_dtype in (torch.int8, torch.uint8, torch.int16, torch.uint16, torch.int32, torch.uint32):
+        activation_bitwidth = activation_qconfig.get('bitwidth', 8)
+
+        # TODO - create a more optimized observer involving both histogram and min-max observer
+        # transformers required histogram, bev requires min max - merge them somehow
+        # AdaptiveActivationObserverToUse = observer_types.AdaptiveActivationObserverFast if fast_mode else observer_types.AdaptiveActivationObserver
+        AdaptiveActivationObserverToUse = observer_types.AdaptiveMovingAverageMinMaxActivationObserver
+        
+        activation_observer = xnn.utils.partialclass(AdaptiveActivationObserverToUse,
+                                                quant_min=activation_qconfig.get('quant_min', torch.iinfo(activation_dtype).min),
+                                                quant_max=activation_qconfig.get('quant_max', torch.iinfo(activation_dtype).max),
+                                                dtype=activation_dtype,
+                                                qscheme=activation_qconfig.get('qscheme', torch.per_tensor_affine),
+                                                power2_scale=activation_qconfig.get('power2_scale', False),
+                                                range_max=activation_qconfig.get('range_max', None),
+                                                fixed_range=activation_qconfig.get('fixed_range', False),
+                                                class_name=activation_qconfig.get('observer_name', observer_name),
+                                                range_shrink_percentile=activation_qconfig.get('range_shrink_percentile', 0.01))
+                    
+        fake_quantized_activation_observer = fake_quantize_types.AdaptiveActivationFakeQuantize.with_args(
+            observer=activation_observer, 
+            quant_min=activation_qconfig.get('quant_min', torch.iinfo(activation_dtype).min),
+            quant_max=activation_qconfig.get('quant_max', torch.iinfo(activation_dtype).max),
+            dtype=activation_dtype) if is_qat else activation_observer
+        
+        act_quantization_spec = QuantizationSpec(
+            dtype=activation_dtype,
+            quant_min=activation_qconfig.get('quant_min', torch.iinfo(activation_dtype).min),
+            quant_max=activation_qconfig.get('quant_max', torch.iinfo(activation_dtype).max),
+            qscheme=activation_qconfig.get('qscheme', torch.per_tensor_affine),
+            is_dynamic=activation_qconfig.get('is_dynamic', False),
+            observer_or_fake_quant_ctr=fake_quantized_activation_observer
+        )
+    elif activation_dtype == torch.float32:
+        fake_quantized_activation_observer = fake_quantize_types.AdaptiveActivationClip.with_args(
+            observer=observer_types.AdaptiveOutlierSuppressionActivationObserver,
+            outlier_suppression=activation_qconfig.get('outlier_suppression', False)
+        )
+        act_quantization_spec = QuantizationSpec(
+            dtype=activation_dtype,
+            quant_min=None,
+            quant_max=None,
+            qscheme=torch.per_tensor_affine,
+            is_dynamic=False,
+            observer_or_fake_quant_ctr=fake_quantized_activation_observer
+        )
+    else:
+        raise RuntimeError("ERROR: Unsupported activation quantization dtype: " + str(activation_dtype))
+    #
     return act_quantization_spec
 
 
 def get_quantization_config(qconfig_dict, is_qat=False, fast_mode=False):
     # custom qconfig_type parameters are given in a dict
-    weight_quantization_spec = get_weight_quantization_config(qconfig_dict.get('weight', dict()), is_qat=is_qat)
-    act_quantization_spec = get_act_quantization_config(qconfig_dict.get('activation', dict()), is_qat=is_qat, fast_mode=fast_mode)
+    weight_quantization_spec = get_weight_quantization_spec(qconfig_dict.get('weight', dict()), is_qat=is_qat)
+    act_quantization_spec = get_act_quantization_spec(qconfig_dict.get('activation', dict()), is_qat=is_qat, fast_mode=fast_mode)
 
     bias_observer_or_fake_quant_ctr: _ObserverOrFakeQuantizeConstructor = torch.ao.quantization.observer.PlaceholderObserver
     bias_quantization_spec = QuantizationSpec(
         dtype=torch.float,
         observer_or_fake_quant_ctr=bias_observer_or_fake_quant_ctr
     )
-    
     quantization_config = QuantizationConfig(
         act_quantization_spec,
         act_quantization_spec,
@@ -214,6 +237,12 @@ def get_quantization_config(qconfig_dict, is_qat=False, fast_mode=False):
 ####################################################################
 def get_quantization_config_default(qconfig_type, is_qat=True, fast_mode=False):
     _QCONFIG_TYPE_TO_DICT = dict()
+
+    # float32 - no quantization
+    _QCONFIG_TYPE_TO_DICT[QConfigType.FLOAT32] = get_quantization_config(dict(
+        weight=dict(dtype=torch.float32),
+        activation=dict(dtype=torch.float32, outlier_suppression=True)), 
+        is_qat=False, fast_mode=False)
 
     # per-channel
     _QCONFIG_TYPE_TO_DICT[QConfigType.WC8_AT8] = get_quantization_config(dict(
@@ -267,7 +296,7 @@ def get_quantization_config_default(qconfig_type, is_qat=True, fast_mode=False):
     _QCONFIG_TYPE_TO_DICT[QConfigType.WC4M4_AT8] = get_quantization_config(dict(
         weight=dict(bitwidth=4, qscheme=torch.per_channel_symmetric, range_max=4),
         activation=dict(qscheme=torch.per_tensor_affine)), is_qat=is_qat, fast_mode=fast_mode)
-
+    
     ###########
     # _QCONFIG_TYPE_TO_DICT[QConfigType.DEFAULT] = _QCONFIG_TYPE_TO_DICT[QConfigType.WC8_AT8]
     _QCONFIG_TYPE_TO_DICT[QConfigType.DEFAULT] = _QCONFIG_TYPE_TO_DICT[QConfigType.MSA_WC8_AT8]

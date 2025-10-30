@@ -35,16 +35,10 @@ from torch.onnx import symbolic_helper, register_custom_op_symbolic
 from torch import nn
 from torch import fx
 from functools import partial
-import itertools
-from torch.fx import Node
 #from torch.onnx._internal import jit_utils # for jit_utils.GraphContext
 
 from torch.fx.passes.utils.source_matcher_utils import get_source_partitions
 # from ...utils import get_source_partitions
-
-from . import fake_quantize_types
-from . import qconfig_types
-import warnings
 
 
 def is_fake_quant_with_param(self, pmodule, cmodule, fake_quant_types):
@@ -302,10 +296,9 @@ def remove_to_device_node(model):
     model.recompile()
     return model      
 
-def _bias_calibration_hook(calibration_factor, bias_module, m, x, y):
+
+def _bias_calibration_func(calibration_factor, bias_module, x, y):
     bias_error = 0
-    if isinstance(x, tuple):
-        x = x[0]
     if len(x.shape) == 3:
         if x.shape[1] == bias_module.shape[0]:
             float_mean = x.mean(dim=(0,2))
@@ -324,8 +317,15 @@ def _bias_calibration_hook(calibration_factor, bias_module, m, x, y):
             float_mean = x.mean(dim=(0,1,2))    
             quant_mean = y.mean(dim=(0,1,2))  
             bias_error = float_mean - quant_mean 
-
+        #
+    #
     bias_module.data += (bias_error * calibration_factor)
+
+
+def _bias_calibration_hook(calibration_factor, bias_module, m, x, y):
+    if isinstance(x, tuple):
+        x = x[0]
+    _bias_calibration_func(calibration_factor, bias_module, x, y)
     return y
 
 
@@ -377,6 +377,15 @@ def add_bias_calibration_hook(model, calibration_factor=0):
     return all_hooks
 
 
+def _outlier_suppression_func(x, dim=(0,1)):
+    mean_val = x.mean(dim=dim)
+    std_val = x.std(dim=dim)
+    clip_val_max = mean_val + 3*std_val
+    clip_val_min = mean_val - 3*std_val
+    x = torch.clip(x, min=clip_val_min, max=clip_val_max)
+    return x
+
+
 def _fc_outlier_supression_pre_hook(m, x):
     if isinstance(x, tuple):
         is_tuple = True
@@ -384,11 +393,7 @@ def _fc_outlier_supression_pre_hook(m, x):
     else:
         is_tuple = False
     #
-    mean_val = x.mean(dim=(0,1))
-    std_val = x.std(dim=(0,1))
-    clip_val_max = mean_val + 3*std_val
-    clip_val_min = mean_val - 3*std_val
-    x = torch.clip(x, min=clip_val_min, max = clip_val_max)
+    x = _outlier_suppression_func(x)
     return tuple([x]) if is_tuple else x
 
 

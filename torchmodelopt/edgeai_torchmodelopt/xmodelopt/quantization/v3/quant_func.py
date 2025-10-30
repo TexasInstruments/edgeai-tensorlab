@@ -35,21 +35,19 @@ import torch._dynamo as torchdynamo
 from torch.fx import GraphModule
 import torch.ao.quantization
 from torch.ao.quantization.quantize_pt2e import prepare_pt2e, prepare_qat_pt2e, convert_pt2e 
-
-from .quantizer.tidlrt.tidlrt_quantizer_advanced import get_tidlrt_quantizer_advanced as get_tidlrt_quantizer
-#from .quantizer.tidlrt.tidlrt_quantizer_basic import get_tidlrt_quantizer_basic as get_tidlrt_quantizer
 	
 from .... import xnn
 from ... import utils
 from . import qconfig_types
 from . import quant_utils
+from .quantizer import get_quantizer
 
 import copy
 import os
 import types 
 
 def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None, example_kwargs=None, qconfig_type=None,
-        qconfig_mode=qconfig_types.QConfigMode.DEFAULT, num_batch_norm_update_epochs=None, num_observer_update_epochs=None, 
+        num_batch_norm_update_epochs=None, num_observer_update_epochs=None, 
         add_methods=True, fast_mode=False, **kwargs):
     
     if hasattr(model, '__quant_params__'):
@@ -88,13 +86,13 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
     example_inputs = (example_inputs,) if not isinstance(example_inputs, (list, tuple)) else tuple(example_inputs)
     m = torch.export.export(orig_model, example_inputs).module()
     
-    qconfig_type = qconfig_type or qconfig_types.QConfigType.DEFAULT
-    qconfig_mode = qconfig_types.get_qconfig(qconfig_type, is_qat=is_qat, fast_mode=fast_mode)
+    qconfig_type = qconfig_type or qconfig_types.QConfigType.FLOAT32
+    qconfig = qconfig_types.get_qconfig(qconfig_type, is_qat=is_qat, fast_mode=fast_mode)
     
     # methods to quantize individual layers/modules types are in quantizer
     device=next(iter(m.named_parameters()))[1].device
-    quantizer = quantizer or get_tidlrt_quantizer(is_qat=is_qat, fast_mode=fast_mode, device=device)
-    quantizer.set_global(qconfig_mode)
+    quantizer = quantizer or get_quantizer(name='basic', is_qat=is_qat, fast_mode=fast_mode, device=device)
+    quantizer.set_global(qconfig)
     
     # for copy_arg in copy_args:
     #     if hasattr(module, copy_arg):

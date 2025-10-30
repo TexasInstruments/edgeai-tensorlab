@@ -80,9 +80,24 @@ class AdaptiveActivationFakeQuantize(AdaptiveFakeQuantize):
         return x_q
 
 
+class AdaptiveActivationClip(AdaptiveFakeQuantize):
+    '''
+    Create a subclass, just to distinguish between the ones used for activation and weight
+    '''
+    def forward(self, X):
+        outlier_suppression = getattr(self.activation_post_process, 'outlier_suppression', False) \
+            if getattr(self, 'activation_post_process', None) else False
+        if outlier_suppression:
+            x_q = torch.min(torch.max(X, self.activation_post_process.min_val), self.activation_post_process.max_val)
+        else:
+            x_q = X
+        #
+        return x_q
+    
+
 ####################################################################
 ADAPTIVE_WEIGHT_FAKE_QUANT_TYPES = (AdaptiveWeightFakeQuantize,)
 
-ADAPTIVE_ACTIVATION_FAKE_QUANT_TYPES = (AdaptiveActivationFakeQuantize,)
+ADAPTIVE_ACTIVATION_FAKE_QUANT_TYPES = (AdaptiveActivationFakeQuantize, AdaptiveActivationClip,)
 
 ADAPTIVE_FAKE_QUANT_TYPES = tuple(list(ADAPTIVE_WEIGHT_FAKE_QUANT_TYPES) + list(ADAPTIVE_ACTIVATION_FAKE_QUANT_TYPES))

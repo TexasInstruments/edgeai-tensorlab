@@ -754,6 +754,6 @@ class TIDLRTPreDispatchQuantizerBasic(Quantizer):
         return []
     
 
-def get_tidlrt_quantizer_basic_predispatch(**kwargs):
+def get_quantizer(**kwargs):
     return TIDLRTPreDispatchQuantizerBasic(**kwargs)
 

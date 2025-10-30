@@ -30,3 +30,17 @@
 #
 #################################################################################
 
+
+def get_quantizer(name, **kwargs):
+    if name == "xnnpack":
+        from .xnnpack import get_quantizer as get_xnnpack_quantizer
+        return get_xnnpack_quantizer(**kwargs)
+    elif name in ("basic", "tidlrt_basic"):
+        from .tidlrt.tidlrt_quantizer_basic import get_quantizer as get_tidlrt_basic_quantizer
+        return get_tidlrt_basic_quantizer(**kwargs)
+    elif name in ("advanced", "tidlrt_advanced"):
+        from .tidlrt.tidlrt_quantizer_advanced import get_quantizer as get_tidlrt_advanced_quantizer
+        return get_tidlrt_advanced_quantizer(**kwargs)
+    else:
+        raise ValueError(f"ERROR: Quantizer {name} not recognized.")
+    

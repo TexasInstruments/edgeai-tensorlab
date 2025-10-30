@@ -531,5 +531,5 @@ class TIDLRTQuantizerBasic(Quantizer):
         return []
     
 
-def get_tidlrt_quantizer_basic(device=None, **kwargs):
+def get_quantizer(device=None, **kwargs):
     return TIDLRTQuantizerBasic(**kwargs)
