@@ -127,7 +127,6 @@ def _derive_bias_qparams_fn(
         return (derived_scale, derived_zero)
 
 def _derived_bias_quant_spec(node: Node) -> DerivedQuantizationSpec:
-
     input_act = node.args[0]
     assert isinstance(input_act, Node)
     weight = node.args[1]
@@ -189,7 +188,7 @@ class TIDLRTQuantizerBasic(Quantizer):
         self, gm: torch.fx.GraphModule, quantization_config: QuantizationConfig, allow_16bit_node_list: list
     ) -> None:
         conv_partitions = get_source_partitions(
-            gm.graph, [torch.nn.Conv2d, torch.nn.functional.conv2d]
+            gm.graph, [torch.nn.Conv2d, torch.nn.functional.conv2d, 'conv2d']
         )
         conv_partitions = list(itertools.chain(*conv_partitions.values()))
         for conv_partition in conv_partitions:
@@ -198,7 +197,7 @@ class TIDLRTQuantizerBasic(Quantizer):
             conv_node = conv_partition.output_nodes[0]
             if (
                 conv_node.op != "call_function"
-                or conv_node.target != torch.ops.aten.convolution.default
+                or conv_node.target not in (torch.ops.aten.convolution.default, torch.ops.aten.conv2d.default)
             ):
                 raise ValueError(f"{conv_node} is not an aten conv2d operator")
             # skip annotation if it is already annotated
@@ -228,7 +227,7 @@ class TIDLRTQuantizerBasic(Quantizer):
         self, gm: torch.fx.GraphModule, quantization_config: QuantizationConfig
     ) -> None:
         mul_partitions = get_source_partitions(
-            gm.graph, [torch.mul, operator.mul])
+            gm.graph, [torch.mul, operator.mul, 'operator.mul', 'mul'])
         mul_partitions = list(itertools.chain(*mul_partitions.values()))
         for mul_partition in mul_partitions:
             mul_node = mul_partition.output_nodes[0]
@@ -256,7 +255,7 @@ class TIDLRTQuantizerBasic(Quantizer):
         self, gm: torch.fx.GraphModule, quantization_config: QuantizationConfig, allow_16bit_node_list: list
     ) -> None:
         module_partitions = get_source_partitions(
-            gm.graph, [torch.nn.Linear, torch.nn.functional.linear]
+            gm.graph, [torch.nn.Linear, torch.nn.functional.linear, 'linear']
         )
         act_qspec = get_input_act_qspec(quantization_config)
         weight_qspec = get_weight_qspec(quantization_config)
@@ -316,7 +315,7 @@ class TIDLRTQuantizerBasic(Quantizer):
         self, gm: torch.fx.GraphModule, quantization_config: QuantizationConfig
     ) -> None:
         module_partitions = get_source_partitions(
-            gm.graph, [torch.nn.MaxPool2d, torch.nn.functional.max_pool2d]
+            gm.graph, [torch.nn.MaxPool2d, torch.nn.functional.max_pool2d, 'max_pool2d']
         )
         maxpool_partitions = list(itertools.chain(*module_partitions.values()))
         for maxpool_partition in maxpool_partitions:
@@ -347,7 +346,7 @@ class TIDLRTQuantizerBasic(Quantizer):
         self, gm: torch.fx.GraphModule, quantization_config: QuantizationConfig
     ) -> None:
         module_partitions = get_source_partitions(
-            gm.graph, [torch.nn.Softmax, torch.nn.functional.softmax]
+            gm.graph, [torch.nn.Softmax, torch.nn.functional.softmax, 'softmax']
         )
         softmax_partitions = list(itertools.chain(*module_partitions.values()))
         for softmax_partition in softmax_partitions:
@@ -375,7 +374,7 @@ class TIDLRTQuantizerBasic(Quantizer):
         self, gm: torch.fx.GraphModule, quantization_config: QuantizationConfig
     ) -> None:
         module_partitions = get_source_partitions(
-            gm.graph, [torch.matmul, torch.bmm, operator.matmul]
+            gm.graph, [torch.matmul, torch.bmm, operator.matmul, 'operator.matmul', 'matmul', 'bmm']
         )
         # TODO take care of the bias term from bmm
         matmul_partitions = list(itertools.chain(*module_partitions.values()))
@@ -434,7 +433,7 @@ class TIDLRTQuantizerBasic(Quantizer):
         self, gm: torch.fx.GraphModule, quantization_config: QuantizationConfig
     ) -> None:
         module_partitions = get_source_partitions(
-            gm.graph, [torch.nn.LayerNorm, torch.nn.functional.layer_norm]
+            gm.graph, [torch.nn.LayerNorm, torch.nn.functional.layer_norm, 'layer_norm']
         )
         layernorm_partitions = list(itertools.chain(*module_partitions.values()))
         for layernorm_partition in layernorm_partitions:
@@ -462,7 +461,7 @@ class TIDLRTQuantizerBasic(Quantizer):
         self, gm: torch.fx.GraphModule, quantization_config: QuantizationConfig
     ) -> None:
         module_partitions = get_source_partitions(
-            gm.graph, [operator.add, torch.add]
+            gm.graph, [operator.add, torch.add, 'operator.add', 'add']
         )
         add_partitions = list(itertools.chain(*module_partitions.values()))
         for add_partition in add_partitions:
@@ -490,7 +489,7 @@ class TIDLRTQuantizerBasic(Quantizer):
         self, gm: torch.fx.GraphModule, quantization_config: Optional[QuantizationConfig]
     ) -> None:
         cat_partitions = get_source_partitions(
-            gm.graph, [torch.cat]
+            gm.graph, [torch.cat, 'cat']
         )
         cat_partitions = list(itertools.chain(*cat_partitions.values()))
         for cat_partition in cat_partitions:

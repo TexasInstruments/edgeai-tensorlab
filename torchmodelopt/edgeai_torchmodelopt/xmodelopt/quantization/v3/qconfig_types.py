@@ -90,6 +90,8 @@ class QConfigType():
     WC32_AT32 = "WC32_AT32"
 
     FLOAT32 = "FLOAT32"                         # no quantization, all layers in float32
+    CLIP_RANGE = "CLIP_RANGE"                   # no quantization, just clip
+
 
     @classmethod
     def choices(cls):
@@ -241,9 +243,15 @@ def get_quantization_config_default(qconfig_type, is_qat=True, fast_mode=False):
     # float32 - no quantization
     _QCONFIG_TYPE_TO_DICT[QConfigType.FLOAT32] = get_quantization_config(dict(
         weight=dict(dtype=torch.float32),
-        activation=dict(dtype=torch.float32, outlier_suppression=True)), 
+        activation=dict(dtype=torch.float32)), 
         is_qat=False, fast_mode=False)
 
+    # outlier_suppression
+    _QCONFIG_TYPE_TO_DICT[QConfigType.CLIP_RANGE] = get_quantization_config(dict(
+        weight=dict(dtype=torch.float32),
+        activation=dict(dtype=torch.float32, outlier_suppression=True)), 
+        is_qat=False, fast_mode=False)
+    
     # per-channel
     _QCONFIG_TYPE_TO_DICT[QConfigType.WC8_AT8] = get_quantization_config(dict(
         weight=dict(qscheme=torch.per_channel_symmetric),
