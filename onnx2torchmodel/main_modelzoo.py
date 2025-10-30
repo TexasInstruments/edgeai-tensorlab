@@ -185,19 +185,19 @@ if __name__ == '__main__':
     failed = [
         'cl-6508', # QDQ
         'cl-6507', #QDQ
+        'od-8950', # use actual input
         # 'od-8080', # use actual input
         # 'od-8940', # CUDA Memory Error
         # 'od-8020', # use actual input
-        # 'od-8950', # use actual input
         # 'od-8090', # use actual input
     ]
-    # failed = ['3dod-7100', '3dod-7110', '6dpose-7200', 'cl-3098', 'cl-6010', 'cl-6078', 'cl-6080', 'cl-6098', 'cl-6440', 'cl-6450', 'cl-6460', 'cl-6470', 'cl-6488', 'cl-6507', 'cl-6508', 'cl-6600', 'cl-6700', 'cl-6710', 'cl-6720', 'cl-6730', 'cl-6740', 'cl-6750', 'cl-6760', 'cl-6770', 'cl-6790', 'cl-6800', 'cl-6850', 'cl-6860', 'cl-6870', 'de-7300', 'de-7310', 'kd-7060', 'kd-7070', 'kd-7080', 'od-8000', 'od-8020', 'od-8030', 'od-8040', 'od-8050', 'od-8060', 'od-8070', 'od-8080', 'od-8090', 'od-8200', 'od-8210', 'od-8220', 'od-8230', 'od-8260', 'od-8270', 'od-8410', 'od-8420', 'od-8421', 'od-8920', 'od-8930', 'od-8940', 'od-8950', 'od-8970', 'od-9202', 'od-9203', 'od-9204', 'ss-7618', 'ss-8670', 'ss-8750', 'ss-8760', 'ss-8770']
+    failed = ['3dod-7100', '3dod-7110', '6dpose-7200', 'cl-6080', 'cl-6440', 'cl-6450', 'cl-6460', 'cl-6470', 'cl-6700', 'cl-6710', 'cl-6720', 'cl-6730', 'cl-6740', 'cl-6750', 'cl-6760', 'cl-6770', 'kd-7060', 'kd-7070', 'kd-7080', 'od-8000', 'od-8020', 'od-8030', 'od-8040', 'od-8050', 'od-8060', 'od-8070', 'od-8080', 'od-8090', 'od-8200', 'od-8210', 'od-8220', 'od-8230', 'od-8260', 'od-8270', 'od-8410', 'od-8420', 'od-8421', 'od-8930', 'od-8940',]+ failed + ['od-9202', 'od-9203', 'od-9204', 'visloc-7500']
     global total_count
     total_count = 0
     model_names = sorted(config.keys())
     model_names = [name for name in model_names if name not in failed]
-    model_names = ['od-8920']
-    # model_names = model_names[:142]
+    # model_names = model_names[:1]
+    # model_names = ['od-8950']
     for i, model_name in enumerate(model_names):
     # for model_name, path in config.items():
         path = config[model_name]
@@ -239,20 +239,20 @@ if __name__ == '__main__':
             example_inputs = [example_input.cpu() for example_input in example_inputs]
             print(f"Successfully converted model {model_name}")
             
-            model2 = copy.deepcopy(torch_model)
+            # model2 = copy.deepcopy(torch_model)
             
             if True:
                 print('Trying PT2E')
                 pt2e_model = torch.export.export(torch_model, tuple(example_inputs), strict=True).module()
                 # pt2e_model.eval()
-                pt2e_model = pt2e_model.cuda()
-                example_inputs = [example_input.cuda() for example_input in example_inputs]
+                # pt2e_model = pt2e_model.cuda()
+                # example_inputs = [example_input.cuda() for example_input in example_inputs]
                 outputs2 = pt2e_model(*example_inputs)
-                example_inputs = [example_input.cpu() for example_input in example_inputs]
-                outputs2 = [output.cpu() for output in outputs2]
-                pt2e_model = pt2e_model.cpu()
+                # example_inputs = [example_input.cpu() for example_input in example_inputs]
+                # outputs2 = [output.cpu() for output in outputs2]
+                # pt2e_model = pt2e_model.cpu()
                 print('PT2E Done')
-            if False:            
+            if True:            
                 print('Trying QAT')
                 from torch.ao.quantization.pt2e.quantize_pt2e import (prepare_qat_pt2e, convert_pt2e,)
                 from executorch.backends.xnnpack.quantizer.xnnpack_quantizer import (get_symmetric_quantization_config, XNNPACKQuantizer,)  
@@ -261,7 +261,8 @@ if __name__ == '__main__':
                 student_model = student_model.cuda()
                 with torch.no_grad():
                     for _ in range(10):
-                        inputs = [torch.rand_like(example_input).cuda() for example_input in example_inputs]
+                        inputs = [torch.rand_like(example_input) for example_input in example_inputs]
+                        inputs = [example_input.cuda() for example_input in inputs]
                         student_model(*inputs)
                 student_model = student_model.cpu()
                 student_model1 = convert_pt2e(student_model)
@@ -275,6 +276,7 @@ if __name__ == '__main__':
             continue
         
         main_job(False)
+        break
         # try:
         #     main_job()    
         # except Exception as e:
