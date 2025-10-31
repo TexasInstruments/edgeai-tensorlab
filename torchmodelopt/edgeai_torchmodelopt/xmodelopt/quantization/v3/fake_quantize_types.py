@@ -102,7 +102,7 @@ class _AdaptiveTensorClip(AdaptiveFakeQuantize):
         outlier_suppression = getattr(self.activation_post_process, 'outlier_suppression', False) \
             if getattr(self, 'activation_post_process', None) else False
         if outlier_suppression:
-            x_q = torch.min(torch.max(X, self.activation_post_process.min_val), self.activation_post_process.max_val)
+            x_q = torch.clip(X, self.activation_post_process.min_val.clone(), self.activation_post_process.max_val.clone())
         else:
             x_q = X
         #

@@ -33,9 +33,10 @@
 
 from ..xnnpack import XNNPACKQuantizer
 
+
 class TIDLRTQuantizerAdvanced(XNNPACKQuantizer):
     pass
-#
 
-def get_quantizer(**kwargs):
+
+def get_quantizer(is_qat=True, fast_mode=False, device=None, **kwargs):
     return TIDLRTQuantizerAdvanced(**kwargs)
