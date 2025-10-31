@@ -380,9 +380,12 @@ def add_bias_calibration_hook(model, calibration_factor=0):
 def _outlier_suppression_range(x, dim=(0,1), sigma_factor=3.0):
     mean_val = x.mean(dim=dim)
     std_val = x.std(dim=dim)
-    clip_val_max = mean_val + sigma_factor*std_val
-    clip_val_min = mean_val - sigma_factor*std_val
-    return clip_val_min, clip_val_max
+    if not torch.isnan(mean_val) and not torch.isnan(std_val):
+        min_val = mean_val - sigma_factor*std_val
+        max_val = mean_val + sigma_factor*std_val
+        return min_val, max_val
+    else:
+        return torch.min(x), torch.max(x)
 
 
 def _fc_outlier_supression_pre_hook(m, x):

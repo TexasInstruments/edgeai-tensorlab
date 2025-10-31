@@ -289,19 +289,19 @@ def train(self, mode: bool = True):
         freeze_observers = (self.__quant_params__.num_epochs_tracked >= num_observer_update_epochs)
         # freeze_bn = freeze_observers = False      ####TODO WHY turned off?? FIXME
         if freeze_bn:
-            xnn.utils.print_once('Freezing BN for subsequent epochs')
+            xnn.utils.print_once('INFO: Freezing BN for subsequent quantization epochs')
         #
         if freeze_observers:
-            xnn.utils.print_once('Freezing ranges for subsequent epochs')
+            xnn.utils.print_once('INFO: Freezing ranges for subsequent quantization epochs')
         #
         freeze(self, freeze_bn=freeze_bn, freeze_observers=freeze_observers)
         
         # we will probably need better logic to extend to adding more hooks in the toolkit #TODO
-        if len(self.__quant_params__.outlier_hooks)==0 and not(freeze_observers):
-            self = insert_all_hooks(self, insert_bias_hook=False)
-        if len(self.__quant_params__.bias_hooks)==0:
-            self = insert_all_hooks(self, insert_outlier_hook=False)
-        
+        # if len(self.__quant_params__.outlier_hooks)==0 and not(freeze_observers):
+        #     self = insert_all_hooks(self, outlier_clipping=True, bias_calibration=False)
+        # if len(self.__quant_params__.bias_hooks)==0:
+        #     self = insert_all_hooks(self, outlier_clipping=False, bias_calibration=True)
+
         # Removing the outlier hook when the observers are also frozen
         if freeze_observers and len(self.__quant_params__.outlier_hooks)>0:
             self.__quant_params__.outlier_hooks = remove_hooks(self.__quant_params__.outlier_hooks)

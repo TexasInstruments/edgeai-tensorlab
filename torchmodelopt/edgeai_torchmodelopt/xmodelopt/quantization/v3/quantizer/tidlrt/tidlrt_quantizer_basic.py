@@ -126,11 +126,12 @@ def _derive_bias_qparams_fn(
         derived_zero = torch.zeros(derived_scale.size()).to(torch.int32)
         return (derived_scale, derived_zero)
 
-def _derived_bias_quant_spec(node: Node) -> DerivedQuantizationSpec:
+def _derived_bias_quant_spec(node: Node,  quantization_config: QuantizationConfig) -> DerivedQuantizationSpec:
     input_act = node.args[0]
     assert isinstance(input_act, Node)
     weight = node.args[1]
     assert isinstance(weight, Node)
+    quantization_spec: QuantizationSpec = quantization_config.weight
 
     return DerivedQuantizationSpec(
         derived_from=[(input_act, node), (weight, node)],
@@ -138,8 +139,8 @@ def _derived_bias_quant_spec(node: Node) -> DerivedQuantizationSpec:
         dtype=torch.int32,
         quant_min=torch.iinfo(torch.int32).min,
         quant_max=torch.iinfo(torch.int32).max,
-        ch_axis=0,
-        qscheme=torch.per_channel_symmetric,
+        ch_axis=quantization_spec.ch_axis,
+        qscheme=quantization_spec.qscheme,
     )
 
 class TIDLRTQuantizerBasic(Quantizer):
@@ -216,7 +217,7 @@ class TIDLRTQuantizerBasic(Quantizer):
             if len(conv_node.args) > 2:
                 bias = conv_node.args[2]
                 if isinstance(bias, Node):
-                    input_qspec_map[bias] = _derived_bias_quant_spec(conv_node)
+                    input_qspec_map[bias] = _derived_bias_quant_spec(conv_node, quantization_config)
 
             conv_node.meta["quantization_annotation"] = QuantizationAnnotation(
                 input_qspec_map=input_qspec_map,
