@@ -44,13 +44,12 @@ def get_source_partitions(graph:fx.Graph, wanted_sources:list, filter_fn = None)
             if source_fn[1] not in wanted_sources:
                 continue
             add_node_to_partition(source_fn, node)
-        elif not found and (source_fn_st := node.meta.get("torch_fn", None)):
-            source_fn = source_fn_st[-1]
-            if source_fn[1] not in wanted_sources:
+        elif not found and (torch_fn := node.meta.get("torch_fn", None)):
+            node_fqn, source_fn = torch_fn
+            source_fn_name = source_fn.split(".")[1]
+            if source_fn_name not in wanted_sources:
                 continue
-            add_node_to_partition(source_fn, node)
-
-
+            add_node_to_partition((node_fqn,source_fn_name), node)
     
     def make_partition(nodes: List[fx.Node], module_type: Type) -> SourcePartition:
         input_nodes = set()
@@ -58,11 +57,12 @@ def get_source_partitions(graph:fx.Graph, wanted_sources:list, filter_fn = None)
         params = set()
         for node in nodes:
             for arg in get_all_args(node.args):
-                if arg not in nodes:
+                if isinstance(arg, fx.Node) and arg not in nodes and arg.op != "get_attr":
                     input_nodes.add(arg)
 
             if node.op == "get_attr":
                 params.add(node)
+                continue
 
             for user in node.users.keys():
                 if user not in nodes:

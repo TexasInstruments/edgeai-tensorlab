@@ -76,12 +76,6 @@ def convert(model_path, for_training=False, module_based=True):
     graph = gs.import_onnx(onnx_model)
     remove_identity(graph)
     simplify_graph(graph)
-    try:
-        model = gs.export_onnx(graph)
-        onnx.save_model(model, model_path)
-    except Exception as e:
-        # print(f"Failed to convert model because of error {e}")
-        pass
 
     torch_model = onnx_ops.get_torch_graph_module(graph, for_training=for_training, module_based=module_based)
 

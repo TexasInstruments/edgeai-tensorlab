@@ -36,8 +36,8 @@ import numpy as np
 def torch_gather(x, indices, axis=0):
     if axis < 0:
         axis += x.dim() if isinstance(x, torch.Tensor) else len(x)
-    if  isinstance(indices, torch.Tensor) and indices.dtype!=torch.int:
-        indices = indices.to(torch.int)
+    if  isinstance(indices, torch.Tensor) and indices.dtype not in (torch.int8, torch.int16, torch.int32, torch.int64, torch.uint8, torch.uint16, torch.uint32, torch.uint64):
+        indices = indices.to(torch.int64)
     if axis==0:
         return getitem(x, indices)
     slices = [slice(None) for _ in range(x.dim() if isinstance(x, torch.Tensor) else 1 ) ]

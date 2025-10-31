@@ -111,6 +111,7 @@ class RFDeTRDataloader:
 
 def add_all_output(model_path):
     model = onnx.load(model_path)
+    old_ir = model.ir_version
     graph = gs.import_onnx(model)
     #%%
     for node in graph.nodes:
@@ -123,6 +124,7 @@ def add_all_output(model_path):
     #%%
     try:
         model = gs.export_onnx(graph)
+        model.ir_version = old_ir
         output_path = model_path.replace('.onnx', '/all.onnx')
         onnx.save_model(model, output_path)
     except Exception as e:
@@ -149,7 +151,8 @@ def main(args=None, inps=None):
         args.model_path = add_all_output(args.model_path)
     sess_options = onnxruntime.SessionOptions()
     sess_options.graph_optimization_level = onnxruntime.GraphOptimizationLevel.ORT_DISABLE_ALL
-    torch_model = convert(args.model_path)
+    torch_model = convert(args.model_path, for_training=True)
+    # return torch_model, None
     session1 = onnxruntime.InferenceSession(args.model_path, sess_options, providers=['CPUExecutionProvider'])
     torch_model.eval()
     if args.export_txts:
@@ -183,19 +186,21 @@ def main(args=None, inps=None):
     output1 = [torch.from_numpy(o) for o in output1]
     output1 = [o.float() for o in output1]
     output2 = [o.float() for o in output2]
-    # output1 = [torch.round(o.float(), decimals=5) for o in output1]
-    # output2 = [torch.round(o.float(), decimals=5) for o in output2]
+    # return torch_model, output1, output2
+
     if args.cuda:
         torch_model = torch_model.cpu()
         inputs = [inp.cpu() for inp in inputs]
-    torch.onnx.export(torch_model, tuple(inputs),args.model_path.replace('.onnx','1.onnx'))
-    model = onnx.load(args.model_path.replace('.onnx','1.onnx'))
+    new_onnx_path = args.model_path.replace('.onnx','1.onnx')
+    torch.onnx.export(torch_model, tuple(inputs),new_onnx_path, external_data=False,dump_exported_program=False, opset_version=18)
+    model = onnx.load(new_onnx_path )
+    model.ir_version = onnx.load(args.model_path).ir_version
     if args.simplify:
         model , _= onnxsim.simplify(model)
     else:
         model = onnx.shape_inference.infer_shapes(model)
-    onnx.save(model,args.model_path.replace('.onnx','1.onnx'))
-    session3 = onnxruntime.InferenceSession(args.model_path.replace('.onnx','1.onnx'), sess_options, providers=['CPUExecutionProvider'])
+    onnx.save(model,new_onnx_path )
+    session3 = onnxruntime.InferenceSession(new_onnx_path , sess_options, providers=['CPUExecutionProvider'])
     input_dict1 = {inp.name : inputs[i].numpy() for i,inp in enumerate(session3.get_inputs())}
     output3 = session3.run([], input_dict1)
     output3 = [torch.from_numpy(o) for o in output3]
@@ -232,8 +237,57 @@ def main(args=None, inps=None):
 
     return torch_model, output1, output2, output3
 
+
+# def pt2e_export_model(model:torch.nn.Module, inps):
+#     from edgeai_torchmodelopt.xmodelopt.utils.hooks import add_example_args_kwargs
+#     children = dict(model.named_children())
+#     transformation_dict = {k:None for k,v in children.items()}
+#     add_example_args_kwargs(model, inps, transformation_dict=transformation_dict)
+#     for name, module in children.items():
+#         args = module._example_inputs[0]
+#         kwargs = module._example_kwargs[0]
+#         pt2e_module = torch.export.export(module, tuple(args), kwargs).module()
+#         model.add_module(name, pt2e_module)
+#     return torch.export.export(model, tuple(inps))
+
 if __name__ == '__main__':
 
     dataloader = RFDeTRDataloader()
     inp = dataloader[0]
-    new_model, o1, o2, o3 = main(['/data/ssd/files/a0507161/exps/onnx_exp/opt_ar_rgb_modified_inf.onnx', '-e','-a','-s'], inps=inp)
+    result =  main(['/data/ssd/files/a0507161/exps/onnx_exp/opt_ar_rgb_modified_inf2ten.onnx', '-e','-s','-a'], inps=inp)
+    new_model = result[0]
+    o1 = result[1]
+    o2 = result[2]
+    # inp = [torch.from_numpy(i) for i in inp]
+    # # new_model= new_model.cuda()
+    # inps = inp #[i.cuda() for i in inp]
+    # outputs1 = new_model(*inps)
+    # # new_model = new_model.cpu()
+    # # pt2e_export_model(new_model, inp)
+    # # pt2e_model =pt2e_export_model(new_model, inp).module()
+    # from torchao.quantization.pt2e import allow_exported_model_train_eval
+    # ep = torch.export.export(new_model, tuple(inp))
+    # pt2e_model = ep.module()
+    # allow_exported_model_train_eval(pt2e_model)
+    # # # # pt2e_model= pt2e_model.cuda()
+    # # # inps = inp # [i.cuda() for i in inp]
+    # outputs2 = pt2e_model(*inps)
+    # torch.export.save(ep, 'pt2e.pt2')
+    # m = torch.export.load('pt2e.pt2')
+    # torch.onnx.export(pt2e_model, tuple(inp), 'pt2e_model.onnx')
+    # pt2e_model = pt2e_model.cpu()
+    exit()
+    from torchao.quantization.pt2e.quantize_pt2e import (prepare_qat_pt2e, convert_pt2e,)
+    # # from executorch.backends.xnnpack.quantizer.xnnpack_quantizer import (get_symmetric_quantization_config, XNNPACKQuantizer,)  
+    # quantizer =  XNNPACKQuantizer().set_global(get_symmetric_quantization_config(is_per_channel=True, is_qat=True))
+    # student_model = prepare_qat_pt2e(pt2e_model, quantizer)
+    # allow_exported_model_train_eval(student_model)
+    # student_model.eval()
+    # # student_model = student_model.cuda()
+    # with torch.no_grad():
+    #     for i in range(1):
+    #         inputs = [torch.from_numpy(input) for input in dataloader[i]]
+    #         student_model(*inputs)
+    # # student_model = student_model.cpu()
+    # student_model1 = convert_pt2e(student_model)
+    pass

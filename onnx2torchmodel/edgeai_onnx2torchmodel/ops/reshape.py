@@ -37,6 +37,7 @@ def torch_reshape(x, shape, allowzero=False):
     if allowzero:
         return torch.reshape(x, shape)
     for i, s in enumerate(shape):
+        # torch._check(s==-1)
         if s == -1:
             break
         if s == 0:
