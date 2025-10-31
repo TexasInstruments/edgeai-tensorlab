@@ -86,7 +86,7 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
     example_inputs = (example_inputs,) if not isinstance(example_inputs, (list, tuple)) else tuple(example_inputs)
     m = torch.export.export(orig_model, example_inputs).module()
     
-    qconfig_type = qconfig_type or qconfig_types.QConfigType.FLOAT32
+    qconfig_type = qconfig_type or qconfig_types.QConfigType.DEFAULT
     qconfig = qconfig_types.get_qconfig(qconfig_type, is_qat=is_qat, fast_mode=fast_mode)
     
     # methods to quantize individual layers/modules types are in quantizer

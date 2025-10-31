@@ -377,13 +377,12 @@ def add_bias_calibration_hook(model, calibration_factor=0):
     return all_hooks
 
 
-def _outlier_suppression_func(x, dim=(0,1)):
+def _outlier_suppression_range(x, dim=(0,1), sigma_factor=3.0):
     mean_val = x.mean(dim=dim)
     std_val = x.std(dim=dim)
-    clip_val_max = mean_val + 3*std_val
-    clip_val_min = mean_val - 3*std_val
-    x = torch.clip(x, min=clip_val_min, max=clip_val_max)
-    return x
+    clip_val_max = mean_val + sigma_factor*std_val
+    clip_val_min = mean_val - sigma_factor*std_val
+    return clip_val_min, clip_val_max
 
 
 def _fc_outlier_supression_pre_hook(m, x):
@@ -393,7 +392,8 @@ def _fc_outlier_supression_pre_hook(m, x):
     else:
         is_tuple = False
     #
-    x = _outlier_suppression_func(x)
+    min_val, max_val = _outlier_suppression_range(x)
+    x = torch.clip(x, min=min_val, max=max_val)
     return tuple([x]) if is_tuple else x
 
 

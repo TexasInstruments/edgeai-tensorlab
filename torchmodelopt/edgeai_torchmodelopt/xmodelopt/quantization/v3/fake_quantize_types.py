@@ -80,11 +80,25 @@ class AdaptiveActivationFakeQuantize(AdaptiveFakeQuantize):
         return x_q
 
 
-class AdaptiveActivationClip(AdaptiveFakeQuantize):
+####################################################################
+class _AdaptiveTensorClip(AdaptiveFakeQuantize):
     '''
     Create a subclass, just to distinguish between the ones used for activation and weight
     '''
     def forward(self, X):
+        if self.observer_enabled[0] == 1:
+            self.activation_post_process(X.detach())
+            _scale, _zero_point = self.calculate_qparams()
+            _scale, _zero_point = (
+                _scale.to(self.scale.device),
+                _zero_point.to(self.zero_point.device),
+            )
+            if self.scale.shape != _scale.shape:
+                self.scale.resize_(_scale.shape)
+                self.zero_point.resize_(_zero_point.shape)
+            self.scale.copy_(_scale)
+            self.zero_point.copy_(_zero_point)
+            
         outlier_suppression = getattr(self.activation_post_process, 'outlier_suppression', False) \
             if getattr(self, 'activation_post_process', None) else False
         if outlier_suppression:
@@ -95,9 +109,17 @@ class AdaptiveActivationClip(AdaptiveFakeQuantize):
         return x_q
     
 
-####################################################################
-ADAPTIVE_WEIGHT_FAKE_QUANT_TYPES = (AdaptiveWeightFakeQuantize,)
+class AdaptiveWeightClip(_AdaptiveTensorClip):
+    pass
 
-ADAPTIVE_ACTIVATION_FAKE_QUANT_TYPES = (AdaptiveActivationFakeQuantize, AdaptiveActivationClip,)
+
+class AdaptiveActivationClip(_AdaptiveTensorClip):
+    pass
+
+
+####################################################################
+ADAPTIVE_WEIGHT_FAKE_QUANT_TYPES = (AdaptiveWeightFakeQuantize, AdaptiveWeightClip)
+
+ADAPTIVE_ACTIVATION_FAKE_QUANT_TYPES = (AdaptiveActivationFakeQuantize, AdaptiveActivationClip)
 
 ADAPTIVE_FAKE_QUANT_TYPES = tuple(list(ADAPTIVE_WEIGHT_FAKE_QUANT_TYPES) + list(ADAPTIVE_ACTIVATION_FAKE_QUANT_TYPES))

@@ -65,8 +65,10 @@ class AdaptiveWeightObserver(torch.ao.quantization.MinMaxObserver):
         self.freeze_observer = False
 
     def set_params(self, **kwargs):
-        for k, v in self.kwargs.items():
-            setattr(self, k, v)
+        for k, v in kwargs.items():
+            if hasattr(self, k):
+                setattr(self, k, v)
+            #
         #
         
     def _correct_min_max(self, min_val: torch.Tensor, max_val: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, bool]:
@@ -99,7 +101,8 @@ class AdaptiveWeightObserver(torch.ao.quantization.MinMaxObserver):
     def forward(self, x_orig):
         if self.freeze_observer:
             return x_orig
-        x_orig = super().forward(x_orig)
+        x = x_orig.detach()
+        x = super().forward(x)
         if self.range_max is not None:
             signed_range = torch.min(self.min_val.detach()).item() < 0.0
             min_val = (-self.range_max) if signed_range else 0.0
@@ -125,8 +128,10 @@ class AdaptivePerChannelWeightObserver(torch.ao.quantization.PerChannelMinMaxObs
         self.freeze_observer = False
 
     def set_params(self, **kwargs):
-        for k, v in self.kwargs.items():
-            setattr(self, k, v)
+        for k, v in kwargs.items():
+            if hasattr(self, k):
+                setattr(self, k, v)
+            #
         #
 
     def _correct_min_max(self, min_val: torch.Tensor, max_val: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, bool]:
@@ -154,7 +159,8 @@ class AdaptivePerChannelWeightObserver(torch.ao.quantization.PerChannelMinMaxObs
     def forward(self, x_orig):
         if self.freeze_observer:
             return x_orig
-        x_orig = super().forward(x_orig)
+        x = x_orig.detach()
+        x = super().forward(x)
         if self.range_max is not None:
             signed_range = torch.min(self.min_val.detach()).item() < 0.0
             min_val = (-self.range_max) if signed_range else 0.0
@@ -173,7 +179,7 @@ class AdaptivePerChannelWeightObserver(torch.ao.quantization.PerChannelMinMaxObs
 ####################################################################
 class AdaptiveActivationObserver(observer_utils.CumulativeMSEHistogramObserver):
     def __init__(self, *args, quant_min=0, quant_max=255, dtype=torch.quint8, qscheme=torch.per_tensor_affine, power2_scale=False, 
-                 range_max=None, fixed_range=False, outlier_suppression=False, **kwargs):
+                 range_max=None, fixed_range=False, **kwargs):
         super().__init__(*args, quant_min=quant_min, quant_max=quant_max, dtype=dtype, qscheme=qscheme, **kwargs)
 		# activation quantization cannot use torch.per_channel_symmetric, it has to be torch.per_tensor_symmetric
         self.symmetric = (qscheme in (torch.per_channel_symmetric, torch.per_tensor_symmetric))
@@ -181,11 +187,12 @@ class AdaptiveActivationObserver(observer_utils.CumulativeMSEHistogramObserver):
         self.range_max = range_max
         self.fixed_range = fixed_range
         self.freeze_observer = False
-        self.outlier_suppression = outlier_suppression
 
     def set_params(self, **kwargs):
-        for k, v in self.kwargs.items():
-            setattr(self, k, v)
+        for k, v in kwargs.items():
+            if hasattr(self, k):
+                setattr(self, k, v)
+            #
         #
 
     def _correct_min_max(self, min_val: torch.Tensor, max_val: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, bool]:
@@ -220,10 +227,8 @@ class AdaptiveActivationObserver(observer_utils.CumulativeMSEHistogramObserver):
         if self.freeze_observer:
             return x_orig
         #
-        if self.outlier_suppression and torch.is_floating_point(x_orig):
-            x_clipped = quant_utils._outlier_suppression_func(x_orig, dim=None)
-        #
-        x_orig = super().forward(x_orig)
+        x = x_orig.detach()
+        x = super().forward(x)
         if self.range_max is not None:
             signed_range = torch.min(self.min_val.detach()).item() < 0.0
             min_val = (-self.range_max) if signed_range else 0.0
@@ -246,7 +251,7 @@ class AdaptiveActivationObserverFast(AdaptiveActivationObserver):
 
 class AdaptiveMinMaxActivationObserver(torch.ao.quantization.MinMaxObserver):
     def __init__(self, *args, quant_min=0, quant_max=255, dtype=torch.quint8, qscheme=torch.per_tensor_affine, power2_scale=False, 
-                 range_max=None, fixed_range=False, range_shrink_percentile=0, outlier_suppression=False, **kwargs):
+                 range_max=None, fixed_range=False, range_shrink_percentile=0, **kwargs):
         super().__init__(*args, quant_min=quant_min, quant_max=quant_max, dtype=dtype, qscheme=qscheme, **kwargs)
 		# activation quantization cannot use torch.per_channel_symmetric, it has to be torch.per_tensor_symmetric
         self.symmetric = (qscheme in (torch.per_channel_symmetric, torch.per_tensor_symmetric))
@@ -254,11 +259,12 @@ class AdaptiveMinMaxActivationObserver(torch.ao.quantization.MinMaxObserver):
         self.range_max = range_max
         self.fixed_range = fixed_range
         self.freeze_observer = False
-        self.outlier_suppression = outlier_suppression
 
     def set_params(self, **kwargs):
-        for k, v in self.kwargs.items():
-            setattr(self, k, v)
+        for k, v in kwargs.items():
+            if hasattr(self, k):
+                setattr(self, k, v)
+            #
         #
 
     def _correct_min_max(self, min_val: torch.Tensor, max_val: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, bool]:
@@ -293,10 +299,8 @@ class AdaptiveMinMaxActivationObserver(torch.ao.quantization.MinMaxObserver):
         if self.freeze_observer:
             return x_orig
         #
-        if self.outlier_suppression and torch.is_floating_point(x_orig):
-            x_clipped = quant_utils._outlier_suppression_func(x_orig, dim=None)
-        #
-        x_orig = super().forward(x_orig)
+        x = x_orig.detach()
+        x = super().forward(x)
         if self.range_max is not None:
             signed_range = torch.min(self.min_val.detach()).item() < 0.0
             min_val = (-self.range_max) if signed_range else 0.0
@@ -314,7 +318,7 @@ class AdaptiveMinMaxActivationObserver(torch.ao.quantization.MinMaxObserver):
 
 class AdaptiveMovingAverageMinMaxActivationObserver(torch.ao.quantization.MovingAverageMinMaxObserver):
     def __init__(self, *args, quant_min=0, quant_max=255, dtype=torch.quint8, qscheme=torch.per_tensor_affine, power2_scale=False, 
-                 range_max=None, fixed_range=False, range_shrink_percentile=0, outlier_suppression=False, **kwargs):
+                 range_max=None, fixed_range=False, range_shrink_percentile=0, **kwargs):
         super().__init__(*args, quant_min=quant_min, quant_max=quant_max, dtype=dtype, qscheme=qscheme, **kwargs)
 		# activation quantization cannot use torch.per_channel_symmetric, it has to be torch.per_tensor_symmetric
         self.symmetric = (qscheme in (torch.per_channel_symmetric, torch.per_tensor_symmetric))
@@ -322,11 +326,12 @@ class AdaptiveMovingAverageMinMaxActivationObserver(torch.ao.quantization.Moving
         self.range_max = range_max
         self.fixed_range = fixed_range
         self.freeze_observer = False
-        self.outlier_suppression = outlier_suppression
 
     def set_params(self, **kwargs):
-        for k, v in self.kwargs.items():
-            setattr(self, k, v)
+        for k, v in kwargs.items():
+            if hasattr(self, k):
+                setattr(self, k, v)
+            #
         #
 
     def _correct_min_max(self, min_val: torch.Tensor, max_val: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, bool]:
@@ -361,10 +366,8 @@ class AdaptiveMovingAverageMinMaxActivationObserver(torch.ao.quantization.Moving
         if self.freeze_observer:
             return x_orig
         #
-        if self.outlier_suppression and torch.is_floating_point(x_orig):
-            x_clipped = quant_utils._outlier_suppression_func(x_orig, dim=None)
-        #
-        x_orig = super().forward(x_orig)
+        x = x_orig.detach()
+        x = super().forward(x)
         if self.range_max is not None:
             signed_range = torch.min(self.min_val.detach()).item() < 0.0
             min_val = (-self.range_max) if signed_range else 0.0
@@ -381,25 +384,44 @@ class AdaptiveMovingAverageMinMaxActivationObserver(torch.ao.quantization.Moving
     
 
 ####################################################################
-class AdaptiveOutlierSuppressionActivationObserver(torch.ao.quantization.MinMaxObserver):
-    def __init__(self, *args,  outlier_suppression=False, **kwargs):
-        super().__init__(*args, **kwargs)
+class AdaptiveOutlierSuppressionObserverTypes:
+    THREE_SIGMA = 'threesigma'
+    PERCENTILE = 'percentile'
+
+class _AdaptiveOutlierSuppressionObserver(torch.ao.quantization.MinMaxObserver):
+    def __init__(self, *args,  outlier_suppression=False, dtype=torch.float32, averaging_constant=0.01, **kwargs):
+        super().__init__(*args, dtype=torch.int32, **kwargs)
+        self.dtype = dtype
+        self.averaging_constant = averaging_constant
         self.num_batches_tracked = 0
         self.outlier_suppression = outlier_suppression
 
     def set_params(self, **kwargs):
-        for k, v in self.kwargs.items():
-            setattr(self, k, v)
+        for k, v in kwargs.items():
+            if hasattr(self, k):
+                setattr(self, k, v)
+            #
         #
 
-    def forward(self, X):
-        if self.outlier_suppression and torch.is_floating_point(X):
-            x_o = quant_utils._outlier_suppression_func(X, dim=None)
+    def forward(self, x_orig):
+        if x_orig.numel() == 0:
+            return x_orig
+        x = x_orig.detach()
+        if torch.is_floating_point(x):
+            if self.outlier_suppression is True or self.outlier_suppression == AdaptiveOutlierSuppressionObserverTypes.THREE_SIGMA:
+                min_val, max_val = self.sigma_range(x, sigma_factor=3.0)
+                self._update_range(min_val, max_val)
+            elif self.outlier_suppression == AdaptiveOutlierSuppressionObserverTypes.PERCENTILE:
+                min_val, max_val = self.histogram_range(x, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_DEFAULT)
+                self._update_range(min_val, max_val)
+            else:
+                x_o = super().forward(x)
+            #
         else:
-            x_o = X
+            x_o = super().forward(x)
         #
         self.num_batches_tracked += 1
-        return x_o
+        return x_orig
     
     @torch.jit.export
     def _calculate_qparams(
@@ -409,10 +431,45 @@ class AdaptiveOutlierSuppressionActivationObserver(torch.ao.quantization.MinMaxO
         zero_point = torch.zeros_like(min_val, dtype=torch.int64)
         return scale, zero_point
 
+    def sigma_range(self, x_orig, sigma_factor=3.0):
+        x_o = quant_utils._outlier_suppression_range(x_orig, dim=None, sigma_factor=sigma_factor)
+        return x_o
+    
+    def histogram_range(self, x_orig, range_shrink_percentile):
+        # quantile_l = self.range_shrink_percentile/100.0
+        # quantile_h = 1.0 - quantile_l
+        # r_min = torch.quantile(x_orig, quantile_l)
+        # r_max = torch.quantile(x_orig, quantile_h)
+        # r_min_max = (r_min, r_max)
+        min_val, max_val = xnn.utils.extrema_fast(x_orig, range_shrink_percentile)
+        if torch.isnan(min_val) or torch.isnan(max_val):
+            return torch.min(x_orig), torch.max(x_orig)
+        return min_val, max_val
+    
+    def _update_range(self, min_val, max_val):
+        if torch.isinf(self.min_val) or torch.isinf(self.max_val):
+            self.min_val.copy_(min_val)
+            self.max_val.copy_(max_val)
+            return
+        # Update the running averages
+        min_val = min_val + self.averaging_constant * (min_val - self.min_val)
+        max_val = max_val + self.averaging_constant * (max_val - self.max_val)
+        self.min_val.copy_(min_val)
+        self.max_val.copy_(max_val)
+
+
+class AdaptiveOutlierSuppressionWeightObserver(_AdaptiveOutlierSuppressionObserver):
+    pass
+
+
+class AdaptiveOutlierSuppressionActivationObserver(_AdaptiveOutlierSuppressionObserver):
+    pass
+
 
 ####################################################################
 ADAPTIVE_WEIGHT_OBSERVER_TYPES = (AdaptiveWeightObserver,
-                                  AdaptivePerChannelWeightObserver)
+                                  AdaptivePerChannelWeightObserver,
+                                  AdaptiveOutlierSuppressionWeightObserver)
 
 ADAPTIVE_ACTIVATION_OBSERVER_TYPES = (AdaptiveActivationObserver, AdaptiveActivationObserverFast, 
                                       AdaptiveMinMaxActivationObserver, AdaptiveMovingAverageMinMaxActivationObserver,

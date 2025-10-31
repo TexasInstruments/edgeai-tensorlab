@@ -146,13 +146,17 @@ def get_weight_quantization_spec(weight_qconfig, is_qat=True):
             observer_or_fake_quant_ctr=fake_quantized_weight_observer                         
         )
     elif weight_dtype == torch.float32:
+        fake_quantized_weight_observer = fake_quantize_types.AdaptiveWeightClip.with_args(
+            observer=observer_types.AdaptiveOutlierSuppressionWeightObserver,
+            outlier_suppression=weight_qconfig.get('outlier_suppression', False)
+        )
         weight_quantization_spec = QuantizationSpec(
             dtype=weight_dtype,
             quant_min=None,
             quant_max=None,
             qscheme=torch.per_tensor_symmetric,
             is_dynamic=False,
-            observer_or_fake_quant_ctr=None
+            observer_or_fake_quant_ctr=fake_quantized_weight_observer
         )
     else:
         raise RuntimeError("ERROR: Unsupported weight quantization dtype: " + str(weight_dtype))

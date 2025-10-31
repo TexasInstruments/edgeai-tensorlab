@@ -79,10 +79,10 @@ def _is_annotated(nodes: List[Node]):
 
 
 def is_positive_function_present(node, find_level):
-    if node.target in (torch.ops.aten._softmax.default, torch.ops.aten.relu.default, torch.ops.aten.sigmoid.default) :
+    if node.target in (torch.ops.aten._softmax.default, torch.ops.aten.softmax.int, torch.ops.aten.relu.default, torch.ops.aten.sigmoid.default) :
         return True
     elif find_level>0:
-        return is_positive_function_present(node.args[0], find_level-1)
+        return any([is_positive_function_present(n, find_level-1) for n in [node.all_input_nodes[0]]]) if len(node.all_input_nodes) > 0 else False
     else:
         return False
     
@@ -213,9 +213,10 @@ class TIDLRTQuantizerBasic(Quantizer):
             assert isinstance(weight, Node)
             input_qspec_map[weight] = get_weight_qspec(quantization_config)
 
-            bias = conv_node.args[2]
-            if isinstance(bias, Node):
-                input_qspec_map[bias] = _derived_bias_quant_spec(conv_node)
+            if len(conv_node.args) > 2:
+                bias = conv_node.args[2]
+                if isinstance(bias, Node):
+                    input_qspec_map[bias] = _derived_bias_quant_spec(conv_node)
 
             conv_node.meta["quantization_annotation"] = QuantizationAnnotation(
                 input_qspec_map=input_qspec_map,
@@ -314,33 +315,34 @@ class TIDLRTQuantizerBasic(Quantizer):
     def _annotate_maxpool2d(
         self, gm: torch.fx.GraphModule, quantization_config: QuantizationConfig
     ) -> None:
-        module_partitions = get_source_partitions(
-            gm.graph, [torch.nn.MaxPool2d, torch.nn.functional.max_pool2d, 'max_pool2d']
-        )
-        maxpool_partitions = list(itertools.chain(*module_partitions.values()))
-        for maxpool_partition in maxpool_partitions:
-            output_node = maxpool_partition.output_nodes[0]
-            maxpool_node = None
-            for n in maxpool_partition.nodes:
-                if n.target == torch.ops.aten.max_pool2d_with_indices.default:
-                    maxpool_node = n
-            if _is_annotated([output_node, maxpool_node]):  # type: ignore[list-item]
-                continue
+        # module_partitions = get_source_partitions(
+        #     gm.graph, [torch.nn.MaxPool2d, torch.nn.functional.max_pool2d, 'max_pool2d']
+        # )
+        # maxpool_partitions = list(itertools.chain(*module_partitions.values()))
+        # for maxpool_partition in maxpool_partitions:
+        #     output_node = maxpool_partition.output_nodes[0]
+        #     maxpool_node = None
+        #     for n in maxpool_partition.nodes:
+        #         if n.target in (torch.ops.aten.max_pool2d_with_indices.default, torch.ops.aten.max_pool2d.default):
+        #             maxpool_node = n
+        #     if _is_annotated([output_node, maxpool_node]):  # type: ignore[list-item]
+        #         continue
 
-            input_act = maxpool_node.args[0]  # type: ignore[union-attr]
-            assert isinstance(input_act, Node)
+        #     input_act = maxpool_node.args[0]  # type: ignore[union-attr]
+        #     assert isinstance(input_act, Node)
 
-            act_qspec = get_input_act_qspec(quantization_config)
-            maxpool_node.meta["quantization_annotation"] = QuantizationAnnotation(  # type: ignore[union-attr]
-                input_qspec_map={
-                    input_act: act_qspec,
-                },
-                _annotated=True,
-            )
-            output_node.meta["quantization_annotation"] = QuantizationAnnotation(
-                output_qspec=SharedQuantizationSpec((input_act, maxpool_node)),
-                _annotated=True,
-            )
+        #     act_qspec = get_input_act_qspec(quantization_config)
+        #     maxpool_node.meta["quantization_annotation"] = QuantizationAnnotation(  # type: ignore[union-attr]
+        #         input_qspec_map={
+        #             input_act: act_qspec,
+        #         },
+        #         _annotated=True,
+        #     )
+        #     output_node.meta["quantization_annotation"] = QuantizationAnnotation(
+        #         output_qspec=SharedQuantizationSpec((input_act, maxpool_node)),
+        #         _annotated=True,
+        #     )
+        pass
             
     def _annotate_softmax(
         self, gm: torch.fx.GraphModule, quantization_config: QuantizationConfig
@@ -353,7 +355,7 @@ class TIDLRTQuantizerBasic(Quantizer):
             output_node = softmax_partition.output_nodes[0]
             softmax_node = None
             for n in softmax_partition.nodes:
-                if n.target == torch.ops.aten._softmax.default:
+                if n.target in (torch.ops.aten._softmax.default, torch.ops.aten.softmax.int):
                     softmax_node = n
             if _is_annotated([output_node, softmax_node]):  # type: ignore[list-item]
                 continue
@@ -382,7 +384,7 @@ class TIDLRTQuantizerBasic(Quantizer):
             output_node = matmul_partition.output_nodes[0]
             matmul_node = None
             for n in matmul_partition.nodes:
-                if n.target == torch.ops.aten.bmm.default:
+                if n.target in (torch.ops.aten.bmm.default, torch.ops.aten.matmul.default):
                     matmul_node = n
             if _is_annotated([output_node, matmul_node]):  # type: ignore[list-item]
                 continue
@@ -394,11 +396,16 @@ class TIDLRTQuantizerBasic(Quantizer):
                 observer = act_qspec.observer_or_fake_quant_ctr.p.keywords['observer']
             else:
                 observer = act_qspec.observer_or_fake_quant_ctr
-            act_qspec_symmetric = qconfig_types.get_act_quantization_config(
+            #
+            power2_scale = observer.__init__._partialmethod.keywords['power2_scale'] \
+                if hasattr(observer.__init__, '_partialmethod') and 'power2_scale' in observer.__init__._partialmethod.keywords else False
+            range_shrink_percentile = observer.__init__._partialmethod.keywords['range_shrink_percentile'] \
+                if hasattr(observer.__init__, '_partialmethod') and 'range_shrink_percentile' in observer.__init__._partialmethod.keywords else 0.0
+            act_qspec_symmetric = qconfig_types.get_act_quantization_spec(
                 dict(
                     qscheme=torch.per_tensor_symmetric, 
-                    power2_scale=observer.__init__._partialmethod.keywords['power2_scale'], 
-                    range_shrink_percentile=observer.__init__._partialmethod.keywords['range_shrink_percentile']
+                    power2_scale=power2_scale, 
+                    range_shrink_percentile=range_shrink_percentile
                 ),
                 is_qat=self.is_qat,
                 fast_mode=self.fast_mode
@@ -440,7 +447,7 @@ class TIDLRTQuantizerBasic(Quantizer):
             output_node = layernorm_partition.output_nodes[0]
             layernorm_node = None
             for n in layernorm_partition.nodes:
-                if n.target == torch.ops.aten.native_layer_norm.default:
+                if n.target in (torch.ops.aten.native_layer_norm.default, torch.ops.aten.layer_norm.default):
                     layernorm_node = n
             if _is_annotated([output_node, layernorm_node]):  # type: ignore[list-item]
                 continue
