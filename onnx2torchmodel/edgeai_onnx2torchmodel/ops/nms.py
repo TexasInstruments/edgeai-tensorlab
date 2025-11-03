@@ -150,21 +150,21 @@ def torch_non_max_suppression(boxes: Tensor, scores: Tensor, max_output_boxes_pe
         max_output_boxes_per_class = max_output_boxes_per_class.cpu().tolist()
     if isinstance(max_output_boxes_per_class, (list, tuple)):
         if len(max_output_boxes_per_class) == 1:
-            max_output_boxes_per_class = max_output_boxes_per_class[0]
+            max_output_boxes_per_class = int(max_output_boxes_per_class[0])
         else:
             raise ValueError('max_output_boxes_per_class should be an int or a list/tuple of length 1, but got {}.'.format(max_output_boxes_per_class))
-    if isinstance(iou_threshold, torch.Tensor):
-        iou_threshold = iou_threshold.cpu().tolist()
-    if isinstance(iou_threshold, (list, tuple)):
+    # if isinstance(iou_threshold, torch.Tensor):
+    #     iou_threshold = iou_threshold.cpu().tolist()
+    if isinstance(iou_threshold, (list, tuple)) or (isinstance(iou_threshold, torch.Tensor) and iou_threshold.dim() == 1):
         if len(iou_threshold) == 1:
-            iou_threshold = iou_threshold[0]
+            iou_threshold = float((iou_threshold.detach() if isinstance(iou_threshold, torch.Tensor) else iou_threshold)[0])
         else:
             raise ValueError('iou_threshold should be an int or a list/tuple of length 1, but got {}.'.format(iou_threshold))
-    if isinstance(score_threshold, torch.Tensor):
-        score_threshold = score_threshold.cpu().tolist()
-    if isinstance(score_threshold, (list, tuple)):
+    # if isinstance(score_threshold, torch.Tensor):
+    #     score_threshold = score_threshold.cpu().tolist()
+    if isinstance(score_threshold, (list, tuple))or (isinstance(iou_threshold, torch.Tensor) and iou_threshold.dim() == 1):
         if len(score_threshold) == 1:
-            score_threshold = score_threshold[0]
+            score_threshold = float((score_threshold.detach() if isinstance(score_threshold, torch.Tensor) else score_threshold)[0])
         else:
             raise ValueError('score_threshold should be an int or a list/tuple of length 1, but got {}.'.format(score_threshold))
     return ONNXNMSop.apply(boxes, scores, max_output_boxes_per_class, iou_threshold, score_threshold)

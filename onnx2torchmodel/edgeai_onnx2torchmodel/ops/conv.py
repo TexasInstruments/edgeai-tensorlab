@@ -171,10 +171,10 @@ def get_torch_conv_transpose_module(node:gs.Node, torch_module:torch.nn.Module):
     out, inc = node.inputs[1].shape[:2]
     inc = inc*groups
     kernel_size = node.attrs.get('kernel_shape')
-    stride = node.attrs.get('strides')
-    padding = node.attrs.get('pads')
-    output_padding = node.attrs.get('output_padding')
-    dilation = node.attrs.get('dilations')
+    stride = node.attrs.get('strides', 1)
+    padding = node.attrs.get('pads', 0)
+    output_padding = node.attrs.get('output_padding',0)
+    dilation = node.attrs.get('dilations',1)
     auto_pad = node.attrs.get('auto_pad', 'NOTSET')
     # TODO add support for output_shape
     output_shape = node.attrs.get('output_shape')
@@ -216,7 +216,7 @@ def get_torch_conv_transpose_module(node:gs.Node, torch_module:torch.nn.Module):
         # bn_cls = torch.nn.BatchNorm3d
     else:
         raise NotImplementedError('conv only supports 1d, 2d and 3d inputs but got {}D'.format(len(kernel_size)))
-    module = torch.nn.ConvTranspose1d(inc, out, kernel_size, stride=stride, padding=padding, output_padding=output_padding, dilation=dilation, groups=groups, bias=has_bias)
+    module = cls(inc, out, kernel_size, stride=stride, padding=padding, output_padding=output_padding, dilation=dilation, groups=groups, bias=has_bias)
     module.weight = getattr(torch_module, node.inputs[1].name)
     if has_bias:
         module.bias = getattr(torch_module, node.inputs[2].name)
@@ -234,7 +234,7 @@ def add_conv_transpose_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.G
     types = [torch.nn.Parameter  for inp in node.inputs]
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     if all(isinstance(t,c) for t,c in zip(node.inputs,(gs.Variable, gs.Constant, gs.Constant))):
-        module = get_torch_conv_module(node, torch_module)
+        module = get_torch_conv_transpose_module(node, torch_module)
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args[0:1]),)
     else:
         kernel_size = node.attrs.get('kernel_shape')

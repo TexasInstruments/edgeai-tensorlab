@@ -29,7 +29,6 @@
 
 import torch
 import onnx_graphsurgeon as gs
-from operator import getitem
 from . import utils
 
 def torch_gemm(a:torch.Tensor, b:torch.Tensor, c:torch.Tensor=None, alpha=1, beta=1, transA=False, transB=False):

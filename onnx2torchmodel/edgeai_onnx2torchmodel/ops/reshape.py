@@ -34,10 +34,10 @@ from . import utils
 def torch_reshape(x, shape, allowzero=False):
     if isinstance(shape, torch.Tensor):
         shape = shape.cpu().tolist()
+    allowzero = allowzero or 0 not in shape    
     if allowzero:
         return torch.reshape(x, shape)
     for i, s in enumerate(shape):
-        # torch._check(s==-1)
         if s == -1:
             break
         if s == 0:
@@ -53,6 +53,10 @@ def add_reshape_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  
     kwargs = dict(
         
     )
+    if args[1].op == 'get_attr':
+        args[1] = getattr(torch_module, args[1].target)
+        if isinstance(args[1] , torch.Tensor):
+            args[1] = args[1].tolist()
     #TODO add support for allowzero
     allowzero = node.attrs.get('allowzero', 0) == 1
     if 'shape' in node.attrs:
