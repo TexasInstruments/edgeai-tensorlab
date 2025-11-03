@@ -46,7 +46,7 @@ import copy
 import os
 import types 
 
-def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None, example_kwargs=None, qconfig_type=None,
+def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None, example_kwargs=None, qconfig_type=None, quantizer_type=None,
         num_batch_norm_update_epochs=None, num_observer_update_epochs=None, 
         add_methods=True, fast_mode=False, **kwargs):
     
@@ -89,9 +89,11 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
     qconfig_type = qconfig_type or qconfig_types.QConfigType.DEFAULT
     qconfig = qconfig_types.get_qconfig(qconfig_type, is_qat=is_qat, fast_mode=fast_mode)
     
+    quantizer_type = quantizer_type or 'basic'
+
     # methods to quantize individual layers/modules types are in quantizer
     device=next(iter(m.named_parameters()))[1].device
-    quantizer = quantizer or get_quantizer(name='basic', is_qat=is_qat, fast_mode=fast_mode, device=device)
+    quantizer = quantizer or get_quantizer(quantizer_type=quantizer_type, is_qat=is_qat, fast_mode=fast_mode, device=device)
     quantizer.set_global(qconfig)
     
     # for copy_arg in copy_args:

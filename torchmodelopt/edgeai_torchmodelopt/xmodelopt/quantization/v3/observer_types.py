@@ -385,8 +385,11 @@ class AdaptiveMovingAverageMinMaxActivationObserver(torch.ao.quantization.Moving
 
 ####################################################################
 class AdaptiveOutlierSuppressionObserverTypes:
-    THREE_SIGMA = 'threesigma'
     PERCENTILE = 'percentile'
+    THREE_SIGMA = 'threesigma'
+    FOUR_SIGMA = 'foursigma'
+    DEFAULT = True # same as 'percentile'
+
 
 class _AdaptiveOutlierSuppressionObserver(torch.ao.quantization.MinMaxObserver):
     def __init__(self, *args,  outlier_suppression=False, dtype=torch.float32, averaging_constant=0.01, **kwargs):
@@ -408,11 +411,14 @@ class _AdaptiveOutlierSuppressionObserver(torch.ao.quantization.MinMaxObserver):
             return x_orig
         x = x_orig.detach()
         if torch.is_floating_point(x):
-            if self.outlier_suppression is True or self.outlier_suppression == AdaptiveOutlierSuppressionObserverTypes.THREE_SIGMA:
-                min_val, max_val = self.sigma_range(x, sigma_factor=3.0)
-                self._update_range(min_val, max_val)
-            elif self.outlier_suppression == AdaptiveOutlierSuppressionObserverTypes.PERCENTILE:
+            if self.outlier_suppression is True or self.outlier_suppression == AdaptiveOutlierSuppressionObserverTypes.PERCENTILE:
                 min_val, max_val = self.histogram_range(x, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_DEFAULT)
+                self._update_range(min_val, max_val)
+            elif self.outlier_suppression == AdaptiveOutlierSuppressionObserverTypes.FOUR_SIGMA:
+                min_val, max_val = self.sigma_range(x, sigma_factor=4.0)
+                self._update_range(min_val, max_val)
+            elif self.outlier_suppression == AdaptiveOutlierSuppressionObserverTypes.THREE_SIGMA:
+                min_val, max_val = self.sigma_range(x, sigma_factor=3.0)
                 self._update_range(min_val, max_val)
             else:
                 x_o = super().forward(x)
@@ -432,16 +438,12 @@ class _AdaptiveOutlierSuppressionObserver(torch.ao.quantization.MinMaxObserver):
         return scale, zero_point
 
     def sigma_range(self, x_orig, sigma_factor=3.0):
-        x_o = quant_utils._outlier_suppression_range(x_orig, dim=None, sigma_factor=sigma_factor)
-        return x_o
+        min_val, max_val = quant_utils._outlier_suppression_range(x_orig, dim=None, sigma_factor=sigma_factor)
+        return min_val, max_val
     
     def histogram_range(self, x_orig, range_shrink_percentile):
-        # quantile_l = self.range_shrink_percentile/100.0
-        # quantile_h = 1.0 - quantile_l
-        # r_min = torch.quantile(x_orig, quantile_l)
-        # r_max = torch.quantile(x_orig, quantile_h)
-        # r_min_max = (r_min, r_max)
-        min_val, max_val = xnn.utils.extrema_fast(x_orig, range_shrink_percentile)
+        # min_val, max_val = xnn.utils.quantile_range(x_orig, range_shrink_percentile=range_shrink_percentile)
+        min_val, max_val = xnn.utils.histogram_range(x_orig, range_shrink_percentile=range_shrink_percentile)
         if torch.isnan(min_val) or torch.isnan(max_val):
             return torch.min(x_orig), torch.max(x_orig)
         return min_val, max_val

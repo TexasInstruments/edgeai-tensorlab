@@ -38,6 +38,44 @@ from ..layers import functional
 # pytorch implementation of a single tensor range
 ########################################################################
 
+
+def quantile_range(src, range_shrink_percentile=0.01):
+    quantile_l = range_shrink_percentile/100.0
+    quantile_h = 1.0 - quantile_l
+    r_min = torch.quantile(src, quantile_l)
+    r_max = torch.quantile(src, quantile_h)
+    return r_min, r_max
+
+
+def histogram_range(src, bins=512, range_shrink_percentile=0.01):
+    mn, mx = torch.aminmax(src)
+    if mn >= mx:
+        return mn, mx
+    #
+
+    quantile_l = range_shrink_percentile/100.0
+    quantile_h = 1.0 - quantile_l
+    
+    # hist_array, bin_edges = torch.histogram(src, bins=bins, density=True)
+    hist_array = torch.histc(src, bins=bins, min=mn.item(), max=mx.item()).float()
+    hist_sum = hist_array.sum()
+    if hist_sum > 0:
+        hist_array = hist_array / hist_sum
+        mult_factor = (mx - mn) / (bins - 1)
+        offset = mn
+
+        cdf = hist_array.cumsum(0)
+        lower_bound = torch.searchsorted(cdf, quantile_l, side='left')
+        upper_bound = torch.searchsorted(cdf, quantile_h, side='right')
+        min_val  = lower_bound * mult_factor + offset
+        max_val = upper_bound * mult_factor + offset
+    else:
+        min_val = mn
+        max_val = mx
+    #
+    return min_val, max_val
+
+
 def extrema_fast(src, range_shrink_percentile=0.0, channel_mean=False, sigma=0.0, fast_mode=True):
     return extrema(src, range_shrink_percentile, channel_mean, sigma, fast_mode)
 
@@ -133,3 +171,15 @@ def extrema_hist_search(hist_array, range_shrink_percentile):
     #
     return new_mn_scaled, new_mx_scaled
 
+
+def sigma_range(x, dim=(0,1), sigma_factor=3.0):
+    mean_val = x.mean(dim=dim)
+    std_val = x.std(dim=dim)
+    min_, max_ = torch.min(x), torch.max(x)
+    if not torch.isnan(mean_val) and not torch.isnan(std_val):
+        min_val = torch.max(mean_val - sigma_factor*std_val, min_)
+        max_val = torch.min(mean_val + sigma_factor*std_val, max_)
+        return min_val, max_val
+    else:
+        return min_, max_
+    

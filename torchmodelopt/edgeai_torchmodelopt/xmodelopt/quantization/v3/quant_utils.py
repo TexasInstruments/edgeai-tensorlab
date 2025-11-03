@@ -37,6 +37,7 @@ from torch import fx
 from functools import partial
 #from torch.onnx._internal import jit_utils # for jit_utils.GraphContext
 
+from .... import xnn
 from torch.fx.passes.utils.source_matcher_utils import get_source_partitions
 # from ...utils import get_source_partitions
 
@@ -378,14 +379,7 @@ def add_bias_calibration_hook(model, calibration_factor=0):
 
 
 def _outlier_suppression_range(x, dim=(0,1), sigma_factor=3.0):
-    mean_val = x.mean(dim=dim)
-    std_val = x.std(dim=dim)
-    if not torch.isnan(mean_val) and not torch.isnan(std_val):
-        min_val = mean_val - sigma_factor*std_val
-        max_val = mean_val + sigma_factor*std_val
-        return min_val, max_val
-    else:
-        return torch.min(x), torch.max(x)
+    return xnn.utils.sigma_range(x, dim=dim, sigma_factor=sigma_factor)
 
 
 def _fc_outlier_supression_pre_hook(m, x):

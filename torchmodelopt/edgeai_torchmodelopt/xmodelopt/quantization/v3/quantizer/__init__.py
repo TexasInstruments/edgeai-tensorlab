@@ -13,7 +13,7 @@
 #   this list of conditions and the following disclaimer in the documentation
 #   and/or other materials provided with the distribution.
 #
-# * Neither the name of the copyright holder nor the names of its
+# * Neither the quantizer_type of the copyright holder nor the quantizer_types of its
 #   contributors may be used to endorse or promote products derived from
 #   this software without specific prior written permission.
 #
@@ -31,16 +31,16 @@
 #################################################################################
 
 
-def get_quantizer(name, **kwargs):
-    if name == "xnnpack":
+def get_quantizer(quantizer_type, **kwargs):
+    if quantizer_type == "xnnpack":
         from .xnnpack import get_quantizer as get_xnnpack_quantizer
         return get_xnnpack_quantizer(**kwargs)
-    elif name in ("basic", "tidlrt_basic"):
+    elif quantizer_type in ("basic", "tidlrt_basic"):
         from .tidlrt.tidlrt_quantizer_basic import get_quantizer as get_tidlrt_basic_quantizer
         return get_tidlrt_basic_quantizer(**kwargs)
-    elif name in ("advanced", "tidlrt_advanced"):
+    elif quantizer_type in ("advanced", "tidlrt_advanced"):
         from .tidlrt.tidlrt_quantizer_advanced import get_quantizer as get_tidlrt_advanced_quantizer
         return get_tidlrt_advanced_quantizer(**kwargs)
     else:
-        raise ValueError(f"ERROR: Quantizer {name} not recognized.")
+        raise ValueError(f"ERROR: Quantizer {quantizer_type} not recognized.")
     
