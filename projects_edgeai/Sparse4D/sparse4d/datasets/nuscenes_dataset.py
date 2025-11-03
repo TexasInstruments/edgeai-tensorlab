@@ -23,10 +23,13 @@ class Sparse4DNuScenesDataset(NuScenesDataset):
                  data_aug_conf=None,
                  sequences_split_num=1,
                  with_seq_flag=False,
-                 keep_consistent_seq_aug=True,
+                 batch_size=1,
                  *args,
                  **kwargs
             ):
+        # Disable "serialize_data" for _set_sequence_group_flag
+        # It will slow down data loading for multiple workers
+        kwargs["serialize_data"] = False
         super().__init__(*args, **kwargs)
 
         self.load_interval = load_interval
@@ -34,9 +37,9 @@ class Sparse4DNuScenesDataset(NuScenesDataset):
         self.vis_score_threshold = vis_score_threshold
         self.data_aug_conf = data_aug_conf
         self.sequences_split_num = sequences_split_num
-        self.keep_consistent_seq_aug = keep_consistent_seq_aug
         self.current_aug = None
         self.last_id = None
+        self.batch_size = batch_size
         if with_seq_flag:
             self._set_sequence_group_flag()
 
@@ -49,7 +52,7 @@ class Sparse4DNuScenesDataset(NuScenesDataset):
 
         curr_sequence = 0
         for idx in range(len(self.data_list)):
-            if idx != 0 and len(self.data_list[idx]["sweeps"]) == 0:
+            if idx != 0 and self.data_list[idx].get('lidar_sweeps') is None:                
                 # Not first frame and # of sweeps is 0 -> new sequence
                 curr_sequence += 1
             res.append(curr_sequence)
@@ -67,16 +70,9 @@ class Sparse4DNuScenesDataset(NuScenesDataset):
                 curr_new_flag = 0
                 for curr_flag in range(len(bin_counts)):
                     curr_sequence_length = np.array(
-                        list(
-                            range(
-                                0,
+                        list(range(0,
                                 bin_counts[curr_flag],
-                                math.ceil(
-                                    bin_counts[curr_flag]
-                                    / self.sequences_split_num
-                                ),
-                            )
-                        )
+                                math.ceil(bin_counts[curr_flag] / self.sequences_split_num)))
                         + [bin_counts[curr_flag]]
                     )
 
@@ -94,52 +90,6 @@ class Sparse4DNuScenesDataset(NuScenesDataset):
                 )
                 self.flag = np.array(new_flags, dtype=np.int64)
 
-
-    def get_augmentation(self):
-        if self.data_aug_conf is None:
-            return None
-        H, W = self.data_aug_conf["H"], self.data_aug_conf["W"]
-        fH, fW = self.data_aug_conf["final_dim"]
-        if not self.test_mode:
-            resize = np.random.uniform(*self.data_aug_conf["resize_lim"])
-            resize_dims = (int(W * resize), int(H * resize))
-            newW, newH = resize_dims
-            crop_h = (
-                int(
-                    (1 - np.random.uniform(*self.data_aug_conf["bot_pct_lim"]))
-                    * newH
-                )
-                - fH
-            )
-            crop_w = int(np.random.uniform(0, max(0, newW - fW)))
-            crop = (crop_w, crop_h, crop_w + fW, crop_h + fH)
-            flip = False
-            if self.data_aug_conf["rand_flip"] and np.random.choice([0, 1]):
-                flip = True
-            rotate = np.random.uniform(*self.data_aug_conf["rot_lim"])
-            rotate_3d = np.random.uniform(*self.data_aug_conf["rot3d_range"])
-        else:
-            resize = max(fH / H, fW / W)
-            resize_dims = (int(W * resize), int(H * resize))
-            newW, newH = resize_dims
-            crop_h = (
-                int((1 - np.mean(self.data_aug_conf["bot_pct_lim"])) * newH)
-                - fH
-            )
-            crop_w = int(max(0, newW - fW) / 2)
-            crop = (crop_w, crop_h, crop_w + fW, crop_h + fH)
-            flip = False
-            rotate = 0
-            rotate_3d = 0
-        aug_config = {
-            "resize": resize,
-            "resize_dims": resize_dims,
-            "crop": crop,
-            "flip": flip,
-            "rotate": rotate,
-            "rotate_3d": rotate_3d,
-        }
-        return aug_config
 
     def get_data_info(self, index):
         """Get data info according to the given index.
@@ -226,9 +176,9 @@ class Sparse4DNuScenesDataset(NuScenesDataset):
     def parse_ann_info(self, info: dict) -> dict:
         #TODO modify for current version
         if "instance_inds" in info:
-            instance_inds = np.array(info["instance_inds"], dtype=np.int32)
-            for instance in info['instances']:
-                instance['instance_inds'] = instance_inds
+            info["instance_inds"] = np.array(info["instance_inds"], dtype=np.int32)
+            for i, instance in enumerate(info['instances']):
+                instance['instance_inds'] = info["instance_inds"][i]
 
         ann_info = super().parse_ann_info(info)
         return ann_info

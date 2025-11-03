@@ -50,11 +50,11 @@ class SparseBox3DTarget(BaseTargetWithDenoising):
         for box in box_target:
             output = torch.cat(
                 [
-                    box[..., [X, Y, Z]],
-                    box[..., [W, L, H]].log(),
-                    torch.sin(box[..., YAW]).unsqueeze(-1),
-                    torch.cos(box[..., YAW]).unsqueeze(-1),
-                    box[..., YAW + 1 :],
+                    box.tensor[..., [X, Y, Z]],
+                    box.tensor[..., [W, L, H]].log(),
+                    torch.sin(box.tensor[..., YAW]).unsqueeze(-1),
+                    torch.cos(box.tensor[..., YAW]).unsqueeze(-1),
+                    box.tensor[..., YAW + 1 :],
                 ],
                 dim=-1,
             )

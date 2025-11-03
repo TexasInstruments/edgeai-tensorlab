@@ -169,12 +169,9 @@ class InstanceBank(nn.Module):
             # For inference, batch_size = 1
             # Check if it works for training as well
             if time_interval is None:
-                history_time = self.metas[0]["timestamp"]
-                time_interval = metas[0]["timestamp"] - history_time
-                #time_interval = time_interval.to(dtype=instance_feature.dtype)
-                time_interval = torch.Tensor([time_interval]).to(
-                    instance_feature.device
-                )
+                history_time = self.metas["timestamp"]
+                time_interval = metas["timestamp"] - history_time
+                time_interval = time_interval.to(dtype=instance_feature.dtype)
             self.mask = torch.abs(time_interval) <= self.max_time_interval
 
             if self.anchor_handler is not None:
@@ -183,8 +180,8 @@ class InstanceBank(nn.Module):
                         np.stack(
                             [
                                 x["T_global_inv"]
-                                @ self.metas[i]["T_global"]
-                                for i, x in enumerate(metas)
+                                @ self.metas["img_metas"][i]["T_global"]
+                                for i, x in enumerate(metas["img_metas"])
                             ]
                         )
                     )

@@ -4,5 +4,4 @@ from . import transforms
 
 __all__ = [
     "Sparse4DNuScenesDataset",
-#    "transforms_3d",
 ]

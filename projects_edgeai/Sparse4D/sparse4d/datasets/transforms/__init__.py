@@ -2,19 +2,18 @@
 from .transforms_3d import (
     ResizeCropFlipRotImage,
     CircleObjectRangeFilter,
-    NormalizeMultiviewImage,
     NuScenesSparse4DAdaptor,
     MultiScaleDepthMapGenerator,
     InstanceNameFilter,
-    PhotoMetricDistortionMultiViewImage
 )
+
+from .loading import Sparse4DLoadAnnotations3D
 
 __all__ = [
     "ResizeCropFlipRotImage",
     "CircleObjectRangeFilter",
-    "NormalizeMultiviewImage",
     "NuScenesSparse4DAdaptor",
     "MultiScaleDepthMapGenerator",
     "InstanceNameFilter",
-    "PhotoMetricDistortionMultiViewImage",
+    "Sparse4DLoadAnnotations3D",
 ]

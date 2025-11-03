@@ -89,7 +89,6 @@ tracking_threshold = 0.2
 # ================== model ========================
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], bgr_to_rgb=True
-    #mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True
 )
 
 class_names = [
@@ -125,7 +124,7 @@ with_quality_estimation = True
 
 dataset_type = "Sparse4DNuScenesDataset"
 data_root = "data/nuscenes/"
-file_client_args = dict(backend="disk")
+backend_args = None
 
 model = dict(
     type="Sparse4D",
@@ -135,9 +134,6 @@ model = dict(
     onnx_subnets=False,
     data_preprocessor=dict(
         type='Det3DDataPreprocessor',
-        #mean=[0.0, 0.0, 0.0],
-        #std=[1.0, 1.0, 1.0],
-        #bgr_to_rgb=False,
         **img_norm_cfg,
         pad_size_divisor=32),
     img_backbone=dict(
@@ -333,89 +329,63 @@ train_pipeline = [
         coord_type="LIDAR",
         load_dim=5,
         use_dim=5,
-        file_client_args=file_client_args,
+        backend_args=backend_args,
     ),
+    dict(type='Sparse4DLoadAnnotations3D', with_bbox_3d=True, with_label_3d=True, with_attr_label=False),
     dict(type="ResizeCropFlipImage", data_aug_conf=data_aug_conf, training=True),
     dict(
         type="MultiScaleDepthMapGenerator",
         downsample=strides[:num_depth_layers],
     ),
-    dict(type="BBoxRotation"),
+    dict(type="BBoxRotation", data_aug_conf=data_aug_conf, training=True),
     dict(type="PhotoMetricDistortionMultiViewImage"),
-    dict(type="NormalizeMultiviewImage", **img_norm_cfg),
     dict(
         type="CircleObjectRangeFilter",
         class_dist_thred=[55] * len(class_names),
     ),
     dict(type="InstanceNameFilter", classes=class_names),
     dict(type="NuScenesSparse4DAdaptor"),
-    dict(
-        type="Collect",
-        keys=[
-            "img",
-            "timestamp",
-            "projection_mat",
-            "image_wh",
-            "gt_depth",
-            "focal",
-            "gt_bboxes_3d",
-            "gt_labels_3d",
-        ],
-        meta_keys=["T_global", "T_global_inv", "timestamp", "instance_id"],
-    ),
+    dict(type='Pack3DDetInputs',
+         keys=['img', 'gt_bboxes_3d','gt_labels_3d'],
+         meta_keys=['ori_shape', 'img_shape', 'pad_shape', 'scale_factor',
+                    'lidar2ego', 'lidar2img', 'ego2global', 'lidar2global',
+                    'extrinsics', 'ori_cam2img',
+                    'box_mode_3d', 'box_type_3d', 'img_norm_cfg',
+                    'scene_token', 'sample_idx',
+                    'gt_bboxes_3d','gt_labels_3d',
+                    'projection_mat', 'image_wh', 'gt_depth', 'T_global', 'T_global_inv',
+                    'cam_intrinsic', 'focal', 'timestamp', 'instance_id']),
+
 ]
 test_pipeline = [
     dict(type="LoadMultiViewImageFromFiles", to_float32=True),
     dict(type="ResizeCropFlipImage", data_aug_conf=data_aug_conf, training=False),
-    #dict(type="NormalizeMultiviewImage", **img_norm_cfg),
     dict(type="NuScenesSparse4DAdaptor"),
-    #dict(
-    #    type="Collect",
-    #    keys=[
-    #        "img",
-    #        "timestamp",
-    #        "projection_mat",
-    #        "image_wh",
-    #    ],
-    #    meta_keys=["T_global", "T_global_inv", "timestamp"],
-    #),
     dict(type='Pack3DDetInputs',
          keys=['img'],
          meta_keys=['ori_shape', 'img_shape', 'pad_shape', 'scale_factor',
                     'lidar2ego', 'lidar2img', 'ego2global', 'lidar2global',
                     'extrinsics', 'ori_cam2img',
-                    'box_mode_3d', 'box_type_3d', 'img_norm_cfg', 'scene_token', 
-                    'gt_bboxes_3d','gt_labels_3d', 'sample_idx',
-                    'gt_bboxes', 'gt_bboxes_labels',
-                    'projection_mat', 'image_wh', 'T_global', 'T_global_inv', 'cam_intrinsic',
-                    'focal', 'timestamp']),
+                    'box_mode_3d', 'box_type_3d', 'img_norm_cfg', 
+                    'scene_token', 'sample_idx',
+                    'projection_mat', 'image_wh', 'T_global', 'T_global_inv',
+                    'cam_intrinsic', 'focal', 'timestamp']),
 ]
 
 input_modality = dict(
-    use_lidar=False,
+    use_lidar=True,  # Should be True since 
     use_camera=True,
     use_radar=False,
     use_map=False,
     use_external=False,
 )
 
-"""
-data_basic_config = dict(
-    type=dataset_type,
-    data_root=data_root,
-    classes=class_names,
-    modality=input_modality,
-    version="v1.0-trainval",
-)
-"""
-
-backend_args = None
-
 train_dataloader = dict(
     batch_size=batch_size,
     num_workers=1,
     drop_last=True,
-    sampler=dict(type='GroupEachSampleInBatchSampler', shuffle=True),
+    sampler=dict(type='GroupEachSampleInBatchSampler',
+                 shuffle=True, skip_prob=0.1, sequence_flip_prob=0.1),
     dataset=dict(
         type=dataset_type,
         data_root=data_root,
@@ -430,19 +400,11 @@ train_dataloader = dict(
             CAM_BACK='samples/CAM_BACK',
             CAM_BACK_RIGHT='samples/CAM_BACK_RIGHT',
             CAM_BACK_LEFT='samples/CAM_BACK_LEFT'),
-        seq_split_num=2,
         with_seq_flag=True,
-        keep_consistent_seq_aug=True,
-        #tracking=tracking_test,
-        #tracking_threshold=tracking_threshold,
-        #collect_keys=collect_keys + ['img', 'prev_exists'],
-        #queue_length=queue_length,
-        #filter_empty_gt=False,
+        sequences_split_num=2,
         test_mode=False,
         pipeline=train_pipeline,
-        #box_type_3d='LiDAR',
-        #use_valid_flag=True,
-        #batch_size=batch_size, # Needed for GroupSampler
+        batch_size=batch_size, # Needed for GroupSampler
         backend_args=backend_args))
 
 test_dataloader = dict(
@@ -525,5 +487,6 @@ val_evaluator = dict(
 test_evaluator = val_evaluator
 
 
+#load_from = 'checkpoints/sparse4d/sparse4dv3_r50_statedict_update.pth'
 load_from = None
 resume = False

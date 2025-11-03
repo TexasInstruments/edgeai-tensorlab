@@ -751,6 +751,7 @@ class PETRTemporalDecoderLayer(BaseModule):
         if self.use_checkpoint and self.training:
             x = cp.checkpoint(
                 self._forward,
+                layer_id,
                 query,
                 key,
                 value,

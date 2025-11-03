@@ -29,6 +29,8 @@ class GroupEachSampleInBatchSampler(Sampler):
     def __init__(self,
                  dataset,
                  shuffle=True,
+                 skip_prob: float = 0.0,
+                 sequence_flip_prob: float = 0.0,
                  seed: Optional[int] = None,
                  round_up: bool = True) -> None:
         assert hasattr(dataset, 'flag')
@@ -68,6 +70,10 @@ class GroupEachSampleInBatchSampler(Sampler):
         # Total data size
         self.size = self.batch_size * self.num_samples_batch
 
+        # For Sparse4D
+        self.skip_prob = skip_prob
+        self.sequence_flip_prob = sequence_flip_prob
+
     # generate interation indices for every batch 
     def generate_iteration_indices(self):
         self.infinite_group_indices_list = self._infinite_group_indices()
@@ -83,7 +89,10 @@ class GroupEachSampleInBatchSampler(Sampler):
 
         indices = []
         samples_count = [0] * self.batch_size
+        skip_count = [0] * self.batch_size
         while True:
+            # Check if skip flag improves training
+            skip = (np.random.uniform() < self.skip_prob)
             for batch_idx in range(self.batch_size):
                 if len(buffer_per_local_sample[batch_idx]) == 0:
                     try:
@@ -101,14 +110,29 @@ class GroupEachSampleInBatchSampler(Sampler):
                         copy.deepcopy(
                             self.group_idx_to_sample_idxs[new_group_idx][:samples_to_copy])
 
+                    if np.random.uniform() < self.sequence_flip_prob:
+                        buffer_per_local_sample[batch_idx] = \
+                            buffer_per_local_sample[batch_idx][::-1]
+
+                if skip and len(buffer_per_local_sample[batch_idx]) > 1:
+                    buffer_per_local_sample[batch_idx].pop(0)
+                    skip_count[batch_idx] += 1
+
                 indices.append(buffer_per_local_sample[batch_idx].pop(0))
                 samples_count[batch_idx] += 1
 
             # Once enough # of data is loaded for evey batch, stop
-            if all([x == self.num_samples_batch for x in samples_count]):
-                break
+            # With skip_prob != 0.0, replace all with any
+            if self.skip_prob > 0.0:
+                if any([x == self.num_samples_batch - y for x, y in zip(samples_count, skip_count)]):
+                    break
+            else:
+                if all([x == self.num_samples_batch for x in samples_count]):
+                    break
 
-        assert len(indices) == self.size
+        if self.skip_prob == 0.0:
+            # The following does not hold with skip_prob != 0.0
+            assert len(indices) == self.size
         return indices
 
     # Shuffle group indices

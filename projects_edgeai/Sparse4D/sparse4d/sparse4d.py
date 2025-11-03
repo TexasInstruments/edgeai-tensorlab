@@ -112,16 +112,53 @@ class Sparse4D(MVXTwoStageDetector):
 
 
     def loss(self, inputs, data_samples, **kwargs):
-
-        rec_img = inputs['imgs']
+        img = inputs['imgs']
         batch_img_metas = [ds.metainfo for ds in data_samples]
-        
-        feature_maps, depths = self.extract_feat(img, True, data)
-        model_outs = self.pts_bbox_head(feature_maps, data)
-        output = self.pts_bbox_head.loss(model_outs, data)
-        if depths is not None and "gt_depth" in data:
+
+        # Re-foramt some meta infos
+        metas={}
+        metas['img_metas'] = batch_img_metas
+
+        focal = []
+        projection_mat = []
+        image_wh = []
+        timestamp = []
+        for x in batch_img_metas:
+            focal.append(x["focal"])
+            projection_mat.append(x["projection_mat"])
+            image_wh.append(x["image_wh"])
+            timestamp.append(torch.DoubleTensor([x["timestamp"]]))
+        focal = torch.stack(focal, dim=0).to(img.device)
+        projection_mat = torch.stack(projection_mat, dim=0).to(img.device)
+        image_wh = torch.stack(image_wh, dim=0).to(img.device)
+        timestamp = torch.cat(timestamp, dim=0).to(img.device)
+
+        gt_depth = []
+        for i in range(self.depth_branch.num_depth_layers):
+            batch_gt_depth = []
+            for x in batch_img_metas:
+                batch_gt_depth.append(x["gt_depth"][i])
+            batch_gt_depth = torch.stack(batch_gt_depth, dim=0).to(img.device)
+            gt_depth.append(batch_gt_depth)
+
+        gt_labels_3d = [x["gt_labels_3d"].to(img[0].device) for x in batch_img_metas]
+        gt_bboxes_3d = [x["gt_bboxes_3d"].to(img[0].device) for x in batch_img_metas]
+
+        metas["focal"]          = focal
+        metas["projection_mat"] = projection_mat
+        metas["image_wh"]       = image_wh
+        metas["gt_labels_3d"]   = gt_labels_3d
+        metas["gt_bboxes_3d"]   = gt_bboxes_3d
+        metas["timestamp"]      = timestamp
+        metas["gt_depth"]       = gt_depth
+        # End re-format
+
+        feature_maps, depths = self.extract_feat(img, True, metas)
+        model_outs = self.pts_bbox_head(feature_maps, metas)
+        output = self.pts_bbox_head.loss(model_outs, metas)
+        if depths is not None and "gt_depth" in metas:
             output["loss_dense_depth"] = self.depth_branch.loss(
-                depths, data["gt_depth"]
+                depths, metas["gt_depth"]
             )
         return output
 
@@ -134,12 +171,31 @@ class Sparse4D(MVXTwoStageDetector):
                     name, type(var)))
         img = [img] if img is None else img
 
+        # Re-foramt some meta infos
+        metas={}
+        metas['img_metas'] = batch_img_metas
+
+        projection_mat = []
+        image_wh = []
+        timestamp = []
+        for x in batch_img_metas:
+            projection_mat.append(x["projection_mat"])
+            image_wh.append(x["image_wh"])
+            timestamp.append(torch.DoubleTensor([x["timestamp"]]))
+        projection_mat = torch.stack(projection_mat, dim=0).to(img.device)
+        image_wh = torch.stack(image_wh, dim=0).to(img.device)
+        timestamp = torch.cat(timestamp, dim=0).to(img.device)
+
+        metas["projection_mat"] = projection_mat
+        metas["image_wh"]       = image_wh
+        metas["timestamp"]      = timestamp
+        # End re-format
+
         feature_maps = self.extract_feat(img)
+        model_outs = self.pts_bbox_head(feature_maps, metas)
+        results = self.pts_bbox_head.post_process(model_outs, metas)
 
-        model_outs = self.pts_bbox_head(feature_maps, batch_img_metas)
-        results = self.pts_bbox_head.post_process(model_outs, batch_img_metas)
-
-        bbox_list = [dict() for i in range(len(batch_img_metas))]
+        bbox_list = [dict() for i in range(len(metas["img_metas"]))]
         for result_dict, pts_bbox in zip(bbox_list, results):
             result_dict['pts_bbox'] = pts_bbox
 
