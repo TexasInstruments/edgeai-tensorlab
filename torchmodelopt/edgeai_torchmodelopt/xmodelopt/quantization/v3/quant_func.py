@@ -114,6 +114,7 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
     model.__quant_params__ = xnn.utils.AttrDict()
     model.__quant_params__.is_qat = is_qat
     model.__quant_params__.quantizer = quantizer 
+    model.__quant_params__.qconfig_type = qconfig_type
     model.__quant_params__.num_batch_norm_update_epochs = num_batch_norm_update_epochs
     model.__quant_params__.num_observer_update_epochs = num_observer_update_epochs
     model.__quant_params__.num_epochs_tracked = 0
@@ -167,7 +168,6 @@ def remove_hooks(hooks):
 
 
 def freeze(self, freeze_bn=True, freeze_observers=True):
-
     # freezing or unfreezing the observers
     for name, mod in self.named_modules():
         if hasattr(mod, "freeze_observer"):
@@ -253,24 +253,51 @@ def deepcopy_graphmodule(gm, memo=None):
     return new_gm
 
 
-def convert(self, *args, device="cpu", make_copy=True, **kwargs):
+def _convert_layers(module, fq_type, new_type):
+    for n, m in list(module.named_children()):
+        if isinstance(m, fq_type):
+            # print(f'WARNING: Found FakeQuantize in the model at {n}, replace it with Clip operator before convert!')
+            min_val, max_val = m.activation_post_process.min_val.item(), m.activation_post_process.max_val.item()
+            if max_val > min_val:
+                new_layer = torch.nn.Hardtanh(min_val=min_val, max_val=max_val) if new_type == torch.nn.Hardtanh else new_type()
+                setattr(module, n, new_layer)
+            else:
+                new_layer = torch.nn.Identity()
+                setattr(module, n, new_layer)
+            #
+        #
+        _convert_layers(m, fq_type)
+    #
+    return module
+
+
+def convert(self, *args, device="cpu", make_copy=False, fq_to_clip=None, **kwargs):
     if hasattr(self, '__quant_params__'):
-        orig_quant_params = copy.deepcopy(self.__quant_params__)
+        orig_quant_params = self.__quant_params__
+        fq_to_clip = (self.__quant_params__.qconfig_type == qconfig_types.QConfigType.WF_ACLIP) if fq_to_clip is None else fq_to_clip
     else:
-        warnings.warn("__quant_params__ is missing in quant_func module. it may be due to a deepcopy.")
+        warnings.warn("WARNING: __quant_params__ is missing in quant_func module.")
         orig_quant_params = None
 
     model = copy.deepcopy(self).eval() if make_copy else self.eval() # calls the deepcopy_graphmodule module
     model = model.to(device=device)
     model = quant_utils.move_node_kwargs_to_device(model, device=device)
     model = quant_utils.remove_to_device_node(model)
-    model = convert_pt2e(model, use_reference_representation=False, fold_quantize= False)
+
+    if fq_to_clip:
+        model = _convert_layers(model, torch.ao.quantization.FakeQuantize, torch.nn.Hardtanh)
+        model.graph.lint()
+        model.recompile()
+    else:
+        model = convert_pt2e(model)
+    
     model.eval = types.MethodType(eval, model)
     torch.ao.quantization.move_exported_model_to_eval(model)
     model.eval = types.MethodType(eval, model)
 
     if orig_quant_params:
         setattr(model, "__quant_params__", orig_quant_params)
+    
     return model
 
 

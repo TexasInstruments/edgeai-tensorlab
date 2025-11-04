@@ -89,8 +89,7 @@ class QConfigType():
     WC16_AT16 = "WC16_AT16"
     WC32_AT32 = "WC32_AT32"
 
-    FLOAT32 = "FLOAT32"                         # no quantization, all layers in float32
-    CLIP_RANGE = "CLIP_RANGE"                   # no quantization, just clip
+    WF_ACLIP = "WF_ACLIP"                       # no weight quantization, activation clip
 
 
     @classmethod
@@ -99,17 +98,21 @@ class QConfigType():
 
 
 def get_repr_string_from_dict(input_dict):
-    repr_string = []
-    for k, v in input_dict.items():
-        repr_string += [f'{k}_{v}'.replace('.', '_')]
-    #
-    return '__'.join(repr_string)
+    if input_dict:
+        repr_string = []
+        for k, v in input_dict.items():
+            repr_string += [f'{k}_{v}'.replace('.', '_')]
+        #
+        return '__'.join(repr_string)
+    else:
+        return ''
 
 
 ####################################################################
 def get_weight_quantization_spec(weight_qconfig, is_qat=True):
+    weight_qconfig = weight_qconfig or dict()
     observer_name = 'CustomAdaptiveWeightObserver' + '__' + get_repr_string_from_dict(weight_qconfig)
-    weight_dtype = weight_qconfig.get('dtype', torch.int8)
+    weight_dtype = weight_qconfig.get('dtype', None)
 
     if weight_dtype in (torch.int8, torch.int16, torch.int32):
         weight_bitwidth = weight_qconfig.get('bitwidth', 8) # needed for 4-bit quantization simulation
@@ -158,6 +161,15 @@ def get_weight_quantization_spec(weight_qconfig, is_qat=True):
             is_dynamic=False,
             observer_or_fake_quant_ctr=fake_quantized_weight_observer
         )
+    elif weight_dtype is None:
+            weight_quantization_spec = QuantizationSpec(
+                dtype=weight_dtype,
+                quant_min=None,
+                quant_max=None,
+                qscheme=None,
+                is_dynamic=False,
+                observer_or_fake_quant_ctr=torch.ao.quantization.observer.PlaceholderObserver
+            )
     else:
         raise RuntimeError("ERROR: Unsupported weight quantization dtype: " + str(weight_dtype))
     #
@@ -166,7 +178,7 @@ def get_weight_quantization_spec(weight_qconfig, is_qat=True):
 
 def get_act_quantization_spec(activation_qconfig, is_qat=True, fast_mode=False):
     observer_name = 'CustomAdaptiveActivationObserver' + get_repr_string_from_dict(activation_qconfig)
-    activation_dtype = activation_qconfig.get('dtype', torch.uint8)
+    activation_dtype = activation_qconfig.get('dtype', None)
 
     if activation_dtype in (torch.int8, torch.uint8, torch.int16, torch.uint16, torch.int32, torch.uint32):
         activation_bitwidth = activation_qconfig.get('bitwidth', 8)
@@ -214,6 +226,15 @@ def get_act_quantization_spec(activation_qconfig, is_qat=True, fast_mode=False):
             is_dynamic=False,
             observer_or_fake_quant_ctr=fake_quantized_activation_observer
         )
+    elif activation_dtype is None:
+        act_quantization_spec = QuantizationSpec(
+            dtype=activation_dtype,
+            quant_min=None,
+            quant_max=None,
+            qscheme=None,
+            is_dynamic=False,
+            observer_or_fake_quant_ctr=torch.ao.quantization.observer.PlaceholderObserver
+        )
     else:
         raise RuntimeError("ERROR: Unsupported activation quantization dtype: " + str(activation_dtype))
     #
@@ -243,18 +264,6 @@ def get_quantization_config(qconfig_dict, is_qat=False, fast_mode=False):
 ####################################################################
 def get_quantization_config_default(qconfig_type, is_qat=True, fast_mode=False):
     _QCONFIG_TYPE_TO_DICT = dict()
-
-    # float32 - no quantization
-    _QCONFIG_TYPE_TO_DICT[QConfigType.FLOAT32] = get_quantization_config(dict(
-        weight=dict(dtype=torch.float32),
-        activation=dict(dtype=torch.float32)), 
-        is_qat=False, fast_mode=False)
-
-    # outlier_suppression
-    _QCONFIG_TYPE_TO_DICT[QConfigType.CLIP_RANGE] = get_quantization_config(dict(
-        weight=dict(dtype=torch.float32),
-        activation=dict(dtype=torch.float32, outlier_suppression=True)), 
-        is_qat=False, fast_mode=False)
     
     # per-channel
     _QCONFIG_TYPE_TO_DICT[QConfigType.WC8_AT8] = get_quantization_config(dict(
@@ -308,6 +317,12 @@ def get_quantization_config_default(qconfig_type, is_qat=True, fast_mode=False):
     _QCONFIG_TYPE_TO_DICT[QConfigType.WC4M4_AT8] = get_quantization_config(dict(
         weight=dict(bitwidth=4, qscheme=torch.per_channel_symmetric, range_max=4),
         activation=dict(qscheme=torch.per_tensor_affine)), is_qat=is_qat, fast_mode=fast_mode)
+    
+    # activation outlier_suppression
+    _QCONFIG_TYPE_TO_DICT[QConfigType.WF_ACLIP] = get_quantization_config(dict(
+        weight=None,
+        activation=dict(dtype=torch.float32, outlier_suppression=True)), 
+        is_qat=False, fast_mode=False)
     
     ###########
     # _QCONFIG_TYPE_TO_DICT[QConfigType.DEFAULT] = _QCONFIG_TYPE_TO_DICT[QConfigType.WC8_AT8]

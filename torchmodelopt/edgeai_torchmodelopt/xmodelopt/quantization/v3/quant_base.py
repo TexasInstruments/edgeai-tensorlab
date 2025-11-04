@@ -82,7 +82,7 @@ class QuantPT2EBaseModule(OptimizationBaseModule):
         return self.module(*args, **kwargs)
 
     def convert(self, *args, **kwargs):
-        if kwargs.pop('make_copy', True):
+        if kwargs.pop('make_copy', False):
             model = copy.deepcopy(self) 
             for name, sub_module in self.module.named_modules():
                 if hasattr(sub_module,'__quant_params__'):
@@ -91,7 +91,7 @@ class QuantPT2EBaseModule(OptimizationBaseModule):
                             setattr(sub_module1,'__quant_params__',sub_module.__quant_params__)
         else:
             model = self      
-        
+        #
         model.module = quant_func_wrapper.convert(model.module, *args, transformation_dict=self.transformation_dict, make_copy=False, **kwargs)
         return model
     
