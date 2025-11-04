@@ -31,6 +31,7 @@ import sys
 import argparse
 import warnings
 import subprocess
+import ast
 
 from edgeai_benchmark import *
 
@@ -38,6 +39,7 @@ from edgeai_benchmark import *
 def get_arg_parser():
     parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
     parser.add_argument('settings_file', type=str, default=None)
+    parser.add_argument('--settings_override', type=str)
     parser.add_argument('--target_device', type=str)
     parser.add_argument('--target_machine', type=str)
     parser.add_argument('--tensor_bits', type=utils.str_to_int)
@@ -95,6 +97,12 @@ if __name__ == '__main__':
     kwargs = vars(args)
     settings_file = kwargs.pop('settings_file')
 
+    settings_override = kwargs.pop('settings_override', None)
+    if settings_override:
+        settings_override_kwargs = ast.literal_eval(settings_override)
+    else:
+        settings_override_kwargs = dict()
+
     if 'session_type_dict' in kwargs:
         kwargs['session_type_dict'] = utils.str_to_dict(kwargs['session_type_dict'])
     #
@@ -103,7 +111,7 @@ if __name__ == '__main__':
     if parallel_devices_list is not None:
         kwargs['parallel_devices'] = parallel_devices_list
 
-    settings = config_settings.ConfigSettings(settings_file, **kwargs)
+    settings = config_settings.ConfigSettings(settings_file, **kwargs, **settings_override_kwargs)
     print(f'settings: {settings}')
     sys.stdout.flush()
 
