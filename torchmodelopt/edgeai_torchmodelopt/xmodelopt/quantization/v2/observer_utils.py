@@ -115,7 +115,7 @@ class MSEHistogramObserver(CumulativeMSEHistogramObserver):
 
 ####################################################################
 RANGE_SHRINK_PERCENTILE_DEFAULT = 0.01
-RANGE_SHRINK_PERCENTILE_LOWBIT = 0.1
+RANGE_SHRINK_PERCENTILE_AGGRESSIVE = 0.1
 
 
 class MovingAverageRangeShrinkHistogramObserverBase(torch.ao.quantization.MinMaxObserver):

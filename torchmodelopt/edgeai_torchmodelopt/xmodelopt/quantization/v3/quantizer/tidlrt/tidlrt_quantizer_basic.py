@@ -100,7 +100,9 @@ def is_mlp_add_layer(node, find_level, found_linear=False, linear_node=None):
     elif node.target == torch.ops.aten.addmm.default:
         found_linear = True
         linear_node = node
-        #
+    elif node.target == torch.ops.aten.linear.default:
+        found_linear = True
+        linear_node = node
     #
     prev_node = None
     for n_id in node.args:
@@ -132,16 +134,19 @@ def _derived_bias_quant_spec(node: Node,  quantization_config: QuantizationConfi
     weight = node.args[1]
     assert isinstance(weight, Node)
     quantization_spec: QuantizationSpec = quantization_config.weight
-
-    return DerivedQuantizationSpec(
-        derived_from=[(input_act, node), (weight, node)],
-        derive_qparams_fn=_derive_bias_qparams_fn,
-        dtype=torch.int32,
-        quant_min=torch.iinfo(torch.int32).min,
-        quant_max=torch.iinfo(torch.int32).max,
-        ch_axis=quantization_spec.ch_axis,
-        qscheme=quantization_spec.qscheme,
-    )
+    if quantization_spec:
+        return DerivedQuantizationSpec(
+            derived_from=[(input_act, node), (weight, node)],
+            derive_qparams_fn=_derive_bias_qparams_fn,
+            dtype=torch.int32,
+            quant_min=torch.iinfo(torch.int32).min,
+            quant_max=torch.iinfo(torch.int32).max,
+            ch_axis=quantization_spec.ch_axis,
+            qscheme=quantization_spec.qscheme,
+        )
+    else:
+        return None
+    
 
 class TIDLRTQuantizerBasic(Quantizer):
     def __init__(self, is_qat, fast_mode=False):
@@ -164,7 +169,6 @@ class TIDLRTQuantizerBasic(Quantizer):
         """
         global_config = self.global_config
         self.annotate_config(model, global_config)
-
         return model
 
     def annotate_config(
@@ -377,7 +381,7 @@ class TIDLRTQuantizerBasic(Quantizer):
         self, gm: torch.fx.GraphModule, quantization_config: QuantizationConfig
     ) -> None:
         module_partitions = get_source_partitions(
-            gm.graph, [torch.matmul, torch.bmm, operator.matmul, 'operator.matmul', 'matmul', 'bmm']
+            gm.graph, [torch.matmul, torch.bmm, operator.matmul, 'matmul', 'bmm']
         )
         # TODO take care of the bias term from bmm
         matmul_partitions = list(itertools.chain(*module_partitions.values()))

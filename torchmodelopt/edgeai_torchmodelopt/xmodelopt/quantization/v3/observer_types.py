@@ -385,19 +385,22 @@ class AdaptiveMovingAverageMinMaxActivationObserver(torch.ao.quantization.Moving
 
 ####################################################################
 class AdaptiveOutlierSuppressionObserverTypes:
-    PERCENTILE = 'percentile'
-    THREE_SIGMA = 'threesigma'
-    FOUR_SIGMA = 'foursigma'
+    HISTOGRAM_GLOBAL = 'histogram_global'
+    HISTOGRAM_RUNNINGAVG = 'histogram_runningavg'
+    THREE_SIGMA_RUNNINGAVG = 'threesigma_runningavg'
+    FOUR_SIGMA_RUNNINGAVG = 'foursigma_runningavg'
     DEFAULT = True # same as 'percentile'
 
 
-class _AdaptiveOutlierSuppressionObserver(torch.ao.quantization.MinMaxObserver):
+class _AdaptiveOutlierSuppressionObserver(torch.ao.quantization.HistogramObserver):
     def __init__(self, *args,  outlier_suppression=False, dtype=torch.float32, averaging_constant=0.01, **kwargs):
-        super().__init__(*args, dtype=torch.int32, **kwargs)
+        super().__init__(*args, dtype=torch.int32, bins=1024, **kwargs)
         self.dtype = dtype
         self.averaging_constant = averaging_constant
         self.num_batches_tracked = 0
         self.outlier_suppression = outlier_suppression
+        self.range_shrink_percentile = 1.0 #observer_utils.RANGE_SHRINK_PERCENTILE_AGGRESSIVE #observer_utils.RANGE_SHRINK_PERCENTILE_DEFAULT
+        self.upsample_rate = 8
 
     def set_params(self, **kwargs):
         for k, v in kwargs.items():
@@ -406,18 +409,24 @@ class _AdaptiveOutlierSuppressionObserver(torch.ao.quantization.MinMaxObserver):
             #
         #
 
+    def get_minmax_vals(self):
+        new_min, new_max = self._non_linear_param_search()
+        return new_min, new_max
+    
     def forward(self, x_orig):
         if x_orig.numel() == 0:
             return x_orig
         x = x_orig.detach()
         if torch.is_floating_point(x):
-            if self.outlier_suppression is True or self.outlier_suppression == AdaptiveOutlierSuppressionObserverTypes.PERCENTILE:
-                min_val, max_val = self.histogram_range(x, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_DEFAULT)
+            if self.outlier_suppression is True or self.outlier_suppression == AdaptiveOutlierSuppressionObserverTypes.HISTOGRAM_GLOBAL:
+                x_o = super().forward(x)
+            if self.outlier_suppression == AdaptiveOutlierSuppressionObserverTypes.HISTOGRAM_RUNNINGAVG:
+                min_val, max_val = self.histogram_range(x, range_shrink_percentile=self.range_shrink_percentile)
                 self._update_range(min_val, max_val)
-            elif self.outlier_suppression == AdaptiveOutlierSuppressionObserverTypes.FOUR_SIGMA:
+            elif self.outlier_suppression == AdaptiveOutlierSuppressionObserverTypes.FOUR_SIGMA_RUNNINGAVG:
                 min_val, max_val = self.sigma_range(x, sigma_factor=4.0)
                 self._update_range(min_val, max_val)
-            elif self.outlier_suppression == AdaptiveOutlierSuppressionObserverTypes.THREE_SIGMA:
+            elif self.outlier_suppression == AdaptiveOutlierSuppressionObserverTypes.THREE_SIGMA_RUNNINGAVG:
                 min_val, max_val = self.sigma_range(x, sigma_factor=3.0)
                 self._update_range(min_val, max_val)
             else:
@@ -437,6 +446,33 @@ class _AdaptiveOutlierSuppressionObserver(torch.ao.quantization.MinMaxObserver):
         zero_point = torch.zeros_like(min_val, dtype=torch.int64)
         return scale, zero_point
 
+    def _non_linear_param_search(self) -> tuple[torch.Tensor, torch.Tensor]:
+        r"""Non-linear parameter search.
+
+        An approximation for L2 error minimization for selecting min/max.
+        By selecting new min/max, we filter out outliers in input distribution.
+        This follows the implementation of NormMinimization::NonlinearQuantizationParamsSearch in
+        caffe2/quantization/server/norm_minimization.cc
+        """
+        assert self.histogram.size()[0] == self.bins, "bins mismatch"
+        bin_width = (self.max_val - self.min_val) / self.bins
+
+        quantile_l = self.range_shrink_percentile/100.0
+        quantile_h = 1.0 - quantile_l
+    
+        # cumulative sum
+        total = torch.sum(self.histogram).item()
+        if total == 0:
+            return self.min_val, self.max_val
+        #
+        pdf = self.histogram / total
+        cdf = torch.cumsum(pdf, dim=0)
+        start_bin = torch.searchsorted(cdf, quantile_l, side='left')
+        end_bin = torch.searchsorted(cdf, quantile_h, side='right')
+        new_min = self.min_val + bin_width * start_bin
+        new_max = self.min_val + bin_width * (end_bin + 1)
+        return new_min, new_max
+    
     def sigma_range(self, x_orig, sigma_factor=3.0):
         min_val, max_val = quant_utils._outlier_suppression_range(x_orig, dim=None, sigma_factor=sigma_factor)
         return min_val, max_val
@@ -486,9 +522,9 @@ ADAPTIVE_OBSERVER_TYPES = tuple(list(ADAPTIVE_WEIGHT_OBSERVER_TYPES) + list(ADAP
 # AdaptivePerChannelPower2WeightObserver = xnn.utils.partialclass(AdaptivePerChannelWeightObserver, power2_scale=True, class_name='AdaptivePerChannelPower2WeightObserver')
 # AdaptivePerChannelFixedRange4WeightObserver = xnn.utils.partialclass(AdaptivePerChannelWeightObserver, range_max=4.0, fixed_range=True, class_name='AdaptivePerChannelFixedRange4WeightObserver')
 #
-# AdaptivePerChannelBit4WeightObserver = xnn.utils.partialclass(AdaptivePerChannelWeightObserver, quant_min=-8, quant_max=7, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_LOWBIT, class_name='AdaptivePerChannelBit4WeightObserver')
-# AdaptivePerChannelBit4MaxRange4WeightObserver = xnn.utils.partialclass(AdaptivePerChannelWeightObserver, quant_min=-8, quant_max=7, range_max=4.0, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_LOWBIT, class_name='AdaptivePerChannelBit4MaxRange4WeightObserver')
-# AdaptivePerChannelBit4FixedRange4WeightObserver = xnn.utils.partialclass(AdaptivePerChannelWeightObserver, quant_min=-8, quant_max=7, range_max=4.0, fixed_range=True, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_LOWBIT, class_name='AdaptivePerChannelBit4FixedRange4WeightObserver')
+# AdaptivePerChannelBit4WeightObserver = xnn.utils.partialclass(AdaptivePerChannelWeightObserver, quant_min=-8, quant_max=7, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_AGGRESSIVE, class_name='AdaptivePerChannelBit4WeightObserver')
+# AdaptivePerChannelBit4MaxRange4WeightObserver = xnn.utils.partialclass(AdaptivePerChannelWeightObserver, quant_min=-8, quant_max=7, range_max=4.0, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_AGGRESSIVE, class_name='AdaptivePerChannelBit4MaxRange4WeightObserver')
+# AdaptivePerChannelBit4FixedRange4WeightObserver = xnn.utils.partialclass(AdaptivePerChannelWeightObserver, quant_min=-8, quant_max=7, range_max=4.0, fixed_range=True, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_AGGRESSIVE, class_name='AdaptivePerChannelBit4FixedRange4WeightObserver')
 #
 # # example custom activation observers
 # AdaptiveSymActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, qscheme=torch.per_tensor_symmetric, class_name='AdaptiveSymActivationObserver')
@@ -496,6 +532,6 @@ ADAPTIVE_OBSERVER_TYPES = tuple(list(ADAPTIVE_WEIGHT_OBSERVER_TYPES) + list(ADAP
 # AdaptiveSymPower2FixedRange4ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, qscheme=torch.per_tensor_symmetric, power2_scale=True, range_max=4, fixed_range=True, class_name='AdaptiveSymPower2FixedRange4ActivationObserver')
 # AdaptiveFixedRange4ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, range_max=4.0, fixed_range=True, class_name='AdaptiveFixedRange4ActivationObserver')
 #
-# AdaptiveBit4ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, quant_min=0, quant_max=15, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_LOWBIT, class_name='AdaptiveBit4ActivationObserver')
-# AdaptiveBit4MaxRange4ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, quant_min=0, quant_max=15, range_max=4.0, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_LOWBIT, class_name='AdaptiveBit4MaxRange4ActivationObserver')
-# AdaptiveBit4FixedRange4ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, quant_min=0, quant_max=15, range_max=4.0, fixed_range=True, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_LOWBIT, class_name='AdaptiveBit4FixedRange4ActivationObserver')
+# AdaptiveBit4ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, quant_min=0, quant_max=15, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_AGGRESSIVE, class_name='AdaptiveBit4ActivationObserver')
+# AdaptiveBit4MaxRange4ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, quant_min=0, quant_max=15, range_max=4.0, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_AGGRESSIVE, class_name='AdaptiveBit4MaxRange4ActivationObserver')
+# AdaptiveBit4FixedRange4ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, quant_min=0, quant_max=15, range_max=4.0, fixed_range=True, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_AGGRESSIVE, class_name='AdaptiveBit4FixedRange4ActivationObserver')

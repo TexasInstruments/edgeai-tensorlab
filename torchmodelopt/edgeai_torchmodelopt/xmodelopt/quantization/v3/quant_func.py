@@ -257,7 +257,11 @@ def _convert_layers(module, fq_type, new_type):
     for n, m in list(module.named_children()):
         if isinstance(m, fq_type):
             # print(f'WARNING: Found FakeQuantize in the model at {n}, replace it with Clip operator before convert!')
-            min_val, max_val = m.activation_post_process.min_val.item(), m.activation_post_process.max_val.item()
+            if hasattr(m.activation_post_process, 'get_minmax_vals'):
+                min_val, max_val = m.activation_post_process.get_minmax_vals()
+            else:
+                min_val, max_val = m.activation_post_process.min_val.item(), m.activation_post_process.max_val.item()
+            #
             if max_val > min_val:
                 new_layer = torch.nn.Hardtanh(min_val=min_val, max_val=max_val) if new_type == torch.nn.Hardtanh else new_type()
                 setattr(module, n, new_layer)
@@ -266,7 +270,7 @@ def _convert_layers(module, fq_type, new_type):
                 setattr(module, n, new_layer)
             #
         #
-        _convert_layers(m, fq_type)
+        _convert_layers(m, fq_type, new_type)
     #
     return module
 
@@ -274,7 +278,7 @@ def _convert_layers(module, fq_type, new_type):
 def convert(self, *args, device="cpu", make_copy=False, fq_to_clip=None, **kwargs):
     if hasattr(self, '__quant_params__'):
         orig_quant_params = self.__quant_params__
-        fq_to_clip = (self.__quant_params__.qconfig_type == qconfig_types.QConfigType.WF_ACLIP) if fq_to_clip is None else fq_to_clip
+        fq_to_clip = (self.__quant_params__.qconfig_type == qconfig_types.QConfigType.WF_AFCLIP) if fq_to_clip is None else fq_to_clip
     else:
         warnings.warn("WARNING: __quant_params__ is missing in quant_func module.")
         orig_quant_params = None
@@ -291,8 +295,8 @@ def convert(self, *args, device="cpu", make_copy=False, fq_to_clip=None, **kwarg
     else:
         model = convert_pt2e(model)
     
-    model.eval = types.MethodType(eval, model)
-    torch.ao.quantization.move_exported_model_to_eval(model)
+    # torch.ao.quantization.move_exported_model_to_eval(model)
+    model.train = types.MethodType(train, model)
     model.eval = types.MethodType(eval, model)
 
     if orig_quant_params:

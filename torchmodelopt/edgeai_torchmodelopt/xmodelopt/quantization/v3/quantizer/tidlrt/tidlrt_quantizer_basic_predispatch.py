@@ -161,7 +161,7 @@ def _derived_bias_quant_spec(weight_node, input_act_node, curr_node) -> DerivedQ
 
 
 class TIDLRTPreDispatchQuantizerBasic(Quantizer):
-    def __init__(self, is_qat, fast_mode=False, is_qat=True, device=None):
+    def __init__(self, is_qat, fast_mode=False, device=None):
         super().__init__()
         self.global_config: QuantizationConfig = None  # type: ignore[assignment]
         self.operator_type_config: Dict[str, Optional[QuantizationConfig]] = {}

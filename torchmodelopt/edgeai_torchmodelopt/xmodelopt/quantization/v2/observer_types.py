@@ -197,9 +197,9 @@ ADAPTIVE_OBSERVER_TYPES = tuple(list(ADAPTIVE_WEIGHT_OBSERVER_TYPES) + list(ADAP
 # AdaptivePerChannelPower2WeightObserver = xnn.utils.partialclass(AdaptivePerChannelWeightObserver, power2_scale=True, class_name='AdaptivePerChannelPower2WeightObserver')
 # AdaptivePerChannelFixedRange4WeightObserver = xnn.utils.partialclass(AdaptivePerChannelWeightObserver, range_max=4.0, fixed_range=True, class_name='AdaptivePerChannelFixedRange4WeightObserver')
 #
-# AdaptivePerChannelBit4WeightObserver = xnn.utils.partialclass(AdaptivePerChannelWeightObserver, quant_min=-8, quant_max=7, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_LOWBIT, class_name='AdaptivePerChannelBit4WeightObserver')
-# AdaptivePerChannelBit4MaxRange4WeightObserver = xnn.utils.partialclass(AdaptivePerChannelWeightObserver, quant_min=-8, quant_max=7, range_max=4.0, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_LOWBIT, class_name='AdaptivePerChannelBit4MaxRange4WeightObserver')
-# AdaptivePerChannelBit4FixedRange4WeightObserver = xnn.utils.partialclass(AdaptivePerChannelWeightObserver, quant_min=-8, quant_max=7, range_max=4.0, fixed_range=True, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_LOWBIT, class_name='AdaptivePerChannelBit4FixedRange4WeightObserver')
+# AdaptivePerChannelBit4WeightObserver = xnn.utils.partialclass(AdaptivePerChannelWeightObserver, quant_min=-8, quant_max=7, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_AGGRESSIVE, class_name='AdaptivePerChannelBit4WeightObserver')
+# AdaptivePerChannelBit4MaxRange4WeightObserver = xnn.utils.partialclass(AdaptivePerChannelWeightObserver, quant_min=-8, quant_max=7, range_max=4.0, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_AGGRESSIVE, class_name='AdaptivePerChannelBit4MaxRange4WeightObserver')
+# AdaptivePerChannelBit4FixedRange4WeightObserver = xnn.utils.partialclass(AdaptivePerChannelWeightObserver, quant_min=-8, quant_max=7, range_max=4.0, fixed_range=True, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_AGGRESSIVE, class_name='AdaptivePerChannelBit4FixedRange4WeightObserver')
 #
 # # example custom activation observers
 # AdaptiveSymActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, qscheme=torch.per_tensor_symmetric, class_name='AdaptiveSymActivationObserver')
@@ -207,6 +207,6 @@ ADAPTIVE_OBSERVER_TYPES = tuple(list(ADAPTIVE_WEIGHT_OBSERVER_TYPES) + list(ADAP
 # AdaptiveSymPower2FixedRange4ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, qscheme=torch.per_tensor_symmetric, power2_scale=True, range_max=4, fixed_range=True, class_name='AdaptiveSymPower2FixedRange4ActivationObserver')
 # AdaptiveFixedRange4ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, range_max=4.0, fixed_range=True, class_name='AdaptiveFixedRange4ActivationObserver')
 #
-# AdaptiveBit4ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, quant_min=0, quant_max=15, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_LOWBIT, class_name='AdaptiveBit4ActivationObserver')
-# AdaptiveBit4MaxRange4ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, quant_min=0, quant_max=15, range_max=4.0, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_LOWBIT, class_name='AdaptiveBit4MaxRange4ActivationObserver')
-# AdaptiveBit4FixedRange4ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, quant_min=0, quant_max=15, range_max=4.0, fixed_range=True, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_LOWBIT, class_name='AdaptiveBit4FixedRange4ActivationObserver')
+# AdaptiveBit4ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, quant_min=0, quant_max=15, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_AGGRESSIVE, class_name='AdaptiveBit4ActivationObserver')
+# AdaptiveBit4MaxRange4ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, quant_min=0, quant_max=15, range_max=4.0, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_AGGRESSIVE, class_name='AdaptiveBit4MaxRange4ActivationObserver')
+# AdaptiveBit4FixedRange4ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, quant_min=0, quant_max=15, range_max=4.0, fixed_range=True, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_AGGRESSIVE, class_name='AdaptiveBit4FixedRange4ActivationObserver')

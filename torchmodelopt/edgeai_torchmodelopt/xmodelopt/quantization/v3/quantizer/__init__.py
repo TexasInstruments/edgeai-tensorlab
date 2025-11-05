@@ -31,14 +31,22 @@
 #################################################################################
 
 
+class QuantizerTypes:
+    XNNPACK = "xnnpack"
+    TIDLRT_BASIC = "tidlrt_basic"
+    TIDLRT_ADVANCED = "tidlrt_advanced"
+    BASIC = "basic"
+    ADVANCED = "advanced"
+
+
 def get_quantizer(quantizer_type, **kwargs):
-    if quantizer_type == "xnnpack":
+    if quantizer_type == QuantizerTypes.XNNPACK:
         from .xnnpack import get_quantizer as get_xnnpack_quantizer
         return get_xnnpack_quantizer(**kwargs)
-    elif quantizer_type in ("basic", "tidlrt_basic"):
+    elif quantizer_type in (QuantizerTypes.BASIC, QuantizerTypes.TIDLRT_BASIC):
         from .tidlrt.tidlrt_quantizer_basic import get_quantizer as get_tidlrt_basic_quantizer
         return get_tidlrt_basic_quantizer(**kwargs)
-    elif quantizer_type in ("advanced", "tidlrt_advanced"):
+    elif quantizer_type in (QuantizerTypes.ADVANCED, QuantizerTypes.TIDLRT_ADVANCED):
         from .tidlrt.tidlrt_quantizer_advanced import get_quantizer as get_tidlrt_advanced_quantizer
         return get_tidlrt_advanced_quantizer(**kwargs)
     else:

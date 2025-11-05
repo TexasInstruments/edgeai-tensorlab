@@ -32,8 +32,6 @@
 
 
 from .qconfig_types import *
-
-
 from . import quant_func_wrapper
-
 from .quant_module import QATPT2EModule, PTQPT2EModule
+from .quantizer import get_quantizer, QuantizerTypes
