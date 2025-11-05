@@ -31,12 +31,14 @@
 #################################################################################
 
 
-from ..xnnpack import XNNPACKQuantizer
+from ..xnnpack import XNNPACKQuantizer, set_annotation_patterns
 
 
 class TIDLRTQuantizerAdvanced(XNNPACKQuantizer):
     pass
 
 
-def get_quantizer(is_qat=True, fast_mode=False, device=None, **kwargs):
+def get_quantizer(is_qat=True, fast_mode=False, device=None, annotation_patterns=None, **kwargs):
+    set_annotation_patterns(annotation_patterns=annotation_patterns)
     return TIDLRTQuantizerAdvanced(**kwargs)
+
