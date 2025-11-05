@@ -30,6 +30,7 @@
 import torch
 import onnx_graphsurgeon as gs
 from . import utils
+import copy
 
 def torch_reshape(x, shape, allowzero=False):
     if isinstance(shape, torch.Tensor):
@@ -37,11 +38,9 @@ def torch_reshape(x, shape, allowzero=False):
     allowzero = allowzero or 0 not in shape    
     if allowzero:
         return torch.reshape(x, shape)
-    for i, s in enumerate(shape):
-        if s == -1:
-            break
-        if s == 0:
-            shape[i] = x.shape[i]
+    stop= shape.index(-1) if -1 in shape else len(shape)
+    for i, s in enumerate(shape[:stop]):
+        shape[i] = torch.where(torch.tensor(s==0), x.shape[i], s)
     shape = [int(s) for s in shape]
     return torch.reshape(x, shape)
 
@@ -56,7 +55,7 @@ def add_reshape_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  
     if args[1].op == 'get_attr':
         args[1] = getattr(torch_module, args[1].target)
         if isinstance(args[1] , torch.Tensor):
-            args[1] = args[1].tolist()
+            args[1] = copy.deepcopy(args[1].tolist())
     #TODO add support for allowzero
     allowzero = node.attrs.get('allowzero', 0) == 1
     if 'shape' in node.attrs:
@@ -64,7 +63,9 @@ def add_reshape_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  
     kwargs['allowzero'] = allowzero
 
     if state.module_based:
-        module = utils.WrappedModule(node.op, torch_module, torch_reshape, args, kwargs,)
+        module = utils.WrappedModule(node.op, torch_module, torch_shape, args, kwargs)
+
+        # module = utils.WrappedModule(node.name, node.op, torch_module, torch_reshape, args, kwargs,)
         torch_module.add_module(node.name, module)
         args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
@@ -79,8 +80,11 @@ def torch_flatten(x:torch.Tensor, axis):
     if axis == 0:
         return x.reshape(1, -1)
     if axis == 1:
-        return x.flatten(1)
-    return x.flatten(axis).flatten(0,axis-1)
+        return x.reshape(x.shape[0],-1)
+    shape = 1
+    for s in x.shape[:axis]:
+        shape *= s
+    return x.reshape(shape, -1)
 
 def add_flatten_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module ):
     assert len(node.inputs) == 1, f'{node.name} with operator {node.op} should have 1 input, but got {len(node.inputs)}'
@@ -89,6 +93,7 @@ def add_flatten_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  
     axis = node.attrs.get('axis', 1)
     if state.module_based:
         module = utils.WrappedModule(node.op, torch_module, torch_flatten, args, dict(axis=axis),)
+        # module = utils.WrappedModule(node.name, node.op, torch_module, torch_flatten, args, dict(axis=axis),)
         torch_module.add_module(node.name, module)
         args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
@@ -106,7 +111,9 @@ def add_shape_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  to
     types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     if state.module_based:
-        module = utils.WrappedModule(node.op, torch_module, torch_shape, args)
+        module = utils.WrappedModule(node.op, torch_module, torch_shape, args, )
+
+        # module = utils.WrappedModule(node.name, node.op, torch_module, torch_shape, args)
         torch_module.add_module(node.name, module)
         args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
@@ -119,6 +126,7 @@ def add_size_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  tor
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     if state.module_based:
         module = utils.WrappedModule(node.op, torch_module, torch.numel, args, )
+        # module = utils.WrappedModule(node.name, node.op, torch_module, torch.numel, args, )
         torch_module.add_module(node.name, module)
         args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
