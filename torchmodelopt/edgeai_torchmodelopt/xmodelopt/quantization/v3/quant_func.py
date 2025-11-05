@@ -257,20 +257,26 @@ def _convert_layers(module, fq_type, new_type):
     for n, m in list(module.named_children()):
         if isinstance(m, fq_type):
             # print(f'WARNING: Found FakeQuantize in the model at {n}, replace it with Clip operator before convert!')
-            if hasattr(m.activation_post_process, 'get_minmax_vals'):
-                min_val, max_val = m.activation_post_process.get_minmax_vals()
-            else:
-                min_val, max_val = m.activation_post_process.min_val.item(), m.activation_post_process.max_val.item()
-            #
-            if max_val > min_val:
-                new_layer = torch.nn.Hardtanh(min_val=min_val, max_val=max_val) if new_type == torch.nn.Hardtanh else new_type()
-                setattr(module, n, new_layer)
+            if new_type == torch.nn.Hardtanh and hasattr(m, 'activation_post_process'):
+                if hasattr(m.activation_post_process, 'get_minmax_vals'):
+                    min_val, max_val = m.activation_post_process.get_minmax_vals()
+                else:
+                    min_val, max_val = m.activation_post_process.min_val, m.activation_post_process.max_val
+                #
+                if max_val > min_val:
+                    new_layer = torch.nn.Hardtanh(min_val=min_val.item(), max_val=max_val.item())
+                    setattr(module, n, new_layer)
+                else:
+                    new_layer = torch.nn.Identity()
+                    setattr(module, n, new_layer)
+                #
             else:
                 new_layer = torch.nn.Identity()
                 setattr(module, n, new_layer)
             #
+        else:
+            _convert_layers(m, fq_type, new_type)
         #
-        _convert_layers(m, fq_type, new_type)
     #
     return module
 
@@ -290,6 +296,8 @@ def convert(self, *args, device="cpu", make_copy=False, fq_to_clip=None, **kwarg
 
     if fq_to_clip:
         model = _convert_layers(model, torch.ao.quantization.FakeQuantize, torch.nn.Hardtanh)
+        model = _convert_layers(model, torch.ao.quantization.FakeQuantize, torch.nn.Hardtanh)
+        model = _convert_layers(model, torch.ao.quantization.observer.PlaceholderObserver, torch.nn.Identity)
         model.graph.lint()
         model.recompile()
     else:
