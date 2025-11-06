@@ -399,7 +399,7 @@ class _AdaptiveOutlierSuppressionObserver(torch.ao.quantization.HistogramObserve
         self.averaging_constant = averaging_constant
         self.num_batches_tracked = 0
         self.outlier_suppression = outlier_suppression
-        self.range_shrink_percentile = 1.0 #observer_utils.RANGE_SHRINK_PERCENTILE_AGGRESSIVE #observer_utils.RANGE_SHRINK_PERCENTILE_DEFAULT
+        self.range_shrink_percentile = observer_utils.RANGE_SHRINK_PERCENTILE_AGGRESSIVE #observer_utils.RANGE_SHRINK_PERCENTILE_DEFAULT
         self.upsample_rate = 8
 
     def set_params(self, **kwargs):
