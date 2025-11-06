@@ -118,7 +118,7 @@ def get_torch_graph_module(graph:gs.Graph, for_training=False, module_based=True
     op_2_func_dict.update(custom_add_2_torch_graph)
     
     error_dict = check_convertable(graph, op_2_func_dict=op_2_func_dict,for_training=for_training, module_based=module_based)
-    error_dict = None
+    # error_dict = None
     if error_dict:
         not_implemented = []
         for name, op in error_dict:

@@ -68,7 +68,7 @@ def add_node_2_torch_graph_1ip_1op(state, node:gs.Node, torch_graph:torch.fx.Gra
     if node.op in onnx_to_torch:
         args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module, torch.nn.Parameter if inp.shape else torch.Tensor)]
         if state.module_based:
-            module = utils.WrappedModule(node.op, torch_module, onnx_to_torch[node.op], args, )
+            module = utils.WrappedModule(node.name, node.op, torch_module, onnx_to_torch[node.op], args, )
             torch_module.add_module(node.name, module)
             args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
 

@@ -56,7 +56,7 @@ def add_is_inf_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  t
         det_pos=det_pos
     ) if not (det_neg and det_pos) else {}
     if state.module_based:
-        module = utils.WrappedModule(node.op, torch_module, func, args, kwargs)
+        module = utils.WrappedModule(node.name, node.op, torch_module, func, args, kwargs)
         torch_module.add_module(node.name, module)
         args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
@@ -71,7 +71,7 @@ def add_non_zero_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph, 
     types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module, t) for inp,t in zip(node.inputs, types)]
     if state.module_based:
-        module = utils.WrappedModule(node.op, torch_module, torch_nonzero, args)
+        module = utils.WrappedModule(node.name, node.op, torch_module, torch_nonzero, args)
         torch_module.add_module(node.name, module)
         args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))

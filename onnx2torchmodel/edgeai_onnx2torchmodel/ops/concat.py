@@ -49,7 +49,7 @@ def add_concat_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  t
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     dim = node.attrs.get('axis')
     if state.module_based:
-        module = utils.WrappedModule(node.op, torch_module, torch_concat, kwargs=dict(dim=dim))
+        module = utils.WrappedModule(node.name, node.op, torch_module, torch_concat, kwargs=dict(dim=dim))
         torch_module.add_module(node.name, module)
         # args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple([args]))
@@ -73,7 +73,7 @@ def add_concat_from_sequence_2_torch_graph(state, node:gs.Node, torch_graph:torc
     new_axis = node.attrs.get('new_axis', 0) == 1
     func = torch_stack if new_axis else torch_concat
     if state.module_based:
-        module = utils.WrappedModule(node.op, torch_module, func, kwargs=dict(dim=dim))
+        module = utils.WrappedModule(node.name, node.op, torch_module, func, kwargs=dict(dim=dim))
         torch_module.add_module(node.name, module)
         # args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple([args]))
@@ -90,7 +90,7 @@ def add_expand_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  t
     types = [torch.nn.Parameter, list]
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     if state.module_based:
-        module = utils.WrappedModule(node.op, torch_module, torch_expand, args, )
+        module = utils.WrappedModule(node.name, node.op, torch_module, torch_expand, args, )
         torch_module.add_module(node.name, module)
         args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
@@ -123,7 +123,7 @@ def add_split_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  to
         split= node.attrs.get('num_outputs')
         args.append(split) if len(args)<2 else None
     if state.module_based:
-        module = utils.WrappedModule(node.op, torch_module, torch_split, args, kwargs)
+        module = utils.WrappedModule(node.name, node.op, torch_module, torch_split, args, kwargs)
         torch_module.add_module(node.name, module)
         args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
@@ -140,7 +140,7 @@ def add_tile_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  tor
     types = [torch.nn.Parameter, list]
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     if state.module_based:
-        module = utils.WrappedModule(node.op, torch_module, torch_tile, args)
+        module = utils.WrappedModule(node.name, node.op, torch_module, torch_tile, args)
         torch_module.add_module(node.name, module)
         args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))

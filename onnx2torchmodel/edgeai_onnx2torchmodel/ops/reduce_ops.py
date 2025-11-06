@@ -48,7 +48,7 @@ def add_reduce_max_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph
         kwargs['axes'] = axes
     
     if state.module_based:
-        module = utils.WrappedModule(node.op, torch_module, torch_reduce_max, args, kwargs)
+        module = utils.WrappedModule(node.name, node.op, torch_module, torch_reduce_max, args, kwargs)
         torch_module.add_module(node.name, module)
         args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
@@ -69,7 +69,7 @@ def add_reduce_min_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph
         axes = node.attrs['axes'] 
         kwargs['axes'] = axes
     if state.module_based:
-        module = utils.WrappedModule(node.op, torch_module, torch_reduce_min, args, kwargs)
+        module = utils.WrappedModule(node.name, node.op, torch_module, torch_reduce_min, args, kwargs)
         torch_module.add_module(node.name, module)
         args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
@@ -91,7 +91,7 @@ def add_reduce_mean_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Grap
         axes = node.attrs['axes'] 
         kwargs['axes'] = axes
     if state.module_based:
-        module = utils.WrappedModule(node.op, torch_module, torch_reduce_mean, args, kwargs)
+        module = utils.WrappedModule(node.name, node.op, torch_module, torch_reduce_mean, args, kwargs)
         torch_module.add_module(node.name, module)
         args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
@@ -124,7 +124,7 @@ def add_reduce_l1_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,
         axes = node.attrs['axes'] 
         kwargs['axes'] = axes
     if state.module_based:
-        module = utils.WrappedModule(node.op, torch_module, torch_reduce_l1, args, kwargs)
+        module = utils.WrappedModule(node.name, node.op, torch_module, torch_reduce_l1, args, kwargs)
         torch_module.add_module(node.name, module)
         args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
@@ -157,7 +157,7 @@ def add_reduce_l2_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,
         axes = node.attrs['axes'] 
         kwargs['axes'] = axes
     if state.module_based:
-        module = utils.WrappedModule(node.op, torch_module, torch_reduce_l2, args, kwargs)
+        module = utils.WrappedModule(node.name, node.op, torch_module, torch_reduce_l2, args, kwargs)
         torch_module.add_module(node.name, module)
         args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
@@ -191,7 +191,7 @@ def add_reduce_sum_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph
         axes = node.attrs['axes'] 
         kwargs['axes'] = axes
     if state.module_based:
-        module = utils.WrappedModule(node.op, torch_module, torch_reduce_sum, args, kwargs)
+        module = utils.WrappedModule(node.name, node.op, torch_module, torch_reduce_sum, args, kwargs)
         torch_module.add_module(node.name, module)
         args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
@@ -212,7 +212,7 @@ def add_reduce_log_sum_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.G
         axes = node.attrs['axes'] 
         kwargs['axes'] = axes
     if state.module_based:
-        module = utils.WrappedModule(node.op, torch_module, torch_reduce_log_sum, args, kwargs)
+        module = utils.WrappedModule(node.name, node.op, torch_module, torch_reduce_log_sum, args, kwargs)
         torch_module.add_module(node.name, module)
         args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
@@ -233,7 +233,7 @@ def add_reduce_log_sum_exp_2_torch_graph(state, node:gs.Node, torch_graph:torch.
         axes = node.attrs['axes'] 
         kwargs['axes'] = axes
     if state.module_based:
-        module = utils.WrappedModule(node.op, torch_module, torch_reduce_log_sum_exp, args, kwargs)
+        module = utils.WrappedModule(node.name, node.op, torch_module, torch_reduce_log_sum_exp, args, kwargs)
         torch_module.add_module(node.name, module)
         args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
@@ -266,7 +266,7 @@ def add_reduce_prod_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Grap
         axes = node.attrs['axes'] 
         kwargs['axes'] = axes
     if state.module_based:
-        module = utils.WrappedModule(node.op, torch_module, torch_reduce_prod, args, kwargs)
+        module = utils.WrappedModule(node.name, node.op, torch_module, torch_reduce_prod, args, kwargs)
         torch_module.add_module(node.name, module)
         args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
@@ -288,7 +288,7 @@ def add_reduce_sum_square_2_torch_graph(state, node:gs.Node, torch_graph:torch.f
         axes = node.attrs['axes'] 
         kwargs['axes'] = axes
     if state.module_based:
-        module = utils.WrappedModule(node.op, torch_module, torch_reduce_sum_square, args, kwargs)
+        module = utils.WrappedModule(node.name, node.op, torch_module, torch_reduce_sum_square, args, kwargs)
         torch_module.add_module(node.name, module)
         args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))

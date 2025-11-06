@@ -37,10 +37,10 @@ def get_torch_conv_module(node:gs.Node, torch_module:torch.nn.Module):
     groups = node.attrs.get('group', 1)
     out, inc = node.inputs[1].shape[:2]
     inc = inc*groups
-    kernel_size = node.attrs.get('kernel_shape')
-    stride = node.attrs.get('strides')
-    padding = node.attrs.get('pads')
-    dilation = node.attrs.get('dilations')
+    kernel_size = node.attrs.get('kernel_shape', node.inputs[1].shape[2:])
+    stride = node.attrs.get('strides', 1)
+    padding = node.attrs.get('pads', 0)
+    dilation = node.attrs.get('dilations', 1)
     auto_pad = node.attrs.get('auto_pad', 'NOTSET')
     # TODO auto_pad cases install
     if auto_pad == 'SAME_UPPER':
@@ -153,7 +153,7 @@ def add_conv_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  tor
             padding_node = torch_graph.call_module(node.name+'_pad', tuple(args[0:1]))
             args[0] = padding_node
         if state.module_based:
-            module = utils.WrappedModule(node.op, torch_module, func, args, kwargs)
+            module = utils.WrappedModule(node.name, node.op, torch_module, func, args, kwargs)
             torch_module.add_module(node.name, module)
             args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
             torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
@@ -170,11 +170,11 @@ def get_torch_conv_transpose_module(node:gs.Node, torch_module:torch.nn.Module):
     groups = node.attrs.get('group', 1)
     out, inc = node.inputs[1].shape[:2]
     inc = inc*groups
-    kernel_size = node.attrs.get('kernel_shape')
+    kernel_size = node.attrs.get('kernel_shape', node.inputs[1].shape[2:])
     stride = node.attrs.get('strides', 1)
     padding = node.attrs.get('pads', 0)
+    dilation = node.attrs.get('dilations', 1)
     output_padding = node.attrs.get('output_padding',0)
-    dilation = node.attrs.get('dilations',1)
     auto_pad = node.attrs.get('auto_pad', 'NOTSET')
     # TODO add support for output_shape
     output_shape = node.attrs.get('output_shape')
@@ -287,7 +287,7 @@ def add_conv_transpose_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.G
             padding_node = torch_graph.call_module(node.name+'_pad', tuple(args[0:1]))
             args[0] = padding_node
         if state.module_based:
-            module = utils.WrappedModule(node.op, torch_module, func, args, kwargs)
+            module = utils.WrappedModule(node.name, node.op, torch_module, func, args, kwargs)
             torch_module.add_module(node.name, module)
             args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
             torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
@@ -416,7 +416,7 @@ def add_deform_conv_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Grap
     )
     
     if state.module_based:
-        module = utils.WrappedModule(node.op, torch_module, torch_deform_conv, args, kwargs)
+        module = utils.WrappedModule(node.name, node.op, torch_module, torch_deform_conv, args, kwargs)
         torch_module.add_module(node.name, module)
         args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))

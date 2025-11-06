@@ -42,7 +42,7 @@ def add_cumsum_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  t
     if exclusive: 
         raise NotImplementedError(f'for {node.name} with operator {node.op} and exclusive is not implemented')
     if state.module_based:
-        module = utils.WrappedModule(node.op, torch_module, torch.cumsum, args, )
+        module = utils.WrappedModule(node.name, node.op, torch_module, torch.cumsum, args, )
         torch_module.add_module(node.name, module)
         args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))

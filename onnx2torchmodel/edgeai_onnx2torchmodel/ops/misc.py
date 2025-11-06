@@ -50,7 +50,7 @@ def add_range_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  to
     types = [list, list, list]
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module, t) for inp,t in zip(node.inputs, types)]
     if state.module_based:
-        module = utils.WrappedModule(node.op, torch_module, torch_range, args)
+        module = utils.WrappedModule(node.name, node.op, torch_module, torch_range, args)
         torch_module.add_module(node.name, module)
         args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
@@ -104,4 +104,79 @@ def add_shrink_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  t
     raise NotImplementedError(f"{node.name} with operator {node.op} is not implemented")
 
 def add_tfldf_vectorizer_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
+    raise NotImplementedError(f"{node.name} with operator {node.op} is not implemented")
+
+# TODO add_col2im_2_torch_graph
+def add_col2im_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
+    raise NotImplementedError(f"{node.name} with operator {node.op} is not implemented")
+    types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
+    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    torch_nodes[node.name] = torch_graph.call_function(torch.col2im, tuple(args),  name=node.name)
+
+
+def add_lstm_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
+    raise NotImplementedError(f"{node.name} with operator {node.op} is not implemented")
+
+def add_lrn_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
+    raise NotImplementedError(f"{node.name} with operator {node.op} is not implemented")
+
+# TODO add center_crop_pad to torch_graph
+def add_center_crop_pad_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
+    raise NotImplementedError(f"{node.name} with operator {node.op} is not implemented")
+    assert hasattr(node.inputs[0], 'shape'), f'input {node.inputs[0]} of {node.name} has no shape, Please simplify or insert shape first in onnx model'
+    types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
+    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    axes = node.attrs.get('axes', None)
+    if axes is None:
+        axes = list(range(len(node.inputs[0].shape)))
+    torch_nodes[node.name] = torch_graph.call_function(torch.nn.functional.center_crop, tuple(args),  dict(axes=axes), name=node.name)
+
+# TODO fix and find usage
+def add_blackman_window_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
+    assert len(node.inputs) == 1, f'{node.name} with operator {node.op} should have 1 input, but got {len(node.inputs)}'
+    types = [list]
+    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    output_dtype = node.attrs.get('output_datatype')
+    output_dtype = utils.onnx_2_torch_type_mapping[output_dtype]
+    periodic = node.attrs.get('periodic', None)
+    if periodic is not None:
+        raise NotImplementedError(f'for {node.name} with operator {node.op} : periodic is not implemented')
+    periodic = periodic == 1
+    kwargs = dict(dtype=output_dtype,)
+    if state.module_based:
+        module = utils.WrappedModule(node.name, node.op, torch_module, torch.blackman_window, args,)
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch.blackman_window, tuple(args),  name=node.name)
+
+#TODO fix and find usage
+def add_bernouli_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
+    assert len(node.inputs) == 1, f'{node.name} with operator {node.op} should have 1 input, but got {len(node.inputs)}'
+    types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
+    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    dtype = node.attrs.get('dtype', 1)
+    kwargs = dict(dtype=utils.onnx_2_torch_type_mapping[dtype])
+    seed = node.attrs.get('seed', None)
+    if seed is not None:
+        raise NotImplementedError(f'for {node.name} with operator {node.op} : seed is not implemented')
+    if state.module_based:
+        module = utils.WrappedModule(node.name, node.op, torch_module, torch.bernoulli, args, kwargs)
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch.bernoulli, tuple(args),  kwargs, name=node.name)
+
+def add_dft_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
+    raise NotImplementedError(f"{node.name} with operator {node.op} is not implemented")
+
+def add_mel_weight_matrix_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
+    raise NotImplementedError(f"{node.name} with operator {node.op} is not implemented")
+
+def add_gru_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
+    raise NotImplementedError(f"{node.name} with operator {node.op} is not implemented")
+
+def add_image_decoder_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     raise NotImplementedError(f"{node.name} with operator {node.op} is not implemented")
