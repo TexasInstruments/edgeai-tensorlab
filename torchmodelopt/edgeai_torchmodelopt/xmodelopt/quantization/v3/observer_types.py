@@ -393,7 +393,7 @@ class AdaptiveOutlierSuppressionObserverTypes:
 
 
 class _AdaptiveOutlierSuppressionObserver(torch.ao.quantization.HistogramObserver):
-    def __init__(self, *args,  outlier_suppression=False, dtype=torch.float32, averaging_constant=0.01, **kwargs):
+    def __init__(self, *args,  outlier_suppression=True, dtype=torch.float32, averaging_constant=0.01, **kwargs):
         super().__init__(*args, dtype=torch.int32, bins=1024, **kwargs)
         self.dtype = dtype
         self.averaging_constant = averaging_constant
