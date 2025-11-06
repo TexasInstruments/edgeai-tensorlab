@@ -83,7 +83,6 @@ class InstanceNorm(torch.nn.modules.instancenorm._InstanceNorm):
     def _get_no_batch_dim(self):
         pass
     
-    @torch.compile
     def _apply_instance_norm(self, input):
         return super()._apply_instance_norm(input)
     
