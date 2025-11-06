@@ -32,12 +32,15 @@ import onnx_graphsurgeon as gs
 from operator import getitem
 from onnx import TensorProto
 import numpy as np
+import copy
+
 class Buffer(torch.Tensor):
     pass
 
 class WrappedModule(torch.nn.Module):
-    def __init__(self,onnx_op, parent_module:torch.nn.Module, func, args=None, kwargs=None,):
+    def __init__(self, node_name, onnx_op, parent_module:torch.nn.Module, func, args=None, kwargs=None,):
         super().__init__()
+        self.node_name = node_name
         self.onnx_op = onnx_op
         self.func = func
         args = args or []
@@ -56,8 +59,14 @@ class WrappedModule(torch.nn.Module):
                 else:
                     setattr(self, arg.target, param)
         self.variable_indices = [i for i, arg in enumerate(args) if isinstance(arg, torch.fx.Node) and arg.op != 'get_attr']
-        self.args = [a.target if isinstance(a, torch.fx.Node) else a for a in args]
+        self.args = [a.target if isinstance(a, torch.fx.Node) else copy.deepcopy(a) for a in self.args]
+        for i,arg in enumerate(self.args):
+            if isinstance(arg, str):
+                continue
+            self.args[i] = f'arg_{i}'
+            setattr(self, self.args[i], arg)
         self.kwargs = kwargs
+
     def forward(self, *args,):
         temp_args = self.args.copy()
         if temp_args:
@@ -68,18 +77,30 @@ class WrappedModule(torch.nn.Module):
                     temp_args[i] = args[var_arg_counter]
                     var_arg_counter+=1
                 else:
-                    temp_args[i] = getattr(self, arg) if isinstance(arg, str) and hasattr(self, arg) else arg
+                    if isinstance(arg, str) and hasattr(self, arg):
+                        temp = getattr(self, arg) 
+                        if hasattr(temp, 'copy'):
+                            temp = temp.copy()
+                        temp_args[i] = temp
+                    else:
+                        temp_args[i] = arg
             return self.func(*temp_args, **self.kwargs)
         else:
             return self.func(*args, **self.kwargs)
     
     def __repr__(self):
-        return f"WrappedModule(func={self.func.__name__}, args = {self.args},  kwargs="+ r'{' + ', '.join([f'{k} = {v}' for k, v in self.kwargs.items()]) + r'})'
+        return f"WrappedModule(node_name={self.node_name}, op={self.onnx_op},func={self.func.__name__}, args = {[getattr(self,a) if hasattr(self, a) else a for a in self.args]},  kwargs="+ r'{' + ', '.join([f'{k} = {v}' for k, v in self.kwargs.items()]) + r'})'
 
 def get_input_from_node(inp:gs.Variable|gs.Constant, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module, attr_type:type=None, **kwargs):
-    if inp.name in torch_nodes:
+    if inp.name in torch_nodes and  torch_nodes[inp.name].op != 'get_attr':
         return torch_nodes[inp.name]
     if isinstance(inp, gs.Constant):
+        name = inp.name + f"_{len([k for k,v in torch_nodes.items() if v.op =='get_attr'])}"
+        values=inp.values
+        temp = gs.Constant(name, values, inp.data_location)
+        i = inp.outputs[0].inputs.index(inp)
+        inp.outputs[0].inputs[i] = temp
+        inp = temp
         attr_type = attr_type or torch.Tensor
         if attr_type not in (list, tuple, set, torch.Tensor, torch.nn.Parameter, Buffer):
             raise ValueError(f"Unsupported type {attr_type}")

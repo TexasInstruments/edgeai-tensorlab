@@ -57,7 +57,7 @@ def add_cast_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  tor
     saturate = node.attrs.get('saturate', 1) == 1
     dtype = utils.onnx_2_torch_type_mapping[dtype]
     if state.module_based:
-        module = utils.WrappedModule(node.op, torch_module, torch_cast, args, dict(dtype=dtype,))
+        module = utils.WrappedModule(node.name, node.op, torch_module, torch_cast, args, dict(dtype=dtype,))
         torch_module.add_module(node.name, module)
         args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
@@ -71,7 +71,7 @@ def add_cast_like_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,
     round_mode = node.attrs.get('rounding_mode','up')
     saturate = node.attrs.get('saturate', 1) == 1
     if state.module_based:
-        module = utils.WrappedModule(node.op, torch_module, torch_cast_like, args)
+        module = utils.WrappedModule(node.name, node.op, torch_module, torch_cast_like, args)
         torch_module.add_module(node.name, module)
         args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))

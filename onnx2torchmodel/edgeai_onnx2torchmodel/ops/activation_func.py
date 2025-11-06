@@ -68,7 +68,7 @@ def add_hardsigmoid_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Grap
         if alpha == 1/6 and beta == 1/2:
             module = torch.nn.Hardsigmoid()
         else:
-            module = utils.WrappedModule(node.op, torch_module, torch_hardsigmoid, args, dict(alpha=alpha, beta=beta), )
+            module = utils.WrappedModule(node.name, node.op, torch_module, torch_hardsigmoid, args, dict(alpha=alpha, beta=beta), )
         torch_module.add_module(node.name, module)
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
     else:
@@ -113,7 +113,7 @@ def add_hardmax_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module, t) for inp,t in zip(node.inputs, types)]
     axis = node.attrs.get('axis', -1)
     if state.module_based:
-        module = utils.WrappedModule(node.op, torch_module, torch_hardmax, args, dict(axis=axis),)
+        module = utils.WrappedModule(node.name, node.op, torch_module, torch_hardmax, args, dict(axis=axis),)
         torch_module.add_module(node.name, module)
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
     else:
@@ -211,7 +211,7 @@ def add_swish_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  to
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module, t) for inp,t in zip(node.inputs, types)]
     alpha = node.attrs.get('alpha', 1.0)
     if state.module_based:
-        module = utils.WrappedModule(node.op, torch_module, torch_swish, args, dict(alpha=alpha), )
+        module = utils.WrappedModule(node.name, node.op, torch_module, torch_swish, args, dict(alpha=alpha), )
         torch_module.add_module(node.name, module)
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
     else:
@@ -276,8 +276,29 @@ def add_trilu_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  to
     func = torch.triu if upper else torch.tril
     torch_nodes[node.name] = torch_graph.call_function( func, tuple(args), name=node.name)
     if state.module_based:
-        module = utils.WrappedModule(node.op, torch_module, func, args )
+        module = utils.WrappedModule(node.name, node.op, torch_module, func, args )
         torch_module.add_module(node.name, module)
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
     else:
         torch_nodes[node.name] = torch_graph.call_function(torch.tril, tuple(args), name=node.name)
+
+def add_clip_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
+    types = [ torch.Tensor, list, list]
+    assert 1<=len(node.inputs)<=3, f'{node.name} with operator {node.op} should have between 1 and 3 input, but got {len(node.inputs)}'
+    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    kwargs = {}
+    if 'min' in node.attrs:
+        kwargs['min'] = node.attrs['min']
+    if 'max' in node.attrs:
+        kwargs['max'] = node.attrs['max']
+    if state.module_based:
+        module = utils.WrappedModule(node.name, node.op, torch_module, torch.clip, args, kwargs)
+        torch_module.add_module(node.name, module)
+        args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
+        torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
+    else:
+        torch_nodes[node.name] = torch_graph.call_function(torch.clip, tuple(args), kwargs, name=node.name)
+    for attr in node.attrs:
+        if attr in kwargs:
+            continue
+        torch_nodes[node.name].meta[attr] = node.attrs[attr]

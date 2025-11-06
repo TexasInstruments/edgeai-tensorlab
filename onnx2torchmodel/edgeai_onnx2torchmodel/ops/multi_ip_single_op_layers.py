@@ -72,7 +72,7 @@ def add_node_2_torch_graph_multi_ip_1op(state, node:gs.Node, torch_graph:torch.f
         func = wrap_for_tensor(func)
 
         if state.module_based:
-            module = utils.WrappedModule(node.op, torch_module, func, args)
+            module = utils.WrappedModule(node.name, node.op, torch_module, func, args)
             torch_module.add_module(node.name, module)
             args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
 
@@ -93,7 +93,7 @@ def add_mod_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torc
     else:  
         func = torch.remainder
     if state.module_based:
-        module = utils.WrappedModule(node.op, torch_module, func, args)
+        module = utils.WrappedModule(node.name, node.op, torch_module, func, args)
         torch_module.add_module(node.name, module)
         args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))

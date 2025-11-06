@@ -79,26 +79,33 @@ class InstanceNorm(torch.nn.modules.instancenorm._InstanceNorm):
             raise ValueError(
                 f"expected 2D, 3D, 4D or 5D input (got {input.dim()}D input)"
             )
+    
     def _get_no_batch_dim(self):
         pass
+    
+    @torch.compile
+    def _apply_instance_norm(self, input):
+        return super()._apply_instance_norm(input)
+    
     def forward(self, input: torch.Tensor) -> torch.Tensor:
         self._check_input_dim(input)
 
         feature_dim = 1
-        if input.size(feature_dim) != self.num_features:
-            if self.affine:
-                raise ValueError(
-                    f"expected input's size at dim={feature_dim} to match num_features"
-                    f" ({self.num_features}), but got: {input.size(feature_dim)}."
-                )
-            else:
-                warnings.warn(
-                    f"input's size at dim={feature_dim} does not match num_features. "
-                    "You can silence this warning by not passing in num_features, "
-                    "which is not used because affine=False"
-                )
+        # if input.size(feature_dim) != self.num_features:
+        #     if self.affine:
+        #         raise ValueError(
+        #             f"expected input's size at dim={feature_dim} to match num_features"
+        #             f" ({self.num_features}), but got: {input.size(feature_dim)}."
+        #         )
+        #     else:
+        #         warnings.warn(
+        #             f"input's size at dim={feature_dim} does not match num_features. "
+        #             "You can silence this warning by not passing in num_features, "
+        #             "which is not used because affine=False"
+        #         )
 
         return self._apply_instance_norm(input)
+
 def add_instance_norm_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert len(node.inputs) == 3, f'{node.name} with operator {node.op} should have 3 input, but got {len(node.inputs)}'
     assert all(isinstance(x, gs.Constant) for x in node.inputs[1:]), f'node {node.name} with operator {node.op} should have weight, bias as constant but got {[type(x).__name__ for x in node.inputs[1:]]}'

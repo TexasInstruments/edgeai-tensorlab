@@ -83,7 +83,7 @@ def add_avg_pool_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph, 
             padding_node = torch_graph.call_module(node.name+'_pad', tuple(args[0:1]))
             args[0] = padding_node
     if state.module_based:
-        module = utils.WrappedModule(node.op, torch_module, func, args, kwargs)
+        module = utils.WrappedModule(node.name, node.op, torch_module, func, args, kwargs)
         torch_module.add_module(node.name, module)
         args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
@@ -150,7 +150,7 @@ def add_max_pool_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph, 
             args[0] = padding_node
     
     if state.module_based:
-        module = utils.WrappedModule(node.op, torch_module, func, args, kwargs)
+        module = utils.WrappedModule(node.name, node.op, torch_module, func, args, kwargs)
         torch_module.add_module(node.name, module)
         args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
@@ -179,7 +179,7 @@ def add_global_avg_pool_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.
     args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
 
     if state.module_based:
-        module = utils.WrappedModule(node.op, torch_module, torch_global_avg_pool, args, )
+        module = utils.WrappedModule(node.name, node.op, torch_module, torch_global_avg_pool, args, )
         torch_module.add_module(node.name, module)
         args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))

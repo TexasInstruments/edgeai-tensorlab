@@ -46,7 +46,7 @@ def add_matmul_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  t
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args[0:1]),)
     else:        
         if state.module_based:
-            module = utils.WrappedModule(node.op, torch_module, torch.matmul, args)
+            module = utils.WrappedModule(node.name, node.op, torch_module, torch.matmul, args)
             torch_module.add_module(node.name, module)
             args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
 

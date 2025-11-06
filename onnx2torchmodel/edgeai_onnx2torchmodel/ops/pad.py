@@ -79,7 +79,7 @@ def add_pad_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torc
         mode = node.attrs.get('mode','constant')
     
     if state.module_based:
-        module = utils.WrappedModule(node.op, torch_module, torch_pad, args, dict(mode=mode),)
+        module = utils.WrappedModule(node.name, node.op, torch_module, torch_pad, args, dict(mode=mode),)
         torch_module.add_module(node.name, module)
         args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
