@@ -410,25 +410,30 @@ class _AdaptiveOutlierSuppressionObserver(torch.ao.quantization.HistogramObserve
         #
 
     def get_minmax_vals(self):
-        new_min, new_max = self._non_linear_param_search()
-        return new_min, new_max
+        if self.outlier_suppression is True or \
+            self.outlier_suppression == AdaptiveOutlierSuppressionObserverTypes.HISTOGRAM_RUNNINGAVG:
+            min_val, max_val = self._non_linear_param_search()
+        else:
+            min_val, max_val = self.min_val, self.max_val
+        #
+        return min_val, max_val
     
     def forward(self, x_orig):
         if x_orig.numel() == 0:
             return x_orig
         x = x_orig.detach()
         if torch.is_floating_point(x):
-            if self.outlier_suppression is True or self.outlier_suppression == AdaptiveOutlierSuppressionObserverTypes.HISTOGRAM_GLOBAL:
+            if self.outlier_suppression is True or \
+                self.outlier_suppression == AdaptiveOutlierSuppressionObserverTypes.HISTOGRAM_GLOBAL:
                 x_o = super().forward(x)
-            if self.outlier_suppression == AdaptiveOutlierSuppressionObserverTypes.HISTOGRAM_RUNNINGAVG:
-                min_val, max_val = self.histogram_range(x, range_shrink_percentile=self.range_shrink_percentile)
-                self._update_range(min_val, max_val)
+                self.histogram_global_range()
+            elif self.outlier_suppression == AdaptiveOutlierSuppressionObserverTypes.HISTOGRAM_RUNNINGAVG:
+                x_o = super().forward(x)
+                self.histogram_runningavg_range(x)
             elif self.outlier_suppression == AdaptiveOutlierSuppressionObserverTypes.FOUR_SIGMA_RUNNINGAVG:
-                min_val, max_val = self.sigma_range(x, sigma_factor=4.0)
-                self._update_range(min_val, max_val)
+                self.sigma_range(x, sigma_factor=4.0)
             elif self.outlier_suppression == AdaptiveOutlierSuppressionObserverTypes.THREE_SIGMA_RUNNINGAVG:
-                min_val, max_val = self.sigma_range(x, sigma_factor=3.0)
-                self._update_range(min_val, max_val)
+                self.sigma_range(x, sigma_factor=3.0)
             else:
                 x_o = super().forward(x)
             #
@@ -447,44 +452,29 @@ class _AdaptiveOutlierSuppressionObserver(torch.ao.quantization.HistogramObserve
         return scale, zero_point
 
     def _non_linear_param_search(self) -> tuple[torch.Tensor, torch.Tensor]:
-        r"""Non-linear parameter search.
-
-        An approximation for L2 error minimization for selecting min/max.
-        By selecting new min/max, we filter out outliers in input distribution.
-        This follows the implementation of NormMinimization::NonlinearQuantizationParamsSearch in
-        caffe2/quantization/server/norm_minimization.cc
-        """
         assert self.histogram.size()[0] == self.bins, "bins mismatch"
-        bin_width = (self.max_val - self.min_val) / self.bins
+        return xnn.utils.range_from_histogram(self.histogram, self.min_val, self.max_val, bins=self.bins, range_shrink_percentile=self.range_shrink_percentile)
 
-        quantile_l = self.range_shrink_percentile/100.0
-        quantile_h = 1.0 - quantile_l
-    
-        # cumulative sum
-        total = torch.sum(self.histogram).item()
-        if total == 0:
-            return self.min_val, self.max_val
-        #
-        pdf = self.histogram / total
-        cdf = torch.cumsum(pdf, dim=0)
-        start_bin = torch.searchsorted(cdf, quantile_l, side='left')
-        end_bin = torch.searchsorted(cdf, quantile_h, side='right')
-        new_min = self.min_val + bin_width * start_bin
-        new_max = self.min_val + bin_width * (end_bin + 1)
-        return new_min, new_max
-    
+    def histogram_global_range(self):
+        assert self.histogram.size()[0] == self.bins, "bins mismatch"
+        return xnn.utils.range_from_histogram(self.histogram, self.min_val, self.max_val, bins=self.bins, range_shrink_percentile=self.range_shrink_percentile)
+
     def sigma_range(self, x_orig, sigma_factor=3.0):
-        min_val, max_val = quant_utils._outlier_suppression_range(x_orig, dim=None, sigma_factor=sigma_factor)
-        return min_val, max_val
-    
-    def histogram_range(self, x_orig, range_shrink_percentile):
-        # min_val, max_val = xnn.utils.quantile_range(x_orig, range_shrink_percentile=range_shrink_percentile)
-        min_val, max_val = xnn.utils.histogram_range(x_orig, range_shrink_percentile=range_shrink_percentile)
+        min_val, max_val = xnn.utils.sigma_range(x_orig, dim=None, sigma_factor=sigma_factor)
         if torch.isnan(min_val) or torch.isnan(max_val):
             return torch.min(x_orig), torch.max(x_orig)
-        return min_val, max_val
+        self._update_runningavg_range(min_val, max_val)
+        return self.min_val, self.max_val
     
-    def _update_range(self, min_val, max_val):
+    def histogram_runningavg_range(self, x_orig):
+        # min_val, max_val = xnn.utils.quantile_range(x_orig, range_shrink_percentile=self.range_shrink_percentile)
+        min_val, max_val = xnn.utils.histogram_range(x_orig, range_shrink_percentile=self.range_shrink_percentile)
+        if torch.isnan(min_val) or torch.isnan(max_val):
+            return torch.min(x_orig), torch.max(x_orig)
+        self._update_runningavg_range(min_val, max_val)
+        return self.min_val, self.max_val
+    
+    def _update_runningavg_range(self, min_val, max_val):
         if torch.isinf(self.min_val) or torch.isinf(self.max_val):
             self.min_val.copy_(min_val)
             self.max_val.copy_(max_val)
