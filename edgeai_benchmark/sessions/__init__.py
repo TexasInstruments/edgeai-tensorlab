@@ -31,26 +31,30 @@ from .. import constants
 from .tvmrt_session import TVMRTSession
 from .tflitert_session import TFLiteRTSession
 from .onnxrt_session import ONNXRTSession
+from .tidlrt_session import TIDLRTSession
 
 
 session_name_to_type_dict = {
     constants.SESSION_NAME_TVMRT : TVMRTSession,
     constants.SESSION_NAME_TFLITERT: TFLiteRTSession,
-    constants.SESSION_NAME_ONNXRT: ONNXRTSession
+    constants.SESSION_NAME_ONNXRT: ONNXRTSession,
+    constants.SESSION_NAME_TIDLRT: TIDLRTSession
 }
 
 
 session_type_to_name_dict = {
     TVMRTSession : constants.SESSION_NAME_TVMRT,
     TFLiteRTSession : constants.SESSION_NAME_TFLITERT,
-    ONNXRTSession: constants.SESSION_NAME_ONNXRT
+    ONNXRTSession: constants.SESSION_NAME_ONNXRT,
+    TIDLRTSession: constants.SESSION_NAME_TIDLRT
 }
 
 
 session_name_to_compact_name = {
     constants.SESSION_NAME_TVMRT : 'tvm',
     constants.SESSION_NAME_TFLITERT: 'tfl',
-    constants.SESSION_NAME_ONNXRT: 'onr'
+    constants.SESSION_NAME_ONNXRT: 'onr',
+    constants.SESSION_NAME_TIDLRT: 'tdr'
 }
 
 
