@@ -226,6 +226,9 @@ class BaseRTSession(utils.ParamsBase):
         stats_dict['perfsim_time'] = None
         stats_dict['perfsim_ddr_transfer'] = None
 
+        if self.kwargs['session_name'] == 'tidlrt':
+            stats_dict = self.get_tidl_performance()
+
         if hasattr(self.interpreter, 'get_TI_benchmark_data'):
             stats_dict = self._tidl_infer_stats()
         #
