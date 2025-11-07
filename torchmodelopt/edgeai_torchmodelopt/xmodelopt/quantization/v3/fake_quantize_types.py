@@ -81,7 +81,7 @@ class AdaptiveActivationFakeQuantize(AdaptiveFakeQuantize):
 
 
 ####################################################################
-class _AdaptiveTensorClip(AdaptiveFakeQuantize):
+class _AdaptiveOutlierSuppression(AdaptiveFakeQuantize):
     '''
     Create a subclass, just to distinguish between the ones used for activation and weight
     '''
@@ -99,14 +99,10 @@ class _AdaptiveTensorClip(AdaptiveFakeQuantize):
             self.scale.copy_(_scale)
             self.zero_point.copy_(_zero_point)
             
-        outlier_suppression = getattr(self.activation_post_process, 'outlier_suppression', False) \
+        range_shrink = self.activation_post_process.range_shrink \
             if getattr(self, 'activation_post_process', None) else False
-        if outlier_suppression:
-            if hasattr(self.activation_post_process, 'get_minmax_vals'):
-                min_val, max_val = self.activation_post_process.get_minmax_vals()
-            else:
-                min_val, max_val = self.activation_post_process.min_val.clone(), self.activation_post_process.max_val.clone()
-            #
+        if range_shrink:
+            min_val, max_val = self.activation_post_process.min_val.clone(), self.activation_post_process.max_val.clone()
             x_q = torch.clip(X, min_val, max_val)
         else:
             x_q = X
@@ -114,17 +110,17 @@ class _AdaptiveTensorClip(AdaptiveFakeQuantize):
         return x_q
     
 
-class AdaptiveWeightClip(_AdaptiveTensorClip):
+class AdaptiveWeightOutlierSuppression(_AdaptiveOutlierSuppression):
     pass
 
 
-class AdaptiveActivationClip(_AdaptiveTensorClip):
+class AdaptiveActivationOutlierSuppresion(_AdaptiveOutlierSuppression):
     pass
 
 
 ####################################################################
-ADAPTIVE_WEIGHT_FAKE_QUANT_TYPES = (AdaptiveWeightFakeQuantize, AdaptiveWeightClip)
+ADAPTIVE_WEIGHT_FAKE_QUANT_TYPES = (AdaptiveWeightFakeQuantize, AdaptiveWeightOutlierSuppression)
 
-ADAPTIVE_ACTIVATION_FAKE_QUANT_TYPES = (AdaptiveActivationFakeQuantize, AdaptiveActivationClip)
+ADAPTIVE_ACTIVATION_FAKE_QUANT_TYPES = (AdaptiveActivationFakeQuantize, AdaptiveActivationOutlierSuppresion)
 
 ADAPTIVE_FAKE_QUANT_TYPES = tuple(list(ADAPTIVE_WEIGHT_FAKE_QUANT_TYPES) + list(ADAPTIVE_ACTIVATION_FAKE_QUANT_TYPES))
