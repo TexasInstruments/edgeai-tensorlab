@@ -124,7 +124,7 @@ def torch_attention(q,k,v, attn_mask=None, past_key=None, past_val=None, non_pad
 def add_attention_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
     assert 7>= len(node.inputs) >= 3, f'{node.name} with operator {node.op} should have between 3 and 7 inputs, but got {len(node.inputs)}'
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module, t) for inp,t in zip(node.inputs, types)]
+    args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module, t) for inp,t in zip(node.inputs, types)]
     kwargs = dict(node.attrs)
     kwargs['num_outputs'] = len(node.outputs)
     if state.module_based:

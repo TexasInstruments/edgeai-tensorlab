@@ -62,7 +62,7 @@ def add_custom_node_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Grap
     if node.op not in custom_to_torch:
         raise NotImplementedError
     types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     kwargs = dict(node.attrs)
     if state.module_based:
         module = utils.WrappedModule(node.name, node.op, torch_module, custom_to_torch[node.op], args, kwargs)

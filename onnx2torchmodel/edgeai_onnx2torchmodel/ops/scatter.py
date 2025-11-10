@@ -39,7 +39,7 @@ def torch_scatter(x: torch.Tensor, indices, updates, axis=0):
 def add_scatter_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert len(node.inputs) == 3, f'{node.name} with operator {node.op} should have 3 inputs, but got {len(node.inputs)}'
     types = [torch.nn.Parameter, torch.Tensor, torch.Tensor]
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     axis = node.attrs.get('axis', 0)
     if state.module_based:
         module = utils.WrappedModule(node.name, node.op, torch_module, torch_scatter, args, dict(axis=axis),)
@@ -58,7 +58,7 @@ def torch_scatter_elements(x:torch.Tensor, indices:torch.Tensor, updates:torch.T
 def add_scatter_elements_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert len(node.inputs) == 3, f'{node.name} with operator {node.op} should have 3 inputs, but got {len(node.inputs)}'
     types = [torch.nn.Parameter, torch.Tensor, torch.Tensor]
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     axis = node.attrs.get('axis', 0)
     reduce = node.attrs.get('reduction', 'none')
     if state.module_based:
@@ -101,7 +101,7 @@ def torch_scatter_nd(data:torch.Tensor, indices:torch.Tensor, updates:torch.Tens
 def add_scatter_nd_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert len(node.inputs) == 3, f'{node.name} with operator {node.op} should have 3 inputs, but got {len(node.inputs)}'
     types = [torch.nn.Parameter, torch.Tensor, torch.Tensor]
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     reduce = node.attrs.get('reduction', 'none')
     if state.module_based:
         module = utils.WrappedModule(node.name, node.op, torch_module, torch_scatter_nd, args, dict(reduce=reduce))
