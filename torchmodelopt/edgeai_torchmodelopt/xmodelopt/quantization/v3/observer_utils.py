@@ -115,15 +115,24 @@ class AdaptiveRangeShrinkObserverTypes:
     DEFAULT = True # same as 'percentile'
 
 
+class RangeShrinkPercentileValues:
+    AGGRESSIVE = 0.1
+    DEFAULT = 0.01
+
+
 class AdaptiveRangeShrinkObserver(torch.ao.quantization.HistogramObserver):
-    def __init__(self, *args,  factory_kwargs=None, range_shrink=True, dtype=torch.float32, averaging_constant=0.01, **kwargs):
+    def __init__(self, *args,  factory_kwargs=None, power2_scale=False, range_max=None, fixed_range=False, 
+                 range_shrink=True, dtype=torch.float32, **kwargs):
         super().__init__(*args, factory_kwargs=factory_kwargs, dtype=torch.int32, bins=1024, **kwargs)
+        self.range_shrink = RangeShrinkPercentileValues.DEFAULT if isinstance(range_shrink, (bool,)) else range_shrink
         self.dtype = dtype
-        self.averaging_constant = averaging_constant
         self.num_batches_tracked = 0
-        self.range_shrink = range_shrink
-        self.range_shrink_percentile = RANGE_SHRINK_PERCENTILE_AGGRESSIVE #RANGE_SHRINK_PERCENTILE_DEFAULT
         self.upsample_rate = 8
+        self.averaging_constant = 0.01
+        self.power2_scale = power2_scale
+        self.range_max = range_max
+        self.fixed_range = fixed_range
+        self.freeze_observer = False
 
         factory_kwargs = torch.nn.factory_kwargs(factory_kwargs)
         self.register_buffer("min_val_hist", torch.tensor(float("inf"), **factory_kwargs))
@@ -135,15 +144,16 @@ class AdaptiveRangeShrinkObserver(torch.ao.quantization.HistogramObserver):
                 setattr(self, k, v)
             #
         #
-        
+    
     def forward(self, x_orig):
+        if self.freeze_observer:
+            return x_orig
+        #
         if x_orig.numel() == 0:
             return x_orig
         x = x_orig.detach()
         if torch.is_floating_point(x):
-            if self.range_shrink is True or \
-                self.range_shrink == AdaptiveRangeShrinkObserverTypes.HISTOGRAM_GLOBAL:
-
+            if isinstance(self.range_shrink, (float, int)):
                 # super().forward uses self.min_val and self.max_val internally
                 # so copy our values into that.
                 min_val = self.min_val.clone()
@@ -173,6 +183,22 @@ class AdaptiveRangeShrinkObserver(torch.ao.quantization.HistogramObserver):
         self.num_batches_tracked += 1
         return x_orig
 
+    @torch.jit.export
+    def _calculate_qparams(self, min_val, max_val):
+        r"""Calculates the quantization parameters."""
+        # weights qparams are always symmetric and this is ensured inside the super class, no need to handle it here.
+        min_val, max_val, range_valid = self._correct_min_max(min_val, max_val)
+        if range_valid:
+            scale, zero_point = super()._calculate_qparams(min_val, max_val)
+        else:
+            scale = torch.tensor(1.0, device=min_val.device)
+            zero_point = torch.tensor(0, device=min_val.device, dtype=torch.int64)
+        #
+        if self.power2_scale:
+            scale, zero_point = _adjust_qparams_power2_scale(
+                min_val, max_val, self.quant_min, self.quant_max, scale, zero_point, self.eps)
+        return scale, zero_point
+    
     def _non_linear_param_search(self) -> tuple[torch.Tensor, torch.Tensor]:
         # called in calculate_qparams() of super class
         return self.min_val, self.max_val
@@ -180,7 +206,7 @@ class AdaptiveRangeShrinkObserver(torch.ao.quantization.HistogramObserver):
     def histogram_global_range(self):
         assert self.histogram.size()[0] == self.bins, "bins mismatch"
         min_val, max_val = xnn.utils.range_from_histogram(self.histogram, self.min_val_hist, self.max_val_hist, 
-                                                          bins=self.bins, range_shrink_percentile=self.range_shrink_percentile)
+                                                          bins=self.bins, range_shrink_percentile=self.range_shrink)
         self.min_val.copy_(min_val)
         self.max_val.copy_(max_val)
         return self.min_val, self.max_val

@@ -317,6 +317,10 @@ class AdaptiveActivationObserver(AdaptiveMovingAverageMinMaxActivationObserver):
 
 ####################################################################
 class _AdaptiveOutlierSuppressionObserver(observer_utils.AdaptiveRangeShrinkObserver):
+    def __init__(self, *args, range_shrink=True, **kwargs):
+        range_shrink = observer_utils.RangeShrinkPercentileValues.AGGRESSIVE if isinstance(range_shrink, (bool,)) else range_shrink
+        super().__init__(*args, range_shrink=range_shrink, **kwargs)
+
     @torch.jit.export
     def _calculate_qparams(
         self, min_val: torch.Tensor, max_val: torch.Tensor

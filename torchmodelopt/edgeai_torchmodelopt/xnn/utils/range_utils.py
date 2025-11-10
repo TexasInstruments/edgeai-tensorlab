@@ -48,14 +48,18 @@ def quantile_range(src, range_shrink_percentile=0.01):
 
 
 def range_from_histogram(hist_array, min_val, max_val, bins=1024, range_shrink_percentile=0.01):
+    '''
+    find range from histogram - range_shrink is given in percentile - it will be divided by 100 inside the function
+    0.01 means 0.01% from both sides will be trimmed. 0.0 means no trimming
+    '''
+    quantile_l = range_shrink_percentile/100.0
+    quantile_h = 1.0 - quantile_l
+
     if min_val >= max_val:
         return min_val, max_val
     #
     hist_array = hist_array.float()
     bin_width = (max_val - min_val) / bins
-    
-    quantile_l = range_shrink_percentile/100.0
-    quantile_h = 1.0 - quantile_l
     
     total = hist_array.sum()
     if total == 0:
