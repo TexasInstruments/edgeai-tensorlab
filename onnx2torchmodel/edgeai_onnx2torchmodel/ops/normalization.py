@@ -42,7 +42,7 @@ def add_batchnorm_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,
     assert len(node.inputs) == 5, f'{node.name} with operator {node.op} should have 5 input, but got {len(node.inputs)}'
     assert all(isinstance(x, gs.Constant) for x in node.inputs[1:]), f'node {node.name} with operator {node.op} should have weight, bias, running_mean, running_var as constant but got {[type(x).__name__ for x in node.inputs[1:]]}'
     types = [torch.nn.Parameter, torch.nn.Parameter, torch.nn.Parameter, utils.Buffer, utils.Buffer]
-    inp, weight, bias, mean, var = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    inp, weight, bias, mean, var = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     epsilon = node.attrs.get('epsilon', 1e-5)
     momentum = 1 - node.attrs.get('momentum', 0.9)
     training_mode = node.attrs.get('training_mode', 0) == 1
@@ -109,7 +109,7 @@ def add_instance_norm_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Gr
     assert len(node.inputs) == 3, f'{node.name} with operator {node.op} should have 3 input, but got {len(node.inputs)}'
     assert all(isinstance(x, gs.Constant) for x in node.inputs[1:]), f'node {node.name} with operator {node.op} should have weight, bias as constant but got {[type(x).__name__ for x in node.inputs[1:]]}'
     types = [torch.nn.Parameter, torch.nn.Parameter, torch.nn.Parameter]
-    inp, weight, bias = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    inp, weight, bias = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     epsilon = node.attrs.get('epsilon', 1e-5)
     module = InstanceNorm(num_features=node.inputs[1].values.shape[0], eps=epsilon,)
     module.training =False
@@ -121,7 +121,7 @@ def add_instance_norm_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Gr
 def add_layer_norm_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert 2<=len(node.inputs) <= 3, f'{node.name} with operator {node.op} should have 3 input, but got {len(node.inputs)}'
     types = [torch.nn.Parameter, torch.nn.Parameter, torch.nn.Parameter]
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     epsilon = node.attrs.get('epsilon', 1e-5)
     axis = node.attrs.get('axis', -1)
     num_outputs = len(node.outputs)
@@ -159,7 +159,7 @@ def add_group_norm_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph
     assert 2<=len(node.inputs) <= 3, f'{node.name} with operator {node.op} should have 2 to 3 input, but got {len(node.inputs)}'
     assert all(isinstance(x, gs.Constant) for x in node.inputs[1:]), f'node {node.name} with operator {node.op} should have weight, bias as constant but got {[type(x).__name__ for x in node.inputs[1:]]}'
     types = [torch.nn.Parameter, torch.nn.Parameter, torch.nn.Parameter]
-    inp, weight, bias = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    inp, weight, bias = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     num_groups = node.attrs.get('num_groups')
     epsilon = node.attrs.get('epsilon', 1e-5)
     kwargs = dict(

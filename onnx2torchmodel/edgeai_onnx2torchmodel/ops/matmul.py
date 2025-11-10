@@ -34,7 +34,7 @@ from . import utils
 def add_matmul_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert len(node.inputs) == 2, f'{node.name} with operator {node.op} should have 2 inputs, but got {len(node.inputs)}'
     types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     if isinstance(node.inputs[0], gs.Variable) and isinstance(node.inputs[1], gs.Constant) and len(node.inputs[1].shape) == 2:
         m,n = node.inputs[1].shape
         m = torch.nn.Linear(m,n, bias=False)

@@ -48,7 +48,7 @@ def torch_reshape(x, shape, allowzero=False):
 def add_reshape_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert 1<= len(node.inputs) <= 2, f'{node.name} with operator {node.op} should have 1 or 2 inputs, but got {len(node.inputs)}'
     types = [torch.nn.Parameter,list]
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     kwargs = dict(
         
     )
@@ -84,7 +84,7 @@ def torch_flatten(x:torch.Tensor, axis):
 def add_flatten_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module ):
     assert len(node.inputs) == 1, f'{node.name} with operator {node.op} should have 1 input, but got {len(node.inputs)}'
     types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     axis = node.attrs.get('axis', 1)
     if state.module_based:
         module = utils.WrappedModule(node.name, node.op, torch_module, torch_flatten, args, dict(axis=axis),)
@@ -103,7 +103,7 @@ def torch_shape(x):
 def add_shape_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert len(node.inputs) == 1, f'{node.name} with operator {node.op} should have 1 input, but got {len(node.inputs)}'
     types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     if state.module_based:
         module = utils.WrappedModule(node.name, node.op, torch_module, torch_shape, args)
         torch_module.add_module(node.name, module)
@@ -115,7 +115,7 @@ def add_shape_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  to
 def add_size_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert len(node.inputs) == 1, f'{node.name} with operator {node.op} should have 1 input, but got {len(node.inputs)}'
     types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     if state.module_based:
         module = utils.WrappedModule(node.name, node.op, torch_module, torch.numel, args, )
         torch_module.add_module(node.name, module)

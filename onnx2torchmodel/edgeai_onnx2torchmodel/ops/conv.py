@@ -98,7 +98,7 @@ def add_conv_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  tor
         torch_module.training = False
         changed = True
     types = [torch.nn.Parameter  for inp in node.inputs]
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     node_name = node.name+'_'+node.op        
     if state.training  and not  all(isinstance(t,c) for t,c in zip(node.inputs,(gs.Variable, gs.Constant, gs.Constant))):
         warnings.warn(f'{node_name} with operator {node.op} is not suitable for conversion with training mode changing to inference mode. this operator should only have variable input, constant weight and bias (if any) for training.')
@@ -232,7 +232,7 @@ def get_torch_conv_transpose_module(node:gs.Node, torch_module:torch.nn.Module):
 def add_conv_transpose_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert 3>=len(node.inputs) >= 2, f'{node.name} with operator {node.op} should have between 2 and 3 inputs, but got {len(node.inputs)}'
     types = [torch.nn.Parameter  for inp in node.inputs]
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     if all(isinstance(t,c) for t,c in zip(node.inputs,(gs.Variable, gs.Constant, gs.Constant))):
         module = get_torch_conv_transpose_module(node, torch_module)
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args[0:1]),)
@@ -398,7 +398,7 @@ def torch_deform_conv(x, weight, offset, bias=None, mask=None, kernl_size=None, 
 def add_deform_conv_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert 5>=len(node.inputs) >= 3, f'{node.name} with operator {node.op} should have between 3 and 5 inputs, but got {len(node.inputs)}'
     types = [torch.nn.Parameter  for inp in node.inputs]
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     kernel_size = node.attrs.get('kernel_shape')
     stride = node.attrs.get('strides')
     padding = node.attrs.get('pads')

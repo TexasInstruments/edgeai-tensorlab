@@ -58,7 +58,7 @@ def add_dropout_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  
     if state.graph.opset>=12:
         assert 1<= len(node.inputs) <= 3, f'{node.name} with operator {node.op} should have 1 to 3 inputs in opset (12 and above), but got {len(node.inputs)}'
         types = [torch.nn.Parameter, list, list]
-        args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+        args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
         seed = node.attrs.get('seed', None)
         if len(args) == 1:
             args.append(0.5)
@@ -76,7 +76,7 @@ def add_dropout_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  
     elif  state.graph.opset>=7:
         assert len(node.inputs)== 1 , f'{node.name} with operator {node.op} should have 1 input in opset (7 to 11), but got {len(node.inputs)}'
         types = [torch.nn.Parameter]
-        args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+        args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
         ratio = node.attrs.get('ratio', 0.5)
         module.p = ratio
         torch_nodes[node.name] = torch_graph.call_module(node.name, (inp,),  name=node.name)
@@ -84,7 +84,7 @@ def add_dropout_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  
     else:
         assert len(node.inputs)== 1 , f'{node.name} with operator {node.op} should have 1 input in opset (7 to 11), but got {len(node.inputs)}'
         types = [torch.nn.Parameter]
-        args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+        args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
         ratio = node.attrs.get('ratio', 0.5)
         training_mode = node.attrs.get('is_test', 0) == 0
         module.p = ratio

@@ -91,15 +91,15 @@ class WrappedModule(torch.nn.Module):
     def __repr__(self):
         return f"WrappedModule(node_name={self.node_name}, op={self.onnx_op},func={self.func.__name__}, args = {[getattr(self,a) if hasattr(self, a) else a for a in self.args]},  kwargs="+ r'{' + ', '.join([f'{k} = {v}' for k, v in self.kwargs.items()]) + r'})'
 
-def get_input_from_node(inp:gs.Variable|gs.Constant, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module, attr_type:type=None, **kwargs):
+def get_input_from_node(node:gs.Node, inp:gs.Variable|gs.Constant, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module, attr_type:type=None, **kwargs):
     if inp.name in torch_nodes and  torch_nodes[inp.name].op != 'get_attr':
         return torch_nodes[inp.name]
     if isinstance(inp, gs.Constant):
         name = inp.name + f"_{len([k for k,v in torch_nodes.items() if v.op =='get_attr'])}"
         values=inp.values
         temp = gs.Constant(name, values, inp.data_location)
-        i = inp.outputs[0].inputs.index(inp)
-        inp.outputs[0].inputs[i] = temp
+        i = node.inputs.index(inp)
+        node.inputs[i] = temp
         inp = temp
         attr_type = attr_type or torch.Tensor
         if attr_type not in (list, tuple, set, torch.Tensor, torch.nn.Parameter, Buffer):

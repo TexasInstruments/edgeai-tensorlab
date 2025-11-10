@@ -38,7 +38,7 @@ def torch_reduce_max(x, axes=None, keepdims=True, noop_with_empty_axes = False):
 def add_reduce_max_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert 1<=len(node.inputs)<= 2, f'{node.name} with operator {node.op} should have between 1 and 2 inputs, but got {len(node.inputs)}'
     types = [torch.nn.Parameter , list]
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     
     keepdims = node.attrs.get('keepdims', 0) == 1
     noop_with_empty_axes  = node.attrs.get('noop_with_empty_axes', 0) == 1
@@ -60,7 +60,7 @@ def torch_reduce_min(x, axes=None, keepdims=True, noop_with_empty_axes = False):
 def add_reduce_min_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert 1<=len(node.inputs)<= 2, f'{node.name} with operator {node.op} should have between 1 and 2 inputs, but got {len(node.inputs)}'
     types = [torch.nn.Parameter , list]
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     
     keepdims = node.attrs.get('keepdims', 0) == 1
     noop_with_empty_axes  = node.attrs.get('noop_with_empty_axes', 0) == 1
@@ -82,7 +82,7 @@ def torch_reduce_mean(x, axes, keepdims=True, noop_with_empty_axes = False):
 def add_reduce_mean_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert 1<=len(node.inputs)<= 2, f'{node.name} with operator {node.op} should have between 1 and 2 inputs, but got {len(node.inputs)}'
     types = [torch.nn.Parameter , list]
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     
     keepdims = node.attrs.get('keepdims', 0) == 1
     noop_with_empty_axes  = node.attrs.get('noop_with_empty_axes', 0) == 1
@@ -116,7 +116,7 @@ def torch_reduce_l1(x, axes, keepdims=True, noop_with_empty_axes = False):
 def add_reduce_l1_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert 1 <= len(node.inputs) <= 2, f'{node.name} with operator {node.op} should have between 1 and 2 inputs, but got {len(node.inputs)}'
     types = [torch.nn.Parameter , list]
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     keepdims = node.attrs.get('keepdims', 0) == 1
     noop_with_empty_axes  = node.attrs.get('noop_with_empty_axes', 0) == 1
     kwargs = dict(keepdims=keepdims, noop_with_empty_axes=noop_with_empty_axes)
@@ -149,7 +149,7 @@ def torch_reduce_l2(x, axes, keepdims=True, noop_with_empty_axes = False):
 def add_reduce_l2_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert 1 <= len(node.inputs) <= 2, f'{node.name} with operator {node.op} should have between 1 and 2 inputs, but got {len(node.inputs)}'
     types = [torch.nn.Parameter , list]
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     keepdims = node.attrs.get('keepdims', 0) == 1
     noop_with_empty_axes  = node.attrs.get('noop_with_empty_axes', 0) == 1
     kwargs = dict(keepdims=keepdims, noop_with_empty_axes=noop_with_empty_axes)
@@ -183,7 +183,7 @@ def torch_reduce_sum(x, axes, keepdims=True, noop_with_empty_axes = False):
 def add_reduce_sum_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert 1 <= len(node.inputs) <= 2, f'{node.name} with operator {node.op} should have between 1 and 2 inputs, but got {len(node.inputs)}'
     types = [torch.nn.Parameter , list]
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     keepdims = node.attrs.get('keepdims', 0) == 1
     noop_with_empty_axes  = node.attrs.get('noop_with_empty_axes', 0) == 1
     kwargs = dict(keepdims=keepdims, noop_with_empty_axes=noop_with_empty_axes)
@@ -204,7 +204,7 @@ def torch_reduce_log_sum(x, axes, keepdims=True, noop_with_empty_axes = False):
 def add_reduce_log_sum_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert 1 <= len(node.inputs) <= 2, f'{node.name} with operator {node.op} should have between 1 and 2 inputs, but got {len(node.inputs)}'
     types = [torch.nn.Parameter , list]
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     keepdims = node.attrs.get('keepdims', 0) == 1
     noop_with_empty_axes  = node.attrs.get('noop_with_empty_axes', 0) == 1
     kwargs = dict(keepdims=keepdims, noop_with_empty_axes=noop_with_empty_axes)
@@ -225,7 +225,7 @@ def torch_reduce_log_sum_exp(x, axes, keepdims=True, noop_with_empty_axes = Fals
 def add_reduce_log_sum_exp_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert 1 <= len(node.inputs) <= 2, f'{node.name} with operator {node.op} should have between 1 and 2 inputs, but got {len(node.inputs)}'
     types = [torch.nn.Parameter , list]
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     keepdims = node.attrs.get('keepdims', 0) == 1
     noop_with_empty_axes  = node.attrs.get('noop_with_empty_axes', 0) == 1
     kwargs = dict(keepdims=keepdims, noop_with_empty_axes=noop_with_empty_axes)
@@ -258,7 +258,7 @@ def torch_reduce_prod(x, axes, keepdims=True, noop_with_empty_axes = False):
 def add_reduce_prod_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert 1 <= len(node.inputs) <= 2, f'{node.name} with operator {node.op} should have between 1 and 2 inputs, but got {len(node.inputs)}'
     types = [torch.nn.Parameter , list]
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     keepdims = node.attrs.get('keepdims', 0) == 1
     noop_with_empty_axes  = node.attrs.get('noop_with_empty_axes', 0) == 1
     kwargs = dict(keepdims=keepdims, noop_with_empty_axes=noop_with_empty_axes)
@@ -280,7 +280,7 @@ def torch_reduce_sum_square(x, axes, keepdims=True, noop_with_empty_axes = False
 def add_reduce_sum_square_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert 1 <= len(node.inputs) <= 2, f'{node.name} with operator {node.op} should have between 1 and 2 inputs, but got {len(node.inputs)}'
     types = [torch.nn.Parameter , list]
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     keepdims = node.attrs.get('keepdims', 0) == 1
     noop_with_empty_axes  = node.attrs.get('noop_with_empty_axes', 0) == 1
     kwargs = dict(keepdims=keepdims, noop_with_empty_axes=noop_with_empty_axes)

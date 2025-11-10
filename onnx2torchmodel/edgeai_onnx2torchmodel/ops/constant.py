@@ -82,7 +82,7 @@ def add_constant_of_shape_2_torch_graph(state, node:gs.Node, torch_graph:torch.f
     value = node.attrs.get('value')
     if isinstance(value, gs.Constant):
         value = value.values.tolist()[0]
-    shape = utils.get_input_from_node(node.inputs[0], torch_graph, torch_nodes, torch_module, list)
+    shape = utils.get_input_from_node(node, node.inputs[0], torch_graph, torch_nodes, torch_module, list)
     if state.module_based:
         args = [shape]
         module = utils.WrappedModule(node.name, node.op, torch_module, torch_costant_of_shape, args, dict(value=value))
@@ -104,7 +104,7 @@ def add_eye_like_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph, 
     dtype = node.attrs.get('dtype',utils.TensorProto.FLOAT)
     dtype = utils.onnx_2_torch_type_mapping[dtype]
     k = node.attrs.get('k',0)
-    inp = utils.get_input_from_node(node.inputs[0], torch_graph, torch_nodes, torch_module, torch.nn.Parameter if inp.shape else torch.Tensor)
+    inp = utils.get_input_from_node(node, node.inputs[0], torch_graph, torch_nodes, torch_module, torch.nn.Parameter if inp.shape else torch.Tensor)
     if state.module_based:
         module = utils.WrappedModule(node.name, node.op, torch_module, torch_eye_like, args, dict(dtype=dtype,k=k))
         torch_module.add_module(node.name, module)

@@ -173,7 +173,7 @@ def torch_non_max_suppression(boxes: Tensor, scores: Tensor, max_output_boxes_pe
 def add_non_max_suppression_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert 2 <= len(node.inputs)<=5, f'{node.name} with operator {node.op} should have between 2 and 5 inputs, but got {len(node.inputs)}'
     types = [torch.Tensor for inp in node.inputs]
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module, t) for inp,t in zip(node.inputs, types)]
+    args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module, t) for inp,t in zip(node.inputs, types)]
     center_point_box = node.attrs.get('center_point_box', 0)
     if state.module_based:
         module = utils.WrappedModule(node.name, node.op, torch_module, torch_non_max_suppression, args, dict(center_point_box=center_point_box))

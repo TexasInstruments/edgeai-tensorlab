@@ -48,7 +48,7 @@ def torch_range(start, end, step=1):
 def add_range_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert len(node.inputs)==3, f'{node.name} with operator {node.op} should have 3 inputs, but got {len(node.inputs)}'
     types = [list, list, list]
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module, t) for inp,t in zip(node.inputs, types)]
+    args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module, t) for inp,t in zip(node.inputs, types)]
     if state.module_based:
         module = utils.WrappedModule(node.name, node.op, torch_module, torch_range, args)
         torch_module.add_module(node.name, module)
@@ -60,7 +60,7 @@ def add_range_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  to
 def add_unique_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     raise NotImplementedError(f"{node.name} with operator {node.op} is not implemented")
     assert len(node.inputs) == 1, f'{node.name} with operator {node.op} should have 1 input, but got {len(node.inputs)}'
-    inp = utils.get_input_from_node(node.inputs[0], torch_graph,torch_nodes, torch_module, torch.Tensor)
+    inp = utils.get_input_from_node(node, node.inputs[0], torch_graph,torch_nodes, torch_module, torch.Tensor)
     num_outputs = len(node.outputs)
     if num_outputs>1:
         return_indices = True
@@ -110,7 +110,7 @@ def add_tfldf_vectorizer_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx
 def add_col2im_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     raise NotImplementedError(f"{node.name} with operator {node.op} is not implemented")
     types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     torch_nodes[node.name] = torch_graph.call_function(torch.col2im, tuple(args),  name=node.name)
 
 
@@ -125,7 +125,7 @@ def add_center_crop_pad_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.
     raise NotImplementedError(f"{node.name} with operator {node.op} is not implemented")
     assert hasattr(node.inputs[0], 'shape'), f'input {node.inputs[0]} of {node.name} has no shape, Please simplify or insert shape first in onnx model'
     types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     axes = node.attrs.get('axes', None)
     if axes is None:
         axes = list(range(len(node.inputs[0].shape)))
@@ -135,7 +135,7 @@ def add_center_crop_pad_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.
 def add_blackman_window_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert len(node.inputs) == 1, f'{node.name} with operator {node.op} should have 1 input, but got {len(node.inputs)}'
     types = [list]
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     output_dtype = node.attrs.get('output_datatype')
     output_dtype = utils.onnx_2_torch_type_mapping[output_dtype]
     periodic = node.attrs.get('periodic', None)
@@ -155,7 +155,7 @@ def add_blackman_window_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.
 def add_bernouli_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert len(node.inputs) == 1, f'{node.name} with operator {node.op} should have 1 input, but got {len(node.inputs)}'
     types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     dtype = node.attrs.get('dtype', 1)
     kwargs = dict(dtype=utils.onnx_2_torch_type_mapping[dtype])
     seed = node.attrs.get('seed', None)

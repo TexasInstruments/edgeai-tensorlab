@@ -100,12 +100,12 @@ def check_convertable(graph:gs.Graph, op_2_func_dict=None, for_training=False, m
             
             outputs = list(temp_graph.outputs)
             if len(outputs) == 1:
-                output = utils.get_input_from_node(outputs[0], torch_graph, torch_nodes, root_module)
+                output = utils.get_input_from_node(node, outputs[0], torch_graph, torch_nodes, root_module)
                 torch_nodes['outputs'] = torch_graph.output(output)
             else:
                 torch_outputs = [] 
                 for out in outputs:
-                    torch_outputs.append(utils.get_input_from_node(out, torch_graph, torch_nodes, root_module))
+                    torch_outputs.append(utils.get_input_from_node(node, out, torch_graph, torch_nodes, root_module))
                 torch_nodes['outputs'] = torch_graph.output(tuple(torch_outputs))
         except Exception as e:
             error_dict[(node.name, node.op)] = e
@@ -147,12 +147,12 @@ def get_torch_graph_module(graph:gs.Graph, for_training=False, module_based=True
     
     outputs = list(graph.outputs)
     if len(outputs) == 1:
-        output = utils.get_input_from_node(outputs[0], torch_graph, torch_nodes, root_module)
+        output = utils.get_input_from_node(node, outputs[0], torch_graph, torch_nodes, root_module)
         torch_nodes['outputs'] = torch_graph.output(output)
     else:
         torch_outputs = [] 
         for out in outputs:
-            torch_outputs.append(utils.get_input_from_node(out, torch_graph, torch_nodes, root_module))
+            torch_outputs.append(utils.get_input_from_node(node, out, torch_graph, torch_nodes, root_module))
         torch_nodes['outputs'] = torch_graph.output(tuple(torch_outputs))
     
     

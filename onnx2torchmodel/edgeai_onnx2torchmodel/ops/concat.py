@@ -46,7 +46,7 @@ def torch_concat(tensors, dim=0):
 
 def add_concat_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     types = [torch.nn.Parameter if inp.shape else torch.Tensor for inp in node.inputs]
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     dim = node.attrs.get('axis')
     if state.module_based:
         module = utils.WrappedModule(node.name, node.op, torch_module, torch_concat, kwargs=dict(dim=dim))
@@ -68,7 +68,7 @@ def torch_stack(tensors, dim=0):
 
 def add_concat_from_sequence_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     types = [torch.nn.Parameter for inp in node.inputs]
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     dim = node.attrs.get('axis')
     new_axis = node.attrs.get('new_axis', 0) == 1
     func = torch_stack if new_axis else torch_concat
@@ -88,7 +88,7 @@ def torch_expand(x:torch.Tensor, shape):
 def add_expand_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert len(node.inputs) == 2, f'{node.name} with operator {node.op} should have 2 inputs, but got {len(node.inputs)}'
     types = [torch.nn.Parameter, list]
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     if state.module_based:
         module = utils.WrappedModule(node.name, node.op, torch_module, torch_expand, args, )
         torch_module.add_module(node.name, module)
@@ -114,7 +114,7 @@ def torch_split(input, split, dim=0):
 def add_split_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert 1<=len(node.inputs)<=2, f'{node.name} with operator {node.op} should have 1 or 2 inputs, but got {len(node.inputs)}'
     types = [torch.nn.Parameter, list]
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     kwargs = dict(dim = node.attrs.get('axis',0))
     if 'split' in node.attrs:
         split= node.attrs.get('split')
@@ -138,7 +138,7 @@ def torch_tile(input, dims):
 def add_tile_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert len(node.inputs) == 2, f'{node.name} with operator {node.op} should have 2 inputs, but got {len(node.inputs)}'
     types = [torch.nn.Parameter, list]
-    args = [utils.get_input_from_node(inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
+    args = [utils.get_input_from_node(node, inp, torch_graph,torch_nodes, torch_module,t) for inp,t in zip(node.inputs, types)]
     if state.module_based:
         module = utils.WrappedModule(node.name, node.op, torch_module, torch_tile, args)
         torch_module.add_module(node.name, module)
