@@ -230,12 +230,17 @@ class CircleObjectRangeFilter(BaseTransform):
             )
 
         gt_bboxes_3d = gt_bboxes_3d[mask]
-        gt_labels_3d = gt_labels_3d[mask]
+        # mask is a torch tensor but gt_labels_3d is still numpy array
+        # using mask to index gt_labels_3d will cause bug when
+        # len(gt_labels_3d) == 1, where mask=1 will be interpreted
+        # as gt_labels_3d[1] and cause out of index error
+        #gt_labels_3d = gt_labels_3d[mask]
+        gt_labels_3d = gt_labels_3d[mask.numpy()]
 
         input_dict["gt_bboxes_3d"] = gt_bboxes_3d
         input_dict["gt_labels_3d"] = gt_labels_3d
         if "instance_inds" in input_dict:
-            input_dict["instance_inds"] = input_dict["instance_inds"][mask]
+            input_dict["instance_inds"] = input_dict["instance_inds"][mask.numpy()]
 
         return input_dict
 
@@ -411,7 +416,7 @@ class InstanceNameFilter(BaseTransform):
         """
         gt_labels_3d = input_dict["gt_labels_3d"]
         gt_bboxes_mask = np.array(
-            [n in self.labels for n in gt_labels_3d], dtype=np.bool_
+            [n in self.labels for n in gt_labels_3d], dtype=bool
         )
         input_dict["gt_bboxes_3d"] = input_dict["gt_bboxes_3d"][gt_bboxes_mask]
         input_dict["gt_labels_3d"] = input_dict["gt_labels_3d"][gt_bboxes_mask]

@@ -385,7 +385,7 @@ train_dataloader = dict(
     num_workers=1,
     drop_last=True,
     sampler=dict(type='GroupEachSampleInBatchSampler',
-                 shuffle=True, skip_prob=0.1, sequence_flip_prob=0.1),
+                 shuffle=True, sequence_flip_prob=0.1),
     dataset=dict(
         type=dataset_type,
         data_root=data_root,
