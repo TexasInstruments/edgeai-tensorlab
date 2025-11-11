@@ -64,7 +64,10 @@ class WrappedModule(torch.nn.Module):
             if isinstance(arg, str):
                 continue
             self.args[i] = f'arg_{i}'
-            setattr(self, self.args[i], arg)
+            if isinstance(arg, torch.Tensor):
+                self.register_buffer(self.args[i], arg)
+            else:
+                setattr(self, self.args[i], arg)
         self.kwargs = kwargs
 
     def forward(self, *args,):
@@ -114,9 +117,9 @@ def get_input_from_node(node:gs.Node, inp:gs.Variable|gs.Constant, torch_graph:t
         try:
             if inp.dtype not in (np.float32,np.float16, np.float64,np.complex64, np.complex128) and attr_type in (torch.nn.Parameter, Buffer):
                 attr_type = torch.Tensor
-            if attr_type in (torch.Tensor, list, tuple, set):
+            if attr_type in (list, tuple, set):
                 setattr(torch_module, inp.name, val)
-            elif attr_type == Buffer:
+            elif attr_type in  (torch.Tensor, Buffer):
                 torch_module.register_buffer(inp.name, val,)
             elif attr_type == torch.nn.Parameter:
                 val = attr_type(val)

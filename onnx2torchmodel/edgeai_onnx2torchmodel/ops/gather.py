@@ -44,7 +44,7 @@ def torch_gather(x, indices, axis=0):
     if isinstance(indices, int):
         return torch.select(x, axis, indices)
     if isinstance(indices, (list, tuple)):
-        indices = torch.tensor(indices)
+        indices = torch.tensor(indices).to(x.device)
     if isinstance(indices, torch.Tensor ):
         indices_dim = indices.dim()
         indices_shape = indices.shape
