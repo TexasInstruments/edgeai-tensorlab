@@ -78,6 +78,7 @@ def check_convertable(graph:gs.Graph, op_2_func_dict=None, for_training=False, m
     error_dict = {}
     for node in graph.nodes:
         temp_graph = gs.Graph()
+        node = gs.Node(node.op, node.name, node.attrs, [inp.copy() for inp in node.inputs], [out.copy() for out in node.outputs], node.domain)
         temp_graph.nodes = [node]
         temp_graph.outputs = node.outputs
         temp_graph.inputs = [inp for inp in node.inputs if isinstance(inp, gs.Variable)]

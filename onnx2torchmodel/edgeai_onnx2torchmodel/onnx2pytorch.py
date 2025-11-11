@@ -30,7 +30,9 @@
 import onnx_graphsurgeon as gs
 import onnx
 import torch
+import numpy as np
 
+import logging
 import tempfile
 import types
 import atexit
@@ -56,8 +58,58 @@ def simplify_graph(graph:gs.Graph):
     return graph
 
 
-def remove_identity(graph:gs.Graph):
-    nodes = [node for node in graph.nodes if node.op == 'Identity']
+def add_slices_2_graph(graph, node, starts, ends, axes=None, steps=None, dict_mode=False):
+    inp = node.inputs[0]
+    out = node.outputs[0]
+    node.inputs.clear()
+    node.outputs.clear()
+    axes = axes or list(range(len(starts)))
+    steps = steps or [1]*len(axes)
+    counter = 0
+    for start, end, axis, step in zip(starts, ends, axes, steps):
+        temp_out = gs.Variable(f'{out.name}_out{counter}', out.dtype) if counter<(len(starts)-1) else out
+        if dict_mode:
+            n_node = gs.Node('Slice',f'{out.name}_{counter}',dict(starts=[start], ends=[end], axes=[axis]),[inp], [temp_out], node.domain )
+        else:
+            start = gs.Constant(f'{out.name}_starts{counter}', values=np.array([start]).astype(np.int64))
+            end = gs.Constant(f'{out.name}_ends{counter}', values=np.array([end]).astype(np.int64))
+            axis = gs.Constant(f'{out.name}_axes{counter}', values=np.array([axis]).astype(np.int64))
+            step = gs.Constant(f'{out.name}_steps{counter}', values=np.array([step]).astype(np.int64))
+            n_node = gs.Node('Slice',f'{out.name}_{counter}',inputs=[inp, start, end, axis, step], outputs=[temp_out], domain=node.domain )
+        inp = temp_out
+        graph.nodes.append(n_node)
+        counter += 1
+
+
+def break_slices(graph:gs.Graph):
+    slices = [node for node in graph.nodes if node.op == 'Slice']
+    for node in slices:
+        if 'starts' in  node.attrs:
+            starts = node.attrs['starts']
+            ends = node.attrs['ends']
+            axes = node.attrs.get('axes', None)
+            if len(starts) == 1:
+                continue
+            add_slices_2_graph(graph, node, starts, ends, axes, dict_mode=True)
+            continue
+        starts, ends = node.inputs[1:3]
+        axes = node.inputs[3] if len(node.inputs)> 3 else None
+        steps = node.inputs[4] if len(node.inputs)> 4 else None
+        if not all(isinstance(i, gs.Constant) for i in (starts, ends)) or not all(isinstance(i, gs.Constant) or i is None for i in (axes, steps)):
+            logging.warning(f'Can Not Break The Slice Node {node.name}, it may fail in pt2e export')
+            continue
+        starts = starts.values.tolist()
+        ends = ends.values.tolist()
+        axes = axes.values.tolist() if axes else None
+        steps = steps.values.tolist() if steps else None
+        if len(starts) == 1:
+            continue
+        add_slices_2_graph(graph, node, starts, ends, axes, steps)
+    graph.toposort().cleanup()
+
+
+def remove_identity_and_constant(graph:gs.Graph):
+    nodes = [node for node in graph.nodes]# if node.op == 'Identity']
     for i, node in enumerate(nodes):
         if node.op == 'Identity':
             outputs = list(node.outputs)
@@ -70,12 +122,36 @@ def remove_identity(graph:gs.Graph):
             graph.nodes.remove(node)
             if out in graph.outputs:
                 graph.outputs.remove(out)
+        if node.op == 'Constant':
+            val = None
+            for attr in ('sparse_value', 'value', 'value_float', 'value_int', 'value_floats', 'value_ints', 'value_string', 'value_strings'):
+                val = node.attrs.get(attr, None)
+                if val is None:
+                    continue
+                if isinstance(val, gs.Constant):
+                    break
+                val = np.array(val)
+                if 'int' in attr:
+                    val = val.astype(np.int64)
+                if ('float' in attr ):
+                    val = val.astype(np.float32)
+                val = gs.Constant(node.name, val)
+            if val is None:
+                logging.warning(f'No Constant Found in Node {node.name}')
+                continue
+            out = node.outputs[0]
+            node.outputs.clear()
+            users = list(out.outputs)
+            for o_node in users:
+                o_node.inputs[o_node.inputs.index(out)] = val
+    graph.toposort().cleanup()
 
 def convert(model_path, for_training=False, module_based=True):
     onnx_model = onnx.load(model_path)
     graph = gs.import_onnx(onnx_model)
-    remove_identity(graph)
     simplify_graph(graph)
+    remove_identity_and_constant(graph)
+    break_slices(graph)
 
     torch_model = onnx_ops.get_torch_graph_module(graph, for_training=for_training, module_based=module_based)
 
