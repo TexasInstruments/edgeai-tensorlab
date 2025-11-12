@@ -25,7 +25,7 @@ class Sparse4D_export_model(nn.Module):
         assert self.return_detph is False, "ONNX export does not support depth prediction."
         assert self.use_deformable_func is False, "ONNX export does not support deformable function."
 
-        self.det_histroy = None
+        self.det_history = None
         self.det_num_anchor         = model.pts_bbox_head.instance_bank.num_anchor
         self.det_embed_dims         = model.pts_bbox_head.instance_bank.embed_dims
         self.det_num_temp_instances = model.pts_bbox_head.instance_bank.num_temp_instances
@@ -43,11 +43,11 @@ class Sparse4D_export_model(nn.Module):
             self.his_T_global_inv = self.img_metas[0]['T_global_inv']
 
     def get_history(self, img):
-        if self.det_histroy is None:
+        if self.det_history is None:
             bs = 1
             device = img.device
 
-            self.det_histroy = {
+            self.det_history = {
                 'cached_feature': torch.zeros(bs, self.det_num_temp_instances, self.det_embed_dims).to(device),
                 'cached_anchor': torch.zeros(bs, self.det_num_temp_instances, self.anchor_feats_dims).to(device),
                 'prev_id': torch.tensor(0).int().to(device),
@@ -94,7 +94,22 @@ class Sparse4D_export_model(nn.Module):
                 feat, (bs, num_cams) + feat.shape[1:]
             )
 
-        self.img_metas[0]['projection_mat'] = projection_mat
+        #self.img_metas[0]['projection_mat'] = projection_mat
+        # Re-foramt some meta infos
+        metas={}
+        metas['img_metas'] = self.img_metas
+        metas["projection_mat"] = projection_mat
+
+        image_wh = []
+        timestamp = []
+        for x in self.img_metas:
+            image_wh.append(x["image_wh"])
+            timestamp.append(torch.DoubleTensor([x["timestamp"]]))
+        image_wh = torch.stack(image_wh, dim=0).to(img.device)
+        timestamp = torch.cat(timestamp, dim=0).to(img.device)
+        metas["image_wh"]       = image_wh
+        metas["timestamp"]      = timestamp
+
         det_history = {
             'cached_feature': det_cached_feature,
             'cached_anchor': det_cached_anchor,
@@ -106,23 +121,23 @@ class Sparse4D_export_model(nn.Module):
 
         # pts_bbox_head
         model_outs, det_history_out = self.pts_bbox_head(feature_maps,
-                                            self.img_metas,
+                                            metas,
                                             bank_history=det_history,
                                             time_interval=time_interval,
                                             T_temp2cur=T_temp2cur)
 
-        results = self.pts_bbox_head.post_process(model_outs, self.img_metas)
+        results = self.pts_bbox_head.post_process(model_outs, metas)
 
         # Update detection history
-        self.det_histroy['cached_feature'] = det_history_out['cached_feature']
-        self.det_histroy['cached_anchor'] = det_history_out['cached_anchor']
-        self.det_histroy['prev_id'] = det_history_out['prev_id']
-        self.det_histroy['instance_id'] = det_history_out['instance_id']
-        self.det_histroy['confidence'] = det_history_out['confidence']
-        self.det_histroy['temp_confidence'] = det_history_out['temp_confidence']
+        self.det_history['cached_feature'] = det_history_out['cached_feature']
+        self.det_history['cached_anchor'] = det_history_out['cached_anchor']
+        self.det_history['prev_id'] = det_history_out['prev_id']
+        self.det_history['instance_id'] = det_history_out['instance_id']
+        self.det_history['confidence'] = det_history_out['confidence']
+        self.det_history['temp_confidence'] = det_history_out['temp_confidence']
 
         # Update previous meta info
-        self.his_timestamp = self.img_metas[0]['timestamp']
+        self.his_timestamp = metas['timestamp']
         self.his_T_global = self.img_metas[0]['T_global']
         self.his_T_global_inv = self.img_metas[0]['T_global_inv']
 
@@ -161,7 +176,7 @@ class Sparse4D_export_head(nn.Module):
         assert self.return_detph is False, "ONNX export does not support depth prediction."
         assert self.use_deformable_func is False, "ONNX export does not support deformable function."
 
-        self.det_histroy = None
+        self.det_history = None
         self.det_num_anchor         = model.pts_bbox_head.instance_bank.num_anchor
         self.det_embed_dims         = model.pts_bbox_head.instance_bank.embed_dims
         self.det_num_temp_instances = model.pts_bbox_head.instance_bank.num_temp_instances
@@ -179,11 +194,11 @@ class Sparse4D_export_head(nn.Module):
             self.his_T_global_inv = self.img_metas[0]['T_global_inv']
 
     def get_history(self, img):
-        if self.det_histroy is None:
+        if self.det_history is None:
             bs = 1
             device = img.device
 
-            self.det_histroy = {
+            self.det_history = {
                 'cached_feature': torch.zeros(bs, self.det_num_temp_instances, self.det_embed_dims).to(device),
                 'cached_anchor': torch.zeros(bs, self.det_num_temp_instances, self.anchor_feats_dims).to(device),
                 'prev_id': torch.tensor(0).int().to(device),
@@ -218,7 +233,22 @@ class Sparse4D_export_head(nn.Module):
                 time_interval=None,
                 T_temp2cur=None):
 
-        self.img_metas[0]['projection_mat'] = projection_mat
+        #self.img_metas[0]['projection_mat'] = projection_mat
+        # Re-foramt some meta infos
+        metas={}
+        metas['img_metas'] = self.img_metas
+        metas["projection_mat"] = projection_mat
+
+        image_wh = []
+        timestamp = []
+        for x in self.img_metas:
+            image_wh.append(x["image_wh"])
+            timestamp.append(torch.DoubleTensor([x["timestamp"]]))
+        image_wh = torch.stack(image_wh, dim=0).to(img_feats.device)
+        timestamp = torch.cat(timestamp, dim=0).to(img_feats.device)
+        metas["image_wh"]       = image_wh
+        metas["timestamp"]      = timestamp
+
         det_history = {
             'cached_feature': det_cached_feature,
             'cached_anchor': det_cached_anchor,
@@ -230,23 +260,23 @@ class Sparse4D_export_head(nn.Module):
 
         # pts_bbox_head
         model_outs, det_history_out = self.pts_bbox_head(img_feats,
-                                            self.img_metas,
+                                            metas,
                                             bank_history=det_history,
                                             time_interval=time_interval,
                                             T_temp2cur=T_temp2cur)
 
-        results = self.pts_bbox_head.post_process(model_outs, self.img_metas)
+        results = self.pts_bbox_head.post_process(model_outs, metas)
 
         # Update detection history
-        self.det_histroy['cached_feature'] = det_history_out['cached_feature']
-        self.det_histroy['cached_anchor'] = det_history_out['cached_anchor']
-        self.det_histroy['prev_id'] = det_history_out['prev_id']
-        self.det_histroy['instance_id'] = det_history_out['instance_id']
-        self.det_histroy['confidence'] = det_history_out['confidence']
-        self.det_histroy['temp_confidence'] = det_history_out['temp_confidence']
+        self.det_history['cached_feature'] = det_history_out['cached_feature']
+        self.det_history['cached_anchor'] = det_history_out['cached_anchor']
+        self.det_history['prev_id'] = det_history_out['prev_id']
+        self.det_history['instance_id'] = det_history_out['instance_id']
+        self.det_history['confidence'] = det_history_out['confidence']
+        self.det_history['temp_confidence'] = det_history_out['temp_confidence']
 
         # Update previous meta info
-        self.his_timestamp = self.img_metas[0]['timestamp']
+        self.his_timestamp = metas['timestamp']
         self.his_T_global = self.img_metas[0]['T_global']
         self.his_T_global_inv = self.img_metas[0]['T_global_inv']
 

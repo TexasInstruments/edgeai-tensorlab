@@ -70,7 +70,7 @@ custom_imports = dict(imports=['projects_edgeai.Sparse4D.sparse4d',
 #num_iters_per_epoch = int(28130 // (num_gpus * batch_size))
 #checkpoint_epoch_interval = 20
 num_epochs = 100
-batch_size = 1
+batch_size = 2
 
 #checkpoint_config = dict(
 #    interval=num_iters_per_epoch * checkpoint_epoch_interval
@@ -111,9 +111,10 @@ embed_dims = 256
 num_groups = 8
 num_decoder = 6
 num_single_frame_decoder = 1
-# Set use_deformable_func=False for inference
+# use_deformable_func should be True for training to save memory
+# use_deformable_func should be for ONNX export while inferencing
 # For use_deformable_func=True, mmdet3d_plugin/ops/setup.py needs to be executed
-use_deformable_func = False
+use_deformable_func = True
 strides = [4, 8, 16, 32]
 num_levels = len(strides)
 num_depth_layers = 3

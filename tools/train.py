@@ -166,7 +166,7 @@ import torch
 from edgeai_torchmodelopt import xmodelopt
 
 import warnings
-from copy import deepcopy
+#from copy import deepcopy
 
 def parse_args(args=None):
     parser = argparse.ArgumentParser(description='Train a 3D detector')
@@ -459,10 +459,10 @@ def main(args=None):
         runner.load_or_resume()
         runner.call_hook('after_run')
 
-        orig_model = deepcopy(runner.model)
-        runner.model = xmodelopt.apply_model_optimization(runner.model, example_inputs, example_kwargs, model_surgery_version=model_surgery, 
-                                                            quantization_version=args.quantization, model_surgery_kwargs=model_surgery_kwargs, 
-                                                            quantization_kwargs=quantization_kwargs, transformation_dict=transformation_dict, 
+        #orig_model = deepcopy(runner.model)
+        runner.model = xmodelopt.apply_model_optimization(runner.model, example_inputs, example_kwargs, model_surgery_version=model_surgery,
+                                                            quantization_version=args.quantization, model_surgery_kwargs=model_surgery_kwargs,
+                                                            quantization_kwargs=quantization_kwargs, transformation_dict=transformation_dict,
                                                             copy_attrs=copy_attrs)
 
         if is_wrapped:
