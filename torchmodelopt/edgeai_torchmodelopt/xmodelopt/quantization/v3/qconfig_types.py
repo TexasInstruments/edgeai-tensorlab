@@ -328,8 +328,8 @@ def get_quantization_config_default(qconfig_type, is_qat=True, fast_mode=False):
         is_qat=is_qat, fast_mode=fast_mode)
     
     ###########
-    # _QCONFIG_TYPE_TO_DICT[QConfigType.DEFAULT] = _QCONFIG_TYPE_TO_DICT[QConfigType.WC8_AT8]
-    _QCONFIG_TYPE_TO_DICT[QConfigType.DEFAULT] = _QCONFIG_TYPE_TO_DICT[QConfigType.MSA_WC8_AT8]
+    # _QCONFIG_TYPE_TO_DICT[QConfigType.DEFAULT] = _QCONFIG_TYPE_TO_DICT[QConfigType.MSA_WC8_AT8]
+    _QCONFIG_TYPE_TO_DICT[QConfigType.DEFAULT] = _QCONFIG_TYPE_TO_DICT[QConfigType.WC8_AT8]
 
     return _QCONFIG_TYPE_TO_DICT[qconfig_type]
 
