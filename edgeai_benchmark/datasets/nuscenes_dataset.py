@@ -239,25 +239,29 @@
 
 
 import os
-import random
-from colorama import Fore
-from .. import utils
-from .dataset_base import *
-import numpy as np
-import cv2
 import tempfile
-
+import json
 from pathlib import Path
+import numpy as np
+
 from pyquaternion import Quaternion
 
 from nuscenes.eval.detection.config import config_factory
-
-from .nuscenes_object_eval_python.format_bbox import *
-from .nuscenes_object_eval_python.utils import *
-from .nuscenes_object_eval_python.eval import *
+from nuscenes.eval.common.config import config_factory as track_configs
 
 from edgeai_benchmark.postprocess.bev_detection import box3d_multiclass_nms
 from edgeai_benchmark import datasets
+
+from nuscenes.nuscenes import NuScenes
+from nuscenes.can_bus.can_bus_api import NuScenesCanBus
+
+from .nuscenes_object_eval_python.format_bbox import *
+from .nuscenes_object_eval_python.utils import convert_quaternion_to_matrix
+from .nuscenes_object_eval_python.eval import NuScenesEval, TrackingEval
+
+from .dataset_base import DatasetBase
+from ..utils.logger_utils import log_color
+
 
 NuScenesNameMapping = {
     'movable_object.barrier': 'barrier',
@@ -315,10 +319,8 @@ class_to_name_type_2 = {
 
 def load_nuscenes(path, version='v1.0-mini'):
     assert os.path.exists(path) and os.path.isdir(path), \
-        utils.log_color('\nERROR', 'dataset path is empty, and cannot load nuscenes dataset', path)
+        log_color('\nERROR', 'dataset path is empty, and cannot load nuscenes dataset', path)
 
-    from nuscenes.nuscenes import NuScenes
-    from nuscenes.can_bus.can_bus_api import NuScenesCanBus
     nusc = NuScenes(version=version, dataroot=path, verbose=True)
     try:
         nusc_can_bus = NuScenesCanBus(dataroot=path)
@@ -419,7 +421,8 @@ def _fill_trainval_infos(nusc,
             lidar_path, boxes, _ = nusc.get_sample_data(lidar_token)
 
             if not os.path.isfile(lidar_path):
-                raise FileNotFoundError('file "{}" does not exist'.format(lidar_path))
+                raise FileNotFoundError(
+                    'file "{}" does not exist, please refer to run nuscenes_unzip.sh to download NuScenes dataset.'.format(lidar_path))
 
             if nusc_can_bus is not None:
                 can_bus = _get_can_bus_info(nusc, nusc_can_bus, sample)
@@ -642,7 +645,8 @@ def _fill_trainval_infos_mv_image(nusc,
         lidar_path, boxes, _ = nusc.get_sample_data(lidar_token)
 
         if not os.path.isfile(lidar_path):
-            raise FileNotFoundError('file "{}" does not exist'.format(lidar_path))
+            raise FileNotFoundError(
+                'file "{}" does not exist, please refer to run nuscenes_unzip.sh to download NuScenes dataset.'.format(lidar_path))
 
         info = {
             'token': sample['token'],
@@ -830,7 +834,7 @@ class NuScenesDataset(DatasetBase):
             assert False , 'Download is not supported for this dataset'
 
         #assert os.path.exists(path) and os.path.isdir(path), \
-        #    utils.log_color('\nERROR', 'dataset path is empty', path)
+        #    log_color('\nERROR', 'dataset path is empty', path)
 
         # nuscenes dataset
         assert nusc is not None, '\nERROR, nucenes dataset is None'
@@ -895,7 +899,12 @@ class NuScenesDataset(DatasetBase):
                 'barrier': '',
                 'traffic_cone': '',
             }
-            self.metrics=['bbox']
+            self.metrics=['detection']
+
+            # For tracking evaluation (Sparse4D)
+            self.tracking_threshold = None
+            self.track3d_eval_version = 'tracking_nips_2019'
+            #self.track3d_eval_configs = track_configs(self.track3d_eval_version)
 
         #assert self.num_frames <= len(self.data_infos['infos']), \
         #    'Number of frames is higher than length of data avialable \n'
@@ -962,7 +971,7 @@ class NuScenesDataset(DatasetBase):
             ])
 
             if self.load_type == 'mv_image_based':
-                val_nusc_infos = _fill_trainval_infos_mv_image(self.nusc, self.num_frames, 
+                val_nusc_infos = _fill_trainval_infos_mv_image(self.nusc, self.num_frames,
                     train_scenes=None, val_scenes=val_scenes, read_anno=read_anno)
             else:
                 val_nusc_infos = _fill_trainval_infos(self.nusc, self.nusc_can_bus, self.num_frames,
@@ -985,20 +994,40 @@ class NuScenesDataset(DatasetBase):
             class_to_name = class_to_name_type_1
         else:
             class_to_name = class_to_name_type_2
-        det_classes = [class_to_name[i] for i in range(self.num_classes)]
+        classes = [class_to_name[i] for i in range(self.num_classes)]
 
+        """
         if kwargs['dataset_category'] == datasets.DATASET_CATEGORY_NUSCENES_FRAME:
             result_dict['pred_instances_3d'] = \
                 self.format_results_lidar_bbox(predictions, det_classes, **kwargs)
         else:
             result_dict['pred_instances_3d'] = \
                 self.format_results_camera_bbox(predictions, det_classes, **kwargs)
+        """
 
+        # Tracking evaluation
+        if kwargs['task_name'] == 'Sparse4D':
+            self.metrics.append('tracking')
+            self.tracking_threshold = 0.2
 
         metric_dict = {}
         for metric in self.metrics:
+            tracking = metric == 'tracking'
+            #if tracking and not self.tracking:
+            #    continue
+
+            if kwargs['dataset_category'] == datasets.DATASET_CATEGORY_NUSCENES_FRAME:
+                result_dict['pred_instances_3d'] = \
+                    self.format_results_lidar_bbox(predictions, classes,
+                                                   tracking=tracking,
+                                                   tracking_threshold=self.tracking_threshold,
+                                                   **kwargs)
+            else:
+                result_dict['pred_instances_3d'] = \
+                    self.format_results_camera_bbox(predictions, classes, **kwargs)
+
             ap_dict = self.nus_evaluate(
-                result_dict, det_classes=det_classes, metric=metric)
+                result_dict, classes=classes, tracking=tracking)
             for result in ap_dict:
                 metric_dict[result] = ap_dict[result]
 
@@ -1009,56 +1038,100 @@ class NuScenesDataset(DatasetBase):
     # Based on nus_evaluate()
     def nus_evaluate(self,
                      result_dict,
-                     det_classes = None,
-                     metric = 'bbox'):
+                     classes = None,
+                     tracking = False):
         metric_dict = dict()
         for name in result_dict:
             print(f'Evaluating bboxes of {name}')
             ret_dict = self._evaluate_single(
-                result_dict[name], det_classes=det_classes, result_name=name)
+                result_dict[name], classes=classes, tracking=tracking, result_name=name)
             metric_dict.update(ret_dict)
 
         return metric_dict
 
     def _evaluate_single(self,
                          pred_boxes,
-                         det_classes = None,
+                         classes = None,
+                         tracking = False,
                          result_name = 'pred_instances_3d'):
 
         tmp_dir = tempfile.TemporaryDirectory()
         output_dir = os.path.join(tmp_dir.name, 'results')
         os.makedirs(output_dir, exist_ok=True)
 
-        nusc_eval = NuScenesEval(
-            self.nusc,
-            self.data_infos,
-            self.data_scene_infos,
-            pred_boxes,
-            config=self.eval_detection_configs,
-            eval_set='mini_val' if self.version=='v1.0-mini' else 'val',
-            output_dir=output_dir,
-            verbose=False)
-        nusc_eval.main()
+        if not tracking:
+            nusc_eval = NuScenesEval(
+                self.nusc,
+                self.data_infos,
+                self.data_scene_infos,
+                pred_boxes,
+                config=self.eval_detection_configs,
+                eval_set='mini_val' if self.version=='v1.0-mini' else 'val',
+                output_dir=output_dir,
+                verbose=False)
+            nusc_eval.main()
 
-        # record metrics
-        with open(os.path.join(output_dir, 'metrics_summary.json'), 'r') as f:
-            metrics = json.load(f)
+            # record metrics
+            with open(os.path.join(output_dir, 'metrics_summary.json'), 'r') as f:
+                metrics = json.load(f)
 
-        detail = dict()
-        metric_prefix = f'{result_name}_NuScenes'
-        for name in det_classes:
-            for k, v in metrics['label_aps'][name].items():
-                val = float(f'{v:.4f}')
-                detail[f'{metric_prefix}/{name}_AP_dist_{k}'] = val
-            for k, v in metrics['label_tp_errors'][name].items():
-                val = float(f'{v:.4f}')
-                detail[f'{metric_prefix}/{name}_{k}'] = val
-            for k, v in metrics['tp_errors'].items():
-                val = float(f'{v:.4f}')
-                detail[f'{metric_prefix}/{ErrNameMapping[k]}'] = val
+            detail = dict()
+            metric_prefix = f'{result_name}_NuScenes'
+            for name in classes:
+                for k, v in metrics['label_aps'][name].items():
+                    val = float(f'{v:.4f}')
+                    detail[f'{metric_prefix}/{name}_AP_dist_{k}'] = val
+                for k, v in metrics['label_tp_errors'][name].items():
+                    val = float(f'{v:.4f}')
+                    detail[f'{metric_prefix}/{name}_{k}'] = val
+                for k, v in metrics['tp_errors'].items():
+                    val = float(f'{v:.4f}')
+                    detail[f'{metric_prefix}/{ErrNameMapping[k]}'] = val
 
-        detail[f'{metric_prefix}/NDS'] = metrics['nd_score']
-        detail[f'{metric_prefix}/mAP'] = metrics['mean_ap']
+            detail[f'{metric_prefix}/NDS'] = metrics['nd_score']
+            detail[f'{metric_prefix}/mAP'] = metrics['mean_ap']
+        else:
+            # Load tracking eval config
+            track3d_eval_configs = track_configs(self.track3d_eval_version)
+            nusc_eval = TrackingEval(
+                self.nusc,
+                self.data_infos,
+                self.data_scene_infos,
+                pred_boxes,
+                config=track3d_eval_configs,
+                eval_set='mini_val' if self.version=='v1.0-mini' else 'val',
+                output_dir=output_dir,
+                verbose=True)
+            metrics = nusc_eval.main()
+
+            # record metrics
+            with open(os.path.join(output_dir, 'metrics_summary.json'), 'r') as f:
+                metrics = json.load(f)
+
+            print(metrics)
+            detail = dict()
+            metric_prefix = f"{result_name}_NuScenes"
+            keys = [
+                "amota",
+                "amotp",
+                "recall",
+                "motar",
+                "gt",
+                "mota",
+                "motp",
+                "mt",
+                "ml",
+                "faf",
+                "tp",
+                "fp",
+                "fn",
+                "ids",
+                "frag",
+                "tid",
+                "lgd",
+            ]
+            for key in keys:
+                detail["{}/{}".format(metric_prefix, key)] = metrics[key]
 
         if tmp_dir is not None:
             tmp_dir.cleanup()
@@ -1068,8 +1141,10 @@ class NuScenesDataset(DatasetBase):
 
     # Format 3D LiDAR boxes
     # https://github.com/open-mmlab/mmdetection3d/
-    # Based on _format_lidar_bbox() 
-    def format_results_lidar_bbox(self, predictions, det_classes, **kwargs):
+    # Based on _format_lidar_bbox()
+    def format_results_lidar_bbox(self, predictions, det_classes,
+                                  tracking=False, tracking_threshold=None,
+                                  **kwargs):
         nusc_annos = {}
 
         print('Start to convert detection format...')
@@ -1077,10 +1152,12 @@ class NuScenesDataset(DatasetBase):
             prediction = prediction['output'] if isinstance(prediction, dict) and 'output' in prediction else prediction
             det = prediction
             annos = []
-            boxes, attrs = output_to_nusc_box(det, kwargs['task_name'], bbox3d_type='lidar')
+            boxes, attrs = output_to_nusc_box(det, kwargs['task_name'],
+                                              track_threshold=tracking_threshold if tracking else None,
+                                              bbox3d_type='lidar')
 
             # sample_idx in sequential order
-            sample_idx = i 
+            sample_idx = i
             sample_token = self.data_infos['infos'][sample_idx]['token']
             boxes = lidar_nusc_box_to_global(self.data_infos['infos'][sample_idx],
                                              boxes, det_classes,
@@ -1089,6 +1166,15 @@ class NuScenesDataset(DatasetBase):
 
             for i, box in enumerate(boxes):
                 name = det_classes[box.label]
+
+                # Tracking (Sparse4D)
+                if tracking and name in [
+                    "barrier",
+                    "traffic_cone",
+                    "construction_vehicle",
+                ]:
+                    continue
+
                 if np.sqrt(box.velocity[0]**2 + box.velocity[1]**2) > 0.2:
                     if name in [
                             'car',
@@ -1115,10 +1201,19 @@ class NuScenesDataset(DatasetBase):
                     translation=box.center.tolist(),
                     size=box.wlh.tolist(),
                     rotation=box.orientation.elements.tolist(),
-                    velocity=box.velocity[:2].tolist(),
-                    detection_name=name,
-                    detection_score=box.score,
-                    attribute_name=attr)
+                    velocity=box.velocity[:2].tolist())
+                if not tracking:
+                    nusc_anno.update(
+                        dict(detection_name=name,
+                             detection_score=box.score,
+                             attribute_name=attr)
+                    )
+                else:
+                    nusc_anno.update(
+                        dict(tracking_name=name,
+                             tracking_score=box.score,
+                             tracking_id=str(box.token))
+                    )
                 annos.append(nusc_anno)
 
             nusc_annos[sample_token] = annos

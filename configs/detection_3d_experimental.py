@@ -343,6 +343,21 @@ def get_configs(settings, work_dir):
             metric=dict(),
             model_info=dict(metric_reference={'mAP':0.4})
         ),
+        # 3dod-7190: Sparse4D
+        '3dod-7190':utils.dict_update(bev_frame_cfg,
+            task_name='Sparse4D',
+            # crop = (left, top, width, height)
+            preprocess=preproc_transforms.get_transform_bev_sparse4d(
+                (900, 1600), (396, 704), (0, 140, 704, 256), queue_length=1, backend='cv2', interpolation=cv2.INTER_CUBIC),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir,
+                input_mean=[(123.675, 116.280, 103.530)], input_scale=[(0.017125, 0.017507, 0.017429)], input_optimization=False),
+                runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
+                    {'advanced_options:output_feature_16bit_names_list':''}),
+                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/sparse4d/sparse4d_mod_r50_256x704_20251029.onnx'),
+            postprocess=postproc_transforms.get_transform_bev_detection_base(queue_length=1),
+            metric=dict(),
+            model_info=dict(metric_reference={'mAP':0.4})
+        ),
         # 3dod-8100: VAD
         '3dod-8100':utils.dict_update(bev_frame_cfg,
             task_name='VAD',
