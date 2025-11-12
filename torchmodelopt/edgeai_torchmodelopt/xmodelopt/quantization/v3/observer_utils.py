@@ -121,14 +121,16 @@ class RangeShrinkPercentileValues:
 
 
 class AdaptiveRangeShrinkObserver(torch.ao.quantization.HistogramObserver):
-    def __init__(self, *args,  factory_kwargs=None, power2_scale=False, range_max=None, fixed_range=False, 
+    def __init__(self, *args,  factory_kwargs=None, qscheme=torch.per_tensor_affine, 
+                 power2_scale=False, range_max=None, fixed_range=False, 
                  range_shrink=True, dtype=torch.float32, **kwargs):
         super().__init__(*args, factory_kwargs=factory_kwargs, dtype=torch.int32, bins=1024, **kwargs)
-        self.range_shrink = RangeShrinkPercentileValues.DEFAULT if isinstance(range_shrink, (bool,)) else range_shrink
+        self.range_shrink = RangeShrinkPercentileValues.AGGRESSIVE if isinstance(range_shrink, (bool,)) else range_shrink
         self.dtype = dtype
         self.num_batches_tracked = 0
         self.upsample_rate = 8
         self.averaging_constant = 0.01
+        self.symmetric = (qscheme in (torch.per_channel_symmetric, torch.per_tensor_symmetric))
         self.power2_scale = power2_scale
         self.range_max = range_max
         self.fixed_range = fixed_range
@@ -186,7 +188,12 @@ class AdaptiveRangeShrinkObserver(torch.ao.quantization.HistogramObserver):
     @torch.jit.export
     def _calculate_qparams(self, min_val, max_val):
         r"""Calculates the quantization parameters."""
-        # weights qparams are always symmetric and this is ensured inside the super class, no need to handle it here.
+        if self.symmetric:
+            signed_range = torch.min(min_val.detach()).item() < 0.0
+            max_abs = torch.max(torch.abs(min_val), torch.abs(max_val))
+            min_val = -max_abs if signed_range else max_abs * 0.0
+            max_val = max_abs
+        #
         min_val, max_val, range_valid = self._correct_min_max(min_val, max_val)
         if range_valid:
             scale, zero_point = super()._calculate_qparams(min_val, max_val)

@@ -74,7 +74,7 @@ class QConfigType():
     DEFAULT = "DEFAULT"                         # default behavior is same as that of WC8_AT8
     WC8_AT8 = "WC8_AT8"                         # per-channel quantization for weights, per-tensor quantization for activations
     
-    MSA_WC8_AT8 = "MSA_WC8_AT8"                 # WC8_AT8 + no range shrink (mostly for attention networks with important peaks)
+    MSA_WC8SYM_AT8SYM = "MSA_WC8SYM_AT8SYM"     # WC8SYM_AT8SYM + no range shrink (mostly for attention networks with important peaks)
 
     WT8SYMP2_AT8SYMP2 = "WT8SYMP2_AT8SYMP2"     # per-tensor symmetric power-of-2 quantization for both weights and activations
     WC8SYMP2_AT8SYMP2 = "WC8SYMP2_AT8SYMP2"     # per-channel symmetric power-of-2 quantization for weights, per-tensor symmetric power-of-2 for activations
@@ -264,9 +264,9 @@ def get_quantization_config_default(qconfig_type, is_qat=True, fast_mode=False):
         is_qat=is_qat, fast_mode=fast_mode)
 
     # per-channel transformers
-    _QCONFIG_TYPE_TO_DICT[QConfigType.MSA_WC8_AT8] = get_quantization_config(dict(
+    _QCONFIG_TYPE_TO_DICT[QConfigType.MSA_WC8SYM_AT8SYM] = get_quantization_config(dict(
         weight=dict(qscheme=torch.per_channel_symmetric),
-        activation=dict(qscheme=torch.per_tensor_affine, range_shrink_percentile=0)), 
+        activation=dict(qscheme=torch.per_tensor_symmetric)), 
         is_qat=is_qat, fast_mode=fast_mode)
 
     # symmetric power-of-2
