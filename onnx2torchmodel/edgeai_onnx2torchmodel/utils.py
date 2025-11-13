@@ -41,6 +41,8 @@ def add_all_outputs_torch_model(model: torch.fx.GraphModule):
 
 def add_all_outputs_onnx_gs_graph(graph:gs.Graph):
     for node in graph.nodes:
+        if node.op in ('Constant',):
+            continue
         for out in node.outputs:
             if out in graph.outputs:
                 continue
