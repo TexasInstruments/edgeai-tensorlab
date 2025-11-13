@@ -146,8 +146,17 @@ def remove_identity_and_constant(graph:gs.Graph):
                 o_node.inputs[o_node.inputs.index(out)] = val
     graph.toposort().cleanup()
 
-def convert(model_path, for_training=False, module_based=True):
+def convert(model_path, for_training=False, module_based=True, simplify=True):
     onnx_model = onnx.load(model_path)
+    if simplify:
+        try:
+            import onnxsim
+            onnx_model, _= onnxsim.simplify(onnx_model)
+        except ImportError as e:
+            print("Failed to import onnx-simplifier! Please Install it before using simplify mode")
+        except Exception as e:
+            print(f"Failed to simplify the model {model_path} because of following error:\n {e}")
+            
     graph = gs.import_onnx(onnx_model)
     simplify_graph(graph)
     remove_identity_and_constant(graph)
