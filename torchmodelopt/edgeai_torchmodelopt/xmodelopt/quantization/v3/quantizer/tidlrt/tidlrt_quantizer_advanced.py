@@ -71,9 +71,12 @@ def _annotate_matmul(
     quantization_config: Optional[QuantizationConfig],
     filter_fn: Optional[Callable[[Node], bool]] = None,
 ) -> Optional[list[list[Node]]]:
+    
+    assert False, f"ERROR: _annotate_matmul is not taking care if the symmetric/asymmetric quantization of inputs properly when softmax is involved. Disabled for now. {__file__}" 
+
     annotated_partitions = []
-    input_act_qspec_0 = copy.deepcopy(get_input_act_qspec(quantization_config))
-    input_act_qspec_1 = copy.deepcopy(get_input_act_qspec(quantization_config))
+    input_act_qspec_0 = get_input_act_qspec(quantization_config)
+    input_act_qspec_1 = get_input_act_qspec(quantization_config)
     bias_qspec = get_bias_qspec(quantization_config)
     output_act_qspec = get_output_act_qspec(quantization_config)
     for node in gm.graph.nodes:
@@ -88,20 +91,34 @@ def _annotate_matmul(
             bias_node = node.args[2]
         #
 
-        # this is not reliably able to change the qscheme of inputs
-        # aten_softmax_overload_ops = get_aten_overload_ops('softmax')
+        aten_softmax_overload_ops = get_aten_overload_ops('softmax')
+        is_softmax_input_0 = act_node_0.target in aten_softmax_overload_ops
+        is_softmax_input_1 = act_node_1.target in aten_softmax_overload_ops
+
+        is_symmetric_input_0 = input_act_qspec_0.qscheme in [torch.per_tensor_symmetric, torch.per_channel_symmetric]
+        is_symmetric_input_1 = input_act_qspec_1.qscheme in [torch.per_tensor_symmetric, torch.per_channel_symmetric]
+
+        # # this is not reliably able to change the qscheme of inputs
         # # change the inputs of matmul to be symmetric quantized except when softmax is involved
-        # qscheme_0 = input_act_qspec_0.qscheme if act_node_0.target in aten_softmax_overload_ops else torch.per_tensor_symmetric
+        # qscheme_0 = input_act_qspec_0.qscheme if is_softmax_input_0 else torch.per_tensor_symmetric
         # if len(act_node_0.users) == 1 and input_act_qspec_0.qscheme != qscheme_0:
         #     # get around dataclasses.FrozenInstanceError by using __dict__ insead of getattr
         #     input_act_qspec_0.__dict__['qscheme'] = qscheme_0
         #     _annotate_output_qspec(act_node_0, input_act_qspec_0)
         # #
-        # qscheme_1 = input_act_qspec_1.qscheme if act_node_1.target in aten_softmax_overload_ops else torch.per_tensor_symmetric
+        # qscheme_1 = input_act_qspec_1.qscheme if is_softmax_input_1 else torch.per_tensor_symmetric
         # if len(act_node_1.users) == 1 and input_act_qspec_1.qscheme != qscheme_1:
         #     input_act_qspec_1.__dict__['qscheme'] = qscheme_1
         #     _annotate_output_qspec(act_node_1, input_act_qspec_1)
         # #
+
+        # for now, skip annotating matmul if softmax is involved, since the above is not working reliably
+        if (is_softmax_input_0 or is_softmax_input_1):
+            continue
+
+        # also if atleast one input is not symmetric quantized, skip annotating
+        if not (is_symmetric_input_0 or is_symmetric_input_1):
+            continue
 
         if _is_annotated([node]) is False:  # type: ignore[list-item]
             _annotate_input_qspec_map(
@@ -127,7 +144,7 @@ def _annotate_matmul(
             annotated_partitions.append(nodes_to_mark_annotated)
 
     return annotated_partitions
-    
+
 
 class TIDLRTQuantizerAdvanced(XNNPACKQuantizer):
     XNNPACKQuantizer.STATIC_OPS += ['matmul']
