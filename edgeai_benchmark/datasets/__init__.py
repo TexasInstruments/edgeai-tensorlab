@@ -549,13 +549,17 @@ def get_datasets(settings, download=False, dataset_list=None):
 
     if check_dataset_load(settings, DATASET_CATEGORY_PANDASET_FRAME) and (DATASET_CATEGORY_PANDASET_FRAME in dataset_list):
         print(utils.log_color("\nINFO", f"loading dataset", f"category:{DATASET_CATEGORY_PANDASET_FRAME} variant:{DATASET_CATEGORY_PANDASET_FRAME}"))
+        # panda_version: 'v1.0-mini', 'v1.0-trainval'
+        panda_version = settings.get('datasets_version', 'v1.0-mini')
+        val_num_frames = 80 if panda_version == 'v1.0-mini' else 1680
         dataset_calib_cfg = dict(
             path=f'{settings.datasets_path}/pandaset/',
             split='train',
             num_classes=3,
             load_type='frame_based',
+            version=panda_version,
             shuffle=False,
-            num_frames=min(81, calibration_frames_nx),
+            num_frames=min(60, calibration_frames_nx),
             name=DATASET_CATEGORY_PANDASET_FRAME)
 
         # dataset parameters for actual inference
@@ -564,14 +568,15 @@ def get_datasets(settings, download=False, dataset_list=None):
             split='val',
             num_classes=3,
             load_type='frame_based',
+            version=panda_version,
             shuffle=False,
-            num_frames=min(settings.num_frames, 81),
+            num_frames=val_num_frames,
             name=DATASET_CATEGORY_PANDASET_FRAME)
 
         if dataset_cache[DATASET_CATEGORY_PANDASET_FRAME]['dataset_init'] is False:
             try:
                 # load pandaset dataset first
-                ps = load_pandaset(dataset_calib_cfg['path'])
+                ps = load_pandaset(dataset_calib_cfg['path'], dataset_calib_cfg['version'])
                 dataset_cache[DATASET_CATEGORY_PANDASET_FRAME]['calibration_dataset'] = \
                     PandaSetDataset(**dataset_calib_cfg, ps=ps, download=False, read_anno=False)
                 dataset_cache[DATASET_CATEGORY_PANDASET_FRAME]['input_dataset'] = \
@@ -586,13 +591,17 @@ def get_datasets(settings, download=False, dataset_list=None):
 
     if check_dataset_load(settings, DATASET_CATEGORY_PANDASET_MV_IMAGE) and (DATASET_CATEGORY_PANDASET_MV_IMAGE in dataset_list):
         print(utils.log_color("\nINFO", f"loading dataset", f"category:{DATASET_CATEGORY_PANDASET_MV_IMAGE} variant:{DATASET_CATEGORY_PANDASET_MV_IMAGE}"))
+        # panda_version: 'v1.0-mini', 'v1.0-trainval'
+        panda_version = settings.get('datasets_version', 'v1.0-mini')
+        val_num_frames = 80*6 if panda_version == 'v1.0-mini' else 1680*6
         dataset_calib_cfg = dict(
             path=f'{settings.datasets_path}/pandaset/',
             split='train',
             num_classes=3,
             load_type='mv_image_based',
+            version=panda_version,
             shuffle=False,
-            num_frames=min(50, calibration_frames_nx),
+            num_frames=min(60, calibration_frames_nx),
             name=DATASET_CATEGORY_PANDASET_MV_IMAGE)
 
         # dataset parameters for actual inference
@@ -601,15 +610,16 @@ def get_datasets(settings, download=False, dataset_list=None):
             split='val',
             num_classes=3,
             load_type='mv_image_based',
+            version=panda_version,
             shuffle=False,
-            num_frames=min(settings.num_frames, 456),
+            num_frames=val_num_frames,
             name=DATASET_CATEGORY_PANDASET_MV_IMAGE)
 
         # To revisit
         if dataset_cache[DATASET_CATEGORY_PANDASET_MV_IMAGE]['dataset_init'] is False:
             try:
                 # load pandaset dataset first
-                ps = load_pandaset(dataset_calib_cfg['path'])
+                ps = load_pandaset(dataset_calib_cfg['path'], dataset_calib_cfg['version'])
                 dataset_cache[DATASET_CATEGORY_PANDASET_MV_IMAGE]['calibration_dataset'] = \
                     PandaSetDataset(**dataset_calib_cfg, ps=ps, download=False, read_anno=False)
                 dataset_cache[DATASET_CATEGORY_PANDASET_MV_IMAGE]['input_dataset'] = \
@@ -745,7 +755,7 @@ def get_datasets(settings, download=False, dataset_list=None):
                 load_type='frame_based',
                 version=nusc_version,
                 shuffle=False,
-                num_frames=min(50, calibration_frames_nx),
+                num_frames=min(60, calibration_frames_nx),
                 name=DATASET_CATEGORY_NUSCENES_FRAME)
 
             # dataset parameters for actual inference
@@ -777,13 +787,17 @@ def get_datasets(settings, download=False, dataset_list=None):
 
         if check_dataset_load(settings, DATASET_CATEGORY_NUSCENES_MV_IMAGE) and (DATASET_CATEGORY_NUSCENES_MV_IMAGE in dataset_list):
             print(utils.log_color("\nINFO", f"loading dataset", f"category:{DATASET_CATEGORY_NUSCENES_MV_IMAGE} variant:{DATASET_CATEGORY_NUSCENES_MV_IMAGE}"))
+            # nusc_version: 'v1.0-mini', 'v1.0-trainval'
+            nusc_version = settings.get('datasets_version', 'v1.0-mini')
+            val_num_frames = 81*6 if nusc_version == 'v1.0-mini' else 6019*6
             dataset_calib_cfg = dict(
                 path=f'{settings.datasets_path}/nuscenes/',
                 split='train',
                 num_classes=10,
                 load_type='mv_image_based',
+                version=nusc_version,
                 shuffle=False,
-                num_frames=min(50, calibration_frames_nx),
+                num_frames=min(60, calibration_frames_nx),
                 name=DATASET_CATEGORY_NUSCENES_MV_IMAGE)
 
             # dataset parameters for actual inference
@@ -792,15 +806,16 @@ def get_datasets(settings, download=False, dataset_list=None):
                 split='val',
                 num_classes=10,
                 load_type='mv_image_based',
+                version=nusc_version,
                 shuffle=False,
-                num_frames=min(settings.num_frames, 486),
+                num_frames=val_num_frames,
                 name=DATASET_CATEGORY_NUSCENES_MV_IMAGE)
 
             # To revisit
             if dataset_cache[DATASET_CATEGORY_NUSCENES_MV_IMAGE]['dataset_init'] is False:
                 try:
                     # load nuscnes dataset first
-                    nusc, nusc_can_bus = load_nuscenes(dataset_calib_cfg['path'])
+                    nusc, nusc_can_bus = load_nuscenes(dataset_calib_cfg['path'], dataset_calib_cfg['version'])
                     dataset_cache[DATASET_CATEGORY_NUSCENES_MV_IMAGE]['calibration_dataset'] = \
                         NuScenesDataset(**dataset_calib_cfg, nusc=nusc, nusc_can_bus=None, download=False, read_anno=False)
                     dataset_cache[DATASET_CATEGORY_NUSCENES_MV_IMAGE]['input_dataset'] = \

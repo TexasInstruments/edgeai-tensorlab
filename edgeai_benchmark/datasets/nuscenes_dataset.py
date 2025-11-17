@@ -328,7 +328,6 @@ def load_nuscenes(path, version='v1.0-mini'):
     return nusc, nusc_can_bus
 
 
-
 # https://github.com/open-mmlab/mmdetection3d/
 # From get_available_scenes()
 def get_available_scenes(nusc: NuScenes):
@@ -379,7 +378,6 @@ def _fill_trainval_infos(nusc,
                          max_frames,
                          train_scenes=None,
                          val_scenes=None,
-                         #data_ids=None,
                          read_anno=True,
                          max_sweeps=10):
     """Generate the train/val infos from the raw data.
@@ -509,8 +507,6 @@ def _fill_trainval_infos(nusc,
 
     '''
     for idx, sample in enumerate(nusc.sample):
-        #if not (str(idx) in data_ids or idx in data_ids):
-        #    continue
         if train_scenes is not None and sample['scene_token'] not in train_scenes:
             continue
         elif val_scenes is not None and sample['scene_token'] not in val_scenes:
@@ -605,15 +601,16 @@ def _fill_trainval_infos(nusc,
             break
     '''
 
+    print(f'loaded_frame: {loaded_frame}/{max_frames}')
     return nusc_infos
 
 
 # https://github.com/open-mmlab/mmdetection3d/
 # From _fill_trainval_infos()
 def _fill_trainval_infos_mv_image(nusc,
+                                  max_frames,
                                   train_scenes=None,
                                   val_scenes=None,
-                                  #data_ids=None,
                                   read_anno=True):
     """Generate the train/val infos from the raw data.
 
@@ -632,9 +629,6 @@ def _fill_trainval_infos_mv_image(nusc,
     nusc_infos = []
 
     for idx, sample in enumerate(nusc.sample):
-        #if not (str(idx) in data_ids or idx in data_ids):
-        #    continue
-
         if train_scenes is not None and sample['scene_token'] not in train_scenes:
             continue
         elif val_scenes is not None and sample['scene_token'] not in val_scenes:
@@ -708,6 +702,13 @@ def _fill_trainval_infos_mv_image(nusc,
 
             nusc_infos.append(camera_info)
 
+        # break if reached max frames
+        loaded_frame = len(nusc_infos)
+        print(f'Loading {loaded_frame}/{max_frames}', end='\r')
+        if loaded_frame >= max_frames:
+            break
+
+    print(f'loaded_frame: {loaded_frame}/{max_frames}')
     return nusc_infos
 
 
@@ -812,8 +813,8 @@ def _get_can_bus_info(nusc, nusc_can_bus, sample):
 
 class NuScenesDataset(DatasetBase):
     def __init__(self, nusc=None, nusc_can_bus=None,
-                 download=False, read_anno=True, dest_dir=None, num_frames=None, name='nuscnes', **kwargs):
-        super().__init__(num_frames=num_frames, name=name, read_anno=read_anno, **kwargs)
+                 download=False, read_anno=True, name='nuscnes', **kwargs):
+        super().__init__(name=name, read_anno=read_anno, **kwargs)
 
         self.force_download = True if download == 'always' else False
         assert 'path' in self.kwargs and 'split' in self.kwargs, 'path and split must be provided in kwargs'
@@ -854,7 +855,7 @@ class NuScenesDataset(DatasetBase):
         """
         self.num_frames = self.kwargs['num_frames']
         shuffle = self.kwargs.get('shuffle', False)
-        assert shuffle == False, 'Shuffling is not supported for NuScenesDataset'
+        assert shuffle is False, 'Shuffling is not supported for NuScenesDataset'
 
         self.num_classes = kwargs['num_classes']
         # FCOS3D, FastBEV
@@ -935,11 +936,11 @@ class NuScenesDataset(DatasetBase):
             ])
 
             if self.load_type == 'mv_image_based':
-                train_nusc_infos = _fill_trainval_infos_mv_image(self.nusc, train_scenes=train_scenes, val_scenes=None,
-                    read_anno=read_anno)
+                train_nusc_infos = _fill_trainval_infos_mv_image(self.nusc, self.num_frames, 
+                    train_scenes=train_scenes, val_scenes=None, read_anno=read_anno)
             else:
-                train_nusc_infos = _fill_trainval_infos(self.nusc, self.nusc_can_bus, self.num_frames, train_scenes=train_scenes, val_scenes=None,
-                    read_anno=read_anno, max_sweeps=max_sweeps)
+                train_nusc_infos = _fill_trainval_infos(self.nusc, self.nusc_can_bus, self.num_frames,
+                    train_scenes=train_scenes, val_scenes=None, read_anno=read_anno, max_sweeps=max_sweeps)
                 # Sort with timestamp
                 train_nusc_infos = list(sorted(train_nusc_infos, key=lambda e: e['timestamp']))
 
@@ -961,11 +962,11 @@ class NuScenesDataset(DatasetBase):
             ])
 
             if self.load_type == 'mv_image_based':
-                val_nusc_infos = _fill_trainval_infos_mv_image(self.nusc, train_scenes=None, val_scenes=val_scenes,
-                    read_anno=read_anno)
+                val_nusc_infos = _fill_trainval_infos_mv_image(self.nusc, self.num_frames, 
+                    train_scenes=None, val_scenes=val_scenes, read_anno=read_anno)
             else:
-                val_nusc_infos = _fill_trainval_infos(self.nusc, self.nusc_can_bus, self.num_frames, train_scenes=None, val_scenes=val_scenes,
-                    read_anno=read_anno, max_sweeps=max_sweeps)
+                val_nusc_infos = _fill_trainval_infos(self.nusc, self.nusc_can_bus, self.num_frames,
+                    train_scenes=None, val_scenes=val_scenes, read_anno=read_anno, max_sweeps=max_sweeps)
                 # Sort with timestamp
                 val_nusc_infos = list(sorted(val_nusc_infos, key=lambda e: e['timestamp']))
 
@@ -1033,7 +1034,6 @@ class NuScenesDataset(DatasetBase):
             self.data_infos,
             self.data_scene_infos,
             pred_boxes,
-            #data_ids=self.data_ids,
             config=self.eval_detection_configs,
             eval_set='mini_val' if self.version=='v1.0-mini' else 'val',
             output_dir=output_dir,

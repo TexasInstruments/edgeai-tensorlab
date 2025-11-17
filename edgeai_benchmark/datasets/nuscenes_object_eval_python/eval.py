@@ -120,6 +120,22 @@ class NuScenesEval:
         for sample_token, _ in pred_boxes.items():
             sample_tokens.append(sample_token)
 
+        """
+        # Only keep samples from this split.
+        splits = create_splits_scenes()
+
+        # Read out all sample_tokens in DB.
+        sample_tokens_all = [s['token'] for s in self.nusc.sample]
+        assert len(sample_tokens_all) > 0, "Error: Database has no samples!"
+
+        sample_tokens = []
+        for sample_token in sample_tokens_all:
+            scene_token = self.nusc.get('sample', sample_token)['scene_token']
+            scene_record = self.nusc.get('scene', scene_token)
+            if scene_record['name'] in splits[self.eval_set]:
+                sample_tokens.append(sample_token)
+        """
+
         all_annotations = EvalBoxes()
 
         # Load annotations and filter predictions and annotations.

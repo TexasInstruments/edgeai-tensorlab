@@ -186,7 +186,7 @@ def get_configs(settings, work_dir):
                                 'object_detection:meta_layers_names_list':
                                 '../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/bevformer/bevformer_tiny_mod_metaarch.prototxt'}),
                     {'advanced_options:output_feature_16bit_names_list':'','advanced_options:max_num_subgraph_nodes': 1536}),
-                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/bevformer/bevformer_tiny_mod_480x800_20250602_opt.onnx'),
+                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/bevformer/bevformer_tiny_mod_480x800_opt_20251112.onnx'),
             postprocess=postproc_transforms.get_transform_bev_detection_base(queue_length=1),
             metric=dict(),
             model_info=dict(metric_reference={'mAP':0.4})
@@ -215,23 +215,6 @@ def get_configs(settings, work_dir):
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
                     {'advanced_options:output_feature_16bit_names_list':'','advanced_options:max_num_subgraph_nodes': 1536}),
                 model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/bevformer/bevformer_base_mod_928x1600_nn_gridsample_20250908.onnx'),
-            postprocess=postproc_transforms.get_transform_bev_detection_base(queue_length=1),
-            metric=dict(),
-            model_info=dict(metric_reference={'mAP':0.4})
-        ),
-        # 3dod-7143: BEVFormer for pandaset
-        '3dod-7143':utils.dict_update(bev_frame_cfg_ps,
-            task_name='BEVFormer',
-            # pad = (left, top, right, bottom) = (0, 0, 0, 30)
-            preprocess=preproc_transforms.get_transform_bev_bevformer(
-                (1080, 1920), (540, 960), (0, 0, 0, 4),  queue_length=1, backend='cv2', interpolation=cv2.INTER_CUBIC),
-            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=[(123.675, 116.280, 103.530)], input_scale=[(0.017125, 0.017507, 0.017429)], input_optimization=False),
-                runtime_options=utils.dict_update(settings.runtime_options_onnx_p2( ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL,
-                                'object_detection:meta_arch_type': 10,
-                                'object_detection:meta_layers_names_list':
-                                '../edgeai-modelzoo/models/vision/detection_3d/pandaset/mmdet3d/bevformer/bevformer_tiny_mod_metaarch.prototxt'}),
-                    {'advanced_options:output_feature_16bit_names_list':'','advanced_options:max_num_subgraph_nodes': 1536}),
-                model_path=f'../edgeai-modelzoo/models/vision/detection_3d/pandaset/mmdet3d/bevformer/bevformer_tiny_mod_pandaset_544x960_20250602_opt.onnx'),
             postprocess=postproc_transforms.get_transform_bev_detection_base(queue_length=1),
             metric=dict(),
             model_info=dict(metric_reference={'mAP':0.4})
