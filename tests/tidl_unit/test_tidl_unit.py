@@ -63,6 +63,10 @@ def temp_buffer_dir(pytestconfig):
     return pytestconfig.getoption("temp_buffer_dir")
 
 @pytest.fixture(scope="session")
+def temp_nc_dir(pytestconfig):
+    return pytestconfig.getoption("temp_nc_dir")
+
+@pytest.fixture(scope="session")
 def nmse_threshold(pytestconfig):
     return pytestconfig.getoption("nmse_threshold")
 
@@ -74,7 +78,11 @@ def runtime(pytestconfig):
 def work_dir(pytestconfig):
     return pytestconfig.getoption("work_dir")
 
-def retrieve_tests_operator(root_dir):
+@pytest.fixture(scope="session")
+def test_file(pytestconfig):
+    return pytestconfig.getoption("test_file")
+
+def retrieve_tests_operator(root_dir, test_file = None):
     subdir = os.listdir(root_dir)
     all_tests = []
     all_tests_parent_dir = []
@@ -84,22 +92,88 @@ def retrieve_tests_operator(root_dir):
         for j in tname:
             all_tests.append(j)
             all_tests_parent_dir.append(x)
+
+    # Filter tests if a test file is provided
+    if test_file:
+        test_file = test_file.strip()
+
+    if test_file and test_file != ""  and os.path.exists(test_file):
+        with open(test_file, 'r') as f:
+            tests_from_file = [line.strip() for line in f.readlines()]
+            tests_from_file = [line for line in tests_from_file if line and not line.startswith('#')]
+
+        # Filter all_tests to only include tests from the file
+        filtered_tests = []
+        filtered_tests_parent_dir = []
+        for i, test in enumerate(all_tests):
+            if test in tests_from_file:
+                filtered_tests.append(test)
+                filtered_tests_parent_dir.append(all_tests_parent_dir[i])
+
+        all_tests = filtered_tests
+        all_tests_parent_dir = filtered_tests_parent_dir
+
     tests_with_expected_fails_marked = [pytest.param(test, marks=pytest.mark.xfail) if test in expected_fails else test for test in all_tests]
     return tests_with_expected_fails_marked, all_tests_parent_dir
 
+# Get all tests initially
 operator_tests_to_run, operator_tests_parent_dir = retrieve_tests_operator(operator_tests_root)
 
+# Store test-specific parent directories
+test_parent_dirs = {}
+
+def pytest_generate_tests(metafunc):
+    """
+    Dynamically generate tests based on the test_file parameter if provided.
+    This is called by pytest before test collection.
+    """
+
+    if 'test_name' in metafunc.fixturenames:
+        global test_parent_dirs
+        test_parent_dirs = {}
+
+        # Get the test_file fixture value
+        test_file_path = metafunc.config.getoption("test_file")
+
+        # If a test file is provided, filter the tests
+        if test_file_path:
+            filtered_tests, filtered_parent_dirs = retrieve_tests_operator(operator_tests_root, test_file_path)
+
+            # Update the test_parent_dirs dictionary with the filtered tests
+            for i, test in enumerate(filtered_tests):
+                if isinstance(test, str):
+                    test_parent_dirs[test] = filtered_parent_dirs[i]
+                else:  # Handle pytest.param objects
+                    test_parent_dirs[test.values[0]] = filtered_parent_dirs[i]
+
+            metafunc.parametrize("test_name", filtered_tests)
+        else:
+            for i, test in enumerate(operator_tests_to_run):
+                if isinstance(test, str):
+                    test_parent_dirs[test] = operator_tests_parent_dir[i]
+                else:  # Handle pytest.param objects
+                    test_parent_dirs[test.values[0]] = operator_tests_parent_dir[i]
+
+            metafunc.parametrize("test_name", operator_tests_to_run)
+
 # Test TIDL operator unit test
-@pytest.mark.parametrize(("test_name"), operator_tests_to_run)
-def test_tidl_unit_operator(no_subprocess : bool, tidl_offload : bool, run_infer : bool, work_dir : str, exit_on_critical_error : bool, flow_control : int, temp_buffer_dir : str, nmse_threshold : float, runtime : str, timeout : int, operator_tests_root_fixture : str, test_name : str):
+def test_tidl_unit_operator(no_subprocess : bool, tidl_offload : bool, run_infer : bool, work_dir : str, exit_on_critical_error : bool, flow_control : int, temp_buffer_dir : str, temp_nc_dir : str, nmse_threshold : float, runtime : str, timeout : int, operator_tests_root_fixture : str, test_name : str):
     '''
     Pytest for tidl unit operator tests using the edgeai-benchmark framework
     '''
-    testdir_parent = operator_tests_root_fixture
-    for i in range(len(operator_tests_to_run)):
-        if operator_tests_to_run[i] == test_name:
-            testdir_parent = operator_tests_parent_dir[i]
-            break
+    # Get the parent directory for this test from the test_parent_dirs dictionary
+    if test_name in test_parent_dirs:
+        testdir_parent = test_parent_dirs[test_name]
+    else:
+        # Fallback to the old method if not found in the dictionary
+        testdir_parent = operator_tests_root_fixture
+        for i in range(len(operator_tests_to_run)):
+            if isinstance(operator_tests_to_run[i], str) and operator_tests_to_run[i] == test_name:
+                testdir_parent = operator_tests_parent_dir[i]
+                break
+            elif hasattr(operator_tests_to_run[i], 'values') and operator_tests_to_run[i].values[0] == test_name:
+                testdir_parent = operator_tests_parent_dir[i]
+                break
 
     perform_tidl_unit(no_subprocess   = no_subprocess,
                       tidl_offload    = tidl_offload, 
@@ -107,6 +181,7 @@ def test_tidl_unit_operator(no_subprocess : bool, tidl_offload : bool, run_infer
                       work_dir        = work_dir,
                       flow_control    = flow_control,
                       temp_buffer_dir = temp_buffer_dir,
+                      temp_nc_dir     = temp_nc_dir,
                       nmse_threshold  = nmse_threshold,
                       timeout         = timeout,
                       test_name       = test_name,
@@ -114,7 +189,7 @@ def test_tidl_unit_operator(no_subprocess : bool, tidl_offload : bool, run_infer
                       testdir_parent  = testdir_parent,
                       runtime         = runtime)
 
-def perform_tidl_unit(no_subprocess : bool, tidl_offload : bool, run_infer : bool, work_dir : str, flow_control : int, temp_buffer_dir : str, nmse_threshold : float, runtime : str, timeout : int, testdir_parent : str, test_name : str, test_suite : str):
+def perform_tidl_unit(no_subprocess : bool, tidl_offload : bool, run_infer : bool, work_dir : str, flow_control : int, temp_buffer_dir : str, temp_nc_dir : str, nmse_threshold : float, runtime : str, timeout : int, testdir_parent : str, test_name : str, test_suite : str):
     '''
     Performs an tidl unit test
     '''
@@ -125,6 +200,7 @@ def perform_tidl_unit(no_subprocess : bool, tidl_offload : bool, run_infer : boo
                                      work_dir           = work_dir,
                                      flow_control       = flow_control,
                                      temp_buffer_dir    = temp_buffer_dir,
+                                     temp_nc_dir        = temp_nc_dir,
                                      nmse_threshold     = nmse_threshold,
                                      runtime            = runtime,
                                      test_name          = test_name,
@@ -136,7 +212,8 @@ def perform_tidl_unit(no_subprocess : bool, tidl_offload : bool, run_infer : boo
                                      work_dir        = work_dir,
                                      flow_control    = flow_control,
                                      temp_buffer_dir = temp_buffer_dir,
-                                     nmse_threshold     = nmse_threshold,
+                                     temp_nc_dir     = temp_nc_dir,
+                                     nmse_threshold  = nmse_threshold,
                                      runtime         = runtime,
                                      timeout         = timeout,
                                      test_name       = test_name,
@@ -145,7 +222,7 @@ def perform_tidl_unit(no_subprocess : bool, tidl_offload : bool, run_infer : boo
         
 
 
-def perform_tidl_unit_subprocess(tidl_offload : bool, run_infer : bool, work_dir : str, flow_control : int, temp_buffer_dir : str, nmse_threshold : float, runtime : str, timeout : int, test_name : str, test_suite : str, testdir_parent : str):
+def perform_tidl_unit_subprocess(tidl_offload : bool, run_infer : bool, work_dir : str, flow_control : int, temp_buffer_dir : str, temp_nc_dir : str, nmse_threshold : float, runtime : str, timeout : int, test_name : str, test_suite : str, testdir_parent : str):
     '''
     Perform an tidl unit test using a subprocess (in order to properly capture output for fatal errors)
     Called by perform_tidl_unit
@@ -156,6 +233,7 @@ def perform_tidl_unit_subprocess(tidl_offload : bool, run_infer : bool, work_dir
               "work_dir"          : work_dir,
               "flow_control"      : flow_control,
               "temp_buffer_dir"   : temp_buffer_dir,
+              "temp_nc_dir"       : temp_nc_dir,
               "nmse_threshold"    : nmse_threshold,
               "runtime"           : runtime,
               "test_name"         : test_name,
@@ -179,7 +257,7 @@ def perform_tidl_unit_subprocess(tidl_offload : bool, run_infer : bool, work_dir
     assert p.exitcode == 0, f"Received nonzero exit code: {p.exitcode}"
 
 # Utility function to perform tidl unit test
-def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, work_dir : str, flow_control : int, temp_buffer_dir : str, nmse_threshold : float, runtime : str, test_name : str, test_suite : str, testdir_parent : str):
+def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, work_dir : str, flow_control : int, temp_buffer_dir : str, temp_nc_dir : str, nmse_threshold : float, runtime : str, test_name : str, test_suite : str, testdir_parent : str):
     '''
     Perform an tidl unit test using without a subprocess wrapper
     Called by perform_tidl_unit_subprocess or directly by perform_tidl_unit if no_subprocess is specified
@@ -260,18 +338,40 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, work_dir
         print(f"\tDDR Read Bandwidth (MB/s)             :   {stats['read_total']:.2f}")
         print(f"\tDDR Write Bandwidth (MB/s)            :   {stats['write_total']:.2f}")
         print()
+
+        nmse  = tidl_unit_dataset([results_list])['nmse']
+        mse   = tidl_unit_dataset([results_list])['mse']
+        delta = tidl_unit_dataset([results_list])['delta']
+
+        if any(x is None for x in nmse):
+            max_nmse = None
+        else:
+            max_nmse = max(nmse)
+
+        if any(x is None for x in mse):
+            max_mse = None
+        else:
+            max_mse = max(mse)
         
-        max_nmse = tidl_unit_dataset([results_list])['max_nmse']
-        max_mse  = tidl_unit_dataset([results_list])['max_mse']
+        if any(x is None for x in delta):
+            max_delta = None
+        else:
+            max_delta = max(delta)
 
         if max_nmse == None:
             print("MAX_NMSE: None")
         else:
             print("MAX_NMSE: {:.7f}".format(max_nmse))
+
         if max_mse == None:
             print("MAX_MSE: None")
         else:
             print("MAX_MSE: {:.7f}".format(max_mse))
+
+        if max_delta == None:
+            print("MAX_DELTA: None")
+        else:
+            print("MAX_DELTA: {:.7f}".format(max_delta))
 
         # max_nmse can be none if output has zero variance - check max_mse in this case
         if max_nmse == None and max_mse == None:
@@ -304,6 +404,7 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, work_dir
         runtime_options["onnxruntime:graph_optimization_level"] = onnxruntime.GraphOptimizationLevel.ORT_DISABLE_ALL
         runtime_options["onnxruntime:intra_op_num_threads"] = 1
         runtime_options["advanced_options:temp_buffer_dir"] = temp_buffer_dir
+        runtime_options["advanced_options:nc_temp_info_dir"] = temp_nc_dir
 
         if runtime == "onnxrt":
             runtime_wrapper = core.ONNXRuntimeWrapper(runtime_options=runtime_options,

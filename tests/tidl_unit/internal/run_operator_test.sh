@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+SCRIPT_PATH=$(readlink -f "$0")
+SCRIPT_DIR=$(dirname "$SCRIPT_PATH")
+
 usage() {
 echo \
 "Usage:
@@ -18,12 +21,22 @@ echo \
                                 Default is work_dirs/modelartifacts
     --save_model_artifacts      Whether to preserve compiled artifacts or not in work_dir. Allowed values are (0,1). Default=0
     --temp_buffer_dir           Path to redirect temporary buffers for x86 runs. Default is /dev/shm
+    --temp_nc_dir               Path to redirect temporary NC buffers. Default is /tmp
     --nmse_threshold            Normalized Mean Squared Error (NMSE) threshold for inference output. Default: 0.5
-    --operators                 List of operators (space separated string) to run. By default every operator under tidl_unit_test_data/operators
     --runtimes                  List of runtimes (space separated string) to run tests. Allowed values are (onnxrt, tvmrt). Default=onnxrt
+    --tensor_bits               8/16/32. Default: 8
+    --num_threads               Number of threads for test run. Default=auto
     --tidl_tools_path           Path of tidl tools tarball
 
+    --test_file                 Path to text file containg test to run. Default=null
+    --operators                 List of operators (space separated string) to run. By default every operator under tidl_unit_test_data/operators
+
+    NOTE: If 'test_file' is defined, it will take precedence over 'operators' option.
+
     Example:
+        ./run_operator_test.sh --SOC=AM68A --run_ref=1 --run_natc=0 --run_ci=0 --save_model_artifacts=1 --test_file=abc.txt --runtimes=\"onnxrt\"
+        This will run all tests defined in abc.txt on AM68A using onnxrt runtime, aritifacts will be saved and will run Host emulation inference 
+
         ./run_operator_test.sh --SOC=AM68A --run_ref=1 --run_natc=0 --run_ci=0 --save_model_artifacts=1 --operators=\"Add Mul Sqrt\" --runtimes=\"onnxrt\"
         This will run unit tests for (Add, Mul, Sqrt) operators on AM68A using onnxrt runtime, aritifacts will be saved and will run Host emulation inference 
     "
@@ -38,12 +51,17 @@ run_natc="0"
 run_ci="0"
 run_target="0"
 work_dir=""
+test_file=""
 save_model_artifacts="0"
 temp_buffer_dir="/dev/shm"
+temp_nc_dir="/tmp"
+
 OPERATORS=()
 RUNTIMES=()
 tidl_tools_path=""
 nmse_threshold=""
+num_threads=""
+tensor_bits="8"
 
 while [ $# -gt 0 ]; do
         case "$1" in
@@ -80,17 +98,29 @@ while [ $# -gt 0 ]; do
         --temp_buffer_dir=*)
         temp_buffer_dir="${1#*=}"
         ;;
+        --temp_nc_dir=*)
+        temp_nc_dir="${1#*=}"
+        ;;
         --tidl_tools_path=*)
         tidl_tools_path="${1#*=}"
         ;;
         --nmse_threshold=*)
         nmse_threshold="${1#*=}"
         ;;
+        --tensor_bits=*)
+        tensor_bits="${1#*=}"
+        ;;
         --operators=*)
         operators="${1#*=}"
         ;;
+        --test_file=*)
+        test_file="${1#*=}"
+        ;;
         --runtimes=*)
         runtimes="${1#*=}"
+        ;;
+        --num_threads=*)
+        num_threads="${1#*=}"
         ;;
         --help)
         usage
@@ -105,9 +135,53 @@ while [ $# -gt 0 ]; do
         shift
 done
 
-for operator in $operators; do
-  OPERATORS+=("$operator")
+TEMP_TEST_FILE_DIR="$SCRIPT_DIR/temp_test_files"
+rm -rf $TEMP_TEST_FILE_DIR
+mkdir -p $TEMP_TEST_FILE_DIR
+
+USE_TEST_FILE=0
+if [[ "$test_file" != "" ]]; then
+    if [[ -f "$test_file" ]]; then
+        USE_TEST_FILE=1
+    else
+        echo "[WARNING]: $test_file not found. Using 'operators' option."
+        USE_TEST_FILE=0
+    fi
+fi
+
+# Parse operators from test_file or operators option
+if [[ $USE_TEST_FILE -eq 1 ]]; then
+    while IFS= read -r line; do
+        if [[ -z "$(echo "$line" | tr -d '[:space:]')" ]]; then
+            continue
+        fi
+        if [[ "$line" =~ ^[[:space:]]*# ]]; then
+            continue
+        fi
+        trimmed_line=$(echo "$line" | sed -e 's/^[[:space:]]*//')
+        op=$(echo "$trimmed_line" | cut -d'_' -f1)
+
+        OPERATORS+=("$op")
+        echo "$trimmed_line" >> $TEMP_TEST_FILE_DIR/$op.txt
+    done < "$test_file"
+else
+    for operator in $operators; do
+        OPERATORS+=("$operator")
+    done
+fi
+
+# Remove duplicated operator
+declare -A seen_elements
+UNIQUE_OPERATORS=()
+for element in "${OPERATORS[@]}"; do
+    if [[ -z "${seen_elements[$element]}" ]]; then
+        UNIQUE_OPERATORS+=("$element")
+        seen_elements[$element]=1
+    fi
 done
+OPERATORS=("${UNIQUE_OPERATORS[@]}")
+
+# Parse runtimes
 for runtime in $runtimes; do
   RUNTIMES+=("$runtime")
 done
@@ -123,6 +197,11 @@ if [ "$tidl_offload" != "1" ] && [ "$tidl_offload" != "0" ]; then
     echo "[ERROR]: tidl_offload: $tidl_offload is not allowed."
     echo "         Allowed values are (0,1)"
     exit 1
+fi
+if [ "$tensor_bits" != "8" ] && [ "$tensor_bits" != "16" ] && [ "$tensor_bits" != "32" ]; then
+    echo "[WARNING]: tensor_bits: $tidl_offload is not allowed. Defaulting to 8."
+    echo "           Allowed values are (8, 16, 32)"
+    tensor_bits="8"
 fi
 for runtime in "${RUNTIMES[@]}"
 do
@@ -176,24 +255,77 @@ if [ "$work_dir" != "" ]; then
 fi
 
 # Operator specific nmse_threshold
+threshold_e_minus1="0.1"
+threshold_e_minus2="0.01"
+threshold_e_minus3="0.001"
 declare -A ops_nmse_threshold
-threshold="0.001"
-ops_nmse_threshold["ArgMax"]="0"
-ops_nmse_threshold["Abs"]=$threshold
-ops_nmse_threshold["Clip"]=$threshold
-ops_nmse_threshold["DepthToSpace"]=$threshold
-ops_nmse_threshold["Flatten"]=$threshold
-ops_nmse_threshold["Max"]=$threshold
-ops_nmse_threshold["Neg"]=$threshold
-ops_nmse_threshold["Pad"]=$threshold
-ops_nmse_threshold["ReduceMax"]=$threshold
-ops_nmse_threshold["ReduceMin"]=$threshold
-ops_nmse_threshold["Reshape"]=$threshold
-ops_nmse_threshold["Slice"]=$threshold
-ops_nmse_threshold["SpaceToDepth"]=$threshold
-ops_nmse_threshold["Squeeze"]=$threshold
-ops_nmse_threshold["Transpose"]=$threshold
-ops_nmse_threshold["Unsqueeze"]=$threshold
+ops_nmse_threshold=(
+    ["ArgMax"]="0"
+    # 1e-3
+    ["Abs"]=$threshold_e_minus3
+    ["Acos"]=$threshold_e_minus3
+    ["Asin"]=$threshold_e_minus3
+    ["Asinh"]=$threshold_e_minus3
+    ["Atan"]=$threshold_e_minus3
+    ["Clip"]=$threshold_e_minus3
+    ["Concat"]=$threshold_e_minus3
+    ["Cos"]=$threshold_e_minus3
+    ["DepthToSpace"]=$threshold_e_minus3
+    ["Elu"]=$threshold_e_minus3
+    ["Erf"]=$threshold_e_minus3
+    ["Flatten"]=$threshold_e_minus3
+    ["Gemm"]=$threshold_e_minus3
+    ["LeakyRelu"]=$threshold_e_minus3
+    ["Neg"]=$threshold_e_minus3
+    ["Relu"]=$threshold_e_minus3
+    ["Reshape"]=$threshold_e_minus3
+    ["Sigmoid"]=$threshold_e_minus3
+    ["Sin"]=$threshold_e_minus3
+    ["Slice"]=$threshold_e_minus3
+    ["SpaceToDepth"]=$threshold_e_minus3
+    ["Squeeze"]=$threshold_e_minus3
+    ["Sum"]=$threshold_e_minus3
+    ["Tanh"]=$threshold_e_minus3
+    ["Transpose"]=$threshold_e_minus3
+    ["Unsqueeze"]=$threshold_e_minus3
+    # 1e-2
+    ["Add"]=$threshold_e_minus2
+    ["AveragePool"]=$threshold_e_minus2
+    ["BatchNorm"]=$threshold_e_minus2
+    ["Convolution"]=$threshold_e_minus2
+    ["ConvTranspose"]=$threshold_e_minus2
+    ["GlobalAveragePool"]=$threshold_e_minus2
+    ["HardSwish"]=$threshold_e_minus2
+    ["InstanceNormalization"]=$threshold_e_minus2
+    ["LayerNormalization"]=$threshold_e_minus2
+    ["MatMul"]=$threshold_e_minus2
+    ["Max"]=$threshold_e_minus2
+    ["MaxPool"]=$threshold_e_minus2
+    ["Mish"]=$threshold_e_minus2
+    ["PRelu"]=$threshold_e_minus2
+    ["ReduceMax"]=$threshold_e_minus2
+    ["ReduceMin"]=$threshold_e_minus2
+    ["Resize"]=$threshold_e_minus2
+    ["Softmax"]=$threshold_e_minus2
+    ["Sub"]=$threshold_e_minus2
+    ["Sqrt"]=$threshold_e_minus2
+    ["TopK"]=$threshold_e_minus2
+    # 1e-1
+    ["Div"]=$threshold_e_minus1
+    ["Exp"]=$threshold_e_minus1
+    ["Gather"]=$threshold_e_minus1
+    ["Mul"]=$threshold_e_minus1
+    # Doubt
+    ["Floor"]=$threshold_e_minus2
+    ["HardSigmoid"]=$threshold_e_minus2
+    ["ScatterElements"]=$threshold_e_minus2
+    ["ScatterND"]=$threshold_e_minus2
+    ["Tan"]=$threshold_e_minus2
+    ["Cosh"]=$threshold_e_minus1
+    ["GridSample"]=$threshold_e_minus1
+    ["Log"]=$threshold_e_minus1
+    ["Sinh"]=$threshold_e_minus1
+)
 
 if [ ${#OPERATORS[@]} -eq 0 ]; then
     OPERATORS=()
@@ -206,6 +338,7 @@ fi
 # Printing options
 echo "SOC                       = $SOC"
 echo "tidl_offload              = $tidl_offload"
+echo "tensor_bits               = $tensor_bits"
 echo "compile_without_nc        = $compile_without_nc"
 echo "compile_with_nc           = $compile_with_nc"
 echo "run_ref                   = $run_ref"
@@ -215,6 +348,10 @@ echo "run_target                = $run_target"
 echo "work_dir                  = $work_dir"
 echo "save_model_artifacts      = $save_model_artifacts"
 echo "temp_buffer_dir           = $temp_buffer_dir"
+echo "temp_nc_dir               = $temp_nc_dir"
+echo "num_threads               = $num_threads"
+echo "test_file                 = $test_file"
+
 
 current_dir="$PWD"
 path_edge_ai_benchmark="$current_dir/../../.."
@@ -239,6 +376,7 @@ cd "$path_edge_ai_benchmark/tests/tidl_unit"
 # Set up tidl_tools
 mkdir -p temp
 cd temp && rm -rf *.tar.gz && rm -rf tidl_tools
+
 # Extract the filename from the path
 tarball_name=$(basename "$tidl_tools_path")
 cp "$tidl_tools_path" ./
@@ -247,6 +385,7 @@ if [ "$?" -ne 0 ]; then
     echo "[ERROR]: Could not untar $tidl_tools_path. Make sure it is a tarball"
     exit 1
 fi
+
 # Check if tidl_tools directory was created after extraction
 if [ ! -d "tidl_tools" ]; then
     echo "[ERROR]: tidl_tools directory not found after extracting $tidl_tools_path. The tarball may not contain the expected directory structure"
@@ -306,6 +445,7 @@ else
         OPERATORS=("${intersection[@]}")
     fi
 fi
+
 # Run only inference if tidl_offload is 0
 if [ "$tidl_offload" == "0" ]; then
     compile_without_nc="0"
@@ -316,6 +456,9 @@ if [ "$tidl_offload" == "0" ]; then
     run_target="0"
     echo -e "\n[INFO]: tidl_offload is false, Running tests on CPU\n"
 fi
+
+# Change yaml file to set tensor bits
+sed -i "/tensor_bits/c\tensor_bits : ${tensor_bits}" tidl_unit.yaml
 
 # Add operators in remove_list which you don't want to run 
 # "Add" "Convolution" "Mul"
@@ -355,6 +498,12 @@ do
         mkdir -p $logs_path
         echo "Logs will be saved to: $logs_path"
 
+        if [[ $USE_TEST_FILE -eq 1 ]]; then
+            test_option="--test_file=$TEMP_TEST_FILE_DIR/$operator.txt" 
+        else
+            test_option="--tests=$operator" 
+        fi
+
         if [ "$compile_without_nc" == "1" ]; then
             echo "########################################## $operator TEST (WITHOUT NC) ######################################"
             rm -rf ${work_dir}/${operator}_*
@@ -363,7 +512,7 @@ do
             rm -rf "$TIDL_TOOLS_PATH/ti_cnnperfsim.out"
 
             rm -rf logs/*
-            ./run_test.sh --test_suite=operator --tests=$operator --tidl_offload=$tidl_offload --run_infer=0 --temp_buffer_dir=$temp_buffer_dir --runtime=$runtime --work_dir=$work_dir
+            ./run_test.sh --test_suite=operator $test_option --tidl_offload=$tidl_offload --run_infer=0 --temp_buffer_dir=$temp_buffer_dir --temp_nc_dir=$temp_nc_dir --runtime=$runtime --work_dir=$work_dir --num_threads=$num_threads
             cp logs/*.html "$logs_path/compile_without_nc.html"
             if [ "$temp_buffer_dir" != "/dev/shm" ]; then
                 rm -rf $temp_buffer_dir/vashm_buff*
@@ -371,7 +520,7 @@ do
 
             rm -rf logs/*
             if [ "$run_ref" == "1" ]; then
-                ./run_test.sh --test_suite=operator --tests=$operator --tidl_offload=$tidl_offload --run_compile=0 --temp_buffer_dir=$temp_buffer_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir
+                ./run_test.sh --test_suite=operator $test_option --tidl_offload=$tidl_offload --run_compile=0 --temp_buffer_dir=$temp_buffer_dir --temp_nc_dir=$temp_nc_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir --num_threads=$num_threads
                 cp logs/*.html "$logs_path/infer_ref_without_nc.html"
                 if [ "$temp_buffer_dir" != "/dev/shm" ]; then
                     rm -rf $temp_buffer_dir/vashm_buff*
@@ -399,7 +548,7 @@ do
             cp -rp "$TIDL_TOOLS_PATH/../ti_cnnperfsim.out" "$TIDL_TOOLS_PATH"
 
             rm -rf logs/*
-            ./run_test.sh --test_suite=operator --tests=$operator --tidl_offload=$tidl_offload --run_infer=0 --temp_buffer_dir=$temp_buffer_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir
+            ./run_test.sh --test_suite=operator $test_option --tidl_offload=$tidl_offload --run_infer=0 --temp_buffer_dir=$temp_buffer_dir --temp_nc_dir=$temp_nc_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir --num_threads=$num_threads
             cp logs/*.html "$logs_path/compile_with_nc.html"
             if [ "$temp_buffer_dir" != "/dev/shm" ]; then
                 rm -rf $temp_buffer_dir/vashm_buff*
@@ -407,7 +556,7 @@ do
 
             rm -rf logs/*
             if [ "$run_ref" == "1" ]; then
-                ./run_test.sh --test_suite=operator --tests=$operator --tidl_offload=$tidl_offload --run_compile=0 --flow_ctrl=1 --temp_buffer_dir=$temp_buffer_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir
+                ./run_test.sh --test_suite=operator $test_option --tidl_offload=$tidl_offload --run_compile=0 --flow_ctrl=1 --temp_buffer_dir=$temp_buffer_dir --temp_nc_dir=$temp_nc_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir --num_threads=$num_threads
                 cp logs/*.html "$logs_path/infer_ref_with_nc.html"
                 if [ "$temp_buffer_dir" != "/dev/shm" ]; then
                     rm -rf $temp_buffer_dir/vashm_buff*
@@ -416,7 +565,7 @@ do
 
             rm -rf logs/*
             if [ "$run_natc" == "1" ]; then
-                ./run_test.sh --test_suite=operator --tests=$operator --tidl_offload=$tidl_offload --run_compile=0 --flow_ctrl=12 --temp_buffer_dir=$temp_buffer_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir
+                ./run_test.sh --test_suite=operator $test_option --tidl_offload=$tidl_offload --run_compile=0 --flow_ctrl=12 --temp_buffer_dir=$temp_buffer_dir --temp_nc_dir=$temp_nc_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir --num_threads=$num_threads
                 cp logs/*.html "$logs_path/infer_natc_with_nc.html"
                 if [ "$temp_buffer_dir" != "/dev/shm" ]; then
                     rm -rf $temp_buffer_dir/vashm_buff*
@@ -425,7 +574,7 @@ do
 
             rm -rf logs/*
             if [ "$run_ci" == "1" ]; then
-                ./run_test.sh --test_suite=operator --tests=$operator --tidl_offload=$tidl_offload --run_compile=0 --flow_ctrl=0 --temp_buffer_dir=$temp_buffer_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir
+                ./run_test.sh --test_suite=operator $test_option --tidl_offload=$tidl_offload --run_compile=0 --flow_ctrl=0 --temp_buffer_dir=$temp_buffer_dir --temp_nc_dir=$temp_nc_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir --num_threads=$num_threads
                 cp logs/*.html "$logs_path/infer_ci_with_nc.html"
                 if [ "$temp_buffer_dir" != "/dev/shm" ]; then
                     rm -rf $temp_buffer_dir/vashm_buff*
@@ -458,7 +607,7 @@ do
 
             rm -rf logs/*
             if [ "$run_ref" == "1" ]; then
-                ./run_test.sh --test_suite=operator --tests=$operator --tidl_offload=$tidl_offload --run_compile=0 --flow_ctrl=1 --temp_buffer_dir=$temp_buffer_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir
+                ./run_test.sh --test_suite=operator $test_option --tidl_offload=$tidl_offload --run_compile=0 --flow_ctrl=1 --temp_buffer_dir=$temp_buffer_dir --temp_nc_dir=$temp_nc_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir --num_threads=$num_threads
                 cp logs/*.html "$logs_path/infer_ref.html"
                 if [ "$temp_buffer_dir" != "/dev/shm" ]; then
                     rm -rf $temp_buffer_dir/vashm_buff*
@@ -467,7 +616,7 @@ do
 
             rm -rf logs/*
             if [ "$run_natc" == "1" ]; then
-                ./run_test.sh --test_suite=operator --tests=$operator --tidl_offload=$tidl_offload --run_compile=0 --flow_ctrl=12 --temp_buffer_dir=$temp_buffer_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir
+                ./run_test.sh --test_suite=operator $test_option --tidl_offload=$tidl_offload --run_compile=0 --flow_ctrl=12 --temp_buffer_dir=$temp_buffer_dir --temp_nc_dir=$temp_nc_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir --num_threads=$num_threads
                 cp logs/*.html "$logs_path/infer_natc.html"
                 if [ "$temp_buffer_dir" != "/dev/shm" ]; then
                     rm -rf $temp_buffer_dir/vashm_buff*
@@ -476,7 +625,7 @@ do
 
             rm -rf logs/*
             if [ "$run_ci" == "1" ]; then
-                ./run_test.sh --test_suite=operator --tests=$operator --tidl_offload=$tidl_offload --run_compile=0 --flow_ctrl=0 --temp_buffer_dir=$temp_buffer_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir
+                ./run_test.sh --test_suite=operator $test_option --tidl_offload=$tidl_offload --run_compile=0 --flow_ctrl=0 --temp_buffer_dir=$temp_buffer_dir --temp_nc_dir=$temp_nc_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir --num_threads=$num_threads
                 cp logs/*.html "$logs_path/infer_ci.html"
                 if [ "$temp_buffer_dir" != "/dev/shm" ]; then
                     rm -rf $temp_buffer_dir/vashm_buff*

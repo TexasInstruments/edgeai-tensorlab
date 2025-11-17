@@ -65,7 +65,7 @@ def extract_test_results(html_path):
     xpassed_tests = int(xpassed_span.text.split()[0]) if xpassed_span else 0
 
     total_tests  = passed_tests + skipped_tests + failed_tests + error_tests + xfailed_tests + xpassed_tests
-    total_passed = passed_tests + skipped_tests + xpassed_tests
+    total_passed = passed_tests + skipped_tests + xpassed_tests + xfailed_tests
 
     return total_passed, total_tests
 
