@@ -34,7 +34,8 @@
 import copy
 
 from torch.ao.quantization.quantizer.xnnpack_quantizer import XNNPACKQuantizer
-from torch.ao.quantization.quantizer.xnnpack_quantizer_utils import OP_TO_ANNOTATOR
+from torch.ao.quantization.quantizer.xnnpack_quantizer_utils import OP_TO_ANNOTATOR, register_annotator, AnnotatorType, QuantizationConfig
+from torch.ao.quantization.quantizer.xnnpack_quantizer_utils import get_input_act_qspec, get_output_act_qspec, get_weight_qspec, get_bias_qspec, _is_annotated, _mark_nodes_as_annotated
 
 
 if 'OP_TO_ANNOTATOR_BACKUP' not in globals():

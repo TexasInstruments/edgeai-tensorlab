@@ -103,103 +103,143 @@ def _check_min_max_valid(min_val: torch.Tensor, max_val: torch.Tensor) -> bool:
     
 
 ####################################################################
-# histogram observer from torch.ao.quantization
-# (MSE based and includes merging of histograms across iterations)
-class CumulativeMSEHistogramObserver(torch.ao.quantization.HistogramObserver):
-    def __init__(self, *args, range_shrink_percentile=None, fast_mode=False, **kwargs):
-        super().__init__(*args, bins=256, **kwargs)
-        self.fast_mode = fast_mode
-        
-    def forward(self, x_orig: torch.Tensor) -> torch.Tensor:
-        fast_stride = 2
-        fast_stride2 = fast_stride * 2
-        is_large_tensor4 = len(x_orig.size()) == 4 and (x_orig.size(-2) > fast_stride2) and (x_orig.size(-1) > fast_stride2)
-        is_large_tensor3 = len(x_orig.size()) == 3 and (x_orig.size(-1) > fast_stride2)
-        src = x_orig
-        if self.fast_mode and (is_large_tensor3 or is_large_tensor4):
-            r_start = random.randint(0, fast_stride - 1)
-            c_start = random.randint(0, fast_stride - 1)
-            if is_large_tensor4:
-                src = x_orig[..., r_start::fast_stride, c_start::fast_stride]
-            elif is_large_tensor3:
-                src = x_orig[..., r_start::fast_stride]
-        #
-        super().forward(src)
-        return x_orig
-
-
-class MSEHistogramObserver(CumulativeMSEHistogramObserver):
-    def __init__(self, *args, range_shrink_percentile=None, **kwargs):
-        super().__init__(*args, bins=256, **kwargs)
-
-    def forward(self, x_orig: torch.Tensor) -> torch.Tensor:
-        self.reset_histogram(x_orig, x_orig.min(), x_orig.max())
-        super().forward(x_orig)
-
-
-####################################################################
 RANGE_SHRINK_PERCENTILE_DEFAULT = 0.01
 RANGE_SHRINK_PERCENTILE_AGGRESSIVE = 0.1
 
 
-class MovingAverageRangeShrinkHistogramObserverBase(torch.ao.quantization.MinMaxObserver):
-    # histogram observer may improve accuracy.
-    # default histogram observer in torch.ao.quantization is too slow - so using a custom one
-    def __init__(
-        self,
-        averaging_constant=0.01,
-        dtype=torch.quint8,
-        qscheme=torch.per_tensor_affine,
-        reduce_range=False,
-        quant_min=None,
-        quant_max=None,
-        range_shrink_percentile=RANGE_SHRINK_PERCENTILE_DEFAULT,
-        moving_average=True,
-        **kwargs
-    ) -> None:
-        self.averaging_constant = averaging_constant
-        super(MovingAverageRangeShrinkHistogramObserverBase, self).__init__(
-            dtype=dtype,
-            qscheme=qscheme,
-            reduce_range=reduce_range,
-            quant_min=quant_min,
-            quant_max=quant_max,
-            **kwargs
-        )
-        self.range_shrink_percentile = range_shrink_percentile
-        self.moving_average = moving_average
+class AdaptiveRangeShrinkObserverTypes:
+    HISTOGRAM_GLOBAL = 'histogram_global'
+    HISTOGRAM_RUNNINGAVG = 'histogram_runningavg'
+    THREE_SIGMA_RUNNINGAVG = 'threesigma_runningavg'
+    FOUR_SIGMA_RUNNINGAVG = 'foursigma_runningavg'
+    DEFAULT = True # same as 'percentile'
+
+
+class RangeShrinkPercentileValues:
+    AGGRESSIVE = 0.1
+    DEFAULT = 0.01
+
+
+class AdaptiveRangeShrinkObserver(torch.ao.quantization.HistogramObserver):
+    def __init__(self, *args,  factory_kwargs=None, qscheme=torch.per_tensor_affine, 
+                 power2_scale=False, range_max=None, fixed_range=False, 
+                 range_shrink=True, dtype=torch.float32, **kwargs):
+        super().__init__(*args, factory_kwargs=factory_kwargs, dtype=torch.int32, bins=1024, **kwargs)
+        self.range_shrink = RangeShrinkPercentileValues.AGGRESSIVE if isinstance(range_shrink, (bool,)) else range_shrink
+        self.dtype = dtype
+        self.num_batches_tracked = 0
+        self.upsample_rate = 8
+        self.averaging_constant = 0.01
+        self.symmetric = (qscheme in (torch.per_channel_symmetric, torch.per_tensor_symmetric))
+        self.power2_scale = power2_scale
+        self.range_max = range_max
+        self.fixed_range = fixed_range
         self.freeze_observer = False
 
+        factory_kwargs = torch.nn.factory_kwargs(factory_kwargs)
+        self.register_buffer("min_val_hist", torch.tensor(float("inf"), **factory_kwargs))
+        self.register_buffer("max_val_hist", torch.tensor(float("-inf"), **factory_kwargs))
+
+    def set_params(self, **kwargs):
+        for k, v in kwargs.items():
+            if hasattr(self, k):
+                setattr(self, k, v)
+            #
+        #
+    
     def forward(self, x_orig):
-        if x_orig.numel() == 0 or self.freeze_observer:
+        if self.freeze_observer:
             return x_orig
-        x = x_orig.detach()  # avoid keeping autograd tape
-        x = x.to(self.min_val.dtype)
-        min_val = self.min_val
-        max_val = self.max_val
-        if (not self.moving_average) or (min_val == float("inf") and max_val == float("-inf")):
-            min_val, max_val = self.histogram_range(x)
+        #
+        if x_orig.numel() == 0:
+            return x_orig
+        x = x_orig.detach()
+        if torch.is_floating_point(x):
+            if isinstance(self.range_shrink, (float, int)):
+                # super().forward uses self.min_val and self.max_val internally
+                # so copy our values into that.
+                min_val = self.min_val.clone()
+                max_val = self.max_val.clone()
+                self.min_val.copy_(self.min_val_hist)   
+                self.max_val.copy_(self.max_val_hist)
+                x_o = super().forward(x)
+                self.min_val_hist.copy_(self.min_val)
+                self.max_val_hist.copy_(self.max_val)
+                self.min_val.copy_(min_val)
+                self.max_val.copy_(max_val)
+
+                self.histogram_global_range()
+            elif self.range_shrink == AdaptiveRangeShrinkObserverTypes.HISTOGRAM_RUNNINGAVG:
+                x_o = super().forward(x)
+                self.histogram_runningavg_range(x)
+            elif self.range_shrink == AdaptiveRangeShrinkObserverTypes.FOUR_SIGMA_RUNNINGAVG:
+                self.sigma_range(x, sigma_factor=4.0)
+            elif self.range_shrink == AdaptiveRangeShrinkObserverTypes.THREE_SIGMA_RUNNINGAVG:
+                self.sigma_range(x, sigma_factor=3.0)
+            else:
+                x_o = super().forward(x)
+            #
         else:
-            min_val_cur, max_val_cur = self.histogram_range(x)
-            min_val = min_val + self.averaging_constant * (min_val_cur - min_val)
-            max_val = max_val + self.averaging_constant * (max_val_cur - max_val)
-        self.min_val.copy_(min_val)
-        self.max_val.copy_(max_val)
+            x_o = super().forward(x)
+        #
+        self.num_batches_tracked += 1
         return x_orig
 
-    def histogram_range(self, x_orig):
-        # quantile_l = self.range_shrink_percentile/100.0
-        # quantile_h = 1.0 - quantile_l
-        # r_min = torch.quantile(x_orig, quantile_l)
-        # r_max = torch.quantile(x_orig, quantile_h)
-        # r_min_max = (r_min, r_max)
-        min_val, max_val = xnn.utils.extrema_fast(x_orig, range_shrink_percentile=self.range_shrink_percentile)
+    @torch.jit.export
+    def _calculate_qparams(self, min_val, max_val):
+        r"""Calculates the quantization parameters."""
+        if self.symmetric:
+            signed_range = torch.min(min_val.detach()).item() < 0.0
+            max_abs = torch.max(torch.abs(min_val), torch.abs(max_val))
+            min_val = -max_abs if signed_range else max_abs * 0.0
+            max_val = max_abs
+        #
+        min_val, max_val, range_valid = self._correct_min_max(min_val, max_val)
+        if range_valid:
+            scale, zero_point = super()._calculate_qparams(min_val, max_val)
+        else:
+            scale = torch.tensor(1.0, device=min_val.device)
+            zero_point = torch.tensor(0, device=min_val.device, dtype=torch.int64)
+        #
+        if self.power2_scale:
+            scale, zero_point = _adjust_qparams_power2_scale(
+                min_val, max_val, self.quant_min, self.quant_max, scale, zero_point, self.eps)
+        return scale, zero_point
+    
+    def _non_linear_param_search(self) -> tuple[torch.Tensor, torch.Tensor]:
+        # called in calculate_qparams() of super class
+        return self.min_val, self.max_val
+
+    def histogram_global_range(self):
+        assert self.histogram.size()[0] == self.bins, "bins mismatch"
+        min_val, max_val = xnn.utils.range_from_histogram(self.histogram, self.min_val_hist, self.max_val_hist, 
+                                                          bins=self.bins, range_shrink_percentile=self.range_shrink)
+        self.min_val.copy_(min_val)
+        self.max_val.copy_(max_val)
+        return self.min_val, self.max_val
+
+    def sigma_range(self, x_orig, sigma_factor=3.0):
+        min_val, max_val = xnn.utils.sigma_range(x_orig, dim=None, sigma_factor=sigma_factor)
         if torch.isnan(min_val) or torch.isnan(max_val):
             return torch.min(x_orig), torch.max(x_orig)
-        return min_val, max_val
-
-
-class RangeShrinkHistogramObserverBase(MovingAverageRangeShrinkHistogramObserverBase):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, moving_average=False, **kwargs)
-
+        self._update_runningavg_range(min_val, max_val)
+        return self.min_val, self.max_val
+    
+    def histogram_runningavg_range(self, x_orig):
+        # min_val, max_val = xnn.utils.quantile_range(x_orig, range_shrink_percentile=self.range_shrink_percentile)
+        min_val, max_val = xnn.utils.histogram_range(x_orig, range_shrink_percentile=self.range_shrink_percentile)
+        if torch.isnan(min_val) or torch.isnan(max_val):
+            return torch.min(x_orig), torch.max(x_orig)
+        self._update_runningavg_range(min_val, max_val)
+        return self.min_val, self.max_val
+    
+    def _update_runningavg_range(self, min_val, max_val):
+        if torch.isinf(self.min_val) or torch.isinf(self.max_val):
+            self.min_val.copy_(min_val)
+            self.max_val.copy_(max_val)
+            return
+        # Update the running averages
+        min_val = min_val + self.averaging_constant * (min_val - self.min_val)
+        max_val = max_val + self.averaging_constant * (max_val - self.max_val)
+        self.min_val.copy_(min_val)
+        self.max_val.copy_(max_val)

@@ -40,33 +40,53 @@ from .... import xnn
 from ... import utils
 from . import qconfig_types
 from . import quant_utils
-from .quantizer import get_quantizer
+from .quantizer import get_quantizer, QuantizerTypes
 
 import copy
 import os
 import types 
 
-def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None, example_kwargs=None, qconfig_type=None, quantizer_type=None,
-        num_batch_norm_update_epochs=None, num_observer_update_epochs=None, 
-        add_methods=True, fast_mode=False, **kwargs):
+def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None, example_kwargs=None, 
+         qconfig_type=None, quantizer_type=None, annotation_patterns=None,
+         num_batch_norm_update_epochs=None, num_observer_update_epochs=None, 
+         add_methods=True, fast_mode=False, **kwargs):
+
+    if not total_epochs:
+        raise RuntimeError("total_epochs must be provided")
     
     if hasattr(model, '__quant_params__'):
         print('IGNORED: quant init called on a model that was already quantized \n\n\n')
         return model
     
-    example_kwargs = example_kwargs or {} 
-    if hasattr(model, '_example_inputs') and hasattr(model, '_example_kwargs'):
-        example_inputs = model._example_inputs.pop(0)
-        example_kwargs = model._example_kwargs.pop(0)
-    else:
-        utils.add_example_args_kwargs(model, example_inputs=example_inputs, example_kwargs=example_kwargs)
-    
-    if not total_epochs:
-        raise RuntimeError("total_epochs must be provided")
+    # methods to quantize individual layers/modules types are in quantizer
+    device=next(iter(model.named_parameters()))[1].device
 
-    example_inputs = example_inputs if example_inputs is not None else \
-        torch.ones(1,3,224,224).to(next(model.parameters()).device)
+    # see the supported values in QuantizerTypes
+    quantizer_type = quantizer_type or QuantizerTypes.TIDLRT_ADVANCED
+
+    # ['linear', 'linear_relu', 'conv', 'conv_relu', 'conv_transpose_relu', 'conv_bn', 'conv_bn_relu', 'conv_transpose_bn', 'conv_transpose_bn_relu', 'gru_io_only', 'adaptive_avg_pool2d', 'add_relu', 'add', 'mul_relu', 'mul', 'cat']
+    annotation_patterns = annotation_patterns or None
+
+    quantizer = quantizer or get_quantizer(quantizer_type=quantizer_type, is_qat=is_qat, fast_mode=fast_mode, device=device, annotation_patterns=annotation_patterns)
+
+    # see the supported values in qconfig_types.QConfigType
+    qconfig_type = qconfig_type or qconfig_types.QConfigType.DEFAULT
+    qconfig = qconfig_types.get_qconfig(qconfig_type, is_qat=is_qat, fast_mode=fast_mode)
+    quantizer.set_global(qconfig)
     
+    example_kwargs = example_kwargs or {}
+    
+    if example_inputs:
+        example_inputs = (example_inputs,) if not isinstance(example_inputs, (list, tuple)) else tuple(example_inputs)
+    else:
+        if hasattr(model, '_example_inputs') and hasattr(model, '_example_kwargs'):
+            example_inputs = model._example_inputs.pop(0)
+            example_kwargs = model._example_kwargs.pop(0)
+        else:
+            utils.add_example_args_kwargs(model, example_inputs=example_inputs, example_kwargs=example_kwargs)
+        #
+    #
+
     if kwargs.get('convert_to_cuda', False):
         if isinstance(example_inputs, (list, tuple)):
             for i, inp in enumerate(example_inputs):
@@ -80,23 +100,8 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
 
     orig_model = copy.deepcopy(model)
         
-    # decomposition_table = {torch.ops.aten.layer_norm.default: quant_utils.native_layer_norm}
-    # m, guards = torchdynamo.export(orig_model, aten_graph=True, assume_static_by_default=True, pre_dispatch=True, decomposition_table=decomposition_table)(*example_inputs, **example_kwargs)
-    # print("Dynamo Export Completed ! \n\n")
-    example_inputs = (example_inputs,) if not isinstance(example_inputs, (list, tuple)) else tuple(example_inputs)
     m = torch.export.export(orig_model, example_inputs).module()
-    
-    qconfig_type = qconfig_type or qconfig_types.QConfigType.DEFAULT
-    qconfig = qconfig_types.get_qconfig(qconfig_type, is_qat=is_qat, fast_mode=fast_mode)
-    
-    quantizer_type = quantizer_type or 'basic'
-
-    # methods to quantize individual layers/modules types are in quantizer
-    device=next(iter(m.named_parameters()))[1].device
-    annotation_patterns = kwargs.get('annotation_patterns', None)
-    quantizer = quantizer or get_quantizer(quantizer_type=quantizer_type, is_qat=is_qat, fast_mode=fast_mode, device=device, annotation_patterns=annotation_patterns)
-    quantizer.set_global(qconfig)
-    
+        
     # for copy_arg in copy_args:
     #     if hasattr(module, copy_arg):
     #         setattr(replace_obj, copy_arg, getattr(module, copy_arg))
@@ -108,9 +113,6 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
         model = prepare_qat_pt2e(m, quantizer)
     else:
         model = prepare_pt2e(m, quantizer)
-        
-    # TODO torch 2.3 test this 
-    # model = model.module()
     
     model.__quant_params__ = xnn.utils.AttrDict()
     model.__quant_params__.is_qat = is_qat
@@ -260,11 +262,7 @@ def _convert_layers(module, fq_type, new_type):
         if isinstance(m, fq_type):
             new_layer = torch.nn.Identity()
             if new_type == torch.nn.Hardtanh and hasattr(m, 'activation_post_process'):
-                if hasattr(m.activation_post_process, 'get_minmax_vals'):
-                    min_val, max_val = m.activation_post_process.get_minmax_vals()
-                else:
-                    min_val, max_val = m.activation_post_process.min_val, m.activation_post_process.max_val
-                #
+                min_val, max_val = m.activation_post_process.min_val, m.activation_post_process.max_val
                 if max_val > min_val:
                     new_layer = torch.nn.Hardtanh(min_val=min_val.item(), max_val=max_val.item())
                 #

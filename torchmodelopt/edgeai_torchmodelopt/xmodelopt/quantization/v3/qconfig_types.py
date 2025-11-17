@@ -74,7 +74,7 @@ class QConfigType():
     DEFAULT = "DEFAULT"                         # default behavior is same as that of WC8_AT8
     WC8_AT8 = "WC8_AT8"                         # per-channel quantization for weights, per-tensor quantization for activations
     
-    MSA_WC8_AT8 = "MSA_WC8_AT8"                 # WC8_AT8 + no range shrink (mostly for attention networks with important peaks)
+    MSA_WC8SYM_AT8SYM = "MSA_WC8SYM_AT8SYM"     # WC8SYM_AT8SYM + no range shrink (mostly for attention networks with important peaks)
 
     WT8SYMP2_AT8SYMP2 = "WT8SYMP2_AT8SYMP2"     # per-tensor symmetric power-of-2 quantization for both weights and activations
     WC8SYMP2_AT8SYMP2 = "WC8SYMP2_AT8SYMP2"     # per-channel symmetric power-of-2 quantization for weights, per-tensor symmetric power-of-2 for activations
@@ -118,7 +118,6 @@ def get_weight_quantization_spec(weight_qconfig, is_qat=True):
         weight_bitwidth = weight_qconfig.get('bitwidth', 8) # needed for 4-bit quantization simulation
         weight_qscheme = weight_qconfig.get('qscheme', torch.per_channel_symmetric)
 
-
         WeightObserverBaseToUse = observer_types.AdaptivePerChannelWeightObserver \
             if weight_qscheme == torch.per_channel_symmetric else observer_types.AdaptiveWeightObserver
         
@@ -149,9 +148,9 @@ def get_weight_quantization_spec(weight_qconfig, is_qat=True):
             observer_or_fake_quant_ctr=fake_quantized_weight_observer                         
         )
     elif weight_dtype == torch.float32:
-        fake_quantized_weight_observer = fake_quantize_types.AdaptiveWeightClip.with_args(
+        fake_quantized_weight_observer = fake_quantize_types.AdaptiveWeightOutlierSuppression.with_args(
             observer=observer_types.AdaptiveOutlierSuppressionWeightObserver,
-            outlier_suppression=weight_qconfig.get('outlier_suppression', False)
+            range_shrink=weight_qconfig.get('range_shrink', False)
         )
         weight_quantization_spec = QuantizationSpec(
             dtype=weight_dtype,
@@ -179,7 +178,7 @@ def get_act_quantization_spec(activation_qconfig, is_qat=True, fast_mode=False):
         # TODO - create a more optimized observer involving both histogram and min-max observer
         # transformers required histogram, bev requires min max - merge them somehow
         # AdaptiveActivationObserverToUse = observer_types.AdaptiveActivationObserverFast if fast_mode else observer_types.AdaptiveActivationObserver
-        AdaptiveActivationObserverToUse = observer_types.AdaptiveMovingAverageMinMaxActivationObserver
+        AdaptiveActivationObserverToUse = observer_types.AdaptiveActivationObserver
         
         activation_observer = xnn.utils.partialclass(AdaptiveActivationObserverToUse,
                                                 quant_min=activation_qconfig.get('quant_min', torch.iinfo(activation_dtype).min),
@@ -207,9 +206,9 @@ def get_act_quantization_spec(activation_qconfig, is_qat=True, fast_mode=False):
             observer_or_fake_quant_ctr=fake_quantized_activation_observer
         )
     elif activation_dtype == torch.float32:
-        fake_quantized_activation_observer = fake_quantize_types.AdaptiveActivationClip.with_args(
+        fake_quantized_activation_observer = fake_quantize_types.AdaptiveActivationOutlierSuppresion.with_args(
             observer=observer_types.AdaptiveOutlierSuppressionActivationObserver,
-            outlier_suppression=activation_qconfig.get('outlier_suppression', False)
+            range_shrink=activation_qconfig.get('range_shrink', False)
         )
         act_quantization_spec = QuantizationSpec(
             dtype=activation_dtype,
@@ -265,9 +264,9 @@ def get_quantization_config_default(qconfig_type, is_qat=True, fast_mode=False):
         is_qat=is_qat, fast_mode=fast_mode)
 
     # per-channel transformers
-    _QCONFIG_TYPE_TO_DICT[QConfigType.MSA_WC8_AT8] = get_quantization_config(dict(
+    _QCONFIG_TYPE_TO_DICT[QConfigType.MSA_WC8SYM_AT8SYM] = get_quantization_config(dict(
         weight=dict(qscheme=torch.per_channel_symmetric),
-        activation=dict(qscheme=torch.per_tensor_affine, range_shrink_percentile=0)), 
+        activation=dict(qscheme=torch.per_tensor_symmetric)), 
         is_qat=is_qat, fast_mode=fast_mode)
 
     # symmetric power-of-2
@@ -322,15 +321,15 @@ def get_quantization_config_default(qconfig_type, is_qat=True, fast_mode=False):
         activation=dict(qscheme=torch.per_tensor_affine)), 
         is_qat=is_qat, fast_mode=fast_mode)
     
-    # activation outlier_suppression
+    # activation range_shrink
     _QCONFIG_TYPE_TO_DICT[QConfigType.WF_AFCLIP] = get_quantization_config(dict(
         weight=dict(dtype=None),
-        activation=dict(dtype=torch.float32, outlier_suppression=True)), 
+        activation=dict(dtype=torch.float32, range_shrink=True)), 
         is_qat=is_qat, fast_mode=fast_mode)
     
     ###########
-    # _QCONFIG_TYPE_TO_DICT[QConfigType.DEFAULT] = _QCONFIG_TYPE_TO_DICT[QConfigType.WC8_AT8]
-    _QCONFIG_TYPE_TO_DICT[QConfigType.DEFAULT] = _QCONFIG_TYPE_TO_DICT[QConfigType.MSA_WC8_AT8]
+    # _QCONFIG_TYPE_TO_DICT[QConfigType.DEFAULT] = _QCONFIG_TYPE_TO_DICT[QConfigType.MSA_WC8_AT8]
+    _QCONFIG_TYPE_TO_DICT[QConfigType.DEFAULT] = _QCONFIG_TYPE_TO_DICT[QConfigType.WC8_AT8]
 
     return _QCONFIG_TYPE_TO_DICT[qconfig_type]
 

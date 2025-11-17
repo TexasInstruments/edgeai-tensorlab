@@ -47,33 +47,38 @@ def quantile_range(src, range_shrink_percentile=0.01):
     return r_min, r_max
 
 
-def histogram_range(src, bins=512, range_shrink_percentile=0.01):
-    mn, mx = torch.aminmax(src)
-    if mn >= mx:
-        return mn, mx
-    #
-
+def range_from_histogram(hist_array, min_val, max_val, bins=1024, range_shrink_percentile=0.01):
+    '''
+    find range from histogram - range_shrink is given in percentile - it will be divided by 100 inside the function
+    0.01 means 0.01% from both sides will be trimmed. 0.0 means no trimming
+    '''
     quantile_l = range_shrink_percentile/100.0
     quantile_h = 1.0 - quantile_l
-    
-    # hist_array, bin_edges = torch.histogram(src, bins=bins, density=True)
-    hist_array = torch.histc(src, bins=bins, min=mn.item(), max=mx.item()).float()
-    hist_sum = hist_array.sum()
-    if hist_sum > 0:
-        hist_array = hist_array / hist_sum
-        mult_factor = (mx - mn) / (bins - 1)
-        offset = mn
 
-        cdf = hist_array.cumsum(0)
-        lower_bound = torch.searchsorted(cdf, quantile_l, side='left')
-        upper_bound = torch.searchsorted(cdf, quantile_h, side='right')
-        min_val  = lower_bound * mult_factor + offset
-        max_val = upper_bound * mult_factor + offset
-    else:
-        min_val = mn
-        max_val = mx
+    if min_val >= max_val:
+        return min_val, max_val
     #
-    return min_val, max_val
+    hist_array = hist_array.float()
+    bin_width = (max_val - min_val) / bins
+    
+    total = hist_array.sum()
+    if total == 0:
+        return min_val, max_val
+    #
+    pdf = hist_array / total
+    cdf = torch.cumsum(pdf, dim=0)
+    start_bin = torch.searchsorted(cdf, quantile_l, side='left')
+    end_bin = torch.searchsorted(cdf, quantile_h, side='right')
+
+    new_min = min_val + bin_width * start_bin
+    new_max = min_val + bin_width * (end_bin + 1)
+    return new_min, new_max
+
+
+def histogram_tensor_range(src, bins=1024, range_shrink_percentile=0.01):
+    min_val, max_val = torch.aminmax(src)
+    hist_array = torch.histc(src, bins=bins, min=min_val.item(), max=max_val.item())
+    return range_from_histogram(hist_array, min_val, max_val, bins, range_shrink_percentile)
 
 
 def extrema_fast(src, range_shrink_percentile=0.0, channel_mean=False, sigma=0.0, fast_mode=True):
