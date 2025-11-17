@@ -34,29 +34,32 @@
 import copy
 
 from torch.ao.quantization.quantizer.xnnpack_quantizer import XNNPACKQuantizer
-from torch.ao.quantization.quantizer.xnnpack_quantizer_utils import OP_TO_ANNOTATOR, register_annotator, AnnotatorType, QuantizationConfig
-from torch.ao.quantization.quantizer.xnnpack_quantizer_utils import get_input_act_qspec, get_output_act_qspec, get_weight_qspec, get_bias_qspec, _is_annotated, _mark_nodes_as_annotated
+from torch.ao.quantization.quantizer.xnnpack_quantizer_utils import *
+from torch.ao.quantization.quantizer.xnnpack_quantizer_utils import register_annotator, AnnotatorType
+from torch.ao.quantization.quantizer.xnnpack_quantizer_utils import _is_annotated, _mark_nodes_as_annotated, _is_input_large_scalar, _is_input_non_float_tensor
 
 
-if 'OP_TO_ANNOTATOR_BACKUP' not in globals():
-    OP_TO_ANNOTATOR_BACKUP = copy.deepcopy(OP_TO_ANNOTATOR)
+if 'STATIC_QAT_ONLY_OPS_BACKUP' not in globals():
     STATIC_QAT_ONLY_OPS_BACKUP = copy.deepcopy(XNNPACKQuantizer.STATIC_QAT_ONLY_OPS)
     STATIC_OPS_BACKUP = copy.deepcopy(XNNPACKQuantizer.STATIC_OPS)
     DYNAMIC_OPS_BACKUP = copy.deepcopy(XNNPACKQuantizer.DYNAMIC_OPS)
 #
 
 
+def get_annotation_func(op=None):
+    if op is None:
+        return None
+    return OP_TO_ANNOTATOR.get(op, None)
+
+
 def set_annotation_patterns(annotation_patterns=None):
     # select annotators based on annotation_patterns
     if annotation_patterns:
-        OP_TO_ANNOTATOR.clear()
         XNNPACKQuantizer.STATIC_QAT_ONLY_OPS.clear()
         XNNPACKQuantizer.STATIC_OPS.clear()
         XNNPACKQuantizer.DYNAMIC_OPS.clear()
         for n in annotation_patterns:
-            if n in OP_TO_ANNOTATOR_BACKUP:
-                p = OP_TO_ANNOTATOR_BACKUP[n]
-                OP_TO_ANNOTATOR[n] = p
+            if n in OP_TO_ANNOTATOR:
                 if n in STATIC_QAT_ONLY_OPS_BACKUP:
                     XNNPACKQuantizer.STATIC_QAT_ONLY_OPS +=[n]
                 #
@@ -67,7 +70,7 @@ def set_annotation_patterns(annotation_patterns=None):
                     XNNPACKQuantizer.DYNAMIC_OPS +=[n]
                 #
             else:
-                print(f"WARNING: Annotation pattern {n} not not one of: {OP_TO_ANNOTATOR_BACKUP.keys()}")
+                print(f"WARNING: Annotation pattern {n} not not one of: {OP_TO_ANNOTATOR.keys()}")
             #
         #
     #

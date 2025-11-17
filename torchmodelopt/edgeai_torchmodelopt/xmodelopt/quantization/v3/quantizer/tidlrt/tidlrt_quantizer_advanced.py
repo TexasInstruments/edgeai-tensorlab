@@ -39,19 +39,18 @@ from torch.ao.quantization.quantizer.utils import (
     _annotate_input_qspec_map,
     _annotate_output_qspec,
 )
+from torch.ao.quantization.quantizer import (
+    QuantizationAnnotation,
+    QuantizationSpec,
+    SharedQuantizationSpec
+)
 
-from ..xnnpack import XNNPACKQuantizer
-from ..xnnpack import set_annotation_patterns, register_annotator, AnnotatorType, QuantizationConfig
-from ..xnnpack import get_input_act_qspec, get_output_act_qspec, get_weight_qspec, get_bias_qspec, _is_annotated, _mark_nodes_as_annotated
-from ..xnnpack import OP_TO_ANNOTATOR, OP_TO_ANNOTATOR_BACKUP
-from ..xnnpack import STATIC_OPS_BACKUP, STATIC_QAT_ONLY_OPS_BACKUP, DYNAMIC_OPS_BACKUP
 
-
-def register_advanced_annotator(op: str) -> Callable[[AnnotatorType], None]:
-    def decorator(annotator: AnnotatorType) -> None:
-        OP_TO_ANNOTATOR[op] = annotator
-        OP_TO_ANNOTATOR_BACKUP[op] = annotator
-    return decorator
+from ..xnnpack import XNNPACKQuantizer, QuantizationConfig
+from ..xnnpack import set_annotation_patterns, register_annotator, AnnotatorType
+from ..xnnpack import get_input_act_qspec, get_output_act_qspec, get_weight_qspec, get_bias_qspec
+from ..xnnpack import _is_annotated, _mark_nodes_as_annotated, get_annotation_func, _is_input_large_scalar, _is_input_non_float_tensor
+from ..xnnpack import OP_TO_ANNOTATOR, STATIC_OPS_BACKUP, STATIC_QAT_ONLY_OPS_BACKUP, DYNAMIC_OPS_BACKUP
 
 
 def get_aten_overload_ops(aten_op_name: str):
@@ -65,90 +64,44 @@ def get_aten_overload_ops(aten_op_name: str):
     return op_overloads
 
 
-@register_advanced_annotator('matmul')
+@register_annotator('matmul')
 def _annotate_matmul(
     gm: torch.fx.GraphModule,
     quantization_config: Optional[QuantizationConfig],
     filter_fn: Optional[Callable[[Node], bool]] = None,
 ) -> Optional[list[list[Node]]]:
-    
-    assert False, f"ERROR: _annotate_matmul is not taking care if the symmetric/asymmetric quantization of inputs properly when softmax is involved. Disabled for now. {__file__}" 
 
+    # matmul is currently not quantized
     annotated_partitions = []
-    input_act_qspec_0 = get_input_act_qspec(quantization_config)
-    input_act_qspec_1 = get_input_act_qspec(quantization_config)
-    bias_qspec = get_bias_qspec(quantization_config)
-    output_act_qspec = get_output_act_qspec(quantization_config)
     for node in gm.graph.nodes:
         if node.op != "call_function" or node.target != torch.ops.aten.matmul.default:
             continue
         if filter_fn and not filter_fn(node):
             continue
-        act_node_0 = node.args[0]
-        act_node_1 = node.args[1]
-        bias_node = None
-        if len(node.args) > 2:
-            bias_node = node.args[2]
-        #
 
-        aten_softmax_overload_ops = get_aten_overload_ops('softmax')
-        is_softmax_input_0 = act_node_0.target in aten_softmax_overload_ops
-        is_softmax_input_1 = act_node_1.target in aten_softmax_overload_ops
+        matmul_node = node
+        nodes_to_mark_annotated = [matmul_node]
 
-        is_symmetric_input_0 = input_act_qspec_0.qscheme in [torch.per_tensor_symmetric, torch.per_channel_symmetric]
-        is_symmetric_input_1 = input_act_qspec_1.qscheme in [torch.per_tensor_symmetric, torch.per_channel_symmetric]
-
-        # # this is not reliably able to change the qscheme of inputs
-        # # change the inputs of matmul to be symmetric quantized except when softmax is involved
-        # qscheme_0 = input_act_qspec_0.qscheme if is_softmax_input_0 else torch.per_tensor_symmetric
-        # if len(act_node_0.users) == 1 and input_act_qspec_0.qscheme != qscheme_0:
-        #     # get around dataclasses.FrozenInstanceError by using __dict__ insead of getattr
-        #     input_act_qspec_0.__dict__['qscheme'] = qscheme_0
-        #     _annotate_output_qspec(act_node_0, input_act_qspec_0)
-        # #
-        # qscheme_1 = input_act_qspec_1.qscheme if is_softmax_input_1 else torch.per_tensor_symmetric
-        # if len(act_node_1.users) == 1 and input_act_qspec_1.qscheme != qscheme_1:
-        #     input_act_qspec_1.__dict__['qscheme'] = qscheme_1
-        #     _annotate_output_qspec(act_node_1, input_act_qspec_1)
-        # #
-
-        # for now, skip annotating matmul if softmax is involved, since the above is not working reliably
-        if (is_softmax_input_0 or is_softmax_input_1):
-            continue
-
-        # also if atleast one input is not symmetric quantized, skip annotating
-        if not (is_symmetric_input_0 or is_symmetric_input_1):
-            continue
-
-        if _is_annotated([node]) is False:  # type: ignore[list-item]
-            _annotate_input_qspec_map(
-                node,
-                act_node_0,
-                input_act_qspec_0,
-            )
-            _annotate_input_qspec_map(
-                node,
-                act_node_1,
-                input_act_qspec_1,
-            )
-            nodes_to_mark_annotated = [node, act_node_0, act_node_1]
-            if bias_node:
-                _annotate_input_qspec_map(
-                    node,
-                    bias_node,
-                    bias_qspec,
-                )
-                nodes_to_mark_annotated.append(bias_node)
-            _annotate_output_qspec(node, output_act_qspec)
-            _mark_nodes_as_annotated(nodes_to_mark_annotated)
-            annotated_partitions.append(nodes_to_mark_annotated)
+        if len(node.users) == 1:
+            next_node = node.users[0]
+            if next_node.op == "call_function" and next_node.target in [torch.ops.aten.add.Tensor, torch.ops.aten.add_.Tensor]:
+                add_node = next_node
+                nodes_to_mark_annotated += [add_node]
+                # add_node.meta["quantization_annotation"] = QuantizationAnnotation(
+                #         input_qspec_map=input_qspec_map,
+                #         output_qspec=output_act_qspec,
+                #         _annotated=True,
+                #     )
+    
+        _mark_nodes_as_annotated(nodes_to_mark_annotated)
+        annotated_partitions.append(nodes_to_mark_annotated)
 
     return annotated_partitions
 
 
 class TIDLRTQuantizerAdvanced(XNNPACKQuantizer):
-    XNNPACKQuantizer.STATIC_OPS += ['matmul']
-    STATIC_OPS_BACKUP += ['matmul']
+    XNNPACKQuantizer.STATIC_OPS.insert(0, 'matmul')
+
 
 def get_quantizer(is_qat=True, fast_mode=False, device=None, annotation_patterns=None, **kwargs):
     set_annotation_patterns(annotation_patterns=annotation_patterns)

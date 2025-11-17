@@ -87,16 +87,17 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
         #
     #
 
-    if kwargs.get('convert_to_cuda', False):
+    device = kwargs.get('device', None)
+    if device:
         if isinstance(example_inputs, (list, tuple)):
             for i, inp in enumerate(example_inputs):
-                example_inputs[i] = example_inputs[i].to(device='cuda:0')
+                example_inputs[i].to(device=device)
         else:
-            example_inputs = [example_inputs.to(device='cuda:0')]
+            example_inputs = [example_inputs.to(device=device)]
         for key, value in example_kwargs.items():
             if isinstance(value, torch.Tensor):
-                example_kwargs[key] = value.to(device='cuda:0')
-        model = model.to(device='cuda:0')
+                example_kwargs[key] = value.to(device=device)
+        model = model.to(device=device)
 
     orig_model = copy.deepcopy(model)
         
@@ -105,9 +106,6 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
     # for copy_arg in copy_args:
     #     if hasattr(module, copy_arg):
     #         setattr(replace_obj, copy_arg, getattr(module, copy_arg))
-    
-    if kwargs.get('convert_to_cuda', False):
-        m = m.to(device='cpu')
     
     if is_qat:
         model = prepare_qat_pt2e(m, quantizer)

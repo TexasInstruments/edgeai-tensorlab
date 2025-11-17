@@ -48,13 +48,13 @@ class AdaptiveFakeQuantize(FakeQuantize):
         pass
 
     def forward(self, X):
-        if torch.is_floating_point(X):
-            x_q = super().forward(X)
+        if not torch.is_floating_point(X):
+            self.num_batches_tracked += 1
+            return X
         else:
-            x_q = X
-        #
-        self.num_batches_tracked += 1
-        return x_q
+            x_q = super().forward(X)
+            self.num_batches_tracked += 1
+            return x_q
 
 
 ####################################################################
@@ -86,6 +86,9 @@ class _AdaptiveOutlierSuppression(AdaptiveFakeQuantize):
     Create a subclass, just to distinguish between the ones used for activation and weight
     '''
     def forward(self, X):
+        if not torch.is_floating_point(X):
+            return super().forward(X)
+        #
         if self.observer_enabled[0] == 1:
             self.activation_post_process(X.detach())
             _scale, _zero_point = self.calculate_qparams()
