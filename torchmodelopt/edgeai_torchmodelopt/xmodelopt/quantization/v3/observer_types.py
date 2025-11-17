@@ -99,8 +99,12 @@ class AdaptiveWeightObserver(torch.ao.quantization.MinMaxObserver):
         return scale, zero_point
 
     def forward(self, x_orig):
+        if not torch.is_floating_point(x_orig):
+            return x_orig
+        #
         if self.freeze_observer:
             return x_orig
+        #
         x = x_orig.detach()
         x = super().forward(x)
         if self.range_max is not None:
@@ -157,8 +161,12 @@ class AdaptivePerChannelWeightObserver(torch.ao.quantization.PerChannelMinMaxObs
         return scale, zero_point
 
     def forward(self, x_orig):
+        if not torch.is_floating_point(x_orig):
+            return x_orig
+        #
         if self.freeze_observer:
             return x_orig
+        #
         x = x_orig.detach()
         x = super().forward(x)
         if self.range_max is not None:
@@ -187,6 +195,7 @@ class AdaptiveMinMaxActivationObserver(torch.ao.quantization.MinMaxObserver):
         self.range_max = range_max
         self.fixed_range = fixed_range
         self.freeze_observer = False
+        self.num_batches_tracked = 0
 
     def set_params(self, **kwargs):
         for k, v in kwargs.items():
@@ -224,6 +233,9 @@ class AdaptiveMinMaxActivationObserver(torch.ao.quantization.MinMaxObserver):
         return scale, zero_point
 
     def forward(self, x_orig):
+        if not torch.is_floating_point(x_orig):
+            return x_orig
+        #
         if self.freeze_observer:
             return x_orig
         #
@@ -254,6 +266,7 @@ class AdaptiveMovingAverageMinMaxActivationObserver(torch.ao.quantization.Moving
         self.range_max = range_max
         self.fixed_range = fixed_range
         self.freeze_observer = False
+        self.num_batches_tracked = 0
 
     def set_params(self, **kwargs):
         for k, v in kwargs.items():
@@ -291,6 +304,9 @@ class AdaptiveMovingAverageMinMaxActivationObserver(torch.ao.quantization.Moving
         return scale, zero_point
 
     def forward(self, x_orig):
+        if not torch.is_floating_point(x_orig):
+            return x_orig
+        #
         if self.freeze_observer:
             return x_orig
         #

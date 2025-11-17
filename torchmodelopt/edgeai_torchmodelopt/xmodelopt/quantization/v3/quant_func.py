@@ -67,13 +67,19 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
     # ['linear', 'linear_relu', 'conv', 'conv_relu', 'conv_transpose_relu', 'conv_bn', 'conv_bn_relu', 'conv_transpose_bn', 'conv_transpose_bn_relu', 'gru_io_only', 'adaptive_avg_pool2d', 'add_relu', 'add', 'mul_relu', 'mul', 'cat']
     annotation_patterns = annotation_patterns or None
 
-    quantizer = quantizer or get_quantizer(quantizer_type=quantizer_type, is_qat=is_qat, fast_mode=fast_mode, device=device, annotation_patterns=annotation_patterns)
-
-    # see the supported values in qconfig_types.QConfigType
-    qconfig_type = qconfig_type or qconfig_types.QConfigType.DEFAULT
-    qconfig = qconfig_types.get_qconfig(qconfig_type, is_qat=is_qat, fast_mode=fast_mode)
-    quantizer.set_global(qconfig)
+    # quantizer = quantizer or get_quantizer(quantizer_type=quantizer_type, is_qat=is_qat, fast_mode=fast_mode, device=device, annotation_patterns=annotation_patterns)
+    # # see the supported values in qconfig_types.QConfigType
+    # qconfig_type = qconfig_type or qconfig_types.QConfigType.DEFAULT
+    # qconfig = qconfig_types.get_qconfig(qconfig_type, is_qat=is_qat, fast_mode=fast_mode)
+    # quantizer.set_global(qconfig)
     
+    from torch.ao.quantization.quantizer.xnnpack_quantizer import (
+    get_symmetric_quantization_config,
+    XNNPACKQuantizer,
+    )
+    quantizer = XNNPACKQuantizer()
+    quantizer.set_global(get_symmetric_quantization_config(is_qat=True))
+
     example_kwargs = example_kwargs or {}
     
     if example_inputs:

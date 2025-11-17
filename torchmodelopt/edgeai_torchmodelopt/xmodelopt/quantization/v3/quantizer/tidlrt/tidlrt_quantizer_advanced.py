@@ -64,43 +64,44 @@ def get_aten_overload_ops(aten_op_name: str):
     return op_overloads
 
 
-@register_annotator('matmul')
-def _annotate_matmul(
-    gm: torch.fx.GraphModule,
-    quantization_config: Optional[QuantizationConfig],
-    filter_fn: Optional[Callable[[Node], bool]] = None,
-) -> Optional[list[list[Node]]]:
+# @register_annotator('matmul')
+# def _annotate_matmul(
+#     gm: torch.fx.GraphModule,
+#     quantization_config: Optional[QuantizationConfig],
+#     filter_fn: Optional[Callable[[Node], bool]] = None,
+# ) -> Optional[list[list[Node]]]:
 
-    # matmul is currently not quantized
-    annotated_partitions = []
-    for node in gm.graph.nodes:
-        if node.op != "call_function" or node.target != torch.ops.aten.matmul.default:
-            continue
-        if filter_fn and not filter_fn(node):
-            continue
+#     # matmul is currently not quantized
+#     annotated_partitions = []
+#     for node in gm.graph.nodes:
+#         if node.op != "call_function" or node.target != torch.ops.aten.matmul.default:
+#             continue
+#         if filter_fn and not filter_fn(node):
+#             continue
 
-        matmul_node = node
-        nodes_to_mark_annotated = [matmul_node]
+#         matmul_node = node
+#         nodes_to_mark_annotated = [matmul_node]
 
-        if len(node.users) == 1:
-            next_node = node.users[0]
-            if next_node.op == "call_function" and next_node.target in [torch.ops.aten.add.Tensor, torch.ops.aten.add_.Tensor]:
-                add_node = next_node
-                nodes_to_mark_annotated += [add_node]
-                # add_node.meta["quantization_annotation"] = QuantizationAnnotation(
-                #         input_qspec_map=input_qspec_map,
-                #         output_qspec=output_act_qspec,
-                #         _annotated=True,
-                #     )
+#         if len(node.users) == 1:
+#             next_node = node.users[0]
+#             if next_node.op == "call_function" and next_node.target in [torch.ops.aten.add.Tensor, torch.ops.aten.add_.Tensor]:
+#                 add_node = next_node
+#                 nodes_to_mark_annotated += [add_node]
+#                 # add_node.meta["quantization_annotation"] = QuantizationAnnotation(
+#                 #         input_qspec_map=input_qspec_map,
+#                 #         output_qspec=output_act_qspec,
+#                 #         _annotated=True,
+#                 #     )
     
-        _mark_nodes_as_annotated(nodes_to_mark_annotated)
-        annotated_partitions.append(nodes_to_mark_annotated)
+#         _mark_nodes_as_annotated(nodes_to_mark_annotated)
+#         annotated_partitions.append(nodes_to_mark_annotated)
 
-    return annotated_partitions
+#     return annotated_partitions
 
 
 class TIDLRTQuantizerAdvanced(XNNPACKQuantizer):
-    XNNPACKQuantizer.STATIC_OPS.insert(0, 'matmul')
+    # XNNPACKQuantizer.STATIC_OPS.insert(0, 'matmul')
+    pass
 
 
 def get_quantizer(is_qat=True, fast_mode=False, device=None, annotation_patterns=None, **kwargs):

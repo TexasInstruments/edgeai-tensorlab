@@ -49,7 +49,6 @@ class AdaptiveFakeQuantize(FakeQuantize):
 
     def forward(self, X):
         if not torch.is_floating_point(X):
-            self.num_batches_tracked += 1
             return X
         else:
             x_q = super().forward(X)

@@ -148,40 +148,42 @@ class AdaptiveRangeShrinkObserver(torch.ao.quantization.HistogramObserver):
         #
     
     def forward(self, x_orig):
+        if not torch.is_floating_point(x_orig):
+            return x_orig
+        #
         if self.freeze_observer:
             return x_orig
         #
         if x_orig.numel() == 0:
             return x_orig
+        #
         x = x_orig.detach()
-        if torch.is_floating_point(x):
-            if isinstance(self.range_shrink, (float, int)):
-                # super().forward uses self.min_val and self.max_val internally
-                # so copy our values into that.
-                min_val = self.min_val.clone()
-                max_val = self.max_val.clone()
-                self.min_val.copy_(self.min_val_hist)   
-                self.max_val.copy_(self.max_val_hist)
-                x_o = super().forward(x)
-                self.min_val_hist.copy_(self.min_val)
-                self.max_val_hist.copy_(self.max_val)
-                self.min_val.copy_(min_val)
-                self.max_val.copy_(max_val)
 
-                self.histogram_global_range()
-            elif self.range_shrink == AdaptiveRangeShrinkObserverTypes.HISTOGRAM_RUNNINGAVG:
-                x_o = super().forward(x)
-                self.histogram_runningavg_range(x)
-            elif self.range_shrink == AdaptiveRangeShrinkObserverTypes.FOUR_SIGMA_RUNNINGAVG:
-                self.sigma_range(x, sigma_factor=4.0)
-            elif self.range_shrink == AdaptiveRangeShrinkObserverTypes.THREE_SIGMA_RUNNINGAVG:
-                self.sigma_range(x, sigma_factor=3.0)
-            else:
-                x_o = super().forward(x)
-            #
+        if isinstance(self.range_shrink, (float, int)):
+            # super().forward uses self.min_val and self.max_val internally
+            # so copy our values into that.
+            min_val = self.min_val.clone()
+            max_val = self.max_val.clone()
+            self.min_val.copy_(self.min_val_hist)   
+            self.max_val.copy_(self.max_val_hist)
+            x_o = super().forward(x)
+            self.min_val_hist.copy_(self.min_val)
+            self.max_val_hist.copy_(self.max_val)
+            self.min_val.copy_(min_val)
+            self.max_val.copy_(max_val)
+
+            self.histogram_global_range()
+        elif self.range_shrink == AdaptiveRangeShrinkObserverTypes.HISTOGRAM_RUNNINGAVG:
+            x_o = super().forward(x)
+            self.histogram_runningavg_range(x)
+        elif self.range_shrink == AdaptiveRangeShrinkObserverTypes.FOUR_SIGMA_RUNNINGAVG:
+            self.sigma_range(x, sigma_factor=4.0)
+        elif self.range_shrink == AdaptiveRangeShrinkObserverTypes.THREE_SIGMA_RUNNINGAVG:
+            self.sigma_range(x, sigma_factor=3.0)
         else:
             x_o = super().forward(x)
         #
+
         self.num_batches_tracked += 1
         return x_orig
 
