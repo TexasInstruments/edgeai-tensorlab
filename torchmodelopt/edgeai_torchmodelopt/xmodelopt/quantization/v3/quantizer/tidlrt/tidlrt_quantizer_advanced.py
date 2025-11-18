@@ -103,6 +103,14 @@ class TIDLRTQuantizerAdvanced(XNNPACKQuantizer):
     # XNNPACKQuantizer.STATIC_OPS.insert(0, 'matmul')
     pass
 
+    # there is a bug in this transformation in XNNPACKQuantizer - it is not respecting dtype
+    def transform_for_annotation(
+        self, model: torch.fx.GraphModule
+    ) -> torch.fx.GraphModule:
+        """Transforms scalar values to tensor attributes"""
+        # return _convert_scalars_to_attrs(model)
+        return model
+    
 
 def get_quantizer(is_qat=True, fast_mode=False, device=None, annotation_patterns=None, **kwargs):
     set_annotation_patterns(annotation_patterns=annotation_patterns)

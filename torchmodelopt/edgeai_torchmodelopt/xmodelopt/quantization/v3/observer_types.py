@@ -342,7 +342,7 @@ class _AdaptiveOutlierSuppressionObserver(observer_utils.AdaptiveRangeShrinkObse
         self, min_val: torch.Tensor, max_val: torch.Tensor
     ) -> tuple[torch.Tensor, torch.Tensor]:
         scale = torch.ones_like(min_val)
-        zero_point = torch.zeros_like(min_val, dtype=torch.int64)
+        zero_point = torch.zeros_like(min_val, dtype=torch.int)
         return scale, zero_point
 
 

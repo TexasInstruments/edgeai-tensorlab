@@ -49,7 +49,7 @@ import types
 def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None, example_kwargs=None, 
          qconfig_type=None, quantizer_type=None, annotation_patterns=None,
          num_batch_norm_update_epochs=None, num_observer_update_epochs=None, 
-         add_methods=True, fast_mode=False, **kwargs):
+         add_methods=True, fast_mode=False, device=None, **kwargs):
 
     if not total_epochs:
         raise RuntimeError("total_epochs must be provided")
@@ -58,28 +58,25 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
         print('IGNORED: quant init called on a model that was already quantized \n\n\n')
         return model
     
-    # methods to quantize individual layers/modules types are in quantizer
-    device=next(iter(model.named_parameters()))[1].device
+    #####################################################################################
+    # native xnnpack quantizer from Pytorch
+    # from torch.ao.quantization.quantizer.xnnpack_quantizer import (get_symmetric_quantization_config, XNNPACKQuantizer)
+    # quantizer = XNNPACKQuantizer()
+    # quantizer.set_global(get_symmetric_quantization_config(is_qat=True))
 
     # see the supported values in QuantizerTypes
     quantizer_type = quantizer_type or QuantizerTypes.TIDLRT_ADVANCED
-
     # ['linear', 'linear_relu', 'conv', 'conv_relu', 'conv_transpose_relu', 'conv_bn', 'conv_bn_relu', 'conv_transpose_bn', 'conv_transpose_bn_relu', 'gru_io_only', 'adaptive_avg_pool2d', 'add_relu', 'add', 'mul_relu', 'mul', 'cat']
-    annotation_patterns = annotation_patterns or None
+    assert isinstance(annotation_patterns, list) or annotation_patterns is None, 'annotation_patterns must be a list, tuple or None'
 
-    # quantizer = quantizer or get_quantizer(quantizer_type=quantizer_type, is_qat=is_qat, fast_mode=fast_mode, device=device, annotation_patterns=annotation_patterns)
-    # # see the supported values in qconfig_types.QConfigType
-    # qconfig_type = qconfig_type or qconfig_types.QConfigType.DEFAULT
-    # qconfig = qconfig_types.get_qconfig(qconfig_type, is_qat=is_qat, fast_mode=fast_mode)
-    # quantizer.set_global(qconfig)
+    # our configurable quantizer
+    quantizer = quantizer or get_quantizer(quantizer_type=quantizer_type, is_qat=is_qat, fast_mode=fast_mode, device=device, annotation_patterns=annotation_patterns)
+    # see the supported values in qconfig_types.QConfigType
+    qconfig_type = qconfig_type or qconfig_types.QConfigType.DEFAULT
+    qconfig = qconfig_types.get_qconfig(qconfig_type, is_qat=is_qat, fast_mode=fast_mode)
+    quantizer.set_global(qconfig)
     
-    from torch.ao.quantization.quantizer.xnnpack_quantizer import (
-    get_symmetric_quantization_config,
-    XNNPACKQuantizer,
-    )
-    quantizer = XNNPACKQuantizer()
-    quantizer.set_global(get_symmetric_quantization_config(is_qat=True))
-
+    #####################################################################################
     example_kwargs = example_kwargs or {}
     
     if example_inputs:
@@ -93,7 +90,6 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
         #
     #
 
-    device = kwargs.get('device', None)
     if device:
         if isinstance(example_inputs, (list, tuple)):
             for i, inp in enumerate(example_inputs):
@@ -105,19 +101,21 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
                 example_kwargs[key] = value.to(device=device)
         model = model.to(device=device)
 
-    orig_model = copy.deepcopy(model)
-        
+    #####################################################################################
+    orig_model = model #copy.deepcopy(model)
     m = torch.export.export(orig_model, example_inputs).module()
         
     # for copy_arg in copy_args:
     #     if hasattr(module, copy_arg):
     #         setattr(replace_obj, copy_arg, getattr(module, copy_arg))
     
+    #####################################################################################
     if is_qat:
         model = prepare_qat_pt2e(m, quantizer)
     else:
         model = prepare_pt2e(m, quantizer)
     
+    #####################################################################################
     model.__quant_params__ = xnn.utils.AttrDict()
     model.__quant_params__.is_qat = is_qat
     model.__quant_params__.quantizer = quantizer 

@@ -54,7 +54,7 @@ def get_annotation_func(op=None):
 
 def set_annotation_patterns(annotation_patterns=None):
     # select annotators based on annotation_patterns
-    if annotation_patterns:
+    if annotation_patterns is not None:
         XNNPACKQuantizer.STATIC_QAT_ONLY_OPS.clear()
         XNNPACKQuantizer.STATIC_OPS.clear()
         XNNPACKQuantizer.DYNAMIC_OPS.clear()
