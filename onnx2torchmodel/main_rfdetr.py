@@ -186,7 +186,7 @@ def main(args=None, inps=None):
     output1 = [torch.from_numpy(o) for o in output1]
     output1 = [o.float() for o in output1]
     output2 = [o.float() for o in output2]
-    # return torch_model, output1, output2
+    return torch_model, output1, output2
 
     if args.cuda:
         torch_model = torch_model.cpu()
@@ -266,8 +266,8 @@ if __name__ == '__main__':
     # # pt2e_export_model(new_model, inp)
     # # pt2e_model =pt2e_export_model(new_model, inp).module()
     # from torchao.quantization.pt2e import allow_exported_model_train_eval
-    # ep = torch.export.export(new_model, tuple(inp))
-    # pt2e_model = ep.module()
+    ep = torch.export.export(new_model, tuple(inp))
+    pt2e_model = ep.module()
     # allow_exported_model_train_eval(pt2e_model)
     # # # # pt2e_model= pt2e_model.cuda()
     # # # inps = inp # [i.cuda() for i in inp]

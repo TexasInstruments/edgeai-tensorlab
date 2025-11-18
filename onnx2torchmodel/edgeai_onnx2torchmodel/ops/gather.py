@@ -50,7 +50,7 @@ def torch_gather(x, indices, axis=0):
         indices_shape = indices.shape
         indices = indices.reshape(-1)
         if indices.dim() == 1:
-            indices = torch.where(indices<0, indices+x.shape[axis], indices)
+            # indices = torch.where(indices<0, indices+x.shape[axis], indices)
             result =  torch.index_select( x, axis, indices)
         else:
             raise NotImplementedError

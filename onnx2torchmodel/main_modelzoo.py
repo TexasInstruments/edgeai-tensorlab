@@ -49,7 +49,7 @@ def add_all_output(model_path, output_path=None):
     graph = gs.import_onnx(model)
     #%%
     for node in graph.nodes:
-        if node.op in ('Constant','ConstantOfShape '):
+        if node.op in ('Constant',):
             continue
         for out in node.outputs:
             if out in graph.outputs:
@@ -91,7 +91,9 @@ def main(args=None, inps=None):
         # onnx.shape_inference.infer_shapes_path(model_path, model_path)
     sess_options = onnxruntime.SessionOptions()
     sess_options.graph_optimization_level = onnxruntime.GraphOptimizationLevel.ORT_DISABLE_ALL
-    torch_model = convert(model_path, args.for_training)
+    print(model_path)
+    torch_model = convert(model_path, args.for_training,simplify=True )
+    # torch.onnx.export()
     return torch_model, None
     session1 = onnxruntime.InferenceSession(model_path, sess_options, providers=['CPUExecutionProvider'])
     torch_model.eval()
@@ -176,32 +178,59 @@ def main(args=None, inps=None):
 
     return torch_model, output1, output2, output3
 
+def add_all_outputs(model: torch.fx.GraphModule):
+    nodes = list(model.graph.nodes)
+    out = nodes[-1]
+    outputs = out.args[0]
+    if isinstance(outputs, torch.fx.Node):
+        outputs = [outputs]
+    args = tuple([n for n in nodes[:-1] if n not in outputs])
+    out.args = tuple([args])
+    model.graph.lint()
+    model.recompile()
+
+def pt2e_export_model(model:torch.nn.Module, inps, inp_kwargs=None, *args, **kwargs):
+    from edgeai_torchmodelopt.xmodelopt.utils.hooks import add_example_args_kwargs
+    children = dict(model.named_children())
+    transformation_dict = {k:None for k,v in children.items()}
+    add_example_args_kwargs(model, inps, transformation_dict=transformation_dict)
+    for name, module in children.items():
+        args = module._example_inputs[0]
+        kwargs = module._example_kwargs[0]
+        pt2e_module = torch.export.export(module, tuple(args), kwargs).module()
+        module._example_inputs.remove(args)
+        module._example_kwargs.remove(kwargs)
+        model.add_module(name, pt2e_module)
+    return torch.export.export(model, tuple(inps), inp_kwargs, *args, **kwargs)
+
 if __name__ == '__main__':
     model_names = []
     config_path = os.path.join(model_zoo_path, 'configs.yaml')
     config = yaml.load(open(config_path, 'r'), Loader=yaml.Loader)['configs']
     status = {}
-    failed = ['od-8920']
-    failed = [
+    not_implemented = [
+        '3dod-7100', # use actual input 
+        '3dod-7110', # use actual input 
         'cl-6508', # QDQ
         'cl-6507', #QDQ
-        'od-8950', # use actual input
         # 'od-8080', # use actual input
+        # 'kd-7060', # faulty model scatternd
         # 'od-8940', # CUDA Memory Error
         # 'od-8020', # use actual input
         # 'od-8090', # use actual input
     ]
-    failed = ['3dod-7100', '3dod-7110', '6dpose-7200', 'cl-6080', 'cl-6440', 'cl-6450', 'cl-6460', 'cl-6470', 'cl-6700', 'cl-6710', 'cl-6720', 'cl-6730', 'cl-6740', 'cl-6750', 'cl-6760', 'cl-6770', 'kd-7060', 'kd-7070', 'kd-7080', 'od-8000', 'od-8020', 'od-8030', 'od-8040', 'od-8050', 'od-8060', 'od-8070', 'od-8080', 'od-8090', 'od-8200', 'od-8210', 'od-8220', 'od-8230', 'od-8260', 'od-8270', 'od-8410', 'od-8420', 'od-8421', 'od-8930', 'od-8940',]+ failed + ['od-9202', 'od-9203', 'od-9204', 'visloc-7500']
+    failed = ['3dod-7100', '3dod-7110', 'cl-6507', 'cl-6508', 'kd-7070', 'kd-7080', 'od-8020', 'od-8030', 'od-8040', 'od-8050', 'od-8060', 'od-8070', 'od-8080', 'od-8090']
     global total_count
     total_count = 0
     model_names = sorted(config.keys())
-    model_names = [name for name in model_names if name not in failed]
-    # model_names = model_names[:1]
-    # model_names = ['od-8950']
+    # model_names = [name for name in model_names if name not in failed]
+    model_names = failed
+    model_names =['od-8020']#, 'od-8930']
     for i, model_name in enumerate(model_names):
     # for model_name, path in config.items():
         path = config[model_name]
         path = os.path.join(model_zoo_path, path)
+        print("#######################################################")
         if not os.path.exists(path):
             print(f"Config {path} of Model {model_name} does not exist")
             status[model_name] = "yaml not found"
@@ -213,6 +242,14 @@ if __name__ == '__main__':
             print(f"Model {model_path} does not exist")
             status[model_name] = 'onnx not found'
             continue
+        if  model_name in not_implemented:
+            print(f"Model {model_path} in failed list")
+            status[model_name] = 'Expected Failed'
+            continue
+        # model_path = '/data/ssd/files/a0507161/exps/onnx_exp/temp.onnx'
+        # model_name = 'temp'
+        print(i, model_name, os.path.basename(model_path))
+        
         def main_job(all=False):
             torch.cuda.empty_cache()
             print("#######################################################")
@@ -220,9 +257,10 @@ if __name__ == '__main__':
             global total_count
             total_count += 1
             start_time = time.time()
-            args = [model_name, model_path, '-e','-s', '-t',] 
-            if all:
-                args = args + ['-a']
+            args = [model_name, model_path, '-e','-s', '-t'] 
+            # if all:
+            #     args = args + ['-a']
+
             torch_model = main( args,)[0]
             example_inputs = []
             for inp, info in torch_model.input_info.items():
@@ -233,26 +271,44 @@ if __name__ == '__main__':
             torch_model.eval()
             torch_model = torch_model.cuda()
             example_inputs = [example_input.cuda() for example_input in example_inputs]
-            outputs1 = torch_model(*example_inputs)
-            torch_model = torch_model.cpu()
-            outputs1 = [output.cpu() for output in outputs1]
-            example_inputs = [example_input.cpu() for example_input in example_inputs]
+            # torch_model = torch_model.cpu()
+            # outputs1 = [output.cpu() for output in outputs1]
+            # example_inputs = [example_input.cpu() for example_input in example_inputs]
             print(f"Successfully converted model {model_name}")
             
             # model2 = copy.deepcopy(torch_model)
+            # with open(model_name+'_fx.txt', 'w') as f:
+            #     f.write(str(torch_model))
             
-            if True:
-                print('Trying PT2E')
-                pt2e_model = torch.export.export(torch_model, tuple(example_inputs), strict=True).module()
-                # pt2e_model.eval()
-                # pt2e_model = pt2e_model.cuda()
-                # example_inputs = [example_input.cuda() for example_input in example_inputs]
-                outputs2 = pt2e_model(*example_inputs)
-                # example_inputs = [example_input.cpu() for example_input in example_inputs]
-                # outputs2 = [output.cpu() for output in outputs2]
-                # pt2e_model = pt2e_model.cpu()
-                print('PT2E Done')
-            if True:            
+        
+            print('Trying PT2E')
+            # pt2e_model = pt2e_export_model(torch_model, example_inputs)
+            ep = torch.export.export(torch_model, tuple(example_inputs))
+            # torch.export.save(ep, f'{model_name}.pt2',)
+            pt2e_model = ep.module()
+            # if all:
+            #     add_all_outputs(torch_model)
+            #     add_all_outputs(pt2e_model)
+            outputs1 = torch_model(*example_inputs)
+            if isinstance(outputs1, torch.Tensor):
+                outputs1 = [outputs1]
+            # with open(model_name+'_ep.txt', 'w') as f:
+            #     f.write(str(ep))
+            # pt2e_model.eval()
+            # pt2e_model = pt2e_model.cuda()
+            # example_inputs = [example_input.cuda() for example_input in example_inputs]
+            outputs2 = pt2e_model(*example_inputs)
+            if isinstance(outputs2, torch.Tensor):
+                outputs2 = [outputs2]
+            # example_inputs = [example_input.cpu() for example_input in example_inputs]
+            # outputs2 = [output.cpu() for output in outputs2]
+            # pt2e_model = pt2e_model.cpu()
+            for i, (o1, o2) in enumerate(zip(outputs1, outputs2)):
+                assert o1.shape == o2.shape, f'{i} -> {o1.shape} != {o2.shape}'
+            for i, (o1, o2) in enumerate(zip(outputs1, outputs2)):
+                assert torch.allclose(o1,o2), f'{i} -> outputs failed to be close'
+            print('PT2E Done')
+            if False:            
                 print('Trying QAT')
                 from torch.ao.quantization.pt2e.quantize_pt2e import (prepare_qat_pt2e, convert_pt2e,)
                 from executorch.backends.xnnpack.quantizer.xnnpack_quantizer import (get_symmetric_quantization_config, XNNPACKQuantizer,)  
@@ -271,17 +327,15 @@ if __name__ == '__main__':
             status[model_name] = 'passed'
             end_time = time.time()
             print(f"Model {model_name} took {end_time - start_time} seconds to convert")
+            print('')
         
-        if not model_path.endswith('.onnx'):
-            continue
-        
-        main_job(False)
+        main_job()
         break
-        # try:
-        #     main_job()    
-        # except Exception as e:
-        #     print(f"Failed to convert model {model_name} because of error {e}")
-        #     status[model_name] = 'failed'
+        try:
+            main_job()    
+        except Exception as e:
+            print(f"Failed to convert model {model_name} because of error {e}")
+            status[model_name] = 'failed'
         # Step 1. export
         # model_name = model_name[:-5]
         
@@ -330,9 +384,8 @@ if __name__ == '__main__':
             continue
         failed.append(k)
 
-    print('no onnx', len([k for k in status if status[k] == 'onnx not found']))
-    print('no yaml', len([k for k in status if status[k] == 'yaml not found']))
-    print('passed',len([k for k in status if status[k] == 'passed']))
-    print('failed',len(failed))
+    for stat in ('onnx not found','yaml not found', 'not onnx','failed', 'passed', 'Expected Failed'):
+        print(stat, ':', list(status.values()).count(stat))
+
     print('total',total_count,  'out of', len(model_names))
     print(failed)

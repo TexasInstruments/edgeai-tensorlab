@@ -39,10 +39,10 @@ def torch_reshape(x, shape, allowzero=False):
         # allowzero = allowzero or zeros.numel()==0
         shape = shape.tolist()
     # else:
-    try:
-        return torch.reshape(x, shape)
-    except:
-        pass
+    # try:
+    #     return torch.reshape(x, shape)
+    # except:
+    #     pass
     allowzero = allowzero or 0 not in shape    
     if allowzero:
         return torch.reshape(x, shape)

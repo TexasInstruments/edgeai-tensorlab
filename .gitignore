@@ -4,3 +4,4 @@
 data/
 !data/readme.txt
 *.onnx
+workdir/
