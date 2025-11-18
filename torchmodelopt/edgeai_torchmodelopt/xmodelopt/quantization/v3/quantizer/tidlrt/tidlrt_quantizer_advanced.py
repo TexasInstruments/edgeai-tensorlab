@@ -101,7 +101,6 @@ def get_aten_overload_ops(aten_op_name: str):
 
 class TIDLRTQuantizerAdvanced(XNNPACKQuantizer):
     # XNNPACKQuantizer.STATIC_OPS.insert(0, 'matmul')
-    pass
 
     # there is a bug in this transformation in XNNPACKQuantizer - it is not respecting dtype
     def transform_for_annotation(

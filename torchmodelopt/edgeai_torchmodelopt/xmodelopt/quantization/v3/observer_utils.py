@@ -92,8 +92,13 @@ def _correct_min_max(min_val: torch.Tensor, max_val: torch.Tensor) -> tuple[torc
     elif torch.any((min_val == max_val) & (min_val == 0.0)):
         range_valid = False
     elif torch.any(min_val >= max_val):
-        min_val = -torch.abs(min_val) 
-        max_val = torch.abs(max_val)
+        min_val = torch.min(min_val, max_val) 
+        max_val = torch.max(min_val, max_val)
+        min_val = torch.min(min_val, 0.0)
+        max_val = torch.max(max_val, 0.0)
+    else:
+        min_val = torch.min(min_val, 0.0)
+        max_val = torch.max(max_val, 0.0)
     #
     return min_val, max_val, range_valid
     
