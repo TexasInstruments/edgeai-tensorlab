@@ -32,6 +32,11 @@ import onnx_graphsurgeon as gs
 import onnx
 
 def add_all_outputs_torch_model(model: torch.fx.GraphModule):
+    '''
+    Note: Normal Torch FX graph will work fine after this, but PT2E exported models wont
+    work fully after it. Still this can be used for debugging them as the forward function 
+    will fail on the last line (return pytree.tree_unflatten((....), self._out_specs)
+    '''
     nodes = list(model.graph.nodes)
     out = nodes[-1]
     args = tuple([n for n in nodes[:-1] if n not in out.args[0]])

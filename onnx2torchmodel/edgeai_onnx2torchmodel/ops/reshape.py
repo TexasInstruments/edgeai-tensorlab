@@ -34,13 +34,21 @@ import copy
 
 def torch_reshape(x, shape, allowzero=False):
     if isinstance(shape, torch.Tensor):
-        shape = shape.cpu().tolist()
+        shape = shape.cpu()
+        # zeros = torch.where(shape==0)[0]
+        # allowzero = allowzero or zeros.numel()==0
+        shape = shape.tolist()
+    # else:
+    try:
+        return torch.reshape(x, shape)
+    except:
+        pass
     allowzero = allowzero or 0 not in shape    
     if allowzero:
         return torch.reshape(x, shape)
     stop= shape.index(-1) if -1 in shape else len(shape)
     for i, s in enumerate(shape[:stop]):
-        shape[i] = torch.where(torch.tensor(s==0), x.shape[i], s)
+        shape[i] = torch.where(torch.tensor(s==0), x.shape[min(i,x.dim())], s)
     shape = [int(s) for s in shape]
     return torch.reshape(x, shape)
 
@@ -94,11 +102,10 @@ def add_flatten_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  
     else:
         torch_nodes[node.name] = torch_graph.call_function(torch_flatten, tuple(args),  dict(axis=axis), name=node.name)
 
-
 def torch_shape(x):
     if hasattr(x, 'shape'):
-        return torch.tensor(x.shape).to(x.device)
-    return len(x)
+        return torch.tensor(x.shape, device=x.device)
+    return [len(x)]
 
 def add_shape_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert len(node.inputs) == 1, f'{node.name} with operator {node.op} should have 1 input, but got {len(node.inputs)}'
