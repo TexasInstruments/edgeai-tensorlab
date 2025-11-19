@@ -133,7 +133,7 @@ class ConfigRuntimeOptions(config_dict.ConfigDict):
             # optimize data conversion options by moving them from arm to c7x
             'advanced_options:add_data_convert_ops': 3,
             # max number of nodes in a subgraph (default is 864)
-            'advanced_options:max_num_subgraph_nodes': 1536,
+            'advanced_options:max_num_subgraph_nodes': 2000,
             ##################################
             # additional options (internal / performance estimation)
             "ti_internal_nc_flag" : 83886080, #1601
