@@ -286,10 +286,29 @@ def download_arm_gcc(tidl_tools_package_path):
         extract_archive(os.path.join(tidl_tools_package_path,GCC_ARM_AARCH64_FILE), tidl_tools_package_path)
     #
 
+def download_cgt_c7x(tidl_tools_package_path, c7x_compiler_version):
+    print("INFO: installing C7x CGT compiler for tvm...")
+    CGT7X_NAME=f"ti-cgt-c7000_{c7x_compiler_version}"
+    CGT7X_FILE=f"ti_cgt_c7000_{c7x_compiler_version}_linux-x64_installer.bin"
+    CGT7X_PATH=f"https://dr-download.ti.com/software-development/ide-configuration-compiler-or-debugger/MD-707zYe3Rik/{c7x_compiler_version}/{CGT7X_FILE}"
+    print(f"INFO: installing {tidl_tools_package_path}/{CGT7X_NAME}")
+    if not os.path.exists(os.path.join(tidl_tools_package_path,CGT7X_NAME)):
+        if not os.path.exists(os.path.join(tidl_tools_package_path,CGT7X_FILE)):
+            download_url(CGT7X_PATH, tidl_tools_package_path)
+        
+        # Make the installer executable
+        installer_path = os.path.join(tidl_tools_package_path, CGT7X_FILE)
+        os.chmod(installer_path, 0o755)
+        # Run the installer
+        subprocess.run([installer_path, '--mode', 'unattended', '--prefix', tidl_tools_package_path], check=True)
+    #
+
 
 def download_tidl_tools(download_url, download_path, **tidl_version_dict):
     print("INFO: installing tidl_tools_package...")
     GCC_ARM_AARCH64_NAME="arm-gnu-toolchain-13.2.Rel1-x86_64-aarch64-none-linux-gnu"
+    CGT7X_NAME=f"ti-cgt-c7000_{tidl_version_dict.get('c7x_compiler_version', '5.0.0.LTS')}"
+
     cwd = os.getcwd()
     download_path = os.path.abspath(download_path)
     download_tidl_tools_path = os.path.join(download_path, 'tidl_tools')
@@ -299,6 +318,8 @@ def download_tidl_tools(download_url, download_path, **tidl_version_dict):
         download_and_extract_archive(download_url, download_path, download_path)
         os.chdir(download_tidl_tools_path)
         os.symlink(os.path.join("..", "..", "..", GCC_ARM_AARCH64_NAME), GCC_ARM_AARCH64_NAME)
+        os.symlink(os.path.join("..", "..", GCC_ARM_AARCH64_NAME), GCC_ARM_AARCH64_NAME)
+        os.symlink(os.path.join("..", "..", CGT7X_NAME), CGT7X_NAME)
         with open(os.path.join(download_tidl_tools_path, 'version.yaml'), "w") as fp:
             yaml.safe_dump(tidl_version_dict, fp)
         #
@@ -328,6 +349,7 @@ def download_tidl_tools_package_11_02(install_path, tools_version, tools_type):
     tidl_tools_release_label="r11.2"
     tidl_tools_release_id="11_02_00_00"
     c7x_firmware_version="11_02_00_00"
+    c7x_compiler_version="5.0.0.LTS" # Needed for TVM (needs update based on release version)
     c7x_firmware_version_possible_update=None
     print(f"INFO: you have chosen to install tidl_tools version:{tidl_tools_release_id} with default SDK firmware version set to:{c7x_firmware_version}")
     if c7x_firmware_version_possible_update:
@@ -337,7 +359,8 @@ def download_tidl_tools_package_11_02(install_path, tools_version, tools_type):
 
     tidl_tools_package_path = install_path
     download_arm_gcc(tidl_tools_package_path)
-
+    download_cgt_c7x(tidl_tools_package_path, c7x_compiler_version)
+    
     tidl_tools_type_suffix=("_gpu" if isinstance(tools_type,str) and "gpu" in tools_type else "")
     target_soc_download_urls = {
         "TDA4VM": f"http://tidl-ta-01.dhcp.ti.com/tidl_tools/107/DEV/j721e",
@@ -387,7 +410,7 @@ def download_tidl_tools_package_11_01(install_path, tools_version, tools_type):
     }
     tidl_version_dict = dict(version=tidl_tools_version_name, release_label=tidl_tools_release_label,
                              release_id=tidl_tools_release_id, tools_type=tidl_tools_type_suffix,
-                             c7x_firmware_version=c7x_firmware_version)
+                             c7x_firmware_version=c7x_firmware_version, c7x_compiler_version=c7x_compiler_version)
     for target_soc in target_soc_download_urls:
         download_url_base = target_soc_download_urls[target_soc]
         download_url = f"{download_url_base}/tidl_tools{tidl_tools_type_suffix}.tar.gz"
