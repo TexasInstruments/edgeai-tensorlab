@@ -80,6 +80,7 @@ def _adjust_qparams_power2_scale(min_val, max_val, quant_min, quant_max, scale, 
 
 def _correct_min_max(min_val: torch.Tensor, max_val: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, bool]:
     range_valid = True
+    eps = 1e-12
     if min_val.numel() == 0 or max_val.numel() == 0:
         warnings.warn(f"must run observer before calling calculate_qparams. min_val={min_val} max_val={max_val}")
         range_valid = False
@@ -89,16 +90,14 @@ def _correct_min_max(min_val: torch.Tensor, max_val: torch.Tensor) -> tuple[torc
     elif torch.any(torch.isnan(min_val)) or torch.any(torch.isnan(max_val)):
         warnings.warn(f"invalid range: min_val={min_val} max_val={max_val}")
         range_valid = False
-    elif torch.any((min_val == max_val) & (min_val == 0.0)):
-        range_valid = False
-    elif torch.any(min_val >= max_val):
-        min_val = torch.min(min_val, max_val) 
-        max_val = torch.max(min_val, max_val)
-        min_val = torch.min(min_val, 0.0)
-        max_val = torch.max(max_val, 0.0)
+    # elif torch.any((min_val == max_val) & (min_val == 0.0)):
+    #     range_valid = False
+    #elif torch.any(min_val >= max_val):
     else:
-        min_val = torch.min(min_val, 0.0)
-        max_val = torch.max(max_val, 0.0)
+        min_val = torch.min(min_val, torch.zeros_like(min_val))
+        max_val = torch.max(max_val, torch.zeros_like(max_val) + eps)
+        min_val = torch.min(min_val, max_val) 
+        max_val = torch.max(max_val, min_val + eps)
     #
     return min_val, max_val, range_valid
     
@@ -192,6 +191,9 @@ class AdaptiveRangeShrinkObserver(torch.ao.quantization.HistogramObserver):
         self.num_batches_tracked += 1
         return x_orig
 
+    def get_min_max(self) -> tuple[torch.Tensor, torch.Tensor, bool]:
+        return _correct_min_max(self.min_val, self.max_val)
+
     @torch.jit.export
     def _calculate_qparams(self, min_val, max_val):
         r"""Calculates the quantization parameters."""
@@ -201,7 +203,7 @@ class AdaptiveRangeShrinkObserver(torch.ao.quantization.HistogramObserver):
             min_val = -max_abs if signed_range else max_abs * 0.0
             max_val = max_abs
         #
-        min_val, max_val, range_valid = self._correct_min_max(min_val, max_val)
+        min_val, max_val, range_valid = self.get_min_max(min_val, max_val)
         if range_valid:
             scale, zero_point = super()._calculate_qparams(min_val, max_val)
         else:

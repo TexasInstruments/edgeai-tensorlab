@@ -71,8 +71,8 @@ class AdaptiveWeightObserver(torch.ao.quantization.MinMaxObserver):
             #
         #
         
-    def _correct_min_max(self, min_val: torch.Tensor, max_val: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, bool]:
-        return observer_utils._correct_min_max(min_val, max_val)
+    def get_min_max(self) -> tuple[torch.Tensor, torch.Tensor, bool]:
+        return observer_utils._correct_min_max(self.min_val, self.max_val)
 
     def _check_min_max_valid(self, min_val: torch.Tensor, max_val: torch.Tensor) -> bool:
         return observer_utils._check_min_max_valid(min_val, max_val)
@@ -86,7 +86,7 @@ class AdaptiveWeightObserver(torch.ao.quantization.MinMaxObserver):
             max_val = torch.abs(max_val)
         #
         # weights qparams are always symmetric and this is ensured inside the super class, no need to handle it here.
-        min_val, max_val, range_valid = self._correct_min_max(min_val, max_val)
+        min_val, max_val, range_valid = self.get_min_max(min_val, max_val)
         if range_valid:
             scale, zero_point = super()._calculate_qparams(min_val, max_val)
         else:
@@ -138,8 +138,8 @@ class AdaptivePerChannelWeightObserver(torch.ao.quantization.PerChannelMinMaxObs
             #
         #
 
-    def _correct_min_max(self, min_val: torch.Tensor, max_val: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, bool]:
-        return observer_utils._correct_min_max(min_val, max_val)
+    def get_min_max(self) -> tuple[torch.Tensor, torch.Tensor, bool]:
+        return observer_utils._correct_min_max(self.min_val, self.max_val)
 
     def _check_min_max_valid(self, min_val: torch.Tensor, max_val: torch.Tensor) -> bool:
         return observer_utils._check_min_max_valid(min_val, max_val)
@@ -148,7 +148,7 @@ class AdaptivePerChannelWeightObserver(torch.ao.quantization.PerChannelMinMaxObs
     def _calculate_qparams(self, min_val, max_val):
         r"""Calculates the quantization parameters."""
         # weights qparams are always symmetric and this is ensured inside the super class, no need to handle it here.
-        min_val, max_val, range_valid = self._correct_min_max(min_val, max_val)
+        min_val, max_val, range_valid = self.get_min_max(min_val, max_val)
         if range_valid:
             scale, zero_point = super()._calculate_qparams(min_val, max_val)
         else:
@@ -204,8 +204,8 @@ class AdaptiveMinMaxActivationObserver(torch.ao.quantization.MinMaxObserver):
             #
         #
 
-    def _correct_min_max(self, min_val: torch.Tensor, max_val: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, bool]:
-        return observer_utils._correct_min_max(min_val, max_val)
+    def get_min_max(self) -> tuple[torch.Tensor, torch.Tensor, bool]:
+        return observer_utils._correct_min_max(self.min_val, self.max_val)
 
     def _check_min_max_valid(self, min_val: torch.Tensor, max_val: torch.Tensor) -> bool:
         return observer_utils._check_min_max_valid(min_val, max_val)
@@ -219,7 +219,7 @@ class AdaptiveMinMaxActivationObserver(torch.ao.quantization.MinMaxObserver):
             min_val = -max_abs if signed_range else max_abs * 0.0
             max_val = max_abs
         #
-        min_val, max_val, range_valid = self._correct_min_max(min_val, max_val)
+        min_val, max_val, range_valid = self.get_min_max(min_val, max_val)
         if range_valid:
             scale, zero_point = super()._calculate_qparams(min_val, max_val)
         else:
@@ -275,8 +275,8 @@ class AdaptiveMovingAverageMinMaxActivationObserver(torch.ao.quantization.Moving
             #
         #
 
-    def _correct_min_max(self, min_val: torch.Tensor, max_val: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, bool]:
-        return observer_utils._correct_min_max(min_val, max_val)
+    def get_min_max(self) -> tuple[torch.Tensor, torch.Tensor, bool]:
+        return observer_utils._correct_min_max(self.min_val, self.max_val)
 
     def _check_min_max_valid(self, min_val: torch.Tensor, max_val: torch.Tensor) -> bool:
         return observer_utils._check_min_max_valid(min_val, max_val)
@@ -290,7 +290,7 @@ class AdaptiveMovingAverageMinMaxActivationObserver(torch.ao.quantization.Moving
             min_val = -max_abs if signed_range else max_abs * 0.0
             max_val = max_abs
         #
-        min_val, max_val, range_valid = self._correct_min_max(min_val, max_val)
+        min_val, max_val, range_valid = self.get_min_max(min_val, max_val)
         if range_valid:
             scale, zero_point = super()._calculate_qparams(min_val, max_val)
         else:

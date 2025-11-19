@@ -101,11 +101,18 @@ class _AdaptiveOutlierSuppression(AdaptiveFakeQuantize):
             self.scale.copy_(_scale)
             self.zero_point.copy_(_zero_point)
             
-        range_shrink = self.activation_post_process.range_shrink \
-            if getattr(self, 'activation_post_process', None) else False
-        if range_shrink:
-            min_val, max_val = self.activation_post_process.min_val.clone(), self.activation_post_process.max_val.clone()
-            x_q = torch.clip(X, min_val, max_val)
+        if getattr(self, 'activation_post_process', None) and getattr(self.activation_post_process, 'range_shrink', False):
+            if hasattr(self.activation_post_process, 'get_min_max'):
+                min_val, max_val, range_valid = self.activation_post_process.get_min_max()
+            else:
+                min_val, max_val = self.activation_post_process.min_val.clone(), self.activation_post_process.max_val.clone()
+                range_valid = True
+            #
+            if range_valid:
+                x_q = torch.clip(X, min_val, max_val)
+            else:
+                x_q = X
+            #
         else:
             x_q = X
         #

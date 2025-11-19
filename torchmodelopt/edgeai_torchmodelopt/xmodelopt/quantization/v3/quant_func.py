@@ -264,12 +264,13 @@ def _convert_layers(module, fq_type, new_type):
         if isinstance(m, fq_type):
             new_layer = torch.nn.Identity()
             if new_type == torch.nn.Hardtanh and hasattr(m, 'activation_post_process'):
-                min_val, max_val = m.activation_post_process.min_val, m.activation_post_process.max_val
-                if max_val >= min_val:
-                    eps = 1e-16
-                    min_val = torch.min(min_val, torch.zeros_like(min_val))
-                    max_val = torch.max(max_val, torch.zeros_like(max_val) + eps)
-                    max_val = torch.max(max_val, min_val + eps)
+                if hasattr(m.activation_post_process, 'get_min_max'):
+                    min_val, max_val, range_valid = m.activation_post_process.get_min_max()
+                else:
+                    min_val, max_val = m.activation_post_process.min_val, m.activation_post_process.max_val
+                    range_valid = True
+                #
+                if range_valid:
                     new_layer = torch.nn.Hardtanh(min_val=min_val.item(), max_val=max_val.item())
                 #
             #
