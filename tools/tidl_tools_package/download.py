@@ -304,6 +304,15 @@ def download_cgt_c7x(tidl_tools_package_path, c7x_compiler_version):
     #
 
 
+def _create_symlink(src, dest):
+    try:
+        os.remove(dest)
+    except OSError:
+        pass
+    #
+    os.symlink(src, dest)
+
+
 def download_tidl_tools(download_url, download_path, **tidl_version_dict):
     print("INFO: installing tidl_tools_package...")
     GCC_ARM_AARCH64_NAME="arm-gnu-toolchain-13.2.Rel1-x86_64-aarch64-none-linux-gnu"
@@ -317,9 +326,9 @@ def download_tidl_tools(download_url, download_path, **tidl_version_dict):
     try:
         download_and_extract_archive(download_url, download_path, download_path)
         os.chdir(download_tidl_tools_path)
-        os.symlink(os.path.join("..", "..", "..", GCC_ARM_AARCH64_NAME), GCC_ARM_AARCH64_NAME)
-        os.symlink(os.path.join("..", "..", GCC_ARM_AARCH64_NAME), GCC_ARM_AARCH64_NAME)
-        os.symlink(os.path.join("..", "..", CGT7X_NAME), CGT7X_NAME)
+        _create_symlink(os.path.join("..", "..", "..", GCC_ARM_AARCH64_NAME), GCC_ARM_AARCH64_NAME)
+        _create_symlink(os.path.join("..", "..", GCC_ARM_AARCH64_NAME), GCC_ARM_AARCH64_NAME)
+        _create_symlink(os.path.join("..", "..", CGT7X_NAME), CGT7X_NAME)
         with open(os.path.join(download_tidl_tools_path, 'version.yaml'), "w") as fp:
             yaml.safe_dump(tidl_version_dict, fp)
         #
@@ -351,7 +360,7 @@ def download_tidl_tools_package_11_02(install_path, tools_version, tools_type):
     c7x_firmware_version="11_02_00_00"
     c7x_compiler_version="5.0.0.LTS" # Needed for TVM (needs update based on release version)
     c7x_firmware_version_possible_update=None
-    print(f"INFO: you have chosen to install tidl_tools version:{tidl_tools_release_id} with default SDK firmware version set to:{c7x_firmware_version}")
+    print(f"INFO: you have chosen to install tidl_tools version: {tidl_tools_release_id} with default SDK firmware version set to: {c7x_firmware_version}")
     if c7x_firmware_version_possible_update:
         print(f"INFO: to leverage more features, set advanced_options:c7x_firmware_version while model compialtion and update firmware version in SDK to: {c7x_firmware_version_possible_update}")
         print(f"INFO: for more info, see version compatibiltiy table: https://github.com/TexasInstruments/edgeai-tidl-tools/blob/master/docs/version_compatibility_table.md")
@@ -561,14 +570,14 @@ def install_package(*install_args, install_cmd="install"):
     
     package_name = install_args[0].split('@')[0].split('==')[0]
     # Check if package is already installed
-    if importlib.util.find_spec(package_name) is not None:
+    if install_cmd == "install" and importlib.util.find_spec(package_name) is not None:
         print(f"INFO: {package_name} is already installed")
         return True
     try:
-        print(f"INFO: Installing {package_name}")
+        print(f"INFO: {install_cmd} {package_name}")
         install_options = [str(arg) for arg in install_args]
-        install_cmd_list = ["python3", "-m", "pip", install_cmd, "--no-input"] + install_options
-        print("INFO: installing {package_name} using:", " ".join(install_cmd_list))
+        install_cmd_list = ["python", "-m", "pip", install_cmd, "--no-input", "--yes"] + install_options
+        print(f"INFO: {install_cmd} {package_name} using:", " ".join(install_cmd_list))
         result = subprocess.run(install_cmd_list, check=True, capture_output=True, text=True)
         
         print(f"SUCCESS: {package_name} installed successfully")
@@ -576,7 +585,7 @@ def install_package(*install_args, install_cmd="install"):
             print("STDOUT:", result.stdout)
         return True
     except subprocess.CalledProcessError as e:
-        print(f"ERROR: Failed to install {package_name}")
+        print(f"ERROR: Failed to {install_cmd} {package_name}")
         print(f"Return code: {e.returncode}")
         if e.stdout:
             print("STDOUT:", e.stdout)
