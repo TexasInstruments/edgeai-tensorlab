@@ -93,7 +93,13 @@ class PandaSetMetric(NuScenesMetric):
         
         return 'None'
     
-    def _format_lidar_bbox(self, results, sample_idx_list, classes = None, jsonfile_prefix = None):
+    def _format_lidar_bbox(self,
+                           results,
+                           sample_idx_list,
+                           classes = None,
+                           jsonfile_prefix = None,
+                           tracking = False,
+                           tracking_threshold = None):
         # return
         pandaset_annos = {}
 
@@ -324,7 +330,11 @@ class PandaSetMetric(NuScenesMetric):
         self.NameMapping = dict(map(lambda x:(x,x),self.dataset_meta['classes']))
         return super().compute_metrics(results)
     
-    def _evaluate_single(self, result_path, classes = None, result_name = 'pred_instances_3d'):
+    def _evaluate_single(self,
+                         result_path,
+                         classes = None,
+                         tracking = False,
+                         result_name = 'pred_instances_3d'):
         output_dir = osp.join(*osp.split(result_path)[:-1])
         detail = dict()
 
