@@ -35,7 +35,7 @@ from .basert_runtime import BaseRuntimeWrapper
 from .. import constants
 
 
-class TVMDLRRuntimeWrapper(BaseRuntimeWrapper):
+class TVMRuntimeWrapper(BaseRuntimeWrapper):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._start_import_done = False

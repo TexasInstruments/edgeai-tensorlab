@@ -71,7 +71,7 @@ class ConfigRuntimeOptions(config_dict.ConfigDict):
         Overiride this according to the needs of specific configs using methods below.
 
         Args:
-            model_type_or_session_name: onnxrt, tflitert or tvmdlr
+            model_type_or_session_name: onnxrt, tflitert or tvmrt
             is_qat: set appropriately for QAT models
 
         Returns: runtime_options

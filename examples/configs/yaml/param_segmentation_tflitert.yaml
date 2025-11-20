@@ -111,7 +111,7 @@ session:
   model_path: model/deeplabv3_mnv2_ade20k_train_2018_12_03_512x512.onnx
 
   # Name that identifies the inference sesssion that can be used to infer the given artifacts
-  # Options: tflitert, onnxrt, tvmdlr
+  # Options: tflitert, onnxrt, tvmrt
   session_name: tflitert
 
   # List of Mean values to be subtracted from the input tensor

@@ -46,7 +46,7 @@ parser.add_argument('--relay_power_port', help='ANEL power switch port number', 
 # Benchmark test specific arguments
 parser.add_argument('--num_frames', help='The number of frames to run the evaluation', type=str, default=None)
 parser.add_argument('--artifacts_tarball', help='Optional path to model artifacts tarball', type=str, default=None)
-parser.add_argument('--session_type_dict', help='Optional argument to set runtime to model type mapping', type=str, default="\"{'onnx':'onnxrt' ,'tflite':'tflitert' ,'mxnet':'tvmdlr'}\"")
+parser.add_argument('--session_type_dict', help='Optional argument to set runtime to model type mapping', type=str, default="\"{'onnx':'onnxrt' ,'tflite':'tflitert' ,'mxnet':'tvmrt'}\"")
 
 # TIDL_UNIT_TEST specific arguments
 parser.add_argument('--operators', help='Space separated operators to test in TIDL_UNIT_TEST', type=str, default=None)

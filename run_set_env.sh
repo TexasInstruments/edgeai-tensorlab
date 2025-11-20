@@ -71,14 +71,14 @@ fi
 
 
 ################################################################################
-# tvmdlr artifacts are different for pc and evm device
+# tvmrt artifacts are different for pc and evm device
 # point to the right artifact before this script executes
 if [ "${ARTIFACTS_BASE_PATH}" = "" ]; then
   ARTIFACTS_BASE_PATH="./work_dirs/modelartifacts/${TARGET_SOC}/8bits"
 fi
 
 if [ -d "${ARTIFACTS_BASE_PATH}" ]; then
-  echo "INFO: settings the correct symlinks in tvmdlr compiled artifacts"
+  echo "INFO: settings the correct symlinks in tvmrt compiled artifacts"
 
   artifacts_folders=$(find "${ARTIFACTS_BASE_PATH}/" -maxdepth 1 |grep "_tvmdlr_")
   cur_dir=$(pwd)
