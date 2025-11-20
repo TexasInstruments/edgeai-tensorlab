@@ -380,7 +380,7 @@ def _fill_trainval_infos(ps: PandasetDatasetBase,
                          max_frames,
                          train_scenes=None,
                          val_scenes=None,
-                         read_anno=True,):
+                         read_anno=True):
     ps_infos = []
     for scene in ps.scene_list:
         if train_scenes is not None and scene not in train_scenes:
@@ -389,7 +389,8 @@ def _fill_trainval_infos(ps: PandasetDatasetBase,
             continue
         seq = ps[scene]
         seq.load()
-        all_instances = get_gt_for_seq(seq)
+        if read_anno is True:
+            all_instances = get_gt_for_seq(seq)
         cam_intrinsics = {}
         for name, camera in seq.camera.items():
             intrinsics = camera.intrinsics
@@ -506,7 +507,8 @@ def _fill_trainval_infos_mv_image(ps: PandasetDatasetBase,
             continue
         seq = ps[scene]
         seq.load()
-        all_instances = get_gt_for_seq(seq)
+        if read_anno is True:
+            all_instances = get_gt_for_seq(seq)
         
         cam_intrinsics = {}
         for name, camera in seq.camera.items():
@@ -722,7 +724,8 @@ class PandaSetDataset(DatasetBase):
             det = prediction
             annos = []
             boxes = det['bboxes_3d']
-            # make (0.5, 0.5, 0.5) center
+            # The center from the network is bottom center,
+            # so make (0.5, 0.5, 0.5) center (gravity center)
             boxes[:, 2] += boxes[:, 5] * 0.5
             if 'attr_labels' in det:
                 attrs = det['attr_labels'].tolist()
@@ -733,7 +736,10 @@ class PandaSetDataset(DatasetBase):
             sample_idx = i
             info = self.data_infos['infos'][sample_idx]
             sample_token = info['token']
-            boxes = convert_lidar_box_to_global_box(boxes, info, kwargs['task_name'])
+            # Output prediction is in ego LiDAR coordiante system
+            # Keep boxes in this coordinate for evaluation
+            # So we don't need the following transformation
+            #boxes = convert_lidar_box_to_global_box(boxes, info, kwargs['task_name'])
 
             for i in range(boxes.shape[0]):
                 box = boxes[i]
@@ -785,6 +791,7 @@ class PandaSetDataset(DatasetBase):
                 annos.append(pandaset_anno)
             pandaset_annos[sample_token] = annos
         return pandaset_annos
+
     def format_results_camera_bbox(self, predictions, det_classes, **kwargs):
         
         pandaset_annos = {}

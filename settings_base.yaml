@@ -37,10 +37,6 @@ models_path : '../edgeai-modelzoo/models'
 # create your datasets under this folder
 datasets_path : './dependencies/datasets'
 
-# Only for Nuscenes
-# 'v1.0-mini' (default) or 'v1.0-trainval'
-datasets_version: 'v1.0-trainval'
-
 # path where precompiled modelartifacts are placed
 modelartifacts_path : './work_dirs/modelartifacts/{target_device}'
 
