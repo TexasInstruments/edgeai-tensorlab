@@ -277,7 +277,7 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, work_dir
     if runtime == "onnxrt":
         session_name = constants.SESSION_NAME_ONNXRT
     elif runtime == "tvmrt":
-        session_name = constants.SESSION_NAME_TVMDLR
+        session_name = constants.SESSION_NAME_TVMRT
     else:
         raise ValueError("Runtimes currently supported are onnxrt and tvmrt")
     model_file       = os.path.join(test_dir, "model.onnx")

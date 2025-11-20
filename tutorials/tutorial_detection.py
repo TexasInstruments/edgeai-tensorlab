@@ -95,7 +95,7 @@ val_dataset = datasets.COCODetection(**dataset_val_cfg, download=True)
 # tflitert for tflite models, onnxrt for onnx models, tvmrt for mxnet models.
 session_name = constants.SESSION_NAME_TFLITERT
 #session_name = constants.SESSION_NAME_ONNXRT
-#session_name = constants.SESSION_NAME_TVMDLR
+#session_name = constants.SESSION_NAME_TVMRT
 
 session_type = settings.get_session_type(session_name)
 runtime_options = settings.get_runtime_options(session_name, is_qat=False)

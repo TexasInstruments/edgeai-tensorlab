@@ -38,7 +38,7 @@ from .basert_session import BaseRTSession
 
 
 class TVMRTSession(BaseRTSession, TVMRuntimeWrapper):
-    def __init__(self, session_name=constants.SESSION_NAME_TVMDLR, **kwargs):
+    def __init__(self, session_name=constants.SESSION_NAME_TVMRT, **kwargs):
         BaseRTSession.__init__(self, session_name=session_name, **kwargs)
         TVMRuntimeWrapper.__init__(self)
         self.kwargs['input_data_layout'] = self.kwargs.get('input_data_layout', constants.NCHW)
