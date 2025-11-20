@@ -58,12 +58,19 @@ def get_bbox_2d(bbox_corners_image, image_size,):
 
 def convert_bbox_to_corners_for_globals(bbox):
     x, y, z, w, l, h, yaw = bbox
+    # Need to align yaw orientation with LiDARInstance3DBoxes's orientation
+    # PandaSet world coordinate system:
+    # +x: right, +y: front (yaw = 0), +z: up
+    # LiDARInstance3DBoxes coordinate system:
+    # +x: front (yaw = 0), +y: left , +z: up
     new_yaw = yaw+np.pi/2
     if new_yaw > np.pi:
         new_yaw -= 2*np.pi
     if new_yaw < -np.pi:
         new_yaw += 2*np.pi
-    return convert_bbox_to_corners_for_lidar([ x, y, z, l, w, h, new_yaw])
+    # LiDARInstance3DBoxes is in (x, y, z, l, w, h, yaw) format
+    # Due to coordinate system difference, we swap w and l
+    return convert_bbox_to_corners_for_lidar([x, y, z, l, w, h, new_yaw])
 
 
 def compute_valid_flag_for_bboxes(cuboids, lidar_data):
@@ -343,6 +350,7 @@ def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img, data_li
     ego_bboxes = []
     for cuboid in filtered_cuboids.tolist():
         bbox = cuboid[5:11] + [cuboid[2]]
+        # To get coners' coordindates, which is still in global frame
         corners = convert_bbox_to_corners_for_globals(bbox)
         lidar_corners = (np.linalg.inv(lidar2global) @ np.hstack([corners, np.ones((corners.shape[0], 1))]).T).T[:,:3]
         lidar_bboxes.append(convert_corners_to_bbox_for_lidar_box(lidar_corners))
