@@ -110,7 +110,7 @@ session:
   model_path: model/mobilenet_v1_1.0_224.onnx
 
   # Name that identifies the inference sesssion that can be used to infer the given artifacts
-  # Options: tflitert, onnxrt, tvmdlr
+  # Options: tflitert, onnxrt, tvmrt
   session_name: tflitert
 
   # List of Mean values to be subtracted from the input tensor

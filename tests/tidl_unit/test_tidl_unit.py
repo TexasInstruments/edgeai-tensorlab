@@ -313,14 +313,14 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, work_dir
                                                       tidl_tools_path=None,
                                                       tidl_offload=tidl_offload)
         elif runtime == "tvmrt":
-            runtime_wrapper = core.TVMDLRRuntimeWrapper(runtime_options=runtime_options,
+            runtime_wrapper = core.TVMRuntimeWrapper(runtime_options=runtime_options,
                                                         model_file=model_file,
                                                         artifacts_folder=artifacts_folder,
                                                         tidl_tools_path=None,
                                                         tidl_offload=tidl_offload)
         else:
             # If not supported
-            raise ValueError("Runtimes currently supported are onnxrt and tvmdlr")
+            raise ValueError("Runtimes currently supported are onnxrt and tvmrt")
 
         results_list = runtime_wrapper.run_inference(tidl_unit_dataset[0])
 
@@ -416,7 +416,7 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, work_dir
             remove_dir(os.path.join(artifacts_folder, "tempDir"))
             assert len(results_list) > 0, " Results not found!!!! "
         elif runtime == "tvmrt":
-            runtime_wrapper = core.TVMDLRRuntimeWrapper(runtime_options=runtime_options,
+            runtime_wrapper = core.TVMRuntimeWrapper(runtime_options=runtime_options,
                                                         model_file=model_file,
                                                         artifacts_folder=artifacts_folder,
                                                         tidl_tools_path=tidl_tools_path,
@@ -427,4 +427,4 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, work_dir
             assert status > 0, "TIDL Tools missing"
         else:
             # If not supported
-            raise ValueError("Runtimes currently supported are onnxrt and tvmdlr")
+            raise ValueError("Runtimes currently supported are onnxrt and tvmrt")

@@ -119,7 +119,7 @@ def pipeline_param_to_config(settings, config_file_or_pipeline_param, work_dir, 
     elif session_name == constants.SESSION_NAME_TFLITERT:
         inference_session = sessions.ONNXRTSession(**pipeline_param['session'])
     elif session_name == constants.SESSION_NAME_TVMDLR:
-        inference_session = sessions.TVMDLRSession(**pipeline_param['session'])
+        inference_session = sessions.TVMRTSession(**pipeline_param['session'])
     #
     pipeline_config['session'] = inference_session
 

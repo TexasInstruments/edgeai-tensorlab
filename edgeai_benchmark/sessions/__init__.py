@@ -28,20 +28,20 @@
 
 
 from .. import constants
-from .tvmdlr_session import TVMDLRSession
+from .tvmrt_session import TVMRTSession
 from .tflitert_session import TFLiteRTSession
 from .onnxrt_session import ONNXRTSession
 
 
 session_name_to_type_dict = {
-    constants.SESSION_NAME_TVMDLR : TVMDLRSession,
+    constants.SESSION_NAME_TVMDLR : TVMRTSession,
     constants.SESSION_NAME_TFLITERT: TFLiteRTSession,
     constants.SESSION_NAME_ONNXRT: ONNXRTSession
 }
 
 
 session_type_to_name_dict = {
-    TVMDLRSession : constants.SESSION_NAME_TVMDLR,
+    TVMRTSession : constants.SESSION_NAME_TVMDLR,
     TFLiteRTSession : constants.SESSION_NAME_TFLITERT,
     ONNXRTSession: constants.SESSION_NAME_ONNXRT
 }

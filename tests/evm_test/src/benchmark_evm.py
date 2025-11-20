@@ -42,7 +42,7 @@ class BenchmarkEvm(TIDLBaseEVMTest):
         self.restarts = 0
         self.setup_iter = 0
         self.model_artifacts_path = model_artifacts_path
-        self.session_type_dict = session_type_dict if session_type_dict is not None else "{'onnx':'onnxrt' ,'tflite':'tflitert' ,'mxnet':'tvmdlr'}"
+        self.session_type_dict = session_type_dict if session_type_dict is not None else "{'onnx':'onnxrt' ,'tflite':'tflitert' ,'mxnet':'tvmrt'}"
         self.tensor_bits = tensor_bits
 
     def init_setup(self):

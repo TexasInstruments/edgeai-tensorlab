@@ -138,11 +138,11 @@ class ConfigSettings(core.ConfigRuntimeOptions):
         # example: ['classification']
         self.task_selection = None
         # wild card list to match against runtime name. if null, all runtimes will be considered
-        # example: ['onnxrt', 'tflitert', 'tvmdlr']
+        # example: ['onnxrt', 'tflitert', 'tvmrt']
         # example: ['onnxrt']
         self.runtime_selection = None
         # session types to use for each model type
-        self.session_type_dict = {'onnx': 'onnxrt', 'tflite': 'tflitert', 'mxnet': 'tvmdlr'}
+        self.session_type_dict = {'onnx': 'onnxrt', 'tflite': 'tflitert', 'mxnet': 'tvmrt'}
         # dataset type to use if there are multiple variants for each dataset
         # example: {'imagenet':'imagenetv1'}
         # example: {'imagenet':'imagenetv2c'}

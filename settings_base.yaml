@@ -44,7 +44,7 @@ modelartifacts_path : './work_dirs/modelartifacts/{target_device}'
 modelpackage_path : './work_dirs/modelpackage/{target_device}'
 
 # session types to use for each model type
-session_type_dict : {'onnx':'onnxrt', 'tflite':'tflitert', 'mxnet':'tvmdlr'}
+session_type_dict : {'onnx':'onnxrt', 'tflite':'tflitert', 'mxnet':'tvmrt'}
 
 # wild card list to match against model_path, model_id or model_type - if null, all models wil be shortlisted
 # only models matching these criteria will be considered - even for model_selection
@@ -75,7 +75,7 @@ model_shortlist: 100
 task_selection : null
 
 # wild card list to match against runtime name. if null, all runtimes will be considered
-# example: ['onnxrt', 'tflitert', 'tvmdlr']
+# example: ['onnxrt', 'tflitert', 'tvmrt']
 # example: ['onnxrt']
 runtime_selection : null
 

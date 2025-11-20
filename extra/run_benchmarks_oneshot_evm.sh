@@ -60,7 +60,7 @@ echo "-------------------------------------------------------------------"
 #echo "==================================================================="
 ### run few selected models with these settings
 #python3 ./scripts/benchmark_modelzoo.py ${settings_file} \
-#        --session_type_dict {'onnx': 'tvmdlr', 'tflite': 'tflitert', 'mxnet': 'tvmdlr'} \
+#        --session_type_dict {'onnx': 'tvmrt', 'tflite': 'tflitert', 'mxnet': 'tvmrt'} \
 #        --task_selection classification segmentation \
 #        --model_selection onnx
 #echo "-------------------------------------------------------------------"
