@@ -552,7 +552,12 @@ down_tidl_tools_package_dict = {
 def setup_tidl_tools(install_path, tools_version, tools_type):
     assert tools_version in down_tidl_tools_package_dict.keys(), f"ERROR: unknown tools_version provided: {tools_version} at {__file__}"
     down_tidl_tools_package_func = down_tidl_tools_package_dict[tools_version]
-    requirements_file = down_tidl_tools_package_func(install_path, tools_version, tools_type)
+
+    try:
+        requirements_file = down_tidl_tools_package_func(install_path, tools_version, tools_type)
+    except Exception as e:
+        print(f"ERROR: download_tidl_tools_package failed for version:{tools_version} - {e}")
+        traceback.print_exc()
     
     # Use sys.executable to ensure we use the same Python interpreter
     import subprocess
@@ -561,6 +566,7 @@ def setup_tidl_tools(install_path, tools_version, tools_type):
     except subprocess.CalledProcessError as e:
         print(f"WARNING: Failed to install requirements from {requirements_file}: {e}")
         print(f"Please manually run: {sys.executable} -m pip3 install -r {requirements_file}")
+        traceback.print_exc()
 
 
 ###############################################################################
@@ -605,7 +611,9 @@ def uninstall_package(*install_args, install_cmd="uninstall"):
 # this function is the entrypoint for download_tidl_tools as specified in pyproject.toml
 def download():
     uninstall_package("onnxruntime")
-	
+    uninstall_package("onnx")
+    uninstall_package("protobuf")
+
     install_path = os.path.dirname(os.path.realpath(__file__))
     tools_version = os.environ.get("TIDL_TOOLS_VERSION", TIDL_TOOLS_VERSION_DEFAULT)
     tools_type = os.environ.get("TIDL_TOOLS_TYPE", TIDL_TOOLS_TYPE_DEFAULT)
