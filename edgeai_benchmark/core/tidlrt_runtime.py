@@ -125,34 +125,33 @@ class TIDLRuntimeWrapper(BaseRuntimeWrapper):
         return interpreter
 
     def _format_input_data(self, input_data):
-        if isinstance(input_data, dict):
-            pass
-
-        if not isinstance(input_data, (list,tuple)):
-            input_data = (input_data,)
         if not isinstance(input_data, dict):
+            if not isinstance(input_data, (list,tuple)):
+                input_data = (input_data,)
             input_details = self.kwargs['input_details']
             input_data = {d_info['name']:dat for d_info, dat in zip(input_details,input_data)}
-        if self.is_import:
-            return input_data
-        input_details = self.kwargs['input_details']
-        for i in range(len(input_details)):
-            name=input_details[i]['name']
-            current_shape = input_data[name].shape
-            pad = input_details[i]['pad']
-            padch, padt, padb, padl, padr = pad
-            current_dims = len(current_shape)
-            expanded_shape = [1] * (6 - current_dims) + list(current_shape)
-            input_data[name] = input_data[name].reshape(expanded_shape)
-            pad_values = [
-                (0, 0),           # No padding for dimension 0
-                (0, 0),           # No padding for dimension 1  
-                (0, 0),           # No padding for dimension 2
-                (0, padch),       # Channel padding (only after) - dimension 3
-                (padt, padb),     # Height padding (top, bottom) - dimension 4
-                (padl, padr)      # Width padding (left, right) - dimension 5
-            ]
-            input_data[name] = np.pad(input_data[name], pad_values, 'constant', constant_values=0)
+        if not self.is_import:
+            input_details = self.kwargs['input_details']
+            for i in range(len(input_details)):
+                name=input_details[i]['name']
+                current_shape = input_data[name].shape
+                pad = input_details[i]['pad']
+                padch, padt, padb, padl, padr = pad
+                current_dims = len(current_shape)
+                expanded_shape = [1] * (6 - current_dims) + list(current_shape)
+                input_data[name] = input_data[name].reshape(expanded_shape)
+                pad_values = [
+                    (0, 0),           # No padding for dimension 0
+                    (0, 0),           # No padding for dimension 1  
+                    (0, 0),           # No padding for dimension 2
+                    (0, padch),       # Channel padding (only after) - dimension 3
+                    (padt, padb),     # Height padding (top, bottom) - dimension 4
+                    (padl, padr)      # Width padding (left, right) - dimension 5
+                ]
+                input_data[name] = np.pad(input_data[name], pad_values, 'constant', constant_values=0)
+        for key in input_data:
+            if not  input_data[key].flags['C_CONTIGUOUS']:
+                input_data[key] = np.ascontiguousarray(input_data[key])
         return input_data
 
     def get_input_details(self, interpreter, input_details=None):
