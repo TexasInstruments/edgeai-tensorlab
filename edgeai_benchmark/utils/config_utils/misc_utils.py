@@ -136,7 +136,7 @@ def pretty_object(d, depth=10, precision=6):
         d_out = [pretty_object(di, depth) for di in d]
     elif isinstance(d, np.ndarray):
         d_out = pretty_object(d.tolist(), depth)
-    elif isinstance(d, ParamsBase):
+    elif isinstance(d, ParamsBase) or hasattr(d, 'peek_params'):
         # this is a special case
         p = d.peek_params()
         d_out = pretty_object(p, depth)
@@ -225,6 +225,27 @@ def str_or_none(v):
     return str(v)
 
 
+def str_to_bool_or_none_or_dict(v):
+    if v is None:
+        return None
+    elif isinstance(v, dict):
+        return v
+    elif isinstance(v, list):
+        v = ' '.join(v)
+    #
+    if isinstance(v, str):
+        if v.lower() in ('', 'none', 'null', 'false', 'no', '0'):
+            return False
+        elif v.lower() in ('true', 'yes', '1'):
+            return True
+        else: 
+            d = yaml.safe_load(v)
+            return d
+        #
+    #
+    return bool(v)
+
+
 def cleanup_dict(inp_dict, template_dict):
     if template_dict is None:
         return inp_dict
@@ -258,6 +279,10 @@ def inverse_sigmoid(x, eps = 1e-5):
 
 
 def formatted_nargs(nargs_list, delimiters=(' ', ',')):
+    if nargs_list is None:
+        return None
+    #
+    nargs_list = as_list(nargs_list)
     for delimiter in delimiters:
         formatted_arg = []
         for arg in nargs_list:

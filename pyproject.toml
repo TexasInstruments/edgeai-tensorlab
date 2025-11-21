@@ -47,7 +47,7 @@ dependencies = [
 pc = [
     "opencv-python-headless",
     "numpy==1.23.0",
-    "onnxsim==0.4.35",
+    "onnxsim==0.4.36",
     "scipy==1.10",
     "tflite",
     "flatbuffers==1.12.0",
