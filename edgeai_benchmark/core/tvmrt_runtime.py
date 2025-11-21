@@ -51,7 +51,7 @@ class TVMRuntimeWrapper(BaseRuntimeWrapper):
         self.is_import = True
         self._calibration_frames = self.kwargs["runtime_options"]["advanced_options:calibration_frames"]
         self.kwargs["runtime_options"] = self._set_default_options(self.kwargs["runtime_options"])
-       # tvm/dlr requires input shape in prepare_for_import - so moved this ahead
+       # tvmrt requires input shape in prepare_for_import - so moved this ahead
         self.kwargs['input_details'] = self.get_input_details(None, self.kwargs.get('input_details', None))
         self.kwargs['output_details'] = self.get_output_details(None, self.kwargs.get('output_details', None))
         self._input_list = []
@@ -225,7 +225,7 @@ class TVMRuntimeWrapper(BaseRuntimeWrapper):
     def get_runtime_option(self, option, default=None):
         return self.kwargs["runtime_options"].get(option, default)
 
-    def get_input_details(self, dlr_interpreter, input_details=None):
+    def get_input_details(self, interpreter, input_details=None):
         if input_details is None:
             model_file = self.kwargs['model_file']
             model_file0 = model_file[0] if isinstance(model_file, (list,tuple)) else model_file
@@ -256,7 +256,7 @@ class TVMRuntimeWrapper(BaseRuntimeWrapper):
         #
         return input_details
 
-    def get_output_details(self, dlr_interpreter, output_details=None):
+    def get_output_details(self, interpreter, output_details=None):
         if output_details is None:
             model_file = self.kwargs['model_file']
             model_file0 = model_file[0] if isinstance(model_file, (list,tuple)) else model_file
