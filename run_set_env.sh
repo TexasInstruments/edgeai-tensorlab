@@ -80,7 +80,7 @@ fi
 if [ -d "${ARTIFACTS_BASE_PATH}" ]; then
   echo "INFO: settings the correct symlinks in tvmrt compiled artifacts"
 
-  artifacts_folders=$(find "${ARTIFACTS_BASE_PATH}/" -maxdepth 1 |grep "_tvmdlr_")
+  artifacts_folders=$(find "${ARTIFACTS_BASE_PATH}/" -maxdepth 1 |grep "_tvmrt_")
   cur_dir=$(pwd)
 
   declare -a artifact_files=("deploy_lib.so" "deploy_graph.json" "deploy_params.params")
