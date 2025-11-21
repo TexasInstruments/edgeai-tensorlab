@@ -76,7 +76,7 @@ def get_configs(settings, work_dir):
                     'advanced_options:output_feature_16bit_names_list': '/bbox_predictor/layers.1/MatMul_output_0 onnx::MatMul_4038_netFormat /box_predictor/Relu_output_0 /box_predictor/Relu_1_output_0 /bbox_predictor/layers.2/Add_output_0 4053_netFormat 4041_netFormat /model/backbone/conv_encoder/model/act1/Relu_output_0', #input.1_netFormat'
                     }),
                 model_path=f'{settings.models_path}/vision/detection/coco/hf-transformers/detr_fb_resnet50_800x800_simp.onnx'),
-            postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, reshape_list=[(-1,4),(-1,1),(-1,1)],logits_bbox_to_bbox_ls=True,formatter=postprocess.DetectionXYWH2XYXYCenterXY()),
+            postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=True, resize_with_pad=True, reshape_list=[(-1,4),(-1,1),(-1,1)],logits_bbox_to_bbox_ls=True,formatter=postprocess.DetectionXYWH2XYXYCenterXY()),
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90(label_offset=0,num_classes=91)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':42.0}, model_shortlist=80, compact_name='DETR-fb-resnet50-transformer-coco-800x800', shortlisted=False)
         ),
