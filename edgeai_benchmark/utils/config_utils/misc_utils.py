@@ -261,7 +261,8 @@ def formatted_nargs(nargs_list, delimiters=(' ', ',')):
     for delimiter in delimiters:
         formatted_arg = []
         for arg in nargs_list:
-            new_arg = [m.strip() for m in arg.split(delimiter)]
+            arg_list = arg.split(delimiter) if isinstance(arg, str) else [arg]
+            new_arg = [m.strip() for m in arg_list]
             formatted_arg.extend(new_arg)
         #
         nargs_list = formatted_arg

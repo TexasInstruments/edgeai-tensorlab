@@ -91,8 +91,9 @@ if __name__ == '__main__':
 
     # support nargs with comma separated values and space separated values
     for arg_name in ('model_selection', 'model_exclusion', 'task_selection', 'runtime_selection', 'parallel_devices_list'):
-        if getattr(args, arg_name, None):
-            setattr(args, arg_name, utils.formatted_nargs(getattr(args, arg_name)))
+        arg_value = getattr(args, arg_name, None)
+        if arg_value is not None:
+            setattr(args, arg_name, utils.formatted_nargs(arg_value))
 
     kwargs = vars(args)
     settings_file = kwargs.pop('settings_file')
