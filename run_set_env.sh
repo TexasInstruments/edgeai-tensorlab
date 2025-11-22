@@ -83,7 +83,7 @@ if [ -d "${ARTIFACTS_BASE_PATH}" ]; then
   artifacts_folders=$(find "${ARTIFACTS_BASE_PATH}/" -maxdepth 1 |grep "_tvmrt_")
   cur_dir=$(pwd)
 
-  declare -a artifact_files=("deploy_lib.so" "deploy_graph.json" "deploy_params.params")
+  declare -a artifact_files=("deploy_lib.so" "deploy_graph.json" "deploy_params.params" "deploy_param.params")
 
   for artifact_folder in ${artifacts_folders}
   do
