@@ -642,7 +642,15 @@ class LoadPointsFromFile(BaseTransform):
 
                 - points (:obj:`BasePoints`): Point clouds data.
         """
-        pts_file_path = results['lidar_points']['lidar_path']
+        try:
+            pts_file_path = results['pts_filename']
+        except KeyError:
+            try:
+                pts_file_path = results['lidar_points']['lidar_path']
+            except KeyError:
+                print('Can not find key `pts_filename` or '
+                          '`lidar_points.lidar_path` in results')
+
         points = self._load_points(pts_file_path)
         points = points.reshape(-1, self.load_dim)
         points = points[:, self.use_dim]

@@ -40,8 +40,8 @@ def export_Sparse4D(model,
 
     model_input = []
     model_input.append(img)
-    model_input.append(batch_img_metas[0]['projection_mat'].to(img.device))
-    for key, val in sparse4d_onnx.det_histroy.items():
+    model_input.append(batch_img_metas[0]['projection_mat'].unsqueeze(0).to(img.device))
+    for key, val in sparse4d_onnx.det_history.items():
         model_input.append(val)
     model_input.append(time_interval)
     model_input.append(T_temp2cur)
@@ -146,8 +146,8 @@ def export_Sparse4D_subnets(model,
 
     model_input = []
     model_input.append(img_feats)
-    model_input.append(batch_img_metas[0]['projection_mat'].to(img.device))
-    for key, val in sparse4d_onnx_head.det_histroy.items():
+    model_input.append(batch_img_metas[0]['projection_mat'].unsqueeze(0).to(img.device))
+    for key, val in sparse4d_onnx_head.det_history.items():
         model_input.append(val)
     model_input.append(time_interval)
     model_input.append(T_temp2cur)

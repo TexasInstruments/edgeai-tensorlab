@@ -1,9 +1,11 @@
 from .transforms_3d import (RandomScaleImageMultiViewImage,
                             CustomMultiScaleFlipAug3D,
                             ResizeCropFlipImage,
-                            GlobalRotScaleTransImage)
+                            GlobalRotScaleTransImage,
+                            PhotoMetricDistortionMultiViewImage)
 
 __all__ = [
     'RandomScaleImageMultiViewImage', 'CustomMultiScaleFlipAug3D',
-    'ResizeCropFlipImage', 'GlobalRotScaleTransImage'
+    'ResizeCropFlipImage', 'GlobalRotScaleTransImage',
+    'PhotoMetricDistortionMultiViewImage'
 ]

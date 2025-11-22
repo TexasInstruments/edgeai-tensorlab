@@ -118,8 +118,8 @@ class Sparse4DeformableFeatureAggregation(BaseModule):
             points_2d = (
                 self.project_points(
                     key_points,
-                    metas[0]["projection_mat"],
-                    metas[0].get("image_wh"),
+                    metas["projection_mat"],
+                    metas.get("image_wh"),
                 )
                 .permute(0, 2, 3, 1, 4)
                 .reshape(bs, num_anchor, self.num_pts, self.num_cams, 2)
@@ -143,8 +143,8 @@ class Sparse4DeformableFeatureAggregation(BaseModule):
             features = self.feature_sampling(
                 feature_maps,
                 key_points,
-                metas[0]["projection_mat"],
-                metas[0].get("image_wh"),
+                metas["projection_mat"],
+                metas["image_wh"],
             )
             features = self.multi_view_level_fusion(features, weights)
             features = features.sum(dim=2)  # fuse multi-point features
@@ -160,11 +160,8 @@ class Sparse4DeformableFeatureAggregation(BaseModule):
         feature = instance_feature + anchor_embed
         if self.camera_encoder is not None:
             camera_embed = self.camera_encoder(
-                #metas[0]["projection_mat"][:, :, :3].reshape(
-                #    bs, self.num_cams, -1
-                #)
-                metas[0]["projection_mat"][:, :3].reshape(
-                    bs,self.num_cams, -1).to(device=instance_feature.device)
+                metas["projection_mat"][:, :, :3].reshape(
+                    bs, self.num_cams, -1)
             )
             feature = feature[:, :, None] + camera_embed[:, None]
 
@@ -199,13 +196,13 @@ class Sparse4DeformableFeatureAggregation(BaseModule):
             [key_points, torch.ones_like(key_points[..., :1])], dim=-1
         )
         points_2d = torch.matmul(
-            projection_mat[None, :, None, None].to(key_points.device), pts_extend[:, None, ..., None]
+            projection_mat[:, :, None, None], pts_extend[:, None, ..., None]
         ).squeeze(-1)
         points_2d = points_2d[..., :2] / torch.clamp(
             points_2d[..., 2:3], min=1e-5
         )
         if image_wh is not None:
-            points_2d = points_2d / image_wh[None, :, None, None].to(points_2d.device)
+            points_2d = points_2d / image_wh[:, :, None, None]
         return points_2d
 
     @staticmethod

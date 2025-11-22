@@ -189,18 +189,21 @@ class Sparse4DHead(BaseModule):
         dn_metas = None
         temp_dn_reg_target = None
         if self.training and hasattr(self.sampler, "get_dn_anchors"):
-            #if "instance_id" in metas["img_metas"][0]:
-            #    gt_instance_id = [
-            #        torch.from_numpy(x["instance_id"]).cuda()
-            #        for x in metas["img_metas"]
-            #    ]
-            if "instance_id" in metas[0]:
+            if "instance_id" in metas["img_metas"][0]:
                 gt_instance_id = [
                     torch.from_numpy(x["instance_id"]).cuda()
-                    for x in metas
+                    for x in metas["img_metas"]
                 ]
+            #if "instance_id" in metas[0]:
+            #    gt_instance_id = [
+            #        torch.from_numpy(x["instance_id"]).cuda()
+            #        for x in metas
+            #    ]
             else:
                 gt_instance_id = None
+
+            #gt_labels_3d = [x[self.gt_cls_key].to(feature_maps[0].device) for x in metas]
+            #gt_bboxes_3d = [x[self.gt_reg_key].to(feature_maps[0].device) for x in metas]
             dn_metas = self.sampler.get_dn_anchors(
                 metas[self.gt_cls_key],
                 metas[self.gt_reg_key],
@@ -555,7 +558,7 @@ class Sparse4DHead(BaseModule):
         )
 
     #@force_fp32(apply_to=("model_outs"))
-    def post_process(self, model_outs, img_metas, output_idx=-1):
+    def post_process(self, model_outs, metas, output_idx=-1):
         preds_dicts = self.decoder.decode(
             model_outs["classification"],
             model_outs["prediction"],
@@ -573,6 +576,6 @@ class Sparse4DHead(BaseModule):
 
             bboxes[:, 2] = bboxes[:, 2] - bboxes[:, 5] * 0.5
             if not torch.onnx.is_in_onnx_export():
-                preds['bboxes_3d'] = img_metas[i]['box_type_3d'](bboxes, code_size)
+                preds['bboxes_3d'] = metas["img_metas"][i]['box_type_3d'](bboxes, code_size)
 
         return preds_dicts
