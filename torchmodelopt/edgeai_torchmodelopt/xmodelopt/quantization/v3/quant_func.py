@@ -187,22 +187,25 @@ def freeze(self, freeze_bn=True, freeze_observers=True):
     # this does not work, neither causes any harm, just here for future
     if freeze_bn is True:
         self.apply(torch.nn.intrinsic.qat.freeze_bn_stats)
+        # TODO: check if this is causing accuracy degradation
+        torch.ao.quantization.move_exported_model_to_eval(self)  
     elif freeze_bn is False:
         self.apply(torch.nn.intrinsic.qat.update_bn_stats)
-    
+        torch.ao.quantization.move_exported_model_to_train(self)
+        
     # freezing the batchnorm update 
-    for n in self.graph.nodes:
-        # Args: input, weight, bias, running_mean, running_var, training, momentum, eps
-        # We set the `training` flag to False here to freeze BN stats
-        if n.target in [
-            torch.ops.aten._native_batch_norm_legit.default,
-            torch.ops.aten.cudnn_batch_norm.default,
-            torch.ops.aten.batch_norm.default,
-        ]:
-            new_args = list(n.args)
-            new_args[5] = not(freeze_bn)
-            n.args = tuple(new_args)
-    self.recompile()      
+    # for n in self.graph.nodes:
+    #     # Args: input, weight, bias, running_mean, running_var, training, momentum, eps
+    #     # We set the `training` flag to False here to freeze BN stats
+    #     if n.target in [
+    #         torch.ops.aten._native_batch_norm_legit.default,
+    #         torch.ops.aten.cudnn_batch_norm.default,
+    #         torch.ops.aten.batch_norm.default,
+    #     ]:
+    #         new_args = list(n.args)
+    #         new_args[5] = not(freeze_bn)
+    #         n.args = tuple(new_args)
+    # self.recompile()      
             
     return self
 
@@ -324,10 +327,9 @@ def train(self, mode: bool = True):
         self.__quant_train_backup__(mode=mode)
     # also freeze the params if required
     if mode is True:
-        # torch.ao.quantization.move_exported_model_to_train(self)
         # set the default epoch at which freeze occurs during training (if missing)
-        num_batch_norm_update_epochs = self.__quant_params__.num_batch_norm_update_epochs or ((self.__quant_params__.total_epochs//2)-1)
-        num_observer_update_epochs = self.__quant_params__.num_observer_update_epochs or ((self.__quant_params__.total_epochs//2)+1)
+        num_batch_norm_update_epochs = ((self.__quant_params__.total_epochs//2)-1) if self.__quant_params__.num_batch_norm_update_epochs is None else int(self.__quant_params__.num_batch_norm_update_epochs)
+        num_observer_update_epochs = ((self.__quant_params__.total_epochs//2)+1) if self.__quant_params__.num_observer_update_epochs is None else int(self.__quant_params__.num_observer_update_epochs)
         freeze_bn = (self.__quant_params__.num_epochs_tracked >= num_batch_norm_update_epochs)
         freeze_observers = (self.__quant_params__.num_epochs_tracked >= num_observer_update_epochs)
         # freeze_bn = freeze_observers = False      ####TODO WHY turned off?? FIXME
@@ -339,7 +341,7 @@ def train(self, mode: bool = True):
         #
         freeze(self, freeze_bn=freeze_bn, freeze_observers=freeze_observers)
         
-        # we will probably need better logic to extend to adding more hooks in the toolkit #TODO
+        # TODO: we will probably need better logic to extend to adding more hooks in the toolkit #TODO
         # if len(self.__quant_params__.outlier_hooks)==0 and not(freeze_observers):
         #     self = insert_all_hooks(self, outlier_clipping=True, bias_calibration=False)
         # if len(self.__quant_params__.bias_hooks)==0:
@@ -351,9 +353,9 @@ def train(self, mode: bool = True):
           
         self.__quant_params__.num_epochs_tracked += 1
     else:
-        self.__quant_params__.bias_hooks = remove_hooks(self.__quant_params__.bias_hooks)                      
-        self.__quant_params__.outlier_hooks = remove_hooks(self.__quant_params__.outlier_hooks)
-        # torch.ao.quantization.move_exported_model_to_eval(self) # causing accuracy degradation
+        # TODO: add later as required
+        # self.__quant_params__.bias_hooks = remove_hooks(self.__quant_params__.bias_hooks)                      
+        # self.__quant_params__.outlier_hooks = remove_hooks(self.__quant_params__.outlier_hooks)
         freeze(self)
     #
     return self

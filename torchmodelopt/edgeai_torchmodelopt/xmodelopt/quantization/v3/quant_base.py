@@ -57,9 +57,19 @@ class QuantPT2EBaseModule(OptimizationBaseModule):
     def load_weights(self, *args, **kwargs):
         quant_func_wrapper.load_weights(self.module, *args, **kwargs)
 
-    def train(self, *args, **kwargs):
-        # return quant_func.train(self.module, *args, **kwargs)
-        self.module = quant_func_wrapper.train(self.module, *args, transformation_dict=self.transformation_dict, **kwargs)
+    def train(self, mode: bool = True, **kwargs):
+        # this super().train will call all submodules train() wich includes self.module
+        # that will effectively call quant_func.train with self.module twice
+        # to avoid that we directly set self.training
+        # super().train(mode)
+        self.training = mode
+
+        if mode:
+            # return quant_func.train(self.module, *args, **kwargs)
+            self.module = quant_func_wrapper.train(self.module, mode, transformation_dict=self.transformation_dict, **kwargs)
+        else:
+            self.module = quant_func_wrapper.eval(self.module, mode, transformation_dict=self.transformation_dict, **kwargs)
+        #
         return self
     
     def calibrate(self, *args, **kwargs):
@@ -67,16 +77,13 @@ class QuantPT2EBaseModule(OptimizationBaseModule):
 
     def freeze(self, *args, **kwargs):
         # return quant_func.freeze(self.module, *args, **kwargs)
-        
         self.module = quant_func_wrapper.freeze(self.module, *args, transformation_dict=self.transformation_dict, **kwargs)
         return self
     
-
     def unfreeze(self, *args, **kwargs):
         # return quant_func.unfreeze(self.module, *args, **kwargs)  
         self.module = quant_func_wrapper.unfreeze(self.module, *args, transformation_dict=self.transformation_dict, **kwargs)
         return self
-    
     
     def forward(self, *args, **kwargs):
         return self.module(*args, **kwargs)

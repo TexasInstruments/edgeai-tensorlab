@@ -149,7 +149,6 @@ class AdaptiveRangeShrinkObserver(torch.ao.quantization.HistogramObserver):
             if hasattr(self, k):
                 setattr(self, k, v)
             #
-        #
     
     def forward(self, x_orig):
         if not torch.is_floating_point(x_orig):
@@ -163,7 +162,10 @@ class AdaptiveRangeShrinkObserver(torch.ao.quantization.HistogramObserver):
         #
         x = x_orig.detach()
 
-        if isinstance(self.range_shrink, (float, int)):
+        min_val, max_val = torch.aminmax(x)
+        if torch.isnan(min_val) or torch.isnan(max_val) or torch.isinf(min_val) or torch.isinf(max_val):
+            pass
+        elif isinstance(self.range_shrink, (float, int)):
             # super().forward uses self.min_val and self.max_val internally
             # so copy our values into that.
             min_val = self.min_val.clone()
@@ -175,7 +177,6 @@ class AdaptiveRangeShrinkObserver(torch.ao.quantization.HistogramObserver):
             self.max_val_hist.copy_(self.max_val)
             self.min_val.copy_(min_val)
             self.max_val.copy_(max_val)
-
             self.histogram_global_range()
         elif self.range_shrink == AdaptiveRangeShrinkObserverTypes.HISTOGRAM_RUNNINGAVG:
             x_o = super().forward(x)
@@ -187,7 +188,6 @@ class AdaptiveRangeShrinkObserver(torch.ao.quantization.HistogramObserver):
         else:
             x_o = super().forward(x)
         #
-
         self.num_batches_tracked += 1
         return x_orig
 

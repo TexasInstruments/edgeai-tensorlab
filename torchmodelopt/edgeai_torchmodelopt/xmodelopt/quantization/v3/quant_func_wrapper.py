@@ -14,6 +14,10 @@ def train(*args, **kwargs):
     return wrapped_transformation_fn(quant_func.train, *args, **kwargs)
 
 
+def eval(*args, **kwargs):
+    return wrapped_transformation_fn(quant_func.eval, *args, **kwargs)
+
+
 def freeze(*args, **kwargs):
     return wrapped_transformation_fn(quant_func.freeze, *args, **kwargs)
 
