@@ -203,7 +203,7 @@ class AdaptiveRangeShrinkObserver(torch.ao.quantization.HistogramObserver):
             min_val = -max_abs if signed_range else max_abs * 0.0
             max_val = max_abs
         #
-        min_val, max_val, range_valid = self.get_min_max(min_val, max_val)
+        min_val, max_val, range_valid = _correct_min_max(min_val, max_val)
         if range_valid:
             scale, zero_point = super()._calculate_qparams(min_val, max_val)
         else:
