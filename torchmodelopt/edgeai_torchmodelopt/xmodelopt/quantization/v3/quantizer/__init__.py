@@ -49,4 +49,11 @@ def get_quantizer(quantizer_type, annotation_patterns=None, **kwargs):
         return get_tidlrt_advanced_quantizer(annotation_patterns=annotation_patterns, **kwargs)
     else:
         raise ValueError(f"ERROR: Quantizer {quantizer_type} not recognized.")
-    
+
+
+class QuantizerAnnotationPatterns:
+    EXTENDED = ['linear', 'linear_relu', 'conv', 'conv_relu', 'conv_transpose_relu', 'conv_bn', 'conv_bn_relu', 'conv_transpose_bn', 'conv_transpose_bn_relu', 'gru_io_only', 'adaptive_avg_pool2d', 'add_relu', 'add', 'mul_relu', 'mul', 'cat']
+    MINIMAL = ['linear', 'linear_relu', 'conv', 'conv_relu', 'conv_bn', 'conv_bn_relu', 'conv_transpose_relu', 'conv_transpose_bn', 'conv_transpose_bn_relu']
+    NEW = ['matmul', 'conv_mul_add_relu']
+    FULL = list(set(MINIMAL + EXTENDED + NEW))
+    DEFAULT = list(set(MINIMAL + NEW))

@@ -32,6 +32,7 @@
 
 
 import copy
+from typing import List
 
 from torch.ao.quantization.quantizer.xnnpack_quantizer import XNNPACKQuantizer
 from torch.ao.quantization.quantizer.xnnpack_quantizer_utils import *
@@ -50,6 +51,15 @@ def get_annotation_func(op=None):
     if op is None:
         return None
     return OP_TO_ANNOTATOR.get(op, None)
+
+
+def extend_annotation_patterns(annotation_patterns: List, static_patternms=True):
+    if static_patternms:
+        STATIC_OPS_BACKUP.extend(annotation_patterns)
+        XNNPACKQuantizer.STATIC_OPS.extend(annotation_patterns)
+    else:
+        DYNAMIC_OPS_BACKUP.extend(annotation_patterns)
+        XNNPACKQuantizer.DYNAMIC_OPS.extend(annotation_patterns)
 
 
 def set_annotation_patterns(annotation_patterns=None):

@@ -66,7 +66,6 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
 
     # see the supported values in QuantizerTypes
     quantizer_type = quantizer_type or QuantizerTypes.TIDLRT_ADVANCED
-    # ['linear', 'linear_relu', 'conv', 'conv_relu', 'conv_transpose_relu', 'conv_bn', 'conv_bn_relu', 'conv_transpose_bn', 'conv_transpose_bn_relu', 'gru_io_only', 'adaptive_avg_pool2d', 'add_relu', 'add', 'mul_relu', 'mul', 'cat']
     assert isinstance(annotation_patterns, list) or annotation_patterns is None, 'annotation_patterns must be a list, tuple or None'
 
     # our configurable quantizer
