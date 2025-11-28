@@ -32,7 +32,7 @@
 
 
 import copy
-from typing import Callable, Optional
+from typing import Callable, Optional, List
 import itertools
 import torch
 import torch.nn.functional as F
@@ -59,10 +59,10 @@ from torch.fx.passes.utils.source_matcher_utils import get_source_partitions
 
 
 from ..xnnpack import XNNPACKQuantizer, QuantizationConfig
-from ..xnnpack import set_annotation_patterns, register_annotator, AnnotatorType, extend_annotation_patterns
+from ..xnnpack import register_annotator, AnnotatorType
 from ..xnnpack import get_input_act_qspec, get_output_act_qspec, get_weight_qspec, get_bias_qspec
 from ..xnnpack import _is_annotated, _mark_nodes_as_annotated, get_annotation_func, _is_input_large_scalar, _is_input_non_float_tensor
-from ..xnnpack import OP_TO_ANNOTATOR, STATIC_OPS_BACKUP, STATIC_QAT_ONLY_OPS_BACKUP, DYNAMIC_OPS_BACKUP
+from ..xnnpack import OP_TO_ANNOTATOR
 
 
 def get_aten_overload_ops(aten_op_name: str):
@@ -110,18 +110,21 @@ def _do_annotate_conv_mul_add(
     )
 
     def get_pattern(conv_fn: Callable, relu_is_inplace: bool):
-        def _conv_mul_add(x, conv_weight, conv_bias, mul, add):
-            conv = conv_fn(x, conv_weight, conv_bias)
-            mul_add = conv * mul + add
+        def _conv_mul_add(x, conv_weight, conv_bias, mul_weight, add_weight):
+            conv_out = conv_fn(x, conv_weight, conv_bias)
+            mul_out = conv_out.mul(mul_weight)
+            add_out = mul_out.add(add_weight)
             if has_relu:
-                output = F.relu_(mul_add) if relu_is_inplace else F.relu(mul_add)
+                output = F.relu_(add_out) if relu_is_inplace else F.relu(add_out)
             else:
-                output = mul_add
+                output = add_out
             return output, {
                 "input": x,
-                "conv": conv,
+                "conv": conv_out,
                 "weight": conv_weight,
                 "bias": conv_bias,
+                'mul': mul_out,
+                'add': add_out,
                 "output": output,
             }
 
@@ -168,6 +171,8 @@ def _do_annotate_conv_mul_add(
         conv_node = name_node_map["conv"]
         weight_node = name_node_map["weight"]
         bias_node = name_node_map["bias"]
+        mul_node = name_node_map["mul"]
+        add_node = name_node_map["add"]
         output_node = name_node_map["output"]
 
         # TODO: annotate the uses of input, weight, and bias separately instead
@@ -185,9 +190,10 @@ def _do_annotate_conv_mul_add(
             raise ValueError("Conv arg did not contain bias node ", bias_node)
 
         # Skip if the partition is already annotated or is filtered out by the user
-        partition = [conv_node, weight_node]
+        partition = [add_node, mul_node, conv_node, weight_node]
         if bias_node is not None:
             partition.append(bias_node)
+
         if _is_annotated(partition):
             continue
         if filter_fn and any(not filter_fn(n) for n in partition):
@@ -227,6 +233,94 @@ def _annotate_conv_mul_add_relu(
     )
 
 
+@register_annotator("conv_mul_add")
+def _annotate_conv_mul_add(
+    gm: torch.fx.GraphModule,
+    quantization_config: Optional[QuantizationConfig],
+    filter_fn: Optional[Callable[[Node], bool]] = None,
+) -> Optional[list[list[Node]]]:
+    """
+    Find conv_transpose + batchnorm + relu partitions
+    Note: This is only used for QAT. In PTQ, batchnorm should already be fused into the conv.
+    """
+    return _do_annotate_conv_mul_add(
+        gm, quantization_config, filter_fn, has_relu=False, is_conv_transpose=False
+    )
+
+
+@register_annotator("mul_add")
+def _annotate_mul_add(
+    gm: torch.fx.GraphModule,
+    quantization_config: Optional[QuantizationConfig],
+    filter_fn: Optional[Callable[[Node], bool]] = None,
+) -> Optional[list[list[Node]]]:
+    annotated_partitions = []
+    for node in gm.graph.nodes:
+        if node.op != "call_function" or node.target not in [
+            torch.ops.aten.add.Tensor,
+            torch.ops.aten.add_.Tensor,
+        ]:
+            continue
+        add_node = node
+        maybe_mul = node.args[0]
+        if (
+            not isinstance(maybe_mul, Node)
+            or maybe_mul.op != "call_function"
+            or maybe_mul.target
+            not in [
+                torch.ops.aten.mul.Tensor,
+                torch.ops.aten.mul_.Tensor,
+            ]
+        ):
+            continue
+
+        mul_node = maybe_mul
+        if len(mul_node.users) > 1:
+            # mul can't be fused with ReLU if the result of mul is being used
+            # else where in the graph
+            continue
+
+        partition = [add_node, mul_node]
+
+        if _is_annotated(partition):
+            continue
+        if filter_fn and any(not filter_fn(n) for n in partition):
+            continue
+
+        input_act_qspec = get_input_act_qspec(quantization_config)
+        output_act_qspec = get_output_act_qspec(quantization_config)
+
+        input_qspec_map = {}
+        input_act0 = mul_node.args[0]
+        if isinstance(input_act0, Node):
+            if _is_input_large_scalar(input_act0, gm):
+                continue
+            if _is_input_non_float_tensor(input_act0):
+                continue
+            partition.append(input_act0)
+            input_qspec_map[input_act0] = input_act_qspec
+
+        input_act1 = mul_node.args[1]
+        if isinstance(input_act1, Node):
+            if _is_input_large_scalar(input_act1, gm):
+                continue
+            if _is_input_non_float_tensor(input_act1):
+                continue
+            partition.append(input_act1)
+            input_qspec_map[input_act1] = input_act_qspec
+
+        mul_node.meta["quantization_annotation"] = QuantizationAnnotation(
+            input_qspec_map=input_qspec_map,
+            _annotated=True,
+        )
+        add_node.meta["quantization_annotation"] = QuantizationAnnotation(
+            output_qspec=output_act_qspec,
+            _annotated=True,
+        )
+        annotated_partitions.append(partition)
+    return annotated_partitions
+
+
 @register_annotator('matmul')
 def _annotate_matmul(
     gm: torch.fx.GraphModule,
@@ -263,8 +357,56 @@ def _annotate_matmul(
     return annotated_partitions
 
 
+def _prepend_list(orig_list, new_list, prepend=True):
+    if prepend:
+        orig_list[:0] = new_list
+    else:
+        orig_list.extend(new_list)
+    #
+    return orig_list
+
+
 class TIDLRTQuantizerAdvanced(XNNPACKQuantizer):
-    extend_annotation_patterns(['conv_mul_add_relu', 'matmul'])
+    STATIC_QAT_ONLY_OPS_BACKUP = copy.deepcopy(XNNPACKQuantizer.STATIC_QAT_ONLY_OPS)
+    STATIC_OPS_BACKUP = copy.deepcopy(XNNPACKQuantizer.STATIC_OPS)
+    DYNAMIC_OPS_BACKUP = copy.deepcopy(XNNPACKQuantizer.DYNAMIC_OPS)
+    NEW_ANNOTATION_PATTERNS = ['conv_mul_add_relu', 'conv_mul_add', 'mul_add', 'matmul']
+    NEW_ANNOTATION_PATTERNS_STATIC = True
+    if NEW_ANNOTATION_PATTERNS_STATIC:
+        _prepend_list(STATIC_OPS_BACKUP, NEW_ANNOTATION_PATTERNS)
+        _prepend_list(XNNPACKQuantizer.STATIC_OPS, NEW_ANNOTATION_PATTERNS)
+    else:
+        _prepend_list(DYNAMIC_OPS_BACKUP, NEW_ANNOTATION_PATTERNS)
+        _prepend_list(XNNPACKQuantizer.DYNAMIC_OPS, NEW_ANNOTATION_PATTERNS)
+    #
+
+    def __init__(self, *args, annotation_patterns=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._set_annotation_patterns(annotation_patterns=annotation_patterns)
+        pass #done
+
+    def _set_annotation_patterns(self, annotation_patterns=None):
+        # select annotators based on annotation_patterns
+        if annotation_patterns is not None:
+            self.STATIC_QAT_ONLY_OPS = []
+            self.STATIC_OPS = []
+            self.DYNAMIC_OPS = []
+            for n in annotation_patterns:
+                if n in OP_TO_ANNOTATOR:
+                    if n in self.STATIC_QAT_ONLY_OPS_BACKUP:
+                        self.STATIC_QAT_ONLY_OPS +=[n]
+                    #
+                    if n in self.STATIC_OPS_BACKUP:
+                        self.STATIC_OPS +=[n]
+                    #
+                    if n in self.DYNAMIC_OPS_BACKUP:
+                        self.DYNAMIC_OPS +=[n]
+                    #
+                else:
+                    print(f"WARNING: Annotation pattern {n} not not one of: {OP_TO_ANNOTATOR.keys()}")
+                #
+            #
+        #
 
     # there is a bug in this transformation in XNNPACKQuantizer - it is not respecting dtype
     def transform_for_annotation(
@@ -277,7 +419,6 @@ class TIDLRTQuantizerAdvanced(XNNPACKQuantizer):
     def annotate(self, model: torch.fx.GraphModule) -> torch.fx.GraphModule:
         return super().annotate(model)
 
-def get_quantizer(is_qat=True, fast_mode=False, device=None, annotation_patterns=None, **kwargs):
-    set_annotation_patterns(annotation_patterns=annotation_patterns)
-    return TIDLRTQuantizerAdvanced(**kwargs)
 
+def get_quantizer(is_qat=True, fast_mode=False, device=None, annotation_patterns=None, **kwargs):
+    return TIDLRTQuantizerAdvanced(annotation_patterns=annotation_patterns, **kwargs)

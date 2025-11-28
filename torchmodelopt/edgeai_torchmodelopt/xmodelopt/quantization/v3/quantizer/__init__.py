@@ -51,9 +51,21 @@ def get_quantizer(quantizer_type, annotation_patterns=None, **kwargs):
         raise ValueError(f"ERROR: Quantizer {quantizer_type} not recognized.")
 
 
+def _unique_list(orig_list):
+    '''
+    make the elements in the list unqueue, and preserve the order of elements
+    Note: list(set(x)) will not preseve the order of elements
+    '''
+    new_list = []
+    for k in orig_list:
+        if k not in new_list:
+            new_list.append(k)
+    return new_list
+
+
 class QuantizerAnnotationPatterns:
-    EXTENDED = ['linear', 'linear_relu', 'conv', 'conv_relu', 'conv_transpose_relu', 'conv_bn', 'conv_bn_relu', 'conv_transpose_bn', 'conv_transpose_bn_relu', 'gru_io_only', 'adaptive_avg_pool2d', 'add_relu', 'add', 'mul_relu', 'mul', 'cat']
-    MINIMAL = ['linear', 'linear_relu', 'conv', 'conv_relu', 'conv_bn', 'conv_bn_relu', 'conv_transpose_relu', 'conv_transpose_bn', 'conv_transpose_bn_relu']
-    NEW = ['matmul', 'conv_mul_add_relu']
-    FULL = list(set(MINIMAL + EXTENDED + NEW))
-    DEFAULT = list(set(MINIMAL + NEW))
+    EXTENDED = ['conv_bn_relu', 'conv_transpose_bn_relu', 'conv_relu', 'conv_transpose_relu', 'conv_bn', 'conv_transpose_bn', 'linear_relu', 'conv', 'linear', 'gru_io_only', 'adaptive_avg_pool2d', 'add_relu', 'mul_relu', 'cat', 'add', 'mul']
+    MINIMAL = ['conv_bn_relu', 'conv_transpose_bn_relu', 'conv_relu', 'conv_transpose_relu', 'conv_bn', 'conv_transpose_bn', 'linear_relu', 'conv', 'linear', 'add_relu', 'mul_relu', 'cat', 'add']
+    NEW = ['conv_mul_add_relu', 'conv_mul_add', 'mul_add', 'matmul']
+    FULL = _unique_list(NEW + MINIMAL + EXTENDED)
+    DEFAULT = ['conv_bn_relu', 'conv_transpose_bn_relu', 'conv_relu', 'conv_transpose_relu', 'conv_bn', 'conv_transpose_bn', 'linear_relu', 'conv_mul_add_relu', 'conv_mul_add', 'conv', 'linear', 'add_relu', 'mul_relu', 'mul_add', 'cat', 'add']

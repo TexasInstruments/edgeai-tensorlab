@@ -40,52 +40,11 @@ from torch.ao.quantization.quantizer.xnnpack_quantizer_utils import register_ann
 from torch.ao.quantization.quantizer.xnnpack_quantizer_utils import _is_annotated, _mark_nodes_as_annotated, _is_input_large_scalar, _is_input_non_float_tensor
 
 
-if 'STATIC_QAT_ONLY_OPS_BACKUP' not in globals():
-    STATIC_QAT_ONLY_OPS_BACKUP = copy.deepcopy(XNNPACKQuantizer.STATIC_QAT_ONLY_OPS)
-    STATIC_OPS_BACKUP = copy.deepcopy(XNNPACKQuantizer.STATIC_OPS)
-    DYNAMIC_OPS_BACKUP = copy.deepcopy(XNNPACKQuantizer.DYNAMIC_OPS)
-#
-
-
 def get_annotation_func(op=None):
     if op is None:
         return None
     return OP_TO_ANNOTATOR.get(op, None)
 
 
-def extend_annotation_patterns(annotation_patterns: List, static_patternms=True):
-    if static_patternms:
-        STATIC_OPS_BACKUP.extend(annotation_patterns)
-        XNNPACKQuantizer.STATIC_OPS.extend(annotation_patterns)
-    else:
-        DYNAMIC_OPS_BACKUP.extend(annotation_patterns)
-        XNNPACKQuantizer.DYNAMIC_OPS.extend(annotation_patterns)
-
-
-def set_annotation_patterns(annotation_patterns=None):
-    # select annotators based on annotation_patterns
-    if annotation_patterns is not None:
-        XNNPACKQuantizer.STATIC_QAT_ONLY_OPS.clear()
-        XNNPACKQuantizer.STATIC_OPS.clear()
-        XNNPACKQuantizer.DYNAMIC_OPS.clear()
-        for n in annotation_patterns:
-            if n in OP_TO_ANNOTATOR:
-                if n in STATIC_QAT_ONLY_OPS_BACKUP:
-                    XNNPACKQuantizer.STATIC_QAT_ONLY_OPS +=[n]
-                #
-                if n in STATIC_OPS_BACKUP:
-                    XNNPACKQuantizer.STATIC_OPS +=[n]
-                #
-                if n in DYNAMIC_OPS_BACKUP:
-                    XNNPACKQuantizer.DYNAMIC_OPS +=[n]
-                #
-            else:
-                print(f"WARNING: Annotation pattern {n} not not one of: {OP_TO_ANNOTATOR.keys()}")
-            #
-        #
-    #
-
-
-def get_quantizer(device=None, annotation_patterns=None, **kwargs):
-    set_annotation_patterns(annotation_patterns=annotation_patterns)
+def get_quantizer(*args, device=None, **kwargs):
     return XNNPACKQuantizer()
