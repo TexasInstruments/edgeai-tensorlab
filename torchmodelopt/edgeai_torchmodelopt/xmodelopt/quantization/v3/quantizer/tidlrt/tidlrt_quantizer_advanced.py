@@ -321,6 +321,99 @@ def _annotate_mul_add(
     return annotated_partitions
 
 
+def _do_annotate_linear_add(
+    gm: torch.fx.GraphModule,
+    quantization_config: Optional[QuantizationConfig],
+    filter_fn: Optional[Callable[[Node], bool]] = None,
+    has_relu: bool = False
+) -> Optional[list[list[Node]]]:
+    annotated_partitions = []
+    for node in gm.graph.nodes:
+        if node.op != "call_function" or node.target not in [torch.ops.aten.add.Tensor, torch.ops.aten.add_.Tensor]:
+            continue
+        add_node = node
+
+        maybe_linear = None
+        for node_l in add_node.args:
+            if (isinstance(node_l, Node) and node_l.op == "call_function" and node_l.target in [torch.ops.aten.linear.default]):
+                maybe_linear = node_l
+            
+        if not maybe_linear or len(maybe_linear.users) > 1:
+            # linear can't be fused with add if the result of linear is being used
+            # else where in the graph
+            continue
+        
+        linear_node = maybe_linear
+        partition = [add_node, linear_node]
+        output_node = add_node
+
+        if has_relu and len(add_node.users) == 1:
+            # why is the users value None although key is valid? - use .next anyway for now
+            maybe_relu = list(add_node.users.keys())[0]
+            if (isinstance(maybe_relu, Node) and maybe_relu.op == "call_function"
+                and maybe_relu.target in [torch.ops.aten.relu.default, torch.ops.aten.relu_.default]):
+                output_node = maybe_relu
+                partition = [output_node] + partition
+
+        if _is_annotated(partition):
+            continue
+        if filter_fn and any(not filter_fn(n) for n in partition):
+            continue
+
+        input_act_qspec = get_input_act_qspec(quantization_config)
+        input_weight_qspec = get_weight_qspec(quantization_config)
+        output_act_qspec = get_output_act_qspec(quantization_config)
+
+        input_qspec_map = {}
+        input_act0 = linear_node.args[0]
+        if isinstance(input_act0, Node):
+            if _is_input_large_scalar(input_act0, gm):
+                continue
+            if _is_input_non_float_tensor(input_act0):
+                continue
+            # partition.append(input_act0)
+            input_qspec_map[input_act0] = input_act_qspec
+
+        input_weight = linear_node.args[1]
+        if isinstance(input_weight, Node):
+            if _is_input_large_scalar(input_weight, gm):
+                continue
+            if _is_input_non_float_tensor(input_weight):
+                continue
+            partition.append(input_weight)
+            input_qspec_map[input_weight] = input_weight_qspec
+
+        _mark_nodes_as_annotated(partition)
+        linear_node.meta["quantization_annotation"] = QuantizationAnnotation(
+            input_qspec_map=input_qspec_map,
+            _annotated=True,
+        )
+        output_node.meta["quantization_annotation"] = QuantizationAnnotation(
+            output_qspec=output_act_qspec,
+            _annotated=True,
+        )
+        annotated_partitions.append(partition)
+    return annotated_partitions
+
+
+@register_annotator("linear_add")
+def _annotate_linear_add(
+    gm: torch.fx.GraphModule,
+    quantization_config: Optional[QuantizationConfig],
+    filter_fn: Optional[Callable[[Node], bool]] = None
+) -> Optional[list[list[Node]]]:
+    return _do_annotate_linear_add(gm, quantization_config, filter_fn, has_relu=False)
+
+
+@register_annotator("linear_add_relu")
+def _annotate_linear_add_relu(
+    gm: torch.fx.GraphModule,
+    quantization_config: Optional[QuantizationConfig],
+    filter_fn: Optional[Callable[[Node], bool]] = None
+) -> Optional[list[list[Node]]]:
+    return _do_annotate_linear_add(gm, quantization_config, filter_fn, has_relu=True)
+    
+
 @register_annotator('matmul')
 def _annotate_matmul(
     gm: torch.fx.GraphModule,
@@ -370,7 +463,7 @@ class TIDLRTQuantizerAdvanced(XNNPACKQuantizer):
     STATIC_QAT_ONLY_OPS_BACKUP = copy.deepcopy(XNNPACKQuantizer.STATIC_QAT_ONLY_OPS)
     STATIC_OPS_BACKUP = copy.deepcopy(XNNPACKQuantizer.STATIC_OPS)
     DYNAMIC_OPS_BACKUP = copy.deepcopy(XNNPACKQuantizer.DYNAMIC_OPS)
-    NEW_ANNOTATION_PATTERNS = ['conv_mul_add_relu', 'conv_mul_add', 'mul_add', 'matmul']
+    NEW_ANNOTATION_PATTERNS = ['conv_mul_add_relu', 'conv_mul_add', 'linear_add_relu', 'linear_add', 'mul_add', 'matmul']
     NEW_ANNOTATION_PATTERNS_STATIC = True
     if NEW_ANNOTATION_PATTERNS_STATIC:
         _prepend_list(STATIC_OPS_BACKUP, NEW_ANNOTATION_PATTERNS)

@@ -40,7 +40,7 @@ from .... import xnn
 from ... import utils
 from . import qconfig_types
 from . import quant_utils
-from .quantizer import get_quantizer, QuantizerTypes
+from .quantizer import get_quantizer, QuantizerTypes, QuantizerAnnotationPatterns
 
 import copy
 import os
@@ -64,14 +64,15 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
     # quantizer = XNNPACKQuantizer()
     # quantizer.set_global(get_symmetric_quantization_config(is_qat=True))
 
-    # see the supported values in QuantizerTypes
+    # see the supported values in QuantizerTypes, QuantizerAnnotationPatterns and qconfig_types.QConfigType
     quantizer_type = quantizer_type or QuantizerTypes.TIDLRT_ADVANCED
-    assert isinstance(annotation_patterns, list) or annotation_patterns is None, 'annotation_patterns must be a list, tuple or None'
+    annotation_patterns = annotation_patterns or QuantizerAnnotationPatterns.DEFAULT
+    qconfig_type = qconfig_type or qconfig_types.QConfigType.DEFAULT
 
     # our configurable quantizer
     quantizer = quantizer or get_quantizer(quantizer_type=quantizer_type, is_qat=is_qat, fast_mode=fast_mode, device=device, annotation_patterns=annotation_patterns)
-    # see the supported values in qconfig_types.QConfigType
-    qconfig_type = qconfig_type or qconfig_types.QConfigType.DEFAULT
+
+    # our configurable qconfig_type
     qconfig = qconfig_types.get_qconfig(qconfig_type, is_qat=is_qat, fast_mode=fast_mode)
     quantizer.set_global(qconfig)
     

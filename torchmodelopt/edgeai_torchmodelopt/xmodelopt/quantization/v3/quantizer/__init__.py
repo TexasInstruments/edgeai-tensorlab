@@ -66,6 +66,6 @@ def _unique_list(orig_list):
 class QuantizerAnnotationPatterns:
     EXTENDED = ['conv_bn_relu', 'conv_transpose_bn_relu', 'conv_relu', 'conv_transpose_relu', 'conv_bn', 'conv_transpose_bn', 'linear_relu', 'conv', 'linear', 'gru_io_only', 'adaptive_avg_pool2d', 'add_relu', 'mul_relu', 'cat', 'add', 'mul']
     MINIMAL = ['conv_bn_relu', 'conv_transpose_bn_relu', 'conv_relu', 'conv_transpose_relu', 'conv_bn', 'conv_transpose_bn', 'linear_relu', 'conv', 'linear', 'add_relu', 'mul_relu', 'cat', 'add']
-    NEW = ['conv_mul_add_relu', 'conv_mul_add', 'mul_add', 'matmul']
+    NEW = ['conv_mul_add_relu', 'conv_mul_add', 'mul_add', 'linear_add_relu', 'linear_add', 'matmul']
     FULL = _unique_list(NEW + MINIMAL + EXTENDED)
-    DEFAULT = ['conv_bn_relu', 'conv_transpose_bn_relu', 'conv_relu', 'conv_transpose_relu', 'conv_bn', 'conv_transpose_bn', 'linear_relu', 'conv_mul_add_relu', 'conv_mul_add', 'conv', 'linear', 'add_relu', 'mul_relu', 'mul_add', 'cat', 'add']
+    DEFAULT = ['conv_bn_relu', 'conv_transpose_bn_relu', 'conv_relu', 'conv_transpose_relu', 'conv_bn', 'conv_transpose_bn', 'linear_relu', 'conv_mul_add_relu', 'conv_mul_add', 'linear_add_relu', 'linear_add', 'conv', 'linear', 'add_relu', 'mul_relu', 'mul_add', 'cat', 'add']
