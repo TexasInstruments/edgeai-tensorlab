@@ -101,7 +101,8 @@ class _AdaptiveOutlierSuppression(AdaptiveFakeQuantize):
             self.scale.copy_(_scale)
             self.zero_point.copy_(_zero_point)
             
-        if getattr(self, 'activation_post_process', None) and getattr(self.activation_post_process, 'range_shrink', False):
+        range_shrink = getattr(self.activation_post_process, 'range_shrink', False)
+        if getattr(self, 'activation_post_process', None) and range_shrink:
             if hasattr(self.activation_post_process, 'get_min_max'):
                 min_val, max_val, range_valid = self.activation_post_process.get_min_max()
             else:

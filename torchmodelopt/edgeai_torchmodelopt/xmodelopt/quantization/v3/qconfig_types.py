@@ -90,6 +90,7 @@ class QConfigType():
     WC32_AT32 = "WC32_AT32"
 
     WF_AFCLIP = "WF_AFCLIP"                     # no weight quantization, activation clip
+    PLACEHOLDER = "PLACEHOLDER"                 # inserted for purposes other than quantization (for example - for a teacher model to match the structure of student model)
 
 
     @classmethod
@@ -331,6 +332,11 @@ def get_quantization_config_default(qconfig_type, is_qat=True, fast_mode=False):
     # _QCONFIG_TYPE_TO_DICT[QConfigType.DEFAULT] = _QCONFIG_TYPE_TO_DICT[QConfigType.MSA_WC8_AT8]
     _QCONFIG_TYPE_TO_DICT[QConfigType.DEFAULT] = _QCONFIG_TYPE_TO_DICT[QConfigType.WC8_AT8]
 
+    _QCONFIG_TYPE_TO_DICT[QConfigType.PLACEHOLDER] = get_quantization_config(dict(
+        weight=dict(dtype=torch.float32, range_shrink=False),
+        activation=dict(dtype=torch.float32, range_shrink=False)), 
+        is_qat=is_qat, fast_mode=fast_mode)
+    
     return _QCONFIG_TYPE_TO_DICT[qconfig_type]
 
 ####################################################################
