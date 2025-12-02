@@ -460,52 +460,46 @@ def _prepend_list(orig_list, new_list, prepend=True):
 
 
 class TIDLRTQuantizerAdvanced(XNNPACKQuantizer):
-    STATIC_QAT_ONLY_OPS_BACKUP = copy.deepcopy(XNNPACKQuantizer.STATIC_QAT_ONLY_OPS)
-    STATIC_OPS_BACKUP = copy.deepcopy(XNNPACKQuantizer.STATIC_OPS)
-    DYNAMIC_OPS_BACKUP = copy.deepcopy(XNNPACKQuantizer.DYNAMIC_OPS)
-    NEW_ANNOTATION_PATTERNS = ['conv_mul_add_relu', 'conv_mul_add', 'linear_add_relu', 'linear_add', 'mul_add', 'matmul']
-    NEW_ANNOTATION_PATTERNS_STATIC = True
-    if NEW_ANNOTATION_PATTERNS_STATIC:
-        _prepend_list(STATIC_OPS_BACKUP, NEW_ANNOTATION_PATTERNS)
-        _prepend_list(XNNPACKQuantizer.STATIC_OPS, NEW_ANNOTATION_PATTERNS)
-    else:
-        _prepend_list(DYNAMIC_OPS_BACKUP, NEW_ANNOTATION_PATTERNS)
-        _prepend_list(XNNPACKQuantizer.DYNAMIC_OPS, NEW_ANNOTATION_PATTERNS)
-    #
+    NEW_ANNOTATION_STATIC_PATTERNS = ['conv_mul_add_relu', 'conv_mul_add', 'linear_add_relu', 'linear_add', 'mul_add', 'matmul']
+    NEW_ANNOTATION_DYNAMIC_PATTERNS = []
+    _prepend_list(XNNPACKQuantizer.STATIC_OPS, NEW_ANNOTATION_STATIC_PATTERNS)
+    _prepend_list(XNNPACKQuantizer.DYNAMIC_OPS, NEW_ANNOTATION_DYNAMIC_PATTERNS)
 
     def __init__(self, *args, annotation_patterns=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self._set_annotation_patterns(annotation_patterns=annotation_patterns)
-        pass #done
-
-    def _set_annotation_patterns(self, annotation_patterns=None):
         # select annotators based on annotation_patterns
-        if annotation_patterns is not None:
+        if annotation_patterns is None:
+            self.STATIC_QAT_ONLY_OPS = copy.deepcopy(self.__class__.STATIC_QAT_ONLY_OPS)
+            self.STATIC_OPS = copy.deepcopy(self.__class__.STATIC_OPS)
+            self.DYNAMIC_OPS = copy.deepcopy(self.__class__.DYNAMIC_OPS)
+        else:
             self.STATIC_QAT_ONLY_OPS = []
             self.STATIC_OPS = []
             self.DYNAMIC_OPS = []
             for n in annotation_patterns:
                 if n in OP_TO_ANNOTATOR:
-                    if n in self.STATIC_QAT_ONLY_OPS_BACKUP:
-                        self.STATIC_QAT_ONLY_OPS +=[n]
-                    #
-                    if n in self.STATIC_OPS_BACKUP:
-                        self.STATIC_OPS +=[n]
-                    #
-                    if n in self.DYNAMIC_OPS_BACKUP:
-                        self.DYNAMIC_OPS +=[n]
+                    if n in self.__class__.DYNAMIC_OPS:
+                        self.DYNAMIC_OPS += [n]
+                    elif n in self.__class__.STATIC_QAT_ONLY_OPS:
+                        self.STATIC_QAT_ONLY_OPS += [n]
+                    elif n in self.__class__.STATIC_OPS:
+                        self.STATIC_OPS += [n]
+                    else:
+                        print(f"WARNING: Annotation pattern {n} is unknown - must be one of the following:")
+                        print(f"WARNING: DYNAMIC_OPS: {self.DYNAMIC_OPS}  STATIC_QAT_ONLY_OPS: {self.STATIC_QAT_ONLY_OPS} OR STATIC_OPS: {self.STATIC_OPS}") 
                     #
                 else:
-                    print(f"WARNING: Annotation pattern {n} not not one of: {OP_TO_ANNOTATOR.keys()}")
+                    print(f"WARNING: Annotation pattern {n} not not one of OP_TO_ANNOTATOR: {OP_TO_ANNOTATOR.keys()}")
                 #
             #
         #
+        pass
 
-    # there is a bug in this transformation in XNNPACKQuantizer - it is not respecting dtype
     def transform_for_annotation(
         self, model: torch.fx.GraphModule
     ) -> torch.fx.GraphModule:
         """Transforms scalar values to tensor attributes"""
+        # there is a bug in this transformation in XNNPACKQuantizer - it is not respecting dtype
         # return _convert_scalars_to_attrs(model)
         return model
     
