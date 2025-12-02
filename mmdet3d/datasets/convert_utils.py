@@ -84,7 +84,7 @@ def get_nuscenes_2d_boxes(nusc: NuScenes, sample_data_token: str,
 
     s_rec = nusc.get('sample', sd_rec['sample_token'])
 
-    # Get the calibrated sensor and ego pose
+    # Get the calibrated sensor (Camera) and ego pose
     # record to get the transformation matrices.
     cs_rec = nusc.get('calibrated_sensor', sd_rec['calibrated_sensor_token'])
     pose_rec = nusc.get('ego_pose', sd_rec['ego_pose_token'])
@@ -113,7 +113,7 @@ def get_nuscenes_2d_boxes(nusc: NuScenes, sample_data_token: str,
         box.translate(-np.array(pose_rec['translation']))
         box.rotate(Quaternion(pose_rec['rotation']).inverse)
 
-        # Move them to the calibrated sensor frame.
+        # Move them to the calibrated sensor frame. (Camera frame)
         box.translate(-np.array(cs_rec['translation']))
         box.rotate(Quaternion(cs_rec['rotation']).inverse)
 
@@ -146,6 +146,7 @@ def get_nuscenes_2d_boxes(nusc: NuScenes, sample_data_token: str,
             loc = box.center.tolist()
 
             dim = box.wlh
+            # BOX corners. (Convention: x points forward, y to the left, z up.
             dim[[0, 1, 2]] = dim[[1, 2, 0]]  # convert wlh to our lhw
             dim = dim.tolist()
 
@@ -460,31 +461,16 @@ def convert_bbox_to_corners_for_lidar(bbox, origin = None):
                  <------ + ----------- + 3
                        0 
     """
-    
-    # Permuted order
-    #                       front x
-    #                            /
-    #                up z  ^    /
-    #                      | 3 + -----------  + 0
-    #                      |  /|            / |
-    #                      | / |           /  |
-    #                   2  + ----------- + 1  + 4
-    #                      |  / 7    .   |   /
-    #             left y   | / origin    |  /
-    #              <------ + ----------- + 5
-    #                    6 
     origin = origin or (0.5, 0.5, 0.5)
     if isinstance(bbox, (LiDARInstance3DBoxes)):
         bbox= bbox
         corners = bbox.corners.numpy()
-        # corners = corners[:,[6,2,1,5,7,3,0,4]]
     else:
         assert len(bbox) == 7
         bbox = np.array(bbox)
         bbox = bbox.reshape(1, 7)
         bbox = LiDARInstance3DBoxes(bbox, box_dim=7, with_yaw=True, origin=origin)
         corners = bbox.corners.reshape([8,3]).numpy()
-        # corners = corners[[6,2,1,5,7,3,0,4]]
     return corners
 
 
@@ -507,35 +493,16 @@ def convert_bbox_to_corners_for_camera(bbox, origin = None):
                          v
                     down y
     """
-
-    # Permuted order
-
-    #                      front z
-    #                           /
-    #                          /
-    #                       1 + -----------  + 0
-    #                        /|            / |
-    #                       / |           /  |
-    #                    2 + ----------- + 3 + 4
-    #                      |  / 5    .   |  /
-    #                      | / origin    | /
-    #                    6 + ----------- + -------> right x
-    #                      |             7
-    #                      |
-    #                      v
-    #                 down y
     origin = origin or (0.5, 0.5, 0.5)
     if isinstance(bbox, (CameraInstance3DBoxes)):
         bbox= bbox
         corners = bbox.corners.numpy()
-        # corners = corners[:,[5,1,0,4,6,2,3,7]]
     else:
         assert len(bbox) == 7
         bbox = np.array(bbox)
         bbox = bbox.reshape(1, 7)
         bbox = CameraInstance3DBoxes(bbox, box_dim=7, with_yaw=True, origin=origin)
         corners = bbox.corners.reshape([8,3]).numpy()
-        # corners = corners[[5,1,0,4,6,2,3,7]]
     return corners
 
 
@@ -549,7 +516,7 @@ def convert_corners_to_bbox_for_lidar_box(corners):
                                     ^   ^
                                     |  /
                                     | /
-               (yaw=0.5*pi)y <------ 0
+              (yaw=0.5*pi)y  <------ 0
 
     LiDARInstance3DBoxes corner's order
 
@@ -597,21 +564,47 @@ def convert_corners_to_bbox_for_cam_box(corners):
              |
              v
         down y
+
+    CameraInstance3DBoxes corner's order
+
+                         front z
+                              /
+                             /
+                          1 + -----------  + 5
+                           /|            / |
+                          / |           /  |
+                       0 + ----------- + 4 + 6
+                         |  / 2    .   |  /
+                         | / origin    | /
+                       3 + ----------- + -------> right x
+                         |             7
+                         |
+                         v
+                    down y
     """
+    # corners to this function is in camera coordinate system
     corners = np.array(corners)
     x,y,z = np.mean(corners, axis=0)
     vector = corners[4] - corners[0]
     yaw = -np.arctan2(vector[2], vector[0])
     corners = corners-np.array([[x,y,z]])
-    corners = corners[:,[2,0,1]]
     rot_matrix = np.array([
-        [np.cos(yaw), -np.sin(yaw), 0],
-        [np.sin(yaw), np.cos(yaw), 0],
-        [0, 0, 1]
+        [np.cos(yaw), 0, np.sin(yaw)],
+        [0, 1, 0],
+        [-np.sin(yaw), 0, np.cos(yaw)],
     ])
     corners = (rot_matrix @ corners.T).T
-    corners = corners[:,[1,2,0]]
+
+    #width = np.linalg.norm(corners[0] - corners[4])
+    #length = np.linalg.norm(corners[0] - corners[3])
+    #height = np.linalg.norm(corners[0] - corners[1])
+    #return [x, y, z, width, length, height, yaw]
+    # Do-Kyoung:
+    # To be consistent with Camera BBox CS, the dimension order should be
+    # width, height, length
+    # But somehow, in mmdetection3d, the dimension oroder for Camera BBox is
+    # length, height, width
     width = np.linalg.norm(corners[0] - corners[4])
-    length = np.linalg.norm(corners[0] - corners[3])
-    height = np.linalg.norm(corners[0] - corners[1])
-    return [x, y, z, width, length, height, yaw]
+    height = np.linalg.norm(corners[0] - corners[3])
+    length = np.linalg.norm(corners[0] - corners[1])
+    return [x, y, z, length, height, width, yaw]

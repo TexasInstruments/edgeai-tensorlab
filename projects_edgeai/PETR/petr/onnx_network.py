@@ -81,7 +81,7 @@ class PETR_export_model(nn.Module):
                 # and LoadMultiViewImageFromMultiSweepsFiles.
                 lidar2img_rts.append(lidar2img_rt)
             meta['lidar2img'] = lidar2img_rts
-            img_shape = meta['img_shape'][:3]
+            img_shape = meta['img_shape'][0]
             meta['img_shape'] = [img_shape] * len(meta['cam2img'])
 
         return batch_input_metas

@@ -14,10 +14,10 @@ from mmdet3d.structures.bbox_3d.cam_box3d import CameraInstance3DBoxes
 
 
 CAMERA_NAMES = [
-    'back_camera',
     'front_camera',
-    'front_left_camera',
     'front_right_camera',
+    'front_left_camera',
+    'back_camera',
     'left_camera',
     'right_camera',
 ]
@@ -253,13 +253,16 @@ class PandaSetDataset(NuScenesDataset):
         self.new_num_ins_per_cat = [0]*len(kwargs['metainfo']['classes'] if 'metainfo' in kwargs and 'classes' in kwargs['metainfo'] else self.METAINFO['classes'])
         super().__init__(data_root, ann_file, pipeline, box_type_3d, load_type, modality, filter_empty_gt, test_mode, with_velocity, use_valid_flag, **kwargs)
 
-    def full_init(self):
+    def update_label_mapping(self):
         if not self.label_mapping_changed:
             for k in self.label_mapping:
                 self.label_mapping[k] = self.get_label_func(k)
             self.label_mapping_changed = True
-        result = super().full_init()
         self.num_ins_per_cat = self.new_num_ins_per_cat
+
+    def full_init(self):
+        self.update_label_mapping()
+        result = super().full_init()
         return result
 
     def _filter_with_mask(self, ann_info):
@@ -325,4 +328,9 @@ class PandaSetDataset(NuScenesDataset):
     def parse_data_info(self, info: dict) -> Union[List[dict], dict]:
         scene_id = info.get('scene_token', '')
         self._join_prefix(scene_id)
-        return super().parse_data_info(info)
+        info = super().parse_data_info(info)
+        if info.get('camera_sweeps',[]):
+            for sweep in info['camera_sweeps']:
+                for camera, details in sweep.items():
+                    details['data_path'] = osp.join(self.data_prefix[camera], details['data_path'])
+        return info

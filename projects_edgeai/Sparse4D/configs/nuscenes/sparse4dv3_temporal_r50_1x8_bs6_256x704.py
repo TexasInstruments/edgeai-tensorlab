@@ -112,7 +112,7 @@ num_groups = 8
 num_decoder = 6
 num_single_frame_decoder = 1
 # use_deformable_func should be True for training to save memory
-# use_deformable_func should be for ONNX export while inferencing
+# use_deformable_func should be False for ONNX export while inferencing
 # For use_deformable_func=True, mmdet3d_plugin/ops/setup.py needs to be executed
 use_deformable_func = True
 strides = [4, 8, 16, 32]
@@ -383,7 +383,7 @@ input_modality = dict(
 
 train_dataloader = dict(
     batch_size=batch_size,
-    num_workers=1,
+    num_workers=4,
     drop_last=True,
     sampler=dict(type='GroupEachSampleInBatchSampler',
                  shuffle=True, sequence_flip_prob=0.1),
@@ -449,7 +449,7 @@ param_scheduler = [
 ]
 
 optim_wrapper = dict(
-    optimizer=dict(type='AdamW', lr=6e-4, weight_decay=0.01),
+    optimizer=dict(type='AdamW', lr=1e-4, weight_decay=0.01),
     paramwise_cfg=dict(custom_keys={
         'img_backbone': dict(lr_mult=0.5),
     }),

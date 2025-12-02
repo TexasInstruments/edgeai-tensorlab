@@ -869,7 +869,9 @@ def nusc_box_to_cam_box3d(
                          for b in boxes])).view(-1, 1)
     velocity = torch.Tensor(np.array([b.velocity[0::2] for b in boxes])).view(-1, 2)
 
-    # convert nusbox to cambox convention
+    # convert nusbox to cambox convention:
+    #  nusbox dimension order is wlh
+    #  cam box dimension order is lhw
     dims[:, [0, 1, 2]] = dims[:, [1, 2, 0]]
     rots = -rots
 
