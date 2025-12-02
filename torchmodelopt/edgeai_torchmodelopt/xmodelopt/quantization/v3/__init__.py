@@ -31,7 +31,10 @@
 #################################################################################
 
 
+import warnings
+warnings.simplefilter('ignore', category=FutureWarning) #"FutureWarning: `torch.export.export_for_training` is deprecated"
+
 from .qconfig_types import *
-from . import quant_func_wrapper
+from . import quant_func, quant_func_wrapper
 from .quant_module import QATPT2EModule, PTQPT2EModule
 from .quantizer import get_quantizer, QuantizerTypes, QuantizerAnnotationPatterns

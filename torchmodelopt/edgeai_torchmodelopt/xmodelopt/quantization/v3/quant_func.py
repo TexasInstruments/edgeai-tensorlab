@@ -31,7 +31,6 @@
 
 import warnings
 import torch
-import torch._dynamo as torchdynamo
 from torch.fx import GraphModule
 import torch.ao.quantization
 from torch.ao.quantization.quantize_pt2e import prepare_pt2e, prepare_qat_pt2e, convert_pt2e 
