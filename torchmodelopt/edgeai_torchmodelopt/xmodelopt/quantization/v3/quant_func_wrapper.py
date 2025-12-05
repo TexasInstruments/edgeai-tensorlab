@@ -3,10 +3,10 @@ from ...utils.transformation_utils import wrapped_transformation_fn
 from ... import utils
 
 
-def init(module, *args, example_inputs=None, example_kwargs=None, transformation_dict=None, **kwargs):
+def init(module, example_inputs, example_kwargs=None, transformation_dict=None, **kwargs):
     example_kwargs = example_kwargs or {}
     utils.add_example_args_kwargs(module, example_inputs=example_inputs, example_kwargs=example_kwargs, transformation_dict=transformation_dict)
-    return wrapped_transformation_fn(quant_func.init, module, *args, example_inputs=example_inputs, example_kwargs=example_kwargs, 
+    return wrapped_transformation_fn(quant_func.init, module, example_inputs, example_kwargs=example_kwargs, 
                                      transformation_dict=transformation_dict, **kwargs)
 
 

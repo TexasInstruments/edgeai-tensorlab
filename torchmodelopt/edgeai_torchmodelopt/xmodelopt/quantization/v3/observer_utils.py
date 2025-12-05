@@ -162,6 +162,8 @@ class AdaptiveRangeShrinkObserver(torch.ao.quantization.HistogramObserver):
         #
         x = x_orig.detach()
 
+        x = torch.where(x != torch.nan, x, 0.0)
+        
         min_val, max_val = torch.aminmax(x)
         if torch.isnan(min_val) or torch.isnan(max_val) or torch.isinf(min_val) or torch.isinf(max_val):
             pass

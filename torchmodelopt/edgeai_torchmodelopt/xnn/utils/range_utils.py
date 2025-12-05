@@ -177,7 +177,7 @@ def extrema_hist_search(hist_array, range_shrink_percentile):
     return new_mn_scaled, new_mx_scaled
 
 
-def sigma_range(x, dim=(0,1), sigma_factor=3.0):
+def sigma_range(x, dim=None, sigma_factor=3.0):
     mean_val = x.mean(dim=dim)
     std_val = x.std(dim=dim)
     min_, max_ = torch.min(x), torch.max(x)

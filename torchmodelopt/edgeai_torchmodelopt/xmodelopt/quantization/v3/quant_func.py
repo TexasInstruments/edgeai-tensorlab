@@ -45,8 +45,8 @@ import copy
 import os
 import types 
 
-def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None, example_kwargs=None, 
-         qconfig_type=None, quantizer_type=None, annotation_patterns=None,
+def init(model, example_inputs, example_kwargs=None, is_qat=True, total_epochs=0, 
+         quantizer=None, qconfig_type=None, quantizer_type=None, annotation_patterns=None,
          num_batch_norm_update_epochs=None, num_observer_update_epochs=None, 
          add_methods=True, fast_mode=False, device=None, **kwargs):
 
@@ -65,9 +65,9 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
 
     # see the supported values in QuantizerTypes, QuantizerAnnotationPatterns and qconfig_types.QConfigType
     quantizer_type = quantizer_type or QuantizerTypes.TIDLRT_ADVANCED
-    annotation_patterns = annotation_patterns or QuantizerAnnotationPatterns.DEFAULT
     qconfig_type = qconfig_type or qconfig_types.QConfigType.DEFAULT
-
+    annotation_patterns = QuantizerAnnotationPatterns.DEFAULT if annotation_patterns is None else annotation_patterns
+    
     # our configurable quantizer
     quantizer = quantizer or get_quantizer(quantizer_type=quantizer_type, is_qat=is_qat, fast_mode=fast_mode, device=device, annotation_patterns=annotation_patterns)
 
@@ -78,7 +78,7 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
     #####################################################################################
     example_kwargs = example_kwargs or {}
     
-    if example_inputs:
+    if example_inputs is not None:
         example_inputs = (example_inputs,) if not isinstance(example_inputs, (list, tuple)) else tuple(example_inputs)
     else:
         if hasattr(model, '_example_inputs') and hasattr(model, '_example_kwargs'):
@@ -98,12 +98,21 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
         for key, value in example_kwargs.items():
             if isinstance(value, torch.Tensor):
                 example_kwargs[key] = value.to(device=device)
+                
         model = model.to(device=device)
 
     #####################################################################################
-    orig_model = model #copy.deepcopy(model)
-    m = torch.export.export(orig_model, example_inputs).module()
+    orig_model =  copy.deepcopy(model) if kwargs.get('with_deepcopy', False) else model
+    check_guards = kwargs.get('check_guards', True)
+    m = torch.export.export(orig_model, example_inputs, kwargs=example_kwargs).module(check_guards=check_guards)
         
+    if device:
+        for key in dir(m):
+            value = getattr(m, key)
+            if isinstance(value, torch.Tensor):
+                value = value.to(device)
+                setattr(m, key, value)
+
     # for copy_arg in copy_args:
     #     if hasattr(module, copy_arg):
     #         setattr(replace_obj, copy_arg, getattr(module, copy_arg))
@@ -145,7 +154,8 @@ def init(model, quantizer=None, is_qat=True, total_epochs=0, example_inputs=None
         model.unfreeze = types.MethodType(unfreeze, model)
         model.convert = types.MethodType(convert, model)
         model.export = types.MethodType(export, model)
-        model.__deepcopy__ = types.MethodType(deepcopy_graphmodule, model)
+        if kwargs.get('with_deepcopy', False):
+            model.__deepcopy__ = types.MethodType(deepcopy_graphmodule, model)
     #
     # this is based on module hooks - it will not work currently in pt2e
     # all modules exect the fakequant/observers in torch.export.export() model are changed to ops
@@ -187,10 +197,10 @@ def freeze(self, freeze_bn=True, freeze_observers=True):
     if freeze_bn is True:
         self.apply(torch.nn.intrinsic.qat.freeze_bn_stats)
         # TODO: check if this is causing accuracy degradation
-        torch.ao.quantization.move_exported_model_to_eval(self)  
+        # torch.ao.quantization.move_exported_model_to_eval(self)  
     elif freeze_bn is False:
         self.apply(torch.nn.intrinsic.qat.update_bn_stats)
-        torch.ao.quantization.move_exported_model_to_train(self)
+        # torch.ao.quantization.move_exported_model_to_train(self)
         
     # freezing the batchnorm update 
     # for n in self.graph.nodes:
@@ -294,7 +304,7 @@ def convert(self, *args, device="cpu", make_copy=False, fq_to_clip=None, **kwarg
         warnings.warn("WARNING: __quant_params__ is missing in quant_func module.")
         orig_quant_params = None
 
-    model = copy.deepcopy(self).eval() if make_copy else self.eval() # calls the deepcopy_graphmodule module
+    model = copy.deepcopy(self) if make_copy else self # calls the deepcopy_graphmodule module
     model = model.to(device=device)
     model = quant_utils.move_node_kwargs_to_device(model, device=device)
     model = quant_utils.remove_to_device_node(model)
@@ -327,11 +337,16 @@ def train(self, mode: bool = True):
     # also freeze the params if required
     if mode is True:
         # set the default epoch at which freeze occurs during training (if missing)
-        num_batch_norm_update_epochs = ((self.__quant_params__.total_epochs//2)-1) if self.__quant_params__.num_batch_norm_update_epochs is None else int(self.__quant_params__.num_batch_norm_update_epochs)
-        num_observer_update_epochs = ((self.__quant_params__.total_epochs//2)+1) if self.__quant_params__.num_observer_update_epochs is None else int(self.__quant_params__.num_observer_update_epochs)
+        num_batch_norm_update_epochs = ((self.__quant_params__.total_epochs//2)-1) \
+            if self.__quant_params__.num_batch_norm_update_epochs is None else int(self.__quant_params__.num_batch_norm_update_epochs)
+        
+        num_observer_update_epochs = ((self.__quant_params__.total_epochs//2)+1) \
+            if self.__quant_params__.num_observer_update_epochs is None else int(self.__quant_params__.num_observer_update_epochs)
+        num_observer_update_epochs = max(num_observer_update_epochs, 1) # must run observer for atleast 1 epoch - otherwise range will not be availble and fake_quatize will have errors.
+
         freeze_bn = (self.__quant_params__.num_epochs_tracked >= num_batch_norm_update_epochs)
         freeze_observers = (self.__quant_params__.num_epochs_tracked >= num_observer_update_epochs)
-        # freeze_bn = freeze_observers = False      ####TODO WHY turned off?? FIXME
+
         if freeze_bn:
             xnn.utils.print_once('INFO: Freezing BN for subsequent quantization epochs')
         #
@@ -365,7 +380,7 @@ def eval(self, mode: bool = False):
 
 
 def calibrate(self, freeze_bn=True, freeze_observers=False, freeze_fn=None):
-    self.eval()
+    # self.eval()
     freeze_fn=freeze_fn or freeze
     freeze_fn(self, freeze_bn, freeze_observers)
     return self

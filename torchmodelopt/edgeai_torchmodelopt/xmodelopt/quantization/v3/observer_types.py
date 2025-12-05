@@ -106,6 +106,9 @@ class AdaptiveWeightObserver(torch.ao.quantization.MinMaxObserver):
             return x_orig
         #
         x = x_orig.detach()
+
+        x = torch.where(x != torch.nan, x, 0.0)
+
         x = super().forward(x)
         if self.range_max is not None:
             signed_range = torch.min(self.min_val.detach()).item() < 0.0
@@ -168,6 +171,9 @@ class AdaptivePerChannelWeightObserver(torch.ao.quantization.PerChannelMinMaxObs
             return x_orig
         #
         x = x_orig.detach()
+
+        x = torch.where(x != torch.nan, x, 0.0)
+
         x = super().forward(x)
         if self.range_max is not None:
             signed_range = torch.min(self.min_val.detach()).item() < 0.0
@@ -240,6 +246,9 @@ class AdaptiveMinMaxActivationObserver(torch.ao.quantization.MinMaxObserver):
             return x_orig
         #
         x = x_orig.detach()
+
+        x = torch.where(x != torch.nan, x, 0.0)
+
         x = super().forward(x)
         if self.range_max is not None:
             signed_range = torch.min(self.min_val.detach()).item() < 0.0
@@ -311,6 +320,9 @@ class AdaptiveMovingAverageMinMaxActivationObserver(torch.ao.quantization.Moving
             return x_orig
         #
         x = x_orig.detach()
+
+        x = torch.where(x != torch.nan, x, 0.0)
+        
         x = super().forward(x)
         if self.range_max is not None:
             signed_range = torch.min(self.min_val.detach()).item() < 0.0

@@ -29,6 +29,7 @@
 #
 #################################################################################
 
+import warnings
 import math
 import torch
 from torch.ao.quantization import FakeQuantize
@@ -50,6 +51,10 @@ class AdaptiveFakeQuantize(FakeQuantize):
     def forward(self, X):
         if not torch.is_floating_point(X):
             return X
+        # elif self.activation_post_process.min_val.numel() == 0 or self.activation_post_process.max_val.numel() == 0 or \
+        #     self.activation_post_process.min_val == float("inf") or self.activation_post_process.max_val == float("-inf"):
+        #     warnings.warn('WARNING: FakeQuantize called before running observers - not quantizing.')
+        #     return X
         else:
             x_q = super().forward(X)
             self.num_batches_tracked += 1
@@ -101,8 +106,7 @@ class _AdaptiveOutlierSuppression(AdaptiveFakeQuantize):
             self.scale.copy_(_scale)
             self.zero_point.copy_(_zero_point)
             
-        range_shrink = getattr(self.activation_post_process, 'range_shrink', False)
-        if getattr(self, 'activation_post_process', None) and range_shrink:
+        if getattr(self, 'activation_post_process', None) and getattr(self.activation_post_process, 'range_shrink', False):
             if hasattr(self.activation_post_process, 'get_min_max'):
                 min_val, max_val, range_valid = self.activation_post_process.get_min_max()
             else:

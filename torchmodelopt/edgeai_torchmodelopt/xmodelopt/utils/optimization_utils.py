@@ -78,7 +78,7 @@ def apply_model_optimization(model: nn.Module, example_inputs: list=None, exampl
     if not(pruning_version or model_surgery_version or quantization_version):
         return model
 
-    model.eval()
+    # model.eval()
     if isinstance(example_inputs, dict):
         model(example_inputs, **example_kwargs)
     else:
