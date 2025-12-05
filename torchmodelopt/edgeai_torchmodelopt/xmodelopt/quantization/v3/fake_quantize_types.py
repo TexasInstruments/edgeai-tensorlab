@@ -34,6 +34,7 @@ import math
 import torch
 from torch.ao.quantization import FakeQuantize
 from .... import xnn
+from . import observer_utils
 
 
 # FusedMovingAvgObsFakeQuantize will not use calculate_qparams() only during convert
@@ -51,11 +52,8 @@ class AdaptiveFakeQuantize(FakeQuantize):
     def forward(self, X):
         if not torch.is_floating_point(X):
             return X
-        # elif self.activation_post_process.min_val.numel() == 0 or self.activation_post_process.max_val.numel() == 0 or \
-        #     self.activation_post_process.min_val == float("inf") or self.activation_post_process.max_val == float("-inf"):
-        #     warnings.warn('WARNING: FakeQuantize called before running observers - not quantizing.')
-        #     return X
         else:
+            # X = torch.where(torch.isfinite(X), X, observer_utils.eps)
             x_q = super().forward(X)
             self.num_batches_tracked += 1
             return x_q
@@ -91,6 +89,7 @@ class _AdaptiveOutlierSuppression(AdaptiveFakeQuantize):
     '''
     def forward(self, X):
         if not torch.is_floating_point(X):
+            # X = torch.where(torch.isfinite(X), X, observer_utils.eps)
             return super().forward(X)
         #
         if self.observer_enabled[0] == 1:

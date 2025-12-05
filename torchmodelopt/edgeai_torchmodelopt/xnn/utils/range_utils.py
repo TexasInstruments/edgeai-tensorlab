@@ -181,7 +181,7 @@ def sigma_range(x, dim=None, sigma_factor=3.0):
     mean_val = x.mean(dim=dim)
     std_val = x.std(dim=dim)
     min_, max_ = torch.min(x), torch.max(x)
-    if not torch.isnan(mean_val) and not torch.isnan(std_val):
+    if not torch.isfinite(mean_val) and not torch.isfinite(std_val):
         min_val = torch.max(mean_val - sigma_factor*std_val, min_)
         max_val = torch.min(mean_val + sigma_factor*std_val, max_)
         return min_val, max_val

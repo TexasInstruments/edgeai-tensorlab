@@ -61,8 +61,8 @@ def compute_tensor_scale(tensor, mn, mx, bitwidth, power2_scaling, force_data_ty
     else:
         signed = min(mn, mx) < 0
     abs_range = max(abs(mn), abs(mx))
-    valid_range = not (math.isinf(abs_range) or math.isnan(abs_range) or abs_range == 0)
-     #
+    valid_range = not (not math.isfinite(abs_range) or abs_range == 0)
+    
     extrabits = 1 if signed else 0
     bitwidth_range = math.pow(2.0, bitwidth - extrabits)
     clamp_limits = (-bitwidth_range, bitwidth_range - 1) if signed else (0, bitwidth_range - 1)

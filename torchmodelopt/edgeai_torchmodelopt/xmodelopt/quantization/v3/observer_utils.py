@@ -65,6 +65,9 @@ def ceil2_num(x):
         return x
 
 
+eps = torch.finfo(torch.float32).eps
+
+
 def _adjust_qparams_power2_scale(min_val, max_val, quant_min, quant_max, scale, zero_point, eps):
     r"""Calculates the quantization parameters."""
     # make scale a power of 2 value
@@ -80,19 +83,12 @@ def _adjust_qparams_power2_scale(min_val, max_val, quant_min, quant_max, scale, 
 
 def _correct_min_max(min_val: torch.Tensor, max_val: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, bool]:
     range_valid = True
-    eps = 1e-12
     if min_val.numel() == 0 or max_val.numel() == 0:
         warnings.warn(f"must run observer before calling calculate_qparams. min_val={min_val} max_val={max_val}")
         range_valid = False
-    elif torch.any(torch.isinf(min_val)) or torch.any(torch.isinf(max_val)):
-        warnings.warn(f"must run observer before calling calculate_qparams. min_val={min_val} max_val={max_val}")
-        range_valid = False
-    elif torch.any(torch.isnan(min_val)) or torch.any(torch.isnan(max_val)):
+    elif not torch.all(torch.isfinite(min_val)) or not torch.all(torch.isfinite(max_val)):
         warnings.warn(f"invalid range: min_val={min_val} max_val={max_val}")
         range_valid = False
-    # elif torch.any((min_val == max_val) & (min_val == 0.0)):
-    #     range_valid = False
-    #elif torch.any(min_val >= max_val):
     else:
         min_val = torch.min(min_val, torch.zeros_like(min_val))
         max_val = torch.max(max_val, torch.zeros_like(max_val) + eps)
@@ -105,6 +101,27 @@ def _correct_min_max(min_val: torch.Tensor, max_val: torch.Tensor) -> tuple[torc
 def _check_min_max_valid(min_val: torch.Tensor, max_val: torch.Tensor) -> bool:
     return True
     
+
+def _calculate_qparams(func, min_val, max_val, quant_min, quant_max, symmetric, power2_scale, eps):
+    min_val, max_val, range_valid = _correct_min_max(min_val, max_val)
+    if range_valid:
+        if symmetric:
+            signed_range = torch.min(min_val.detach()).item() < 0.0
+            max_abs = torch.max(torch.abs(min_val), torch.abs(max_val))
+            min_val = -max_abs if signed_range else max_abs * 0.0
+            max_val = max_abs
+        #
+        scale, zero_point = func(min_val, max_val)
+        if power2_scale:
+            scale, zero_point = _adjust_qparams_power2_scale(
+                min_val, max_val, quant_min, quant_max, scale, zero_point, eps)
+        #
+    else:
+        scale = torch.ones_like(min_val)
+        zero_point = torch.zeros_like(min_val, dtype=torch.int64)
+    #
+    return scale, zero_point
+
 
 ####################################################################
 RANGE_SHRINK_PERCENTILE_DEFAULT = 0.01
@@ -161,13 +178,9 @@ class AdaptiveRangeShrinkObserver(torch.ao.quantization.HistogramObserver):
             return x_orig
         #
         x = x_orig.detach()
-
-        x = torch.where(x != torch.nan, x, 0.0)
-        
+        x = torch.where(torch.isfinite(x), x, eps)
         min_val, max_val = torch.aminmax(x)
-        if torch.isnan(min_val) or torch.isnan(max_val) or torch.isinf(min_val) or torch.isinf(max_val):
-            pass
-        elif isinstance(self.range_shrink, (float, int)):
+        if isinstance(self.range_shrink, (float, int)):
             # super().forward uses self.min_val and self.max_val internally
             # so copy our values into that.
             min_val = self.min_val.clone()
@@ -199,22 +212,8 @@ class AdaptiveRangeShrinkObserver(torch.ao.quantization.HistogramObserver):
     @torch.jit.export
     def _calculate_qparams(self, min_val, max_val):
         r"""Calculates the quantization parameters."""
-        if self.symmetric:
-            signed_range = torch.min(min_val.detach()).item() < 0.0
-            max_abs = torch.max(torch.abs(min_val), torch.abs(max_val))
-            min_val = -max_abs if signed_range else max_abs * 0.0
-            max_val = max_abs
-        #
-        min_val, max_val, range_valid = _correct_min_max(min_val, max_val)
-        if range_valid:
-            scale, zero_point = super()._calculate_qparams(min_val, max_val)
-        else:
-            scale = torch.tensor(1.0, device=min_val.device)
-            zero_point = torch.tensor(0, device=min_val.device, dtype=torch.int64)
-        #
-        if self.power2_scale:
-            scale, zero_point = _adjust_qparams_power2_scale(
-                min_val, max_val, self.quant_min, self.quant_max, scale, zero_point, self.eps)
+        scale, zero_point = _calculate_qparams(super()._calculate_qparams, 
+                min_val, max_val, self.quant_min, self.quant_max, self.symmetric, self.power2_scale, self.eps)
         return scale, zero_point
     
     def _non_linear_param_search(self) -> tuple[torch.Tensor, torch.Tensor]:
@@ -231,7 +230,7 @@ class AdaptiveRangeShrinkObserver(torch.ao.quantization.HistogramObserver):
 
     def sigma_range(self, x_orig, sigma_factor=3.0):
         min_val, max_val = xnn.utils.sigma_range(x_orig, dim=None, sigma_factor=sigma_factor)
-        if torch.isnan(min_val) or torch.isnan(max_val):
+        if not torch.all(torch.isfinite(min_val)) or not torch.all(torch.isfinite(max_val)):
             return torch.min(x_orig), torch.max(x_orig)
         self._update_runningavg_range(min_val, max_val)
         return self.min_val, self.max_val
@@ -239,13 +238,13 @@ class AdaptiveRangeShrinkObserver(torch.ao.quantization.HistogramObserver):
     def histogram_runningavg_range(self, x_orig):
         # min_val, max_val = xnn.utils.quantile_range(x_orig, range_shrink_percentile=self.range_shrink_percentile)
         min_val, max_val = xnn.utils.histogram_range(x_orig, range_shrink_percentile=self.range_shrink_percentile)
-        if torch.isnan(min_val) or torch.isnan(max_val):
+        if not torch.all(torch.isfinite(min_val)) or not torch.all(torch.isfinite(max_val)):
             return torch.min(x_orig), torch.max(x_orig)
         self._update_runningavg_range(min_val, max_val)
         return self.min_val, self.max_val
     
     def _update_runningavg_range(self, min_val, max_val):
-        if torch.isinf(self.min_val) or torch.isinf(self.max_val):
+        if not torch.all(torch.isfinite(self.min_val)) or not torch.all(torch.isfinite(self.max_val)):
             self.min_val.copy_(min_val)
             self.max_val.copy_(max_val)
             return

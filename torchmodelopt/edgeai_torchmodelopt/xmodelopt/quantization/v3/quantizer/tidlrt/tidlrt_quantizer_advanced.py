@@ -489,7 +489,7 @@ class TIDLRTQuantizerAdvanced(XNNPACKQuantizer):
                         print(f"WARNING: DYNAMIC_OPS: {self.DYNAMIC_OPS}  STATIC_QAT_ONLY_OPS: {self.STATIC_QAT_ONLY_OPS} OR STATIC_OPS: {self.STATIC_OPS}") 
                     #
                 else:
-                    print(f"WARNING: Annotation pattern {n} not not one of OP_TO_ANNOTATOR: {OP_TO_ANNOTATOR.keys()}")
+                    print(f"WARNING: Annotation pattern {n} not one of OP_TO_ANNOTATOR: {OP_TO_ANNOTATOR.keys()}")
                 #
             #
         #
