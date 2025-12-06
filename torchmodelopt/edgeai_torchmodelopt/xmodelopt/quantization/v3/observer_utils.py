@@ -124,10 +124,6 @@ def _calculate_qparams(func, min_val, max_val, quant_min, quant_max, symmetric, 
 
 
 ####################################################################
-RANGE_SHRINK_PERCENTILE_DEFAULT = 0.01
-RANGE_SHRINK_PERCENTILE_AGGRESSIVE = 0.1
-
-
 class AdaptiveRangeShrinkObserverTypes:
     HISTOGRAM_GLOBAL = 'histogram_global'
     HISTOGRAM_RUNNINGAVG = 'histogram_runningavg'
@@ -137,8 +133,10 @@ class AdaptiveRangeShrinkObserverTypes:
 
 
 class RangeShrinkPercentileValues:
-    AGGRESSIVE = 0.1
-    DEFAULT = 0.01
+    LOW = 0.01
+    MEDIUM = 0.1
+    HIGH = 0.25
+    DEFAULT = MEDIUM
 
 
 class AdaptiveRangeShrinkObserver(torch.ao.quantization.HistogramObserver):
@@ -146,10 +144,10 @@ class AdaptiveRangeShrinkObserver(torch.ao.quantization.HistogramObserver):
                  power2_scale=False, range_max=None, fixed_range=False, 
                  range_shrink=True, dtype=torch.float32, **kwargs):
         super().__init__(*args, factory_kwargs=factory_kwargs, dtype=torch.int32, bins=1024, **kwargs)
-        self.range_shrink = RangeShrinkPercentileValues.AGGRESSIVE if isinstance(range_shrink, (bool,)) else range_shrink
+        self.upsample_rate = 8
+        self.range_shrink = RangeShrinkPercentileValues.DEFAULT if range_shrink is True else range_shrink
         self.dtype = dtype
         self.num_batches_tracked = 0
-        self.upsample_rate = 8
         self.averaging_constant = 0.01
         self.symmetric = (qscheme in (torch.per_channel_symmetric, torch.per_tensor_symmetric))
         self.power2_scale = power2_scale
@@ -253,3 +251,19 @@ class AdaptiveRangeShrinkObserver(torch.ao.quantization.HistogramObserver):
         max_val = max_val + self.averaging_constant * (max_val - self.max_val)
         self.min_val.copy_(min_val)
         self.max_val.copy_(max_val)
+
+
+####################################################################
+# not for quantization - only for range clip
+class AdaptiveRangeClipObserver(AdaptiveRangeShrinkObserver):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    @torch.jit.export
+    def _calculate_qparams(
+        self, min_val: torch.Tensor, max_val: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        scale = torch.ones_like(min_val)
+        zero_point = torch.zeros_like(min_val, dtype=torch.int64)
+        return scale, zero_point
+    

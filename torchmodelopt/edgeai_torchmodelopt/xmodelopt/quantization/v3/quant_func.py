@@ -45,6 +45,34 @@ import copy
 import os
 import types 
 
+
+def _model_to_device(model, device):
+    if device:
+        model.to(device)
+        if hasattr(model, 'recompile'):
+            model.recompile()
+        #
+    #
+    return model
+
+
+def _switch_batchnorm(model, training):
+    # freezing the batchnorm update 
+    for n in model.graph.nodes:
+        # Args: input, weight, bias, running_mean, running_var, training, momentum, eps
+        # We set the `training` flag to False here to freeze BN stats
+        if n.target in [
+            torch.ops.aten._native_batch_norm_legit.default,
+            torch.ops.aten.cudnn_batch_norm.default,
+            torch.ops.aten.native_batch_norm.default,
+            torch.ops.aten.batch_norm.default,
+        ]:
+            new_args = list(n.args)
+            new_args[5] = training
+            n.args = tuple(new_args)
+    model.recompile()  
+
+    
 def init(model, example_inputs, example_kwargs=None, is_qat=True, total_epochs=0, 
          quantizer=None, qconfig_type=None, quantizer_type=None, annotation_patterns=None,
          num_batch_norm_update_epochs=None, num_observer_update_epochs=None, 
@@ -99,19 +127,12 @@ def init(model, example_inputs, example_kwargs=None, is_qat=True, total_epochs=0
             if isinstance(value, torch.Tensor):
                 example_kwargs[key] = value.to(device=device)
                 
-        model = model.to(device=device)
+        model = _model_to_device(model, device)
 
     #####################################################################################
     orig_model =  copy.deepcopy(model) if kwargs.get('with_deepcopy', False) else model
     check_guards = kwargs.get('check_guards', True)
     m = torch.export.export(orig_model, example_inputs, kwargs=example_kwargs).module(check_guards=check_guards)
-        
-    if device:
-        for key in dir(m):
-            value = getattr(m, key)
-            if isinstance(value, torch.Tensor):
-                value = value.to(device)
-                setattr(m, key, value)
 
     # for copy_arg in copy_args:
     #     if hasattr(module, copy_arg):
@@ -123,6 +144,8 @@ def init(model, example_inputs, example_kwargs=None, is_qat=True, total_epochs=0
     else:
         model = prepare_pt2e(m, quantizer)
     
+    # model = _model_to_device(model, device)
+
     #####################################################################################
     model.__quant_params__ = xnn.utils.AttrDict()
     model.__quant_params__.is_qat = is_qat
@@ -136,6 +159,7 @@ def init(model, example_inputs, example_kwargs=None, is_qat=True, total_epochs=0
     model.__quant_params__.bias_hooks = []
     model.__quant_params__.bias_calibration_factor = kwargs.get("bias_calibration_factor", 0.05)
     model.__quant_params__.original_model = orig_model
+    model.__quant_params__.device = device
 
     if add_methods:
         # add a wrapper for model.train()
@@ -197,25 +221,17 @@ def freeze(self, freeze_bn=True, freeze_observers=True):
     if freeze_bn is True:
         self.apply(torch.nn.intrinsic.qat.freeze_bn_stats)
         # TODO: check if this is causing accuracy degradation
-        # torch.ao.quantization.move_exported_model_to_eval(self)  
+        torch.ao.quantization.move_exported_model_to_eval(self)  
+        # _switch_batchnorm(self, training=False)
     elif freeze_bn is False:
         self.apply(torch.nn.intrinsic.qat.update_bn_stats)
-        # torch.ao.quantization.move_exported_model_to_train(self)
-        
-    # freezing the batchnorm update 
-    # for n in self.graph.nodes:
-    #     # Args: input, weight, bias, running_mean, running_var, training, momentum, eps
-    #     # We set the `training` flag to False here to freeze BN stats
-    #     if n.target in [
-    #         torch.ops.aten._native_batch_norm_legit.default,
-    #         torch.ops.aten.cudnn_batch_norm.default,
-    #         torch.ops.aten.batch_norm.default,
-    #     ]:
-    #         new_args = list(n.args)
-    #         new_args[5] = not(freeze_bn)
-    #         n.args = tuple(new_args)
-    # self.recompile()      
-            
+        torch.ao.quantization.move_exported_model_to_train(self)
+        # _switch_batchnorm(self, training=True)
+
+    # device = self.__quant_params__.device
+    # if device:
+    #     _model_to_device(self, self.__quant_params__.device)
+    # #
     return self
 
 

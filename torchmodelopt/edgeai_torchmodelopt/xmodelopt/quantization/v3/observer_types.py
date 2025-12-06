@@ -169,7 +169,7 @@ class AdaptivePerChannelWeightObserver(torch.ao.quantization.PerChannelMinMaxObs
 ####################################################################
 class AdaptiveMinMaxActivationObserver(torch.ao.quantization.MinMaxObserver):
     def __init__(self, *args, quant_min=0, quant_max=255, dtype=torch.quint8, qscheme=torch.per_tensor_affine, power2_scale=False, 
-                 range_max=None, fixed_range=False, range_shrink_percentile=0, **kwargs):
+                 range_max=None, fixed_range=False, range_shrink=0.0, **kwargs):
         super().__init__(*args, quant_min=quant_min, quant_max=quant_max, dtype=dtype, qscheme=qscheme, **kwargs)
 		# activation quantization cannot use torch.per_channel_symmetric, it has to be torch.per_tensor_symmetric
         self.symmetric = (qscheme in (torch.per_channel_symmetric, torch.per_tensor_symmetric))
@@ -226,7 +226,7 @@ class AdaptiveMinMaxActivationObserver(torch.ao.quantization.MinMaxObserver):
 
 class AdaptiveMovingAverageMinMaxActivationObserver(torch.ao.quantization.MovingAverageMinMaxObserver):
     def __init__(self, *args, quant_min=0, quant_max=255, dtype=torch.quint8, qscheme=torch.per_tensor_affine, power2_scale=False, 
-                 range_max=None, fixed_range=False, range_shrink_percentile=0, **kwargs):
+                 range_max=None, fixed_range=False, range_shrink=0.0, **kwargs):
         super().__init__(*args, quant_min=quant_min, quant_max=quant_max, dtype=dtype, qscheme=qscheme, **kwargs)
 		# activation quantization cannot use torch.per_channel_symmetric, it has to be torch.per_tensor_symmetric
         self.symmetric = (qscheme in (torch.per_channel_symmetric, torch.per_tensor_symmetric))
@@ -285,38 +285,23 @@ class AdaptiveActivationObserver(AdaptiveMovingAverageMinMaxActivationObserver):
     pass
 
 
-####################################################################
-class _AdaptiveOutlierSuppressionObserver(observer_utils.AdaptiveRangeShrinkObserver):
-    def __init__(self, *args, range_shrink=True, **kwargs):
-        range_shrink = observer_utils.RangeShrinkPercentileValues.AGGRESSIVE if isinstance(range_shrink, (bool,)) else range_shrink
-        super().__init__(*args, range_shrink=range_shrink, **kwargs)
-
-    @torch.jit.export
-    def _calculate_qparams(
-        self, min_val: torch.Tensor, max_val: torch.Tensor
-    ) -> tuple[torch.Tensor, torch.Tensor]:
-        scale = torch.ones_like(min_val)
-        zero_point = torch.zeros_like(min_val, dtype=torch.int64)
-        return scale, zero_point
-
-
-class AdaptiveOutlierSuppressionWeightObserver(_AdaptiveOutlierSuppressionObserver):
+class AdaptiveRangeShrinkActivationObserver(observer_utils.AdaptiveRangeShrinkObserver):
     pass
 
 
-class AdaptiveOutlierSuppressionActivationObserver(_AdaptiveOutlierSuppressionObserver):
+class AdaptiveRangeClipActivationObserver(observer_utils.AdaptiveRangeClipObserver):
     pass
 
 
 ####################################################################
 ADAPTIVE_WEIGHT_OBSERVER_TYPES = (AdaptiveWeightObserver,
-                                  AdaptivePerChannelWeightObserver,
-                                  AdaptiveOutlierSuppressionWeightObserver)
+                                  AdaptivePerChannelWeightObserver)
 
 ADAPTIVE_ACTIVATION_OBSERVER_TYPES = (AdaptiveActivationObserver, 
                                       AdaptiveMinMaxActivationObserver, 
                                       AdaptiveMovingAverageMinMaxActivationObserver,
-                                      AdaptiveOutlierSuppressionActivationObserver)
+                                      AdaptiveRangeShrinkActivationObserver,
+                                      AdaptiveRangeClipActivationObserver)
 
 ADAPTIVE_OBSERVER_TYPES = tuple(list(ADAPTIVE_WEIGHT_OBSERVER_TYPES) + list(ADAPTIVE_ACTIVATION_OBSERVER_TYPES))
 
@@ -327,9 +312,9 @@ ADAPTIVE_OBSERVER_TYPES = tuple(list(ADAPTIVE_WEIGHT_OBSERVER_TYPES) + list(ADAP
 # AdaptivePerChannelPower2WeightObserver = xnn.utils.partialclass(AdaptivePerChannelWeightObserver, power2_scale=True, class_name='AdaptivePerChannelPower2WeightObserver')
 # AdaptivePerChannelFixedRange4WeightObserver = xnn.utils.partialclass(AdaptivePerChannelWeightObserver, range_max=4.0, fixed_range=True, class_name='AdaptivePerChannelFixedRange4WeightObserver')
 #
-# AdaptivePerChannelBit4WeightObserver = xnn.utils.partialclass(AdaptivePerChannelWeightObserver, quant_min=-8, quant_max=7, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_AGGRESSIVE, class_name='AdaptivePerChannelBit4WeightObserver')
-# AdaptivePerChannelBit4MaxRange4WeightObserver = xnn.utils.partialclass(AdaptivePerChannelWeightObserver, quant_min=-8, quant_max=7, range_max=4.0, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_AGGRESSIVE, class_name='AdaptivePerChannelBit4MaxRange4WeightObserver')
-# AdaptivePerChannelBit4FixedRange4WeightObserver = xnn.utils.partialclass(AdaptivePerChannelWeightObserver, quant_min=-8, quant_max=7, range_max=4.0, fixed_range=True, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_AGGRESSIVE, class_name='AdaptivePerChannelBit4FixedRange4WeightObserver')
+# AdaptivePerChannelBit4WeightObserver = xnn.utils.partialclass(AdaptivePerChannelWeightObserver, quant_min=-8, quant_max=7, range_shrink=observer_utils.RANGE_SHRINK_PERCENTILE_AGGRESSIVE, class_name='AdaptivePerChannelBit4WeightObserver')
+# AdaptivePerChannelBit4MaxRange4WeightObserver = xnn.utils.partialclass(AdaptivePerChannelWeightObserver, quant_min=-8, quant_max=7, range_max=4.0, range_shrink=observer_utils.RANGE_SHRINK_PERCENTILE_AGGRESSIVE, class_name='AdaptivePerChannelBit4MaxRange4WeightObserver')
+# AdaptivePerChannelBit4FixedRange4WeightObserver = xnn.utils.partialclass(AdaptivePerChannelWeightObserver, quant_min=-8, quant_max=7, range_max=4.0, fixed_range=True, range_shrink=observer_utils.RANGE_SHRINK_PERCENTILE_AGGRESSIVE, class_name='AdaptivePerChannelBit4FixedRange4WeightObserver')
 #
 # # example custom activation observers
 # AdaptiveSymActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, qscheme=torch.per_tensor_symmetric, class_name='AdaptiveSymActivationObserver')
@@ -337,6 +322,6 @@ ADAPTIVE_OBSERVER_TYPES = tuple(list(ADAPTIVE_WEIGHT_OBSERVER_TYPES) + list(ADAP
 # AdaptiveSymPower2FixedRange4ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, qscheme=torch.per_tensor_symmetric, power2_scale=True, range_max=4, fixed_range=True, class_name='AdaptiveSymPower2FixedRange4ActivationObserver')
 # AdaptiveFixedRange4ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, range_max=4.0, fixed_range=True, class_name='AdaptiveFixedRange4ActivationObserver')
 #
-# AdaptiveBit4ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, quant_min=0, quant_max=15, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_AGGRESSIVE, class_name='AdaptiveBit4ActivationObserver')
-# AdaptiveBit4MaxRange4ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, quant_min=0, quant_max=15, range_max=4.0, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_AGGRESSIVE, class_name='AdaptiveBit4MaxRange4ActivationObserver')
-# AdaptiveBit4FixedRange4ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, quant_min=0, quant_max=15, range_max=4.0, fixed_range=True, range_shrink_percentile=observer_utils.RANGE_SHRINK_PERCENTILE_AGGRESSIVE, class_name='AdaptiveBit4FixedRange4ActivationObserver')
+# AdaptiveBit4ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, quant_min=0, quant_max=15, range_shrink=observer_utils.RANGE_SHRINK_PERCENTILE_AGGRESSIVE, class_name='AdaptiveBit4ActivationObserver')
+# AdaptiveBit4MaxRange4ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, quant_min=0, quant_max=15, range_max=4.0, range_shrink=observer_utils.RANGE_SHRINK_PERCENTILE_AGGRESSIVE, class_name='AdaptiveBit4MaxRange4ActivationObserver')
+# AdaptiveBit4FixedRange4ActivationObserver = xnn.utils.partialclass(AdaptiveActivationObserver, quant_min=0, quant_max=15, range_max=4.0, fixed_range=True, range_shrink=observer_utils.RANGE_SHRINK_PERCENTILE_AGGRESSIVE, class_name='AdaptiveBit4FixedRange4ActivationObserver')

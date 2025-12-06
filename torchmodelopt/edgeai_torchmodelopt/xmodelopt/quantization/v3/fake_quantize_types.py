@@ -83,7 +83,7 @@ class AdaptiveActivationFakeQuantize(AdaptiveFakeQuantize):
 
 
 ####################################################################
-class _AdaptiveOutlierSuppression(AdaptiveFakeQuantize):
+class _AdaptiveRangeClipFQClip(AdaptiveFakeQuantize):
     '''
     Create a subclass, just to distinguish between the ones used for activation and weight
     '''
@@ -123,17 +123,17 @@ class _AdaptiveOutlierSuppression(AdaptiveFakeQuantize):
         return x_q
     
 
-class AdaptiveWeightOutlierSuppression(_AdaptiveOutlierSuppression):
+class AdaptiveWeightFQClip(_AdaptiveRangeClipFQClip):
     pass
 
 
-class AdaptiveActivationOutlierSuppresion(_AdaptiveOutlierSuppression):
+class AdaptiveActivationFQClip(_AdaptiveRangeClipFQClip):
     pass
 
 
 ####################################################################
-ADAPTIVE_WEIGHT_FAKE_QUANT_TYPES = (AdaptiveWeightFakeQuantize, AdaptiveWeightOutlierSuppression)
+ADAPTIVE_WEIGHT_FAKE_QUANT_TYPES = (AdaptiveWeightFakeQuantize, AdaptiveWeightFQClip)
 
-ADAPTIVE_ACTIVATION_FAKE_QUANT_TYPES = (AdaptiveActivationFakeQuantize, AdaptiveActivationOutlierSuppresion)
+ADAPTIVE_ACTIVATION_FAKE_QUANT_TYPES = (AdaptiveActivationFakeQuantize, AdaptiveActivationFQClip)
 
 ADAPTIVE_FAKE_QUANT_TYPES = tuple(list(ADAPTIVE_WEIGHT_FAKE_QUANT_TYPES) + list(ADAPTIVE_ACTIVATION_FAKE_QUANT_TYPES))
