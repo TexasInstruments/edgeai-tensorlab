@@ -145,24 +145,30 @@ def get_weight_quantization_spec(weight_qconfig, is_qat=True):
             observer_or_fake_quant_ctr=fake_quantized_weight_observer                         
         )
     elif weight_dtype == torch.float32:
-        WeightObserverToUse = observer_types.AdaptivePerChannelWeightObserver \
-            if weight_qscheme == torch.per_channel_symmetric else observer_types.AdaptiveWeightObserver
+        WeightObserverToUse = observer_types.AdaptivePerChannelWeightRangeClipObserver \
+            if weight_qscheme == torch.per_channel_symmetric else observer_types.AdaptiveWeightRangeClipObserver
         
         fake_quantized_weight_observer = fake_quantize_types.AdaptiveWeightFQClip.with_args(
-            observer=WeightObserverToUse,
-            range_shrink=weight_qconfig.get('range_shrink', False)
+            observer=WeightObserverToUse
         )
 
         weight_quantization_spec = QuantizationSpec(
             dtype=weight_dtype,
             quant_min=None,
             quant_max=None,
-            qscheme=torch.per_tensor_symmetric,
+            qscheme=weight_qscheme,
             is_dynamic=False,
             observer_or_fake_quant_ctr=fake_quantized_weight_observer
         )
     elif weight_dtype is None:
-        weight_quantization_spec = None
+        weight_quantization_spec = QuantizationSpec(
+            dtype=weight_dtype,
+            quant_min=None,
+            quant_max=None,
+            qscheme=weight_qscheme,
+            is_dynamic=False,
+            observer_or_fake_quant_ctr=torch.ao.quantization.observer.PlaceholderObserver
+        )
     else:
         raise RuntimeError("ERROR: Unsupported weight quantization dtype: " + str(weight_dtype))
     #
@@ -173,6 +179,7 @@ def get_act_quantization_spec(activation_qconfig, is_qat=True, fast_mode=False):
     observer_name = 'CustomAdaptiveActivationObserver' + get_repr_string_from_dict(activation_qconfig)
     activation_dtype = activation_qconfig.get('dtype', torch.uint8)
     range_shrink = activation_qconfig.get('range_shrink', False)
+    activation_qscheme = activation_qconfig.get('qscheme', torch.per_tensor_affine)
 
     if activation_dtype in (torch.int8, torch.uint8, torch.int16, torch.uint16, torch.int32, torch.uint32):
         activation_bitwidth = activation_qconfig.get('bitwidth', 8)
@@ -184,7 +191,7 @@ def get_act_quantization_spec(activation_qconfig, is_qat=True, fast_mode=False):
                                                 quant_min=activation_qconfig.get('quant_min', torch.iinfo(activation_dtype).min),
                                                 quant_max=activation_qconfig.get('quant_max', torch.iinfo(activation_dtype).max),
                                                 dtype=activation_dtype,
-                                                qscheme=activation_qconfig.get('qscheme', torch.per_tensor_affine),
+                                                qscheme=activation_qscheme,
                                                 power2_scale=activation_qconfig.get('power2_scale', False),
                                                 range_max=activation_qconfig.get('range_max', None),
                                                 fixed_range=activation_qconfig.get('fixed_range', False),
@@ -214,7 +221,7 @@ def get_act_quantization_spec(activation_qconfig, is_qat=True, fast_mode=False):
             dtype=activation_dtype,
             quant_min=None,
             quant_max=None,
-            qscheme=torch.per_tensor_affine,
+            qscheme=activation_qscheme,
             is_dynamic=False,
             observer_or_fake_quant_ctr=fake_quantized_activation_observer
         )
@@ -223,7 +230,7 @@ def get_act_quantization_spec(activation_qconfig, is_qat=True, fast_mode=False):
             dtype=activation_dtype,
             quant_min=None,
             quant_max=None,
-            qscheme=None,
+            qscheme=activation_qscheme,
             is_dynamic=False,
             observer_or_fake_quant_ctr=torch.ao.quantization.observer.PlaceholderObserver
         )
@@ -322,8 +329,8 @@ def get_quantization_config_default(qconfig_type, is_qat=True, fast_mode=False):
     _QCONFIG_TYPE_TO_DICT[QConfigType.DEFAULT] = _QCONFIG_TYPE_TO_DICT[QConfigType.WC8_AT8]
     
     _QCONFIG_TYPE_TO_DICT[QConfigType.PLACEHOLDER] = get_quantization_config(dict(
-        weight=dict(dtype=torch.float32, range_shrink=False),
-        activation=dict(dtype=torch.float32, range_shrink=False)), 
+        weight=dict(dtype=torch.float32),
+        activation=dict(dtype=torch.float32)), 
         is_qat=is_qat, fast_mode=fast_mode)
     
     return _QCONFIG_TYPE_TO_DICT[qconfig_type]

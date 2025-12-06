@@ -139,11 +139,12 @@ class RangeShrinkPercentileValues:
     DEFAULT = MEDIUM
 
 
+####################################################################
 class AdaptiveRangeShrinkObserver(torch.ao.quantization.HistogramObserver):
     def __init__(self, *args,  factory_kwargs=None, qscheme=torch.per_tensor_affine, 
                  power2_scale=False, range_max=None, fixed_range=False, 
-                 range_shrink=True, dtype=torch.float32, **kwargs):
-        super().__init__(*args, factory_kwargs=factory_kwargs, dtype=torch.int32, bins=1024, **kwargs)
+                 range_shrink=True, dtype=torch.uint8, **kwargs):
+        super().__init__(*args, factory_kwargs=factory_kwargs, dtype=dtype, bins=1024, **kwargs)
         self.upsample_rate = 8
         self.range_shrink = RangeShrinkPercentileValues.DEFAULT if range_shrink is True else range_shrink
         self.dtype = dtype
@@ -253,11 +254,14 @@ class AdaptiveRangeShrinkObserver(torch.ao.quantization.HistogramObserver):
         self.max_val.copy_(max_val)
 
 
+
 ####################################################################
+
 # not for quantization - only for range clip
 class AdaptiveRangeClipObserver(AdaptiveRangeShrinkObserver):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, *args, dtype=torch.float32, **kwargs):
+        temp_dtype = torch.int32 # just to satisfy base class which doesn't support float
+        super().__init__(*args, dtype=temp_dtype, **kwargs)
 
     @torch.jit.export
     def _calculate_qparams(
@@ -267,3 +271,32 @@ class AdaptiveRangeClipObserver(AdaptiveRangeShrinkObserver):
         zero_point = torch.zeros_like(min_val, dtype=torch.int64)
         return scale, zero_point
     
+
+# not for quantization - only for use in teacher model of distillation
+class AdaptiveWeightRangeClipObserver(torch.ao.quantization.MinMaxObserver):
+    def __init__(self, *args, dtype=torch.float32, **kwargs):
+        temp_dtype = torch.int32 # just to satisfy base class which doesn't support float
+        super().__init__(*args, dtype=temp_dtype, **kwargs)
+
+    @torch.jit.export
+    def _calculate_qparams(
+        self, min_val: torch.Tensor, max_val: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        scale = torch.ones_like(min_val)
+        zero_point = torch.zeros_like(min_val, dtype=torch.int64)
+        return scale, zero_point
+    
+
+# not for quantization - only for use in teacher model of distillation
+class AdaptivePerChannelWeightRangeClipObserver(torch.ao.quantization.PerChannelMinMaxObserver):
+    def __init__(self, *args, dtype=torch.float32, **kwargs):
+        temp_dtype = torch.int32 # just to satisfy base class which doesn't support float
+        super().__init__(*args, dtype=temp_dtype, **kwargs)
+
+    @torch.jit.export
+    def _calculate_qparams(
+        self, min_val: torch.Tensor, max_val: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        scale = torch.ones_like(min_val)
+        zero_point = torch.zeros_like(min_val, dtype=torch.int64)
+        return scale, zero_point
