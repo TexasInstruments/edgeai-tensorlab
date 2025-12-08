@@ -356,8 +356,8 @@ def download_tidl_tools_package_11_02(install_path, tools_version, tools_type):
     assert tools_version in expected_tools_version, f"ERROR: incorrect tools_version passed:{tools_version} - expected:{expected_tools_version}"
     tidl_tools_version_name=tools_version
     tidl_tools_release_label="r11.2"
-    tidl_tools_release_id="11_02_00_00"
-    c7x_firmware_version="11_02_00_00"
+    tidl_tools_release_id="11_02_02_00"
+    c7x_firmware_version="11_02_02_00"
     c7x_compiler_version="5.0.0.LTS" # Needed for TVM (needs update based on release version)
     c7x_firmware_version_possible_update=None
     print(f"INFO: you have chosen to install tidl_tools version: {tidl_tools_release_id} with default SDK firmware version set to: {c7x_firmware_version}")
@@ -372,11 +372,11 @@ def download_tidl_tools_package_11_02(install_path, tools_version, tools_type):
     
     tidl_tools_type_suffix=("_gpu" if isinstance(tools_type,str) and "gpu" in tools_type else "")
     target_soc_download_urls = {
-        "TDA4VM": f"http://tidl-ta-01.dhcp.ti.com/tidl_tools/11_02_00_00/j721e",
-        "AM68A": f"http://tidl-ta-01.dhcp.ti.com/tidl_tools/11_02_00_00/j721s2",
-        "AM69A": f"http://tidl-ta-01.dhcp.ti.com/tidl_tools/11_02_00_00/j784s4",
-        "AM67A": f"http://tidl-ta-01.dhcp.ti.com/tidl_tools/11_02_00_00/j722s",
-        "AM62A": f"http://tidl-ta-01.dhcp.ti.com/tidl_tools/11_02_00_00/am62a",
+        "TDA4VM": f"http://tidl-ta-01.dhcp.ti.com/tidl_tools/11_02_02_00/j721e",
+        "AM68A": f"http://tidl-ta-01.dhcp.ti.com/tidl_tools/11_02_02_00/j721s2",
+        "AM69A": f"http://tidl-ta-01.dhcp.ti.com/tidl_tools/11_02_02_00/j784s4",
+        "AM67A": f"http://tidl-ta-01.dhcp.ti.com/tidl_tools/11_02_02_00/j722s",
+        "AM62A": f"http://tidl-ta-01.dhcp.ti.com/tidl_tools/11_02_02_00/am62a",
     }
     tidl_version_dict = dict(version=tidl_tools_version_name, release_label=tidl_tools_release_label,
                              release_id=tidl_tools_release_id, tools_type=tidl_tools_type_suffix,
