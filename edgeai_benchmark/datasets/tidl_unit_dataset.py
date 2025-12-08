@@ -108,9 +108,7 @@ class TIDLUnitDataset(DatasetBase):
         
         assert isinstance(output_list, list) and len(output_list) == 1, \
             "Expected output_list is a nested list with one element"
-        prediction = output_list[0]
-        prediction = prediction['output'] if isinstance(prediction, dict) and 'output' in prediction else prediction
-        output_list = prediction
+
         # Convert output_list to output_dict based on output names
         import onnx
         out_info = onnx.load(os.path.join(self.path, "model.onnx")).graph.output

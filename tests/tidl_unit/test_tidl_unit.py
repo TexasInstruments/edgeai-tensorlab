@@ -292,6 +292,7 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, work_dir
 
     # Declare dataset
     tidl_unit_dataset  = datasets.TIDLUnitDataset(path = test_dir)
+    input_data, _ = tidl_unit_dataset[0]
 
     #Run infer
     if(run_infer):
@@ -322,7 +323,7 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, work_dir
             # If not supported
             raise ValueError("Runtimes currently supported are onnxrt and tvmrt")
 
-        results_list = runtime_wrapper.run_inference(tidl_unit_dataset[0])
+        results_list = runtime_wrapper.run_inference(input_data)
 
         assert len(results_list) > 0, " Results not found!!!! "
 
@@ -339,9 +340,9 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, work_dir
         print(f"\tDDR Write Bandwidth (MB/s)            :   {stats['write_total']:.2f}")
         print()
 
-        nmse  = tidl_unit_dataset([results_list])['nmse']
-        mse   = tidl_unit_dataset([results_list])['mse']
-        delta = tidl_unit_dataset([results_list])['delta']
+        nmse  = tidl_unit_dataset.evaluate(results_list)['nmse']
+        mse   = tidl_unit_dataset.evaluate(results_list)['mse']
+        delta = tidl_unit_dataset.evaluate(results_list)['delta']
 
         if any(x is None for x in nmse):
             max_nmse = None
@@ -412,7 +413,7 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, work_dir
                                                         artifacts_folder=artifacts_folder,
                                                         tidl_tools_path=tidl_tools_path,
                                                         tidl_offload=tidl_offload)
-            results_list = runtime_wrapper.run_import(tidl_unit_dataset[0])
+            results_list = runtime_wrapper.run_import(input_data)
             remove_dir(os.path.join(artifacts_folder, "tempDir"))
             assert len(results_list) > 0, " Results not found!!!! "
         elif runtime == "tvmrt":
@@ -421,7 +422,7 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, work_dir
                                                         artifacts_folder=artifacts_folder,
                                                         tidl_tools_path=tidl_tools_path,
                                                         tidl_offload=tidl_offload)
-            status = runtime_wrapper.run_import(tidl_unit_dataset[0])
+            status = runtime_wrapper.run_import(input_data)
             remove_dir(os.path.join(artifacts_folder, "tempDir"))
             assert status >= 0, "TIDL Import Failed"
             assert status > 0, "TIDL Tools missing"

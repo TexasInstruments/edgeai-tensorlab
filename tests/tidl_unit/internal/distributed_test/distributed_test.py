@@ -18,16 +18,16 @@ with open('distributed_test_config.json', 'r') as file:
 # Access the data
 print(f"[INFO] {len(pc_config)} PCs found. Distributing tests across them...")
 
-ALL_OPERATORS = ["Abs", "Acos", "Acosh", "Add", "ArgMax", "Asin", "Asinh", "Atan", \
-                "AveragePool", "BatchNorm", "Clip", "Concat", "Convolution", "ConvTranspose", \
+ALL_OPERATORS = ["Abs", "Acos", "Acosh", "Add", "ArgMax", "ArgMin", "Asin", "Asinh", "Atan", \
+                "AveragePool", "BatchNormalization", "Clip", "Concat", "Conv", "ConvTranspose", \
                 "Cos", "Cosh", "DepthToSpace", "DequantizeLinear", "Div", "Dropout", "Elu", \
-                "Erf", "Exp", "Flatten", "Floor", "Gather", "Gemm", "GlobalAveragePool", \
+                "Erf", "Exp", "Expand", "Flatten", "Floor", "Gather", "Gemm", "GlobalAveragePool", \
                 "GridSample", "HardSigmoid", "HardSwish", "Identity", "InstanceNormalization", \
-                "LayerNormalization", "LeakyRelu", "Log", "MatMul", "Max", "MaxPool", "Mish", "Mul", \
-                "Neg", "Pad", "Pow", "PRelu", "QuantizeLinear", "ReduceMax", "ReduceMean", "ReduceMin", \
-                "Relu", "Reshape", "Resize", "ScatterElements", "ScatterND", "Sigmoid", "Sin", "Sinh", "Slice", \
-                "Softmax", "SpaceToDepth", "Sqrt", "Squeeze", "Sub", "Sum", "Tan", "Tanh", "TopK", "Transpose", \
-                "Unsqueeze"]
+                "LayerNormalization", "LeakyRelu", "Log", "MatMul", "Max", "MaxPool", "Min", "Mish", \
+                "Mul", "Neg", "Pad", "Pow", "PRelu", "QuantizeLinear", "ReduceMax", "ReduceMean", \
+                "ReduceMin", "ReduceSum", "Relu", "Reshape", "Resize", "ScatterElements", "ScatterND", \
+                "Sigmoid", "Sin", "Sinh", "Slice", "Softmax", "SpaceToDepth", "Sqrt", "Squeeze", "Sub", \
+                "Sum", "Tan", "Tanh", "TopK", "Transpose", "Unsqueeze"]
 
 arguments_as_string = " ".join(sys.argv[1:])
 arguments_as_string = arguments_as_string.strip().split("--")
