@@ -49,7 +49,7 @@ echo \
     --test_file         Specify text file containing all tests to run. Default=null.
     --tests             Specify tests name. If null, will run all test based on test_suite. Default=null.
                         TEST_SUITE:
-                            operator: You can specify comma seperated operator name (Ex: Convolution) or specific test (Ex: Softmax_1) 
+                            operator: You can specify comma seperated operator name (Ex: Conv) or specific test (Ex: Softmax_1)
 
     NOTE: If 'test_file' is provided, it will take precedence over 'tests'
 
@@ -57,8 +57,8 @@ echo \
     TEST_SUITE:
         operator: ./run_test.sh --test_suite=operator --test_file=abc.txt --run_compile=1 --run_infer=1
                    This will run all tests defined in abc.txt file
-        operator: ./run_test.sh --test_suite=operator --tests=Convolution,Softmax_1,Unsqueeze,Flatten_3 --run_compile=1 --run_infer=1
-                   This will run all tests under Convolution and Unsqueeze and also Softmax_1 and Flatten_3 test.
+        operator: ./run_test.sh --test_suite=operator --tests=Conv,Softmax_1,Unsqueeze,Flatten_3 --run_compile=1 --run_infer=1
+                   This will run all tests under Conv and Unsqueeze and also Softmax_1 and Flatten_3 test.
     "
 }
 

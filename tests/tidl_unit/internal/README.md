@@ -110,8 +110,8 @@ python3 run_operator_comparison.py --runtime tvmrt --operator Relu Max
 # Runs tests for Add for all the runtimes
 python3 run_operator_comparison.py --operator Add
     
-# Runs comparison for Convolution
-python3 run_operator_comparison.py --compare --operator Convolution
+# Runs comparison for Conv
+python3 run_operator_comparison.py --compare --operator Conv
 
 #Runs onnx and tvm tests for just MaxPool_2 test 
 python3 run_operator_comparison.py --operator MaxPool_2
