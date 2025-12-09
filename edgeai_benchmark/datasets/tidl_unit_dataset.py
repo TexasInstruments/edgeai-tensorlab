@@ -106,8 +106,8 @@ class TIDLUnitDataset(DatasetBase):
     def evaluate(self, output_list, **kwargs):
 
         
-        assert isinstance(output_list, list) and len(output_list) == 1, \
-            "Expected output_list is a nested list with one element"
+        assert isinstance(output_list, list), \
+            "Expected output_list is a nested list"
 
         # Convert output_list to output_dict based on output names
         import onnx
