@@ -45,7 +45,7 @@ But the script provides an option to split test under single operator across
 multiple PC as well. `split_across_pc` is an argument to the python file which 
 fines test under which operators should be split across all PCs in chunks.
 This is very useful for running operators which take lots of time.
-By default **Convolution, Mul and Add** will always be split. 
+By default **Conv, Mul and Add** will always be split.
 
 ```bash
 #This will run defined operators by each across PC defined by distributed_test_config.json 

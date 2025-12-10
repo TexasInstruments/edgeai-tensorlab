@@ -57,8 +57,10 @@ OPERATORS = list(set(OPERATORS))
 
 SPLIT_ACROSS_PC_OEPRATORS = SPLIT_ACROSS_PC_OEPRATORS.split()
 
-# Force "Convolution", "Add", "Mul" to split across PC since they are huge tests
-SPLIT_ACROSS_PC_OEPRATORS += ["Convolution", "Add", "Mul"]
+# Force operators to split across PC since they are huge tests
+SPLIT_ACROSS_PC_OEPRATORS += ["Conv", "Add", "Mul", "Div", "Resize", "Squeeze", "Unsqueeze",
+                              "Slice", "Transpose", "Reshape", "Sub", "InstanceNormalization"
+                              "BatchNormalization", "ScatterND"]
 
 SPLIT_ACROSS_PC_OEPRATORS = list(set(SPLIT_ACROSS_PC_OEPRATORS))
 

@@ -20,8 +20,8 @@ Example usage:
     python3 run_operator_comparison.py --operator Add
         Runs tests for Add for all the runtimes
     
-    python3 run_operator_comparison.py --compare --operator Convolution
-        Runs comparison for Convolution
+    python3 run_operator_comparison.py --compare --operator Conv
+        Runs comparison for Conv
 
 If single tests are to be run, then only that should be passed. Example:
     python3 run_operator_comparison.py --operator MaxPool_2

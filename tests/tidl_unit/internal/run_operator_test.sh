@@ -468,7 +468,7 @@ fi
 sed -i "/tensor_bits/c\tensor_bits : ${tensor_bits}" tidl_unit.yaml
 
 # Add operators in remove_list which you don't want to run 
-# "Add" "Convolution" "Mul"
+# "Add" "Conv" "Mul"
 # "ScatterElements" "TopK"
 remove_list=()
 filtered_list=()
