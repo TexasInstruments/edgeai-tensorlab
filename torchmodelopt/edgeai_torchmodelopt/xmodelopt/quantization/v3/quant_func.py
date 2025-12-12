@@ -106,14 +106,15 @@ def init(model, example_inputs, example_kwargs=None, is_qat=True, total_epochs=0
     #####################################################################################
     example_kwargs = example_kwargs or {}
     
-    if example_inputs is not None:
-        example_inputs = (example_inputs,) if not isinstance(example_inputs, (list, tuple)) else tuple(example_inputs)
-    else:
-        if hasattr(model, '_example_inputs') and hasattr(model, '_example_kwargs'):
-            example_inputs = model._example_inputs.pop(0)
-            example_kwargs = model._example_kwargs.pop(0)
-        else:
-            utils.add_example_args_kwargs(model, example_inputs=example_inputs, example_kwargs=example_kwargs)
+    if not (hasattr(model, '_example_inputs') and hasattr(model, '_example_kwargs')):
+    # else:
+        # This should not get called unless this function is called separately, when called from wrapper model should have example inputs and kwargs
+        utils.add_example_args_kwargs(model, example_inputs=example_inputs, example_kwargs=example_kwargs)
+    example_inputs = model._example_inputs.pop(0)
+    example_kwargs = model._example_kwargs.pop(0)
+    # if example_inputs is not None:
+    #     example_inputs = (example_inputs,) if not isinstance(example_inputs, (list, tuple)) else tuple(example_inputs)
+    # else:
         #
     #
 
@@ -132,6 +133,7 @@ def init(model, example_inputs, example_kwargs=None, is_qat=True, total_epochs=0
     #####################################################################################
     orig_model =  copy.deepcopy(model) if kwargs.get('with_deepcopy', False) else model
     check_guards = kwargs.get('check_guards', True)
+    example_inputs = tuple(example_inputs)
     m = torch.export.export(orig_model, example_inputs, kwargs=example_kwargs).module(check_guards=check_guards)
 
     # for copy_arg in copy_args:
