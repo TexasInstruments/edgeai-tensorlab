@@ -10,7 +10,7 @@ Autonomous driving perceives its surroundings for decision making, which is one 
 
 ## Introduction
 
-We implement and provide the results and checkpoints on the NuScenes dataset.  <!-- The result can be found in [Object Detection Zoo](../../docs/det3d_modelzoo.md) -->
+We implement and provide the results and checkpoints on the NuScenes and PandaSet dataset.  <!-- The result can be found in [Object Detection Zoo](../../docs/det3d_modelzoo.md) -->
 
 ## Dataset Preperation
 
@@ -51,7 +51,7 @@ edgeai-mmdetection3d
 Download `pandaset.zip` from [HERE](https://huggingface.co/datasets/georghess/pandaset/tree/main) and unzip the file in `./data/pandaset`. Then run the following command to prepare `.pkl` files:
 
 ```bash
-python tools/create_data.py pandaset --root-path ./data/pandaset --out-dir ./data/pandaset --extra-tag pandaset
+python tools/create_data.py pandaset --root-path ./data/pandaset --out-dir ./data/pandaset --extra-tag pandaset --bevdet
 ```
 
 The directory structure after processing should look like:
@@ -117,8 +117,8 @@ The following results are for BEVDet with ResNet50 with NuScenes and PandaSet, r
 
 |  Dataset  |                    Model                      | Mem (GB) | Inf time (fps) | mAP    | NDS   |
 |:---------:| :-------------------------------------------  | :------: | :------------: | :---:  | :--:  |
-| NuScenes  | bevdet-r50                                    |   0.58   |       TBA      | 28.45  | 35.01 | 
-| PandaSet  | bevdet_pandaset-r50                           |   0.65   |       TBA      | 20.86  | 29.45 | 
+| NuScenes  | bevdet-r50                                    |   0.58   |       TBA      | 28.69  | 35.44 | 
+| PandaSet  | bevdet_pandaset-r50                           |   0.65   |       TBA      | 21.17  | 29.56 | 
 
 <!--
 ## 3D Object Detection Model Zoo

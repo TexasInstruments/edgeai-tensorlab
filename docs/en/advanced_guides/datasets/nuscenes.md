@@ -42,13 +42,13 @@ To prepare these files for nuScenes, run the following command:
 python tools/create_data.py nuscenes --root-path ./data/nuscenes --out-dir ./data/nuscenes --extra-tag nuscenes
 ```
 
-This command creates `.pkl` files for PETR, BEVFormer and FCOS3D. To include additional data fields for BEVDet, PETRv2 and StreamPETR or Far3D, we should add `--bevdet`, `--petrv2` and `--streampetr`, respectively, to the command. For example,
+This command creates `.pkl` files for PETR, BEVFormer and FCOS3D. To include additional data fields for BEVDet, PETRv2, StreamPETRF/Far3D and Sparse4D we should add `--bevdet`, `--petrv2`, `--strpetr` and `--sparse4d`, respectively, to the command. For example,
 
 ```bash
-python tools/create_data.py nuscenes --root-path ./data/nuscenes --out-dir ./data/nuscenes --extra-tag nuscenes --bevdet --petrv2 --strpetr
+python tools/create_data.py nuscenes --root-path ./data/nuscenes --out-dir ./data/nuscenes --extra-tag nuscenes --bevdet --petrv2 --strpetr --sparse4d
 ```
 
-FastBEV uses multiple temporal frames and therefore need to organize neighboring frames' information as well in a `.pkl` file for training. For this purpose, we should run the following script, which will create `nuscenes_infos_train_fastbev.pkl` from `nuscenes_infos_train.pkl`.
+FastBEV uses multiple temporal frames with specific information. Therefore, we need to organize neighboring frames' information as well in a `.pkl` file for training. For this purpose, we should run the following script, which will create `nuscenes_infos_train_fastbev.pkl` from `nuscenes_infos_train.pkl`.
 
 ```bash
 python tools/dataset_converters/generate_fastbev_sweep_pkl.py nuscenes --root-path ./data/nuscenes --version 'v1.0-trainval'

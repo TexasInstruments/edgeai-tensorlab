@@ -88,13 +88,13 @@ To prepare these files for pandaset, run the following command:
 python tools/create_data.py pandaset --root-path ./data/pandaset --out-dir ./data/pandaset --extra-tag pandaset
 ```
 
-<!-- This command creates `.pkl` files for PETR, BEVFormer and FCOS3D. To include additional data fields for BEVDet and PETRv2, we should add `--bevdet` and `--petrv2`, respectively, to the command. For example,
+This command creates `.pkl` files for PETR, BEVFormer and FCOS3D. To include additional data fields for BEVDet, PETRv2 and StreamPETR/Far3D, we should add `--bevdet`, `--petrv2` and `--strpetr`, respectively, to the command. For example,
 
 ```bash
-python tools/create_data.py nuscenes --root-path ./data/nuscenes --out-dir ./data/nuscenes --extra-tag nuscenes --canbus ./data --bevdet --petrv2
-``` -->
+python tools/create_data.py pandaset --root-path ./data/pandaset --out-dir ./data/pandaset --extra-tag pandaset --bevdet --petrv2 --strpetr
+```
 
-FastBEV uses multiple temporal frames and therefore need to organize neighboring frames' information as well in a `.pkl` file for training. For this purpose, we should run the following script, which will create `pandaset_infos_train_fastbev.pkl` from `pandaset_infos_train.pkl`.
+FastBEV uses multiple temporal frames with specific information. Therefore, we need to organize neighboring frames' information as well in a `.pkl` file for training. For this purpose, we should run the following script, which will create `pandaset_infos_train_fastbev.pkl` from `pandaset_infos_train.pkl`.
 
 ```bash
 python tools/dataset_converters/generate_fastbev_sweep_pkl.py pandaset --root-path ./data/pandaset'
