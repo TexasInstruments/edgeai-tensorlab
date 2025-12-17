@@ -136,7 +136,7 @@ def get_configs(settings, work_dir):
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
                     {'advanced_options:output_feature_16bit_names_list':''},
                     {'advanced_options:max_num_subgraph_nodes':300}),
-                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/petr/petrv1_mod_vovnet_320x800_20250515.onnx'),
+                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/petr/petrv1_mod_vovnet_320x800_20251215.onnx'),
             postprocess=postproc_transforms.get_transform_bev_detection_base(),
             metric=dict(),
             model_info=dict(metric_reference={'mAP':0.4})
@@ -156,7 +156,7 @@ def get_configs(settings, work_dir):
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
                     {'advanced_options:output_feature_16bit_names_list':''},
                     {'advanced_options:max_num_subgraph_nodes':300}),
-                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/petrv2/petrv2_mod_vovnet_320x800_20250612_opt.onnx'),
+                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/petrv2/petrv2_mod_vovnet_320x800_20251215_opt.onnx'),
             postprocess=postproc_transforms.get_transform_bev_detection_base(queue_length=1),
             metric=dict(),
             model_info=dict(metric_reference={'mAP':0.4})
@@ -169,7 +169,7 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=[(123.675, 116.280, 103.530)], input_scale=[(0.017125, 0.017507, 0.017429)], input_optimization=False),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
                     {'advanced_options:output_feature_16bit_names_list':''}),
-                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/bevdet/bevdet_r50_mod_256x704_20250402.onnx'),
+                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/bevdet/bevdet_r50_mod_256x704_20251215.onnx'),
             postprocess=postproc_transforms.get_transform_bev_detection_bevdet(),
             metric=dict(),
             model_info=dict(metric_reference={'mAP':0.4})
@@ -185,8 +185,10 @@ def get_configs(settings, work_dir):
                                 'object_detection:meta_arch_type': 10,
                                 'object_detection:meta_layers_names_list':
                                 '../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/bevformer/bevformer_tiny_mod_metaarch.prototxt'}),
-                    {'advanced_options:output_feature_16bit_names_list':'','advanced_options:max_num_subgraph_nodes': 1536}),
-                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/bevformer/bevformer_tiny_mod_480x800_opt_20251112.onnx'),
+                    {'advanced_options:output_feature_16bit_names_list':'/img_backbone/relu/Relu_output_0, /img_backbone/layer1/layer1.0/downsample/downsample.0/Conv_output_0, /img_backbone/layer1/layer1.0/conv3/Conv_output_0, /pts_bbox_head/Div_1_output_0, /pts_bbox_head/Add_9_output_0, /pts_bbox_head/Add_10_output_0, /pts_bbox_head/Sigmoid_output_0, /pts_bbox_head/Mul_2_output_0',
+                     'advanced_options:max_num_subgraph_nodes': 1536,
+                     'advanced_options:use16BitForTopK': 1}),
+                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/bevformer/bevformer_tiny_mod_blgrid_480x800_20251215_opt.onnx'),
             postprocess=postproc_transforms.get_transform_bev_detection_base(queue_length=1),
             metric=dict(),
             model_info=dict(metric_reference={'mAP':0.4})
@@ -243,11 +245,8 @@ def get_configs(settings, work_dir):
                                                                                                          '/Concat_20':'/Concat_20',
                                                                                                          '/Gather_9':'/Gather_9',}),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
-                    #ext_options={'object_detection:meta_arch_type': 7,
-                    #             'object_detection:meta_layers_names_list':
-                    #             '../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/fastbev/fastbev_mod_r18_f1_metaarch.prototxt'}),
                     {'advanced_options:output_feature_16bit_names_list':''}),
-                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/fastbev/fastbev_mod_r18_f1_256x704_20250407.onnx'),
+                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/fastbev/fastbev_mod_r18_f1_256x704_20251215.onnx'),
             postprocess=postproc_transforms.get_transform_bev_detection_fastbev(),
             metric=dict(),
             model_info=dict(metric_reference={'mAP':0.4})
@@ -265,7 +264,7 @@ def get_configs(settings, work_dir):
                                  'object_detection:meta_layers_names_list':
                                  '../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/fastbev/fastbev_mod_nms_r18_f1_metaarch.prototxt'}),
                     {'advanced_options:output_feature_16bit_names_list':'/bbox_head/conv_cls/Conv_output_0, /bbox_head/conv_dir_cls/Conv_output_0, /bbox_head/conv_reg/Conv_output_0'}),
-                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/fastbev/fastbev_mod_nms_r18_f1_256x704_20250430.onnx'),
+                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/fastbev/fastbev_mod_nms_r18_f1_256x704_20251215.onnx'),
             postprocess=postproc_transforms.get_transform_bev_detection_fastbev(enable_nms=False),
             metric=dict(),
             model_info=dict(metric_reference={'mAP':0.4})
@@ -287,11 +286,8 @@ def get_configs(settings, work_dir):
                                                                                                          '/Gather_22':'/Gather_22',
                                                                                                          }),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
-                    #ext_options={'object_detection:meta_arch_type': 7,
-                    #             'object_detection:meta_layers_names_list':
-                    #             '../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/fastbev/fastbev_mod_r34_f4_metaarch.prototxt'}),
                     {'advanced_options:output_feature_16bit_names_list':''}),
-                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/fastbev/fastbev_mod_r34_f4_256x704_20250407.onnx'),
+                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/fastbev/fastbev_mod_r34_f4_256x704_20251215.onnx'),
             postprocess=postproc_transforms.get_transform_bev_detection_fastbev(queue_length=3),
             metric=dict(),
             model_info=dict(metric_reference={'mAP':0.4})
@@ -310,7 +306,7 @@ def get_configs(settings, work_dir):
                                  'object_detection:meta_layers_names_list':
                                  '../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/fastbev/fastbev_mod_nms_r34_f4_metaarch.prototxt'}),
                     {'advanced_options:output_feature_16bit_names_list':''}),
-                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/fastbev/fastbev_mod_nms_r34_f4_256x704_20250430.onnx'),
+                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/fastbev/fastbev_mod_nms_r34_f4_256x704_20251215.onnx'),
             postprocess=postproc_transforms.get_transform_bev_detection_fastbev(enable_nms=False, queue_length=3),
             metric=dict(),
             model_info=dict(metric_reference={'mAP':0.4})
@@ -324,7 +320,7 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=[(123.675, 116.280, 103.530)], input_scale=[(0.017125, 0.017507, 0.017429)], input_optimization=False),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
                     {'advanced_options:output_feature_16bit_names_list':''}),
-                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/streampetr/streampetr_r50_256x704_20250912.onnx'),
+                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/streampetr/streampetr_mod_r50_256x704_20251215.onnx'),
             postprocess=postproc_transforms.get_transform_bev_detection_base(queue_length=1),
             metric=dict(),
             model_info=dict(metric_reference={'mAP':0.4})
@@ -338,7 +334,7 @@ def get_configs(settings, work_dir):
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=[(103.530, 116.280, 123.675)], input_scale=[(0.017429, 0.017507, 0.017125)], input_optimization=False),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
                     {'advanced_options:output_feature_16bit_names_list':''}),
-                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/far3d/far3d_vovnet_960x640_20251002.onnx'),
+                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/far3d/far3d_mod_vovnet_960x640_20251215.onnx'),
             postprocess=postproc_transforms.get_transform_bev_detection_base(queue_length=1),
             metric=dict(),
             model_info=dict(metric_reference={'mAP':0.4})
@@ -353,7 +349,7 @@ def get_configs(settings, work_dir):
                 input_mean=[(123.675, 116.280, 103.530)], input_scale=[(0.017125, 0.017507, 0.017429)], input_optimization=False),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
                     {'advanced_options:output_feature_16bit_names_list':''}),
-                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/sparse4d/sparse4d_mod_r50_256x704_20251029.onnx'),
+                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/sparse4d/sparse4d_mod_r50_256x704_20251215.onnx'),
             postprocess=postproc_transforms.get_transform_bev_detection_base(queue_length=1),
             metric=dict(),
             model_info=dict(metric_reference={'mAP':0.4})
@@ -370,7 +366,7 @@ def get_configs(settings, work_dir):
                 input_mean=[(123.675, 116.280, 103.530)], input_scale=[(0.017125, 0.017507, 0.017429)], input_optimization=False),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
                     {'advanced_options:output_feature_16bit_names_list':''}),
-                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/vad/vad_tiny_mod_384x640_20251006_opt.onnx'),
+                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/vad/vad_tiny_mod_384x640_20251215_opt.onnx'),
             postprocess=postproc_transforms.get_transform_bev_detection_base(queue_length=1),
             metric=dict(),
             model_info=dict(metric_reference={'mAP':0.4})

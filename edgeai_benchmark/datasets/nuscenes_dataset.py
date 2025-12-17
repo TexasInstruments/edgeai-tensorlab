@@ -862,20 +862,6 @@ class NuScenesDataset(DatasetBase):
         assert shuffle is False, 'Shuffling is not supported for NuScenesDataset'
 
         self.num_classes = kwargs['num_classes']
-        # FCOS3D, FastBEV
-        #self.class_to_name = {
-        #    0: 'car',
-        #    1: 'truck',
-        #    2: 'trailer',
-        #    3: 'bus',
-        #    4: 'construction_vehicle',
-        #    5: 'bicycle',
-        #    6: 'motorcycle',
-        #    7: 'pedestrian',
-        #    8: 'traffic_cone',
-        #    9: 'barrier'
-        #}
-        #self.classes = [self.class_to_name[i] for i in range(self.num_classes)]
         self.data_infos, self.data_scene_infos = self.create_nuscenes_infos(read_anno, split_folder, self.version)
 
         # For validation dataset, read annotaiton for evaluation
@@ -988,9 +974,7 @@ class NuScenesDataset(DatasetBase):
     def evaluate(self, predictions, **kwargs):
         result_dict = dict()
 
-        if kwargs['task_name'] == 'FCOS3D' or \
-            kwargs['task_name'] == 'FastBEV_f1' or \
-            kwargs['task_name'] == 'FastBEV_f4':
+        if kwargs['task_name'] == 'FCOS3D':
             class_to_name = class_to_name_type_1
         else:
             class_to_name = class_to_name_type_2

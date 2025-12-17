@@ -1286,7 +1286,7 @@ class GetBEVDetGeometry():
             (points[..., :2, :] * points[..., 2:3, :], points[..., 2:3, :]), 5)
         #combine = sensor2egos[:,:,:3,:3].matmul(np.linalg.inv(cam2imgs))
         #points = combine.reshape(B, N, 1, 1, 1, 3, 3).matmul(points).squeeze(-1)
-        combine = np.matmul(sensor2egos[:,:,:3,:3], np.linalg.inv(cam2imgs))
+        combine = np.matmul(sensor2egos[:,:,:3,:3], np.linalg.inv(cam2imgs[:, :3, :3]))
         points = np.squeeze(np.matmul(combine.reshape(B, N, 1, 1, 1, 3, 3), points), -1)
         points += sensor2egos[:,:,:3, 3].reshape(B, N, 1, 1, 1, 3)
         #points = bda[:, :3, :3].reshape(B, 1, 1, 1, 1, 3, 3).matmul(
