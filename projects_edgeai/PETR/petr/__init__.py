@@ -5,6 +5,7 @@ from .positional_encoding import SinePositionalEncoding3D
 from .loading import LoadMultiViewImageFromMultiSweepsFiles
 
 from .nuscenes_dataset import PETRv2NuScenesDataset
+from .pandaset_dataset import PETRv2PandaSetDataset
 
 
 __all__ = [
@@ -12,5 +13,5 @@ __all__ = [
     'PETR',
     'SinePositionalEncoding3D',
     'LoadMultiViewImageFromMultiSweepsFiles',
-    'PETRv2NuScenesDataset',
+    'PETRv2NuScenesDataset', 'PETRv2PandaSetDataset'
 ]

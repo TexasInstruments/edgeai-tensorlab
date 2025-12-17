@@ -152,7 +152,7 @@ Prepare the KITTI dataset as per the MMDetection3D documentation [KITTI dataset 
     <td>BEVFormer</td>
     <td align="center">Yes</td>
     <td align="center">Yes</td>
-    <td align="center">In Progress</td>
+    <td align="center">Yes</td>
   </tr>  
   <tr>
     <td>PETR</td>
@@ -163,7 +163,7 @@ Prepare the KITTI dataset as per the MMDetection3D documentation [KITTI dataset 
   <tr>
     <td>PETRv2</td>
     <td align="center">Yes</td>
-    <td align="center">In Progress</td>
+    <td align="center">Yes</td>
     <td align="center">In Progress</td>
   </tr>
   <tr>
@@ -172,53 +172,73 @@ Prepare the KITTI dataset as per the MMDetection3D documentation [KITTI dataset 
     <td align="center">Yes</td>
     <td align="center">In Progress</td>
   </tr>
-    <tr>
+  <tr>
     <td>BEVDet</td>
     <td align="center">Yes</td>
     <td align="center">Yes</td>
     <td align="center">No</td>
   </tr>
-  </tr>
-    <tr>
+  <tr>
     <td>StreamPETR</td>
     <td align="center">Yes</td>
-    <td align="center">In Progress</td>
+    <td align="center">Yes</td>
+    <td align="center">No</td>
+  </tr>
+  <tr>
+    <td>Far3D</td>
+    <td align="center">Yes</td>
+    <td align="center">Yes</td>
     <td align="center">No</td>
   </tr>
   </tr>
     <tr>
-    <td>Far3D</td>
+    <td>Sparse4D</td>
     <td align="center">Yes</td>
-    <td align="center">In Progress</td>
     <td align="center">No</td>
-  </tr>
+    <td align="center">No</td>
 </table>
 
+## Results on NuScenes and PandaSet Validation Dataset
 
-### FastBEV
+This table shows the inference results of the models on NuScenes and PandaSet validation dataset. Data preparation, training and testing of each model can be found in the link.
 
-FastBEV has been trained and validated with egdgeai-mmdetection3d. Data preparation, training and testing of them can be found in [FastBEV](./projects_edgeai/FastBEV/README.md).
+| Models                                              |  Dataset |                      Configs                           | Mem (GB) |  mAP   |  NDS  |
+|:--------------------------------------------------- |:---------|:------------------------------------------------------ | :------: | :---:  | :--:  |
+| [FastBEV](./projects_edgeai/FastBEV/README.md)      | NuScenes | fastbev_m0_r18_s256x704_v200x200x4_c192_d2_f1          |   0.33   | 25.06  | 34.39 |
+|                                                     |          | fastbev_m2_r34_s256x704_v200x200x4_c224_d4_f4          |   0.83   | 34.67  | 47.49 |
+|                                                     | PandaSet | fastbev_pandaset_m0_r18_s256x704_v200x200x4_c192_d2_f1 |   0.33   | 17.28  | 26.49 |
+|                                                     |          | fastbev_pandaset_m2_r34_s256x704_v200x200x4_c224_d4_f4 |   0.83   | 22.52  | 31.04 |
+| [BEVFormer](./projects_edgeai/BEVFormer/README.md)  | NuScenes | bevformer_tiny                                         |   0.63   | 27.16  | 37.40 |
+|                                                     |          | bevformer_tiny_nn                                      |   0.63   | 25.97  | 36.50 |
+|                                                     | PandaSet | bevformer_tiny_pandaset                                |   0.80   | 22.00  | 29.02 |
+|                                                     |          | bevformer_tiny_pandaset_nn                             |   0.80   | 20.79  | 27.98 |
+| [PETR](./projects_edgeai/PETR/README.md)            | NuScenes | petr_vovnet_gridmask_p4_800x320                        |   1.09   | 38.55  | 43.79 |
+|                                                     | PandaSet | petr_pandaset_vovnet_gridmask_p4_960x352               |   1.34   | 30.79  | 34.70 |
+| [PETRv2](./projects_edgeai/PETR/README.md)          | NuScenes | petrv2_vovnet_gridmask_p4_800x320                      |   1.16   | 39.10  | 47.70 |
+|                                                     | PandaSet | petrv2_pandaset_vovnet_gridmask_p4_960x352             |   1.42   | 25.43* | 32.03*|
+| [FCOS3D](./projects_edgeai/FCOS3D/README.md)        | NuScenes | fcos3d_r101-caffe-dcn_fpn_head-gn_8xb2-1x_nus-mono3d_tidl          |   0.77   | 29.81  | 37.74 |
+|                                                     | PandaSet | fcos3d_r101-caffe-dcn_fpn_head-gn_8xb2-1x_ps-mono3d_tidl_3classes  |   0.77   | 15.84  | 28.86 |
+| [StreamPETR](./projects_edgeai/Far3D/README.md)     | NuScenes | streampetr_r50_256x704_bs4_seq_24e                     |   0.38   | 39.07  | 48.92 |
+|                                                     | PandaSet | streampetr_pnadaset_r50_256x704_bs4_seq_24e            |   0.38   | 30.52  | 37.05 |
+| [Far3D](./projects_edgeai/Far3D/README.md)          | NuScenes | far3d_vovnet_gridmask_960x640                          |   2.20   | 41.07  | 52.41 |
+|                                                     | PandaSet | far3d_pandaset_vovnet_gridmask_960x640                 |   2.20   | 22.04* | 32.04*|
+| [Sparse4Dv3](./projects_edgeai/Sparse4D/README.md)  | NuScenes | sparse4dv3_temporal_r50_1x8_bs6_256x704                |   0.91   | 44.66  | 55.94 |
+|                                                     | PandaSet | N/A                                                    |          |        |       |
+| [BEVDet](./projects_edgeai/BEVDet/README.md)        | NuScenes | bevdet-r50                                             |   0.58   | 28.69  | 35.44 |
+|                                                     | PandaSet | bevdet_pandaset-r50                                    |   0.65   | 21.17  | 29.56 |
 
-### BEVFormer
-
-BEVFormer has been trained and validated with egdgeai-mmdetection3d. Data preparation, training and testing of BEVFormer can be found in [BEVFormer](./projects_edgeai/BEVFormer/README.md).
-
-### PETR / PETRv2
-
-PETR and PETRv2 have been trained and validated with egdgeai-mmdetection3d. Data preparation, training and testing of them can be found in [PETR/PETRv2](./projects_edgeai/PETR/README.md).
-
-### BEVDet
-
-BEVDet has been trained and validated with egdgeai-mmdetection3d. Data preparation, training and testing of BEVDet can be found in [BEVDet](./projects_edgeai/BEVDet/README.md).
-
-### FCOS3D
-
-FCOS3D has been trained and validated with egdgeai-mmdetection3d. Data preparation, training and testing of them can be found in [FCOS3D](./projects_edgeai/FCOS3D/README.md).
+\* Lower accuracies of Far3D and PETRv2 are under study. New results will be updated.
 
 
-### PointPillars
+## Results on KITTI Dataset
 
-PointPillars has been trained and validated with egdgeai-mmdetection3d. Data preparation, training and testing of PointPillars can be found in [PointPillars](./projects_edgeai/PointPillars/README.md).
+PointPillars has been trained and validated in egdgeai-mmdetection3d. The table shows the inference results. Data preparation, training and testing of PointPillars can be found in [PointPillars](./projects_edgeai/PointPillars/README.md).
+
+| Model Name               |Dataset  |Max Num Voxels | Configs                                                                             | Accuracy AP(Easy-Moderate-Hard)      |
+|:-------------------------|:--------|:--------------|-------------------------------------------------------------------------------------|:------------------------------------:|
+|PointPillars (Car class)  | KITTI   |10000          |configs/pointPillars/tidl_pointpillars_hv_secfpn_8x6b_160e_kitti-3d-car.py           |**86.51 - 76.84 - 73.74**             |
+|PointPillars (3 class)    |         |10000          |configs/pointPillars/tidl_pointpillars_hv_secfpn_8x6b_160e_kitti-3d-3class.py        |**73.84 - 62.66 - 57.88**             |
+|PointPainting (3 class)   |         |10000          |configs/pointPillars/tidl_pointpillars_hv_secfpn_8xb6_160e_kitti-3d-3class-painted.py|**74.62 - 63.49 - 59.95**             |
 
 
 <hr>

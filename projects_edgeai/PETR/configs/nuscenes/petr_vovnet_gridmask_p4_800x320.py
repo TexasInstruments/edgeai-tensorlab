@@ -190,7 +190,7 @@ train_pipeline = [
         type='Pack3DDetInputs',
         keys=[
             'img', 'gt_bboxes', 'gt_bboxes_labels', 'attr_labels',
-            'gt_bboxes_3d', 'gt_labels_3d', 'centers_2d', 'depths'
+            'gt_bboxes_3d', 'gt_labels_3d', 'centers_2d'
         ])
 ]
 test_pipeline = [
@@ -205,7 +205,7 @@ test_pipeline = [
 ]
 
 train_dataloader = dict(
-    batch_size=1,
+    batch_size=2,
     num_workers=4,
     dataset=dict(
         type=dataset_type,

@@ -14,8 +14,7 @@ Monocular 3D object detection is an important task for autonomous driving consid
 
 ## Introduction
 
-
-FCOS3D is a general anchor-free, one-stage monocular 3D object detector adapted from the original 2D version FCOS. We implement and provide the results and checkpoints on the NuScenes dataset. 
+FCOS3D is a general anchor-free, one-stage monocular 3D object detector adapted from the original 2D version FCOS. We implement and provide the results and checkpoints on the NuScenes and PandaSet dataset. 
 
 ## Dataset Preperation
 

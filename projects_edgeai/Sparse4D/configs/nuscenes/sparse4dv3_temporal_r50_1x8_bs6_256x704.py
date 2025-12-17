@@ -1,58 +1,3 @@
-"""
-mAP: 0.4647
-mATE: 0.5403
-mASE: 0.2623
-mAOE: 0.4590
-mAVE: 0.2198
-mAAE: 0.2059
-NDS: 0.5636
-Eval time: 176.9s
-
-Per-class results:
-Object Class    AP  ATE ASE AOE AVE AAE
-car 0.668   0.357   0.142   0.054   0.184   0.195
-truck   0.394   0.528   0.187   0.052   0.163   0.210
-bus 0.451   0.681   0.196   0.070   0.383   0.243
-trailer 0.185   0.971   0.247   0.634   0.175   0.202
-construction_vehicle    0.122   0.879   0.496   1.200   0.136   0.406
-pedestrian  0.559   0.517   0.287   0.513   0.282   0.151
-motorcycle  0.497   0.462   0.238   0.536   0.293   0.236
-bicycle 0.426   0.441   0.257   0.951   0.142   0.004
-traffic_cone    0.697   0.275   0.299   nan nan nan
-barrier 0.648   0.292   0.275   0.122   nan nan
-"""
-
-"""
-Per-class results:
-            AMOTA   AMOTP   RECALL  MOTAR   GT      MOTA    MOTP    MT  ML  FAF     TP      FP  FN  IDS FRAG TID    LGD
-bicycle     0.444   1.169   0.533   0.733   1993    0.389   0.566   53  57  19.3    1059    283 931 3   8   1.60    1.75
-bus         0.559   1.175   0.626   0.824   2112    0.515   0.751   42  35  14.8    1321    233 790 1   20  1.13    1.95
-car         0.678   0.755   0.733   0.819   58317   0.599   0.470   2053    1073    134.2   42626   7706    15565   126 295 0.76    1.03
-motorcy     0.522   1.060   0.609   0.823   1977    0.497   0.564   50  38  15.7    1194    211 773 10  17  1.97    2.17
-pedestr     0.548   1.059   0.652   0.791   25423   0.506   0.678   677 467 77.6    16274   3404    8854    295 225 1.33    1.85
-trailer     0.136   1.603   0.383   0.403   2425    0.154   0.981   30  79  52.6    926 553 1496    3   13  1.49    2.64
-truck       0.454   1.132   0.577   0.691   9650    0.399   0.594   210 214 45.7    5569    1723    4078    3   50  1.35    1.85
-
-Aggregated results:
-AMOTA   0.477
-AMOTP   1.136
-RECALL  0.588
-MOTAR   0.726
-GT  14556
-MOTA    0.437
-MOTP    0.658
-MT  3115
-ML  1963
-FAF 51.4
-TP  68969
-FP  14113
-FN  32487
-IDS 441
-FRAG    628
-TID 1.37
-LGD 1.89
-"""
-
 _base_ = [
     'mmdet3d::_base_/datasets/nus-3d.py',
     'mmdet3d::_base_/default_runtime.py',
@@ -112,7 +57,7 @@ num_groups = 8
 num_decoder = 6
 num_single_frame_decoder = 1
 # use_deformable_func should be True for training to save memory
-# use_deformable_func should be for ONNX export while inferencing
+# use_deformable_func should be False for ONNX export while inferencing
 # For use_deformable_func=True, mmdet3d_plugin/ops/setup.py needs to be executed
 use_deformable_func = True
 strides = [4, 8, 16, 32]
@@ -383,7 +328,7 @@ input_modality = dict(
 
 train_dataloader = dict(
     batch_size=batch_size,
-    num_workers=1,
+    num_workers=4,
     drop_last=True,
     sampler=dict(type='GroupEachSampleInBatchSampler',
                  shuffle=True, sequence_flip_prob=0.1),
@@ -449,7 +394,7 @@ param_scheduler = [
 ]
 
 optim_wrapper = dict(
-    optimizer=dict(type='AdamW', lr=6e-4, weight_decay=0.01),
+    optimizer=dict(type='AdamW', lr=1e-4, weight_decay=0.01),
     paramwise_cfg=dict(custom_keys={
         'img_backbone': dict(lr_mult=0.5),
     }),

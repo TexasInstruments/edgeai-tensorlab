@@ -21,7 +21,7 @@ Recently 3D object detection from surround-view images has made notable advancem
 
 ## Introduction
 
-We implement and provide the results and checkpoints for StreamPETR and Far3D on the NuScenes dataset.
+We implement and provide the results and checkpoints for StreamPETR and Far3D on the NuScenes and PandaSet dataset.
 
 ## Dataset Preperation
 
@@ -59,11 +59,40 @@ edgeai-mmdetection3d
 
 ### PandaSet
 
-StreamPETR and Far3D are not supported yet in edgeai-mmdetection3d. 
+Download `pandaset.zip` from [HERE](https://huggingface.co/datasets/georghess/pandaset/tree/main) and unzip the file in `./data/pandaset`. Then run the following command to prepare `.pkl` files for StreamPETR and Far3D:
+
+```bash
+python tools/create_data.py pandaset --root-path ./data/pandaset --out-dir ./data/pandaset --extra-tag pandaset --strpetr
+```
+
+The directory structure after processing should look like:
+
+```
+edgeai-mmdetection3d
+├── mmdet3d
+├── tools
+├── configs
+├── data
+│   ├── pandaset
+│   │   ├── 001
+│   │   │   ├── annotations
+│   │   │   ├── camera
+│   │   │   ├── LICENSE.txt
+│   │   │   ├── lidar
+│   │   │   └── meta
+│   │   ├── 002 
+.   .   .
+.   .   .
+.   .   .
+│   │   ├── 158
+│   │   ├── pandaset_infos_train.pkl
+│   │   ├── pandaset_infos_val.pkl
+```
+
 
 ## Get Started
 
-Refer the MMDetection3D documentation [Test and Train with Standard Datasets](../../docs/en/user_guides/train_test.md) for general floating point training/evaluation/testing steps for standard datasets. Use the below steps for training and evaluation of BEVDet:
+Refer the MMDetection3D documentation [Test and Train with Standard Datasets](../../docs/en/user_guides/train_test.md) for general floating point training/evaluation/testing steps for standard datasets. Use the below steps for training and evaluation of StreamPETR and Far3D:
 
 1. cd to installation directory <install_dir>/edgeai-mmdetection3d
 
@@ -76,8 +105,15 @@ Refer the MMDetection3D documentation [Test and Train with Standard Datasets](..
     # StreamPETR with NuScenes
     ./tools/dist_train.sh projects_edgeai/Far3D/configs/nuscenes/streampetr_r50_256x704_bs4_seq_24e.py 2
 
+    # StreamPETR with PandaSet
+    ./tools/dist_train.sh projects_edgeai/Far3D/configs/pandaset/streampetr_pandaset_r50_256x704_bs4_seq_24e.py 2
+
     # Far3D with NuScenes
     ./tools/dist_train.sh projects_edgeai/Far3D/configs/nuscenes/far3d_vovnet_gridmask_960x640.py 2
+
+    # Far3D with PandaSet
+    ./tools/dist_train.sh projects_edgeai/Far3D/configs/pandaset/far3d_pandaset_vovnet_gridmask_960x640.py 2
+
     ```
 
 3.  Do evalution using the command 
@@ -90,20 +126,28 @@ Refer the MMDetection3D documentation [Test and Train with Standard Datasets](..
     # StreamPETR with NuScenes
     python ./tools/test.py projects_edgeai/StreamPETR/configs/nuscenes/streampetr_r50_256x704_bs4_seq_24e.py ./work_dirs/streampetr_r50_256x704_bs4_seq_24e/epoch_24.pth
 
+    # StreamPETR with PandaSet
+    python ./tools/test.py projects_edgeai/StreamPETR/configs/pandaset/streampetr_pandaset_r50_256x704_bs4_seq_24e.py ./work_dirs/streampetr_pandaset_r50_256x704_bs4_seq_24e/epoch_24.pth
+
     # Far3D with NuScenes
     python ./tools/test.py projects_edgeai/Far3D/configs/nuscenes/far3d_vovnet_gridmask_960x640.py ./work_dirs/far3d_vovnet_gridmask_960x640/epoch_24.pth
+
+    # Far3D with PandaSet
+    python ./tools/test.py projects_edgeai/Far3D/configs/pandaset/far3d_pandaset_vovnet_gridmask_960x640.py ./work_dirs/far3d_pandaset_vovnet_gridmask_960x640/epoch_24.pth
     ```
     Note: This is single GPU evalution command. "./dist_test.sh" can be used for multiple GPU evalution process.
 
 ## Results
 
-The following results are for StreamPETR and Far#D with NuScenes.
+The following results are for StreamPETR and Far3D with NuScenes and PandaSet. Note that these resutls are from the trainged models through 24 epochs. Trained models with more epochs, e.g., 60 or 90, will provide better accuracies. Far3D didn't work well with PandaSet, which need to be furtur investigated.
 
 
 |  Dataset  |                    Model                      | Mem (GB) | Inf time (fps) | mAP    | NDS   |
 |:---------:| :-------------------------------------------- | :------: | :------------: | :---:  | :--:  |
 | NuScenes  | streampetr_r50_256x704_bs4_seq_24e            |   0.38   |       TBA      | 39.07  | 48.92 |
-|           | far3d_vovnet_gridmask_960x640                 |   2.20   |       TBA      | 41.75  | 52.79 |
+|           | far3d_vovnet_gridmask_960x640                 |   2.20   |       TBA      | 41.07  | 52.41 |
+| PandaSet  | streampetr_pnadaset_r50_256x704_bs4_seq_24e   |   0.38   |       TBA      | 30.52  | 37.05 |
+|           | far3d_pandaset_vovnet_gridmask_960x640        |   2.20   |       TBA      | 22.04  | 32.04 |
 
 
 <!--
@@ -125,7 +169,7 @@ model = dict(
     type='StreamPETR',
     save_onnx_model=True,
     data_preprocessor=dict(
-        type='Det3DDataPreprocessor',
+        type='Far3DDataPreprocessor',
         mean=[103.530, 116.280, 123.675],
         std=[57.375, 57.120, 58.395],
         ...

@@ -15,7 +15,7 @@ Recently, perception task based on Bird's-Eye View (BEV) representation has draw
 
 ## Introduction
 
-FastBEV is a lightweight and deployment-friendly BEV object detector. We implement and provide the results and checkpoints on the NuScenes dataset. 
+FastBEV is a lightweight and deployment-friendly BEV object detector. We implement and provide the results and checkpoints on the NuScenes and PandaSet dataset. 
 
 ## Dataset Preperation
 
@@ -29,7 +29,7 @@ After downloading nuScenes 3D detection dataset and unzipping all zip files, we 
 python tools/create_data.py nuscenes --root-path ./data/nuscenes --out-dir ./data/nuscenes --extra-tag nuscenes
 ```
 
-FastBEV uses multiple temporal frames and therefore need to organize neighboring frames's information as well in a `.pkl` file for training. For this purpose, we should run the following script, which will create `nuscenes_infos_train_fastbev.pkl` from `nuscenes_infos_train.pkl`.
+FastBEV uses multiple temporal frames. Therefore we need to organize neighboring frames's information as well in a `.pkl` file for training. For this purpose, we should run the following script, which will create `nuscenes_infos_train_fastbev.pkl` from `nuscenes_infos_train.pkl`.
 
 ```bash
 python tools/dataset_converters/generate_fastbev_sweep_pkl.py nuscenes --root-path ./data/nuscenes --version 'v1.0-trainval'
@@ -66,10 +66,10 @@ Download `pandaset.zip` from [HERE](https://huggingface.co/datasets/georghess/pa
 python tools/create_data.py pandaset --root-path ./data/pandaset --out-dir ./data/pandaset --extra-tag pandaset
 ```
 
-FastBEV uses multiple temporal frames and therefore need to organize neighboring frames's information as well in a `.pkl` file for training. For this purpose, we should run the following script, which will create `pandaset_infos_train_fastbev.pkl` from `pandaset_infos_train.pkl`.
+Similar to NuScenes, we need to organize neighboring frames's information as well in a `.pkl` file for training. For this purpose, we should run the following script, which will create `pandaset_infos_train_fastbev.pkl` from `pandaset_infos_train.pkl`.
 
 ```bash
-python tools/dataset_converters/generate_fastbev_sweep_pkl.py pandaset --root-path ./data/nuscenes'
+python tools/dataset_converters/generate_fastbev_sweep_pkl.py pandaset --root-path ./data/pandaset'
 ```
 
 The directory structure after processing should look like:
@@ -138,10 +138,10 @@ fastbev_m0_r18_s256x704_v200x200x4_c192_d2_f1 and fastbev_pandaset_m0_r18_s256x7
 
 |  Dataset  |                          Model                         | Mem (GB) | Inf time (fps) |  mAP   |  NDS  |
 |:---------:|:------------------------------------------------------ | :------: | :------------: | :---:  | :---: |
-| NuScenes  | fastbev_m0_r18_s256x704_v200x200x4_c192_d2_f1          |   0.33   |       TBA      | 24.91  | 34.26 | 
-|           | fastbev_m2_r34_s256x704_v200x200x4_c224_d4_f4          |   0.83   |       TBA      | 34.71  | 47.65 | 
-| PandaSet  | fastbev_pandaset_m0_r18_s256x704_v200x200x4_c192_d2_f1 |   0.33   |       TBA      | 17.47  | 26.46 | 
-|           | fastbev_pandaset_m2_r34_s256x704_v200x200x4_c224_d4_f4 |   0.83   |       TBA      | 23.07  | 31.50 | 
+| NuScenes  | fastbev_m0_r18_s256x704_v200x200x4_c192_d2_f1          |   0.33   |       TBA      | 25.06  | 34.39 | 
+|           | fastbev_m2_r34_s256x704_v200x200x4_c224_d4_f4          |   0.83   |       TBA      | 34.67  | 47.49 | 
+| PandaSet  | fastbev_pandaset_m0_r18_s256x704_v200x200x4_c192_d2_f1 |   0.33   |       TBA      | 17.28  | 26.49 | 
+|           | fastbev_pandaset_m2_r34_s256x704_v200x200x4_c224_d4_f4 |   0.83   |       TBA      | 22.52  | 31.04 | 
 
 <!-- 
 ## 3D Object Detection Model Zoo

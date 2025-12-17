@@ -195,8 +195,8 @@ train_pipeline = [
          ida_aug_conf=ida_aug_conf,
          is_train=True,
          camera_names=[
-             'back_camera', 'front_camera', 'front_left_camera', 
-             'front_right_camera', 'left_camera', 'right_camera']),
+             'front_camera', 'front_right_camera', 'front_left_camera', 
+             'back_camera', 'left_camera', 'right_camera']),
     dict(
         type='LoadAnnotations3D',
         with_bbox_3d=True,
@@ -222,8 +222,8 @@ test_pipeline = [
          ida_aug_conf=ida_aug_conf,
          is_train=False,
          camera_names=[
-             'back_camera', 'front_camera', 'front_left_camera', 
-             'front_right_camera', 'left_camera', 'right_camera']),
+             'front_camera', 'front_right_camera', 'front_left_camera', 
+             'back_camera', 'left_camera', 'right_camera']),
     dict(type='BEVAug',
          bda_aug_conf=bda_aug_conf,
          classes=class_names,

@@ -1,5 +1,5 @@
 _base_ = [
-    'mmdet3d::_base_/datasets/nus-3d.py',
+    'mmdet3d::_base_/datasets/pandaset-3d-3classes.py',
     'mmdet3d::_base_/default_runtime.py',
     'mmdet3d::_base_/schedules/cyclic-20e.py'
 ]
@@ -19,23 +19,29 @@ img_norm_cfg = dict(
     mean=[103.530, 116.280, 123.675],
     std=[57.375, 57.120, 58.395],
     bgr_to_rgb=False)
-# For nuScenes we usually do 10-class detection
+# 3 classes
 class_names = [
-    'car', 'truck', 'construction_vehicle', 'bus', 'trailer', 'barrier',
-    'motorcycle', 'bicycle', 'pedestrian', 'traffic_cone'
+    'Car','Pedestrian','Temporary Construction Barriers'
 ]
-metainfo = dict(classes=class_names)
+
+class_mapping = [
+    0,2,2,1,2,2,2,2,2,
+    2,2,2,2,2,2,2,2,2,
+    2,2,2,2,2,1,2,2,2,
+]
+metainfo = dict(classes=class_names, class_mapping=class_mapping)
 
 # If True, reuse image feature map from the previous frame
 # ONNX export is supported for optimized_inference = True
 optimized_inference=True
+
 sweep_range=[1,2]
 
 input_modality = dict(use_camera=True)
 model = dict(
     type='PETR',
     version='v2',
-    img_feat_size = [[6, 256, 20, 50], [6, 256, 10, 25]],
+    img_feat_size = [[6, 256, 22, 60], [6, 256, 11, 30]],
     save_onnx_model=False,
     optimized_inference=optimized_inference,
     sweep_range=sweep_range,
@@ -58,7 +64,7 @@ model = dict(
         type='CPFPN', in_channels=[768, 1024], out_channels=256, num_outs=2),
     pts_bbox_head=dict(
         type='PETRv2Head',
-        num_classes=10,
+        num_classes=3,
         in_channels=256,
         num_query=900,
         LID=True,
@@ -103,7 +109,7 @@ model = dict(
             pc_range=point_cloud_range,
             max_num=300,
             voxel_size=voxel_size,
-            num_classes=10),
+            num_classes=3),
         positional_encoding=dict(
             type='SinePositionalEncoding3D', num_feats=128, normalize=True),
         loss_cls=dict(
@@ -130,56 +136,46 @@ model = dict(
                 ),  # Fake cost. Just to be compatible with DETR head.
                 pc_range=point_cloud_range))))
 
-dataset_type = 'PETRv2NuScenesDataset'
-data_root = 'data/nuscenes/'
+dataset_type = 'PETRv2PandaSetDataset'
+data_root = 'data/pandaset/'
 backend_args = None
 
+"""
 db_sampler = dict(
     data_root=data_root,
-    info_path=data_root + 'nuscenes_dbinfos_train.pkl',
+    info_path=data_root + 'pandaset_dbinfos_train.pkl',
     rate=1.0,
     prepare=dict(
         filter_by_difficulty=[-1],
-        filter_by_min_points=dict(
-            car=5,
-            truck=5,
-            bus=5,
-            trailer=5,
-            construction_vehicle=5,
-            traffic_cone=5,
-            barrier=5,
-            motorcycle=5,
-            bicycle=5,
-            pedestrian=5)),
+        filter_by_min_points={
+            'Car':5,
+            'Pedestrian':5,
+            'Temporary Construction Barriers':5
+            }),
     classes=class_names,
-    sample_groups=dict(
-        car=2,
-        truck=3,
-        construction_vehicle=7,
-        bus=4,
-        trailer=6,
-        barrier=2,
-        motorcycle=6,
-        bicycle=6,
-        pedestrian=2,
-        traffic_cone=2),
+    sample_groups={
+            'Car':2,
+            'Pedestrian':2,
+            'Temporary Construction Barriers':2
+            },
     points_loader=dict(
-        type='LoadPointsFromFile',
+        type='LoadPointsFromFile', # TODO PKL FILE ADDING
         coord_type='LIDAR',
         load_dim=5,
-        use_dim=[0, 1, 2, 3, 4],
+        use_dim=[0, 1, 2, 3],
         backend_args=backend_args),
     backend_args=backend_args)
+"""
+
 ida_aug_conf = {
     'resize_lim': (0.47, 0.625),
-    'final_dim': (320, 800),
+    'final_dim': (352, 960),
     'bot_pct_lim': (0.0, 0.0),
     'rot_lim': (0.0, 0.0),
-    'H': 900,
-    'W': 1600,
+    'H': 1080,
+    'W': 1920,
     'rand_flip': True,
 }
-
 train_pipeline = [
     dict(
         type='LoadMultiViewImageFromFiles',
@@ -191,6 +187,7 @@ train_pipeline = [
         to_float32=True,
         pad_empty_sweeps=True,
         test_mode=False,
+        sensors=['front_camera', 'front_right_camera', 'front_left_camera', 'back_camera', 'left_camera', 'right_camera'],
         sweep_range=sweep_range),
     dict(
         type='LoadAnnotations3D',
@@ -212,7 +209,7 @@ train_pipeline = [
         type='Pack3DDetInputs',
         keys=[
             'img', 'gt_bboxes', 'gt_bboxes_labels', 'attr_labels',
-            'gt_bboxes_3d', 'gt_labels_3d', 'centers_2d'],
+            'gt_bboxes_3d', 'gt_labels_3d', 'centers_2d'], 
         meta_keys=['filename', 'ori_shape', 'img_shape', 'lidar2img', 'cam2img', 'lidar2cam',
             'pad_shape', 'scale_factor', 'flip', 'box_mode_3d', 'box_type_3d',
             'img_norm_cfg', 'sample_idx', 'timestamp', 'delta_timestamp'])
@@ -227,7 +224,9 @@ test_pipeline = [
         to_float32=True,
         pad_empty_sweeps=True,
         optimized_inference=optimized_inference,
-        sweep_range=sweep_range),
+        sweep_range=sweep_range,
+        sensors=['front_camera', 'front_right_camera', 'front_left_camera', 'back_camera', 'left_camera', 'right_camera']
+        ),
     dict(
         type='ResizeCropFlipImage', data_aug_conf=ida_aug_conf,
         training=False),
@@ -237,19 +236,19 @@ test_pipeline = [
 ]
 
 train_dataloader = dict(
-    batch_size=2,
+    batch_size=1,
     num_workers=4,
     dataset=dict(
         type=dataset_type,
-        ann_file='nuscenes_long_infos_train.pkl',
+        ann_file='pandaset_long_infos_train.pkl',
         data_prefix=dict(
-            pts='samples/LIDAR_TOP',
-            CAM_FRONT='samples/CAM_FRONT',
-            CAM_FRONT_LEFT='samples/CAM_FRONT_LEFT',
-            CAM_FRONT_RIGHT='samples/CAM_FRONT_RIGHT',
-            CAM_BACK='samples/CAM_BACK',
-            CAM_BACK_RIGHT='samples/CAM_BACK_RIGHT',
-            CAM_BACK_LEFT='samples/CAM_BACK_LEFT'),
+            pts='lidar',
+            front_camera='camera/front_camera',
+            front_left_camera='camera/front_left_camera',
+            front_right_camera='camera/front_right_camera',
+            back_camera='camera/back_camera',
+            left_camera='camera/left_camera',
+            right_camera='camera/right_camera'),
         pipeline=train_pipeline,
         box_type_3d='LiDAR',
         metainfo=metainfo,
@@ -262,15 +261,15 @@ test_dataloader = dict(
     num_workers=4,
     dataset=dict(
         type=dataset_type,
-        ann_file='nuscenes_long_infos_val.pkl',
+        ann_file='pandaset_long_infos_val.pkl',
         data_prefix=dict(
-            pts='samples/LIDAR_TOP',
-            CAM_FRONT='samples/CAM_FRONT',
-            CAM_FRONT_LEFT='samples/CAM_FRONT_LEFT',
-            CAM_FRONT_RIGHT='samples/CAM_FRONT_RIGHT',
-            CAM_BACK='samples/CAM_BACK',
-            CAM_BACK_RIGHT='samples/CAM_BACK_RIGHT',
-            CAM_BACK_LEFT='samples/CAM_BACK_LEFT'),
+            pts='lidar',
+            front_camera='camera/front_camera',
+            front_left_camera='camera/front_left_camera',
+            front_right_camera='camera/front_right_camera',
+            back_camera='camera/back_camera',
+            left_camera='camera/left_camera',
+            right_camera='camera/right_camera'),
         pipeline=test_pipeline,
         box_type_3d='LiDAR',
         metainfo=metainfo,
@@ -283,15 +282,15 @@ val_dataloader = dict(
     num_workers=4,
     dataset=dict(
         type=dataset_type,
-        ann_file='nuscenes_long_infos_val.pkl',
+        ann_file='pandaset_long_infos_val.pkl',
         data_prefix=dict(
-            pts='samples/LIDAR_TOP',
-            CAM_FRONT='samples/CAM_FRONT',
-            CAM_FRONT_LEFT='samples/CAM_FRONT_LEFT',
-            CAM_FRONT_RIGHT='samples/CAM_FRONT_RIGHT',
-            CAM_BACK='samples/CAM_BACK',
-            CAM_BACK_RIGHT='samples/CAM_BACK_RIGHT',
-            CAM_BACK_LEFT='samples/CAM_BACK_LEFT'),
+            pts='lidar',
+            front_camera='camera/front_camera',
+            front_left_camera='camera/front_left_camera',
+            front_right_camera='camera/front_right_camera',
+            back_camera='camera/back_camera',
+            left_camera='camera/left_camera',
+            right_camera='camera/right_camera'),
         pipeline=test_pipeline,
         box_type_3d='LiDAR',
         metainfo=metainfo,
@@ -302,9 +301,9 @@ val_dataloader = dict(
 
 
 val_evaluator = dict(
-    type='SortedNuScenesMetric',
+    type='SortedPandaSetMetric',
     data_root=data_root,
-    ann_file=data_root + 'nuscenes_long_infos_val.pkl',
+    ann_file=data_root + 'pandaset_long_infos_val.pkl',
     metric='bbox',
     backend_args=backend_args)
 test_evaluator = val_evaluator
@@ -344,5 +343,5 @@ default_hooks = dict(
 
 find_unused_parameters = False
 
-load_from = './pretrained/fcos3d_vovnet_imgbackbone-remapped.pth'
+load_from = './checkpoints/petrv2/petrv2_keyframe_epoch_24_20250828.pth'
 resume = False
