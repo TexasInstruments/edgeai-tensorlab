@@ -93,25 +93,8 @@ def get_configs(settings, work_dir):
         #    session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=[(123.675, 116.280, 103.530)], input_scale=[(0.017125, 0.017507, 0.017429)], input_optimization=False),
         #        runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
         #            {'advanced_options:output_feature_16bit_names_list':''}),
-        #        model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/pandaset/bevdet_r50_mod_pandaset_288x832_20250512.onnx'),
+        #        model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/pandaset/bevdet/bevdet_r50_mod_pandaset_288x832_20250512.onnx'),
         #    postprocess=postproc_transforms.get_transform_bev_detection_bevdet(),
-        #    metric=dict(),
-        #    model_info=dict(metric_reference={'mAP':0.4})
-        #),
-
-        ## 3dod-8140: BEVFormer for pandaset
-        #'3dod-8140':utils.dict_update(bev_frame_cfg_ps,
-        #    task_name='BEVFormer',
-        #    # pad = (left, top, right, bottom) = (0, 0, 0, 30)
-        #    preprocess=preproc_transforms.get_transform_bev_bevformer((1080, 1920), (540, 960), (0, 0, 0, 4), backend='cv2', interpolation=cv2.INTER_CUBIC),
-        #    session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=[(123.675, 116.280, 103.530)], input_scale=[(0.017125, 0.017507, 0.017429)], input_optimization=False),
-        #        runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL,
-        #                        'object_detection:meta_arch_type': 10,
-        #                        'object_detection:meta_layers_names_list':
-        #                        f'{settings.models_path}/vision/detection_3d/pandaset/mmdet3d/bevformer_tiny_mod_pandaset_544x960_20250602_opt.prototxt'}),
-        #            {'advanced_options:output_feature_16bit_names_list':'','advanced_options:max_num_subgraph_nodes': 1536}),
-        #        model_path=f'{settings.models_path}/vision/detection_3d/pandaset/mmdet3d/bevformer_tiny_mod_pandaset_544x960_20250602_opt.onnx'),
-        #    postprocess=postproc_transforms.get_transform_bev_detection_base(),
         #    metric=dict(),
         #    model_info=dict(metric_reference={'mAP':0.4})
         #),
@@ -129,6 +112,25 @@ def get_configs(settings, work_dir):
         #    metric=dict(),
         #    model_info=dict(metric_reference={'mAP':0.4})
         #),
+        # 3dod-8140: BEVFormer for pandaset
+        '3dod-8140':utils.dict_update(bev_frame_cfg_ps,
+            task_name='BEVFormer',
+            # pad = (left, top, right, bottom) = (0, 0, 0, 30)
+            preprocess=preproc_transforms.get_transform_bev_bevformer(
+                (1080, 1920), (540, 960), (0, 0, 0, 4),  queue_length=1, backend='cv2', interpolation=cv2.INTER_CUBIC),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_mean=[(123.675, 116.280, 103.530)], input_scale=[(0.017125, 0.017507, 0.017429)], input_optimization=False),
+                runtime_options=utils.dict_update(settings.runtime_options_onnx_p2( ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL,
+                                'object_detection:meta_arch_type': 10,
+                                'object_detection:meta_layers_names_list':
+                                f'{settings.models_path}/vision/detection_3d/pandaset/mmdet3d/bevformer_tiny_mod_pandaset_blgrid_544x960_20251215_opt.prototxt'}),
+                    {'advanced_options:output_feature_16bit_names_list':'/img_backbone/relu/Relu_output_0, /img_backbone/layer1/layer1.0/downsample/downsample.0/Conv_output_0, /img_backbone/layer1/layer1.0/conv3/Conv_output_0, /pts_bbox_head/Div_1_output_0, /pts_bbox_head/Add_9_output_0, /pts_bbox_head/Add_10_output_0, /pts_bbox_head/Sigmoid_output_0, /pts_bbox_head/Mul_2_output_0',
+                     'advanced_options:max_num_subgraph_nodes': 1536,
+                     'advanced_options:use16BitForTopK': 1}),
+                model_path=f'{settings.models_path}/vision/detection_3d/pandaset/mmdet3d/bevformer_tiny_mod_pandaset_blgrid_544x960_20251215_opt.onnx'),
+            postprocess=postproc_transforms.get_transform_bev_detection_base(queue_length=1),
+            metric=dict(),
+            model_info=dict(metric_reference={'mAP':0.4}, model_shortlist=100)
+        ),
         # 3dod-8160: FastBEV without temporal frame for pandaset
         '3dod-8160':utils.dict_update(bev_frame_cfg_ps,
             task_name='FastBEV_f1',
@@ -141,7 +143,7 @@ def get_configs(settings, work_dir):
                                                                                                        '/Gather_9':None}),
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(),
                     {'advanced_options:output_feature_16bit_names_list':'/bbox_head/conv_cls/Conv_output_0, /bbox_head/conv_dir_cls/Conv_output_0, /bbox_head/conv_reg/Conv_output_0'}),
-                model_path=f'{settings.models_path}/vision/detection_3d/pandaset/mmdet3d/fastbev_mod_pandaset_r18_f1_256x704_20250507.onnx'),
+                model_path=f'{settings.models_path}/vision/detection_3d/pandaset/mmdet3d/fastbev_mod_pandaset_r18_f1_256x704_20251215.onnx'),
             postprocess=postproc_transforms.get_transform_bev_detection_fastbev(),
             metric=dict(),
             model_info=dict(metric_reference={'mAP':17.47, 'NDS':26.46})
@@ -157,9 +159,9 @@ def get_configs(settings, work_dir):
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(
                     ext_options={'object_detection:meta_arch_type': 7,
                                  'object_detection:meta_layers_names_list':
-                                 f'{settings.models_path}/vision/detection_3d/pandaset/mmdet3d/fastbev_mod_pandaset_nms_r18_f1_256x704_20250507.prototxt'}),
+                                 f'{settings.models_path}/vision/detection_3d/pandaset/mmdet3d/fastbev_mod_pandaset_nms_r18_f1_256x704_20251215.prototxt'}),
                     {'advanced_options:output_feature_16bit_names_list':'/bbox_head/conv_cls/Conv_output_0, /bbox_head/conv_dir_cls/Conv_output_0, /bbox_head/conv_reg/Conv_output_0'}),
-                model_path=f'{settings.models_path}/vision/detection_3d/pandaset/mmdet3d/fastbev_mod_pandaset_nms_r18_f1_256x704_20250507.onnx'),
+                model_path=f'{settings.models_path}/vision/detection_3d/pandaset/mmdet3d/fastbev_mod_pandaset_nms_r18_f1_256x704_20251215.onnx'),
             postprocess=postproc_transforms.get_transform_bev_detection_fastbev(enable_nms=False),
             metric=dict(),
             model_info=dict(metric_reference={'mAP':17.47, 'NDS':26.46}, model_shortlist=100)

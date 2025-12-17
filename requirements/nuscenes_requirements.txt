@@ -1,3 +1,4 @@
-nuscenes-devkit
+nuscenes-devkit==1.2.0
 pyquaternion
 opencv-python
+motmetrics==1.4.0

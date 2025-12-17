@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-echo "Please download NuScenes mini dataset first from https://www.nuscenes.org/download and unzip them in ./dependencies/datasets/nuscenes/ directory."
+echo "Please download NuScenes dataset first from https://www.nuscenes.org/download and unzip them in ./dependencies/datasets/nuscenes/ directory."
 echo ""
 echo "./dependencies/datasets/nuscenes/ should look like this:"
 echo ""

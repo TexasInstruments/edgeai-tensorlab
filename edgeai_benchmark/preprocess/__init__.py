@@ -295,6 +295,33 @@ class PreProcessTransforms(utils.TransformsCompose):
                                           resize_with_pad=resize_with_pad, pad_color=pad_color)
         return transforms
 
+
+    def get_transform_bev_sparse4d(self, imsize=256, resize=256, crop=224, queue_length=0,
+                        data_layout=constants.NCHW, reverse_channels=False,
+                        backend='cv2', interpolation=cv2.INTER_AREA, resize_with_pad=False, pad_color=0):
+        transforms_list = [
+            BEVSensorsRead(imsize, resize, crop),
+            ImageRead(backend=backend, bgr_to_rgb=True),
+            ImageResize(resize, interpolation=interpolation, resize_with_pad=resize_with_pad, pad_color=pad_color),
+            ImageCrop(crop),
+            ImageToNPTensor4D(data_layout=data_layout),
+        ]
+
+        if queue_length > 0:
+            transforms_list += [SetupTemporalQueue(queue_length=queue_length)]
+
+        transforms_list += [
+            GetSparse4DHistory()
+        ]
+
+        transforms = PreProcessTransforms(None, transforms_list,
+                                          imsize=imsize, resize=resize, crop=crop,
+                                          data_layout=data_layout, reverse_channels=reverse_channels,
+                                          backend=backend, interpolation=interpolation,
+                                          resize_with_pad=resize_with_pad, pad_color=pad_color)
+        return transforms
+
+
     def get_transform_none(self):
         return PreProcessTransforms(self.settings, transforms=[])
 

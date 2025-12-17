@@ -259,6 +259,19 @@ from .pandaset_object_eval_python.utils import *
 from edgeai_benchmark.postprocess.bev_detection import box3d_multiclass_nms
 from edgeai_benchmark import datasets
 
+# Full_Val_Scene_List is the smae as test_scenes_const
+# in pandaset_converter.py in edgeai-mmdetection3d
+Full_Val_Scene_List   = ['014', '101', '069', '091', '120',
+                         '011', '115', '059', '117', '068',
+                         '086', '112', '019', '013', '052',
+                         '039', '113', '044', '079', '024', '099']
+# Full_Train_Scene_List is the subset of train_scenes_const
+# in pandaset_converter.py in edgeai-mmdetection3d
+Full_Train_Scene_List = ['041', '064', '067', '012', '073',
+                         '093', '106', '004', '057', '090', '051']
+Mini_Train_Scene_List = ['001']
+Mini_Val_Scene_List   = ['003']
+
 # TODO modify these to configurable
 PandaSetNameMapping = {
     'Car':'Car', 
@@ -304,21 +317,21 @@ ErrNameMapping = {
 class_to_name_type= {
     0: 'Car',
     1: 'Pedestrian',
-    2: 'Temporary Construction Barriers', 
+    2: 'Temporary Construction Barriers',
 }
 
 
 class PandasetDatasetBase:
     AVAILABLE_VERSIONS: dict[str, list[str]] ={
-        'v1.0-full':None,
-        'v1.0-mini':['001','003'],
+        'v1.0-trainval':None,
+        'v1.0-mini':Mini_Train_Scene_List + Mini_Val_Scene_List,
     }
     def __init__(self, path, version):
         assert version in self.AVAILABLE_VERSIONS, \
             utils.log_color('\nERROR', 'dataset version is not supported', version)
         self.dataset = PS.DataSet(path)
         self.version = version
-        if version == 'v1.0-full':
+        if version == 'v1.0-trainval':
             self.scene_list = self.dataset.sequences()
         else:
             self.scene_list = self.AVAILABLE_VERSIONS[version]
@@ -332,11 +345,11 @@ class PandasetDatasetBase:
         return len(self.scene_list)
 
 
-def load_pandaset(path):
+def load_pandaset(path, version='v1.0-mini'):
     assert os.path.exists(path) and os.path.isdir(path), \
         utils.log_color('\nERROR', 'dataset path is empty, and cannot load pandaset dataset', path)
 
-    dataset = PandasetDatasetBase(path,'v1.0-mini')
+    dataset = PandasetDatasetBase(path, version)
     return dataset
 
 
@@ -364,10 +377,10 @@ def get_available_scenes(ps:PandasetDatasetBase):
 
 
 def _fill_trainval_infos(ps: PandasetDatasetBase,
-                            train_scenes=None,
-                            val_scenes=None,
-                            data_ids=None,
-                            read_anno=True,):
+                         max_frames,
+                         train_scenes=None,
+                         val_scenes=None,
+                         read_anno=True):
     ps_infos = []
     for scene in ps.scene_list:
         if train_scenes is not None and scene not in train_scenes:
@@ -376,7 +389,8 @@ def _fill_trainval_infos(ps: PandasetDatasetBase,
             continue
         seq = ps[scene]
         seq.load()
-        all_instances = get_gt_for_seq(seq)
+        if read_anno is True:
+            all_instances = get_gt_for_seq(seq)
         cam_intrinsics = {}
         for name, camera in seq.camera.items():
             intrinsics = camera.intrinsics
@@ -456,7 +470,13 @@ def _fill_trainval_infos(ps: PandasetDatasetBase,
                         instance['bbox_label']=PandaSetNameMapping.get(instance['bbox_label'],'Temporary Construction Barriers')
                 info['cams'][name] = (cam_info)
             ps_infos.append(info)
-        
+
+            # break if reached max frames
+            loaded_frame = len(ps_infos)
+            print(f'Loading {loaded_frame}/{max_frames}', end='\r')
+            if loaded_frame >= max_frames:
+                break
+
         for frame_idx in range(len(seq.lidar._data_structure)):
             del seq.cuboids.data[0]
             del seq.lidar.data[0]
@@ -466,14 +486,19 @@ def _fill_trainval_infos(ps: PandasetDatasetBase,
                 del camera.poses[0]
             if seq.semseg:
                 del seq.semseg.data[0]
+
+        if loaded_frame >= max_frames:
+            break
+
+    print(f'loaded_frame: {loaded_frame}/{max_frames}')
     return ps_infos
 
 
 def _fill_trainval_infos_mv_image(ps: PandasetDatasetBase,
-                            train_scenes=None,
-                            val_scenes=None,
-                            data_ids=None,
-                            read_anno=True,):
+                                  max_frames,
+                                  train_scenes=None,
+                                  val_scenes=None,
+                                  read_anno=True,):
     ps_infos = []
     for scene in ps.scene_list:
         if train_scenes is not None and scene not in train_scenes:
@@ -482,7 +507,8 @@ def _fill_trainval_infos_mv_image(ps: PandasetDatasetBase,
             continue
         seq = ps[scene]
         seq.load()
-        all_instances = get_gt_for_seq(seq)
+        if read_anno is True:
+            all_instances = get_gt_for_seq(seq)
         
         cam_intrinsics = {}
         for name, camera in seq.camera.items():
@@ -538,7 +564,13 @@ def _fill_trainval_infos_mv_image(ps: PandasetDatasetBase,
                     for instance in camera_info['anns']:
                         instance['bbox_label']=PandaSetNameMapping.get(instance['bbox_label'],'Temporary Construction Barriers')
                 ps_infos.append(camera_info)
-        
+
+            # break if reached max frames
+            loaded_frame = len(ps_infos)
+            print(f'Loading {loaded_frame}/{max_frames}', end='\r')
+            if loaded_frame >= max_frames:
+                break
+
         for frame_idx in range(len(seq.lidar._data_structure)):
             del seq.cuboids.data[0]
             del seq.lidar.data[0]
@@ -548,18 +580,24 @@ def _fill_trainval_infos_mv_image(ps: PandasetDatasetBase,
                 del camera.poses[0]
             if seq.semseg:
                 del seq.semseg.data[0]
+
+        if loaded_frame >= max_frames:
+            break
+
+    print(f'loaded_frame: {loaded_frame}/{max_frames}')
     return ps_infos
 
 
 class PandaSetDataset(DatasetBase):
     def __init__(self, ps=None,
-                 download=False, read_anno=True, dest_dir=None, num_frames=None,  **kwargs):
+                 download=False, read_anno=True, **kwargs):
         super().__init__(**kwargs)
         self.force_download = True if download == 'always' else False
         assert 'path' in self.kwargs and 'split' in self.kwargs, 'path and split must be provided in kwargs'
         
         path = self.kwargs['path']
         split_folder = self.kwargs['split']
+        self.version = self.kwargs['version']
         # load_type: frame_based, mv_image_based, fov_image_based
         self.load_type = self.kwargs['load_type']
 
@@ -575,18 +613,12 @@ class PandaSetDataset(DatasetBase):
         self.ps = ps
 
         # create list of images and classes
-        self.data_ids = list(np.arange(0, 404))
-
-        self.num_frames = self.kwargs['num_frames'] = self.kwargs.get('num_frames',len(self.data_ids))
-
+        self.num_frames = self.kwargs['num_frames']
         shuffle = self.kwargs.get('shuffle', False)
-        if shuffle:
-            random.seed(int(shuffle))
-            random.shuffle(self.data_ids)
+        assert shuffle is False, 'Shuffling is not supported for PandaSet Dataset'
 
         self.num_classes = kwargs['num_classes']
-        
-        self.data_infos, self.data_scene_infos = self.create_pandaset_infos(read_anno, split_folder)
+        self.data_infos, self.data_scene_infos = self.create_pandaset_infos(read_anno, split_folder, self.version)
         
         # For validation dataset, read annotaiton for evaluation
         # TODO modify this to configurable
@@ -628,10 +660,10 @@ class PandaSetDataset(DatasetBase):
     def __call__(self, index, info_dict=None):
         return self.__getitem__(index, info_dict)
     
-    def create_pandaset_infos(self, read_anno=True, split_folder='train', version='v1.0-mini', max_sweeps=10):
+    def create_pandaset_infos(self, read_anno=True, split_folder='train', version='v1.0-mini'):
         metadata = dict(version=version)
         if split_folder == 'train':
-            train_scenes = ['001']
+            train_scenes = Mini_Train_Scene_List if version=='v1.0-mini' else Full_Train_Scene_List
             available_scenes = get_available_scenes(self.ps)
             available_scene_names = [s['name'] for s in available_scenes]
             # filter existing scenes.
@@ -644,11 +676,11 @@ class PandaSetDataset(DatasetBase):
             ])
 
             if self.load_type == 'mv_image_based':
-                train_ps_infos = _fill_trainval_infos_mv_image(self.ps, train_scenes=train_scenes, val_scenes=None,
-                    data_ids=self.data_ids, read_anno=read_anno)
+                train_ps_infos = _fill_trainval_infos_mv_image(self.ps, self.num_frames,
+                    train_scenes=train_scenes, val_scenes=None, read_anno=read_anno)
             else:
-                train_ps_infos = _fill_trainval_infos(self.ps, train_scenes=train_scenes, val_scenes=None,
-                    data_ids=self.data_ids, read_anno=read_anno,)
+                train_ps_infos = _fill_trainval_infos(self.ps, self.num_frames,
+                    train_scenes=train_scenes, val_scenes=None, read_anno=read_anno)
                 # Sort with timestamp
                 train_ps_infos = list(sorted(train_ps_infos, key=lambda e: e['timestamp']))
 
@@ -657,7 +689,7 @@ class PandaSetDataset(DatasetBase):
 
             return data, train_scenes
         else:
-            val_scenes = ['003']
+            val_scenes = Mini_Val_Scene_List if version=='v1.0-mini' else Full_Val_Scene_List
             available_scenes = get_available_scenes(self.ps)
             available_scene_names = [s['name'] for s in available_scenes]
             # filter existing scenes.
@@ -670,11 +702,11 @@ class PandaSetDataset(DatasetBase):
             ])
 
             if self.load_type == 'mv_image_based':
-                val_ps_infos = _fill_trainval_infos_mv_image(self.ps, train_scenes=None, val_scenes=val_scenes,
-                    data_ids=self.data_ids, read_anno=read_anno)
+                val_ps_infos = _fill_trainval_infos_mv_image(self.ps, self.num_frames,
+                    train_scenes=None, val_scenes=val_scenes, read_anno=read_anno)
             else:
-                val_ps_infos = _fill_trainval_infos(self.ps,  train_scenes=None, val_scenes=val_scenes,
-                    data_ids=self.data_ids, read_anno=read_anno,)
+                val_ps_infos = _fill_trainval_infos(self.ps, self.num_frames,
+                    train_scenes=None, val_scenes=val_scenes, read_anno=read_anno)
                 # Sort with timestamp
                 val_ps_infos = list(sorted(val_ps_infos, key=lambda e: e['timestamp']))
 
@@ -692,7 +724,8 @@ class PandaSetDataset(DatasetBase):
             det = prediction
             annos = []
             boxes = det['bboxes_3d']
-            # make (0.5, 0.5, 0.5) center
+            # The center from the network is bottom center,
+            # so make (0.5, 0.5, 0.5) center (gravity center)
             boxes[:, 2] += boxes[:, 5] * 0.5
             if 'attr_labels' in det:
                 attrs = det['attr_labels'].tolist()
@@ -703,7 +736,10 @@ class PandaSetDataset(DatasetBase):
             sample_idx = i
             info = self.data_infos['infos'][sample_idx]
             sample_token = info['token']
-            boxes = convert_lidar_box_to_global_box(boxes, info, kwargs['task_name'])
+            # Output prediction is in ego LiDAR coordiante system
+            # Keep boxes in this coordinate for evaluation
+            # So we don't need the following transformation
+            #boxes = convert_lidar_box_to_global_box(boxes, info, kwargs['task_name'])
 
             for i in range(boxes.shape[0]):
                 box = boxes[i]
@@ -755,6 +791,7 @@ class PandaSetDataset(DatasetBase):
                 annos.append(pandaset_anno)
             pandaset_annos[sample_token] = annos
         return pandaset_annos
+
     def format_results_camera_bbox(self, predictions, det_classes, **kwargs):
         
         pandaset_annos = {}

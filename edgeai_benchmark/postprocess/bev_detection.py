@@ -2057,10 +2057,16 @@ class Bbox3d2result(object):
             labels_3d=bbox_list[2]
         )
 
-        if len(bbox_list) == 4:
+        if info_dict['task_name'] == 'Sparse4D':
+            result_dict['cls_scores'] = bbox_list[3]
+            result_dict['instance_ids'] = bbox_list[4]
+            if result_dict['labels_3d'].ndim == 2:
+                result_dict['labels_3d'] = result_dict['labels_3d'].reshape(-1)
+        elif len(bbox_list) == 4:
             result_dict['attr_labels'] = bbox_list[3]
 
         return result_dict, info_dict
+
 
 class UpdateTemporalQueue():
     def __init__(self, queue_length=1):
@@ -2079,7 +2085,11 @@ class UpdateTemporalQueue():
             info_dict['task_name'] == 'Far3D':
             history_start_idx = 3
             queue_mem[info_dict['sample_idx']] = \
-                dict(feature_map=bbox_list[3:], img_meta=info_dict)
+                dict(feature_map=bbox_list[3:], img_meta=info_dict) # do we need to save img_meta?
+        elif info_dict['task_name'] == 'Sparse4D':
+            history_start_idx = 5
+            queue_mem[info_dict['sample_idx']] = \
+                dict(det_history=bbox_list[5:], his_timestamp=info_dict['his_timestamp'], his_T_global=info_dict['his_T_global'])
         else:
             history_start_idx = -1
             queue_mem[info_dict['sample_idx']] = \
@@ -2186,7 +2196,6 @@ class BEVImageSave():
             uv_origin = points_cam2img(points_3d, cam2img)
             uv_origin = (uv_origin - 1).round()
             corners_2d = uv_origin[..., :2].reshape(num_bbox, 8, 2)
-
 
             for idx, corners in enumerate(corners_2d):
                 if _is_polygon_valid(corners, img_size):

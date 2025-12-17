@@ -178,26 +178,64 @@ def calculate_velocities(all_cuboids, timestamps):
         all_velocities.append(velocities)
     return all_velocities
 
-
 def convert_ps_bbox_to_proper_bbox_for_globals(bbox):
+    # Convert PandaSet global coordinate to LiDARInstance3DBoxes's coordinate system
+    # PandaSet world coordinate system:
+    # +x: right, +y: front (yaw = 0), +z: up
+    # LiDARInstance3DBoxes coordinate system:
+    # +x: front (yaw = 0), +y: left , +z: up
     x, y, z, w, l, h, yaw = bbox
     new_yaw = yaw+np.pi/2
     if new_yaw > np.pi:
         new_yaw -= 2*np.pi
     if new_yaw < np.pi:
         new_yaw += 2*np.pi
-    return [ x, y, z, l, w, h, new_yaw]
+    return [x, y, z, l, w, h, new_yaw]
 
+def compute_valid_flag_for_bboxes(cuboids, lidar_data):
+    if isinstance(cuboids, pd.DataFrame):
+        bboxes = cuboids.values.tolist()
+    elif isinstance(cuboids, np.ndarray):
+        bboxes  = cuboids.tolist()
+    else:
+        bboxes = cuboids
+    lidar_points = lidar_data.to_numpy()[:,:3]
+
+    valid_flags = []
+    lidar_points_within_bboxes = []
+    for token, label, yaw, stationary, camera_used, x, y, z, width, length, height, *others in bboxes:
+        rot_mat_for_bbox = np.array([
+            [np.cos(yaw), -np.sin(yaw), 0, x],
+            [np.sin(yaw),  np.cos(yaw), 0, y],
+            [0, 0, 1, z],
+            [0,0,0,1]
+        ])
+        rot_mat_for_lidar =np.linalg.inv(rot_mat_for_bbox)
+        lidar_points_from_center = (rot_mat_for_lidar @ np.hstack([lidar_points, np.ones((lidar_points.shape[0], 1))]).T).T[:,:3]
+        condition = np.abs(lidar_points_from_center) <= np.array([[width/2, length/2, height/2]])
+        points_within_center = np.all(condition, axis=-1)
+        points_within_bboxes = lidar_points_from_center[points_within_center]
+        points_within_center = np.any(points_within_center, axis=-1)
+        valid_flags.append(points_within_center)
+        lidar_points_within_bboxes.append(points_within_bboxes)
+
+    return valid_flags, lidar_points_within_bboxes
 
 def get_gt_for_seq(seq:PS.dataset.Sequence):
     all_velocities = calculate_velocities(seq.cuboids, seq.timestamps)
     all_instances = []
     for frame_idx in range(len(seq.cuboids._data_structure)):
+        # lidar2global
+        lidar2global = PS.geometry._heading_position_to_mat(**seq.lidar.poses[frame_idx])
+
         cuboids = seq.cuboids[frame_idx]
         colns = list(cuboids.columns)
         cuboids = cuboids.values
         velocities = np.array(all_velocities[frame_idx])
         cuboids, velocities = filter_siblings(cuboids, velocities, colns.index('cuboids.sibling_id'))
+        # Should remove invalid GT boxes 
+        valid_flags, _ = compute_valid_flag_for_bboxes(cuboids, seq.lidar.data[frame_idx])
+        valid_flags = dict(zip(cuboids[:,0].tolist(),valid_flags))
         available_attrs = [attr for attr in ALL_ATTRIBUTES if f'attributes.{attr}' in colns]
         attribute_dicts = {}
         for value in cuboids.tolist():
@@ -213,9 +251,29 @@ def get_gt_for_seq(seq:PS.dataset.Sequence):
                     attributes[attr] = None
             attribute_dicts[token] = attributes
         instances = []
+        bboxes3d_global = []
+        velocities_global = []
         for i, (token, label, yaw, stationary, camera_used, x, y, z, width, length, height, *others) in enumerate(cuboids.tolist()):
+            if not valid_flags[token]:
+                continue
             attr_label = get_attribute_labels(label, attribute_dicts[token])
-            label = (label)
+            #label = (label)
+            # bbox3d in global coor
+            bbox3d = convert_ps_bbox_to_proper_bbox_for_globals([x, y, z, width, length, height, yaw])
+            bboxes3d_global.append(bbox3d)
+            velocities_global.append(velocities[i])
+            """
+            # This is too slow. So process for all GTs in a frame as a batch
+            # corners3d in global coor
+            corners3d_global = convert_bbox_to_corners3d(np.expand_dims(np.array(bbox3d), axis=0), yaw_axis=2)[0]
+            # corner3d in LiDAR coor
+            corners3d_lidar = (np.linalg.inv(lidar2global) @ np.hstack([corners3d_global, np.ones((corners3d_global.shape[0], 1))]).T).T[:,:3]
+            # bbox3d in LiDAR coor
+            bbox3d_lidar = convert_corners_to_bbox_for_lidar_box(corners3d_lidar)
+            # velocity in global coor
+            velocity_global = velocities[i]
+            velocity_lidar = (np.linalg.inv(lidar2global[:3,:3]) @ velocity_global.T).T
+            """
             instances.append(dict(
                 token=token,
                 bbox_label=label,
@@ -224,10 +282,26 @@ def get_gt_for_seq(seq:PS.dataset.Sequence):
                 # bbox_3d_isstationary = stationary,
                 # num_lidar_pts = num_lidar_points[i], # change to num_lidar_pts
                 # velocity = lidar_velocities[i],
-                bbox3d = convert_ps_bbox_to_proper_bbox_for_globals([x, y, z, width, length, height, yaw]),
+                #bbox3d = convert_ps_bbox_to_proper_bbox_for_globals([x, y, z, width, length, height, yaw]),
+                bbox3d = bbox3d,
                 velocity = velocities[i],
                 attr_label=attr_label,
                 ))
+
+        # Transforms all GT bbox3d's and velocities in a frame to LiDAR coor
+        corners3d_global = convert_bbox_to_corners3d(np.array(bboxes3d_global), yaw_axis=2)
+        # corner3d in LiDAR coor
+        corners3d_lidar = (np.linalg.inv(lidar2global) @ np.transpose(np.concatenate([corners3d_global,
+                        np.ones((corners3d_global.shape[0], corners3d_global.shape[1], 1))], axis=-1), (0, 2, 1)))
+        corners3d_lidar = np.transpose(corners3d_lidar, (0,2,1))[:, :, :3]
+        # bbox3d in LiDAR coor
+        bboxes3d_lidar = [convert_corners_to_bbox_for_lidar_box(corner) for corner in corners3d_lidar]
+        # velocity in LiDAR coor
+        velocities_lidar = (np.linalg.inv(lidar2global[:3,:3]) @ np.array(velocities_global).T).T
+        for i, instance in enumerate(instances):
+            instance['bbox3d'] = bboxes3d_lidar[i]
+            instance['velocity'] = velocities_lidar[i]
+
         all_instances.append(instances)
     return all_instances
 
@@ -358,13 +432,14 @@ def rotation_3d_in_axis(
     else:
         return points_new
 
-
-def convert_bbox_to_cornrers3d(bboxes,yaw_axis):
+# This function is tested for lidar bbox, but not for cam bbox
+def convert_bbox_to_corners3d(bboxes, yaw_axis):
     dims = bboxes[:, 3:6]
     corners_norm = np.stack(np.unravel_index(np.arange(8), [2] * 3), axis=1)
 
     corners_norm = corners_norm[[0, 1, 3, 2, 4, 5, 7, 6]]
-    # use relative origin (0.5, 1, 0.5)
+    # box position, i.e. bboxes[:, :3] is the gravity center
+    # So use relative origin (0.5, 0.5, 0.5)
     corners_norm = corners_norm - np.array([0.5, 0.5, 0.5])
     corners = dims.reshape([-1, 1, 3]) * corners_norm.reshape([1, 8, 3])
 
@@ -384,7 +459,7 @@ def cam_bbox_to_global_corners3d(boxes, info, camera_type):
     gravity_center = np.zeros_like(bottom_center)
     gravity_center[:, [0, 2]] = bottom_center[:, [0, 2]]
     gravity_center[:, 1] = bottom_center[:, 1] - boxes[:, 4] * 0.5
-    corners = convert_bbox_to_cornrers3d(np.concatenate([gravity_center,box_dims,box_yaw], axis=1), yaw_axis=1)
+    corners = convert_bbox_to_corners3d(np.concatenate([gravity_center,box_dims,box_yaw], axis=1), yaw_axis=1)
     cam2global = np.array(info['images'][camera_type]['cam2global'])
     global_corners = corners @ cam2global[:3,:3].T + cam2global[:3,3]
     lobal_velocities = velocity @ cam2global[:3,:3].T
@@ -403,10 +478,10 @@ def convert_corners_to_bbox_for_lidar_box(corners):
         [0, 0, 1]
     ])
     corners = (rot_matrix @ corners.T).T
-    width = np.linalg.norm(corners[0] - corners[4])
-    length = np.linalg.norm(corners[0] - corners[3])
+    length = np.linalg.norm(corners[0] - corners[4])
+    width = np.linalg.norm(corners[0] - corners[3])
     height = np.linalg.norm(corners[0] - corners[1])
-    return [x, y, z, width, length, height, yaw]
+    return [x, y, z, length, width, height, yaw]
 
 
 def convert_corners_to_bbox_for_cam_box(corners):
@@ -452,8 +527,8 @@ def front_cam_bbox_to_global_corners3d(boxes, info):
     bottom_center = boxes[:, :3]
     gravity_center = np.zeros_like(bottom_center)
     gravity_center[:, [0, 2]] = bottom_center[:, [0, 2]]
-    gravity_center[:, 1] = bottom_center[:, 1] - boxes[:, 4] * 0.5
-    corners = convert_bbox_to_cornrers3d(np.concatenate([gravity_center,box_dims,box_yaw], axis=1), yaw_axis=1)
+    gravity_center[:, 1] = bottom_center[:, 1] - boxes[:, 4] * 0.5 # What's the main reason for this?
+    corners = convert_bbox_to_corners3d(np.concatenate([gravity_center,box_dims,box_yaw], axis=1), yaw_axis=1)
     cam2global = np.array(info['images'][list(info['images'].keys())[0]]['front_cam2global'])
     global_corners = corners @ cam2global[:3,:3].T + cam2global[:3,3]
     lobal_velocities = velocity @ cam2global[:3,:3].T
@@ -472,11 +547,13 @@ def convert_lidar_box_to_global_box(boxes, info, task_name):
     center = boxes[:, :3]
     velocity = np.zeros_like(center)
     velocity[:,[0,2]] = boxes[:,7:9] if boxes.shape[1]>7 else velocity[:,[0,2]]
-    bottom_center = boxes[:, :3]
-    gravity_center = np.zeros_like(bottom_center)
-    gravity_center[:, [0, 2]] = bottom_center[:, [0, 2]]
-    gravity_center[:, 1] = bottom_center[:, 1] - boxes[:, 4] * 0.5
-    corners = convert_bbox_to_cornrers3d(np.concatenate([gravity_center,box_dims,box_yaw], axis=1), yaw_axis=2)
+    # It is actually gravity center
+    gravity_center = boxes[:, :3]
+    #bottom_center = boxes[:, :3]
+    #gravity_center = np.zeros_like(bottom_center)
+    #gravity_center[:, [0, 2]] = bottom_center[:, [0, 2]]
+    #gravity_center[:, 1] = bottom_center[:, 1] - boxes[:, 4] * 0.5
+    corners = convert_bbox_to_corners3d(np.concatenate([gravity_center,box_dims,box_yaw], axis=1), yaw_axis=2)
     # BEVDet predicted bboxes are in ego coordinate system
     if task_name == 'BEVDet':
         lidar2global = np.array(info['ego2global'])

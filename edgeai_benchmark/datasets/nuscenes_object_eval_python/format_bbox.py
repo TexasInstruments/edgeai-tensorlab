@@ -13,13 +13,29 @@ from nuscenes.utils.data_classes import Box as NuScenesBox
 # Convert the output to NuScenesBox class
 # https://github.com/open-mmlab/mmdetection3d/
 # Based on output_to_nusc_box() 
-def output_to_nusc_box(detection, task_name, bbox3d_type='lidar'):
+def output_to_nusc_box(detection, task_name, track_threshold=None, bbox3d_type='lidar'):
     bbox3d = detection['bboxes_3d']
     scores = detection['scores_3d']
     labels = detection['labels_3d']
     attrs = None
     if 'attr_labels' in detection:
         attrs = detection['attr_labels']
+
+    # For tracking (Sparse4D)
+    if "instance_ids" in detection:
+        ids = detection["instance_ids"]
+
+    if track_threshold is not None:
+        if "cls_scores" in detection:
+            mask = detection["cls_scores"] >= track_threshold
+        else:
+            mask = scores >= track_threshold
+        bbox3d = bbox3d[mask]
+        scores = scores[mask]
+        labels = labels[mask]
+        if 'attr_labels' in detection:
+            attrs = attrs[mask]
+        ids = ids[mask]
 
     #dim = bbox3d.shape[-1]  # 9
     box_list = []
@@ -46,6 +62,9 @@ def output_to_nusc_box(detection, task_name, bbox3d_type='lidar'):
                 label=labels[i],
                 score=scores[i],
                 velocity=velocity)
+            # For tracking (Sparse4D)
+            if "instance_ids" in detection:
+                box.token = ids[i]
             box_list.append(box)
 
     else:

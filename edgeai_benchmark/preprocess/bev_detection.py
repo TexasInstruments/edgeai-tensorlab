@@ -1286,7 +1286,7 @@ class GetBEVDetGeometry():
             (points[..., :2, :] * points[..., 2:3, :], points[..., 2:3, :]), 5)
         #combine = sensor2egos[:,:,:3,:3].matmul(np.linalg.inv(cam2imgs))
         #points = combine.reshape(B, N, 1, 1, 1, 3, 3).matmul(points).squeeze(-1)
-        combine = np.matmul(sensor2egos[:,:,:3,:3], np.linalg.inv(cam2imgs))
+        combine = np.matmul(sensor2egos[:,:,:3,:3], np.linalg.inv(cam2imgs[:, :3, :3]))
         points = np.squeeze(np.matmul(combine.reshape(B, N, 1, 1, 1, 3, 3), points), -1)
         points += sensor2egos[:,:,:3, 3].reshape(B, N, 1, 1, 1, 3)
         #points = bda[:, :3, :3].reshape(B, 1, 1, 1, 1, 3, 3).matmul(
@@ -2053,6 +2053,8 @@ class GetStreamPETRGeometry():
 
         queue_mem = info_dict['queue_mem']
         if len(queue_mem) == 0:
+            # Should we check prev_exists here?
+            #or info_dict['prev_exists'][0] == 0:
             memory_embedding, memory_reference_point, memory_timestamp, \
                 memory_egopose, memory_velo = self.init_memory(x)
         else:
@@ -2166,6 +2168,8 @@ class GetFar3DGeometry():
 
         queue_mem = info_dict['queue_mem']
         if len(queue_mem) == 0:
+            # Should we check prev_exists here?
+            #or info_dict['prev_exists'][0] == 0:
             memory_embedding, memory_reference_point, memory_timestamp, \
                 memory_egopose, memory_velo = self.init_memory(x)
         else:
@@ -2254,5 +2258,72 @@ class GetFar3DGeometry():
         data_.append(img2lidars)
         data_.append(ego_pose)
         data_.append(timestamp)
+
+        return data_, info_dict
+
+class GetSparse4DHistory():
+    def __init__(self):
+        #self.his_timestamp    = None
+        #self.his_T_global     = None
+        #self.his_T_global_inv = None
+
+        #self.det_history            = None
+        self.det_num_anchor         = 900
+        self.det_embed_dims         = 256
+        self.det_num_temp_instances = 600
+        self.anchor_feats_dims      = 11
+
+    def init_memory(self):
+        bs = 1
+        det_cached_feature  = np.zeros((bs, self.det_num_temp_instances, self.det_embed_dims), dtype=np.float32)
+        det_cached_anchor   = np.zeros((bs, self.det_num_temp_instances, self.anchor_feats_dims), dtype=np.float32)
+        det_prev_id         = np.array(0).astype(np.int32)
+        det_instance_id     = -1 * np.zeros((bs, self.det_num_anchor), dtype=np.int32)
+        det_confidence      = np.zeros((bs, self.det_num_temp_instances), dtype=np.float32)
+        #det_temp_confidence =  np.zeros((bs, self.det_num_anchor), dtype=np.float32),
+
+        return det_cached_feature, det_cached_anchor, det_prev_id, det_instance_id, det_confidence
+
+
+    def __call__(self, data, info_dict):
+        queue_mem = info_dict['queue_mem']
+
+        # Sparse4D does not check scene change for history
+        # So we need to reset history only for the first frame without checkout scene token
+        if len(queue_mem) == 0:
+            self.his_timestamp    = info_dict['timestamp']*1e-6
+            self.his_T_global     = info_dict['ego2globals'][0][0] @ info_dict['lidar2ego']  # lidar2global
+
+            det_cached_feature, det_cached_anchor, det_prev_id, det_instance_id, det_confidence = self.init_memory()
+        else:
+            cur_sample_idx        = info_dict['sample_idx']
+            self.his_timestamp    = queue_mem[cur_sample_idx - 1]['his_timestamp']
+            self.his_T_global     = queue_mem[cur_sample_idx - 1]['his_T_global']
+            det_cached_feature    = queue_mem[cur_sample_idx - 1]['det_history'][0]
+            det_cached_anchor     = queue_mem[cur_sample_idx - 1]['det_history'][1]
+            det_prev_id           = queue_mem[cur_sample_idx - 1]['det_history'][2].astype(np.int32)
+            det_instance_id       = queue_mem[cur_sample_idx - 1]['det_history'][3].astype(np.int32)
+            det_confidence        = queue_mem[cur_sample_idx - 1]['det_history'][4]
+
+        projection_mat = np.stack([info_dict['lidar2imgs']], axis=0)
+        time_interval = info_dict['timestamp']*1e-6 - self.his_timestamp
+        lidar2global = info_dict['ego2globals'][0][0] @ info_dict['lidar2ego']
+        T_temp2cur = np.stack([np.linalg.inv(lidar2global) @ self.his_T_global])
+
+        info_dict['his_timestamp']    = info_dict['timestamp']*1e-6
+        info_dict['his_T_global']     = lidar2global
+
+        # Model inputs
+        data_ = []
+        # combine all 6 images into one
+        data_.append(np.concatenate(data, 0))
+        data_.append(projection_mat)
+        data_.append(det_cached_feature)
+        data_.append(det_cached_anchor)
+        data_.append(det_prev_id)
+        data_.append(det_instance_id)
+        data_.append(det_confidence)
+        data_.append(np.array([time_interval], dtype=np.float32))
+        data_.append(T_temp2cur.astype(np.float32))
 
         return data_, info_dict
