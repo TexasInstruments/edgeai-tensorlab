@@ -14,6 +14,10 @@ import copy
 import torch
 import torch.nn as nn
 import torch.utils.checkpoint as cp
+
+import onnx
+from onnxsim import simplify
+
 from torch.nn import ModuleList
 from mmcv.cnn import build_norm_layer
 from mmcv.cnn.bricks.transformer import (build_attention,
@@ -25,6 +29,27 @@ from mmengine.model import BaseModule
 from mmengine.model.weight_init import xavier_init
 
 from mmdet3d.registry import MODELS
+
+import numpy as np
+class SelfAttentionONNX(nn.Module):
+    def __init__(self, self_attn_module):
+        super(SelfAttentionONNX, self).__init__()
+        self.self_attn_module = copy.deepcopy(self_attn_module)
+
+    def forward(self, query, key, value,
+                query_pos=None, key_pos=None,
+                identity=None,
+                attn_mask=None, key_padding_mask=None):
+        output = self.self_attn_module(
+            query,
+            key,
+            value,
+            identity,
+            query_pos=query_pos,
+            key_pos=key_pos,
+            attn_mask=attn_mask,
+            key_padding_mask=key_padding_mask)
+        return output
 
 
 @MODELS.register_module()
@@ -240,8 +265,8 @@ class PETRTransformerDecoder(TransformerLayerSequence):
             return x
 
         intermediate = []
-        for layer in self.layers:
-            query = layer(query, *args, **kwargs)
+        for lid, layer in enumerate(self.layers):
+            query = layer(lid, query, *args, **kwargs)
             if self.return_intermediate:
                 if self.post_norm is not None:
                     intermediate.append(self.post_norm(query))
@@ -327,6 +352,7 @@ class PETRTransformerDecoderLayer(BaseTransformerLayer):
         return x
 
     def forward(self,
+                layer_id,
                 query,
                 key=None,
                 value=None,
@@ -502,7 +528,83 @@ class PETRTemporalDecoderLayer(BaseModule):
         self.use_checkpoint = with_cp
         self.use_reentrant = use_reentrant
 
+        # For onnx model validation only
+        self.layer_export = False
+
+    def export_self_attn(self,
+                         layer_id,
+                         self_attn_onnx,
+                         query,
+                         key,
+                         value,
+                         identity,
+                         query_pos=None,
+                         key_pos=None,
+                         attn_mask=None,
+                         key_padding_mask=None):
+        # Save inputs
+        query_np = query.to('cpu').numpy()
+        key_np   = key.to('cpu').numpy()
+        value_np = value.to('cpu').numpy()
+        if identity is None:
+            identity_np = None
+        else:
+            identity_np = identity.to('cpu').numpy()
+        query_pos_np    = query_pos.to('cpu').numpy()
+        key_pos_np      = key_pos.to('cpu').numpy()
+        if attn_mask is None:
+            attn_mask_np = None
+        else:
+            attn_mask_np = attn_mask.to('cpu').numpy()
+        if key_padding_mask is None:
+            key_padding_mask_np = None
+        else:
+            key_padding_mask_np = key_padding_mask.to('cpu').numpy()
+
+        np.savez(f"spetr_self_attn_input_{layer_id}.npz",
+                 query=query_np, key=key_np,
+                 value=value_np, identity=identity_np,
+                 query_pos=query_pos_np, key_pos=key_pos_np,
+                 attn_mask=attn_mask_np, key_padding_mask=key_padding_mask_np)
+
+        model_input=[]
+        input_names=[]
+        model_input.append(copy.deepcopy(query))
+        input_names.append('query')
+        model_input.append(copy.deepcopy(key))
+        input_names.append('key')
+        model_input.append(copy.deepcopy(value))
+        input_names.append('value')
+        model_input.append(copy.deepcopy(query_pos))
+        input_names.append('query_pos')
+        model_input.append(copy.deepcopy(key_pos))
+        input_names.append('key_pos')
+        # put possible None variables in the end of input list
+        if identity is not None:
+            model_input.append(copy.deepcopy(identity))
+            input_names.append('identity')
+        if attn_mask is not None:
+            model_input.append(copy.deepcopy(attn_mask))
+            input_names.append('attn_mask')
+        if key_padding_mask is not None:
+            model_input.append(copy.deepcopy(key_padding_mask))
+            input_names.append('key_padding_mask')
+
+        model_name = f"spetr_self_attention_{layer_id}.onnx"
+        torch.onnx.export(
+            self_attn_onnx,
+            tuple(model_input),
+            model_name,
+            opset_version=18,
+            input_names=input_names,
+            output_names=['output']
+        )
+        onnx_model, _ = simplify(model_name)
+        onnx.save(onnx_model, model_name)
+
+
     def _forward(self,
+                layer_id,
                 query,
                 key=None,
                 value=None,
@@ -571,6 +673,23 @@ class PETRTemporalDecoderLayer(BaseModule):
                 else:
                     temp_key = temp_value = query
                     temp_pos = query_pos
+
+                # For onnx model validation only
+                if self.layer_export is True:
+                    self_attn_module = self.attentions[attn_index]
+                    self_attn_onnx = SelfAttentionONNX(self_attn_module)
+                    self.export_self_attn(layer_id,
+                                          self_attn_onnx,
+                                          query,
+                                          temp_key,
+                                          temp_value,
+                                          identity if self.pre_norm else None,
+                                          query_pos=query_pos,
+                                          key_pos=temp_pos,
+                                          attn_mask=attn_masks[attn_index],
+                                          key_padding_mask=query_key_padding_mask)
+                    print("Successfully export self attention to onnx!")
+
                 query = self.attentions[attn_index](
                     query,
                     temp_key,
@@ -607,9 +726,11 @@ class PETRTemporalDecoderLayer(BaseModule):
                     query, identity if self.pre_norm else None)
                 ffn_index += 1
 
+        self.layer_export=False
         return query
 
-    def forward(self, 
+    def forward(self,
+                layer_id,
                 query,
                 key=None,
                 value=None,
@@ -630,6 +751,7 @@ class PETRTemporalDecoderLayer(BaseModule):
         if self.use_checkpoint and self.training:
             x = cp.checkpoint(
                 self._forward,
+                layer_id,
                 query,
                 key,
                 value,
@@ -644,6 +766,7 @@ class PETRTemporalDecoderLayer(BaseModule):
                 )
         else:
             x = self._forward(
+            layer_id,
             query,
             key,
             value,

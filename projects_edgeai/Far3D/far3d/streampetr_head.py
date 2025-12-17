@@ -356,11 +356,6 @@ class StreamPETRHead(AnchorFreeHead):
         else:
             # refresh the memory when the scene changes
             if self.memory_embedding is None:
-                #self.memory_embedding = x.new_zeros(B, self.memory_len, self.embed_dims)
-                #self.memory_reference_point = x.new_zeros(B, self.memory_len, 3)
-                #self.memory_timestamp = x.new_zeros(B, self.memory_len, 1)
-                #self.memory_egopose = x.new_zeros(B, self.memory_len, 4, 4)
-                #self.memory_velo = x.new_zeros(B, self.memory_len, 2)
                 self.memory_embedding, self.memory_reference_point, self.memory_timestamp, \
                     self.memory_egopose, self.memory_velo = self.init_memory(x)
             else:
@@ -384,13 +379,15 @@ class StreamPETRHead(AnchorFreeHead):
                 self.memory_egopose = memory_refresh(self.memory_egopose[:, :self.memory_len], x)
                 self.memory_velo = memory_refresh(self.memory_velo[:, :self.memory_len], x)
 
-        # for the first frame, padding pseudo_reference_points (non-learnable)
-        if self.num_propagated > 0:
-            pseudo_reference_points = self.pseudo_reference_points.weight * (self.pc_range[3:6] - self.pc_range[0:3]) + self.pc_range[0:3]
-            self.memory_reference_point[:, :self.num_propagated]  = self.memory_reference_point[:, :self.num_propagated] + (1 - x).view(B, 1, 1) * pseudo_reference_points
-            self.memory_egopose[:, :self.num_propagated]  = self.memory_egopose[:, :self.num_propagated] + (1 - x).view(B, 1, 1, 1) * torch.eye(4, device=x.device)
+            # for the first frame, padding pseudo_reference_points (non-learnable)
+            if self.num_propagated > 0:
+                pseudo_reference_points = self.pseudo_reference_points.weight * (self.pc_range[3:6] - self.pc_range[0:3]) + self.pc_range[0:3]
+                self.memory_reference_point[:, :self.num_propagated] = self.memory_reference_point[:, :self.num_propagated] + (1 - x).view(B, 1, 1) * pseudo_reference_points
+                self.memory_egopose[:, :self.num_propagated]  = self.memory_egopose[:, :self.num_propagated] + (1 - x).view(B, 1, 1, 1) * torch.eye(4, device=x.device)
 
-    def post_update_memory(self, img_metas, rec_ego_pose, all_cls_scores, all_bbox_preds, outs_dec, mask_dict):
+    def post_update_memory(self, 
+                           img_metas, rec_ego_pose, all_cls_scores, all_bbox_preds, outs_dec, mask_dict, 
+                           ego_pose=None, timestamp=None):
         
         if self.training and mask_dict and mask_dict['pad_size'] > 0:
             rec_reference_points = all_bbox_preds[:, :, mask_dict['pad_size']:, :3][-1]
@@ -414,15 +411,17 @@ class StreamPETRHead(AnchorFreeHead):
         rec_velo = topk_gather(rec_velo, topk_indexes).detach()
 
         # For multiple batch
-        ego_pose = []
-        timestamp = []
-        for img_meta in img_metas:
-            ego_pose.append(img_meta['ego_pose'])
-            timestamp.append(img_meta['timestamp'])
-        ego_pose = np.asarray(ego_pose)
-        ego_pose = torch.from_numpy(ego_pose).to(all_bbox_preds.device).to(torch.float32)
-        timestamp = np.asarray(timestamp)
-        timestamp = torch.from_numpy(timestamp).to(all_bbox_preds.device)
+        if (torch.onnx.is_in_onnx_export() is not True and
+            (ego_pose is None or timestamp is None)):
+            ego_pose = []
+            timestamp = []
+            for img_meta in img_metas:
+                ego_pose.append(img_meta['ego_pose'])
+                timestamp.append(img_meta['timestamp'])
+            ego_pose = np.asarray(ego_pose)
+            ego_pose = torch.from_numpy(ego_pose).to(all_bbox_preds.device).to(torch.float32)
+            timestamp = np.asarray(timestamp)
+            timestamp = torch.from_numpy(timestamp).to(all_bbox_preds.device)
 
         self.memory_embedding = torch.cat([rec_memory, self.memory_embedding], dim=1)
         self.memory_timestamp = torch.cat([rec_timestamp, self.memory_timestamp], dim=1)
@@ -433,63 +432,68 @@ class StreamPETRHead(AnchorFreeHead):
         self.memory_timestamp -= timestamp.unsqueeze(-1).unsqueeze(-1)
         self.memory_egopose = ego_pose.unsqueeze(1) @ self.memory_egopose
 
-    def position_embeding(self, img_feats, memory_centers, topk_indexes, img_metas):
-        eps = 1e-5
-        BN, H, W, _ = memory_centers.shape
-        #B = img_metas[0]['intrinsics'].size(0)
+    def position_embeding(self, img_feats, memory_centers, topk_indexes, img_metas, coords_3d=None, cone=None):
+        if (torch.onnx.is_in_onnx_export() is not True and
+            (coords_3d is None or cone is None)):
+            eps = 1e-5
+            BN, H, W, _ = memory_centers.shape
+            #B = img_metas[0]['intrinsics'].size(0)
 
-        intrinsics = []
-        img2lidars = []
-        for img_meta in img_metas:
-            intrinsic = []
-            img2lidar = []
-            for i in range(len(img_meta['intrinsics'])):
-                intrinsic.append(img_meta['intrinsics'][i])
-                img2lidar.append(np.linalg.inv(img_meta['lidar2img'][i]))
-            intrinsics.append(np.asarray(intrinsic))
-            img2lidars.append(np.asarray(img2lidar))
-        intrinsics = np.asarray(intrinsics)
-        intrinsics = img_feats.new_tensor(intrinsics)  # (B, N, 4, 4)
-        img2lidars = np.asarray(img2lidars)
-        img2lidars = img_feats.new_tensor(img2lidars)  # (B, N, 4, 4)
+            intrinsics = []
+            img2lidars = []
+            for img_meta in img_metas:
+                intrinsic = []
+                img2lidar = []
+                for i in range(len(img_meta['intrinsics'])):
+                    intrinsic.append(img_meta['intrinsics'][i])
+                    img2lidar.append(np.linalg.inv(img_meta['lidar2img'][i]))
+                intrinsics.append(np.asarray(intrinsic))
+                img2lidars.append(np.asarray(img2lidar))
+            intrinsics = np.asarray(intrinsics)
+            intrinsics = img_feats.new_tensor(intrinsics)  # (B, N, 4, 4)
+            img2lidars = np.asarray(img2lidars)
+            img2lidars = img_feats.new_tensor(img2lidars)  # (B, N, 4, 4)
 
-        B = img2lidars.size(0)
+            B = img2lidars.size(0)
 
-        intrinsic = torch.stack([intrinsics[..., 0, 0], intrinsics[..., 1, 1]], dim=-1)
-        intrinsic = torch.abs(intrinsic) / 1e3
-        intrinsic = intrinsic.repeat(1, H*W, 1).view(B, -1, 2)
-        LEN = intrinsic.size(1)
+            intrinsic = torch.stack([intrinsics[..., 0, 0], intrinsics[..., 1, 1]], dim=-1)
+            intrinsic = torch.abs(intrinsic) / 1e3
+            intrinsic = intrinsic.repeat(1, H*W, 1).view(B, -1, 2)
+            LEN = intrinsic.size(1)
 
-        num_sample_tokens = topk_indexes.size(1) if topk_indexes is not None else LEN
+            num_sample_tokens = topk_indexes.size(1) if topk_indexes is not None else LEN
 
-        pad_h, pad_w  = img_metas[0]['pad_shape']
-        memory_centers[..., 0] = memory_centers[..., 0] * pad_w
-        memory_centers[..., 1] = memory_centers[..., 1] * pad_h
+            pad_h, pad_w  = img_metas[0]['pad_shape']
+            memory_centers[..., 0] = memory_centers[..., 0] * pad_w
+            memory_centers[..., 1] = memory_centers[..., 1] * pad_h
 
-        D = self.coords_d.shape[0]
+            D = self.coords_d.shape[0]
 
-        memory_centers = memory_centers.detach().view(B, LEN, 1, 2)
-        topk_centers = topk_gather(memory_centers, topk_indexes).repeat(1, 1, D, 1)
-        coords_d = self.coords_d.view(1, 1, D, 1).repeat(B, num_sample_tokens, 1 , 1)
-        coords = torch.cat([topk_centers, coords_d], dim=-1)
-        coords = torch.cat((coords, torch.ones_like(coords[..., :1])), -1)
-        coords[..., :2] = coords[..., :2] * torch.maximum(coords[..., 2:3], torch.ones_like(coords[..., 2:3])*eps)
+            memory_centers = memory_centers.detach().view(B, LEN, 1, 2)
+            topk_centers = topk_gather(memory_centers, topk_indexes).repeat(1, 1, D, 1)
+            coords_d = self.coords_d.view(1, 1, D, 1).repeat(B, num_sample_tokens, 1 , 1)
+            coords = torch.cat([topk_centers, coords_d], dim=-1)
+            coords = torch.cat((coords, torch.ones_like(coords[..., :1])), -1)
+            coords[..., :2] = coords[..., :2] * torch.maximum(coords[..., 2:3], torch.ones_like(coords[..., 2:3])*eps)
 
-        coords = coords.unsqueeze(-1)
+            coords = coords.unsqueeze(-1)
 
-        img2lidars = img2lidars.view(BN, 1, 1, 4, 4).repeat(1, H*W, D, 1, 1).view(B, LEN, D, 4, 4)
-        img2lidars = topk_gather(img2lidars, topk_indexes)
+            img2lidars = img2lidars.view(BN, 1, 1, 4, 4).repeat(1, H*W, D, 1, 1).view(B, LEN, D, 4, 4)
+            img2lidars = topk_gather(img2lidars, topk_indexes)
 
-        coords3d = torch.matmul(img2lidars, coords).squeeze(-1)[..., :3]
-        coords3d[..., 0:3] = (coords3d[..., 0:3] - self.position_range[0:3]) / (self.position_range[3:6] - self.position_range[0:3])
-        coords3d = coords3d.reshape(B, -1, D*3)
+            coords3d = torch.matmul(img2lidars, coords).squeeze(-1)[..., :3]
+            coords3d[..., 0:3] = (coords3d[..., 0:3] - self.position_range[0:3]) / (self.position_range[3:6] - self.position_range[0:3])
+            coords3d = coords3d.reshape(B, -1, D*3)
 
-        pos_embed  = inverse_sigmoid(coords3d)
-        coords_position_embeding = self.position_encoder(pos_embed)
-        intrinsic = topk_gather(intrinsic, topk_indexes)
+            pos_embed  = inverse_sigmoid(coords3d)
+            coords_position_embeding = self.position_encoder(pos_embed)
+            intrinsic = topk_gather(intrinsic, topk_indexes)
 
-        # for spatial alignment in focal petr
-        cone = torch.cat([intrinsic, coords3d[..., -3:], coords3d[..., -90:-87]], dim=-1)
+            # for spatial alignment in focal petr
+            cone = torch.cat([intrinsic, coords3d[..., -3:], coords3d[..., -90:-87]], dim=-1)
+        else:
+            pos_embed = inverse_sigmoid(coords_3d)
+            coords_position_embeding = self.position_encoder(pos_embed)
 
         return coords_position_embeding, cone
 
@@ -497,7 +501,7 @@ class StreamPETRHead(AnchorFreeHead):
         B = query_pos.size(0)
 
         temp_reference_point = (self.memory_reference_point - self.pc_range[:3]) / (self.pc_range[3:6] - self.pc_range[0:3])
-        temp_pos = self.query_embedding(pos2posemb3d(temp_reference_point)) 
+        temp_pos = self.query_embedding(pos2posemb3d(temp_reference_point))
         temp_memory = self.memory_embedding
         rec_ego_pose = torch.eye(4, device=query_pos.device).unsqueeze(0).unsqueeze(0).repeat(B, query_pos.size(1), 1, 1)
         
@@ -645,7 +649,11 @@ class StreamPETRHead(AnchorFreeHead):
                 memory_reference_point=None,
                 memory_timestamp=None,
                 memory_egopose=None,
-                memory_velo=None):
+                memory_velo=None,
+                coords_3d = None,
+                cone=None,
+                ego_pose=None,
+                timestamp=None):
         """Forward function.
         Args:
             mlvl_feats (tuple[Tensor]): Features from the upstream
@@ -670,7 +678,7 @@ class StreamPETRHead(AnchorFreeHead):
         memory = x.permute(0, 1, 3, 4, 2).reshape(B, num_tokens, C)
         memory = topk_gather(memory, topk_indexes)
 
-        pos_embed, cone = self.position_embeding(img_feats, memory_center, topk_indexes, img_metas)
+        pos_embed, cone = self.position_embeding(img_feats, memory_center, topk_indexes, img_metas, coords_3d, cone)
 
         memory = self.memory_embed(memory)
 
@@ -710,7 +718,8 @@ class StreamPETRHead(AnchorFreeHead):
         all_bbox_preds[..., 0:3] = (all_bbox_preds[..., 0:3] * (self.pc_range[3:6] - self.pc_range[0:3]) + self.pc_range[0:3])
 
         # update the memory bank
-        self.post_update_memory(img_metas, rec_ego_pose, all_cls_scores, all_bbox_preds, outs_dec, mask_dict)
+        self.post_update_memory(img_metas, rec_ego_pose, all_cls_scores, all_bbox_preds, outs_dec, mask_dict,
+                                ego_pose, timestamp)
 
         if mask_dict and mask_dict['pad_size'] > 0:
             output_known_class = all_cls_scores[:, :, :mask_dict['pad_size'], :]
@@ -731,7 +740,11 @@ class StreamPETRHead(AnchorFreeHead):
                 'dn_mask_dict':None,
             }
 
-        return outs
+        if torch.onnx.is_in_onnx_export():
+            return outs, self.memory_embedding, self.memory_reference_point, \
+                   self.memory_timestamp, self.memory_egopose, self.memory_velo
+        else:
+            return outs
 
     def prepare_for_loss(self, mask_dict):
         """

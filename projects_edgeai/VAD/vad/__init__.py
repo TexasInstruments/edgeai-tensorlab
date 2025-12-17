@@ -6,9 +6,9 @@ from .fut_nms_free_coder import CustomNMSFreeCoder
 from .map_nms_free_coder import MapNMSFreeCoder
 from .datasets.nuscenes_dataset import VADNuScenesDataset
 from .bbox.assigners.map_hungarian_assigner_3d import MapHungarianAssigner3D
-from .datasets.pipelines.transform_3d import (
-  PhotoMetricDistortionMultiViewImage, CustomCollect3D, 
-  CustomObjectRangeFilter, VADPack3DDetInputs)
+from .datasets.transforms.transforms_3d import (
+    CustomCollect3D,
+    CustomObjectRangeFilter, VADPack3DDetInputs)
 from .nuscenes_metric import VADNuScenesMetric
 
 __all__ = [

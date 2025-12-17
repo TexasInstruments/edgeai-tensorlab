@@ -38,7 +38,7 @@ class LoadMultiViewImageFromFiles(BaseTransform):
                  to_float32: bool = False,
                  color_type: str = 'unchanged',
                  backend_args: Optional[dict] = None,
-                 num_views: int = 5,
+                 num_views: int = 6,
                  num_ref_frames: int = -1,
                  test_mode: bool = False,
                  set_default_scale: bool = True) -> None:
@@ -642,7 +642,15 @@ class LoadPointsFromFile(BaseTransform):
 
                 - points (:obj:`BasePoints`): Point clouds data.
         """
-        pts_file_path = results['lidar_points']['lidar_path']
+        try:
+            pts_file_path = results['pts_filename']
+        except KeyError:
+            try:
+                pts_file_path = results['lidar_points']['lidar_path']
+            except KeyError:
+                print('Can not find key `pts_filename` or '
+                          '`lidar_points.lidar_path` in results')
+
         points = self._load_points(pts_file_path)
         points = points.reshape(-1, self.load_dim)
         points = points[:, self.use_dim]

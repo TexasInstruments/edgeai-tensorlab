@@ -540,7 +540,7 @@ def convert_bbox_to_corners_for_camera(bbox, origin = None):
 
 
 def convert_corners_to_bbox_for_lidar_box(corners):
-    '''
+    """
     Converts the corners to bboxes for lidar box
     This function assumes z to be in up direction
         .. code-block:: none
@@ -550,8 +550,23 @@ def convert_corners_to_bbox_for_lidar_box(corners):
                                     |  /
                                     | /
                (yaw=0.5*pi)y <------ 0
-    '''
+
+    LiDARInstance3DBoxes corner's order
+
+                          front x
+                               /
+                   up z  ^    /
+                         | 5 + ------------ + 6
+                         |  /|            / |
+                         | / |           /  |
+                      1  + ----------- + 2  + 7
+                         |  / 4        |   /
+               left y    | /           |  /
+                 <------ + ----------- + 3
+                       0 
+    """
     corners = np.array(corners)
+    # x, y, z is (and should be) the gravity center
     x,y,z = np.mean(corners, axis=0)
     vector = corners[4] - corners[0]
     yaw = np.arctan2(vector[1], vector[0])
@@ -562,14 +577,14 @@ def convert_corners_to_bbox_for_lidar_box(corners):
         [0, 0, 1]
     ])
     corners = (rot_matrix @ corners.T).T
-    width = np.linalg.norm(corners[0] - corners[4])
-    length = np.linalg.norm(corners[0] - corners[3])
+    length = np.linalg.norm(corners[0] - corners[4])
+    width = np.linalg.norm(corners[0] - corners[3])
     height = np.linalg.norm(corners[0] - corners[1])
-    return [x, y, z, width, length, height, yaw]
+    return [x, y, z, length, width, height, yaw]
 
 
 def convert_corners_to_bbox_for_cam_box(corners):
-    '''
+    """
     Converts the corners to bboxes for camera box
     This function assumes direction as follows:
      .. code-block:: none
@@ -582,7 +597,7 @@ def convert_corners_to_bbox_for_cam_box(corners):
              |
              v
         down y
-    '''
+    """
     corners = np.array(corners)
     x,y,z = np.mean(corners, axis=0)
     vector = corners[4] - corners[0]

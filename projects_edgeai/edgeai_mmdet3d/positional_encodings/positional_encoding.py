@@ -18,6 +18,7 @@ def pos2posemb3d(pos, num_pos_feats=128, temperature=10000):
     pos = pos * scale
     dim_t = torch.arange(num_pos_feats, dtype=torch.float32, device=pos.device)
     dim_t = temperature**(2 * (dim_t // 2) / num_pos_feats)
+    """
     pos_x = pos[..., 0, None] / dim_t
     pos_y = pos[..., 1, None] / dim_t
     pos_z = pos[..., 2, None] / dim_t
@@ -29,6 +30,13 @@ def pos2posemb3d(pos, num_pos_feats=128, temperature=10000):
                         dim=-1).flatten(-2)
     posemb = torch.cat((pos_y, pos_x, pos_z), dim=-1)
     return posemb
+    """
+
+    pos_xyz = pos[..., None] / dim_t
+    pos_xyz = torch.stack((pos_xyz[..., 0::2].sin(), pos_xyz[..., 1::2].cos()),
+                          dim=-1).flatten(-2)
+    posemb_xyz = torch.cat((pos_xyz[..., 1, :], pos_xyz[..., 0, :], pos_xyz[..., 2, :]), dim=-1)
+    return posemb_xyz
 
 
 @TASK_UTILS.register_module()

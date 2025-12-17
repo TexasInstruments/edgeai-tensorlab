@@ -19,7 +19,7 @@ import torch
 from edgeai_torchmodelopt import xmodelopt
 
 import warnings
-from copy import deepcopy
+#from copy import deepcopy
 
 
 # TODO: support fuse_conv_bn and format_only
@@ -245,10 +245,10 @@ def main(args=None):
             quantization_kwargs = None
 
         # if model_surgery_kwargs is not None and quantization_kwargs is None:
-        orig_model = deepcopy(runner.model)
-        runner.model = xmodelopt.apply_model_optimization(runner.model, example_inputs, example_kwargs, model_surgery_version=model_surgery, 
-                                                            quantization_version=args.quantization, model_surgery_kwargs=model_surgery_kwargs, 
-                                                            quantization_kwargs=quantization_kwargs, transformation_dict=transformation_dict, 
+        #orig_model = deepcopy(runner.model)
+        runner.model = xmodelopt.apply_model_optimization(runner.model, example_inputs, example_kwargs, model_surgery_version=model_surgery,
+                                                            quantization_version=args.quantization, model_surgery_kwargs=model_surgery_kwargs,
+                                                            quantization_kwargs=quantization_kwargs, transformation_dict=transformation_dict,
                                                             copy_attrs=copy_attrs)
 
         if is_wrapped:

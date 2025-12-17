@@ -29,6 +29,7 @@ class GroupEachSampleInBatchSampler(Sampler):
     def __init__(self,
                  dataset,
                  shuffle=True,
+                 sequence_flip_prob: float = 0.0,
                  seed: Optional[int] = None,
                  round_up: bool = True) -> None:
         assert hasattr(dataset, 'flag')
@@ -68,6 +69,9 @@ class GroupEachSampleInBatchSampler(Sampler):
         # Total data size
         self.size = self.batch_size * self.num_samples_batch
 
+        # For Sparse4D
+        self.sequence_flip_prob = sequence_flip_prob
+
     # generate interation indices for every batch 
     def generate_iteration_indices(self):
         self.infinite_group_indices_list = self._infinite_group_indices()
@@ -100,6 +104,10 @@ class GroupEachSampleInBatchSampler(Sampler):
                     buffer_per_local_sample[batch_idx] = \
                         copy.deepcopy(
                             self.group_idx_to_sample_idxs[new_group_idx][:samples_to_copy])
+
+                    if np.random.uniform() < self.sequence_flip_prob:
+                        buffer_per_local_sample[batch_idx] = \
+                            buffer_per_local_sample[batch_idx][::-1]
 
                 indices.append(buffer_per_local_sample[batch_idx].pop(0))
                 samples_count[batch_idx] += 1

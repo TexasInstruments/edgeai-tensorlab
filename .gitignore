@@ -139,3 +139,4 @@ mmdet3d/evaluation/functional/waymo_utils/compute_segmentation_metrics_main
 
 *.onnx
 outputs/
+mlruns/

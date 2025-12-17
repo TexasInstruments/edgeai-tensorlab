@@ -225,7 +225,7 @@ if __name__ == '__main__':
         ext_modules=[
             make_cuda_ext(
                 name='bev_pool_v2_ext',
-                module='projects.BEVDet.bevdet.ops.bev_pool_v2',
+                module='projects_edgeai.BEVDet.bevdet.view_transformers.ops.bev_pool_v2',
                 sources=[
                     'src/bev_pool.cpp',
                     'src/bev_pool_cuda.cu',

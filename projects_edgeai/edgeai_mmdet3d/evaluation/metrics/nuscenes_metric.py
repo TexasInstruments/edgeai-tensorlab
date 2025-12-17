@@ -36,21 +36,6 @@ class SortedNuScenesMetric(NuScenesMetric):
         backend_args (dict, optional): Arguments to instantiate the
             corresponding backend. Defaults to None.
     """
-    def __init__(self,
-                 data_root: str,
-                 ann_file: str,
-                 metric: Union[str, List[str]] = 'bbox',
-                 modality: dict = dict(use_camera=False, use_lidar=True),
-                 prefix: Optional[str] = None,
-                 format_only: bool = False,
-                 jsonfile_prefix: Optional[str] = None,
-                 eval_version: str = 'detection_cvpr_2019',
-                 collect_device: str = 'cpu',
-                 backend_args: Optional[dict] = None) -> None:
-        super(SortedNuScenesMetric, self).__init__(
-            data_root, ann_file, metric, modality, prefix, format_only,
-            jsonfile_prefix, eval_version, collect_device, backend_args)
-
     def compute_metrics(self, results: List[dict]) -> Dict[str, float]:
         """Compute the metrics from processed results.
 

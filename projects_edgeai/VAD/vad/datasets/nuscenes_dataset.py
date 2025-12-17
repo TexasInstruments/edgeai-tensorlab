@@ -1346,6 +1346,7 @@ class VADNuScenesDataset(NuScenesDataset):
         return ann_info
 
 
+    # Not used: To DELETE
     def get_ann_info(self, index):
         """Get annotation info according to the given index.
 
