@@ -28,11 +28,13 @@ from ... import utils
 def init(module, *args, example_inputs=None, example_kwargs=None, pruning_ratio=None, total_epochs=None, pruning_class='blend',p=2.0, copy_args=None,
                  pruning_global=False, pruning_type='channel', pruning_init_train_ep=5, pruning_m=None,  add_methods=True, **kwargs):
     copy_args = copy_args or []
-    if hasattr(module, '_example_inputs') and hasattr(module, '_example_kwargs'):
-        example_inputs= module._example_inputs
-        example_kwargs= module._example_kwargs
-    else:
-        utils.add_example_args_kwargs(module,example_inputs=example_inputs, example_kwargs=example_kwargs)
+    if not (hasattr(module, '_example_inputs') and hasattr(module, '_example_kwargs')):
+    # else:
+        # This should not get called unless this function is called separately, when called from wrapper model should have example inputs and kwargs
+        utils.add_example_args_kwargs(module, example_inputs=example_inputs, example_kwargs=example_kwargs)
+    example_inputs = module._example_inputs.pop(0)
+    example_kwargs = module._example_kwargs.pop(0)
+    
     module.__prune_params__ =  xnn.utils.AttrDict()
     module.__prune_params__.epoch_count = 0
     module.__prune_params__.pruning_ratio = pruning_ratio
@@ -90,8 +92,9 @@ def init(module, *args, example_inputs=None, example_kwargs=None, pruning_ratio=
         print("Cannot do both global pruning along with n2m pruning, it doesn't make sense! \n")
         raise NotImplementedError
     
-    for copy_arg in copy_args:
-        setattr(module, copy_arg, getattr(module, copy_arg))
+    # for copy_arg in copy_args:
+    #     if hasattr(module, copy_arg):
+    #         setattr(module, copy_arg, getattr(module, copy_arg))
         
     # to get net weights for each of the layers, incorporating all the required dependancies
     module.__prune_params__.net_weights = get_net_weights_all(module, module.__prune_params__.next_conv_node_list, module.__prune_params__.all_connected_nodes, module.__prune_params__.next_bn_nodes, module.__prune_params__.channel_pruning, module.__prune_params__.global_pruning)
