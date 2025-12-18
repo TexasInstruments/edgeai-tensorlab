@@ -35,4 +35,4 @@ where = ["."]
 include = ["tidl_tools_package*"]
 
 [project.scripts]
-download-tidl-tools = "tidl_tools_package.download:main"
+tidlbenchmark-tools-download = "tidl_tools_package.download:main"

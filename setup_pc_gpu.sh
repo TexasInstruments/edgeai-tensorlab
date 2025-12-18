@@ -30,7 +30,13 @@
 
 
 ######################################################################
-TIDL_TOOLS_TYPE="gpu" ./setup_pc.sh
+# change the default here if needed - supported options: cpu gpu
+TIDL_TOOLS_TYPE=${TIDL_TOOLS_TYPE-"gpu"}
+
+
+######################################################################
+TIDL_TOOLS_TYPE=${TIDL_TOOLS_TYPE} ./setup_pc.sh
+
 
 ######################################################################
 # NVIDIA-HPC-SDK

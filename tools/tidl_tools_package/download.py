@@ -43,8 +43,57 @@ import gzip
 
 
 ###############################################################################
-TIDL_TOOLS_TYPE_DEFAULT = ""
+TIDL_TOOLS_TYPE_DEFAULT = "cpu"
 TIDL_TOOLS_VERSION_DEFAULT = "11.2"
+
+
+TARGET_DEVICE_MAP = {
+    'AM62'   : ['AM62','AM62X'],
+    'AM62A'  : ['AM62A','AM62AX'],
+    'J722S'  : ['J722S','AM67A','TDA4AEN'],
+    'J721E'  : ['J721E','AM68PA','TDA4VM'],
+    'J721S2' : ['J721S2','AM68A','TDA4VL','TDA4AL'],
+    'J742S2' : ['J742S2','TDA4VP','TDA4AP'],
+    'J784S4' : ['J784S4','AM69A','TDA4VH','TDA4AH'],
+}
+
+
+###############################################################################
+def get_target_device(soc: str) -> str:
+    soc = soc.strip().upper()
+    for key,val in TARGET_DEVICE_MAP.items():
+        if soc in val:
+            return key.strip().upper()
+    return ''
+
+
+def _create_symlink(src, dest):
+    try:
+        os.unlink(dest)
+    except:
+        pass
+    #
+    try:
+        shutil.rmtree(dest, ignore_errors=True)
+    except:
+        pass
+    #
+    try:
+        os.symlink(src, dest)
+    except:
+        print(f'WARNING: symlink {src} ->  {dest} - failed')
+
+
+def _make_target_device_symlinks(tidl_tools_package_folder, target_device_map):
+    cur_dir = os.getcwd()
+    os.chdir(tidl_tools_package_folder)
+    for k, vlist in target_device_map.items():
+        for v in vlist:
+            if k != v:
+                if os.path.exists(k):
+                    _create_symlink(k, v)
+
+    os.chdir(cur_dir)
 
 
 ###############################################################################
@@ -304,15 +353,6 @@ def download_cgt_c7x(tidl_tools_package_path, c7x_compiler_version):
     #
 
 
-def _create_symlink(src, dest):
-    try:
-        os.remove(dest)
-    except OSError:
-        pass
-    #
-    os.symlink(src, dest)
-
-
 def download_tidl_tools(download_url, download_path, **tidl_version_dict):
     print("INFO: installing tidl_tools_package...")
     GCC_ARM_AARCH64_NAME="arm-gnu-toolchain-13.2.Rel1-x86_64-aarch64-none-linux-gnu"
@@ -372,11 +412,12 @@ def download_tidl_tools_package_11_02(install_path, tools_version, tools_type):
     
     tidl_tools_type_suffix=("_gpu" if isinstance(tools_type,str) and "gpu" in tools_type else "")
     target_soc_download_urls = {
-        "TDA4VM": f"http://tidl-ta-01.dhcp.ti.com/tidl_tools/11_02_02_00/j721e",
-        "AM68A": f"http://tidl-ta-01.dhcp.ti.com/tidl_tools/11_02_02_00/j721s2",
-        "AM69A": f"http://tidl-ta-01.dhcp.ti.com/tidl_tools/11_02_02_00/j784s4",
-        "AM67A": f"http://tidl-ta-01.dhcp.ti.com/tidl_tools/11_02_02_00/j722s",
         "AM62A": f"http://tidl-ta-01.dhcp.ti.com/tidl_tools/11_02_02_00/am62a",
+        "J722S": f"http://tidl-ta-01.dhcp.ti.com/tidl_tools/11_02_02_00/j722s",
+        "J721E": f"http://tidl-ta-01.dhcp.ti.com/tidl_tools/11_02_02_00/j721e",
+        "J721S2": f"http://tidl-ta-01.dhcp.ti.com/tidl_tools/11_02_02_00/j721s2",
+        "J742S2": f"http://tidl-ta-01.dhcp.ti.com/tidl_tools/11_02_02_00/j784s4",
+        "J784S4": f"http://tidl-ta-01.dhcp.ti.com/tidl_tools/11_02_02_00/j784s4",
     }
     tidl_version_dict = dict(version=tidl_tools_version_name, release_label=tidl_tools_release_label,
                              release_id=tidl_tools_release_id, tools_type=tidl_tools_type_suffix,
@@ -387,6 +428,7 @@ def download_tidl_tools_package_11_02(install_path, tools_version, tools_type):
         download_path = os.path.join(tidl_tools_package_path, target_soc, tidl_tools_release_id)
         download_tidl_tools(download_url, download_path, **tidl_version_dict, target_device=target_soc)
     #
+    _make_target_device_symlinks(tidl_tools_package_path, TARGET_DEVICE_MAP)
     requirements_file = os.path.realpath(os.path.join(os.path.dirname(__file__), f'requirements/requirements_11.2.txt'))
     return requirements_file
 
@@ -411,21 +453,23 @@ def download_tidl_tools_package_11_01(install_path, tools_version, tools_type):
 
     tidl_tools_type_suffix=("_gpu" if isinstance(tools_type,str) and "gpu" in tools_type else "")
     target_soc_download_urls = {
-        "TDA4VM": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/TDA4VM",
-        "AM68A": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM68A",
-        "AM69A": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM69A",
-        "AM67A": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM67A",
         "AM62A": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM62A",
+        "J722S": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM67A",
+        "J721E": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/TDA4VM",
+        "J721S2": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM68A",
+        "J742S2": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM69A",
+        "J784S4": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM69A",
     }
     tidl_version_dict = dict(version=tidl_tools_version_name, release_label=tidl_tools_release_label,
                              release_id=tidl_tools_release_id, tools_type=tidl_tools_type_suffix,
-                             c7x_firmware_version=c7x_firmware_version, c7x_compiler_version=c7x_compiler_version)
+                             c7x_firmware_version=c7x_firmware_version, c7x_compiler_version=None)
     for target_soc in target_soc_download_urls:
         download_url_base = target_soc_download_urls[target_soc]
         download_url = f"{download_url_base}/tidl_tools{tidl_tools_type_suffix}.tar.gz"
         download_path = os.path.join(tidl_tools_package_path, target_soc, tidl_tools_release_id)
         download_tidl_tools(download_url, download_path, **tidl_version_dict, target_device=target_soc)
     #
+    _make_target_device_symlinks(tidl_tools_package_path, TARGET_DEVICE_MAP)
     requirements_file = os.path.realpath(os.path.join(os.path.dirname(__file__), f'requirements/requirements_11.1.txt'))
     return requirements_file
 
@@ -450,11 +494,12 @@ def download_tidl_tools_package_11_00(install_path, tools_version, tools_type):
 
     tidl_tools_type_suffix=("_gpu" if isinstance(tools_type,str) and "gpu" in tools_type else "")
     target_soc_download_urls = {
-        "TDA4VM": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/TDA4VM",
-        "AM68A": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM68A",
-        "AM69A": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM69A",
-        "AM67A": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM67A",
         "AM62A": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM62A", # no update for AM62A in 11.0
+        "AM67A": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM67A",
+        "J721E": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/TDA4VM",
+        "J721S2": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM68A",
+        "J742S2": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM69A",
+        "J784S4": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM69A",
     }
     tidl_version_dict = dict(version=tidl_tools_version_name, release_label=tidl_tools_release_label,
                              release_id=tidl_tools_release_id, tools_type=tidl_tools_type_suffix,
@@ -465,6 +510,7 @@ def download_tidl_tools_package_11_00(install_path, tools_version, tools_type):
         download_path = os.path.join(tidl_tools_package_path, target_soc, tidl_tools_release_id)
         download_tidl_tools(download_url, download_path, **tidl_version_dict, target_device=target_soc)
     #
+    _make_target_device_symlinks(tidl_tools_package_path, TARGET_DEVICE_MAP)
     requirements_file = os.path.realpath(os.path.join(os.path.dirname(__file__), f'requirements/requirements_11.0.txt'))
     return requirements_file
 
@@ -487,11 +533,12 @@ def download_tidl_tools_package_10_01(install_path, tools_version, tools_type):
 
     tidl_tools_type_suffix=("_gpu" if isinstance(tools_type,str) and "gpu" in tools_type else "")
     target_soc_download_urls = {
-        "TDA4VM": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/TDA4VM",
-        "AM68A": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM68A",
-        "AM69A": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM69A",
-        "AM67A": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM67A",
         "AM62A": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM62A",
+        "J722S": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM67A",
+        "J721E": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/TDA4VM",
+        "J721S2": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM68A",
+        "J742S2": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM69A",
+        "J784S4": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM69A",
     }
     tidl_version_dict = dict(version=tidl_tools_version_name, release_label=tidl_tools_release_label,
                              release_id=tidl_tools_release_id, tools_type=tidl_tools_type_suffix,
@@ -502,6 +549,7 @@ def download_tidl_tools_package_10_01(install_path, tools_version, tools_type):
         download_path = os.path.join(tidl_tools_package_path, target_soc, tidl_tools_release_id)
         download_tidl_tools(download_url, download_path, **tidl_version_dict, target_device=target_soc)
     #
+    _make_target_device_symlinks(tidl_tools_package_path, TARGET_DEVICE_MAP)
     requirements_file = os.path.realpath(os.path.join(os.path.dirname(__file__), f'requirements/requirements_10.1.txt'))
     return requirements_file
 
@@ -520,11 +568,12 @@ def download_tidl_tools_package_10_00(install_path, tools_version, tools_type):
 
     tidl_tools_type_suffix=("_gpu" if isinstance(tools_type,str) and "gpu" in tools_type else "")
     target_soc_download_urls = {
-        "TDA4VM": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/TDA4VM",
-        "AM68A": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM68A",
-        "AM69A": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM69A",
-        "AM67A": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM67A",
         "AM62A": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM62A",
+        "J722S": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM67A",
+        "J721E": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/TDA4VM",
+        "J721S2": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM68A",
+        "J742S2": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM69A",
+        "J784S4": f"https://software-dl.ti.com/jacinto7/esd/tidl-tools/{tidl_tools_release_id}/TIDL_TOOLS/AM69A",
     }
     tidl_version_dict = dict(version=tidl_tools_version_name, release_label=tidl_tools_release_label,
                              release_id=tidl_tools_release_id, tools_type=tidl_tools_type_suffix,
@@ -535,6 +584,7 @@ def download_tidl_tools_package_10_00(install_path, tools_version, tools_type):
         download_path = os.path.join(tidl_tools_package_path, target_soc, tidl_tools_release_id)
         download_tidl_tools(download_url, download_path, **tidl_version_dict, target_device=target_soc)
     #
+    _make_target_device_symlinks(tidl_tools_package_path, TARGET_DEVICE_MAP)
     requirements_file = os.path.realpath(os.path.join(os.path.dirname(__file__), f'requirements/requirements_10.0.txt'))
     return requirements_file
 
@@ -617,6 +667,7 @@ def download():
     install_path = os.path.dirname(os.path.realpath(__file__))
     tools_version = os.environ.get("TIDL_TOOLS_VERSION", TIDL_TOOLS_VERSION_DEFAULT)
     tools_type = os.environ.get("TIDL_TOOLS_TYPE", TIDL_TOOLS_TYPE_DEFAULT)
+    print(f"INFO: running setup with TIDL_TOOLS_VERSION={tools_version} TIDL_TOOLS_TYPE={tools_type}")
     setup_tidl_tools(install_path, tools_version, tools_type)
 
 

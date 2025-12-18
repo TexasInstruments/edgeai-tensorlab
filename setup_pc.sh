@@ -30,6 +30,15 @@
 
 
 ######################################################################
+# change the default here if needed - supported options: 11.2 11.1 11.0 10.1
+TIDL_TOOLS_VERSION=${TIDL_TOOLS_VERSION-"11.2"}
+
+# change the default here if needed - supported options: cpu gpu
+# if you are invoking the script setup_runner_pc_gpu.sh, 
+# then you would need to change this in that script and not here.
+TIDL_TOOLS_TYPE=${TIDL_TOOLS_TYPE-"cpu"}
+
+######################################################################
 CURRENT_WORK_DIR=$(pwd)
 
 
@@ -67,28 +76,29 @@ done
 
 
 #######################################################################
-pip3 install -e ./tools --verbose
+pip3 install -e ./tools
 
 
+######################################################################
 # unsintall onnxruntime and install onnxruntime-tild along with tidl-tools
-# pip3 uninstall -y onnxruntime
+# pip3 uninstall -y onnxruntime onnxruntime-tidl
 
 
-# download-tidl-tools is a script that defined in and installed via tools/pyproject.toml
-# download and install tidl-tools - this invokes: python3 tools/tidl_tools_package/download.py
-echo "INFO: running download-tidl-tools..."
-download-tidl-tools
+# tidlbenchmark-tools-download is a script that defined in and installed via tools/pyproject.toml
+# tidlbenchmark-tools-download - this invokes: python3 tools/tidl_tools_package/download.py
+echo "INFO: running tidlbenchmark-tools-download..."
+TIDL_TOOLS_TYPE=${TIDL_TOOLS_TYPE} TIDL_TOOLS_VERSION=${TIDL_TOOLS_VERSION} tidlbenchmark-tools-download
 
 
 ######################################################################
 pip3 install -e ./[pc] --verbose
 
-# download-tidlrunner-tools is a script that defined in and installed via ./pyproject.toml
+# tidlbenchmark-tools-install is a script that defined in and installed via ./pyproject.toml
 # download and install packages - this invokes: python3 edgeai_tidlrunner/download.py
 # pip3 install --no-input onnx-graphsurgeon==0.3.26 --extra-index-url https://pypi.ngc.nvidia.com
 # pip3 install --no-input osrt_model_tools @ git+https://github.com/TexasInstruments/edgeai-tidl-tools.git@11_00_08_00#subdirectory=osrt-model-tools
-echo "INFO: running download-tidlrunner-tools..."
-download-benchmark-tools
+echo "INFO: running tidlbenchmark-tools-install..."
+tidlbenchmark-tools-install
 
 
 #######################################################################
