@@ -120,6 +120,10 @@ fi
 
 
 ######################################################################
+pip3 install -r requirements/nuscenes_requirements.txt
+
+
+######################################################################
 echo "INFO: setting pandaset Python package for 3D object detection"
 echo "INFO: to use it, make sure the dataset has been downloaded as explained in ./docs/datsets.md"
 ./setup_pandaset.sh
