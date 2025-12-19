@@ -368,10 +368,10 @@ source ./run_set_env.sh "$SOC"
 
 if [ "$tidl_tools_path" != "" ] && [ ! -f $tidl_tools_path ]; then
     echo "[WARNING]: $tidl_tools_path does not exist. Default tools will be used"
-    tidl_tools_path=$path_edge_ai_benchmark/tools/tidl_tools_package/$SOC/tidl_tools.tar.gz
+    tidl_tools_path=$path_edge_ai_benchmark/tools/tidl_tools_package/bin/$SOC/tidl_tools.tar.gz
 fi
 if [ "$tidl_tools_path" == "" ]; then
-    tidl_tools_path=$path_edge_ai_benchmark/tools/tidl_tools_package/$SOC/tidl_tools.tar.gz
+    tidl_tools_path=$path_edge_ai_benchmark/tools/tidl_tools_package/bin/$SOC/tidl_tools.tar.gz
 fi
 if [ ! -f $tidl_tools_path ]; then
     echo "[ERROR]: $tidl_tools_path does not exist. Exiting"

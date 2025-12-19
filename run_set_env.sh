@@ -38,7 +38,7 @@ TARGET_MACHINE=${2:-pc}
 #################################################################################
 # setup the environment
 # source run_setupenv_pc.sh
-export TIDL_TOOLS_PATH=$(pwd)/tools/tidl_tools_package/${TARGET_SOC}/tidl_tools
+export TIDL_TOOLS_PATH=$(pwd)/tools/tidl_tools_package/bin/${TARGET_SOC}/tidl_tools
 echo "TIDL_TOOLS_PATH=${TIDL_TOOLS_PATH}"
 
 export LD_LIBRARY_PATH="${TIDL_TOOLS_PATH}:${LD_LIBRARY_PATH}"
@@ -49,8 +49,8 @@ export PYTHONPATH=:${PYTHONPATH}
 echo "PYTHONPATH=${PYTHONPATH}"
 
 # needed for TVM compilation
-export ARM64_GCC_PATH=$(pwd)/tools/tidl_tools_package/arm-gnu-toolchain-13.2.Rel1-x86_64-aarch64-none-linux-gnu
-export CGT7X_ROOT=$(pwd)/tools/tidl_tools_package/ti-cgt-c7000_5.0.0.LTS
+export ARM64_GCC_PATH=$(pwd)/tools/tidl_tools_package/bin/arm-gnu-toolchain-13.2.Rel1-x86_64-aarch64-none-linux-gnu
+export CGT7X_ROOT=$(pwd)/tools/tidl_tools_package/bin/ti-cgt-c7000_5.0.0.LTS
 #################################################################################
 # environement variable to help shape exchange between TIDL and onnxruntime
 export TIDL_RT_ONNX_VARDIM="1"
