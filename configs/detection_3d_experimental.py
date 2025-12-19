@@ -184,11 +184,11 @@ def get_configs(settings, work_dir):
                 runtime_options=utils.dict_update(settings.runtime_options_onnx_p2(ext_options={'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL,
                                 'object_detection:meta_arch_type': 10,
                                 'object_detection:meta_layers_names_list':
-                                '../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/bevformer/bevformer_tiny_mod_480x800_20250602_opt.prototxt'}),
+                                '../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/bevformer/bevformer_tiny_mod_blgrid_480x800_20251215_opt.prototxt'}),
                     {'advanced_options:output_feature_16bit_names_list':'/img_backbone/relu/Relu_output_0, /img_backbone/layer1/layer1.0/downsample/downsample.0/Conv_output_0, /img_backbone/layer1/layer1.0/conv3/Conv_output_0, /pts_bbox_head/Div_1_output_0, /pts_bbox_head/Add_9_output_0, /pts_bbox_head/Add_10_output_0, /pts_bbox_head/Sigmoid_output_0, /pts_bbox_head/Mul_2_output_0',
                      'advanced_options:max_num_subgraph_nodes': 1536,
                      'advanced_options:use16BitForTopK': 1}),
-                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/bevformer/bevformer_tiny_mod_480x800_20250602_opt.onnx'),
+                model_path=f'../edgeai-modelforest/models-cl/vision/detection_3d/nuscenes/bevformer/bevformer_tiny_mod_blgrid_480x800_20251215_opt.onnx'),
             postprocess=postproc_transforms.get_transform_bev_detection_base(queue_length=1),
             metric=dict(),
             model_info=dict(metric_reference={'mAP':0.4})
