@@ -61,8 +61,9 @@ class QuantPT2EBaseModule(OptimizationBaseModule):
         # this super().train will call all submodules train() wich includes self.module
         # that will effectively call quant_func.train with self.module twice
         # to avoid that we directly set self.training
-        # super().train(mode)
         self.training = mode
+        for module_name, module in self.named_modules():
+            module.training = mode
 
         if mode:
             # return quant_func.train(self.module, *args, **kwargs)
