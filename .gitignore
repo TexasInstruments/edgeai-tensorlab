@@ -27,11 +27,6 @@ evm_wheels/
 *.zip
 *.tar.gz
 
-/tools/tidl_tools_package/J7*
-/tools/tidl_tools_package/AM*
-/tools/tidl_tools_package/TDA*
-/tools/tidl_tools_package/gcc*
-/tools/tidl_tools_package/arm*
-/tools/tidl_tools_package/ti-cgt*
-/tools/tidl_tools_package/ti_cgt*
-/tools/tidl_tools_backup/
+
+/tools/tidl_tools_package/bin/
+

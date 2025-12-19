@@ -39,8 +39,8 @@ def get_tidl_tools_path(target_device):
     """
     if target_device is None:
         target_device = 'AM68A'
-        print(f'INFO: No target device specified, defaulting to: {target_device}')
+        print(f'WARNING: No target device specified, defaulting to: {target_device}')
     
-    tidl_tools_package_base = os.path.abspath(os.path.dirname(__file__))
-    tidl_tools_path = f'{tidl_tools_package_base}/{target_device}/tidl_tools'
+    tidl_tools_package_base = os.path.dirname(os.path.abspath(__file__))
+    tidl_tools_path = os.path.join(tidl_tools_package_base, 'bin', target_device, 'tidl_tools')
     return tidl_tools_path
