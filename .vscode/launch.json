@@ -15,8 +15,8 @@
                 "settings_import_on_pc.yaml", "--target_device", "AM68A", "--model_shortlist", "1" //, "--parallel_processes", "0"
             ],
             "env": {
-                "TIDL_TOOLS_PATH": "./tools/tidl_tools_package/AM68A/tidl_tools",
-                "LD_LIBRARY_PATH": "./tools/tidl_tools_package/AM68A/tidl_tools"
+                "TIDL_TOOLS_PATH": "./tools/tidl_tools_package/bin/AM68A/tidl_tools",
+                "LD_LIBRARY_PATH": "./tools/tidl_tools_package/bin/AM68A/tidl_tools"
             }
         }
     ]
