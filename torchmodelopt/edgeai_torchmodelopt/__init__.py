@@ -38,8 +38,10 @@ from . import xops
 from .xmodelopt import surgery
 from .xmodelopt import pruning
 from .xmodelopt import quantization
+from .xmodelopt import sparsity
 from .xmodelopt.surgery import SyrgeryVersion
 from .xmodelopt.pruning import PruningVersion
+from .xmodelopt.sparsity import SparsityVersion
 from .xmodelopt.quantization import QuantizationVersion
 
 try:

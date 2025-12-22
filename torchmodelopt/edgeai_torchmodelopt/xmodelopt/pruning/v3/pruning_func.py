@@ -13,33 +13,37 @@ from .parametrization import BlendPruningParametrization, SigmoidPruningParametr
 from ... import utils
 
 def init(module, *args, example_inputs:list=None, example_kwargs:dict=None, pruning_ratio=None, total_epochs=None, pruning_class='blend',p=2.0, pruning_global=False, copy_args=None,
-            pruning_type='channel', pruning_init_train_ep=5, pruning_m=None, add_methods=True, aten_graph=True, **kwargs):
+            pruning_type='channel', pruning_init_train_ep=5, pruning_m=None, add_methods=True, aten_graph=True, copy_attrs=None, **kwargs):
     copy_attrs = copy_attrs or []
     copy_args = copy_args or []
     example_inputs =[] if example_inputs is None else example_inputs
     example_kwargs = example_kwargs or {}
     
-    if hasattr(module, '_example_inputs') and hasattr(module, '_example_kwargs'):
-        example_inputs= module._example_inputs
-        example_kwargs= module._example_kwargs
-    else:
-        utils.add_example_args_kwargs(module,example_inputs=example_inputs, example_kwargs=example_kwargs)
-    
-    module.__prune_params__ =  xnn.utils.AttrDict()
-    module.__prune_params__.aten_graph = module.__prune_params__.pre_dispatch = aten_graph
-    module.__prune_params__.epoch_count = 0
-    module.__prune_params__.pruning_ratio = pruning_ratio
-    module.__prune_params__.total_epochs = total_epochs
-    module.__prune_params__.sparsity = 0
-    module.__prune_params__.init_train_ep = pruning_init_train_ep
-    module.__prune_params__.p = p
+    if not (hasattr(module, '_example_inputs') and hasattr(module, '_example_kwargs')):
+    # else:
+        # This should not get called unless this function is called separately, when called from wrapper model should have example inputs and kwargs
+        utils.add_example_args_kwargs(module, example_inputs=example_inputs, example_kwargs=example_kwargs)
+    example_inputs = module._example_inputs.pop(0)
+    example_kwargs = module._example_kwargs.pop(0)
     
     if isinstance(module,fx.GraphModule):
         #TODO Differnetiate between fx and pt2e graph modules
         # Assuming Default pt2e here
-        module = module
+        gm_module = module
     else:
-        module ,_= torch_dynamo.export(module,aten_graph=module.__prune_params__.aten_graph, pre_dispatch=module.__prune_params__.pre_dispatch, assume_static_by_default=True)(*example_inputs,**example_kwargs)
+        example_inputs = tuple(example_inputs)
+        check_guards = kwargs.get('check_guards', True)
+        example_inputs = tuple(example_inputs)
+        gm_module = torch.export.export(module, example_inputs, kwargs=example_kwargs).module(check_guards=check_guards)
+    
+    gm_module.__prune_params__ =  xnn.utils.AttrDict()
+    gm_module.__prune_params__.aten_graph = gm_module.__prune_params__.pre_dispatch = aten_graph
+    gm_module.__prune_params__.epoch_count = 0
+    gm_module.__prune_params__.pruning_ratio = pruning_ratio
+    gm_module.__prune_params__.total_epochs = total_epochs
+    gm_module.__prune_params__.sparsity = 0
+    gm_module.__prune_params__.init_train_ep = pruning_init_train_ep
+    gm_module.__prune_params__.p = p
     
     if pruning_ratio==0:
         raise RuntimeError("pruning ratio of 0 is not supported , try turning off pruning and trying again")
@@ -50,73 +54,74 @@ def init(module, *args, example_inputs:list=None, example_kwargs:dict=None, prun
     elif not(total_epochs):
         raise RuntimeError("total epochs should be provided")
         
-    module.__prune_params__.pruning_class = PRUNING_CLASS_DICT[pruning_class]
+    gm_module.__prune_params__.pruning_class = PRUNING_CLASS_DICT[pruning_class]
     
     #responsible for creating a next mapping (basically helps combine the weight of BN and conv)
     
-    module.__prune_params__.pruning_partitions = get_pruning_partitions(module.__prune_params__.module)
-    module.__prune_params__.next_bn_nodes = create_bn_conv_mapping(module, module.__prune_params__.pruning_partitions)
-    module.__prune_params__.channel_pruning = False
-    module.__prune_params__.n2m_pruning = False
-    module.__prune_params__.prunechannelunstructured = False
-    module.__prune_params__.parametrized_params = set()
+    gm_module.__prune_params__.pruning_partitions = get_pruning_partitions(gm_module)
+    gm_module.__prune_params__.next_bn_nodes = create_bn_conv_mapping(gm_module, gm_module.__prune_params__.pruning_partitions)
+    gm_module.__prune_params__.channel_pruning = False
+    gm_module.__prune_params__.n2m_pruning = False
+    gm_module.__prune_params__.prunechannelunstructured = False
+    gm_module.__prune_params__.parametrized_params = set()
     
     if pruning_type=='channel':
-        module.__prune_params__.channel_pruning = True
+        gm_module.__prune_params__.channel_pruning = True
     elif pruning_type=='n2m':
-        module.__prune_params__.n2m_pruning = True
+        gm_module.__prune_params__.n2m_pruning = True
     elif pruning_type=='prunechannelunstructured':
-        module.__prune_params__.prunechannelunstructured = True
+        gm_module.__prune_params__.prunechannelunstructured = True
     elif pruning_type=='unstructured':
         pass
-    module.__prune_params__.global_pruning = pruning_global
+    gm_module.__prune_params__.global_pruning = pruning_global
     
-    if module.__prune_params__.n2m_pruning:
+    if gm_module.__prune_params__.n2m_pruning:
         if pruning_m is None:
             raise RuntimeError("The value of m should be provided in case of n:m pruning")
         else:
-            module.__prune_params__.m = pruning_m
+            gm_module.__prune_params__.m = pruning_m
     else:
-        module.__prune_params__.m = None
+        gm_module.__prune_params__.m = None
     
-    if module.__prune_params__.channel_pruning:
+    if gm_module.__prune_params__.channel_pruning:
         # creating the next node list, which contains the connection to all convs to the current conv
-        module.__prune_params__.next_conv_node_list = create_next_conv_node_list(module, module.__prune_params__.pruning_partitions)
+        gm_module.__prune_params__.next_conv_node_list = create_next_conv_node_list(gm_module, gm_module.__prune_params__.pruning_partitions)
         # returns the list of all conv that share the same output
-        module.__prune_params__.all_connected_nodes = find_all_connected_nodes(module, module.__prune_params__.pruning_partitions)
+        gm_module.__prune_params__.all_connected_nodes = find_all_connected_nodes(gm_module, gm_module.__prune_params__.pruning_partitions)
     else:
-        module.__prune_params__.next_conv_node_list = None
-        module.__prune_params__.all_connected_nodes = None
+        gm_module.__prune_params__.next_conv_node_list = None
+        gm_module.__prune_params__.all_connected_nodes = None
     
-    if module.__prune_params__.n2m_pruning and module.__prune_params__.global_pruning:
+    if gm_module.__prune_params__.n2m_pruning and gm_module.__prune_params__.global_pruning:
         print("Cannot do both global pruning along with n2m pruning, it doesn't make sense! \n")
         raise NotImplementedError
     
     for copy_arg in copy_args:
-        setattr(module, copy_arg, getattr(module, copy_arg))
+        if hasattr(module, copy_arg):
+            setattr(gm_module, copy_arg, getattr(module, copy_arg))
         
     # to get net weights for each of the layers, incorporating all the required dependancies
-    module.__prune_params__.net_weights = get_net_weights_all(module, module.__prune_params__.pruning_partitions, module.__prune_params__.next_conv_node_list, module.__prune_params__.all_connected_nodes, module.__prune_params__.next_bn_nodes, module.__prune_params__.channel_pruning, module.__prune_params__.global_pruning)
+    gm_module.__prune_params__.net_weights = get_net_weights_all(gm_module, gm_module.__prune_params__.pruning_partitions, gm_module.__prune_params__.next_conv_node_list, gm_module.__prune_params__.all_connected_nodes, gm_module.__prune_params__.next_bn_nodes, gm_module.__prune_params__.channel_pruning, gm_module.__prune_params__.global_pruning)
     
-    if module.__prune_params__.global_pruning:
-        if module.__prune_params__.channel_pruning:
-            module.__prune_params__.get_layer_pruning_ratio_channel(pruning_ratio)
+    if gm_module.__prune_params__.global_pruning:
+        if gm_module.__prune_params__.channel_pruning:
+            gm_module.__prune_params__.get_layer_pruning_ratio_channel(pruning_ratio)
         else:
-            module.__prune_params__.get_layer_pruning_ratio(pruning_ratio)
+            gm_module.__prune_params__.get_layer_pruning_ratio(pruning_ratio)
     #
     if add_methods:
         # add a wrapper for model.train()
-        module._insert_and_remove_parametrization_during_training = types.MethodType(insert_and_remove_parametrization_during_training, module) 
-        module.__pruning_train_backup__ = types.MethodType(module.train.__func__, module)
-        module.train = types.MethodType(train, module)
-        module.eval = types.MethodType(train, module)
+        gm_module._insert_and_remove_parametrization_during_training = types.MethodType(insert_and_remove_parametrization_during_training, gm_module) 
+        gm_module.__pruning_train_backup__ = types.MethodType(module.train.__func__, gm_module)
+        gm_module.train = types.MethodType(train, gm_module)
+        gm_module.eval = types.MethodType(train, gm_module)
         # other methods
-        module.get_layer_pruning_ratio = types.MethodType(get_layer_pruning_ratio, module)
-        module.get_layer_pruning_ratio_channel = types.MethodType(get_layer_pruning_ratio_channel, module)
-        module.insert_parametrization = types.MethodType(insert_parametrization, module)
-        module.remove_parametrization = types.MethodType(remove_parametrization, module)
-        module.calculate_sparsity = types.MethodType(calculate_sparsity, module)
-    return module
+        gm_module.get_layer_pruning_ratio = types.MethodType(get_layer_pruning_ratio, gm_module)
+        gm_module.get_layer_pruning_ratio_channel = types.MethodType(get_layer_pruning_ratio_channel, gm_module)
+        gm_module.insert_parametrization = types.MethodType(insert_parametrization, gm_module)
+        gm_module.remove_parametrization = types.MethodType(remove_parametrization, gm_module)
+        gm_module.calculate_sparsity = types.MethodType(calculate_sparsity, gm_module)
+    return gm_module
 
 #TODO pt2e implementation
 def get_layer_pruning_ratio(module, pruning_ratio=0.6):
@@ -217,6 +222,10 @@ def train(module, mode: bool = True):
         module.__pruning_train_backup__(mode=mode)
         module = module._insert_and_remove_parametrization_during_training(mode)
     return module
+
+
+def eval(self, mode: bool = False):
+    return train(self, mode)
 
 
 def insert_and_remove_parametrization_during_training(module, mode: bool = True):

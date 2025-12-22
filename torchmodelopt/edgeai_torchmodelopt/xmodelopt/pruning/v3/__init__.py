@@ -30,7 +30,8 @@
 #################################################################################
 
 
-from .pruner_module import PrunerQuantModule, PrunerModule, SigmoidPruningParametrization, BlendPruningParametrization, IncrementalPruningParametrization
+from .pruner_module import PrunerQuantModule, PrunerModule
+from .parametrization import SigmoidPruningParametrization, BlendPruningParametrization, IncrementalPruningParametrization
 from .utils import get_bn_adjusted_weight, create_bn_conv_mapping, create_next_conv_node_list, get_net_weights_all
 from .utils import create_channel_pruned_model
 

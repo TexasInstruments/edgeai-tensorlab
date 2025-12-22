@@ -41,8 +41,7 @@ import copy
 
 from . import pruning_func_wrapper
 from ...utils.optimization_base import OptimizationBaseModule
-from .utils import get_bn_adjusted_weight, create_bn_conv_mapping, create_next_conv_node_list, find_all_connected_nodes, get_net_weight_node_channel_prune, get_net_weights_all, get_pruning_partitions,get_num_heads_head_dims, get_parameter_indices
-from .parametrization import BlendPruningParametrization, SigmoidPruningParametrization, IncrementalPruningParametrization, ChannelOnlyBlendPruningParametrization, HeadChannelBlendPruningParametrization, HeadOnlyBlendPruningParametrization, PRUNING_CLASS_DICT
+from .parametrization import PRUNING_CLASS_DICT
 
 class PrunerModule(OptimizationBaseModule):
     def __init__(self, module, *args, example_inputs:list=None, example_kwargs:dict=None, pruning_ratio=None, total_epochs=None, pruning_class='blend',p=2.0, pruning_global=False, copy_args=None,
@@ -53,10 +52,10 @@ class PrunerModule(OptimizationBaseModule):
         example_kwargs = example_kwargs or {}
         super().__init__( module, *args, transformation_dict=transformation_dict, copy_attrs=copy_attrs, **kwargs)
         self.prepare(module, *args, example_inputs= example_inputs, example_kwargs=example_kwargs, pruning_ratio=pruning_ratio, total_epochs=total_epochs, pruning_class=pruning_class, copy_args = copy_args,
-                    p=p,pruning_global=pruning_global, pruning_type=pruning_type, pruning_init_train_ep=pruning_init_train_ep, pruning_m=pruning_m, add_methods=add_methods, aten_graph=aten_graph, transformation_dict=transformation_dict, **kwargs)
+                    p=p,pruning_global=pruning_global, pruning_type=pruning_type, pruning_init_train_ep=pruning_init_train_ep, pruning_m=pruning_m, add_methods=add_methods, aten_graph=aten_graph, transformation_dict=transformation_dict, copy_attrs=copy_attrs, **kwargs)
 
     def prepare(self, module, *args, example_inputs:list=None, example_kwargs:dict=None, pruning_ratio=None, total_epochs=None, pruning_class='blend',p=2.0, pruning_global=False, copy_args=None,
-                pruning_type='channel', pruning_init_train_ep=5, pruning_m=None, add_methods=True, aten_graph=True, transformation_dict=None, **kwargs):
+                pruning_type='channel', pruning_init_train_ep=5, pruning_m=None, add_methods=True, aten_graph=True, transformation_dict=None, copy_attrs=None,  **kwargs):
         copy_attrs = copy_attrs or []
         copy_args = copy_args or []
         example_inputs =[] if example_inputs is None else example_inputs
@@ -69,12 +68,6 @@ class PrunerModule(OptimizationBaseModule):
         self.init_train_ep = pruning_init_train_ep
         self.p = p
         self.aten_graph = self.pre_dispatch = aten_graph
-        # if isinstance(module,fx.GraphModule):
-        #     #TODO Differnetiate between fx and pt2e graph modules
-        #     # Assuming Default pt2e here
-        #     self.module = module
-        # else:
-        #     self.module ,_= torch_dynamo.export(module,aten_graph=True)(*example_inputs,**example_kwargs)
         
         if pruning_ratio==0:
             raise RuntimeError("pruning ratio of 0 is not supported , try turning off pruning and trying again")
@@ -87,10 +80,6 @@ class PrunerModule(OptimizationBaseModule):
             
         self.pruning_class = PRUNING_CLASS_DICT[pruning_class]
         
-        #responsible for creating a next mapping (basically helps combine the weight of BN and conv)
-        
-        # self.pruning_partitions = get_pruning_partitions(self.module)
-        # self.next_bn_nodes = create_bn_conv_mapping(self.module, self.pruning_partitions)
         self.channel_pruning = False
         self.n2m_pruning = False
         self.prunechannelunstructured = False
@@ -114,32 +103,12 @@ class PrunerModule(OptimizationBaseModule):
         else:
             self.m = None
         
-        # if self.channel_pruning:
-        #     # creating the next node list, which contains the connection to all convs to the current conv
-        #     self.next_conv_node_list = create_next_conv_node_list(self.module, self.pruning_partitions)
-        #     # returns the list of all conv that share the same output
-        #     self.all_connected_nodes = find_all_connected_nodes(self.module, self.pruning_partitions)
-        # else:
-        #     self.next_conv_node_list = None
-        #     self.all_connected_nodes = None
         
         if self.n2m_pruning and self.global_pruning:
             print("Cannot do both global pruning along with n2m pruning, it doesn't make sense! \n")
             raise NotImplementedError
         
-        # for copy_arg in copy_args:
-        #     setattr(self, copy_arg, getattr(module, copy_arg))
-            
-        # # to get net weights for each of the layers, incorporating all the required dependancies
-        # self.net_weights = get_net_weights_all(self.module, self.pruning_partitions, self.next_conv_node_list, self.all_connected_nodes, self.next_bn_nodes, self.channel_pruning, self.global_pruning)
-        
-        # if self.global_pruning:
-        #     if self.channel_pruning:
-        #         self.get_layer_pruning_ratio_channel(pruning_ratio)
-        #     else:
-        #         self.get_layer_pruning_ratio(pruning_ratio)
-        #
-        pruning_func_wrapper.init(module, *args, example_inputs= example_inputs, example_kwargs=example_kwargs, pruning_ratio=pruning_ratio, total_epochs=total_epochs, pruning_class=pruning_class, copy_args = copy_args,
+        self.module = pruning_func_wrapper.init(module, *args, example_inputs= example_inputs, example_kwargs=example_kwargs, pruning_ratio=pruning_ratio, total_epochs=total_epochs, pruning_class=pruning_class, copy_args = copy_args,
                     p=p,pruning_global=pruning_global, pruning_type=pruning_type, pruning_init_train_ep=pruning_init_train_ep, pruning_m=pruning_m, add_methods=add_methods, aten_graph=aten_graph, transformation_dict=transformation_dict, **kwargs)
 
     #TODO pt2e implementation
@@ -151,8 +120,19 @@ class PrunerModule(OptimizationBaseModule):
         self.module = pruning_func_wrapper.get_layer_pruning_ratio_channel(self.module, pruning_ratio, transformation_dict=self.transformation_dict)
         return self
 
-    def train(self, mode: bool = True): 
-        self. module = pruning_func_wrapper.train(self.module, mode=mode, transformation_dict=self.transformation_dict)
+    def train(self, mode: bool = True,**kwargs): 
+        # this super().train will call all submodules train() wich includes self.module
+        # that will effectively call quant_func.train with self.module twice
+        # to avoid that we directly set self.training
+        # super().train(mode)
+        self.training = mode
+
+        if mode:
+            # return quant_func.train(self.module, *args, **kwargs)
+            self.module = pruning_func_wrapper.train(self.module, mode, transformation_dict=self.transformation_dict, **kwargs)
+        else:
+            self.module = pruning_func_wrapper.eval(self.module, mode, transformation_dict=self.transformation_dict, **kwargs)
+        #
         return self
         
     def forward(self, *args, **kwargs):

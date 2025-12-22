@@ -69,7 +69,7 @@ class IncrementalPruningParametrization(nn.Module):
                 soft_mask = torch.ones_like(net_weight)
         else:
             # epoch by which network should be pruned as desired
-            total_epochs_knee_point = (self.total_epochs-self.init_train_ep)*2//3 
+            total_epochs_knee_point = min(self.total_epochs-1, max(self.init_train_ep+1, (self.total_epochs-self.init_train_ep)*2//3 + self.init_train_ep)) 
             alpha_factor = 0
                      
             if self.n2m_pruning: 
@@ -311,13 +311,13 @@ class BlendPruningParametrization(SoftPruningParametrization):
                 soft_mask = torch.ones_like(net_weight)
         else:
             # alpha factor gets multiplied to weights that needs to be pruned, it starts with 1 and parabolically moves towards 0
-            total_epochs_knee_point = (self.total_epochs-self.init_train_ep)*2//3
+            total_epochs_knee_point = min(self.total_epochs-1, max(self.init_train_ep+1, (self.total_epochs-self.init_train_ep)*2//3 + self.init_train_ep))
             if self.epoch_count<=self.init_train_ep:
                 alpha_factor = 1
             elif self.epoch_count>total_epochs_knee_point:
                 alpha_factor = 0
             else:
-                alpha_factor = math.pow(abs(self.epoch_count-total_epochs_knee_point),self.p)/math.pow(total_epochs_knee_point-self.init_train_ep, self.p)
+                alpha_factor = math.pow(abs(total_epochs_knee_point - self.epoch_count),self.p)/math.pow(total_epochs_knee_point-self.init_train_ep, self.p)
                      
             if self.n2m_pruning:
                 # prune 41 elements for every 64 elements (pass 41/64 in the self.pruning_ratio)
@@ -412,13 +412,13 @@ class ChannelOnlyBlendPruningParametrization(BlendPruningParametrization):
                 soft_mask = torch.ones_like(net_weight)
         else:
             # alpha factor gets multiplied to weights that needs to be pruned, it starts with 1 and parabolically moves towards 0
-            total_epochs_knee_point = (self.total_epochs-self.init_train_ep)*2//3
+            total_epochs_knee_point = min(self.total_epochs-1, max(self.init_train_ep+1, (self.total_epochs-self.init_train_ep)*2//3 + self.init_train_ep))
             if self.epoch_count<=self.init_train_ep:
                 alpha_factor = 1
             elif self.epoch_count>total_epochs_knee_point:
                 alpha_factor = 0
             else:
-                alpha_factor = math.pow(abs(self.epoch_count-total_epochs_knee_point),self.p)/math.pow(total_epochs_knee_point-self.init_train_ep, self.p)
+                alpha_factor = math.pow(abs(total_epochs_knee_point - self.epoch_count),self.p)/math.pow(total_epochs_knee_point-self.init_train_ep, self.p)
                      
             if self.n2m_pruning:
                 # prune 41 elements for every 64 elements (pass 41/64 in the self.pruning_ratio)
@@ -528,13 +528,13 @@ class HeadOnlyBlendPruningParametrization(BlendPruningParametrization):
                 soft_mask = torch.ones_like(net_weight)
         else:
             # alpha factor gets multiplied to weights that needs to be pruned, it starts with 1 and parabolically moves towards 0
-            total_epochs_knee_point = (self.total_epochs-self.init_train_ep)*2//3
+            total_epochs_knee_point = min(self.total_epochs-1, max(self.init_train_ep+1, (self.total_epochs-self.init_train_ep)*2//3 + self.init_train_ep))
             if self.epoch_count<=self.init_train_ep:
                 alpha_factor = 1
             elif self.epoch_count>total_epochs_knee_point:
                 alpha_factor = 0
             else:
-                alpha_factor = math.pow(abs(self.epoch_count-total_epochs_knee_point),self.p)/math.pow(total_epochs_knee_point-self.init_train_ep, self.p)
+                alpha_factor = math.pow(abs(total_epochs_knee_point - self.epoch_count),self.p)/math.pow(total_epochs_knee_point-self.init_train_ep, self.p)
                      
             if self.n2m_pruning:
                 # prune 41 elements for every 64 elements (pass 41/64 in the self.pruning_ratio)
@@ -643,13 +643,13 @@ class HeadChannelBlendPruningParametrization(BlendPruningParametrization):
                 soft_mask = torch.ones_like(net_weight)
         else:
             # alpha factor gets multiplied to weights that needs to be pruned, it starts with 1 and parabolically moves towards 0
-            total_epochs_knee_point = (self.total_epochs-self.init_train_ep)*2//3
+            total_epochs_knee_point = min(self.total_epochs-1, max(self.init_train_ep+1, (self.total_epochs-self.init_train_ep)*2//3 + self.init_train_ep))
             if self.epoch_count<=self.init_train_ep:
                 alpha_factor = 1
             elif self.epoch_count>total_epochs_knee_point:
                 alpha_factor = 0
             else:
-                alpha_factor = math.pow(abs(self.epoch_count-total_epochs_knee_point),self.p)/math.pow(total_epochs_knee_point-self.init_train_ep, self.p)
+                alpha_factor = math.pow(abs(total_epochs_knee_point - self.epoch_count),self.p)/math.pow(total_epochs_knee_point-self.init_train_ep, self.p)
                      
             if self.n2m_pruning:
                 # prune 41 elements for every 64 elements (pass 41/64 in the self.pruning_ratio)

@@ -75,13 +75,13 @@ class BaseSparsityParametrization(nn.Module):
         return self.get_forward_func(self.source, default)(X)
         
     def get_alpha_factor(self,):
-        total_epochs_knee_point = min(self.total_epochs-1, max(self.init_train_ep+1, (self.total_epochs-self.init_train_ep)*2//3))
+        total_epochs_knee_point = min(self.total_epochs-1, max(self.init_train_ep+1, (self.total_epochs-self.init_train_ep)*2//3 + self.init_train_ep))
         if self.epoch_count<=self.init_train_ep:
             alpha_factor = 1
         elif self.epoch_count>total_epochs_knee_point:
             alpha_factor = 0
         else:
-            alpha_factor = math.pow(abs(self.epoch_count-total_epochs_knee_point),self.p)/math.pow(total_epochs_knee_point-self.init_train_ep, self.p)
+            alpha_factor = math.pow(abs(total_epochs_knee_point - self.epoch_count),self.p)/math.pow(total_epochs_knee_point-self.init_train_ep, self.p)
         return alpha_factor
 
 
