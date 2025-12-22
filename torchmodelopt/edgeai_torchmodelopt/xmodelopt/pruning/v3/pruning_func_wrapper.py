@@ -17,6 +17,10 @@ def train(*args, **kwargs):
     return wrapped_transformation_fn(pruning_func.train, *args, **kwargs)
 
 
+def eval(*args, **kwargs):
+    return wrapped_transformation_fn(pruning_func.eval, *args, **kwargs)
+
+
 def remove_parametrization(*args, **kwargs):
     return wrapped_transformation_fn(pruning_func.remove_parametrization, *args, **kwargs)
 

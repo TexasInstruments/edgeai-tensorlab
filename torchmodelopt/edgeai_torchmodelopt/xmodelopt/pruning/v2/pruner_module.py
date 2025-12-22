@@ -125,7 +125,8 @@ class PrunerModule(OptimizationBaseModule):
             raise NotImplementedError
         
         for copy_arg in copy_args:
-            setattr(self, copy_arg, getattr(module, copy_arg))
+            if hasattr(module, copy_arg):
+                setattr(module, copy_arg, getattr(module, copy_arg))
             
         # to get net weights for each of the layers, incorporating all the required dependancies
         # self.net_weights = get_net_weights_all(module, self.next_conv_node_list, self.all_connected_nodes, self.next_bn_nodes, self.channel_pruning, self.global_pruning)

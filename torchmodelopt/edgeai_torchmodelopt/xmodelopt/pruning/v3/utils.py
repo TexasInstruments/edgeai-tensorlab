@@ -129,7 +129,7 @@ def get_pruning_partitions(module:fx.GraphModule):
     ]
     if has_tv:
         wanted_sources.extend([
-            tvmodels.swin_transformer.SwinTransformer,
+            tvmodels.swin_transformer.ShiftedWindowAttention,
             tvmodels.swin_transformer.shifted_window_attention,
         ])
     

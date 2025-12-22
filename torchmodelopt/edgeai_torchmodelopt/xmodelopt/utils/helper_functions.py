@@ -12,6 +12,12 @@ def get_source_partitions(graph:fx.Graph, wanted_sources:list, filter_fn = None)
     Note: This function is also defined on pruning.v3.utils. If this is modified later on, same changes have to be made on that function definition 
     
     '''
+    
+    class_names = ['.'.join([str(s.__module__), str(s.__name__)]) for s in wanted_sources if isinstance(s, type)]
+    name_2_class_dict = dict(zip(class_names,[s for s in wanted_sources if isinstance(s, type)]))
+    wanted_sources += class_names
+    
+    
     modules: Dict[Type, Dict[str, List[fx.Node]]] = {}
     def get_all_args(args:list):
         result = []
@@ -36,7 +42,7 @@ def get_source_partitions(graph:fx.Graph, wanted_sources:list, filter_fn = None)
                     source_fn = nn_module_stack[key]
                     add_node_to_partition(source_fn, node)
                     found = True
-                    if not issubclass(v[1],nn.Sequential) :
+                    if not ((isinstance(v[1], type) and issubclass(v[1],nn.Sequential) )or v[1] == '.'.join([str(nn.Sequential.__module__), str(nn.Sequential.__name__)])):
                         break 
 
         if not found and (source_fn_st := node.meta.get("source_fn_stack", None)):
@@ -107,4 +113,8 @@ def get_source_partitions(graph:fx.Graph, wanted_sources:list, filter_fn = None)
             for partition in separate_partitions(partitions):
                 ret[k].append(make_partition(partition, k))
 
+    for cls in class_names:
+        if cls in ret:
+            ret[name_2_class_dict[cls]] = ret.pop(cls)
+    
     return ret

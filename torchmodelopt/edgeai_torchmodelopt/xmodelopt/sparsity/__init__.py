@@ -1,5 +1,5 @@
 #################################################################################
-# Copyright (c) 2018-2023, Texas Instruments Incorporated - http://www.ti.com
+# Copyright (c) 2018-2025, Texas Instruments Incorporated - http://www.ti.com
 # All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -29,11 +29,20 @@
 #
 #################################################################################
 
-
-from .pruner_module import PrunerQuantModule, PrunerModule
-from .parametrization import SigmoidPruningParametrization, BlendPruningParametrization, IncrementalPruningParametrization
-from .utils import get_bn_adjusted_weight, create_bn_conv_mapping, create_next_conv_node_list, get_net_weights_all
-from .utils import create_channel_pruned_model
+# from . import v2 # TODO
+from . import v3
 
 
+class SparsityVersion():
+    NO_SPARSITY = 0
+    SPARSITY_V1 = SPARSITY_LEGACY = 1 # not implemented
+    SPARSITY_V2 = SPARSITY_FX = 2 # not implemented TODO
+    SPARSITY_V3 = SPARSITY_PT2E = 3
 
+    @classmethod
+    def get_dict(cls):
+        return {k:v for k,v in __class__.__dict__.items() if not k.startswith("__")}
+
+    @classmethod
+    def get_choices(cls):
+        return {v:k for k,v in __class__.__dict__.items() if not k.startswith("__")}
