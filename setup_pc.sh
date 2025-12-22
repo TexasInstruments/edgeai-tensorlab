@@ -93,13 +93,6 @@ TIDL_TOOLS_TYPE=${TIDL_TOOLS_TYPE} TIDL_TOOLS_VERSION=${TIDL_TOOLS_VERSION} tidl
 ######################################################################
 pip3 install -e ./[pc] --verbose
 
-# tidlbenchmark-tools-install is a script that defined in and installed via ./pyproject.toml
-# download and install packages - this invokes: python3 edgeai_tidlrunner/download.py
-# pip3 install --no-input onnx-graphsurgeon==0.3.26 --extra-index-url https://pypi.ngc.nvidia.com
-# pip3 install --no-input osrt_model_tools @ git+https://github.com/TexasInstruments/edgeai-tidl-tools.git@11_00_08_00#subdirectory=osrt-model-tools
-echo "INFO: running tidlbenchmark-tools-install..."
-tidlbenchmark-tools-install
-
 
 #######################################################################
 # pillow-simd for faster resize
@@ -127,6 +120,15 @@ pip3 install -r requirements/nuscenes_requirements.txt
 echo "INFO: setting pandaset Python package for 3D object detection"
 echo "INFO: to use it, make sure the dataset has been downloaded as explained in ./docs/datsets.md"
 ./setup_pandaset.sh
+
+
+#######################################################################
+# tidlbenchmark-tools-install is a script that defined in and installed via ./pyproject.toml
+# download and install packages - this invokes: python3 edgeai_tidlrunner/download.py
+# pip3 install --no-input onnx-graphsurgeon==0.3.26 --extra-index-url https://pypi.ngc.nvidia.com
+# pip3 install --no-input osrt_model_tools @ git+https://github.com/TexasInstruments/edgeai-tidl-tools.git@11_00_08_00#subdirectory=osrt-model-tools
+echo "INFO: running tidlbenchmark-tools-install..."
+tidlbenchmark-tools-install
 
 
 #######################################################################

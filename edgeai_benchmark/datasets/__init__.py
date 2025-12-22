@@ -58,21 +58,21 @@ from .kitti_2015 import *
 
 try:
     from .nuscenes_dataset import *
-except ImportError as e:
+except (ImportError, ModuleNotFoundError) as e:
     warnings.warn(f'WARNING: nuscenes_dataset could not be imported - {str(e)}')
     nuscenes_dataset = None
     NuScenesDataset = None
 
 try:
     from .pandaset_dataset import *
-except ImportError as e:
+except (ImportError, ModuleNotFoundError) as e:
     warnings.warn(f'WARNING: pandaset_dataset could not be imported - {str(e)}')
     pandaset_dataset = None
     PandaSetDataset = None
 
 try:
     from .kitti_lidar_det import KittiLidar3D
-except ImportError as e:
+except (ImportError, ModuleNotFoundError) as e:
     warnings.warn(f'WARNING: kitti_lidar_det could not be imported - {str(e)}')
     KittiLidar3D = None
 
