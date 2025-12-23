@@ -107,16 +107,10 @@ def init(model, example_inputs, example_kwargs=None, is_qat=True, total_epochs=0
     example_kwargs = example_kwargs or {}
     
     if not (hasattr(model, '_example_inputs') and hasattr(model, '_example_kwargs')):
-    # else:
-        # This should not get called unless this function is called separately, when called from wrapper model should have example inputs and kwargs
         utils.add_example_args_kwargs(model, example_inputs=example_inputs, example_kwargs=example_kwargs)
+        
     example_inputs = model._example_inputs.pop(0)
     example_kwargs = model._example_kwargs.pop(0)
-    # if example_inputs is not None:
-    #     example_inputs = (example_inputs,) if not isinstance(example_inputs, (list, tuple)) else tuple(example_inputs)
-    # else:
-        #
-    #
 
     if device:
         if isinstance(example_inputs, (list, tuple)):
@@ -333,6 +327,13 @@ def convert(self, *args, device="cpu", make_copy=False, fq_to_clip=None, **kwarg
         model.graph.lint()
         model.recompile()
     else:
+        # just to make legacy code in convert_pt2e happy
+        # see: torch/ao/quantization/pt2e/qat_utils.py _fold_conv_bn_qat()
+        for node in model.graph.nodes:
+            if "source_fn_stack" not in node.meta:
+                node.meta["source_fn_stack"] = []
+        #
+        # now actually convert the model
         model = convert_pt2e(model)
     
     # torch.ao.quantization.move_exported_model_to_eval(model)

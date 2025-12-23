@@ -7,6 +7,7 @@ def apply_tranformation_to_submodules(model:nn.Module, transformation_dict: dict
     for name, wrapper_fn in transformation_dict.items() :
         if name not in module_dict:
             continue
+        print(f'INFO: applying transformation to submodule: {name} with wrapper function: {wrapper_fn}')
         module = module_dict[name]
         splits = name.rsplit('.',1)
         if len(splits) == 1:
