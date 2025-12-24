@@ -40,25 +40,32 @@ echo \
     To change the custom configuration, modify ./scripts/benchmark_custom.py.
 
     Options:
-    --test_suite        Test suite. Allowed values are (operator)
+    --test_suite        Test suite. Allowed values are (operator, model)
     --run_compile       Run model compilation test. Allowed values are (0,1). Default=1.
     --run_infer         Run model inference test. Allowed values are (0,1). Default=1.
-    --work_dir          Path to save/use model artifacts for inference.
-    --tidl_offload      Enable TIDL Offload. Allowed values are (0,1). Default=1.
-    --runtime           Select the Compiler Runtime to use. Allowed values are (onnxrt, tvmrt). Default=onnxrt
     --test_file         Specify text file containing all tests to run. Default=null.
     --tests             Specify tests name. If null, will run all test based on test_suite. Default=null.
                         TEST_SUITE:
                             operator: You can specify comma seperated operator name (Ex: Conv) or specific test (Ex: Softmax_1)
+                            model: You can specify comma seperated model group name or specific test (Ex: <model_1>)
 
-    NOTE: If 'test_file' is provided, it will take precedence over 'tests'
+    NOTE:
+        1. If 'test_file' is provided, it will take precedence over 'tests'
+        2. Along with the mentioned options you can also provide all the arguments that can be directly provided to python script.
+           These arguments will be passed as is to the script.
 
     Example:
     TEST_SUITE:
-        operator: ./run_test.sh --test_suite=operator --test_file=abc.txt --run_compile=1 --run_infer=1
-                   This will run all tests defined in abc.txt file
+
+        operator: ./run_test.sh --test_suite=operator --test_file=operators_to_run.txt --run_compile=1 --run_infer=1
+                   This will run all tests defined in operators_to_run.txt file
         operator: ./run_test.sh --test_suite=operator --tests=Conv,Softmax_1,Unsqueeze,Flatten_3 --run_compile=1 --run_infer=1
                    This will run all tests under Conv and Unsqueeze and also Softmax_1 and Flatten_3 test.
+
+        model:    ./run_test.sh --test_suite=model --test_file=models_to_run.txt --run_compile=1 --run_infer=1
+                   This will run all tests defined in models_to_run.txt file
+        model:    ./run_test.sh --test_suite=model --tests=<model_group_1>,<model_3> --run_compile=1 --run_infer=1
+                   This will run all tests under <model_group_1> and also <model_3> test.
     "
 }
 
@@ -130,9 +137,9 @@ while [ $# -gt 0 ]; do
         shift
 done
 
-if [[ "$test_suite" != "operator" ]]; then
+if [[ "$test_suite" != "operator" && "$test_suite" != "model" ]]; then
     echo "[ERROR]: TEST_SUITE: $test_suite is not allowed."
-    echo "         Allowed values are (operator)"
+    echo "         Allowed values are (operator, model)"
     exit 1
 fi
 
@@ -197,11 +204,6 @@ echo "TEST_FILE:          ${test_file}"
 echo "TESTS:              ${tests}"
 echo "RUN_COMPILE:        ${run_compile}"
 echo "RUN_INFER:          ${run_infer}"
-echo "TIDL_OFFLOAD:       ${tidl_offload}"
-echo "FLOW_CTRL:          ${flow_ctrl}"
-echo "TEMP_BUFFER_DIR:    ${temp_buffer_dir}"
-echo "TEMP_NC_DIR:        ${temp_nc_dir}"
-echo "RUNTIME:            ${runtime}"
 echo "##################################################################"
 echo
 
@@ -226,7 +228,7 @@ all_test=()
 test_file_found=0
 if [[ "$test_file" != "" ]]; then
     if [[ -f "$test_file" ]]; then
-        test_args="test_tidl_unit.py --test-file $test_file"
+        test_args="test_tidl_unit.py::test_tidl_unit_operator --test-file $test_file"
         echo "Running all tests defined in $test_file"
         TOTAL=$(grep -v "^[[:space:]]*#" $test_file | grep -v "^[[:space:]]*$" | wc -l)
         echo "Total tests:  ${TOTAL}"
@@ -242,7 +244,7 @@ if [[ $test_file_found -eq 0 ]]; then
         echo "[WARNING]: No tests specified. Running all tests under $OPERATOR_ROOT_FOLDER."
         TOTAL=$(find $OPERATOR_ROOT_FOLDER -mindepth 2 -maxdepth 2  -type d | wc -l)
         echo "Total tests:  ${TOTAL}"
-        test_args="test_tidl_unit.py"
+        test_args="test_tidl_unit.py::test_tidl_unit_operator"
     else
         for test in "${test_array[@]}"
         do
@@ -284,6 +286,82 @@ fi
 # OPERATOR TEST SUITE END
 ##################################################################
 
+##################################################################
+# MODELS TEST SUITE START
+if [[ "$test_suite" == "model" ]]; then
+
+echo "##################################################################"
+
+MODELS_ROOT_FOLDER="${ROOT_DIR}/tidl_unit_test_data/models/"
+if [ ! -d "$MODELS_ROOT_FOLDER" ]; then
+  echo "[ERROR]: $MODELS_ROOT_FOLDER does not exist."
+  echo "         All the data for models suite needs to present in this directory. Refer to README for more information."
+fi
+
+IFS=',' read -r -a test_array <<< "$tests"
+all_test=()
+
+test_file_found=0
+if [[ "$test_file" != "" ]]; then
+    if [[ -f "$test_file" ]]; then
+        test_args="test_tidl_unit.py::test_tidl_unit_model --test-file $test_file"
+        echo "Running all tests defined in $test_file"
+        TOTAL=$(grep -v "^[[:space:]]*#" $test_file | grep -v "^[[:space:]]*$" | wc -l)
+        echo "Total tests:  ${TOTAL}"
+        test_file_found=1
+    else
+        echo "[WARNING]: $test_file not found. Using 'tests' option."
+        test_file_found=0
+    fi
+fi
+
+if [[ $test_file_found -eq 0 ]]; then
+    if [ -z "$test_array" ]; then
+        echo "[WARNING]: No tests specified. Running all tests under $MODELS_ROOT_FOLDER."
+        TOTAL=$(find $MODELS_ROOT_FOLDER -mindepth 2 -maxdepth 2  -type d | wc -l)
+        echo "Total tests:  ${TOTAL}"
+        test_args="test_tidl_unit.py::test_tidl_unit_model"
+    else
+        for test in "${test_array[@]}"
+        do
+            # Check if provided test is a directory
+            if [ -d "$MODELS_ROOT_FOLDER/$test" ]; then
+                counter=0
+                for D in $(find $MODELS_ROOT_FOLDER/$test -mindepth 1 -maxdepth 1 -type d) ; do
+                    name=`basename $D`
+                    all_test+=("$name")
+                    counter=$((counter+1))
+                done
+                echo "Found ${counter} tests for $test"
+            else
+                REL_DIR=$(find $MODELS_ROOT_FOLDER -mindepth 2 -maxdepth 2  -type d -name $test)
+                if [ -z "$REL_DIR" ]; then
+                    echo "Found 0 test for $test. Skipping."
+                else
+                    echo "Found 1 test for $test"
+                    all_test+=($test)
+                fi
+            fi
+        done
+        echo "Total tests:  ${#all_test[@]}"
+    fi
+
+    if (( ${#all_test[@]} )); then
+        test_args=""
+        for test in "${all_test[@]}"
+        do
+            test_args="${test_args} test_tidl_unit.py::test_tidl_unit_model[$test]"
+        done
+    fi
+fi
+
+echo "##################################################################"
+echo
+
+fi
+# MODELS TEST SUITE END
+##################################################################
+
 
 ##################################################################
 # RUN PYTEST START
@@ -307,6 +385,11 @@ extra_args="${extra_args} --runtime=${runtime}"
 if [[ "$work_dir" != "" ]]; then
     extra_args="${extra_args} --work-dir ${work_dir}"
 fi
+
+echo "##################################################################"
+echo "PYTEST EXTRA ARGS: ${extra_args}"
+echo "##################################################################"
+echo
 
 if [[ "$run_compile" == "1" ]]; then
     echo "##################################################################"
@@ -339,4 +422,3 @@ fi
 
 # RUN PYTEST END
 ##################################################################
-
