@@ -11,12 +11,208 @@ from tabulate import tabulate
 
 start_time = datetime.now()
 
+def format_seconds_to_hhmmss(total_seconds):
+    hours = int(total_seconds // 3600)
+    minutes = int((total_seconds % 3600) // 60)
+    seconds = int(total_seconds % 60)
+    return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+
+def execute_scp_command(pc_name, command, timeout=300):
+    """
+    Copy from remote PC via SCP
+
+    Args:
+        pc_name (str): The PC hostname/username combination
+        command (str): The command to execute
+        command_type (str): Type of command for logging purposes
+    
+    Returns:
+        tuple: (pc_name, success, output, error)
+    """
+    
+    try:
+        scp_command = f"scp -r -o StrictHostKeyChecking=no {command}"
+        result = subprocess.run(
+            scp_command,
+            shell=True,
+            capture_output=True,
+            text=True,
+            timeout=timeout  # 5 minute timeout
+        )
+        
+        if result.returncode == 0:
+            print(f"[SUCCESS][{pc_name}] scp completed successfully")
+            return (pc_name, True, result.stdout, result.stderr)
+        else:
+            print(f"[ERROR][{pc_name}] scp failed with return code {result.returncode}")
+            return (pc_name, False, result.stdout, result.stderr)
+            
+    except subprocess.TimeoutExpired:
+        print(f"[ERROR][{pc_name}] scp timed out")
+        return (pc_name, False, "", "Command timed out")
+    except Exception as e:
+        print(f"[ERROR][{pc_name}] Exception occurred while executing scp: {str(e)}")
+        return (pc_name, False, "", str(e))
+
+
+def execute_ssh_command(pc_name, command, timeout=300, command_type="command", verbose=True):
+    """
+    Execute a command on a remote PC via SSH
+    
+    Args:
+        pc_name (str): The PC hostname/username combination
+        command (str): The command to execute
+        command_type (str): Type of command for logging purposes
+    
+    Returns:
+        tuple: (pc_name, success, output, error)
+    """
+    
+    try:
+        # Execute SSH command
+        ssh_command = f"ssh -o StrictHostKeyChecking=no {pc_name} '{command}'"
+        result = subprocess.run(
+            ssh_command,
+            shell=True,
+            capture_output=True,
+            text=True,
+            timeout=timeout  # 5 minute timeout
+        )
+        
+        if result.returncode == 0:
+            if verbose == True:
+                print(f"[SUCCESS][{pc_name}] {command_type} completed successfully")
+            return (pc_name, True, result.stdout, result.stderr)
+        else:
+            if verbose == True:
+                print(f"[ERROR][{pc_name}] {command_type} failed with return code {result.returncode}")
+            return (pc_name, False, result.stdout, result.stderr)
+            
+    except subprocess.TimeoutExpired:
+        if verbose == True:
+            print(f"[ERROR][{pc_name}] {command_type} timed out")
+        return (pc_name, False, "", "Command timed out")
+    except Exception as e:
+        if verbose == True:
+            print(f"[ERROR][{pc_name}] Exception occurred while executing {command_type}: {str(e)}")
+        return (pc_name, False, "", str(e))
+
+# Parse arguments
+arguments_as_string = " ".join(sys.argv[1:])
+arguments_as_string = arguments_as_string.strip().split("--")
+
+OPERATORS = ''
+SPLIT_ACROSS_PC_OEPRATORS = ''
+EDGEAI_BENCHMARK_BRANCH = 'develop'
+TIDL_TOOLS_TARBALL = ''
+PULL_TIDL_MODELS = '0'
+SETUP_EDGEAI_BENCHMARK = '0'
+arguments_as_string_filtered = ''
+for i in arguments_as_string:
+    i = i.strip()
+    if i.startswith("operators="):
+        OPERATORS = i.split("=")[-1].strip()
+    elif i.startswith("split_across_pc="):
+        SPLIT_ACROSS_PC_OEPRATORS = i.split("=")[-1].strip()
+    elif i.startswith("edgeai_benchmark_branch="):
+        EDGEAI_BENCHMARK_BRANCH = i.split("=")[-1].strip()
+    elif i.startswith("tidl_tools_path="):
+        TIDL_TOOLS_TARBALL=i.split("=")[-1].strip()
+    elif i.startswith("pull_tidl_models="):
+        PULL_TIDL_MODELS=i.split("=")[-1].strip()
+    elif i.startswith("setup_edgeai_benchmark="):
+        SETUP_EDGEAI_BENCHMARK=i.split("=")[-1].strip()
+    elif i != '' and not i.startswith("temp_buffer_dir=") and not i.startswith("temp_nc_dir=") and not i.startswith("num_threads="):
+        arguments_as_string_filtered += f"--{i} "
+
 # Open and read the JSON file
 with open('distributed_test_config.json', 'r') as file:
     pc_config = json.load(file)  # Parse JSON data into a Python dictionary
 
 # Access the data
-print(f"[INFO] {len(pc_config)} PCs found. Distributing tests across them...")
+print(f"[INFO] {len(pc_config)} PCs found.")
+
+# Validate
+print(f"[INFO] Running validation command for all PCs")
+for pc_name in list(pc_config.keys()):
+    pc_info = pc_config[pc_name]
+
+    tidl_models_dir = pc_info['tidl_models_dir']
+    validation_command = f"git -C {tidl_models_dir} rev-parse"
+    validation_result = execute_ssh_command(pc_name, validation_command, timeout=300, command_type="validation_command", verbose=False)
+    _, validation_success, validation_stdout, validation_stderr = validation_result
+    if not validation_success:
+        print(f"[WARNING][{pc_name}] Validation for tidl_models failed. Removing {pc_name} from executers.")
+        del pc_config[pc_name]
+        continue        
+
+    edgeai_benchmark_dir = pc_info['edgeai_benchmark_dir']
+    validation_command = f"git -C {edgeai_benchmark_dir} rev-parse"
+    validation_result = execute_ssh_command(pc_name, validation_command, timeout=300, command_type="validation_command", verbose=False)
+    _, validation_success, validation_stdout, validation_stderr = validation_result
+    if not validation_success:
+        print(f"[WARNING][{pc_name}] Validation for edgeai-benchmark failed. Removing {pc_name} from executers.")
+        del pc_config[pc_name]
+
+# Setup tidl_models and edgeai-benchmark if specified
+executors_to_remove = []
+def setup_pc(pc_name, pc_info):
+    global executors_to_remove
+    if PULL_TIDL_MODELS == '1':
+        tidl_models_dir = pc_info['tidl_models_dir']
+        tidl_models_pull_command = f"cd {tidl_models_dir} && git stash && git pull && git lfs pull"
+        print(f"[INFO][{pc_name}] Pulling tip for tidl_models: {tidl_models_pull_command}")
+        tidl_models_pull_result = execute_ssh_command(pc_name, tidl_models_pull_command, timeout=7200, command_type="tidl_models_pull_command")
+        _, tidl_models_pull_success, tidl_models_pull_stdout, tidl_models_pull_stderr = tidl_models_pull_result
+        if not tidl_models_pull_success:
+            print(f"[WARNING][{pc_name}] Pulling tip for tidl_models failed.")
+    
+    if SETUP_EDGEAI_BENCHMARK == '1':
+        edgeai_benchmark_dir = pc_info['edgeai_benchmark_dir']
+        pyenv = pc_info['pyenv']
+        eai_setup_command = f"cd {edgeai_benchmark_dir} && git fetch --all && git reset --hard origin/{EDGEAI_BENCHMARK_BRANCH} && source {pyenv} && export export HTTPS_PROXY=http://webproxy.ext.ti.com:80 && export https_proxy=http://webproxy.ext.ti.com:80 && export HTTP_PROXY=http://webproxy.ext.ti.com:80 && export http_proxy=http://webproxy.ext.ti.com:80 && export ftp_proxy=http://webproxy.ext.ti.com:80 &&  export FTP_PROXY=http://webproxy.ext.ti.com:80 && export no_proxy=ti.com  && ssh-keyscan -H bitbucket.itg.ti.com >> ~/.ssh/known_hosts && ./setup_pc.sh"
+        print(f"[INFO][{pc_name}] Setting up edgeai-benchmark: {eai_setup_command}")
+        eai_setup_result = execute_ssh_command(pc_name, eai_setup_command, timeout=1800, command_type="eai_setup_command")
+        _, eai_setup_success, eai_setup_stdout, eai_setup_stderr = eai_setup_result
+        if not eai_setup_success:
+            print(f"[WARNING][{pc_name}] Setting up edgeai-benchmark failed. Removing {pc_name} from executers.")
+            executors_to_remove.append(pc_name)
+        
+        test_data_dir = os.path.join(edgeai_benchmark_dir, "tests/tidl_unit/tidl_unit_test_data")
+        tidl_models_dir = pc_info['tidl_models_dir']
+        soft_link_command = f"cd {test_data_dir} && ln -sf {tidl_models_dir}/unitTest/onnx/tidl_unit_test_assets/operators ./ && ln -sf {tidl_models_dir}/unitTest/onnx/tidl_unit_test_assets/configs ./"
+        print(f"[INFO][{pc_name}] Soft linking tidl_models to tidl_unit_test_assets: {soft_link_command}")
+        soft_link_result = execute_ssh_command(pc_name, soft_link_command, timeout=300, command_type="soft_link_command")
+        _, soft_link_success, soft_link_stdout, soft_link_stderr = soft_link_result
+        if not soft_link_success:
+            print(f"[WARNING][{pc_name}] Soft linking tidl_models to tidl_unit_test_assets failed. Removing {pc_name} from executers.")
+            executors_to_remove.append(pc_name)
+
+if PULL_TIDL_MODELS == '1' or SETUP_EDGEAI_BENCHMARK == '1':
+    active_threads = []
+    for pc_name, pc_info in pc_config.items():
+        # Create thread
+        thread = threading.Thread(
+            target=setup_pc,
+            args=(pc_name, pc_info),
+            name=f"{pc_name}"
+        )
+        thread.daemon = True
+        active_threads.append(thread)
+        thread.start()
+
+    # Wait for all threads to complete
+    print(f"[INFO] Waiting for all {len(active_threads)} threads to complete the setup...")
+    for thread in active_threads:
+        thread.join()
+    
+    for pc_name in executors_to_remove:
+        del pc_config[pc_name]
+
+print(f"\nRunning on {len(pc_config)} PCs:")
+for pc_name in pc_config:
+    print(pc_name)
+print("\n")
 
 ALL_OPERATORS = ["Abs", "Acos", "Acosh", "Add", "ArgMax", "ArgMin", "Asin", "Asinh", "Atan", \
                 "AveragePool", "BatchNormalization", "Clip", "Concat", "Conv", "ConvTranspose", \
@@ -29,26 +225,6 @@ ALL_OPERATORS = ["Abs", "Acos", "Acosh", "Add", "ArgMax", "ArgMin", "Asin", "Asi
                 "Sigmoid", "Sin", "Sinh", "Slice", "Softmax", "SpaceToDepth", "Sqrt", "Squeeze", "Sub", \
                 "Sum", "Tan", "Tanh", "TopK", "Transpose", "Unsqueeze"]
 
-arguments_as_string = " ".join(sys.argv[1:])
-arguments_as_string = arguments_as_string.strip().split("--")
-
-OPERATORS = ''
-SPLIT_ACROSS_PC_OEPRATORS = ''
-EDGEAI_BENCHMARK_BRANCH = 'develop'
-TIDL_TOOLS_TARBALL = ''
-arguments_as_string_filtered = ''
-for i in arguments_as_string:
-    i = i.strip()
-    if i.startswith("operators="):
-        OPERATORS = i.split("=")[-1].strip()
-    elif i.startswith("split_across_pc="):
-        SPLIT_ACROSS_PC_OEPRATORS = i.split("=")[-1].strip()
-    elif i.startswith("edgeai_benchmark_branch="):
-        EDGEAI_BENCHMARK_BRANCH = i.split("=")[-1].strip()
-    elif i.startswith("tidl_tools_path="):
-        TIDL_TOOLS_TARBALL=i.split("=")[-1].strip()
-    elif i != '' and not i.startswith("temp_buffer_dir=") and not i.startswith("temp_nc_dir=") and not i.startswith("num_threads="):
-        arguments_as_string_filtered += f"--{i} "
 
 if OPERATORS == '':
     OPERATORS = " ".join(ALL_OPERATORS)
@@ -105,94 +281,12 @@ for pc, info in pc_config.items():
             OPERATORS.remove(i)
         if i in SPLIT_ACROSS_PC_OEPRATORS:
             SPLIT_ACROSS_PC_OEPRATORS.remove(i)
-    
-def format_seconds_to_hhmmss(total_seconds):
-    hours = int(total_seconds // 3600)
-    minutes = int((total_seconds % 3600) // 60)
-    seconds = int(total_seconds % 60)
-    return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
-
-def execute_scp_command(pc_name, command, timeout=300):
-    """
-    Copy from remote PC via SCP
-    
-    Args:
-        pc_name (str): The PC hostname/username combination
-        command (str): The command to execute
-        command_type (str): Type of command for logging purposes
-    
-    Returns:
-        tuple: (pc_name, success, output, error)
-    """
-    
-    try:
-        scp_command = f"scp -r -o StrictHostKeyChecking=no {command}"
-        result = subprocess.run(
-            scp_command,
-            shell=True,
-            capture_output=True,
-            text=True,
-            timeout=timeout  # 5 minute timeout
-        )
-        
-        if result.returncode == 0:
-            print(f"[SUCCESS][{pc_name}] scp completed successfully")
-            return (pc_name, True, result.stdout, result.stderr)
-        else:
-            print(f"[ERROR][{pc_name}] scp failed with return code {result.returncode}")
-            return (pc_name, False, result.stdout, result.stderr)
-            
-    except subprocess.TimeoutExpired:
-        print(f"[ERROR][{pc_name}] scp timed out")
-        return (pc_name, False, "", "Command timed out")
-    except Exception as e:
-        print(f"[ERROR][{pc_name}] Exception occurred while executing scp: {str(e)}")
-        return (pc_name, False, "", str(e))
-
-
-def execute_ssh_command(pc_name, command, timeout=300, command_type="command"):
-    """
-    Execute a command on a remote PC via SSH
-    
-    Args:
-        pc_name (str): The PC hostname/username combination
-        command (str): The command to execute
-        command_type (str): Type of command for logging purposes
-    
-    Returns:
-        tuple: (pc_name, success, output, error)
-    """
-    
-    try:
-        # Execute SSH command
-        ssh_command = f"ssh -o StrictHostKeyChecking=no {pc_name} '{command}'"
-        result = subprocess.run(
-            ssh_command,
-            shell=True,
-            capture_output=True,
-            text=True,
-            timeout=timeout  # 5 minute timeout
-        )
-        
-        if result.returncode == 0:
-            print(f"[SUCCESS][{pc_name}] {command_type} completed successfully")
-            return (pc_name, True, result.stdout, result.stderr)
-        else:
-            print(f"[ERROR][{pc_name}] {command_type} failed with return code {result.returncode}")
-            return (pc_name, False, result.stdout, result.stderr)
-            
-    except subprocess.TimeoutExpired:
-        print(f"[ERROR][{pc_name}] {command_type} timed out")
-        return (pc_name, False, "", "Command timed out")
-    except Exception as e:
-        print(f"[ERROR][{pc_name}] Exception occurred while executing {command_type}: {str(e)}")
-        return (pc_name, False, "", str(e))
 
 # Query for all tests in SPLIT_ACROSS_PC_OEPRATORS by looking into one of the PC
 SPLIT_ACROSS_PC_OEPRATORS_TESTS=[]
 for i in SPLIT_ACROSS_PC_OEPRATORS[:]:
     pc_name = list(pc_config.keys())[0]
-    test_dir = pc_config[pc_name]["test_dir"]
+    test_dir = os.path.join(pc_config[pc_name]["edgeai_benchmark_dir"], "tests/tidl_unit/internal")
     query_command = "find " + test_dir + "/../tidl_unit_test_data/operators/" + i +" -maxdepth 1 -type d -not -name '.' -exec basename {} \;"
     print(f"[INFO][{pc_name}] Running Query command for {i}: {query_command}")
     query_result = execute_ssh_command(pc_name, query_command, timeout=300, command_type="query_command")
@@ -293,7 +387,7 @@ def execute_pc_commands(pc_name, pc_info, log_path, result_path):
     
     try:
         # Create setup command dynamically
-        test_dir = pc_info["test_dir"]
+        test_dir = os.path.join(pc_config[pc_name]["edgeai_benchmark_dir"], "tests/tidl_unit/internal")
         pyenv = pc_info["pyenv"]
 
         setup_command = f"cd {test_dir}/../ && git clean -fxd -e 'tidl_unit_test_data' && cd {test_dir} && git stash && git checkout {EDGEAI_BENCHMARK_BRANCH} && git fetch && git pull --rebase && rm -rf {test_dir}/operator_test_reports/*"

@@ -46,7 +46,7 @@ SOC="AM68A"
 tidl_offload="1"
 compile_without_nc="0"
 compile_with_nc="1"
-run_ref="0"
+run_ref="1"
 run_natc="0"
 run_ci="0"
 run_target="0"
@@ -368,12 +368,12 @@ source ./run_set_env.sh "$SOC"
 
 if [ "$tidl_tools_path" != "" ] && [ ! -f $tidl_tools_path ]; then
     echo "[WARNING]: $tidl_tools_path does not exist. Default tools will be used"
-    tidl_tools_path=$path_edge_ai_benchmark/tools/tidl_tools_package/bin/$SOC/tidl_tools.tar.gz
+    tidl_tools_path=$path_edge_ai_benchmark/tools/tidl_tools_package/bin/$SOC/tidl_tools
 fi
 if [ "$tidl_tools_path" == "" ]; then
-    tidl_tools_path=$path_edge_ai_benchmark/tools/tidl_tools_package/bin/$SOC/tidl_tools.tar.gz
+    tidl_tools_path=$path_edge_ai_benchmark/tools/tidl_tools_package/bin/$SOC/tidl_tools
 fi
-if [ ! -f $tidl_tools_path ]; then
+if [ ! -f $tidl_tools_path ] && [ ! -d $tidl_tools_path ]; then
     echo "[ERROR]: $tidl_tools_path does not exist. Exiting"
     exit 1
 fi
@@ -385,12 +385,17 @@ mkdir -p temp
 cd temp && rm -rf *.tar.gz && rm -rf tidl_tools
 
 # Extract the filename from the path
-tarball_name=$(basename "$tidl_tools_path")
-cp "$tidl_tools_path" ./
-tar -xzf "$tarball_name"
-if [ "$?" -ne 0 ]; then
-    echo "[ERROR]: Could not untar $tidl_tools_path. Make sure it is a tarball"
-    exit 1
+if [ -f $tidl_tools_path ]; then
+    tarball_name=$(basename "$tidl_tools_path")
+    cp "$tidl_tools_path" ./
+    tar -xzf "$tarball_name"
+    if [ "$?" -ne 0 ]; then
+        echo "[ERROR]: Could not untar $tidl_tools_path. Make sure it is a tarball"
+        exit 1
+    fi
+else
+    mkdir -p tidl_tools
+    cp -r $tidl_tools_path/* tidl_tools/
 fi
 
 # Check if tidl_tools directory was created after extraction
