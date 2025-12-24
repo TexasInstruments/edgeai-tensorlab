@@ -15,7 +15,7 @@ def pytest_addoption(parser):
     parser.addoption("--flow-control", type=int, default=-1)
     parser.addoption("--temp-buffer-dir", type=str, default="/dev/shm")
     parser.addoption("--temp-nc-dir", type=str, default="/tmp")
-    parser.addoption("--nmse-threshold", type=float, default=0.5)
+    parser.addoption("--nmse-threshold", type=float, default=-1)
     parser.addoption("--runtime", type=str, default="onnxrt")
     parser.addoption("--work-dir", type=str, default="")
     parser.addoption("--test-file", type=str, default="")
