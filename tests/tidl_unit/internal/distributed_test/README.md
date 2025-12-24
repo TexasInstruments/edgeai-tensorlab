@@ -20,7 +20,8 @@ The distributed_test_config.json file defines all remote pc you want to distribu
 {
   "user@hostname":                            // Will be used as is for ssh
   {
-    "test_dir" : "",                          // Full path to "internal" folder where run_operator_test.sh is present
+    "edgeai_benchmark_dir" : "",              // Full path to edgeai-benchmark directory
+    "tidl_models_dir" : "",                   // Full path to tidl_models directory
     "pyenv" : "",                             // Full path to pyenv binary to activate Ex: /home/tidl/.pyenv/versions/ta_unit_test/bin/activate
     "temp_buffer_dir" : "",                   // Optional: Path to redirect x86 buffers to
     "temp_nc_dir" : "",                       // Optional: Path to temporary NC buffers to
@@ -45,7 +46,6 @@ But the script provides an option to split test under single operator across
 multiple PC as well. `split_across_pc` is an argument to the python file which 
 fines test under which operators should be split across all PCs in chunks.
 This is very useful for running operators which take lots of time.
-By default **Conv, Mul and Add** will always be split.
 
 ```bash
 #This will run defined operators by each across PC defined by distributed_test_config.json 
