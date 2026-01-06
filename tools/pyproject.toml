@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tidl-tools-package"
-version = "11.1.0"
+version = "11.2.0"
 description = "TIDL tools package for edgeai-benchmark"
 authors = [
     { name = "EdgeAI, TIDL & Analytics Algo Teams", email = "edgeai-dev@list.ti.com" }
@@ -35,4 +35,4 @@ where = ["."]
 include = ["tidl_tools_package*"]
 
 [project.scripts]
-download-tidl-tools = "tidl_tools_package.download:main"
+tidlbenchmark-tools-download = "tidl_tools_package.download:main"

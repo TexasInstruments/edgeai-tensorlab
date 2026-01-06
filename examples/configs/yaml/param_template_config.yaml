@@ -35,7 +35,7 @@ session:
   - 1.0
   runtime_options:
     platform: J7
-    version: 11.1.0
+    version: 11.2.0
     object_detection:meta_arch_type: 6
     object_detection:meta_layers_names_list: yolox_nano_lite_416x416_20220214_model.prototxt
     advanced_options:output_feature_16bit_names_list: ''

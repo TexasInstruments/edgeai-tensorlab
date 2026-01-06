@@ -71,7 +71,7 @@ class ConfigRuntimeOptions(config_dict.ConfigDict):
         Overiride this according to the needs of specific configs using methods below.
 
         Args:
-            model_type_or_session_name: onnxrt, tflitert or tvmdlr
+            model_type_or_session_name: onnxrt, tflitert or tvmrt
             is_qat: set appropriately for QAT models
 
         Returns: runtime_options
@@ -132,11 +132,13 @@ class ConfigRuntimeOptions(config_dict.ConfigDict):
             'advanced_options:params_16bit_names_list':'',
             # optimize data conversion options by moving them from arm to c7x
             'advanced_options:add_data_convert_ops': 3,
-            # max number of nodes in a subgraph (default is 750)
-            #'advanced_options:max_num_subgraph_nodes': 2000,
+            # max number of nodes in a subgraph (default is 864)
+            'advanced_options:max_num_subgraph_nodes': 2000,
+            ############### TVM specific options
+            'advanced_options:c7x_codegen': 0,
             ##################################
             # additional options (internal / performance estimation)
-            "ti_internal_nc_flag" : 83886080, #1601
+            "ti_internal_nc_flag" : 83886080, #1601,
         }
 
         # additional options (firmware version)

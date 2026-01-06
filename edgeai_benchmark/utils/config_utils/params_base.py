@@ -28,6 +28,7 @@
 
 
 import numpy as np
+import argparse
 
 
 class ParamsBase:
@@ -54,7 +55,7 @@ class ParamsBase:
             assert False, f'param {param_name} could not be found in object {self.__class__.__name__}'
         #
 
-    def peek_param(self, param_name):
+    def peek_param(self, param_name, default_value=argparse.SUPPRESS):
         assert hasattr(self, 'kwargs') and isinstance(self.kwargs, dict), \
             'the child class must have a dict called kwargs'
         # param may not be final yet - use get_param instead to be sure
@@ -62,6 +63,8 @@ class ParamsBase:
             return getattr(self, param_name)
         elif param_name in self.kwargs:
             return self.kwargs[param_name]
+        elif default_value != argparse.SUPPRESS:
+            return default_value
         else:
             assert False, f'param {param_name} could not be found in object {self.__class__.__name__}'
         #

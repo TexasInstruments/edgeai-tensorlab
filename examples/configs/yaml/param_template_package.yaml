@@ -32,7 +32,7 @@ session:
   target_device: AM68A
   runtime_options:
     platform: J7
-    version: 11.1.0
+    version: 11.2.0
 postprocess:
   reshape_list: null
   label_offset_pred: 0

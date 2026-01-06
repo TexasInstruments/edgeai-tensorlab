@@ -304,23 +304,26 @@ class KittiLidar3D(DatasetBase):
     def download(self, path, split_file):
         return None
 
-    def __getitem__(self, idx, **kwargs):
-
+    def __getitem__(self, idx, info_dict=None, **kwargs):
+        info_dict = info_dict or dict()
         with_label = kwargs.get('with_label', False)
         words = self.val_image_ids[idx].split(' ')
         image_name = os.path.join(self.kwargs['path'],self.kwargs['split'],self.kwargs['pts_prefix']) + '/' + words[0] + '.bin'
         if with_label:
             assert len(words)>0, f'ground truth requested, but missing at the dataset entry for {words}'
             label = int(words[1])
-            return image_name, label
+            return image_name, info_dict, label
         else:
-            return image_name
+            return image_name, info_dict
         #
 
     def __len__(self):
         return self.num_frames
 
-    def __call__(self, predictions, **kwargs):
+    def __call__(self, index, info_dict=None):
+        return self.__getitem__(index, info_dict)
+    
+    def evaluate(self, predictions, **kwargs):
         #predictions = np.load('/user/a0393749/deepak_files/github/mmdetection3d-work/edgeai-mmdetection3d/bin_out.bin.npy',allow_pickle=True)
         dt_annos = self.bbox2result_kitti(predictions,self.class_names)
         acc = get_official_eval_result(self.gt_annos, dt_annos, self.class_names)
@@ -356,12 +359,13 @@ class KittiLidar3D(DatasetBase):
         det_annos = []
         print('\nConverting prediction to KITTI format')
 
-        for idx, pred in enumerate(net_outputs):
+        for idx, prediction in enumerate(net_outputs):
             annos = []
             info = self.data_infos[idx]
             sample_idx = info['image']['image_idx']
             image_shape = info['image']['image_shape'][:2]
-            box_dict = self.convert_valid_bboxes(pred, info)
+            prediction = prediction['output'] if isinstance(prediction, dict) and 'output' in prediction else prediction
+            box_dict = self.convert_valid_bboxes(prediction, info)
             anno = {
                 'name': [],
                 'truncated': [],

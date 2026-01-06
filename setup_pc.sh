@@ -30,11 +30,20 @@
 
 
 ######################################################################
+# change the default here if needed - supported options: 11.2 11.1 11.0 10.1
+TIDL_TOOLS_VERSION=${TIDL_TOOLS_VERSION-"11.2"}
+
+# change the default here if needed - supported options: cpu gpu
+# if you are invoking the script setup_runner_pc_gpu.sh, 
+# then you would need to change this in that script and not here.
+TIDL_TOOLS_TYPE=${TIDL_TOOLS_TYPE-"cpu"}
+
+######################################################################
 CURRENT_WORK_DIR=$(pwd)
 
 
 #######################################################################
-echo 'Installing system dependencies...'
+echo 'INFO: installing system dependencies...'
 
 # Function to check if a package is installed using dpkg
 is_package_installed() {
@@ -50,9 +59,9 @@ is_package_installed() {
 install_if_missing() {
     local package_name="$1"
     if is_package_installed "$package_name"; then
-        echo "✓ Package $package_name is already installed"
+        echo "INFO: ✓ Package $package_name is already installed"
     else
-        echo "Installing $package_name..."
+        echo "INFO: installing $package_name..."
         sudo apt-get install -y "$package_name"
     fi
 }
@@ -67,28 +76,22 @@ done
 
 
 #######################################################################
-pip3 install -e ./tools --verbose
+pip3 install -e ./tools
 
 
+######################################################################
 # unsintall onnxruntime and install onnxruntime-tild along with tidl-tools
-# pip3 uninstall -y onnxruntime
+# pip3 uninstall -y onnxruntime onnxruntime-tidl
 
 
-# download-tidl-tools is a script that defined in and installed via tools/pyproject.toml
-# download and install tidl-tools - this invokes: python3 tools/tidl_tools_package/download.py
-echo "Running: download-tidl-tools..."
-download-tidl-tools
+# tidlbenchmark-tools-download is a script that defined in and installed via tools/pyproject.toml
+# tidlbenchmark-tools-download - this invokes: python3 tools/tidl_tools_package/download.py
+echo "INFO: running tidlbenchmark-tools-download..."
+TIDL_TOOLS_TYPE=${TIDL_TOOLS_TYPE} TIDL_TOOLS_VERSION=${TIDL_TOOLS_VERSION} tidlbenchmark-tools-download
 
 
 ######################################################################
 pip3 install -e ./[pc] --verbose
-
-# download-tidlrunner-tools is a script that defined in and installed via ./pyproject.toml
-# download and install packages - this invokes: python3 edgeai_tidlrunner/download.py
-# pip3 install --no-input onnx-graphsurgeon==0.3.26 --extra-index-url https://pypi.ngc.nvidia.com
-# pip3 install --no-input osrt_model_tools @ git+https://github.com/TexasInstruments/edgeai-tidl-tools.git@11_00_08_00#subdirectory=osrt-model-tools
-echo "Running: download-tidlrunner-tools..."
-download-benchmark-tools
 
 
 #######################################################################
@@ -100,7 +103,8 @@ download-benchmark-tools
 
 ######################################################################
 if [ -d "${CURRENT_WORK_DIR}/../edgeai-tidl-tools" ]; then
-  echo "Found local edgeai-tidl-tools, installing osrt_model_tools in develop mode"
+  echo "WARNING: found local edgeai-tidl-tools at ${CURRENT_WORK_DIR}/../edgeai-tidl-tools/osrt-model-tools"
+  echo "WARNING: using this local version instead of the one downloaded from the repository"
   pip3 uninstall -y osrt_model_tools
   cd ${CURRENT_WORK_DIR}/../edgeai-tidl-tools/osrt-model-tools
   python3 setup.py develop
@@ -109,13 +113,26 @@ fi
 
 
 ######################################################################
-echo "setting pandaset Python package for 3D object detection"
-echo "to use it, make sure the dataset has been downloaded as explained in ./docs/datsets.md"
+pip3 install -r requirements/nuscenes_requirements.txt
+
+
+######################################################################
+echo "INFO: setting pandaset Python package for 3D object detection"
+echo "INFO: to use it, make sure the dataset has been downloaded as explained in ./docs/datsets.md"
 ./setup_pandaset.sh
 
 
 #######################################################################
-echo "to be able to use this package, datasets are required. some are automatically downloaded as the benchmark script is invoked."
-echo "for the other datasets, the user may need to download manually, as explained in ./docs/setup_installation.md and ./docs/datasets.md"
-echo "there are various options to restrict the datasets and models used - please see settings_base.yaml"
-echo "completed installation."
+# tidlbenchmark-tools-install is a script that defined in and installed via ./pyproject.toml
+# download and install packages - this invokes: python3 edgeai_tidlrunner/download.py
+# pip3 install --no-input onnx-graphsurgeon==0.3.26 --extra-index-url https://pypi.ngc.nvidia.com
+# pip3 install --no-input osrt_model_tools @ git+https://github.com/TexasInstruments/edgeai-tidl-tools.git@11_00_08_00#subdirectory=osrt-model-tools
+echo "INFO: running tidlbenchmark-tools-install..."
+tidlbenchmark-tools-install
+
+
+#######################################################################
+echo "INFO: to be able to use this package, datasets are required. some are automatically downloaded as the benchmark script is invoked."
+echo "INFO: for the other datasets, the user may need to download manually, as explained in ./docs/setup_installation.md and ./docs/datasets.md"
+echo "INFO: there are various options to restrict the datasets and models used - please see settings_base.yaml"
+echo "INFO: completed installation."

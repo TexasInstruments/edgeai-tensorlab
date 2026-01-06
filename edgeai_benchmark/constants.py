@@ -71,11 +71,11 @@ TASK_TYPES = [
 ]
 
 # supported session names
-SESSION_NAME_TVMDLR = 'tvmdlr'
+SESSION_NAME_TVMRT = 'tvmrt'
 SESSION_NAME_TFLITERT = 'tflitert'
 SESSION_NAME_ONNXRT = 'onnxrt'
-SESSION_NAMES = [SESSION_NAME_ONNXRT, SESSION_NAME_TFLITERT, SESSION_NAME_TVMDLR]
-SESSION_NAMES_DICT = {SESSION_NAME_ONNXRT:'ONR', SESSION_NAME_TFLITERT:'TFL', SESSION_NAME_TVMDLR:'TVM'}
+SESSION_NAMES = [SESSION_NAME_ONNXRT, SESSION_NAME_TFLITERT, SESSION_NAME_TVMRT]
+SESSION_NAMES_DICT = {SESSION_NAME_ONNXRT:'ONR', SESSION_NAME_TFLITERT:'TFL', SESSION_NAME_TVMRT:'TVM'}
 
 
 # some options in runtime_options
@@ -103,10 +103,11 @@ TIDL_FATAL_ERROR_LOGS_REGEX_LIST_TENSOR_BITS_NOT_32 = [
 
 
 # TIDL firmware versions
-TIDL_FIRMWARE_VERSION_10_01_03_00 = '10_01_03_00' # Compatible with the publicly released SDK 10.1 - Version: 10.01.00.04 - Release date: Dec 18, 2024
-TIDL_FIRMWARE_VERSION_10_01 = '10_01_04_00'       # Latest 10.1 - Not automatically enabled and also not compatible with publicly released version of SDK 10.1 - needs firmware update in SDK.
-TIDL_FIRMWARE_VERSION_11_00 = None                # No need to se this as of now - defaults are good.
+TIDL_FIRMWARE_VERSION_11_02 = None                # No need to se this as of now - defaults are good.
 TIDL_FIRMWARE_VERSION_11_01 = None                # No need to se this as of now - defaults are good.
+TIDL_FIRMWARE_VERSION_11_00 = None                # No need to se this as of now - defaults are good.
+TIDL_FIRMWARE_VERSION_10_01 = '10_01_04_00'       # Latest 10.1 - Not automatically enabled and also not compatible with publicly released version of SDK 10.1 - needs firmware update in SDK. - 04 - Release date: Dec 18, 2024
+TIDL_FIRMWARE_VERSION_10_01_03_00 = '10_01_03_00' # Compatible with the publicly released SDK 10.1 - Version: 10.01.00.
 
 
 # shortlist of models to run based on priority (smaller shotlist means only higher priority models)

@@ -54,13 +54,13 @@ def get_configs(settings, work_dir):
         #       ONNX MODELS
         #################jai-devkit models###############################
         # mlperf model: classification ResNet50v1.5 (resnet50_v1.onnx) expected_metric: 76.456% top-1 accuracy
-        # convert_reducemean_to_matmul is supposed convert reducemean to matmul, so that tidl can handle it
+        # expand_multiaxes_reducemean_to_single_axis_reducemeans is supposed convert reducemean with multiple axis to single axis reducemean, so that tidl can handle it
         # but there seems to be an issue in tidl after this optimizer is applied.
         # disabling if for now - this will cause 2 subgraphs to be created and reducemean will run in onnxruntime
         'cl-6010':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
             session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, input_mean=(123.675, 116.28, 103.53), input_scale=(1.0, 1.0, 1.0),
-                tidl_onnx_model_optimizer={'convert_reducemean_to_matmul': True, 'apply_default_optimizers': False}),
+                tidl_onnx_model_optimizer={'expand_multiaxes_reducemean_to_single_axis_reducemeans': True, 'apply_default_optimizers': False}),
                 runtime_options=settings.runtime_options_onnx_np2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/mlperf/resnet50_v1_shape.onnx'),
             metric=dict(label_offset_pred=-1),
@@ -409,11 +409,11 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_top1%':80.62}, model_shortlist=None, compact_name='efficientNet-edgeTPU-l', shortlisted=False)
         ),
         ###################################################################
-        # complied for TVM - this model is repeated here and hard-coded to use tvmdlr session to generate an example tvmdlr artifact
+        # complied for TVM - this model is repeated here and hard-coded to use tvmrt session to generate an example tvmrt artifact
         # torchvision: classification mobilenetv2_224x224 expected_metric: 71.88% top-1 accuracy
         'cl-3090':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
-            session=sessions.TVMDLRSession(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
+            session=sessions.TVMRTSession(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
                 runtime_options=settings.runtime_options_onnx_p2(fast_calibration=False),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/mobilenet_v2_tv.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':71.88}, model_shortlist=10, compact_name='mobileNetV2-tv', shortlisted=True, recommended=True)
@@ -421,7 +421,7 @@ def get_configs(settings, work_dir):
         # torchvision: classification mobilenetv2_224x224 expected_metric: 71.88% top-1 accuracy, QAT: 71.31%
         'cl-3098':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
-            session=sessions.TVMDLRSession(**sessions.get_onnx_quant_session_cfg(settings, work_dir=work_dir),
+            session=sessions.TVMRTSession(**sessions.get_onnx_quant_session_cfg(settings, work_dir=work_dir),
                 runtime_options=settings.runtime_options_onnx_qat_v1(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/mobilenet_v2_tv_qat-p2.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':71.31}, model_shortlist=None, compact_name='mobileNetV2-tv-qat', shortlisted=False)
@@ -429,27 +429,10 @@ def get_configs(settings, work_dir):
         # torchvision: classification resnet50_224x224 expected_metric: 76.15% top-1 accuracy
         'cl-3110':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),
-            session=sessions.TVMDLRSession(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
+            session=sessions.TVMRTSession(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir),
                 runtime_options=settings.runtime_options_onnx_p2(),
                 model_path=f'{settings.models_path}/vision/classification/imagenet1k/torchvision/resnet50.onnx'),
             model_info=dict(metric_reference={'accuracy_top1%':76.15}, model_shortlist=None, compact_name='resNet50', shortlisted=False)
-        ),
-        # tensorflow/models: classification mobilenetv1_224x224 expected_metric: 71.0% top-1 accuracy (or is it 71.676% as this seems same as mlperf model)
-        'cl-3520':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_tflite(),
-            session=sessions.TVMDLRSession(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir),
-                runtime_options=settings.runtime_options_tflite_np2(fast_calibration=False),
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/mobilenet_v1_1.0_224.tflite'),
-            metric=dict(label_offset_pred=-1),
-            model_info=dict(metric_reference={'accuracy_top1%':71.0}, model_shortlist=None, compact_name='mobileNetV1', shortlisted=False)
-        ),
-        # tf1 models: classification resnet50_v1 expected_metric: 75.2% top-1 accuracy
-        'cl-3530':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_tflite(),
-            session=sessions.TVMDLRSession(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir, input_mean=(123.675, 116.28, 103.53), input_scale=(1.0, 1.0, 1.0)),
-                runtime_options=settings.runtime_options_tflite_p2(),
-                model_path=f'{settings.models_path}/vision/classification/imagenet1k/tf1-models/resnet50_v1.tflite'),
-            model_info=dict(metric_reference={'accuracy_top1%':75.2}, model_shortlist=None, compact_name='resNet50-v1', shortlisted=False)
         ),
         'automation_expt':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx(),

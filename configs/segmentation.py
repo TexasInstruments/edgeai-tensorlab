@@ -255,10 +255,10 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_mean_iou%':77.33}, model_shortlist=None, compact_name='deeplabv3_mobv2-pascal-trainaug-512x512', shortlisted=False)
         ),
         ###################################################################
-        # complied for TVM - this model is repeated here and hard-coded to use tvmdlr session to generate an example tvmdlr artifact
+        # complied for TVM - this model is repeated here and hard-coded to use tvmrt session to generate an example tvmrt artifact
         'ss-5710':utils.dict_update(cocoseg21_cfg,
             preprocess=preproc_transforms.get_transform_jai((512,512), (512,512), backend='cv2', interpolation=cv2.INTER_LINEAR),
-            session=sessions.TVMDLRSession(**sessions.get_jai_session_cfg(settings, work_dir=work_dir),
+            session=sessions.TVMRTSession(**sessions.get_jai_session_cfg(settings, work_dir=work_dir),
                 runtime_options=settings.runtime_options_onnx_p2(fast_calibration=False),
                 model_path=f'{settings.models_path}/vision/segmentation/cocoseg21/edgeai-tv/deeplabv3plus_mobilenetv2_edgeailite_512x512_20210405.onnx'),
             postprocess=postproc_segmentation_onnx,

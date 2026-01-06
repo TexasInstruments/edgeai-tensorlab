@@ -56,5 +56,5 @@ if __name__ == '__main__':
     print(f'settings: {settings}')
     sys.stdout.flush()
 
-    report_csv = interfaces.run_report(settings, skip_pattern=skip_pattern)
-    print("Report generated at: {}".format(report_csv))
+    report_csv_path = interfaces.run_report(settings, skip_pattern=skip_pattern)
+    print("Report generated at {}".format(report_csv_path))

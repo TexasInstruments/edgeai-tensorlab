@@ -1,0 +1,4 @@
+jsons
+Path
+tabulate
+pytest-html-merger

@@ -38,24 +38,24 @@ import importlib.util
 def install_package(*install_args, install_cmd="install"):
     """Install osrt_model_tools package."""
     
-    package_name = install_args[0].split('@')[0].split('==')[0]
+    _package_name = install_args[0].split('@')[0].split('==')[0]
     # Check if package is already installed
-    if importlib.util.find_spec(package_name) is not None:
-        print(f"INFO: {package_name} is already installed")
+    if importlib.util.find_spec(_package_name) is not None:
+        print(f"INFO: {_package_name} is already installed")
         return True
     try:
-        print(f"INFO: Installing {package_name}")
+        print(f"INFO: Installing {_package_name}")
         install_options = [str(arg) for arg in install_args]
         install_cmd_list = ["python3", "-m", "pip", install_cmd, "--no-input"] + install_options
-        print("INFO: installing {package_name} using:", " ".join(install_cmd_list))
+        print(f"INFO: installing {_package_name} using:", " ".join(install_cmd_list))
         result = subprocess.run(install_cmd_list, check=True, capture_output=True, text=True)
         
-        print(f"SUCCESS: {package_name} installed successfully")
+        print(f"SUCCESS: {_package_name} installed successfully")
         if result.stdout:
             print("STDOUT:", result.stdout)
         return True
     except subprocess.CalledProcessError as e:
-        print(f"ERROR: Failed to install {package_name}")
+        print(f"ERROR: Failed to install {_package_name}")
         print(f"Return code: {e.returncode}")
         if e.stdout:
             print("STDOUT:", e.stdout)
@@ -72,8 +72,8 @@ def uninstall_package(*install_args, install_cmd="uninstall"):
 
 
 def main():
-    #install_package("osrt_model_tools@git+https://github.com/TexasInstruments/edgeai-tidl-tools.git@11_00_08_00#subdirectory=osrt-model-tools")
     install_package("onnx-graphsurgeon==0.3.26", "--extra-index-url", "https://pypi.ngc.nvidia.com")
+    # install_package("onnx-graphsurgeon==0.5.8", "--extra-index-url", "https://pypi.ngc.nvidia.com")
 
 
 if __name__ == '__main__':

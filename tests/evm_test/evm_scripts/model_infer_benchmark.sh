@@ -8,7 +8,7 @@ MODEL_SELECTION=${4:-"null"}
 NUM_FRAMES=${5:-"0"}
 MODELARTIFACTS_PATH=${6:-"./work_dirs/modelartifacts"}
 TENSOR_BITS=${7:-"8"}
-SESSION_TYPE_DICT=${8:-"{'onnx': 'onnxrt', 'tflite': 'tflitert', 'mxnet':'tvmdlr'}"}
+SESSION_TYPE_DICT=${8:-"{'onnx': 'onnxrt', 'tflite': 'tflitert', 'mxnet':'tvmrt'}"}
 
 EXTRA_ARGS="--experimental_models True --additional_models True"
 if [ "$MODEL_SELECTION" != "null" ]; then

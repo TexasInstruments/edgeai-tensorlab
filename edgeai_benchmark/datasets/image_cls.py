@@ -34,7 +34,7 @@ from .dataset_base import *
 
 
 class ImageClassification(DatasetBase):
-    def __init__(self, download=False, dest_dir=None, num_frames=None, name=None, **kwargs):
+    def __init__(self, download=False, dest_dir=None, num_frames=None, name=None, backend='pil', bgr_to_rgb=True, **kwargs):
         super().__init__(num_frames=num_frames, name=name, **kwargs)
         self.force_download = True if download == 'always' else False
         assert 'path' in self.kwargs and 'split' in self.kwargs, 'path and split must be provided in kwargs'
@@ -70,23 +70,23 @@ class ImageClassification(DatasetBase):
     def download(self, path, split_file):
         return None
 
-    def __getitem__(self, idx, **kwargs):
+    def __getitem__(self, idx, info_dict=None, **kwargs):
+        info_dict = info_dict or dict()
         with_label = kwargs.get('with_label', False)
         words = self.imgs[idx].split(' ')
         image_name = words[0]
         if with_label:
             assert len(words)>0, f'ground truth requested, but missing at the dataset entry for {words}'
             label = int(words[1])
-            return image_name, label
+            return image_name, info_dict, label
         else:
-            return image_name
-        #
+            return image_name, info_dict
+
+    def __call__(self, index, info_dict=None):
+        return self.__getitem__(index, info_dict)
 
     def __len__(self):
         return self.num_frames
-
-    def __call__(self, predictions, **kwargs):
-        return self.evaluate(predictions, **kwargs)
 
     def evaluate(self, predictions, **kwargs):
         in_lines = self.imgs
@@ -95,7 +95,9 @@ class ImageClassification(DatasetBase):
         for n in range(num_frames):
             words = in_lines[n].split(' ')
             gt_label = int(words[1])
-            accuracy = self.classification_accuracy(predictions[n], gt_label, **kwargs)
+            prediction = predictions[n]
+            prediction = prediction['output'] if isinstance(prediction, dict) and 'output' in prediction else prediction
+            accuracy = self.classification_accuracy(prediction, gt_label, **kwargs)
             metric_tracker.update(accuracy)
         #
         return {metric_tracker.name:metric_tracker.avg}

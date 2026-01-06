@@ -158,17 +158,18 @@ class NYUDepthV2(DatasetBase):
     def __len__(self):
         return self.num_frames
 
-    def __getitem__(self, idx, with_label=False):
+    def __getitem__(self, idx, info_dict=None, with_label=False):
+        info_dict = info_dict or dict()
         if with_label:
             image_file = self.imgs[idx]
             label_file = self.labels[idx]
-            return image_file, label_file
+            return image_file, info_dict, label_file
         else:
-            return self.imgs[idx]
+            return self.imgs[idx], info_dict
         #
 
-    def __call__(self, predictions, **kwargs):
-        return self.evaluate(predictions, **kwargs)
+    def __call__(self, index, info_dict=None):
+        return self.__getitem__(index, info_dict)
 
     def compute_scale_and_shift(self, prediction, gt, mask):
         a_00 = np.sum(mask * prediction * prediction)
@@ -196,10 +197,11 @@ class NYUDepthV2(DatasetBase):
         delta_1 = 0.0
         num_frames = min(self.num_frames, len(predictions))
         for n in range(num_frames):
-            image_file, label_file = self.__getitem__(n, with_label=True)
+            image_file, info_dict, label_file = self.__getitem__(n, with_label=True)
             label_img = PIL.Image.open(label_file)
             label_img = np.array(label_img, dtype=np.float32) / self.depth_label_scale
             prediction = predictions[n]
+            prediction = prediction['output'] if isinstance(prediction, dict) and 'output' in prediction else prediction
             if scale_and_shift_needed:
                 mask = label_img != 0
                 disp_label = np.zeros_like(label_img)

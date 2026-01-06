@@ -38,7 +38,7 @@ TARGET_MACHINE=${2:-pc}
 #################################################################################
 # setup the environment
 # source run_setupenv_pc.sh
-export TIDL_TOOLS_PATH=$(pwd)/tools/tidl_tools_package/${TARGET_SOC}/tidl_tools
+export TIDL_TOOLS_PATH=$(pwd)/tools/tidl_tools_package/bin/${TARGET_SOC}/tidl_tools
 echo "TIDL_TOOLS_PATH=${TIDL_TOOLS_PATH}"
 
 export LD_LIBRARY_PATH="${TIDL_TOOLS_PATH}:${LD_LIBRARY_PATH}"
@@ -49,8 +49,8 @@ export PYTHONPATH=:${PYTHONPATH}
 echo "PYTHONPATH=${PYTHONPATH}"
 
 # needed for TVM compilation
-export ARM64_GCC_PATH=$TIDL_TOOLS_PATH/arm-gnu-toolchain-13.2.Rel1-x86_64-aarch64-none-linux-gnu
-
+export ARM64_GCC_PATH=$(pwd)/tools/tidl_tools_package/bin/arm-gnu-toolchain-13.2.Rel1-x86_64-aarch64-none-linux-gnu
+export CGT7X_ROOT=$(pwd)/tools/tidl_tools_package/bin/ti-cgt-c7000_5.0.0.LTS
 #################################################################################
 # environement variable to help shape exchange between TIDL and onnxruntime
 export TIDL_RT_ONNX_VARDIM="1"
@@ -71,19 +71,19 @@ fi
 
 
 ################################################################################
-# tvmdlr artifacts are different for pc and evm device
+# tvmrt artifacts are different for pc and evm device
 # point to the right artifact before this script executes
 if [ "${ARTIFACTS_BASE_PATH}" = "" ]; then
   ARTIFACTS_BASE_PATH="./work_dirs/modelartifacts/${TARGET_SOC}/8bits"
 fi
 
 if [ -d "${ARTIFACTS_BASE_PATH}" ]; then
-  echo "INFO: settings the correct symlinks in tvmdlr compiled artifacts"
+  echo "INFO: settings the correct symlinks in tvmrt compiled artifacts"
 
-  artifacts_folders=$(find "${ARTIFACTS_BASE_PATH}/" -maxdepth 1 |grep "_tvmdlr_")
+  artifacts_folders=$(find "${ARTIFACTS_BASE_PATH}/" -maxdepth 1 |grep "_tvmrt_")
   cur_dir=$(pwd)
 
-  declare -a artifact_files=("deploy_lib.so" "deploy_graph.json" "deploy_params.params")
+  declare -a artifact_files=("deploy_lib.so" "deploy_graph.json" "deploy_params.params" "deploy_param.params")
 
   for artifact_folder in ${artifacts_folders}
   do

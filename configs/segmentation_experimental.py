@@ -96,7 +96,7 @@ def get_configs(settings, work_dir):
         #------------------------------------------------------------------
         # 'ss-5818expt': utils.dict_update(robokitseg_cfg,
         #     preprocess=preproc_transforms.get_transform_jai((432,768), (432,768), backend='cv2', interpolation=cv2.INTER_AREA),
-        #     session=sessions.TVMDLRSession(**sessions.get_jai_quant_session_cfg(settings, work_dir=work_dir),
+        #     session=sessions.TVMRTSession(**sessions.get_jai_quant_session_cfg(settings, work_dir=work_dir),
         #         runtime_options=settings.runtime_options_onnx_qat_v1(),
         #         model_path=f'{settings.models_path}/vision/segmentation/ti-robokit/edgeai-tv/deeplabv3plus_mnetv2_edgeailite_robokit_768x432_qat-p2.onnx'),
         #     postprocess=postproc_transforms.get_transform_segmentation_onnx(),

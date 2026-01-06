@@ -132,14 +132,15 @@ class ModelMakerClassificationDataset(DatasetBase):
     def get_num_classes(self):
         return self.num_classes
 
-    def __getitem__(self, idx, with_label=False, **kwargs):
+    def __getitem__(self, idx, info_dict=None, with_label=False, **kwargs):
+        info_dict,  = info_dict or dict()
         image_info = self.images_info[idx]
         filename = os.path.join(self.image_dir, image_info['file_name'])
         label = self.annotations_info[idx][0]['category_id']
         if with_label:
-            return filename, label
+            return filename, info_dict, label
         else:
-            return filename
+            return filename, info_dict
 
     def __len__(self):
         return min(self.num_frames, len(self.images_info)) if self.num_frames else len(self.images_info)
@@ -151,7 +152,7 @@ class ModelMakerClassificationDataset(DatasetBase):
         metric_tracker = utils.AverageMeter(name='accuracy_top1%')
         num_frames = min(self.num_frames, len(predictions))
         for n in range(num_frames):
-            words = self.__getitem__(n, with_label=True)
+            words, info_dict = self.__getitem__(n, with_label=True)
             gt_label = int(words[1])
             accuracy = self.classification_accuracy(predictions[n], gt_label, **kwargs)
             metric_tracker.update(accuracy)
@@ -275,7 +276,8 @@ class ModelMakerSegmentationDataset(DatasetBase):
     def get_num_classes(self):
         return self.num_classes
 
-    def __getitem__(self, idx, with_label=False, label_as_array=False):
+    def __getitem__(self, idx, info_dict=None, with_label=False, label_as_array=False):
+        info_dict = info_dict or dict()
         img_id = self.img_ids[idx]
         img = self.coco_dataset.loadImgs([img_id])[0]
         image_path = os.path.join(self.image_dir, img['file_name'])
@@ -293,12 +295,12 @@ class ModelMakerSegmentationDataset(DatasetBase):
                 label_path = os.path.join(self.label_dir, image_basename)
                 label_path = os.path.splitext(label_path)[0] + '.png'
                 cv2.imwrite(label_path, target)
-                return image_path, label_path
+                return image_path, info_dict, label_path
             else:
-                return image_path, target
+                return image_path, info_dict, target
             #
         else:
-            return image_path
+            return image_path, info_dict
         #
 
     def __len__(self):
@@ -318,17 +320,19 @@ class ModelMakerSegmentationDataset(DatasetBase):
         #
         return label_img
 
-    def __call__(self, predictions, **kwargs):
-        return self.evaluate(predictions, **kwargs)
+    def __call__(self, index, info_dict=None):
+        return self.__getitem__(index, info_dict)
 
     def evaluate(self, predictions, **kwargs):
         cmatrix = None
         num_frames = min(self.num_frames, len(predictions))
         for n in range(num_frames):
-            image_file, label_img = self.__getitem__(n, with_label=True, label_as_array=True)
+            image_file, info_dict, label_img = self.__getitem__(n, with_label=True, label_as_array=True)
             # label_img = PIL.Image.open(label_file)
             # reshape prediction is needed
-            output = predictions[n]
+            prediction = predictions[n]
+            prediction = prediction['output'] if isinstance(prediction, dict) and 'output' in prediction else prediction
+            output = prediction
             output = output.astype(np.uint8)
             output = output[0] if (output.ndim > 2 and output.shape[0] == 1) else output
             output = output[:2] if (output.ndim > 2 and output.shape[2] == 1) else output

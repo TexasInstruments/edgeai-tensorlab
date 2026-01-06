@@ -139,7 +139,7 @@ def get_artifact_name(model_id_or_artifact_id, session_name=None, guess_names=Fa
         # create mapping dictionaries
         model_id_to_model_name_dict = {k.split('_')[0]:'-'.join(v.split('-')[1:]) \
                 for k,v in model_id_artifacts_pair.items()}
-        short_runtime_name_dict = {'tvmdlr':'TVM', 'tflitert':'TFL', 'onnxrt':'ONR'}
+        short_runtime_name_dict = {'tvmrt':'TVM', 'tflitert':'TFL', 'onnxrt':'ONR'}
         # finally for the artifact name
         if runtime_name in short_runtime_name_dict and model_id in model_id_to_model_name_dict:
             artifact_name = f'{short_runtime_name_dict[runtime_name]}-{model_id_to_model_name_dict[model_id]}'

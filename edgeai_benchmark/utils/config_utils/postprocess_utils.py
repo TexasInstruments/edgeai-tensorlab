@@ -79,12 +79,16 @@ class DetectionXYWH2XYXYCenterXY():
         y1 = bbox[..., 1] - 0.5 * bbox[..., 3]
         x2 = bbox[..., 0] + 0.5 * bbox[..., 2]
         y2 = bbox[..., 1] + 0.5 * bbox[..., 3]
-        img_shape =  info_dict['data_shape']
-        resize_shape =  info_dict['resize_shape']
-        bbox[..., 0] = x1 * resize_shape[1]
-        bbox[..., 1] = y1 * resize_shape[0]
-        bbox[..., 2] = x2 * resize_shape[1]
-        bbox[..., 3] = y2 * resize_shape[0]
+        # img_shape =  info_dict['data_shape']
+        # resize_shape =  info_dict['resize_shape']
+        # bbox[..., 0] = x1 * resize_shape[1]
+        # bbox[..., 1] = y1 * resize_shape[0]
+        # bbox[..., 2] = x2 * resize_shape[1]
+        # bbox[..., 3] = y2 * resize_shape[0]
+        bbox[..., 0] = x1
+        bbox[..., 1] = y1
+        bbox[..., 2] = x2
+        bbox[..., 3] = y2
         return bbox, info_dict
     
 
@@ -95,3 +99,19 @@ class DetectionBoxSL2BoxLS(DetectionFormatting):
 class Yolov4DetectionBoxSL2BoxLS(DetectionFormatting):
     def __init__(self, dst_indices=(0,1,2,3,4), src_indices=(1,2,3,4,0)):
         super().__init__(dst_indices, src_indices)
+
+
+PISTPROCESS_FORMATTERS = {
+    'detection_xyxy2yxyx': DetectionXYXY2YXYX(),
+    'detection_yxyx2xyxy': DetectionYXYX2XYXY(),
+    'detection_yxhw2xywh': DetectionYXHW2XYWH(),
+    'detection_xyxy2xywh': DetectionXYXY2XYWH(),
+    'detection_xywh2xyxy': DetectionXYWH2XYXY(),
+    'detection_xywh2xyxy_centerxy': DetectionXYWH2XYXYCenterXY(),
+    'detection_boxsl2boxls': DetectionBoxSL2BoxLS(),
+    'yolov4_detection_boxsl2boxls': Yolov4DetectionBoxSL2BoxLS()
+}
+
+
+def get_formatter(task_type, formatter_name):
+    return PISTPROCESS_FORMATTERS[formatter_name] if formatter_name in PISTPROCESS_FORMATTERS else None

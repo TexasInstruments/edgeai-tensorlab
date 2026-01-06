@@ -387,26 +387,18 @@ def get_configs(settings, work_dir):
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 38.33}, model_shortlist=None, compact_name='efficientDet-lite3-relu-coco-512x512', shortlisted=False)
         ),
         ###################################################################
-        # complied for TVM - this model is repeated here and hard-coded to use tvmdlr session to generate an example tvmdlr artifact
-        # mlperf edge: detection - ssd_mobilenet_v1_coco_2018_01_28 expected_metric: 23.0% ap[0.5:0.95] accuracy
-        'od-5100':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_tflite((300,300), (300,300), backend='cv2'),
-            session=sessions.TVMDLRSession(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir, input_optimization=False),
-                runtime_options=settings.runtime_options_tflite_np2(det_options=True),
-                model_path=f'{settings.models_path}/vision/detection/coco/mlperf/ssd_mobilenet_v1_coco_20180128.tflite'),
-            postprocess=postproc_detection_tflite,
-            metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':23.0}, model_shortlist=None, compact_name='ssd-mobV1-coco-mlperf-300x300', shortlisted=False)
-        ),
-        # tensorflow1.0 models: detection - ssdlite_mobiledet_dsp_320x320_coco_2020_05_19 expected_metric: 28.9% ap[0.5:0.95] accuracy
+        # complied for TVM - this model is repeated here and hard-coded to use tvmrt session to generate an example tvmrt artifact
         'od-5120':utils.dict_update(common_cfg,
-            preprocess=preproc_transforms.get_transform_tflite((320,320), (320,320), backend='cv2'),
-            session=sessions.TVMDLRSession(**sessions.get_tflite_session_cfg(settings, work_dir=work_dir, input_optimization=False),
-                runtime_options=settings.runtime_options_tflite_np2(det_options=True),
-                model_path=f'{settings.models_path}/vision/detection/coco/tf1-models/ssdlite_mobiledet_dsp_320x320_coco_20200519.tflite'),
-            postprocess=postproc_detection_tflite,
-            metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90()),
-            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':28.9}, model_shortlist=10, compact_name='ssdLite-mobDet-DSP-coco-320x320', shortlisted=True, recommended=True)
+            preprocess=preproc_transforms.get_transform_onnx(416, 416, reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
+            session=sessions.TVMRTSession(**sessions.get_common_session_cfg(settings, work_dir=work_dir),
+                runtime_options=settings.runtime_options_onnx_np2(
+                   det_options=True, ext_options={'object_detection:meta_arch_type': 6,
+                    'object_detection:meta_layers_names_list': f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_model.prototxt',
+                    'advanced_options:output_feature_16bit_names_list': '1033, 711, 712, 713, 727, 728, 729, 743, 744, 745'}),
+                model_path=f'{settings.models_path}/vision/detection/coco/edgeai-mmdet/yolox_nano_lite_416x416_20220214_model.onnx'),
+            postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=False, resize_with_pad=True, formatter=postprocess.DetectionBoxSL2BoxLS()),
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_80to90(label_offset=1)),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%': 24.8}, model_shortlist=10, compact_name='yolox-nano-lite-mmdet-coco-416x416', shortlisted=True, recommended=True)
         ),
     }
     return pipeline_configs

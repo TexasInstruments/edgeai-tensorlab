@@ -26,7 +26,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from ..core import TVMDLRRuntimeWrapper
+from ..core import TVMRuntimeWrapper
 
 import os
 import time
@@ -37,10 +37,10 @@ from ..import utils
 from .basert_session import BaseRTSession
 
 
-class TVMDLRSession(BaseRTSession, TVMDLRRuntimeWrapper):
-    def __init__(self, session_name=constants.SESSION_NAME_TVMDLR, **kwargs):
+class TVMRTSession(BaseRTSession, TVMRuntimeWrapper):
+    def __init__(self, session_name=constants.SESSION_NAME_TVMRT, **kwargs):
         BaseRTSession.__init__(self, session_name=session_name, **kwargs)
-        TVMDLRRuntimeWrapper.__init__(self)
+        TVMRuntimeWrapper.__init__(self)
         self.kwargs['input_data_layout'] = self.kwargs.get('input_data_layout', constants.NCHW)
         self.supported_machines = (constants.TARGET_MACHINE_PC_EMULATION, constants.TARGET_MACHINE_EVM)
         target_machine = self.kwargs['target_machine']
@@ -48,7 +48,7 @@ class TVMDLRSession(BaseRTSession, TVMDLRRuntimeWrapper):
 
     def start_import(self):
         BaseRTSession.start_import(self)
-        return TVMDLRRuntimeWrapper.start_import(self)
+        return TVMRuntimeWrapper.start_import(self)
 
     def run_import(self, input_data, info_dict=None):
         super().run_import(input_data, info_dict)
@@ -60,14 +60,14 @@ class TVMDLRSession(BaseRTSession, TVMDLRRuntimeWrapper):
             input_data, _ = self.input_normalizer(input_data, {})
         #
 
-        output = TVMDLRRuntimeWrapper.run_import(self, input_data)
+        output = TVMRuntimeWrapper.run_import(self, input_data)
         os.chdir(self.cwd)
         return output, info_dict
 
     def start_inference(self):
         os.chdir(self.cwd)
         BaseRTSession.start_inference(self)
-        return TVMDLRRuntimeWrapper.start_inference(self)
+        return TVMRuntimeWrapper.start_inference(self)
 
     def run_inference(self, input_data, info_dict=None):
         super().run_inference(input_data, info_dict)
@@ -82,11 +82,11 @@ class TVMDLRSession(BaseRTSession, TVMDLRRuntimeWrapper):
         #
 
         start_time = time.time()
-        outputs = TVMDLRRuntimeWrapper.run_inference(self, input_data)
+        outputs = TVMRuntimeWrapper.run_inference(self, input_data)
         info_dict['session_invoke_time'] = (time.time() - start_time)
         self._update_output_details(outputs)
         return outputs, info_dict
 
 
 if __name__ == '__main__':
-    tvm_model = TVMDLRSession()
+    tvm_model = TVMRTSession()

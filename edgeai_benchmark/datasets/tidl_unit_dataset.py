@@ -91,21 +91,23 @@ class TIDLUnitDataset(DatasetBase):
                 out_counter += 1
         
 
-    def __getitem__(self, idx, **kwargs):
+    def __getitem__(self, idx, info_dict=None, **kwargs):
         assert idx == 0
-        return self.inputs
+        return self.inputs, info_dict
 
 
     def __len__(self):
         return 1
+
+    def __call__(self, index, info_dict=None):
+        return self.__getitem__(index, info_dict)
     
     # Evaluate inference outputs by reporting the maximum normalized mean-squared-error (max NMSE) of all network outputs
-    def __call__(self, output_list, **kwargs):
+    def evaluate(self, output_list, **kwargs):
 
         
-        assert isinstance(output_list, list) and len(output_list) == 1, \
-            "Expected output_list is a nested list with one element"
-        output_list = output_list[0]
+        assert isinstance(output_list, list), \
+            "Expected output_list is a nested list"
 
         # Convert output_list to output_dict based on output names
         import onnx
@@ -115,8 +117,9 @@ class TIDLUnitDataset(DatasetBase):
             output_dict[info.name] = output
 
         # Compute the max_nmse
-        max_nmse = None
-        max_mse  = None
+        nmse  = []
+        mse   = []
+        max_delta = []
         epsilon  = 1e-10
         for out_name, output in output_dict.items():
             expected_output = self.expected_outputs.get(out_name)
@@ -125,13 +128,15 @@ class TIDLUnitDataset(DatasetBase):
             # If output is of object type, assert exact equality
             if(output.dtype == object):
                 np.testing.assert_array_equal(output, expected_output)
-                max_nmse = 0
+                nmse.append(None)
+                mse.append(None)
                 continue
 
             output          = np.squeeze(output.astype(float))
             expected_output = np.squeeze(expected_output.astype(float))
 
             assert expected_output.shape == output.shape, f" Shape mismatch! Expected {expected_output.shape} got {output.shape}"
+
             curr_mse = np.mean((expected_output - output)**2)
             curr_var = np.var(expected_output)
 
@@ -140,20 +145,30 @@ class TIDLUnitDataset(DatasetBase):
             else:
                 curr_nmse = curr_mse / curr_var
 
-            if np.isnan(curr_mse) == True:
-                max_mse = None
-            elif max_mse == None:
-                max_mse = curr_mse
+            if curr_mse == None or np.isnan(curr_mse) == True:
+                mse.append(None)
             else:
-                max_mse = max(max_mse, curr_mse)
+                mse.append(curr_mse)
 
-            if curr_nmse == None:
-                pass
-            elif np.isnan(curr_nmse) == True:
-                max_nmse = None
-            elif max_nmse == None:
-                max_nmse = curr_nmse
+            if curr_nmse == None or np.isnan(curr_nmse) == True:
+                nmse.append(None)
             else:
-                max_nmse = max(max_nmse, curr_nmse)
+                nmse.append(curr_nmse)
 
-        return {"max_nmse" : max_nmse, "max_mse" : max_mse}
+            delta = np.abs(expected_output - output)
+            curr_max_delta = np.max(delta)
+
+            if curr_max_delta == None or np.isnan(curr_max_delta) == True:
+                max_delta.append(None)
+            else:
+                max_delta.append(curr_max_delta)
+
+            '''
+            For TopK we only consider 1st output (Values) and not
+            the 2nd output (Indices) because of internal inplementation
+            of TopK output buffer datatype for indices in TIDL
+            '''
+            if os.path.basename(os.path.normpath(self.path)).startswith("TopK"):
+                break
+
+        return {"nmse" : nmse, "mse" : mse, "delta" : max_delta}

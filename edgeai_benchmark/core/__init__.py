@@ -35,4 +35,4 @@ from .config_dict import *
 from .runtime_options import *
 from .onnxrt_runtime import *
 from .tflitert_runtime import *
-from .tvmdlr_runtime import *
+from .tvmrt_runtime import *

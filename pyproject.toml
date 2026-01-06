@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "edgeai-benchmark"
-version = "11.1.0"
+version = "11.2.0"
 description = "Edge AI TIDL Runner"
 authors = [
     { name = "Edge AI Development Team", email = "edgeai-dev@list.ti.com" }
@@ -47,7 +47,7 @@ dependencies = [
 pc = [
     "opencv-python-headless",
     "numpy==1.23.0",
-    "onnxsim==0.4.35",
+    "onnxsim==0.4.36",
     "scipy==1.10",
     "tflite",
     "flatbuffers==1.12.0",
@@ -56,8 +56,8 @@ pc = [
     "h5py",
     "graphviz",
     "colored",
+    "openpyxl",
     "nuscenes-devkit", ## nuscenes-devkit needs to be moved to main requirements after figuring out on how to install on evm
-    "osrt_model_tools@git+https://github.com/TexasInstruments/edgeai-tidl-tools.git@11_01_06_00#subdirectory=osrt-model-tools", ##"osrt_model_tools@git+ssh://git@bitbucket.itg.ti.com/processor-sdk-vision/edgeai-tidl-tools.git@main#subdirectory=osrt-model-tools",
 ]
 evm = [
     "pycocotools"
@@ -70,7 +70,7 @@ dev = [
 ]
 
 [project.scripts]
-download-benchmark-tools = "edgeai_benchmark.download:main"
+tidlbenchmark-tools-install = "edgeai_benchmark.download:main"
 
 [tool.setuptools]
 include-package-data = true

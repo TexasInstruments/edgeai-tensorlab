@@ -2028,6 +2028,9 @@ class MultiClassScaleNMS(object):
         ret_list.append(scores)
         ret_list.append(labels)
 
+        if len(predicts) == 5:
+            ret_list.append(predicts[4])
+
         return ret_list, info_dict
 
 
@@ -2037,6 +2040,16 @@ class Bbox3d2result(object):
         pass
 
     def __call__(self, bbox_list, info_dict):
+        # For BEVFormer_small or BEVFormer_base only
+        # The following codes are needed because the onnx model is from
+        # the pre-trained model using old pikle data file format.
+        if info_dict['task_name'] == 'BEVFormer_small' or \
+            info_dict['task_name'] == 'BEVFormer_base':
+            # change box dim and yaw
+            # nus_box_dims = box_dims[:, [0, 1, 2]]
+            # box_yaw = -box_yaw - np.pi/2
+            bbox_list[0] = bbox_list[0][:, [0, 1, 2, 4, 3, 5, 6, 7, 8]]
+            bbox_list[0][:, 6] = -bbox_list[0][:, 6] - np.pi/2
 
         result_dict = dict(
             bboxes_3d=bbox_list[0],
@@ -2044,10 +2057,45 @@ class Bbox3d2result(object):
             labels_3d=bbox_list[2]
         )
 
-        if len(bbox_list) == 4:
+        if info_dict['task_name'] == 'Sparse4D':
+            result_dict['cls_scores'] = bbox_list[3]
+            result_dict['instance_ids'] = bbox_list[4]
+            if result_dict['labels_3d'].ndim == 2:
+                result_dict['labels_3d'] = result_dict['labels_3d'].reshape(-1)
+        elif len(bbox_list) == 4:
             result_dict['attr_labels'] = bbox_list[3]
 
         return result_dict, info_dict
+
+
+class UpdateTemporalQueue():
+    def __init__(self, queue_length=1):
+        self.queue_length = queue_length
+
+    def __call__(self, bbox_list, info_dict):
+        assert self.queue_length == info_dict['num_bev_temporal_frames'], 'queue_length should be identical to num_bev_temporal_frames.'
+        queue_mem = info_dict['queue_mem']
+
+        # if queue is full, pop the first one
+        if len(queue_mem) >= self.queue_length:
+            first_key = next(iter(queue_mem))
+            queue_mem.pop(first_key)
+
+        if info_dict['task_name'] == 'StreamPETR' or \
+            info_dict['task_name'] == 'Far3D':
+            history_start_idx = 3
+            queue_mem[info_dict['sample_idx']] = \
+                dict(feature_map=bbox_list[3:], img_meta=info_dict) # do we need to save img_meta?
+        elif info_dict['task_name'] == 'Sparse4D':
+            history_start_idx = 5
+            queue_mem[info_dict['sample_idx']] = \
+                dict(det_history=bbox_list[5:], his_timestamp=info_dict['his_timestamp'], his_T_global=info_dict['his_T_global'])
+        else:
+            history_start_idx = -1
+            queue_mem[info_dict['sample_idx']] = \
+                dict(feature_map=bbox_list[-1], img_meta=info_dict)
+
+        return bbox_list[:history_start_idx], info_dict
 
 
 class BEVImageSave():
@@ -2149,7 +2197,6 @@ class BEVImageSave():
             uv_origin = (uv_origin - 1).round()
             corners_2d = uv_origin[..., :2].reshape(num_bbox, 8, 2)
 
-
             for idx, corners in enumerate(corners_2d):
                 if _is_polygon_valid(corners, img_size):
                     depths = depths_3d[idx]
@@ -2191,14 +2238,12 @@ class BEVImageSave():
 
             for i, single_img in enumerate(imgs):
                 trans2img = trans2imgs[i]
-                corners_2d = proj_lidar_bbox3d_to_img(corners_3d, trans2img)
-
-                corners_2d , depths_2d, valid_bbox_idx= proj_lidar_bbox3d_to_img(corners_3d, trans2img)
+                corners_2d, depths_2d, valid_bbox_idx= proj_lidar_bbox3d_to_img(corners_3d, trans2img)
                 labels = labels_3d[valid_bbox_idx]
 
                 for idx, corners in enumerate(corners_2d):
                     if _is_polygon_valid(corners, img_size):
-                        depths = depths_2d[i]
+                        depths = depths_2d[idx]
                         edges = (
                             (0,1),(1,2),(2,3),(3,0),
                             (4,5),(5,6),(6,7),(7,4),
@@ -2208,6 +2253,7 @@ class BEVImageSave():
                             a,b = adjust_edge_in_the_img(img_size, corners, depths, a, b , )
                             if a is not None:
                                 cv2.line(single_img, tuple(a), tuple(b), self.bbox_color[labels[idx]], self.thickness)
+
                 save_path = os.path.join(save_dir, 'output_frame-{:04d}_{}.png'.format(self.output_frame_idx, i))
                 cv2.imwrite(save_path, single_img)
 

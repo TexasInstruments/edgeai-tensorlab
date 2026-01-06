@@ -136,7 +136,7 @@ def pretty_object(d, depth=10, precision=6):
         d_out = [pretty_object(di, depth) for di in d]
     elif isinstance(d, np.ndarray):
         d_out = pretty_object(d.tolist(), depth)
-    elif isinstance(d, ParamsBase):
+    elif isinstance(d, ParamsBase) or hasattr(d, 'peek_params'):
         # this is a special case
         p = d.peek_params()
         d_out = pretty_object(p, depth)
@@ -225,6 +225,27 @@ def str_or_none(v):
     return str(v)
 
 
+def str_to_bool_or_none_or_dict(v):
+    if v is None:
+        return None
+    elif isinstance(v, dict):
+        return v
+    elif isinstance(v, list):
+        v = ' '.join(v)
+    #
+    if isinstance(v, str):
+        if v.lower() in ('', 'none', 'null', 'false', 'no', '0'):
+            return False
+        elif v.lower() in ('true', 'yes', '1'):
+            return True
+        else: 
+            d = yaml.safe_load(v)
+            return d
+        #
+    #
+    return bool(v)
+
+
 def cleanup_dict(inp_dict, template_dict):
     if template_dict is None:
         return inp_dict
@@ -255,3 +276,21 @@ def inverse_sigmoid(x, eps = 1e-5):
     x1 = x.clip(min=eps, max=1)
     x2 = (1 - x).clip(min=eps, max=1)
     return np.log(x1 / x2)
+
+
+def formatted_nargs(nargs_list, delimiters=(' ', ',')):
+    if nargs_list is None:
+        return None
+    #
+    nargs_list = as_list(nargs_list)
+    for delimiter in delimiters:
+        formatted_arg = []
+        for arg in nargs_list:
+            arg_list = arg.split(delimiter) if isinstance(arg, str) else [arg]
+            new_arg = [m.strip() if isinstance(m, str) else m for m in arg_list]
+            formatted_arg.extend(new_arg)
+        #
+        nargs_list = formatted_arg
+    #
+    formatted_arg = list(filter(lambda x: x != '', formatted_arg))
+    return formatted_arg

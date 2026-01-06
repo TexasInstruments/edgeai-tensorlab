@@ -97,6 +97,10 @@ def get_configs(settings, work_dir):
         pipeline_configs.update(external_models_configs.get_configs(settings, work_dir))
     # 
 
+    for model_id, pipeline_config in pipeline_configs.items():
+        model_id = pipeline_config['session'].peek_param('model_id', model_id) or model_id
+        pipeline_config['session'].set_param('model_id', model_id)
+    #
     return pipeline_configs
 
 
