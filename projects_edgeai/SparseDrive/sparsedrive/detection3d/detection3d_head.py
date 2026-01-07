@@ -1,4 +1,3 @@
-# Copyright (c) Horizon Robotics. All rights reserved.
 from typing import List, Optional, Tuple, Union
 import warnings
 
@@ -6,13 +5,13 @@ import numpy as np
 import torch
 import torch.nn as nn
 
+from mmdet3d.registry import MODELS, TASK_UTILS
 from mmengine.model.base_module import BaseModule
 from mmengine.registry import build_from_cfg
 from mmdet.utils import reduce_mean
-from mmdet3d.registry import MODELS, TASK_UTILS
 
 
-from .blocks import Sparse4DeformableFeatureAggregation as DFG
+#from projects_edgeai.SparseDrive.sparsedrive.blocks import Sparse4DeformableFeatureAggregation as DFG
 
 __all__ = ["Sparse4DHead"]
 
@@ -37,6 +36,9 @@ class Sparse4DHead(BaseModule):
         sampler: dict = None,
         gt_cls_key: str = "gt_labels_3d",
         gt_reg_key: str = "gt_bboxes_3d",
+        gt_id_key: str = "instance_id",
+        with_instance_id: bool = True,
+        task_prefix: str = 'det',
         reg_weights: List = None,
         operation_order: Optional[List[str]] = None,
         cls_threshold_to_reg: float = -1,
@@ -50,6 +52,9 @@ class Sparse4DHead(BaseModule):
         self.num_single_frame_decoder = num_single_frame_decoder
         self.gt_cls_key = gt_cls_key
         self.gt_reg_key = gt_reg_key
+        self.gt_id_key = gt_id_key
+        self.with_instance_id = with_instance_id
+        self.task_prefix = task_prefix
         self.cls_threshold_to_reg = cls_threshold_to_reg
         self.dn_loss_weight = dn_loss_weight
         self.decouple_attn = decouple_attn
@@ -189,21 +194,13 @@ class Sparse4DHead(BaseModule):
         dn_metas = None
         temp_dn_reg_target = None
         if self.training and hasattr(self.sampler, "get_dn_anchors"):
-            if "instance_id" in metas["img_metas"][0]:
+            if self.gt_id_key in metas["img_metas"][0]:
                 gt_instance_id = [
-                    torch.from_numpy(x["instance_id"]).cuda()
+                    torch.from_numpy(x[self.gt_id_key]).cuda()
                     for x in metas["img_metas"]
                 ]
-            #if "instance_id" in metas[0]:
-            #    gt_instance_id = [
-            #        torch.from_numpy(x["instance_id"]).cuda()
-            #        for x in metas
-            #    ]
             else:
                 gt_instance_id = None
-
-            #gt_labels_3d = [x[self.gt_cls_key].to(feature_maps[0].device) for x in metas]
-            #gt_bboxes_3d = [x[self.gt_reg_key].to(feature_maps[0].device) for x in metas]
             dn_metas = self.sampler.get_dn_anchors(
                 metas[self.gt_cls_key],
                 metas[self.gt_reg_key],
@@ -297,11 +294,7 @@ class Sparse4DHead(BaseModule):
                     anchor,
                     anchor_embed,
                     time_interval=time_interval,
-                    return_cls=(
-                        self.training
-                        or len(prediction) == self.num_single_frame_decoder - 1
-                        or i == len(self.operation_order) - 1
-                    ),
+                    return_cls=True,
                 )
                 prediction.append(anchor)
                 classification.append(cls)
@@ -332,8 +325,7 @@ class Sparse4DHead(BaseModule):
                             self.instance_bank.num_anchor,
                             self.instance_bank.mask,
                         )
-                if i != len(self.operation_order) - 1:
-                    anchor_embed = self.anchor_encoder(anchor)
+                anchor_embed = self.anchor_encoder(anchor)
                 if (
                     len(prediction) > self.num_single_frame_decoder
                     and temp_anchor_embed is not None
@@ -381,6 +373,7 @@ class Sparse4DHead(BaseModule):
             dn_instance_feature = instance_feature[:, num_free_instance:]
             dn_anchor = anchor[:, num_free_instance:]
             instance_feature = instance_feature[:, :num_free_instance]
+            anchor_embed = anchor_embed[:, :num_free_instance]
             anchor = anchor[:, :num_free_instance]
             cls = cls[:, :num_free_instance]
 
@@ -397,6 +390,8 @@ class Sparse4DHead(BaseModule):
                 "classification": classification,
                 "prediction": prediction,
                 "quality": quality,
+                "instance_feature": instance_feature,
+                "anchor_embed": anchor_embed,
             }
         )
 
@@ -404,7 +399,7 @@ class Sparse4DHead(BaseModule):
         self.instance_bank.cache(
             instance_feature, anchor, cls, metas, feature_maps
         )
-        if not self.training:
+        if self.with_instance_id:
             instance_id = self.instance_bank.get_instance_id(
                 cls, anchor, self.decoder.score_threshold
             )
@@ -441,6 +436,7 @@ class Sparse4DHead(BaseModule):
                 data[self.gt_reg_key],
             )
             reg_target = reg_target[..., : len(self.reg_weights)]
+            reg_target_full = reg_target.clone()
             mask = torch.logical_not(torch.all(reg_target == 0, dim=-1))
             mask_valid = mask.clone()
 
@@ -474,12 +470,13 @@ class Sparse4DHead(BaseModule):
                 reg_target,
                 weight=reg_weights,
                 avg_factor=num_pos,
+                prefix=f"{self.task_prefix}_",
                 suffix=f"_{decoder_idx}",
                 quality=qt,
                 cls_target=cls_target,
             )
 
-            output[f"loss_cls_{decoder_idx}"] = cls_loss
+            output[f"{self.task_prefix}_loss_cls_{decoder_idx}"] = cls_loss
             output.update(reg_loss)
 
         if "dn_prediction" not in model_outs:
@@ -525,9 +522,10 @@ class Sparse4DHead(BaseModule):
                 dn_reg_target,
                 avg_factor=num_dn_pos,
                 weight=reg_weights,
+                prefix=f"{self.task_prefix}_",
                 suffix=f"_dn_{decoder_idx}",
             )
-            output[f"loss_cls_dn_{decoder_idx}"] = cls_loss
+            output[f"{self.task_prefix}_loss_cls_dn_{decoder_idx}"] = cls_loss
             output.update(reg_loss)
         return output
 
@@ -558,7 +556,7 @@ class Sparse4DHead(BaseModule):
         )
 
     #@force_fp32(apply_to=("model_outs"))
-    def post_process(self, model_outs, metas, output_idx=-1):
+    def post_process(self, model_outs, output_idx=-1):
         preds_dicts = self.decoder.decode(
             model_outs["classification"],
             model_outs["prediction"],
@@ -568,14 +566,14 @@ class Sparse4DHead(BaseModule):
         )
 
         # Convert bboxes to Lidar Box
-        num_samples = len(preds_dicts)
-        for i in range(num_samples):
-            preds = preds_dicts[i]
-            bboxes = preds['bboxes_3d']
-            code_size = bboxes.shape[-1]
-
-            bboxes[:, 2] = bboxes[:, 2] - bboxes[:, 5] * 0.5
-            if not torch.onnx.is_in_onnx_export():
-                preds['bboxes_3d'] = metas["img_metas"][i]['box_type_3d'](bboxes, code_size)
+        #num_samples = len(preds_dicts)
+        #for i in range(num_samples):
+        #    preds = preds_dicts[i]
+        #    bboxes = preds['bboxes_3d']
+        #    code_size = bboxes.shape[-1]
+        #
+        #    bboxes[:, 2] = bboxes[:, 2] - bboxes[:, 5] * 0.5
+        #    if not torch.onnx.is_in_onnx_export():
+        #        preds['bboxes_3d'] = metas["img_metas"][i]['box_type_3d'](bboxes, code_size)
 
         return preds_dicts

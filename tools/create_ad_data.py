@@ -9,8 +9,6 @@ from mmengine import print_log
 from tools.dataset_converters import nuscenes_ad_converter as nuscenes_ad_converter
 from tools.dataset_converters.update_ad_infos_to_v2 import update_pkl_ad_infos
 
-export_2d_anno = False
-
 
 def nuscenes_ad_data_prep(root_path,
                           can_bus_root_path,
@@ -18,7 +16,8 @@ def nuscenes_ad_data_prep(root_path,
                           version,
                           dataset_name,
                           out_dir,
-                          max_sweeps=10):
+                          max_sweeps=10,
+                          enable_sparsedrive=False):
     """Prepare data related to nuScenes dataset.
 
     Related data consists of '.pkl' files recording basic infos,
@@ -34,21 +33,25 @@ def nuscenes_ad_data_prep(root_path,
             Default: 10
     """
     nuscenes_ad_converter.create_nuscenes_ad_infos(
-        root_path, can_bus_root_path, info_prefix, version=version, max_sweeps=max_sweeps)
+        root_path, out_dir, can_bus_root_path, info_prefix, version=version, max_sweeps=max_sweeps,
+        enable_sparsedrive=enable_sparsedrive)
 
     if version == 'v1.0-test':
         info_test_path = osp.join(out_dir, f'{info_prefix}_ad_infos_test.pkl')
-        update_pkl_ad_infos('nuscenes', out_dir=out_dir, pkl_path=info_test_path)
+        update_pkl_ad_infos('nuscenes', out_dir=out_dir, pkl_path=info_test_path,
+                            enable_sparsedrive=enable_sparsedrive)
         return
 
     info_train_path = osp.join(out_dir, f'{info_prefix}_ad_infos_train.pkl')
     info_val_path = osp.join(out_dir, f'{info_prefix}_ad_infos_val.pkl')
-    update_pkl_ad_infos('nuscenes', out_dir=out_dir, pkl_path=info_train_path)
-    update_pkl_ad_infos('nuscenes', out_dir=out_dir, pkl_path=info_val_path)
+    update_pkl_ad_infos('nuscenes', out_dir=out_dir, pkl_path=info_train_path,
+                        enable_sparsedrive=enable_sparsedrive)
+    update_pkl_ad_infos('nuscenes', out_dir=out_dir, pkl_path=info_val_path,
+                        enable_sparsedrive=enable_sparsedrive)
 
 
 parser = argparse.ArgumentParser(description='Data converter arg parser')
-parser.add_argument('dataset', metavar='kitti', help='name of the dataset')
+parser.add_argument('dataset', metavar='nuscenes', help='name of the dataset')
 parser.add_argument(
     '--root-path',
     type=str,
@@ -57,7 +60,7 @@ parser.add_argument(
 parser.add_argument(
     '--canbus',
     type=str,
-    default='./data',
+    default='./data/nuscenes',
     help='specify the root path of nuScenes canbus')
 parser.add_argument(
     '--version',
@@ -80,6 +83,10 @@ parser.add_argument(
 parser.add_argument('--extra-tag', type=str, default='kitti')
 parser.add_argument(
     '--workers', type=int, default=4, help='number of threads to be used')
+parser.add_argument(
+    '--sparsedrive',
+    action='store_true',
+    help='''Whether to add info needed for SparseDrive in a pickle file''')
 
 args = parser.parse_args()
 
@@ -96,7 +103,8 @@ if __name__ == '__main__':
             version=train_version,
             dataset_name='NuScenesDataset',
             out_dir=args.out_dir,
-            max_sweeps=args.max_sweeps)
+            max_sweeps=args.max_sweeps,
+            enable_sparsedrive=args.sparsedrive)
         test_version = f'{args.version}-test'
         nuscenes_ad_data_prep(
             root_path=args.root_path,
@@ -105,7 +113,8 @@ if __name__ == '__main__':
             version=test_version,
             dataset_name='NuScenesDataset',
             out_dir=args.out_dir,
-            max_sweeps=args.max_sweeps)
+            max_sweeps=args.max_sweeps,
+            enable_sparsedrive=args.sparsedrive)
     elif args.dataset == 'nuscenes' and args.version == 'v1.0-mini':
         train_version = f'{args.version}'
         nuscenes_ad_data_prep(
@@ -115,6 +124,7 @@ if __name__ == '__main__':
             version=train_version,
             dataset_name='NuScenesDataset',
             out_dir=args.out_dir,
-            max_sweeps=args.max_sweeps)
+            max_sweeps=args.max_sweeps,
+            enable_sparsedrive=args.sparsedrive)
     else:
         raise NotImplementedError(f'Don\'t support {args.dataset} dataset.')

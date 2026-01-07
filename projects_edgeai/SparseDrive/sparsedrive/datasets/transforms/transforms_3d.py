@@ -1,12 +1,9 @@
-# Copyright (c) OpenMMLab. All rights reserved.
-# Some of the classes are copied from projects/PETR/petr/transforms_3d.py 
-###############################
 import numpy as np
 import torch
+import mmcv
+
 from mmcv.transforms import BaseTransform
-
 from mmdet3d.structures.bbox_3d.utils import limit_period
-
 from mmdet3d.registry import TRANSFORMS
 from mmdet3d.datasets.transforms.formating import to_tensor
 
@@ -43,7 +40,9 @@ class CircleObjectRangeFilter(BaseTransform):
         input_dict["gt_labels_3d"] = gt_labels_3d
         if "instance_inds" in input_dict:
             input_dict["instance_inds"] = input_dict["instance_inds"][mask.numpy()]
-
+        if "gt_agent_fut_trajs" in input_dict:
+            input_dict["gt_agent_fut_trajs"] = input_dict["gt_agent_fut_trajs"][mask.numpy()]
+            input_dict["gt_agent_fut_masks"] = input_dict["gt_agent_fut_masks"][mask.numpy()]
         return input_dict
 
     def __repr__(self):
@@ -51,7 +50,6 @@ class CircleObjectRangeFilter(BaseTransform):
         repr_str = self.__class__.__name__
         repr_str += f"(class_dist_thred={self.class_dist_thred})"
         return repr_str
-
 
 @TRANSFORMS.register_module()
 class NuScenesSparse4DAdaptor(BaseTransform):
@@ -84,8 +82,34 @@ class NuScenesSparse4DAdaptor(BaseTransform):
 
         #imgs = [img.transpose(2, 0, 1) for img in input_dict["img"]]
         #imgs = np.ascontiguousarray(np.stack(imgs, axis=0))
-        #input_dict["img"] = to_tensor(imgs)
-        #input_dict["img"] = imgs
+        #input_dict["img"] = DC(to_tensor(imgs), stack=True)
+
+        if "ann_info" in input_dict:
+            input_dict["gt_ego_fut_cmd"] = input_dict['ann_info']['gt_ego_fut_cmd']
+
+        # To REVISTI
+        for key in [
+            'gt_map_labels', 
+            'gt_map_pts',
+            'gt_agent_fut_trajs',
+            'gt_agent_fut_masks',
+        ]:
+            if key not in input_dict:
+                continue
+            #input_dict[key] = DC(to_tensor(input_dict[key]), stack=False, cpu_only=False) 
+            input_dict[key] = to_tensor(input_dict[key]) 
+
+        for key in [
+            'gt_ego_fut_trajs',
+            'gt_ego_fut_masks',
+            'gt_ego_fut_cmd',
+            'ego_status',
+        ]:
+            if key not in input_dict:
+                continue
+            #input_dict[key] = DC(to_tensor(input_dict[key]), stack=True, cpu_only=False, pad_dims=None)
+            input_dict[key] = to_tensor(input_dict[key])
+
         return input_dict
 
 
@@ -223,10 +247,10 @@ class InstanceNameFilter(BaseTransform):
         input_dict["gt_bboxes_3d"] = input_dict["gt_bboxes_3d"][gt_bboxes_mask]
         input_dict["gt_labels_3d"] = input_dict["gt_labels_3d"][gt_bboxes_mask]
         if "instance_inds" in input_dict:
-            input_dict["instance_inds"] = input_dict["instance_inds"][
-                gt_bboxes_mask
-            ]
-
+            input_dict["instance_inds"] = input_dict["instance_inds"][gt_bboxes_mask]
+        if "gt_agent_fut_trajs" in input_dict:
+            input_dict["gt_agent_fut_trajs"] = input_dict["gt_agent_fut_trajs"][gt_bboxes_mask]
+            input_dict["gt_agent_fut_masks"] = input_dict["gt_agent_fut_masks"][gt_bboxes_mask]
         return input_dict
 
     def __repr__(self):
@@ -234,3 +258,40 @@ class InstanceNameFilter(BaseTransform):
         repr_str = self.__class__.__name__
         repr_str += f"(classes={self.classes})"
         return repr_str
+
+
+@TRANSFORMS.register_module()
+class NormalizeMultiviewImage(BaseTransform):
+    """Normalize the image.
+    Added key is "img_norm_cfg".
+    Args:
+        mean (sequence): Mean values of 3 channels.
+        std (sequence): Std values of 3 channels.
+        bgr_to_rgb (bool): Whether to convert the image from BGR to RGB,
+            default is true.
+    """
+
+    def __init__(self, mean, std, bgr_to_rgb=True):
+        self.mean = np.array(mean, dtype=np.float32)
+        self.std = np.array(std, dtype=np.float32)
+        self.bgr_to_rgb = bgr_to_rgb
+
+    def transform(self, results):
+        """Call function to normalize images.
+        Args:
+            results (dict): Result dict from loading pipeline.
+        Returns:
+            dict: Normalized results, 'img_norm_cfg' key is added into
+                result dict.
+        """
+
+        results['img'] = [mmcv.imnormalize(img, self.mean, self.std, self.bgr_to_rgb) for img in results['img']]
+        results['img_norm_cfg'] = dict(
+            mean=self.mean, std=self.std, bgr_to_rgb=self.bgr_to_rgb)
+        return results
+
+    def __repr__(self):
+        repr_str = self.__class__.__name__
+        repr_str += f'(mean={self.mean}, std={self.std}, bgr_to_rgb={self.bgr_to_rgb})'
+        return repr_str
+

@@ -1,9 +1,10 @@
-import numpy as np
 import torch
 from torch import nn
 import torch.nn.functional as F
+import numpy as np
 
-from mmdet3d.registry import MODELS
+from mmengine.registry import MODELS, build_from_cfg
+
 
 __all__ = ["InstanceBank"]
 
@@ -50,6 +51,8 @@ class InstanceBank(nn.Module):
             anchor = np.load(anchor)
         elif isinstance(anchor, (list, tuple)):
             anchor = np.array(anchor)
+        if len(anchor.shape) == 3: # for map
+            anchor = anchor.reshape(anchor.shape[0], -1)
         self.num_anchor = min(len(anchor), num_anchor)
         anchor = anchor[:num_anchor]
         self.anchor = nn.Parameter(
@@ -62,8 +65,6 @@ class InstanceBank(nn.Module):
             requires_grad=feat_grad,
         )
         self.reset()
-        #self.reset_history = True
-        #self.aux_cached_anchor = torch.zeros(1, self.num_temp_instances, VZ+1)
 
     def init_weight(self):
         self.anchor.data = self.anchor.data.new_tensor(self.anchor_init)
@@ -101,66 +102,6 @@ class InstanceBank(nn.Module):
             self.confidence = history['confidence']
             self.temp_confidence = history['temp_confidence']
 
-        """
-        # For branching
-        if reset_history is None:
-            reset_history = self.reset_history or \
-                            batch_size != self.cached_anchor.shape[0]
-
-        # First branch: With history
-        if time_interval is None:
-            history_time = self.metas[0]["timestamp"]
-            time_interval = (self.metas[0]["timestamp"] if metas is None else metas[0]["timestamp"]) - history_time
-            time_interval = torch.Tensor([time_interval]).to(
-                instance_feature.device
-            )
-        self.mask = torch.abs(time_interval) <= self.max_time_interval
-
-        if self.anchor_handler is not None:
-            if T_temp2cur is None:
-                T_temp2cur = self.cached_anchor.new_tensor(
-                    np.stack(
-                        [
-                            x["T_global_inv"]
-                            @ self.metas[i]["T_global"]
-                            for i, x in enumerate(self.metas if metas is None else metas)
-                        ]
-                    )
-                )
-            self.cached_anchor = self.anchor_handler.anchor_projection(
-                self.aux_cached_anchor if self.cached_anchor is None else self.cached_anchor,
-                [T_temp2cur],
-                time_intervals=[-time_interval],
-            )[0]
-
-        if (
-            self.anchor_handler is not None
-            and dn_metas is not None
-            and batch_size == dn_metas["dn_anchor"].shape[0]
-        ):
-            num_dn_group, num_dn = dn_metas["dn_anchor"].shape[1:3]
-            dn_anchor = self.anchor_handler.anchor_projection(
-                dn_metas["dn_anchor"].flatten(1, 2),
-                [T_temp2cur],
-                time_intervals=[-time_interval],
-            )[0]
-            dn_metas["dn_anchor"] = dn_anchor.reshape(
-                batch_size, num_dn_group, num_dn, -1
-            )
-
-        time_interval_1 = torch.where(
-            torch.logical_and(time_interval != 0, self.mask),
-            time_interval,
-            time_interval.new_tensor(self.default_time_interval),
-        )
-
-        # Second branch
-        self.reset()
-        time_interval_2 = instance_feature.new_tensor(
-            [self.default_time_interval] * batch_size
-        )
-        """
-
         if (
             self.cached_anchor is not None
             and batch_size == self.cached_anchor.shape[0]
@@ -185,6 +126,7 @@ class InstanceBank(nn.Module):
                             ]
                         )
                     )
+
                 self.cached_anchor = self.anchor_handler.anchor_projection(
                     self.cached_anchor,
                     [T_temp2cur],
@@ -252,6 +194,11 @@ class InstanceBank(nn.Module):
             self.mask[:, None, None], selected_feature, instance_feature
         )
         anchor = torch.where(self.mask[:, None, None], selected_anchor, anchor)
+        self.confidence = torch.where(
+            self.mask[:, None],
+            self.confidence,
+            self.confidence.new_tensor(0)
+        )
         if self.instance_id is not None:
             self.instance_id = torch.where(
                 self.mask[:, None],
@@ -311,8 +258,7 @@ class InstanceBank(nn.Module):
         new_ids = torch.arange(num_new_instance).to(instance_id) + self.prev_id
         instance_id[torch.where(mask)] = new_ids
         self.prev_id += num_new_instance
-        if self.num_temp_instances > 0:
-            self.update_instance_id(instance_id, confidence)
+        self.update_instance_id(instance_id, confidence)
         return instance_id
 
     def update_instance_id(self, instance_id=None, confidence=None):

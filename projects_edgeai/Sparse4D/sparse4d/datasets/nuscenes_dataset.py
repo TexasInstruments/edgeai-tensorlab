@@ -5,8 +5,8 @@ import numpy as np
 #from nuscenes.eval.detection.config import config_factory as det_configs
 #from nuscenes.eval.common.config import config_factory as track_configs
 
-from mmengine import logging
-from mmengine.logging import print_log
+#from mmengine import logging
+#from mmengine.logging import print_log
 
 from mmdet3d.registry import DATASETS
 from mmdet3d.datasets import NuScenesDataset
@@ -20,7 +20,7 @@ class Sparse4DNuScenesDataset(NuScenesDataset):
     def __init__(self,
                  load_interval=1,
                  vis_score_threshold=0.25,
-                 data_aug_conf=None,
+                 #data_aug_conf=None,
                  sequences_split_num=1,
                  with_seq_flag=False,
                  batch_size=1,
@@ -35,7 +35,7 @@ class Sparse4DNuScenesDataset(NuScenesDataset):
         self.load_interval = load_interval
 
         self.vis_score_threshold = vis_score_threshold
-        self.data_aug_conf = data_aug_conf
+        #self.data_aug_conf = data_aug_conf
         self.sequences_split_num = sequences_split_num
         self.current_aug = None
         self.last_id = None
@@ -52,7 +52,7 @@ class Sparse4DNuScenesDataset(NuScenesDataset):
 
         curr_sequence = 0
         for idx in range(len(self.data_list)):
-            if idx != 0 and self.data_list[idx].get('lidar_sweeps') is None:                
+            if idx != 0 and self.data_list[idx].get('lidar_sweeps') is None:
                 # Not first frame and # of sweeps is 0 -> new sequence
                 curr_sequence += 1
             res.append(curr_sequence)
@@ -164,6 +164,7 @@ class Sparse4DNuScenesDataset(NuScenesDataset):
                     extrinsics=extrinsics,
                 ))
 
+        # REVISIT: Do we need it?
         if not self.test_mode:
             if 'ann_info' in info:
                 annos = info['ann_info']
