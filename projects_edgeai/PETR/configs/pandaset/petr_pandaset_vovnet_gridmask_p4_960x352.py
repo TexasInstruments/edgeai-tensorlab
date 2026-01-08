@@ -15,8 +15,7 @@ voxel_size = [0.2, 0.2, 8]
 img_norm_cfg = dict(
     mean=[103.530, 116.280, 123.675],
     std=[57.375, 57.120, 58.395],
-    to_rgb=False)
-
+    bgr_to_rgb=False)
 # 3 classes
 class_names = [
     'Car','Pedestrian','Temporary Construction Barriers'
@@ -34,12 +33,10 @@ input_modality = dict(use_camera=True)
 model = dict(
     type='PETR',
     save_onnx_model=False,
-    imgfeat_size=[22, 60],
+    img_feat_size=[[6, 256, 22, 60], [6, 256, 11, 30]],
     data_preprocessor=dict(
         type='Det3DDataPreprocessor',
-        mean=[103.530, 116.280, 123.675],
-        std=[57.375, 57.120, 58.395],
-        bgr_to_rgb=False,
+        **img_norm_cfg,
         pad_size_divisor=32),
     use_grid_mask=True,
     img_backbone=dict(
@@ -163,7 +160,7 @@ train_pipeline = [
         type='Pack3DDetInputs',
         keys=[
             'img', 'gt_bboxes', 'gt_bboxes_labels', 'attr_labels',
-            'gt_bboxes_3d', 'gt_labels_3d', 'centers_2d', 'depths'
+            'gt_bboxes_3d', 'gt_labels_3d', 'centers_2d'
         ])
 ]
 test_pipeline = [

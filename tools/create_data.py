@@ -449,11 +449,13 @@ def pandaset_data_prep(root_path,
                        version,
                        dataset_name,
                        out_dir,
+                       enable_bevdet=False,
                        enable_petrv2=False,
                        enable_strpetr=False,
                        enable_sparse4d=False
                        ):
-    pandaset_converter.create_pandaset_infos(root_path, info_prefix, version, dataset_name, out_dir, enable_petrv2, enable_strpetr,enable_sparse4d)
+    pandaset_converter.create_pandaset_infos(root_path, info_prefix, version, dataset_name, out_dir,
+                                             enable_bevdet, enable_petrv2, enable_strpetr, enable_sparse4d)
     info_tain_path = os.path.join(out_dir, f'{info_prefix}_infos_train.pkl')
     if enable_sparse4d:
         get_kmeans_anchor(info_tain_path,dataset='pandaset')
@@ -619,6 +621,7 @@ if __name__ == '__main__':
             version=args.version,
             dataset_name='PandasetDataset',
             out_dir=args.out_dir,
+            enable_bevdet=args.bevdet,
             enable_petrv2=args.petrv2,
             enable_strpetr=args.strpetr,
             enable_sparse4d=args.sparse4d)

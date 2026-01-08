@@ -9,6 +9,7 @@ from .transforms_3d import (ResizeCropFlipRotImage, CustomPack3DDetInputs)
 from .loading import StreamPETRLoadAnnotations3D
 
 from .nuscenes_dataset import Far3DNuScenesDataset
+from .pandaset_dataset import Far3DPandaSetDataset
 from .data_preprocessor import Far3DDataPreprocessor
 
 from .hook import UseGtDepthHook
@@ -20,7 +21,7 @@ __all__ = [
     'StreamPETRHead', 'FarHead', 'FocalHead', 'YOLOXHeadCustom',
     'HungarianAssigner2D',
     'StreamPETR', 'Far3D',
-    'StreamPETRLoadAnnotations3D', 'Far3DNuScenesDataset',
+    'StreamPETRLoadAnnotations3D', 'Far3DNuScenesDataset', 'Far3DPandaSetDataset',
     'Far3DDataPreprocessor',
     'UseGtDepthHook',
 ]

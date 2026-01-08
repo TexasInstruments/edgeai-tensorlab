@@ -264,29 +264,29 @@ def add_frame(sample_data, nusc, l2e_RT, e2g_RT, out_dir):
     sweep_cam['sensor2ego_rotation']  = calibrated_sensor_record['rotation']
     sweep_cam['cam_intrinsic'] = calibrated_sensor_record['camera_intrinsic']
 
-    l2e_r_s = sweep_cam['sensor2ego_rotation']    # c2e
-    l2e_t_s = sweep_cam['sensor2ego_translation'] # c2e
+    c2e_r_s = sweep_cam['sensor2ego_rotation']    # c2e
+    c2e_t_s = sweep_cam['sensor2ego_translation'] # c2e
     e2g_r_s = sweep_cam['ego2global_rotation']
     e2g_t_s = sweep_cam['ego2global_translation']
 
-    #l2e_r_s_mat = Quaternion(l2e_r_s).rotation_matrix
+    #l2e_r_s_mat = Quaternion(c2e_r_s).rotation_matrix
     #e2g_r_s_mat = Quaternion(e2g_r_s).rotation_matrix
 
-    l2e_RT_s = convert_quaternion_to_matrix(l2e_r_s, l2e_t_s)
+    c2e_RT_s = convert_quaternion_to_matrix(c2e_r_s, c2e_t_s)
     e2g_RT_s = convert_quaternion_to_matrix(e2g_r_s, e2g_t_s)
 
-    # Transform [R|t] from the (temporal) previous camera  to the current frame
-    RT_p_c = np.linalg.inv(l2e_RT) @ np.linalg.inv(e2g_RT) @ e2g_RT_s @ l2e_RT_s
+    # Transform [R|t] from the (temporal) previous camera  to the current lidar frame
+    RT_p_c = np.linalg.inv(l2e_RT) @ np.linalg.inv(e2g_RT) @ e2g_RT_s @ c2e_RT_s
     
     '''
     R = (l2e_r_s_mat.T @ e2g_r_s_mat.T) @ (
             np.linalg.inv(e2g_r_mat).T @ np.linalg.inv(l2e_r_mat).T)
-    T = (l2e_t_s @ e2g_r_s_mat.T + e2g_t_s) @ (
+    T = (c2e_t_s @ e2g_r_s_mat.T + e2g_t_s) @ (
         np.linalg.inv(e2g_r_mat).T @ np.linalg.inv(l2e_r_mat).T)
     T -= e2g_t @ (np.linalg.inv(e2g_r_mat).T @ np.linalg.inv(l2e_r_mat).T
                     ) + l2e_t @ np.linalg.inv(l2e_r_mat).T
 
-    T2 = (l2e_t_s @ e2g_r_s_mat.T + e2g_t_s) @ (e2g_r_mat @ l2e_r_mat)
+    T2 = (c2e_t_s @ e2g_r_s_mat.T + e2g_t_s) @ (e2g_r_mat @ l2e_r_mat)
     T2 -= e2g_t @ (e2g_r_mat @ l2e_r_mat) + l2e_t @ l2e_r_mat
 
     sweep_cam['sensor2lidar_rotation'] = R.T  # points @ R.T + T

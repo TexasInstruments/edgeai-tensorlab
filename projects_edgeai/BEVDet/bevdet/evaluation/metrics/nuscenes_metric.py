@@ -112,7 +112,9 @@ class BEVDetNuScenesMetric(NuScenesMetric):
                            results: List[dict],
                            sample_idx_list: List[int],
                            classes: Optional[List[str]] = None,
-                           jsonfile_prefix: Optional[str] = None) -> str:
+                           jsonfile_prefix: Optional[str] = None,
+                           tracking: Optional[bool] = False,
+                           tracking_threshold: Optional[float] = None) -> str:
         """Convert the results to the standard format.
 
         Args:

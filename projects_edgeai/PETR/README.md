@@ -21,7 +21,7 @@ In this paper, we propose PETRv2, a unified framework for 3D perception from mul
 
 ## Introduction
 
-We implement and provide the results and checkpoints for PETR and PETRv2 on the NuScenes dataset. <!--  The result can be found in [Object Detection Zoo](../../docs/det3d_modelzoo.md) -->
+We implement and provide the results and checkpoints for PETR and PETRv2 on the NuScenes and PandaSet dataset. <!--  The result can be found in [Object Detection Zoo](../../docs/det3d_modelzoo.md) -->
 
 ## Dataset Preperation
 
@@ -70,6 +70,11 @@ Download `pandaset.zip` from [HERE](https://huggingface.co/datasets/georghess/pa
 ```bash
 python tools/create_data.py pandaset --root-path ./data/pandaset --out-dir ./data/pandaset --extra-tag pandaset
 ```
+To include additional data fields for PETRv2, we should add `--petrv2` to the command. For example,
+
+```bash
+python tools/create_data.py pandaset --root-path ./data/pandaset --out-dir ./data/pandaset --extra-tag pandaset --petrv2
+```
 
 The directory structure after processing should look like:
 
@@ -97,7 +102,7 @@ edgeai-mmdetection3d
 
 ## Get Started
 
-Refer the MMDetection3D documentation [Test and Train with Standard Datasets](../../docs/en/user_guides/train_test.md) for general floating point training/evaluation/testing steps for standard datasets. Use the below steps for training and evaluation of BEVDet:
+Refer the MMDetection3D documentation [Test and Train with Standard Datasets](../../docs/en/user_guides/train_test.md) for general floating point training/evaluation/testing steps for standard datasets. Use the below steps for training and evaluation of PETR:
 
 1. cd to installation directory <install_dir>/edgeai-mmdetection3d
 
@@ -130,15 +135,15 @@ Refer the MMDetection3D documentation [Test and Train with Standard Datasets](..
 
 ## Results
 
-The following results are for PETR and PETRv2 with NuScenes and PandaSet, respectively. PETRv2 with PandaSet is not avaiable yet.
+The following results are for PETR and PETRv2 with NuScenes and PandaSet, respectively. Note that, with PandaSet, PETRv2 shows lower mAP and NDS values than PETR, which need to be investigated.
 
 
 |  Dataset  |                    Model                      | Mem (GB) | Inf time (fps) | mAP    | NDS   |
 |:---------:| :-------------------------------------------- | :------: | :------------: | :---:  | :--:  |
-| NuScenes  | petr_vovnet_gridmask_p4_800x320               |   1.09   |       TBA      | 37.83  | 43.11 |
-|           | petrv2_vovnet_gridmask_p4_800x320             |   1.87   |       TBA      | 39.36  | 47.89 |
-| PandaSet  | petr_pandaset_vovnet_gridmask_p4_960x352      |   1.34   |       TBA      | 25.37  | 28.88 |
-|           | petrv2_pandaset_vovnet_gridmask_p4_960x352    |          |                |        |       |
+| NuScenes  | petr_vovnet_gridmask_p4_800x320               |   1.09   |       TBA      | 38.55  | 43.79 |
+|           | petrv2_vovnet_gridmask_p4_800x320             |   1.16   |       TBA      | 39.10  | 47.70 |
+| PandaSet  | petr_pandaset_vovnet_gridmask_p4_960x352      |   1.34   |       TBA      | 30.79  | 34.70 |
+|           | petrv2_pandaset_vovnet_gridmask_p4_960x352    |   1.42   |       TBA      | 25.43  | 32.03 |
 
 
 <!--

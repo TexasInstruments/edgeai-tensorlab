@@ -13,19 +13,20 @@ from mmdet3d.datasets.pandaset_dataset import CLASSES, ALL_ATTRIBUTES, CAMERA_NA
 from mmdet3d.datasets.convert_utils import convert_corners_to_bbox_for_lidar_box, convert_corners_to_bbox_for_cam_box, convert_bbox_to_corners_for_lidar, \
                                            convert_bbox_to_lidar
 
+
 test_scenes_const  = ['014', '101', '069', '091', '120', '011', '115', '059', '117', '068', '086',
                       '112', '019', '013', '052', '039', '113', '044', '079', '024', '099']
-# test_scenes_const = ['014', ]#'101']
+# Camera timestamps in '054' are not correct, so we exclude it from training set
 train_scenes_const = ['041', '064', '067', '012', '073', '093', '106', '004', '057', '090', '051',
                       '063', '021', '035', '008', '119', '056', '102', '095', '065', '066', '005',
                       '017', '109', '023', '105', '043', '047', '034', '003', '104', '042', '033',
                       '058', '006', '103', '158', '139', '037', '050', '029', '110', '018', '098',
                       '016', '084', '100', '122', '048', '001', '040', '070', '046', '149', '085',
-                      '074', '002', '078', '097', '062', '054', '116', '077', '124', '053', '027',
+                      #'074', '002', '078', '097', '062', '054', '116', '077', '124', '053', '027',
+                      '074', '002', '078', '097', '062', '116', '077', '124', '053', '027',
                       '071', '015', '045', '080', '072', '030', '123', '094', '092', '089', '028',
                       '055', '088', '038', '020', '032']
-# train_scenes_const = []
-    
+
 def delete_obj(obj):
     if isinstance(obj, (list, tuple)):
         for o in obj:
@@ -73,6 +74,8 @@ def convert_bbox_to_corners_for_globals(bbox):
     return convert_bbox_to_corners_for_lidar([x, y, z, l, w, h, new_yaw])
 
 
+# Check if bbox is valie, i.e., 
+# the lidar points are within the cuboids
 def compute_valid_flag_for_bboxes(cuboids, lidar_data):
     if isinstance(cuboids, pd.DataFrame):
         bboxes = cuboids.values.tolist()
@@ -102,7 +105,7 @@ def compute_valid_flag_for_bboxes(cuboids, lidar_data):
     
     return valid_flags, lidar_points_within_bboxes
 
-def compute_camera_bboxes(cuboids, camera, frame_index):
+def compute_camera_bboxes(cuboids, bbox_3d_isvalids, camera, frame_index):
     camera_pose = camera.poses[frame_index]
     cam_intrinsics = camera.intrinsics
     data = camera[frame_index]
@@ -113,16 +116,24 @@ def compute_camera_bboxes(cuboids, camera, frame_index):
     elif isinstance(cuboids, np.ndarray):
         cuboids = cuboids.tolist()
     filtered_cuboids = []
-    for value in cuboids:
+    for i, value in enumerate(cuboids):
+        # shouldn't include invalid cuboids
+        if bbox_3d_isvalids[i] == False:
+            continue
+
+        # value[5:11]: x, y, z, width, length, height
+        # value[2]: yaw
         bbox = value[5:11] + [value[2]]
-        corners =convert_bbox_to_corners_for_globals(bbox)
-        corners = corners[[1,2,3,0,5,6,7,4]]
-        projected_points2d, camera_points_3d, inner_indices = ps.projection(corners, data, camera_pose, cam_intrinsics,filter_outliers=False)
-        condition1 = camera_points_3d[ 2,:] > 0.0
+        corners = convert_bbox_to_corners_for_globals(bbox)
+        # conver to the order of Camera Bbox
+        #corners = corners[[1,2,3,0,5,6,7,4]]
+        corners = corners[[1,5,4,0,2,6,7,3]]
+        projected_points2d, camera_points_3d, inner_indices = ps.projection(corners, data, camera_pose, cam_intrinsics, filter_outliers=False)
+        condition1 = camera_points_3d[2, :] > 0.0
         if np.all(condition1 == False):
             continue
+
         image_w, image_h = camera[frame_idx].size
-        
         condition2 = np.logical_and(
             (projected_points2d[:, 1] < image_h) & (projected_points2d[:, 1] > 0),
             (projected_points2d[:, 0] < image_w) & (projected_points2d[:, 0] > 0))
@@ -242,7 +253,7 @@ def get_gt_bevdet(instances, ego_bboxes, ego_velocities):
 def generate_camera_sweeps(info, seq, frame_idx, data_list):
     num_prev = 1
     num_sweep = 0 # pandaset does't have non-keyframes
-    
+
     l2g = info['lidar_points']['lidar2global']
     l2g = np.array(l2g)
     
@@ -251,51 +262,64 @@ def generate_camera_sweeps(info, seq, frame_idx, data_list):
         sweep_cam['is_key_frame'] = True
         sweep_cam['data_path'] = prev_cam['img_path']
         sweep_cam['type'] = 'camera'
-        sweep_cam['timestamp'] = prev_cam['timestamp']
+        # In edgeai-mmdetection3d, LoadMultiViewImageFromMultiSweepsFiles
+        # assumes that the timestamp for camera_sweeps is not divided by 1e6
+        # So we mulitply it back here
+        sweep_cam['timestamp'] = prev_cam['timestamp']*1e6
         sweep_cam['sample_data_token'] = prev_cam['sample_data_token']
         sweep_cam['cam_intrinsic'] = prev_cam['cam2img']
-        
+
         c2g_s = prev_cam['cam2global']
-        
+
+        # previous camera to current lidar
         RT_pc2cl = np.linalg.inv(l2g) @ c2g_s
-        sweep_cam['sensor2lidar_rotation'] = RT_pc2cl[0:3, 0:3]
-        sweep_cam['sensor2lidar_translation'] = RT_pc2cl[0:3, 3]
+        #sweep_cam['sensor2lidar_rotation'] = RT_pc2cl[0:3, 0:3]
+        #sweep_cam['sensor2lidar_translation'] = RT_pc2cl[0:3, 3]
+        # current lidar to previous camera
         cl2pc = np.linalg.inv(RT_pc2cl)
         
         intrinsic = np.array(sweep_cam['cam_intrinsic'])
         viewpad = np.eye(4)
         viewpad[:intrinsic.shape[0], :intrinsic.shape[1]] = intrinsic
+        # current lidar to previous image
         cl2pi = (viewpad @ cl2pc)
         
         sweep_cam['cam2img'] = intrinsic.astype(np.float32).tolist()
         sweep_cam['lidar2cam'] = cl2pc.astype(np.float32).tolist()
         sweep_cam['lidar2img'] = cl2pi.astype(np.float32).tolist()
 
-        pop_keys = ['cam_intrinsic', 'sensor2lidar_rotation', 'sensor2lidar_translation']
+        pop_keys = ['cam_intrinsic']
         [sweep_cam.pop(k) for k in pop_keys if k in sweep_cam]
         return sweep_cam
-    
-    current_cams = dict()
-    for cam in CAMERA_NAMES:
-        current_cams[cam] = info['images'][cam]
-    
+
+    #current_cams = dict()
+    #for cam in CAMERA_NAMES:
+    #    current_cams[cam] = info['images'][cam]
+
     sweep_lists = []
     for i in range(num_prev):
         if (frame_idx-i) <= 0:
             break
-        prev = data_list[-i-1]
+
+        # PandaSet is 10 fps while NuScenes keyframe is 2 fps
+        # So, to be consistent with NuScenes, add the previous frame at
+        # (t - 5), where t is the current frame index
+        prev_idx = min(len(data_list), 5)
+        prev = data_list[-i-prev_idx]
+
         sweep_cams = dict()
         for cam in CAMERA_NAMES:
             prev_cam = prev['images'][cam]
             sweep_cam = add_frame(prev_cam)
-            current_cams[cam] = prev_cam
+            #current_cams[cam] = prev_cam
             sweep_cams[cam] = sweep_cam
         sweep_lists.append(sweep_cams)
     info['camera_sweeps'] = sweep_lists
     return info
 
 
-def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img, data_list, token_list, enable_petrv2=False, enable_strpetr=False, enable_sparse4d=False):
+def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img, data_list, token_list,
+                      enable_bevdet=False, enable_petrv2=False, enable_strpetr=False, enable_sparse4d=False):
     scene_token = scene_id
     frame_token = f'{scene_id}_{frame_idx:02}'
     prev = (frame_idx-1) if frame_idx > 0 else None
@@ -337,14 +361,6 @@ def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img, data_li
     ego_velocities = (np.linalg.inv(ego2global[:3,:3]) @ world_velocities.T).T.tolist()
     cam_velocities = {name: dict(zip(filtered_cuboids[:,0].tolist(),(np.linalg.inv(cam2global[name][:3,:3]) @ world_velocities.T).T.tolist())) for name in CAMERA_NAMES}
     cuboids_data = {value[0]: value[1:] for value in filtered_cuboids}
-
-    if enable_sparse4d:
-        instance_inds = []
-        for bbox in filtered_cuboids:
-            if bbox[0] not in token_list:
-                token_list.append(bbox[0])
-            instance_inds.append(token_list.index(bbox[0]))
-        frame_dict['instance_inds'] = instance_inds
     
     lidar_bboxes = []
     ego_bboxes = []
@@ -374,6 +390,7 @@ def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img, data_li
         attribute_dicts[token] = attributes
     
     instances = []
+    bbox_3d_isvalids = []
     for i, (token, label, yaw, stationary, camera_used, x, y, z, width, length, height, *others) in enumerate(filtered_cuboids):
         attr_label = get_attribute_labels(label, attribute_dicts[token])
         label = get_original_label(label)
@@ -386,14 +403,17 @@ def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img, data_li
             bbox_3d_isstationary = stationary,
             num_lidar_pts = num_lidar_points[i], # change to num_lidar_pts
             velocity = lidar_velocities[i],
-            world_bbox3d = [x, y, z, width, length, height, yaw],
-            world_velocity = world_velocities[i],
+            # Not used in BEV models
+            #world_bbox3d = [x, y, z, width, length, height, yaw],
+            #world_velocity = world_velocities[i],
             attr_label=attr_label,
             ))
+        bbox_3d_isvalids.append(valid_flags[token])
 
     camera_bboxes = {}
     for name, camera in seq.camera.items():
-        camera_cuboids = compute_camera_bboxes(filtered_cuboids, camera, frame_idx)
+        # Get projected 2D bboxes on image, and 3D bboxes in camera coordiante
+        camera_cuboids = compute_camera_bboxes(filtered_cuboids, bbox_3d_isvalids, camera, frame_idx)
         bboxes = []
         camera_intrinsics = camera.intrinsics
         K = np.eye(3, dtype=np.float64)
@@ -404,6 +424,7 @@ def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img, data_li
         image_size = camera[frame_idx].size
         width,height = image_size
         for token, projected_points2d, camera_points_3d in camera_cuboids:
+            # Clip 2D bboxes to image size
             bbox_2d= get_bbox_2d(projected_points2d, image_size,)
             bbox3d = convert_corners_to_bbox_for_cam_box(camera_points_3d.T)
             center3d = bbox3d[:3]
@@ -413,7 +434,7 @@ def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img, data_li
             x1,y1,x2,y2 = bbox_2d
             w = x2-x1
             h = y2-y1
-            if w<1 or h<1 :
+            if w<1 or h<1:
                 continue
             inter_w = max(0, min(x2, width) - max(x1, 0))
             inter_h = max(0, min(y2, height) - max(y1, 0))
@@ -468,15 +489,25 @@ def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img, data_li
         prev= f'{scene_id}_{prev:02}' if prev is not None else None,
         next= f'{scene_id}_{next:02}' if next is not None else None,
         scene_token = scene_token,
-        gps = gps,
+        # Not used in BEV models
+        #gps = gps,
         can_bus = np.zeros(18, dtype=float),
         instances= instances,
         cam_instances=cam_instances,
     )
 
+    if enable_sparse4d:
+        instance_inds = []
+        for bbox in filtered_cuboids:
+            if bbox[0] not in token_list:
+                token_list.append(bbox[0])
+            instance_inds.append(token_list.index(bbox[0]))
+        frame_dict['instance_inds'] = instance_inds
+
     # For BEVDet temporal info
-    ann_infos = get_gt_bevdet(instances, ego_bboxes, ego_velocities)
-    frame_dict.update(dict(ann_infos=ann_infos))
+    if enable_bevdet is True:
+        ann_infos = get_gt_bevdet(instances, ego_bboxes, ego_velocities)
+        frame_dict.update(dict(ann_infos=ann_infos))
     
     if enable_petrv2:
         frame_dict = generate_camera_sweeps(frame_dict, seq, frame_idx, data_list)
@@ -509,19 +540,21 @@ def create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img, data_li
             center2d_cams.append(np.array(center2d, dtype = np.float32))
             depths_cams.append(np.array(depths, dtype = np.float32))
             gt_2dbboxes_ignore_cams.append(np.array(gt_2dbboxes_ignore, dtype = np.float32))
+
         frame_dict.update(dict(
-            gt_2dbboxes_cams = gt_2dbboxes_cams,
-            gt_3dbboxes_cams = gt_3dbboxes_cams,
-            gt_2dlabels_cams = gt_2dlabels_cams,
-            center2d_cams = center2d_cams,
-            depths_cams = depths_cams,
-            gt_2dbboxes_ignore_cams = gt_2dbboxes_ignore_cams
+            bboxes2d=gt_2dbboxes_cams,
+            bboxes3d_cams=gt_3dbboxes_cams,
+            labels2d=gt_2dlabels_cams,
+            centers2d=center2d_cams,
+            depths=depths_cams,
+            bboxes_ignore=gt_2dbboxes_ignore_cams
         ))
     
     return frame_dict
 
 
-def create_datalist_per_scene(scene_id, dataset, token_list, enable_petrv2=False, enable_strpetr=False, enable_sparse4d=False):
+def create_datalist_per_scene(scene_id, dataset, token_list, 
+                              enable_bevdet=False, enable_petrv2=False, enable_strpetr=False, enable_sparse4d=False):
     data_list = []
     seq = dataset[scene_id]
     seq.load()
@@ -531,10 +564,9 @@ def create_datalist_per_scene(scene_id, dataset, token_list, enable_petrv2=False
     all_velocities = calculate_velocities(seq.cuboids.data,seq.timestamps,) # global coordinates
     print("Creating pickle data for scene:", scene_id)
     with tqdm.tqdm(total=len(seq.lidar._data_structure)) as pbar:
-
         for frame_idx in range(len(seq.lidar._data_structure)):
-            frame_dict = create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img, data_list,
-                                           token_list, enable_petrv2=enable_petrv2, enable_strpetr=enable_strpetr, enable_sparse4d=enable_sparse4d)
+            frame_dict = create_frame_dict(seq, scene_id, frame_idx, all_velocities, cam2img, data_list, token_list,
+                                           enable_bevdet=enable_bevdet, enable_petrv2=enable_petrv2, enable_strpetr=enable_strpetr, enable_sparse4d=enable_sparse4d)
             data_list.append(copy.deepcopy(frame_dict))
             delete_obj(frame_dict)
             pbar.update()
@@ -557,8 +589,8 @@ def create_datalist_per_scene(scene_id, dataset, token_list, enable_petrv2=False
     return data_list
 
 
-def create_pickle_file( dataset, scenes, output_dir=None, info_prefix=None, version=None, dataset_name=None, train_split=True, 
-                       enable_petrv2=False, enable_strpetr=False, enable_sparse4d=False):
+def create_pickle_file(dataset, scenes, output_dir=None, info_prefix=None, version=None, dataset_name=None, train_split=True,
+                       enable_bevdet=False, enable_petrv2=False, enable_strpetr=False, enable_sparse4d=False):
     output_dir = output_dir or os.getcwd()
     version = version or 'v1.0'
     dataset_name = dataset_name or 'PandaSetDataset'
@@ -580,7 +612,7 @@ def create_pickle_file( dataset, scenes, output_dir=None, info_prefix=None, vers
     for i, scene_id in enumerate(scenes):
         print(f"Scene({i+1}/{len(scenes)}): ",end='')
         data_list.extend(create_datalist_per_scene(scene_id, dataset,  token_list,
-                                enable_petrv2=enable_petrv2, enable_strpetr=enable_strpetr, enable_sparse4d=enable_sparse4d))
+                                enable_bevdet=enable_bevdet, enable_petrv2=enable_petrv2, enable_strpetr=enable_strpetr, enable_sparse4d=enable_sparse4d))
 
     for i, frame in enumerate(data_list):
         frame['sample_idx'] = i
@@ -591,8 +623,8 @@ def create_pickle_file( dataset, scenes, output_dir=None, info_prefix=None, vers
 
 
 
-def create_pickle_files(dataset_path, output_dir, info_prefix, version, dataset_name, with_semseg=False, fixed_split=True, train_split=0.80, 
-                        enable_petrv2=False, enable_strpetr=False, enable_sparse4d=False):
+def create_pickle_files(dataset_path, output_dir, info_prefix, version, dataset_name, with_semseg=False, fixed_split=True, train_split=0.80,
+                        enable_bevdet=False, enable_petrv2=False, enable_strpetr=False, enable_sparse4d=False):
     dataset = ps.DataSet(dataset_path)
     semseg_scenes = dataset.sequences(with_semseg=with_semseg)
     scenes = dataset.sequences()
@@ -613,20 +645,24 @@ def create_pickle_files(dataset_path, output_dir, info_prefix, version, dataset_
         pass
     else:
         print(f"Creating a test dataset of {len(test_scenes)} scenes")
-        create_pickle_file(dataset, test_scenes, output_dir, info_prefix, version, dataset_name, train_split=False, enable_petrv2=enable_petrv2, enable_strpetr=enable_strpetr, enable_sparse4d=enable_sparse4d)
+        create_pickle_file(dataset, test_scenes, output_dir, info_prefix, version, dataset_name, train_split=False,
+                           enable_bevdet=enable_bevdet, enable_petrv2=enable_petrv2, enable_strpetr=enable_strpetr, enable_sparse4d=enable_sparse4d)
         print(f"Creating a train dataset of {len(train_scenes)} scenes")
-        create_pickle_file(dataset, train_scenes, output_dir, info_prefix, version, dataset_name, enable_petrv2=enable_petrv2, enable_strpetr=enable_strpetr, enable_sparse4d=enable_sparse4d)
+        create_pickle_file(dataset, train_scenes, output_dir, info_prefix, version, dataset_name,
+                           enable_bevdet=enable_bevdet, enable_petrv2=enable_petrv2, enable_strpetr=enable_strpetr, enable_sparse4d=enable_sparse4d)
 
 def create_pandaset_infos(root_path,
                           info_prefix,
                           version,
                           dataset_name,
                           out_dir,
+                          enable_bevdet=False,
                           enable_petrv2=False,
-                          enable_strpetr=False, 
+                          enable_strpetr=False,
                           enable_sparse4d=False
                           ):
-    create_pickle_files(root_path, out_dir, info_prefix, version, dataset_name,enable_petrv2=enable_petrv2, enable_strpetr=enable_strpetr, enable_sparse4d=enable_sparse4d)
+    create_pickle_files(root_path, out_dir, info_prefix, version, dataset_name,
+                        enable_bevdet=enable_bevdet, enable_petrv2=enable_petrv2, enable_strpetr=enable_strpetr, enable_sparse4d=enable_sparse4d)
     
 
 def main(args=None):
@@ -638,10 +674,12 @@ def main(args=None):
     parser.add_argument('--dataset-name', type=str, default='PandaSetDataset')
     parser.add_argument('--with-semseg',  action='store_true')
     parser.add_argument('--train-split', type=float, default=0.75)
+    parser.add_argument('--bevdet',  action='store_true')
     parser.add_argument('--petrv2', action='store_true')
     parser.add_argument('--strpetr', action='store_true')
     args = parser.parse_args() if args is None else parser.parse_args(args)
-    create_pickle_files(args.dataset_path, args.output_dir, args.info_prefix, args.version, args.dataset_name, args.with_semseg, True, args.train_split, enable_petrv2=args.petrv2, enable_strpetr=args.strpetr)
+    create_pickle_files(args.dataset_path, args.output_dir, args.info_prefix, args.version, args.dataset_name, args.with_semseg, True, args.train_split,
+                        enable_bevdet=args.bevdet, enable_petrv2=args.petrv2, enable_strpetr=args.strpetr)
 
 if __name__ == '__main__':
 

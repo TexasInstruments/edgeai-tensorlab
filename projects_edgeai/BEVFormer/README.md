@@ -12,7 +12,7 @@ the accuracy of velocity estimation and recall of objects under low visibility c
 
 ## Introduction
 
-We implement and provide the results and checkpoints on the NuScenes dataset. <!-- The result can be found in [Object Detection Zoo](../../docs/det3d_modelzoo.md) -->
+We implement and provide the results and checkpoints on the NuScenes and PandaSet dataset. <!-- The result can be found in [Object Detection Zoo](../../docs/det3d_modelzoo.md) -->
 
 ## Dataset Preperation
 
@@ -116,12 +116,14 @@ Refer the MMDetection3D documentation [Test and Train with Standard Datasets](..
 
 ## Results
 
-The following results are for the bevformer_tiny configs with NuScenes and PandaSet, respectively.
+The following results are for the bevformer_tiny configs with NuScenes and PandaSet, respectively. For bevformer_tiny_nn and bevformer_tiny_pandaset_nn, nearest neighbor interpolation is used for grid sample in deformable attention.
 
 |  Dataset  |                      Model                    | Mem (GB) | Inf time (fps) |  mAP   |  NDS  |
 |:---------:|:--------------------------------------------- | :------: | :------------: | :---:  | :--:  |
-| NuScenes  | bevformer_tiny                                |   0.63   |       TBA      | 26.84  | 37.09 | 
-| PandaSet  | bevformer_tiny_pandaset                       |   0.80   |       TBA      | 23.01  | 30.05 | 
+| NuScenes  | bevformer_tiny                                |   0.63   |       TBA      | 27.16  | 37.40 |
+|           | bevformer_tiny_nn                             |   0.63   |       TBA      | 25.97  | 36.50 |
+| PandaSet  | bevformer_tiny_pandaset                       |   0.80   |       TBA      | 22.00  | 29.02 |
+|           | bevformer_tiny_pandaset_nn                    |   0.80   |       TBA      | 20.79  | 27.98 |
 
 <!-- 
 ## 3D Object Detection Model Zoo
