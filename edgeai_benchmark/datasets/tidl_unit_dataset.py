@@ -167,6 +167,8 @@ class TIDLUnitDataset(DatasetBase):
         nmse  = []
         mse   = []
         max_delta = []
+        outputs = []
+        expected_outputs = []
         epsilon  = 1e-10
         for out_name, output in output_dict.items():
             expected_output = self.expected_outputs.get(out_name)
@@ -210,6 +212,9 @@ class TIDLUnitDataset(DatasetBase):
             else:
                 max_delta.append(curr_max_delta)
 
+            outputs.append(output)
+            expected_outputs.append(expected_output)
+
             '''
             For TopK we only consider 1st output (Values) and not
             the 2nd output (Indices) because of internal inplementation
@@ -218,4 +223,9 @@ class TIDLUnitDataset(DatasetBase):
             if os.path.basename(os.path.normpath(self.path)).startswith("TopK"):
                 break
 
-        return {"nmse" : nmse, "mse" : mse, "delta" : max_delta}
+        return {"outputs" : outputs,
+                "expected_outputs" : expected_outputs,
+                "nmse" : nmse, 
+                "mse" : mse, 
+                "delta" : max_delta
+                }

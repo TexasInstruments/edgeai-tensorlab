@@ -11,17 +11,10 @@ import shutil
 import numpy as np
 import onnxruntime
 import yaml
+from .unit_test_utils import generate_plot
 
 '''
 Pytest file for TIDL Unit tests
-Note: Pass in --disable-tidl-offload to pytest command in order to disable TIDL offload
-Note: Pass in --no-subprocess to disable running the test in a subprocess
-Note: Pass in --run-infer to pytest command in order to run inference (default is import which must be done first)
-Note: Pass in --exit-on-critical-error to pytest command in order to exit on critical error
-Note: Pass in --flow-control to pytest command in order to run with mentioned flow control (default is 1 (REF))
-Note: Pass in --temp-buffer-dir to pytest command in order to to redirect temporary buffers (default is /dev/shm)
-Note: Pass in --runtime=<runtime> in order to select the compiler runtime to be used. Valid values: (onnxrt, tvmrt)
-
 Available test suites:
 - test_tidl_unit_operator: Run tests for individual operators
 - test_tidl_unit_model: Run tests for full model
@@ -87,6 +80,10 @@ def runtime(pytestconfig):
 @pytest.fixture(scope="session")
 def work_dir(pytestconfig):
     return pytestconfig.getoption("work_dir")
+
+@pytest.fixture(scope="session")
+def disable_plot(pytestconfig):
+    return pytestconfig.getoption("disable_plot")
 
 @pytest.fixture(scope="session")
 def test_file(pytestconfig):
@@ -181,7 +178,7 @@ def pytest_generate_tests(metafunc):
             metafunc.parametrize("test_name", tests_to_use)
 
 # Test TIDL operator unit test
-def test_tidl_unit_operator(no_subprocess : bool, tidl_offload : bool, run_infer : bool, work_dir : str, exit_on_critical_error : bool, flow_control : int, temp_buffer_dir : str, temp_nc_dir : str, nmse_threshold : float, runtime : str, timeout : int, operator_tests_root_fixture : str, test_name : str):
+def test_tidl_unit_operator(no_subprocess : bool, tidl_offload : bool, run_infer : bool, work_dir : str, disable_plot : bool, exit_on_critical_error : bool, flow_control : int, temp_buffer_dir : str, temp_nc_dir : str, nmse_threshold : float, runtime : str, timeout : int, operator_tests_root_fixture : str, test_name : str):
     '''
     Pytest for tidl unit operator tests using the edgeai-benchmark framework
     '''
@@ -203,6 +200,7 @@ def test_tidl_unit_operator(no_subprocess : bool, tidl_offload : bool, run_infer
                       tidl_offload    = tidl_offload, 
                       run_infer       = run_infer, 
                       work_dir        = work_dir,
+                      disable_plot    = disable_plot,
                       flow_control    = flow_control,
                       temp_buffer_dir = temp_buffer_dir,
                       temp_nc_dir     = temp_nc_dir,
@@ -214,7 +212,7 @@ def test_tidl_unit_operator(no_subprocess : bool, tidl_offload : bool, run_infer
                       runtime         = runtime)
 
 # Test TIDL full model unit test
-def test_tidl_unit_model(no_subprocess : bool, tidl_offload : bool, run_infer : bool, work_dir : str, exit_on_critical_error : bool, flow_control : int, temp_buffer_dir : str, temp_nc_dir : str, nmse_threshold : float, runtime : str, timeout : int, model_tests_root_fixture : str, test_name : str):
+def test_tidl_unit_model(no_subprocess : bool, tidl_offload : bool, run_infer : bool, work_dir : str, disable_plot : bool, exit_on_critical_error : bool, flow_control : int, temp_buffer_dir : str, temp_nc_dir : str, nmse_threshold : float, runtime : str, timeout : int, model_tests_root_fixture : str, test_name : str):
     '''
     Pytest for tidl unit full model tests using the edgeai-benchmark framework
     '''
@@ -236,6 +234,7 @@ def test_tidl_unit_model(no_subprocess : bool, tidl_offload : bool, run_infer : 
                       tidl_offload    = tidl_offload, 
                       run_infer       = run_infer, 
                       work_dir        = work_dir,
+                      disable_plot    = disable_plot,
                       flow_control    = flow_control,
                       temp_buffer_dir = temp_buffer_dir,
                       temp_nc_dir     = temp_nc_dir,
@@ -246,7 +245,7 @@ def test_tidl_unit_model(no_subprocess : bool, tidl_offload : bool, run_infer : 
                       testdir_parent  = testdir_parent,
                       runtime         = runtime)
 
-def perform_tidl_unit(no_subprocess : bool, tidl_offload : bool, run_infer : bool, work_dir : str, flow_control : int, temp_buffer_dir : str, temp_nc_dir : str, nmse_threshold : float, runtime : str, timeout : int, testdir_parent : str, test_name : str, test_suite : str):
+def perform_tidl_unit(no_subprocess : bool, tidl_offload : bool, run_infer : bool, work_dir : str, disable_plot : bool, flow_control : int, temp_buffer_dir : str, temp_nc_dir : str, nmse_threshold : float, runtime : str, timeout : int, testdir_parent : str, test_name : str, test_suite : str):
     '''
     Performs an tidl unit test
     '''
@@ -255,6 +254,7 @@ def perform_tidl_unit(no_subprocess : bool, tidl_offload : bool, run_infer : boo
         perform_tidl_unit_oneprocess(tidl_offload       = tidl_offload, 
                                      run_infer          = run_infer, 
                                      work_dir           = work_dir,
+                                     disable_plot       = disable_plot,
                                      flow_control       = flow_control,
                                      temp_buffer_dir    = temp_buffer_dir,
                                      temp_nc_dir        = temp_nc_dir,
@@ -267,6 +267,7 @@ def perform_tidl_unit(no_subprocess : bool, tidl_offload : bool, run_infer : boo
         perform_tidl_unit_subprocess(tidl_offload    = tidl_offload, 
                                      run_infer       = run_infer,
                                      work_dir        = work_dir,
+                                     disable_plot    = disable_plot,
                                      flow_control    = flow_control,
                                      temp_buffer_dir = temp_buffer_dir,
                                      temp_nc_dir     = temp_nc_dir,
@@ -279,7 +280,7 @@ def perform_tidl_unit(no_subprocess : bool, tidl_offload : bool, run_infer : boo
         
 
 
-def perform_tidl_unit_subprocess(tidl_offload : bool, run_infer : bool, work_dir : str, flow_control : int, temp_buffer_dir : str, temp_nc_dir : str, nmse_threshold : float, runtime : str, timeout : int, test_name : str, test_suite : str, testdir_parent : str):
+def perform_tidl_unit_subprocess(tidl_offload : bool, run_infer : bool, work_dir : str, disable_plot : bool, flow_control : int, temp_buffer_dir : str, temp_nc_dir : str, nmse_threshold : float, runtime : str, timeout : int, test_name : str, test_suite : str, testdir_parent : str):
     '''
     Perform an tidl unit test using a subprocess (in order to properly capture output for fatal errors)
     Called by perform_tidl_unit
@@ -288,6 +289,7 @@ def perform_tidl_unit_subprocess(tidl_offload : bool, run_infer : bool, work_dir
     kwargs = {"tidl_offload"      : tidl_offload, 
               "run_infer"         : run_infer, 
               "work_dir"          : work_dir,
+              "disable_plot"      : disable_plot,
               "flow_control"      : flow_control,
               "temp_buffer_dir"   : temp_buffer_dir,
               "temp_nc_dir"       : temp_nc_dir,
@@ -314,7 +316,7 @@ def perform_tidl_unit_subprocess(tidl_offload : bool, run_infer : bool, work_dir
     assert p.exitcode == 0, f"Received nonzero exit code: {p.exitcode}"
 
 # Utility function to perform tidl unit test
-def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, work_dir : str, flow_control : int, temp_buffer_dir : str, temp_nc_dir : str, nmse_threshold : float, runtime : str, test_name : str, test_suite : str, testdir_parent : str):
+def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, work_dir : str, disable_plot : bool, flow_control : int, temp_buffer_dir : str, temp_nc_dir : str, nmse_threshold : float, runtime : str, test_name : str, test_suite : str, testdir_parent : str):
     '''
     Perform an tidl unit test using without a subprocess wrapper
     Called by perform_tidl_unit_subprocess or directly by perform_tidl_unit if no_subprocess is specified
@@ -451,9 +453,11 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, work_dir
         print(f"\tDDR Write Bandwidth (MB/s)            :   {stats['write_total']:.2f}")
         print()
 
-        nmse  = tidl_unit_dataset.evaluate(results_list)['nmse']
-        mse   = tidl_unit_dataset.evaluate(results_list)['mse']
-        delta = tidl_unit_dataset.evaluate(results_list)['delta']
+        # Get evaluation metrics
+        eval_results = tidl_unit_dataset.evaluate(results_list)
+        nmse = eval_results['nmse']
+        mse = eval_results['mse']
+        delta = eval_results['delta']
 
         if any(x is None for x in nmse):
             max_nmse = None
@@ -485,6 +489,13 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, work_dir
         else:
             print("MAX_DELTA: {:.7f}".format(max_delta))
 
+        # Generate plots comparing reference and actual outputs
+        if (not disable_plot):
+            plots_dir = os.path.join(run_dir, 'plots')
+            os.makedirs(plots_dir, exist_ok=True)
+            _, plot_base64_path = generate_plot(eval_results, plots_dir, test_name, save_image = False)
+            print(f"PLOT_BASE_64_PATH: {plot_base64_path}")
+
         # max_nmse can be none if output has zero variance - check max_mse in this case
         if max_nmse == None and max_mse == None:
             del runtime_wrapper
@@ -497,7 +508,6 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, work_dir
             if max_mse > nmse_threshold:
                 del runtime_wrapper
                 pytest.fail(f" max_mse of {max_mse} is higher than threshold {nmse_threshold}")
-
 
     #Otherwise run import
     else:

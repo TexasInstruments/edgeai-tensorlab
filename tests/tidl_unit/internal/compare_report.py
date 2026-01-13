@@ -20,7 +20,7 @@ def parse_html_to_dict(file_path):
         if len(columns) >= 2:  # Ensure there are at least two columns
             result = columns[0].get_text(strip=True)
             test = columns[1].get_text(strip=True)
-            nmse = columns[4].get_text(strip=True)
+            nmse = columns[5].get_text(strip=True)
             test = test.split(']')[0] + ']'
             nmse = nmse.split(']')[0] + ']'
             test_result_dict[test] = result
@@ -66,7 +66,7 @@ def compare_report(ref_report_path,test_report_path,output_path):
             f.write(f"{test}\n")
 
         if (len(nmse_diff_tests) > 0):
-            f.write(f"\n NMSE discrepancies: \n")
+            f.write(f"\n OUTPUT METRICS discrepancies: \n")
             for test in nmse_diff_tests:
                 f.write(f"{test}\n")
 
