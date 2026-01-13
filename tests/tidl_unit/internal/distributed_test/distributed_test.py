@@ -170,7 +170,7 @@ def setup_pc(pc_name, pc_info):
     if SETUP_EDGEAI_BENCHMARK == '1':
         edgeai_benchmark_dir = pc_info['edgeai_benchmark_dir']
         pyenv = pc_info['pyenv']
-        eai_setup_command = f"cd {edgeai_benchmark_dir} && git fetch --all && git reset --hard origin/{EDGEAI_BENCHMARK_BRANCH} && source {pyenv} && export export HTTPS_PROXY=http://webproxy.ext.ti.com:80 && export https_proxy=http://webproxy.ext.ti.com:80 && export HTTP_PROXY=http://webproxy.ext.ti.com:80 && export http_proxy=http://webproxy.ext.ti.com:80 && export ftp_proxy=http://webproxy.ext.ti.com:80 &&  export FTP_PROXY=http://webproxy.ext.ti.com:80 && export no_proxy=ti.com  && ssh-keyscan -H bitbucket.itg.ti.com >> ~/.ssh/known_hosts && ./setup_pc.sh"
+        eai_setup_command = f"cd {edgeai_benchmark_dir} && git fetch --all && git reset --hard origin/{EDGEAI_BENCHMARK_BRANCH} && source {pyenv} && export export HTTPS_PROXY=http://webproxy.ext.ti.com:80 && export https_proxy=http://webproxy.ext.ti.com:80 && export HTTP_PROXY=http://webproxy.ext.ti.com:80 && export http_proxy=http://webproxy.ext.ti.com:80 && export ftp_proxy=http://webproxy.ext.ti.com:80 &&  export FTP_PROXY=http://webproxy.ext.ti.com:80 && export no_proxy=ti.com  && ssh-keyscan -H bitbucket.itg.ti.com >> ~/.ssh/known_hosts && ./setup_pc.sh && pip3 install -r {edgeai_benchmark_dir}/tests/tidl_unit/requirements.txt"
         print(f"[INFO][{pc_name}] Setting up edgeai-benchmark: {eai_setup_command}")
         eai_setup_result = execute_ssh_command(pc_name, eai_setup_command, timeout=1800, command_type="eai_setup_command")
         _, eai_setup_success, eai_setup_stdout, eai_setup_stderr = eai_setup_result
@@ -389,7 +389,6 @@ def execute_pc_commands(pc_name, pc_info, log_path, result_path):
         # Create setup command dynamically
         test_dir = os.path.join(pc_config[pc_name]["edgeai_benchmark_dir"], "tests/tidl_unit/internal")
         pyenv = pc_info["pyenv"]
-
         setup_command = f"cd {test_dir}/../ && git clean -fxd -e 'tidl_unit_test_data' && cd {test_dir} && git stash && git checkout {EDGEAI_BENCHMARK_BRANCH} && git fetch && git pull --rebase && rm -rf {test_dir}/operator_test_reports/*"
         if  TIDL_TOOLS_TARBALL != '':
             setup_command = f"{setup_command} && rm -rf tidl_tools_tarball && wget -q -O tidl_tools_tarball {TIDL_TOOLS_TARBALL}"
