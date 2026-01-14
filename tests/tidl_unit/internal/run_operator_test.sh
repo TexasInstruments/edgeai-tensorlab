@@ -61,6 +61,7 @@ RUNTIMES=()
 tidl_tools_path=""
 nmse_threshold=""
 num_threads=""
+disable_plot=""
 tensor_bits="8"
 
 while [ $# -gt 0 ]; do
@@ -121,6 +122,9 @@ while [ $# -gt 0 ]; do
         ;;
         --num_threads=*)
         num_threads="${1#*=}"
+        ;;
+        --disable_plot=*)
+        disable_plot="${1#*=}"
         ;;
         --help)
         usage
@@ -252,6 +256,16 @@ if [ "$work_dir" != "" ]; then
         echo "[WARNING]: Could not create $work_dir. Using default location for model artifacts"
         work_dir=""
     fi
+fi
+
+disable_plot_ref="0"
+disable_plot_non_ref="1"
+if [ "$disable_plot" == "1" ]; then
+    disable_plot_ref="1"
+    disable_plot_non_ref="1"
+elif [ "$disable_plot" == "0" ]; then
+    disable_plot_ref="0"
+    disable_plot_non_ref="0"
 fi
 
 # Operator specific nmse_threshold
@@ -532,7 +546,7 @@ do
 
             rm -rf logs/*
             if [ "$run_ref" == "1" ]; then
-                ./run_test.sh --test_suite=operator $test_option --tidl_offload=$tidl_offload --run_compile=0 --temp_buffer_dir=$temp_buffer_dir --temp_nc_dir=$temp_nc_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir --num_threads=$num_threads
+                ./run_test.sh --test_suite=operator $test_option --tidl_offload=$tidl_offload --run_compile=0 --temp_buffer_dir=$temp_buffer_dir --temp_nc_dir=$temp_nc_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir --num_threads=$num_threads --disable_plot=$disable_plot_ref
                 cp logs/*.html "$logs_path/infer_ref_without_nc.html"
                 if [ "$temp_buffer_dir" != "/dev/shm" ]; then
                     rm -rf $temp_buffer_dir/vashm_buff*
@@ -568,7 +582,7 @@ do
 
             rm -rf logs/*
             if [ "$run_ref" == "1" ]; then
-                ./run_test.sh --test_suite=operator $test_option --tidl_offload=$tidl_offload --run_compile=0 --flow_ctrl=1 --temp_buffer_dir=$temp_buffer_dir --temp_nc_dir=$temp_nc_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir --num_threads=$num_threads
+                ./run_test.sh --test_suite=operator $test_option --tidl_offload=$tidl_offload --run_compile=0 --flow_ctrl=1 --temp_buffer_dir=$temp_buffer_dir --temp_nc_dir=$temp_nc_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir --num_threads=$num_threads --disable_plot=$disable_plot_ref
                 cp logs/*.html "$logs_path/infer_ref_with_nc.html"
                 if [ "$temp_buffer_dir" != "/dev/shm" ]; then
                     rm -rf $temp_buffer_dir/vashm_buff*
@@ -577,7 +591,7 @@ do
 
             rm -rf logs/*
             if [ "$run_natc" == "1" ]; then
-                ./run_test.sh --test_suite=operator $test_option --tidl_offload=$tidl_offload --run_compile=0 --flow_ctrl=12 --temp_buffer_dir=$temp_buffer_dir --temp_nc_dir=$temp_nc_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir --num_threads=$num_threads
+                ./run_test.sh --test_suite=operator $test_option --tidl_offload=$tidl_offload --run_compile=0 --flow_ctrl=12 --temp_buffer_dir=$temp_buffer_dir --temp_nc_dir=$temp_nc_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir --num_threads=$num_threads --disable_plot=$disable_plot_non_ref
                 cp logs/*.html "$logs_path/infer_natc_with_nc.html"
                 if [ "$temp_buffer_dir" != "/dev/shm" ]; then
                     rm -rf $temp_buffer_dir/vashm_buff*
@@ -586,7 +600,7 @@ do
 
             rm -rf logs/*
             if [ "$run_ci" == "1" ]; then
-                ./run_test.sh --test_suite=operator $test_option --tidl_offload=$tidl_offload --run_compile=0 --flow_ctrl=0 --temp_buffer_dir=$temp_buffer_dir --temp_nc_dir=$temp_nc_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir --num_threads=$num_threads
+                ./run_test.sh --test_suite=operator $test_option --tidl_offload=$tidl_offload --run_compile=0 --flow_ctrl=0 --temp_buffer_dir=$temp_buffer_dir --temp_nc_dir=$temp_nc_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir --num_threads=$num_threads --disable_plot=$disable_plot_non_ref
                 cp logs/*.html "$logs_path/infer_ci_with_nc.html"
                 if [ "$temp_buffer_dir" != "/dev/shm" ]; then
                     rm -rf $temp_buffer_dir/vashm_buff*
@@ -598,6 +612,9 @@ do
                 cd $path_edge_ai_benchmark/tests/evm_test/
 
                 extra_args="--nmse-threshold $op_nmse_threshold"
+                if [ "$disable_plot_non_ref" == "1" ]; then
+                    extra_args="$extra_args --disable-plot"
+                fi
 
                 python3 main.py --test_suite=TIDL_UNIT_TEST --soc=$SOC --uart=/dev/am68a-sk-00-usb2 --pc_ip=192.168.46.0 --evm_local_ip=192.168.46.100 --reboot_type=hard --relay_type=ANEL --relay_trigger_mechanism=EXE --relay_exe_path=/work/ti/UNIT_TEST/net-pwrctrl.exe --relay_ip_address=10.24.69.252 --relay_power_port=8 --dataset_dir=/work/ti/UNIT_TEST/tidl_models/unitTest/onnx/tidl_unit_test_assets --operators=$operator --artifacts_folder=$work_dir --extra_args=$extra_args
                 cd -
@@ -619,7 +636,7 @@ do
 
             rm -rf logs/*
             if [ "$run_ref" == "1" ]; then
-                ./run_test.sh --test_suite=operator $test_option --tidl_offload=$tidl_offload --run_compile=0 --flow_ctrl=1 --temp_buffer_dir=$temp_buffer_dir --temp_nc_dir=$temp_nc_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir --num_threads=$num_threads
+                ./run_test.sh --test_suite=operator $test_option --tidl_offload=$tidl_offload --run_compile=0 --flow_ctrl=1 --temp_buffer_dir=$temp_buffer_dir --temp_nc_dir=$temp_nc_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir --num_threads=$num_threads --disable_plot=$disable_plot_ref
                 cp logs/*.html "$logs_path/infer_ref.html"
                 if [ "$temp_buffer_dir" != "/dev/shm" ]; then
                     rm -rf $temp_buffer_dir/vashm_buff*
@@ -628,7 +645,7 @@ do
 
             rm -rf logs/*
             if [ "$run_natc" == "1" ]; then
-                ./run_test.sh --test_suite=operator $test_option --tidl_offload=$tidl_offload --run_compile=0 --flow_ctrl=12 --temp_buffer_dir=$temp_buffer_dir --temp_nc_dir=$temp_nc_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir --num_threads=$num_threads
+                ./run_test.sh --test_suite=operator $test_option --tidl_offload=$tidl_offload --run_compile=0 --flow_ctrl=12 --temp_buffer_dir=$temp_buffer_dir --temp_nc_dir=$temp_nc_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir --num_threads=$num_threads --disable_plot=$disable_plot_non_ref
                 cp logs/*.html "$logs_path/infer_natc.html"
                 if [ "$temp_buffer_dir" != "/dev/shm" ]; then
                     rm -rf $temp_buffer_dir/vashm_buff*
@@ -637,7 +654,7 @@ do
 
             rm -rf logs/*
             if [ "$run_ci" == "1" ]; then
-                ./run_test.sh --test_suite=operator $test_option --tidl_offload=$tidl_offload --run_compile=0 --flow_ctrl=0 --temp_buffer_dir=$temp_buffer_dir --temp_nc_dir=$temp_nc_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir --num_threads=$num_threads
+                ./run_test.sh --test_suite=operator $test_option --tidl_offload=$tidl_offload --run_compile=0 --flow_ctrl=0 --temp_buffer_dir=$temp_buffer_dir --temp_nc_dir=$temp_nc_dir --nmse_threshold=$op_nmse_threshold --runtime=$runtime --work_dir=$work_dir --num_threads=$num_threads --disable_plot=$disable_plot_non_ref
                 cp logs/*.html "$logs_path/infer_ci.html"
                 if [ "$temp_buffer_dir" != "/dev/shm" ]; then
                     rm -rf $temp_buffer_dir/vashm_buff*
@@ -649,6 +666,9 @@ do
                 cd $path_edge_ai_benchmark/tests/evm_test/
 
                 extra_args="--nmse-threshold $op_nmse_threshold"
+                if [ "$disable_plot_non_ref" == "1" ]; then
+                    extra_args="$extra_args --disable-plot"
+                fi
 
                 python3 main.py --test_suite=TIDL_UNIT_TEST --soc=$SOC --uart=/dev/am68a-sk-00-usb2 --pc_ip=192.168.46.0 --evm_local_ip=192.168.46.100 --reboot_type=hard --relay_type=ANEL --relay_trigger_mechanism=EXE --relay_exe_path=/work/ti/UNIT_TEST/net-pwrctrl.exe --relay_ip_address=10.24.69.252 --relay_power_port=8 --dataset_dir=/work/ti/UNIT_TEST/tidl_models/unitTest/onnx/tidl_unit_test_assets --operators=$operator --artifacts_folder=$work_dir --extra_args=$extra_args
                 cd -
