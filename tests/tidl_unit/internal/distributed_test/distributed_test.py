@@ -389,7 +389,7 @@ def execute_pc_commands(pc_name, pc_info, log_path, result_path):
         # Create setup command dynamically
         test_dir = os.path.join(pc_config[pc_name]["edgeai_benchmark_dir"], "tests/tidl_unit/internal")
         pyenv = pc_info["pyenv"]
-        setup_command = f"cd {test_dir}/../ && git clean -fxd -e 'tidl_unit_test_data' && cd {test_dir} && git stash && git checkout {EDGEAI_BENCHMARK_BRANCH} && git fetch && git pull --rebase && rm -rf {test_dir}/operator_test_reports/*"
+        setup_command = f"cd {test_dir}/../ && git clean -fxd -e 'tidl_unit_test_data' && cd {test_dir} && git fetch --all && git reset --hard origin/{EDGEAI_BENCHMARK_BRANCH} && rm -rf {test_dir}/operator_test_reports/*"
         if  TIDL_TOOLS_TARBALL != '':
             setup_command = f"{setup_command} && rm -rf tidl_tools_tarball && wget -q -O tidl_tools_tarball {TIDL_TOOLS_TARBALL}"
         print(f"[INFO][{pc_name}] Running Setup command : {setup_command}")
