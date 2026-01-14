@@ -81,6 +81,7 @@ temp_buffer_dir=""
 temp_nc_dir=""
 nmse_threshold=""
 num_threads=""
+disable_plot=""
 runtime="onnxrt"
 
 while [ $# -gt 0 ]; do
@@ -120,6 +121,9 @@ while [ $# -gt 0 ]; do
         ;;
         --num_threads=*)
         num_threads="${1#*=}"
+        ;;
+        --disable_plot=*)
+        disable_plot="${1#*=}"
         ;;
         --runtime=*)
         runtime="${1#*=}"
@@ -164,6 +168,9 @@ if [ "$temp_buffer_dir" != "/dev/shm" ]; then
         echo "[WARNING]: Could not create $temp_buffer_dir. Using default location for redirecting temporary buffers"
         temp_buffer_dir="/dev/shm"
     fi
+fi
+if [[ "$disable_plot" == "" ]]; then
+   disable_plot="0"
 fi
 
 if [[ "$temp_nc_dir" == "" ]]; then
@@ -378,6 +385,9 @@ if [[ "$nmse_threshold" != "" ]]; then
 fi
 if [[ "$num_threads" != "" ]]; then
    extra_args="${extra_args} -n $num_threads"
+fi
+if [[ "$disable_plot" == "1" ]]; then
+   extra_args="${extra_args} --disable-plot"
 fi
 extra_args="${extra_args} --temp-buffer-dir $temp_buffer_dir"
 extra_args="${extra_args} --temp-nc-dir $temp_nc_dir"

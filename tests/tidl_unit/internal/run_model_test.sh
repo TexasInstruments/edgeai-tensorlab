@@ -59,6 +59,7 @@ RUNTIMES=()
 tidl_tools_path=""
 nmse_threshold=""
 num_threads=""
+disable_plot=""
 tensor_bits="8"
 
 while [ $# -gt 0 ]; do
@@ -116,6 +117,9 @@ while [ $# -gt 0 ]; do
         ;;
         --num_threads=*)
         num_threads="${1#*=}"
+        ;;
+        --disable_plot=*)
+        disable_plot="${1#*=}"
         ;;
         --help)
         usage
@@ -243,6 +247,16 @@ if [ "$work_dir" != "" ]; then
         echo "[WARNING]: Could not create $work_dir. Using default location for model artifacts"
         work_dir=""
     fi
+fi
+
+disable_plot_ref="0"
+disable_plot_non_ref="1"
+if [ "$disable_plot" == "1" ]; then
+    disable_plot_ref="1"
+    disable_plot_non_ref="1"
+elif [ "$disable_plot" == "0" ]; then
+    disable_plot_ref="0"
+    disable_plot_non_ref="0"
 fi
 
 if [ ${#MODELS[@]} -eq 0 ]; then
@@ -438,7 +452,7 @@ do
 
             rm -rf logs/*
             if [ "$run_ref" == "1" ]; then
-                ./run_test.sh --test_suite=model $test_option  --run_compile=0 $extra_args
+                ./run_test.sh --test_suite=model $test_option --run_compile=0 $extra_args --disable_plot=$disable_plot_ref
                 cp logs/*.html "$logs_path/infer_ref_without_nc.html"
                 if [ "$temp_buffer_dir" != "/dev/shm" ]; then
                     rm -rf $temp_buffer_dir/vashm_buff*
@@ -470,7 +484,7 @@ do
 
             rm -rf logs/*
             if [ "$run_ref" == "1" ]; then
-                ./run_test.sh --test_suite=model $test_option --run_compile=0 --flow_ctrl=1 $extra_args
+                ./run_test.sh --test_suite=model $test_option --run_compile=0 --flow_ctrl=1 $extra_args --disable_plot=$disable_plot_ref
                 cp logs/*.html "$logs_path/infer_ref_with_nc.html"
                 if [ "$temp_buffer_dir" != "/dev/shm" ]; then
                     rm -rf $temp_buffer_dir/vashm_buff*
@@ -479,7 +493,7 @@ do
 
             rm -rf logs/*
             if [ "$run_natc" == "1" ]; then
-                ./run_test.sh --test_suite=model $test_option --run_compile=0 --flow_ctrl=12 $extra_args
+                ./run_test.sh --test_suite=model $test_option --run_compile=0 --flow_ctrl=12 $extra_args --disable_plot=$disable_plot_non_ref
                 cp logs/*.html "$logs_path/infer_natc_with_nc.html"
                 if [ "$temp_buffer_dir" != "/dev/shm" ]; then
                     rm -rf $temp_buffer_dir/vashm_buff*
@@ -488,7 +502,7 @@ do
 
             rm -rf logs/*
             if [ "$run_ci" == "1" ]; then
-                ./run_test.sh --test_suite=model $test_option --run_compile=0 --flow_ctrl=0 $extra_args
+                ./run_test.sh --test_suite=model $test_option --run_compile=0 --flow_ctrl=0 $extra_args --disable_plot=$disable_plot_non_ref
                 cp logs/*.html "$logs_path/infer_ci_with_nc.html"
                 if [ "$temp_buffer_dir" != "/dev/shm" ]; then
                     rm -rf $temp_buffer_dir/vashm_buff*
@@ -501,7 +515,7 @@ do
 
             rm -rf logs/*
             if [ "$run_ref" == "1" ]; then
-                ./run_test.sh --test_suite=model $test_option --run_compile=0 --flow_ctrl=1 $extra_args
+                ./run_test.sh --test_suite=model $test_option --run_compile=0 --flow_ctrl=1 $extra_args --disable_plot=$disable_plot_ref
                 cp logs/*.html "$logs_path/infer_ref.html"
                 if [ "$temp_buffer_dir" != "/dev/shm" ]; then
                     rm -rf $temp_buffer_dir/vashm_buff*
@@ -510,7 +524,7 @@ do
 
             rm -rf logs/*
             if [ "$run_natc" == "1" ]; then
-                ./run_test.sh --test_suite=model $test_option --run_compile=0 --flow_ctrl=12 $extra_args
+                ./run_test.sh --test_suite=model $test_option --run_compile=0 --flow_ctrl=12 $extra_args --disable_plot=$disable_plot_non_ref
                 cp logs/*.html "$logs_path/infer_natc.html"
                 if [ "$temp_buffer_dir" != "/dev/shm" ]; then
                     rm -rf $temp_buffer_dir/vashm_buff*
@@ -519,7 +533,7 @@ do
 
             rm -rf logs/*
             if [ "$run_ci" == "1" ]; then
-                ./run_test.sh --test_suite=model $test_option --run_compile=0 --flow_ctrl=0 $extra_args
+                ./run_test.sh --test_suite=model $test_option --run_compile=0 --flow_ctrl=0 $extra_args --disable_plot=$disable_plot_non_ref
                 cp logs/*.html "$logs_path/infer_ci.html"
                 if [ "$temp_buffer_dir" != "/dev/shm" ]; then
                     rm -rf $temp_buffer_dir/vashm_buff*
