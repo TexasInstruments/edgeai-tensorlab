@@ -203,7 +203,10 @@ class MotionPlanningHead(BaseModule):
         anchor_encoder,
         mask,
         anchor_handler,
-    ):   
+        queue_history=None,
+        time_interval=None,
+        T_temp2cur=None
+    ):
         # =========== det/map feature/anchor ===========
         instance_feature = det_output["instance_feature"]
         anchor_embed = det_output["anchor_embed"]
@@ -238,6 +241,9 @@ class MotionPlanningHead(BaseModule):
             bs,
             mask,
             anchor_handler,
+            queue_history=queue_history,
+            time_interval=time_interval,
+            T_temp2cur=T_temp2cur
         )
         ego_anchor_embed = anchor_encoder(ego_anchor)
         temp_anchor_embed = anchor_encoder(temp_anchor)
@@ -339,8 +345,25 @@ class MotionPlanningHead(BaseModule):
             "period": self.instance_queue.ego_period,
             "anchor_queue": self.instance_queue.ego_anchor_queue,
         }
-        return motion_output, planning_output
-    
+
+        if torch.onnx.is_in_onnx_export():
+            instance_queue_history = {
+                "prev_instance_id": self.instance_queue.prev_instance_id,
+                "prev_confidence": self.instance_queue.prev_confidence,
+                "period": self.instance_queue.period,
+                # Ouptuts only the last one
+                # Append it to the list in the post-processing
+                "instance_feature_queue": self.instance_queue.instance_feature_queue[-1].unsqueeze(0),
+                "anchor_queue": self.instance_queue.anchor_queue[-1].unsqueeze(0),
+                "prev_ego_status": self.instance_queue.prev_ego_status,
+                "ego_period": self.instance_queue.ego_period,
+                "ego_feature_queue": self.instance_queue.ego_feature_queue[-1].unsqueeze(0),
+                "ego_anchor_queue": self.instance_queue.ego_anchor_queue[-1].unsqueeze(0),
+            }
+            return motion_output, planning_output, instance_queue_history
+        else:
+            return motion_output, planning_output
+
     def loss(self,
         motion_model_outs, 
         planning_model_outs,

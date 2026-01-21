@@ -104,6 +104,7 @@ model = dict(
     use_grid_mask=True,
     use_deformable_func=use_deformable_func,
     save_onnx_model=False,
+    onnx_subnets=False,
     data_preprocessor=dict(
         type='Det3DDataPreprocessor',
         #**img_norm_cfg,

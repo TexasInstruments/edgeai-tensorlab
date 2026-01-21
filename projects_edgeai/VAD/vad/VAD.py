@@ -116,11 +116,6 @@ class VAD(MVXTwoStageDetector):
         return img_feats
 
 
-    def forward_dummy(self, img):
-        dummy_metas = None
-        return self.forward_test(img=img, img_metas=[[dummy_metas]])
-
-
     def forward(self,
                 inputs: Union[dict, List[dict]],
                 data_samples: OptSampleList = None,

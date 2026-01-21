@@ -85,12 +85,20 @@ class SparseBox3DMotionDecoder(SparseBox3DDecoder):
                 traj = traj[mask[i]]
                 traj_cls = traj_cls[mask[i]]
             traj = traj.cumsum(dim=-2) + box[:, None, None, :2]
-            output.append(
-                {
-                    "trajs_3d": traj.cpu(),
-                    "trajs_score": traj_cls.cpu()
-                }
-            )
+            if torch.onnx.is_in_onnx_export():
+                output.append(
+                    {
+                        "trajs_3d": traj,
+                        "trajs_score": traj_cls,
+                    }
+                )
+            else:
+                output.append(
+                    {
+                        "trajs_3d": traj.cpu(),
+                        "trajs_score": traj_cls.cpu()
+                    }
+                )
 
             temp_anchor = anchor_queue[i, indices[i] // num_cls]
             temp_period = period[i, indices[i] // num_cls]
@@ -101,9 +109,13 @@ class SparseBox3DMotionDecoder(SparseBox3DDecoder):
             temp_anchor = temp_anchor.flatten(0, 1)
             temp_anchor = decode_box(temp_anchor)
             temp_anchor = temp_anchor.reshape([num_pred, queue_len, box.shape[-1]])
-            output[-1]['anchor_queue'] = temp_anchor.cpu()
-            output[-1]['period'] = temp_period.cpu()
-        
+            if torch.onnx.is_in_onnx_export():
+                output[-1]['anchor_queue'] = temp_anchor
+                output[-1]['period'] = temp_period
+            else:
+                output[-1]['anchor_queue'] = temp_anchor.cpu()
+                output[-1]['period'] = temp_period.cpu()
+
         return output
 
 
@@ -138,15 +150,26 @@ class HierarchicalPlanningDecoder(object):
         period = planning_output["period"]
         output = []
         for i, (cls, pred) in enumerate(zip(classification, prediction)):
-            output.append(
-                {
-                    "planning_score": cls.sigmoid().cpu(),
-                    "planning": pred.cpu(),
-                    "final_planning": final_planning[i].cpu(),
-                    "ego_period": period[i].cpu(),
-                    "ego_anchor_queue": decode_box(anchor_queue[i]).cpu(),
-                }
-            )
+            if torch.onnx.is_in_onnx_export():
+                output.append(
+                    {
+                        "planning_score": cls.sigmoid(),
+                        "planning": pred,
+                        "final_planning": final_planning[i],
+                        "ego_period": period[i],
+                        "ego_anchor_queue": decode_box(anchor_queue[i]),
+                    }
+                )
+            else:
+                output.append(
+                    {
+                        "planning_score": cls.sigmoid().cpu(),
+                        "planning": pred.cpu(),
+                        "final_planning": final_planning[i].cpu(),
+                        "ego_period": period[i].cpu(),
+                        "ego_anchor_queue": decode_box(anchor_queue[i]).cpu(),
+                    }
+                )
 
         return output
 
@@ -235,9 +258,14 @@ class HierarchicalPlanningDecoder(object):
         bs = plan_reg.shape[0]
         plan_reg_cat = cat_with_zero(plan_reg)
         ego_box = det_anchors.new_zeros(bs, self.ego_fut_mode, self.ego_fut_ts + 1, 7)
-        ego_box[..., [X, Y]] = plan_reg_cat
-        ego_box[..., [W, L, H]] = ego_box.new_tensor([4.08, 1.73, 1.56]) * dim_scale
-        ego_box[..., [YAW]] = get_yaw(plan_reg_cat)
+        if torch.onnx.is_in_onnx_export():
+            ego_box[..., 0:2] = plan_reg_cat
+            ego_box[..., 3:6] = ego_box.new_tensor([4.08, 1.73, 1.56]) * dim_scale
+            ego_box[..., 6:7] = get_yaw(plan_reg_cat)
+        else:
+            ego_box[..., [X, Y]] = plan_reg_cat
+            ego_box[..., [W, L, H]] = ego_box.new_tensor([4.08, 1.73, 1.56]) * dim_scale
+            ego_box[..., [YAW]] = get_yaw(plan_reg_cat)
 
         ## motion
         motion_reg = motion_reg[..., :self.ego_fut_ts, :].cumsum(-2)
@@ -247,13 +275,23 @@ class HierarchicalPlanningDecoder(object):
         motion_reg = torch.gather(motion_reg, 2, motion_mode_idx)
 
         motion_box = motion_reg.new_zeros(motion_reg.shape[:-1] + (7,))
-        motion_box[..., [X, Y]] = motion_reg
-        motion_box[..., [W, L, H]] = det_anchors[..., None, None, [W, L, H]].exp()
+        if torch.onnx.is_in_onnx_export():
+            motion_box[..., 0:2] = motion_reg
+            motion_box[..., 3:6] = det_anchors[..., None, None, [W, L, H]].exp()
+        else:
+            # It causes onnx export issues:
+            #  scalar_type = value.type().scalarType()
+            #  RuntimeError: r INTERNAL ASSERT FAILED at "../aten/src/ATen/core/jit_type_base.h":549,
+            motion_box[..., [X, Y]] = motion_reg
+            motion_box[..., [W, L, H]] = det_anchors[..., None, None, [W, L, H]].exp()
         box_yaw = torch.atan2(
             det_anchors[..., SIN_YAW],
             det_anchors[..., COS_YAW],
         )
-        motion_box[..., [YAW]] = get_yaw(motion_reg, box_yaw.unsqueeze(-1))
+        if torch.onnx.is_in_onnx_export():
+            motion_box[..., 6:7] = get_yaw(motion_reg, box_yaw.unsqueeze(-1))
+        else:
+            motion_box[..., [YAW]] = get_yaw(motion_reg, box_yaw.unsqueeze(-1))
 
         filter_mask = det_confidence < score_thresh
         motion_box[filter_mask] = 1e6

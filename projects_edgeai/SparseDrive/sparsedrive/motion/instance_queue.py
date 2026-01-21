@@ -61,21 +61,42 @@ class InstanceQueue(nn.Module):
         batch_size,
         mask,
         anchor_handler,
+        queue_history=None,
+        time_interval=None,
+        T_temp2cur=None
     ):
+
+        if queue_history is not None:
+            self.prev_instance_id = queue_history['prev_instance_id']
+            self.prev_confidence = queue_history['prev_confidence']
+            self.period = queue_history['period']
+            self.instance_feature_queue = queue_history['instance_feature_queue']
+            self.anchor_queue = queue_history['anchor_queue']
+            self.prev_ego_status = queue_history['prev_ego_status']
+            self.ego_period = queue_history['ego_period']
+            self.ego_feature_queue = queue_history['ego_feature_queue']
+            self.ego_anchor_queue = queue_history['ego_anchor_queue']
+            # Unbind queues
+            self.instance_feature_queue = list(torch.unbind(self.instance_feature_queue, dim=0))
+            self.anchor_queue = list(torch.unbind(self.anchor_queue, dim=0))
+            self.ego_feature_queue = list(torch.unbind(self.ego_feature_queue, dim=0))
+            self.ego_anchor_queue = list(torch.unbind(self.ego_anchor_queue, dim=0))
+
         if (
             self.period is not None
             and batch_size == self.period.shape[0]
         ):
             if anchor_handler is not None:
-                T_temp2cur = feature_maps[0].new_tensor(
-                    np.stack(
-                        [
-                            x["T_global_inv"]
-                            @ self.metas["img_metas"][i]["T_global"]
-                            for i, x in enumerate(metas["img_metas"])
-                        ]
+                if T_temp2cur is None:
+                    T_temp2cur = feature_maps[0].new_tensor(
+                        np.stack(
+                            [
+                                x["T_global_inv"]
+                                @ self.metas["img_metas"][i]["T_global"]
+                                for i, x in enumerate(metas["img_metas"])
+                            ]
+                        )
                     )
-                )
                 for i in range(len(self.anchor_queue)):
                     temp_anchor = self.anchor_queue[i]
                     temp_anchor = anchor_handler.anchor_projection(

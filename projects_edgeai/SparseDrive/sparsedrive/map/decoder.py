@@ -1,5 +1,6 @@
 from typing import Optional
 from mmengine.registry import TASK_UTILS
+import torch
 
 
 @TASK_UTILS.register_module()
@@ -40,14 +41,20 @@ class SparsePoint3DDecoder(object):
                 scores = scores[mask[i]]
                 pts = pts[mask[i]]
 
-            output.append(
-                {
-                    #"vectors": [vec.detach().cpu().numpy() for vec in pts],
-                    #"scores": scores.detach().cpu().numpy(),
-                    #"labels": category_ids.detach().cpu().numpy(),
-                    "vectors": [vec.detach().cpu() for vec in pts],
-                    "scores": scores.detach().cpu(),
-                    "labels": category_ids.detach().cpu(),
-                }
-            )
+            if torch.onnx.is_in_onnx_export():
+                output.append(
+                    {
+                        "vectors": pts.detach(),
+                        "scores": scores.detach(),
+                        "labels": category_ids.detach(),
+                    }
+                )
+            else:
+                output.append(
+                    {
+                        "vectors": [vec.detach().cpu() for vec in pts],
+                        "scores": scores.detach().cpu(),
+                        "labels": category_ids.detach().cpu(),
+                    }
+                )
         return output

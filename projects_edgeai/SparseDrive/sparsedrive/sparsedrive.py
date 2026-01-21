@@ -1,6 +1,11 @@
 from inspect import signature
 
 import torch
+import torch.nn as nn
+import numpy as np
+import copy
+import onnx
+from onnxsim import simplify
 from mmengine.structures import InstanceData
 
 from mmdet3d.registry import MODELS
@@ -15,9 +20,66 @@ try:
 except:
     DAF_VALID = False
 
-from .onnx_export import export_SparseDrive
+from .onnx_export import export_SparseDrive, export_SparseDrive_subnets
 
 __all__ = ["SparseDrive"]
+
+# To export pts_bbox_head.post_process
+# Recommend to diable save_onnx_model, and
+# manually set SparseDrive.postprocess_export = True
+def export_post_process(post_process_onnx, model_outs, data):
+    model_input = []
+    model_input.append(data['gt_ego_fut_cmd'])
+    model_input.append(model_outs)
+
+    model_name = "head_post_process.onnx"
+    input_names = ["gt_ego_fut_cmd",
+                   "det_out_classification_0", "det_out_classification_1", "det_out_classification_2", "det_out_classification_3", "det_out_classification_4", "det_out_classification_5",
+                   "det_out_prediction_0", "det_out_prediction_1", "det_out_prediction_2", "det_out_prediction_3", "det_out_prediction_4", "det_out_prediction_5",
+                   "det_out_quality_0", "det_out_quality_1", "det_out_quality_2", "det_out_quality_3", "det_out_quality_4", "det_out_quality_5",
+                   "det_out_instance_feature", "det_out_anchor_embed", "det_out_instance_id",
+                   "map_out_classification_0", "map_out_classification_1", "map_out_classification_2", "map_out_classification_3", "map_out_classification_4", "map_out_classification_5",
+                   "map_out_prediction_0", "map_out_prediction_1", "map_out_prediction_2", "map_out_prediction_3", "map_out_prediction_4", "map_out_prediction_5",
+                   "map_out_instance_feature", "map_out_anchor_embed",
+                   "motion_out_classification", "motion_out_prediction", "motion_out_period", "motion_out_anchor_queue",
+                   "planning_out_classification", "planning_out_prediction", "planning_out_anchor_staus", "planning_out_period", "planning_out_anchor_queue"]
+    output_names = ["bboxes_3d", "scores_3d", "labels_3d", "cls_scores", "instance_ids",
+                    "map_vectors", "map_scores", "map_labels",
+                    "trajs_3d", "trajs_score", "anchor_queue", "period",
+                    "planning_score", "planning", "final_planning", "ego_period", "ego_anchor_queue"]
+
+    torch.onnx.export(
+        post_process_onnx,
+        tuple(model_input),
+        model_name,
+        opset_version=16,
+        input_names=input_names,
+        output_names=output_names)
+    onnx_model, _ = simplify(model_name)
+    onnx.save(onnx_model, model_name)
+
+    print("\n{} is exported".format(model_name))
+
+
+class PostProcessONNX(nn.Module):
+    def __init__(self, post_process_module, data):
+        super(PostProcessONNX, self).__init__()
+        self.post_process_module = copy.deepcopy(post_process_module)
+        self.data = data
+
+    def forward(self, gt_ego_fut_cmd, model_outs):
+        data = {
+            'return_loss': False,
+            'rescale': True,
+            'img_metas': self.data['img_metas'],
+            'timestamp': self.data['timestamp'],
+            'projection_mat': self.data['projection_mat'],
+            'image_wh': self.data['image_wh'],
+            'gt_ego_fut_cmd': gt_ego_fut_cmd,
+        }
+
+        results = self.post_process_module(model_outs, data)
+        return results
 
 
 @MODELS.register_module()
@@ -27,7 +89,7 @@ class SparseDrive(MVXTwoStageDetector):
         use_grid_mask=True,
         use_deformable_func=False,
         save_onnx_model=False,
-        #onnx_subnets=False,
+        onnx_subnets=False,
         data_preprocessor=None,
         pts_voxel_encoder=None,
         pts_middle_encoder=None,
@@ -70,8 +132,15 @@ class SparseDrive(MVXTwoStageDetector):
         else:
             self.depth_branch = None
 
-        #self.save_onnx_model = save_onnx_model
-        #self.onnx_model = None
+        self.save_onnx_model = save_onnx_model
+        self.onnx_subnets = onnx_subnets
+
+        self.onnx_model = None
+        self.onnx_img_backbone = None
+        self.onnx_pts_bbox_head = None
+
+        # enable pts_bbox_head post_process export
+        self.postprocess_export = False
 
 
     #@auto_fp16(apply_to=("img",), out_fp32=True)
@@ -169,8 +238,16 @@ class SparseDrive(MVXTwoStageDetector):
 
         feature_maps = self.extract_feat(img)
         model_outs = self.pts_bbox_head(feature_maps, metas)
-        results = self.pts_bbox_head.post_process(model_outs, metas)
 
+        # Export head.post_process
+        if self.postprocess_export is True:
+            post_process_module = self.pts_bbox_head.post_process
+            post_process_onnx = PostProcessONNX(post_process_module, metas)
+            post_process_onnx.eval()
+            export_post_process(post_process_onnx, model_outs, metas)
+            self.postprocess_export = False
+
+        results = self.pts_bbox_head.post_process(model_outs, metas)
         bbox_list = [dict() for i in range(len(metas["img_metas"]))]
         for result_dict, pts_bbox in zip(bbox_list, results):
             result_dict['pts_bbox'] = pts_bbox
@@ -244,12 +321,12 @@ class SparseDrive(MVXTwoStageDetector):
                                                   'time augmentation.'
                 return self.aug_test(inputs, data_samples, **kwargs)
             else:
-                #if self.save_onnx_model is True:
-                #    if self.onnx_subnets:
-                #        export_Sparse4D_subnets(self, inputs, data_samples, opset_version=18, **kwargs)
-                #    else:
-                #        export_Sparse4D(self, inputs, data_samples, opset_version=18, **kwargs)
-                #    self.save_onnx_model = False
+                if self.save_onnx_model is True:
+                    if self.onnx_subnets:
+                        export_SparseDrive_subnets(self, inputs, data_samples, opset_version=18, **kwargs)
+                    else:
+                        export_SparseDrive(self, inputs, data_samples, opset_version=18, **kwargs)
+                    self.save_onnx_model = False
                 return self.predict(inputs, data_samples, **kwargs)
         elif mode == 'tensor':
             return self._forward(inputs, data_samples, **kwargs)
