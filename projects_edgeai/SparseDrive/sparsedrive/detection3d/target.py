@@ -116,7 +116,7 @@ class SparseBox3DTarget(BaseTargetWithDenoising):
             output_reg_weights[i, pred_idx] = instance_reg_weights[i][
                 target_idx
             ]
-        #self.indices = indices
+        self.indices = indices
         return output_cls_target, output_box_target, output_reg_weights
 
     def _cls_cost(self, cls_pred, cls_target):

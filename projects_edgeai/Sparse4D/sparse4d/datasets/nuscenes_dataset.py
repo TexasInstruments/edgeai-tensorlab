@@ -37,8 +37,6 @@ class Sparse4DNuScenesDataset(NuScenesDataset):
         self.vis_score_threshold = vis_score_threshold
         #self.data_aug_conf = data_aug_conf
         self.sequences_split_num = sequences_split_num
-        self.current_aug = None
-        self.last_id = None
         self.batch_size = batch_size
         if with_seq_flag:
             self._set_sequence_group_flag()

@@ -112,7 +112,7 @@ class SparseDriveNuScenesDataset(NuScenesDataset):
 
         curr_sequence = 0
         for idx in range(len(self.data_list)):
-            if idx != 0 and len(self.data_list[idx]["lidar_sweeps"]) == 0:
+            if idx != 0 and self.data_list[idx].get('lidar_sweeps') is None:
                 # Not first frame and # of sweeps is 0 -> new sequence
                 curr_sequence += 1
             res.append(curr_sequence)
@@ -152,89 +152,7 @@ class SparseDriveNuScenesDataset(NuScenesDataset):
                 )
                 self.flag = np.array(new_flags, dtype=np.int64)
 
-    """
-    def get_augmentation(self):
-        if self.data_aug_conf is None:
-            return None
-        H, W = self.data_aug_conf["H"], self.data_aug_conf["W"]
-        fH, fW = self.data_aug_conf["final_dim"]
-        if not self.test_mode:
-            resize = np.random.uniform(*self.data_aug_conf["resize_lim"])
-            resize_dims = (int(W * resize), int(H * resize))
-            newW, newH = resize_dims
-            crop_h = (
-                int(
-                    (1 - np.random.uniform(*self.data_aug_conf["bot_pct_lim"]))
-                    * newH
-                )
-                - fH
-            )
-            crop_w = int(np.random.uniform(0, max(0, newW - fW)))
-            crop = (crop_w, crop_h, crop_w + fW, crop_h + fH)
-            flip = False
-            if self.data_aug_conf["rand_flip"] and np.random.choice([0, 1]):
-                flip = True
-            rotate = np.random.uniform(*self.data_aug_conf["rot_lim"])
-            rotate_3d = np.random.uniform(*self.data_aug_conf["rot3d_range"])
-        else:
-            resize = max(fH / H, fW / W)
-            resize_dims = (int(W * resize), int(H * resize))
-            newW, newH = resize_dims
-            crop_h = (
-                int((1 - np.mean(self.data_aug_conf["bot_pct_lim"])) * newH)
-                - fH
-            )
-            crop_w = int(max(0, newW - fW) / 2)
-            crop = (crop_w, crop_h, crop_w + fW, crop_h + fH)
-            flip = False
-            rotate = 0
-            rotate_3d = 0
-        aug_config = {
-            "resize": resize,
-            "resize_dims": resize_dims,
-            "crop": crop,
-            "flip": flip,
-            "rotate": rotate,
-            "rotate_3d": rotate_3d,
-        }
-        return aug_config
-
-    def __getitem__(self, idx):
-        if isinstance(idx, dict):
-            aug_config = idx["aug_config"]
-            idx = idx["idx"]
-        else:
-            aug_config = self.get_augmentation()
-        data = self.get_data_info(idx)
-        data["aug_config"] = aug_config
-        data = self.pipeline(data)
-        return data
-
-    def get_cat_ids(self, idx):
-        info = self.data_infos[idx]
-        if self.use_valid_flag:
-            mask = info["valid_flag"]
-            gt_names = set(info["gt_names"][mask])
-        else:
-            gt_names = set(info["gt_names"])
-
-        cat_ids = []
-        for name in gt_names:
-            if name in self.CLASSES:
-                cat_ids.append(self.cat2id[name])
-        return cat_ids
-
-    def load_annotations(self, ann_file):
-        data = mmcv.load(ann_file, file_format="pkl")
-        data_infos = list(sorted(data["infos"], key=lambda e: e["timestamp"]))
-        data_infos = data_infos[:: self.load_interval]
-        self.metadata = data["metadata"]
-        self.version = self.metadata["version"]
-        print(self.metadata)
-        return data_infos
-    """
-
-    def anno2geom(self, annos):        
+    def anno2geom(self, annos):
         map_geoms = {}
         # Sometimes, particular map elements may not exist
         #for label in range(len(self.MAP_CLASSES)):
@@ -272,8 +190,15 @@ class SparseDriveNuScenesDataset(NuScenesDataset):
             ego2global=np.array(info['ego2global']),
             lidar2global=lidar2global,
             ego_status=info['ego_status'].astype(np.float32),
-            map_infos=info["map_annos"],
+            #map_infos=info["map_annos"],
         )
+        # Some data frame does not have map_infos in pikle file
+        # So add empty ones here
+        # Revisit pickle generation code later
+        if 'map_annos' in info:
+            input_dict['map_infos'] = info['map_annos']
+        else:
+            input_dict['map_infos'] = {1: [], 0: [], 2: []}
 
         """
         lidar2ego = np.eye(4)
@@ -289,7 +214,8 @@ class SparseDriveNuScenesDataset(NuScenesDataset):
         input_dict["lidar2global"] = ego2global @ lidar2ego
         """
 
-        map_geoms = self.anno2geom(info["map_annos"])
+        #map_geoms = self.anno2geom(info["map_annos"])
+        map_geoms = self.anno2geom(input_dict['map_infos'])
         input_dict["map_geoms"] = map_geoms
 
         if self.modality["use_camera"]:

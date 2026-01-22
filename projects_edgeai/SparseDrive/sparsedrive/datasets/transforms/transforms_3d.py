@@ -97,7 +97,7 @@ class NuScenesSparse4DAdaptor(BaseTransform):
             if key not in input_dict:
                 continue
             #input_dict[key] = DC(to_tensor(input_dict[key]), stack=False, cpu_only=False) 
-            input_dict[key] = to_tensor(input_dict[key]) 
+            input_dict[key] = to_tensor(input_dict[key])
 
         for key in [
             'gt_ego_fut_trajs',

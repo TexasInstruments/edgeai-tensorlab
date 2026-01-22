@@ -630,7 +630,7 @@ class SparseDriveHead(BaseModule):
 
         if self.task_config['with_motion_plan']:
             motion_loss_cache = dict(
-                indices=self.det_head.sampler.indices, 
+                indices=self.det_head.sampler.indices,
             )
             loss_motion = self.motion_plan_head.loss(
                 motion_output, 

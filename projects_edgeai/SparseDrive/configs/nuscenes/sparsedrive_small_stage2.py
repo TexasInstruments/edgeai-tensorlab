@@ -76,7 +76,7 @@ num_single_frame_decoder_map = 1
 # use_deformable_func should be True for training to save memory
 # use_deformable_func should be False for ONNX export while inferencing
 # For use_deformable_func=True, mmdet3d_plugin/ops/setup.py needs to be executed
-use_deformable_func = False  # mmdet3d_plugin/ops/setup.py needs to be executed
+use_deformable_func = True  # mmdet3d_plugin/ops/setup.py needs to be executed
 strides = [4, 8, 16, 32]
 num_levels = len(strides)
 num_depth_layers = 3
@@ -556,6 +556,7 @@ train_pipeline = [
         use_dim=5,
         backend_args=backend_args,
     ),
+    dict(type='Sparse4DLoadAnnotations3D', with_bbox_3d=True, with_label_3d=True, with_attr_label=False),
     dict(type="ResizeCropFlipImage", data_aug_conf=data_aug_conf, training=True),
     dict(
         type="MultiScaleDepthMapGenerator",
@@ -637,7 +638,7 @@ eval_pipeline = [
 
 
 input_modality = dict(
-    use_lidar=False,
+    use_lidar=True,  # Should be True for training
     use_camera=True,
     use_radar=False,
     use_map=False,
@@ -757,5 +758,5 @@ test_evaluator = val_evaluator
 
 # ================== pretrained model ========================
 #load_from = 'checkpoints/sparsedrive/sparsedrive_stage1.pth'
-load_from = False
+load_from = None
 resume = False

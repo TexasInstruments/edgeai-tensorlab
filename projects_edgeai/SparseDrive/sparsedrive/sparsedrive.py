@@ -177,31 +177,77 @@ class SparseDrive(MVXTwoStageDetector):
         raise NotImplementedError('tensor mode is yet to add')
 
 
-    def forward_train(self, img, **data):
-        feature_maps, depths = self.extract_feat(img, True, data)
-        model_outs = self.head(feature_maps, data)
-        output = self.head.loss(model_outs, data)
-        if depths is not None and "gt_depth" in data:
+    def loss(self, inputs, data_samples, **kwargs):
+        img = inputs['imgs']
+        batch_img_metas = [ds.metainfo for ds in data_samples]
+
+        # Re-foramt some meta infos
+        metas={}
+        metas['img_metas'] = batch_img_metas
+
+        focal = []
+        projection_mat = []
+        image_wh = []
+        timestamp = []
+        for x in batch_img_metas:
+            focal.append(x["focal"])
+            projection_mat.append(x["projection_mat"])
+            image_wh.append(x["image_wh"])
+            timestamp.append(torch.DoubleTensor([x["timestamp"]]))
+        focal = torch.stack(focal, dim=0).to(img.device)
+        projection_mat = torch.stack(projection_mat, dim=0).to(img.device)
+        image_wh = torch.stack(image_wh, dim=0).to(img.device)
+        timestamp = torch.cat(timestamp, dim=0).to(img.device)
+
+        gt_depth = []
+        for i in range(self.depth_branch.num_depth_layers):
+            batch_gt_depth = []
+            for x in batch_img_metas:
+                batch_gt_depth.append(x["gt_depth"][i])
+            batch_gt_depth = torch.stack(batch_gt_depth, dim=0).to(img.device)
+            gt_depth.append(batch_gt_depth)
+
+        gt_labels_3d       = [x["gt_labels_3d"].to(img[0].device) for x in batch_img_metas]
+        gt_bboxes_3d       = [x["gt_bboxes_3d"].to(img[0].device) for x in batch_img_metas]
+        gt_map_labels      = [x["gt_map_labels"].to(img[0].device) for x in batch_img_metas]
+        gt_map_pts         = [x["gt_map_pts"].to(img[0].device) for x in batch_img_metas]
+        gt_agent_fut_trajs = [x["gt_agent_fut_trajs"].to(img[0].device) for x in batch_img_metas]
+        gt_agent_fut_masks = [x["gt_agent_fut_masks"].to(img[0].device) for x in batch_img_metas]
+        gt_ego_fut_trajs   = [x["gt_ego_fut_trajs"].to(img[0].device) for x in batch_img_metas]
+        gt_ego_fut_trajs   = torch.stack(gt_ego_fut_trajs, dim=0)
+        gt_ego_fut_masks   = [x["gt_ego_fut_masks"].to(img[0].device) for x in batch_img_metas]
+        gt_ego_fut_masks   = torch.stack(gt_ego_fut_masks, dim=0)
+        gt_ego_fut_cmd     = [x["gt_ego_fut_cmd"].to(img[0].device) for x in batch_img_metas]
+        gt_ego_fut_cmd     = torch.stack(gt_ego_fut_cmd, dim=0)
+        ego_status         = [x["ego_status"].to(img[0].device) for x in batch_img_metas]
+        ego_status         = torch.stack(ego_status, dim=0)
+
+        metas["focal"]              = focal
+        metas["projection_mat"]     = projection_mat
+        metas["image_wh"]           = image_wh
+        metas["gt_labels_3d"]       = gt_labels_3d
+        metas["gt_bboxes_3d"]       = gt_bboxes_3d
+        metas["gt_map_labels"]      = gt_map_labels
+        metas["gt_map_pts"]         = gt_map_pts
+        metas["timestamp"]          = timestamp
+        metas["gt_depth"]           = gt_depth
+        metas["gt_agent_fut_trajs"] = gt_agent_fut_trajs
+        metas["gt_agent_fut_masks"] = gt_agent_fut_masks
+        metas["gt_ego_fut_trajs"]   = gt_ego_fut_trajs
+        metas["gt_ego_fut_masks"]   = gt_ego_fut_masks
+        metas["gt_ego_fut_cmd"]     = gt_ego_fut_cmd
+        metas["ego_status"]         = ego_status
+        # End re-format
+
+        feature_maps, depths = self.extract_feat(img, True, metas)
+        model_outs = self.pts_bbox_head(feature_maps, metas)
+        output = self.pts_bbox_head.loss(model_outs, metas)
+        if depths is not None and "gt_depth" in metas:
             output["loss_dense_depth"] = self.depth_branch.loss(
-                depths, data["gt_depth"]
+                depths, metas["gt_depth"]
             )
         return output
 
-    def forward_test(self, img, **data):
-        if isinstance(img, list):
-            return self.aug_test(img, **data)
-        else:
-            return self.simple_test(img, **data)
-
-    """
-    def simple_test(self, img, **data):
-        feature_maps = self.extract_feat(img)
-
-        model_outs = self.head(feature_maps, data)
-        results = self.head.post_process(model_outs, data)
-        output = [{"img_bbox": result} for result in results]
-        return output
-    """
 
     def predict(self, inputs, data_samples,  **kwargs):
         img = inputs['imgs']
