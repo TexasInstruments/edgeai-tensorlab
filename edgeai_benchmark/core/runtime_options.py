@@ -168,10 +168,10 @@ class ConfigRuntimeOptions(config_dict.ConfigDict):
         det_options: True for detection models, False for other models. Can also be a dictionary.
         '''
 
-        runtime_options = copy.deepcopy(self.runtime_options or {})
+        runtime_options_override = copy.deepcopy(self.runtime_options or {})
 
         # this is the default runtime_options defined above
-        runtime_options_override = self._get_runtime_options_default(
+        runtime_options = self._get_runtime_options_default(
             model_type_or_session_name=model_type_or_session_name, is_qat=is_qat,
             min_options=min_options, max_options=max_options, **kwargs)
 
