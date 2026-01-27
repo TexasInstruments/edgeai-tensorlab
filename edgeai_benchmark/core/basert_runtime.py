@@ -34,6 +34,38 @@ class BaseRuntimeWrapper:
         else:
             self.kwargs.update(kwargs)
 
+    def _get_input_details_tidlrt(self,interpreter,input_details=None):
+        if input_details is None:
+            properties = {'name':'name', 'shape':'shape', 'type':'type', 'pad':'pad', 'detail':'detail'}
+            input_details = []
+            model_input_details = interpreter.get_input_details()
+            for input_detail in model_input_details:
+                inp_dict = {}
+                for p_key,p_val in properties.items():
+                    inp_d_val = getattr(input_detail, p_key, None)
+                    inp_dict[p_val] = inp_d_val
+                #
+                input_details.append(inp_dict)    
+            #
+        #
+        return input_details
+
+    def _get_output_details_tidlrt(self, interpreter, output_details=None):
+        if output_details is None:
+            properties = {'name':'name', 'shape':'shape', 'type':'type','pad':'pad','detail':'detail'}
+            output_details = []
+            model_output_details = interpreter.get_output_details()
+            for oup_d in model_output_details:
+                oup_dict = {}
+                for p_key, p_val in properties.items():
+                    oup_d_val = getattr(oup_d, p_key)
+                    oup_dict[p_val] = oup_d_val
+                #
+                output_details.append(oup_dict)
+            #
+        #
+        return output_details 
+
     def _get_input_details_onnx(self, interpreter, input_details=None):
         if input_details is None:
             properties = {'name':'name', 'shape':'shape', 'type':'type'}
