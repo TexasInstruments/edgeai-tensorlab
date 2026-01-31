@@ -102,7 +102,7 @@ arguments_as_string = " ".join(sys.argv[1:])
 arguments_as_string = arguments_as_string.strip().split("--")
 
 OPERATORS = ''
-SPLIT_ACROSS_PC_OEPRATORS = ''
+RESTRICT_TO_SINGLE_PC_OEPRATORS = ''
 EDGEAI_BENCHMARK_BRANCH = 'develop'
 TIDL_TOOLS_TARBALL = ''
 PULL_TIDL_MODELS = '0'
@@ -112,8 +112,8 @@ for i in arguments_as_string:
     i = i.strip()
     if i.startswith("operators="):
         OPERATORS = i.split("=")[-1].strip()
-    elif i.startswith("split_across_pc="):
-        SPLIT_ACROSS_PC_OEPRATORS = i.split("=")[-1].strip()
+    elif i.startswith("restrict_to_single_pc="):
+        RESTRICT_TO_SINGLE_PC_OEPRATORS = i.split("=")[-1].strip()
     elif i.startswith("edgeai_benchmark_branch="):
         EDGEAI_BENCHMARK_BRANCH = i.split("=")[-1].strip()
     elif i.startswith("tidl_tools_path="):
@@ -170,7 +170,7 @@ def setup_pc(pc_name, pc_info):
     if SETUP_EDGEAI_BENCHMARK == '1':
         edgeai_benchmark_dir = pc_info['edgeai_benchmark_dir']
         pyenv = pc_info['pyenv']
-        eai_setup_command = f"cd {edgeai_benchmark_dir} && git fetch --all && git reset --hard origin/{EDGEAI_BENCHMARK_BRANCH} && source {pyenv} && export export HTTPS_PROXY=http://webproxy.ext.ti.com:80 && export https_proxy=http://webproxy.ext.ti.com:80 && export HTTP_PROXY=http://webproxy.ext.ti.com:80 && export http_proxy=http://webproxy.ext.ti.com:80 && export ftp_proxy=http://webproxy.ext.ti.com:80 &&  export FTP_PROXY=http://webproxy.ext.ti.com:80 && export no_proxy=ti.com  && ssh-keyscan -H bitbucket.itg.ti.com >> ~/.ssh/known_hosts && ./setup_pc.sh && pip3 install -r {edgeai_benchmark_dir}/tests/tidl_unit/requirements.txt"
+        eai_setup_command = f"cd {edgeai_benchmark_dir} && git fetch --all && git reset --hard origin/{EDGEAI_BENCHMARK_BRANCH} && source {pyenv} && export HTTPS_PROXY=http://wwwinproxy.itg.ti.com:80 && export https_proxy=http://wwwinproxy.itg.ti.com:80 && export HTTP_PROXY=http://wwwinproxy.itg.ti.com:80 && export http_proxy=http://wwwinproxy.itg.ti.com:80 && export ftp_proxy=http://wwwinproxy.itg.ti.com:80 && export FTP_PROXY=http://wwwinproxy.itg.ti.com:80 && export no_proxy=ti.com  && ssh-keyscan -H bitbucket.itg.ti.com >> ~/.ssh/known_hosts && ./setup_pc.sh && pip3 install -r {edgeai_benchmark_dir}/tests/tidl_unit/requirements.txt"
         print(f"[INFO][{pc_name}] Setting up edgeai-benchmark: {eai_setup_command}")
         eai_setup_result = execute_ssh_command(pc_name, eai_setup_command, timeout=1800, command_type="eai_setup_command")
         _, eai_setup_success, eai_setup_stdout, eai_setup_stderr = eai_setup_result
@@ -231,14 +231,10 @@ if OPERATORS == '':
 OPERATORS = OPERATORS.split()
 OPERATORS = list(set(OPERATORS))
 
-SPLIT_ACROSS_PC_OEPRATORS = SPLIT_ACROSS_PC_OEPRATORS.split()
+RESTRICT_TO_SINGLE_PC_OEPRATORS = RESTRICT_TO_SINGLE_PC_OEPRATORS.split()
 
-# Force operators to split across PC since they are huge tests
-SPLIT_ACROSS_PC_OEPRATORS += ["Conv", "Add", "Mul", "Div", "Resize", "Squeeze", "Unsqueeze",
-                              "Slice", "Transpose", "Reshape", "Sub", "InstanceNormalization"
-                              "BatchNormalization", "ScatterND"]
-
-SPLIT_ACROSS_PC_OEPRATORS = list(set(SPLIT_ACROSS_PC_OEPRATORS))
+# By default split all operators across PC
+SPLIT_ACROSS_PC_OEPRATORS = list(set(ALL_OPERATORS))
 
 # Remove from SPLIT_ACROSS_PC_OEPRATORS if it is not in operators under test
 for i in SPLIT_ACROSS_PC_OEPRATORS[:]:
@@ -251,6 +247,47 @@ for pc, info in pc_config.items():
         for i in pc_config[pc]["pc_specific_operators"][:]:
             if i not in OPERATORS:
                 pc_config[pc]["pc_specific_operators"].remove(i)
+
+# Query for all tests in SPLIT_ACROSS_PC_OEPRATORS by looking into one of the PC
+SPLIT_ACROSS_PC_OEPRATORS_TESTS=[]
+for i in SPLIT_ACROSS_PC_OEPRATORS[:]:
+    pc_name = list(pc_config.keys())[0]
+    test_dir = os.path.join(pc_config[pc_name]["edgeai_benchmark_dir"], "tests/tidl_unit/internal")
+    query_command = "find " + test_dir + "/../tidl_unit_test_data/operators/" + i +" -maxdepth 1 -type d -not -name '.' -exec basename {} \;"
+    print(f"[INFO][{pc_name}] Running Query command for {i}: {query_command}")
+    query_result = execute_ssh_command(pc_name, query_command, timeout=300, command_type="query_command")
+    _, query_success, query_stdout, query_stderr = query_result
+    if query_success:
+        temp = []
+        query_stdout = query_stdout.strip().split('\n')
+        for j in query_stdout:
+            j = j.strip()
+            if j.startswith(i) and i != j:
+                temp.append(j)
+        # Do not split if total tests for the operator are less (currently < twice of #pcs) - to avoid (pytest + ssh) overhead
+        if len(temp) < (2 * len(pc_config)):
+            RESTRICT_TO_SINGLE_PC_OEPRATORS += [i]
+        elif len(temp) > 0:
+            SPLIT_ACROSS_PC_OEPRATORS_TESTS.append(temp)
+    else:
+        print(f"[WARNING][{pc_name}] Query for {i} failed. Not splitting across PC.")
+        SPLIT_ACROSS_PC_OEPRATORS.remove(i)
+        OPERATORS.append(i)
+
+# Remove from SPLIT_ACROSS_PC_OEPRATORS if it is present in RESTRICT_TO_SINGLE_PC_OEPRATORS
+for i in RESTRICT_TO_SINGLE_PC_OEPRATORS[:]:
+    if i in SPLIT_ACROSS_PC_OEPRATORS:
+        SPLIT_ACROSS_PC_OEPRATORS.remove(i)
+
+# Remove pc_specific_operators from SPLIT_ACROSS_PC_OEPRATORS and general operator queue
+for pc, info in pc_config.items():
+    if "pc_specific_operators" not in info:
+        continue
+    for i in info["pc_specific_operators"]:
+        if i in OPERATORS:
+            OPERATORS.remove(i)
+        if i in SPLIT_ACROSS_PC_OEPRATORS:
+            SPLIT_ACROSS_PC_OEPRATORS.remove(i)
 
 # Remove unused pc to avoid creating unecessary threads
 if len(SPLIT_ACROSS_PC_OEPRATORS) <= 0:
@@ -272,43 +309,9 @@ print(f"[INFO] Total operators to process: {len(OPERATORS) + len(SPLIT_ACROSS_PC
 print(f"[INFO] Operators to run on single pc: {len(OPERATORS)} - {OPERATORS}")
 print(f"[INFO] Operators to split across multiple pc: {len(SPLIT_ACROSS_PC_OEPRATORS)} - {SPLIT_ACROSS_PC_OEPRATORS}")
 
-# Remove pc_specific_operators from SPLIT_ACROSS_PC_OEPRATORS and general operator queue
-for pc, info in pc_config.items():
-    if "pc_specific_operators" not in info:
-        continue
-    for i in info["pc_specific_operators"]:
-        if i in OPERATORS:
-            OPERATORS.remove(i)
-        if i in SPLIT_ACROSS_PC_OEPRATORS:
-            SPLIT_ACROSS_PC_OEPRATORS.remove(i)
-
-# Query for all tests in SPLIT_ACROSS_PC_OEPRATORS by looking into one of the PC
-SPLIT_ACROSS_PC_OEPRATORS_TESTS=[]
-for i in SPLIT_ACROSS_PC_OEPRATORS[:]:
-    pc_name = list(pc_config.keys())[0]
-    test_dir = os.path.join(pc_config[pc_name]["edgeai_benchmark_dir"], "tests/tidl_unit/internal")
-    query_command = "find " + test_dir + "/../tidl_unit_test_data/operators/" + i +" -maxdepth 1 -type d -not -name '.' -exec basename {} \;"
-    print(f"[INFO][{pc_name}] Running Query command for {i}: {query_command}")
-    query_result = execute_ssh_command(pc_name, query_command, timeout=300, command_type="query_command")
-    _, query_success, query_stdout, query_stderr = query_result
-    if query_success:
-        temp = []
-        query_stdout = query_stdout.strip().split('\n')
-        for j in query_stdout:
-            j = j.strip()
-            if j.startswith(i) and i != j:
-                temp.append(j)
-        if len(temp) > 0:
-            SPLIT_ACROSS_PC_OEPRATORS_TESTS.append(temp)
-    else:
-        print(f"[WARNING][{pc_name}] Query for {i} failed. Not splitting across PC.")
-        SPLIT_ACROSS_PC_OEPRATORS.remove(i)
-        OPERATORS.append(i)
-
 for i in range(len(SPLIT_ACROSS_PC_OEPRATORS_TESTS)):
     n = len(pc_config)
     chunk_size = max(1, len(SPLIT_ACROSS_PC_OEPRATORS_TESTS[i]) // n)
-    split_list = []
 
     SPLIT_ACROSS_PC_OEPRATORS_TESTS[i] = [SPLIT_ACROSS_PC_OEPRATORS_TESTS[i][j:j + chunk_size] for j in range(0, len(SPLIT_ACROSS_PC_OEPRATORS_TESTS[i]), chunk_size)]
 
@@ -333,7 +336,7 @@ def get_next_operator():
 
 split_across_pc_operators_queue = SPLIT_ACROSS_PC_OEPRATORS_TESTS.copy()
 split_across_pc_operators_lock = threading.Lock()
-def get_next_split_across_pc_operator():
+def get_next_split_across_pc_operator(num_threads = 8):
     """
     Get the next operator from the queue in a thread-safe manner
 
@@ -344,11 +347,35 @@ def get_next_split_across_pc_operator():
 
     with split_across_pc_operators_lock:
         if split_across_pc_operators_queue and len(split_across_pc_operators_queue) > 0:
-            if len(split_across_pc_operators_queue[0]) <= 0:
+            while split_across_pc_operators_queue and len(split_across_pc_operators_queue[0]) <= 0:
                 split_across_pc_operators_queue.pop(0)
+
             if split_across_pc_operators_queue and split_across_pc_operators_queue[0] and len(split_across_pc_operators_queue[0]) > 0:
-                operator = split_across_pc_operators_queue[0].pop(0)
-                return operator
+                if len(split_across_pc_operators_queue[0][0]) < num_threads:
+                    tests_needed = num_threads - len(split_across_pc_operators_queue[0][0])
+                    next_chunk_idx = 1
+                    elements_to_move = []
+                    # Try to get tests_needed from the next available chunk
+                    while tests_needed > 0 and next_chunk_idx < len(split_across_pc_operators_queue[0]):
+                        # If next chunk has elements to spare
+                        if len(split_across_pc_operators_queue[0][next_chunk_idx]) > 0:
+                            # Determine how many elements we can take
+                            tests_to_take = min(tests_needed, len(split_across_pc_operators_queue[0][next_chunk_idx]))
+                            # Take elements from the next chunk
+                            elements_to_move = split_across_pc_operators_queue[0][next_chunk_idx][:tests_to_take]
+                            split_across_pc_operators_queue[0][0].extend(elements_to_move)
+                            split_across_pc_operators_queue[0][next_chunk_idx] = split_across_pc_operators_queue[0][next_chunk_idx][tests_to_take:]
+
+                            # Update how many more elements are needed
+                            tests_needed -= tests_to_take
+
+                        next_chunk_idx += 1
+
+                    # Remove empty chunks from queue
+                    split_across_pc_operators_queue[0] = [chunk for chunk in split_across_pc_operators_queue[0] if len(chunk) > 0]
+
+                chunk = split_across_pc_operators_queue[0].pop(0)
+                return chunk
             else:
                 return None
         else:
@@ -438,7 +465,7 @@ def execute_pc_commands(pc_name, pc_info, log_path, result_path):
 
                     # Get from split_across_pc queue if general operator queue is done
                     if operator is None:
-                        operator = get_next_split_across_pc_operator()
+                        operator = get_next_split_across_pc_operator(pc_info["num_threads"])
                         if operator is None or len(operator) <= 0:
                             operator = None
                         else:
