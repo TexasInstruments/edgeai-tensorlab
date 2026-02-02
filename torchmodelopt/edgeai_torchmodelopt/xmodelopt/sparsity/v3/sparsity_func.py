@@ -1,5 +1,4 @@
 import torch
-from torch import _dynamo as torch_dynamo
 import torch.nn as nn
 import torch.fx as fx
 from torch.fx.passes.utils.source_matcher_utils import  SourcePartition
@@ -13,7 +12,7 @@ from .parametrization import SPARSITY_CLASS_DICT, N2MSparsityParametrization
 from ... import utils
 
 def init(module, *args, example_inputs:list=None, example_kwargs:dict=None, sparsity_ratio=None, total_epochs=None, p=2.0, sparsity_global=False, copy_args=None,
-            sparsity_type='n2m', sparsity_init_train_ep=5, sparsity_m=None, add_methods=True, aten_graph=True, copy_attrs=None, **kwargs):
+            sparsity_type='n2m', sparsity_init_train_ep=5, sparsity_m=None, add_methods=True, aten_graph=True, copy_attrs=None, filter_func_register=None, weight_func_register=None, **kwargs):
     copy_attrs = copy_attrs or []
     copy_args = copy_args or []
     example_inputs =[] if example_inputs is None else example_inputs
@@ -36,6 +35,8 @@ def init(module, *args, example_inputs:list=None, example_kwargs:dict=None, spar
         check_guards = kwargs.get('check_guards', True)
         example_inputs = tuple(example_inputs)
         gm_module = torch.export.export(module, example_inputs, kwargs=example_kwargs).module(check_guards=check_guards)
+        from ...utils.helper_functions import allow_exported_model_train_eval
+        allow_exported_model_train_eval(gm_module)
     
     gm_module.__sparse_params__ =  xnn.utils.AttrDict()
     gm_module.__sparse_params__.aten_graph = gm_module.__sparse_params__.pre_dispatch = aten_graph
@@ -70,21 +71,23 @@ def init(module, *args, example_inputs:list=None, example_kwargs:dict=None, spar
         
     gm_module.__sparse_params__.global_sparsity = sparsity_global
     
-    args = []        
+    module.filter_args = []        
     if gm_module.__sparse_params__.n2m_sparsity:
         if sparsity_m is None:
             raise RuntimeError("The value of m should be provided in case of n:m sparsity")
         else:
             gm_module.__sparse_params__.m = sparsity_m
             gm_module.__sparse_params__.n = sparsity_n = round(sparsity_ratio*sparsity_m)
-        args += [sparsity_n, sparsity_m]
-        register_n2m_filters(sparsity_n, sparsity_m)
-        register_n2m_weight_funcs(sparsity_n, sparsity_m)
+        module.filter_args += [sparsity_n, sparsity_m]
+        filter_func_register = filter_func_register or register_n2m_filters
+        weight_func_register= weight_func_register or register_n2m_weight_funcs
+        filter_func_register(sparsity_n, sparsity_m)
+        weight_func_register(sparsity_n, sparsity_m)
     else:
         gm_module.__sparse_params__.m = None
-    
-    args += [sparsity_type]
-    gm_module.__sparse_params__.sparsity_nodes = get_sparsity_nodes(gm_module, *args)
+
+    module.filter_args += [sparsity_type]
+    gm_module.__sparse_params__.sparsity_nodes = get_sparsity_nodes(gm_module, *module.filter_args)
     gm_module.__sparse_params__.weights = get_all_weights(gm_module, gm_module.__sparse_params__.sparsity_nodes, )
     
     if gm_module.__sparse_params__.n2m_sparsity and gm_module.__sparse_params__.global_sparsity:
@@ -174,22 +177,13 @@ def remove_parametrization(module: fx.GraphModule, leave_parameterized=True):
 def insert_parametrization(module:fx.GraphModule, binary_mask=False):
     params = dict(module.named_parameters())
     modules = dict(module.named_modules())
-    sparsity_ratio = module.__sparse_params__.sparsity_ratio 
     weights_dict = module.__sparse_params__.weights
     sparsity_class = module.__sparse_params__.sparsity_class
     
-    kwargs = {}
-    if sparsity_class == N2MSparsityParametrization:
-        kwargs.update(dict(
-            n = module.__sparse_params__.n,
-            m = module.__sparse_params__.m,
-            binary_mask = binary_mask,
-            epoch_count = module.__sparse_params__.epoch_count,
-            init_train_ep = module.__sparse_params__.init_train_ep,
-            total_epochs = module.__sparse_params__.total_epochs,
-            p = module.__sparse_params__.p,
-            mode = module.__sparse_params__.mode,
-        ))
+    kwargs = dict(binary_mask=binary_mask)
+    for param in sparsity_class.REQUIRED_SPARSE_PARAMS:
+        if hasattr(module.__sparse_params__, param):
+            kwargs[param] = getattr(module.__sparse_params__, param)
     for key, nodes_list in module.__sparse_params__.sparsity_nodes.items():
         weights_list = weights_dict[key]
         for nodes, weights in zip(nodes_list, weights_list):

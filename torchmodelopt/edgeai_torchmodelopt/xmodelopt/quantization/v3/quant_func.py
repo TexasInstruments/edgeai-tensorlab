@@ -40,6 +40,7 @@ from ... import utils
 from . import qconfig_types
 from . import quant_utils
 from .quantizer import get_quantizer, QuantizerTypes, QuantizerAnnotationPatterns
+from ...utils.helper_functions import allow_exported_model_train_eval
 
 import copy
 import os
@@ -129,7 +130,9 @@ def init(model, example_inputs, example_kwargs=None, is_qat=True, total_epochs=0
     check_guards = kwargs.get('check_guards', True)
     example_inputs = tuple(example_inputs)
     m = torch.export.export(orig_model, example_inputs, kwargs=example_kwargs).module(check_guards=check_guards)
-
+    from ...utils.helper_functions import allow_exported_model_train_eval
+    allow_exported_model_train_eval(m)
+    
     # for copy_arg in copy_args:
     #     if hasattr(module, copy_arg):
     #         setattr(replace_obj, copy_arg, getattr(module, copy_arg))
@@ -166,7 +169,7 @@ def init(model, example_inputs, example_kwargs=None, is_qat=True, total_epochs=0
         #     else:
         #         torch.ao.quantization.move_exported_model_to_eval(self)
                 
-        # model.__quant_train_backup__ = types.MethodType(train_quant if is_qat else model.train.__func__, model)
+        model.__quant_train_backup__ =  model.train.__func__
         model.train = types.MethodType(train, model)
         model.eval = types.MethodType(eval, model)
         # other methods

@@ -41,6 +41,7 @@ def init(module, *args, example_inputs=None, example_kwargs=None, pruning_ratio=
     module.__prune_params__.total_epochs = total_epochs
     module.__prune_params__.sparsity = 0
     module.__prune_params__.init_train_ep = pruning_init_train_ep
+    module.__prune_params__.parametrized_params = set()
     module.__prune_params__.p = p
     
     if pruning_ratio==0:
@@ -235,15 +236,15 @@ def insert_and_remove_parametrization_during_training(module, mode: bool = True)
     return module
 
 
-def insert_parametrization(module, binary_mask=False):
+def insert_parametrization(main_module, binary_mask=False):
     # for each of the nodes/layers, we calculate the parametrization/ mask and then register it over the weights and biases
     
-    if isinstance(module, fx.GraphModule): # the QAT model is already a graph and thus cannnot be traced
-        fx_model = module
+    if isinstance(main_module, fx.GraphModule): # the QAT model is already a graph and thus cannnot be traced
+        fx_model = main_module
     else:
-        fx_model = fx.symbolic_trace(module)
+        fx_model = fx.symbolic_trace(main_module)
         
-    modules = dict(module.named_modules())
+    modules = dict(main_module.named_modules())
     model_graph = fx_model.graph
     
     # TODO Experiment among (HeadBlendPruningParametrization, HeadOnlyBlendPruningParametrization, ChannelOnlyBlendPruningParametrization)
@@ -251,22 +252,22 @@ def insert_parametrization(module, binary_mask=False):
     attn_proj_class = HeadOnlyBlendPruningParametrization
     attn_proj_class = ChannelOnlyBlendPruningParametrization
     
-    pruning_class = module.__prune_params__.pruning_class
-    net_weights = module.__prune_params__.net_weights
-    module_pruning_ratio= module.__prune_params__.pruning_ratio
-    next_bn_nodes = module.__prune_params__.next_bn_nodes
+    pruning_class = main_module.__prune_params__.pruning_class
+    net_weights = main_module.__prune_params__.net_weights
+    module_pruning_ratio= main_module.__prune_params__.pruning_ratio
+    next_bn_nodes = main_module.__prune_params__.next_bn_nodes
     pruning_kwargs =dict(modules=modules, 
-                            channel_pruning=module.__prune_params__.channel_pruning, 
-                            n2m_pruning=module.__prune_params__.n2m_pruning, 
-                            init_train_ep=module.__prune_params__.init_train_ep, 
-                            prunechannelunstructured=module.__prune_params__.prunechannelunstructured,
-                            epoch_count=module.__prune_params__.epoch_count, 
-                            total_epochs=module.__prune_params__.total_epochs, 
+                            channel_pruning=main_module.__prune_params__.channel_pruning, 
+                            n2m_pruning=main_module.__prune_params__.n2m_pruning, 
+                            init_train_ep=main_module.__prune_params__.init_train_ep, 
+                            prunechannelunstructured=main_module.__prune_params__.prunechannelunstructured,
+                            epoch_count=main_module.__prune_params__.epoch_count, 
+                            total_epochs=main_module.__prune_params__.total_epochs, 
                             binary_mask=binary_mask, 
-                            m=module.__prune_params__.m,
+                            m=main_module.__prune_params__.m,
                             )
     if pruning_class == BlendPruningParametrization:
-        p_kwargs = {'p':module.__prune_params__.p}
+        p_kwargs = {'p':main_module.__prune_params__.p}
     else:
         p_kwargs = {}
     
@@ -288,12 +289,12 @@ def insert_parametrization(module, binary_mask=False):
                 # For Projection of Attention Layer
                 parameterization = pruning_class(curr_node=node,pruning_ratio=pruning_ratio, net_weight = out_proj_net_weight, pruning_dim = out_proj_dim, **pruning_kwargs, **p_kwargs)
                 parametrize.register_parametrization(proj_module, "weight", parameterization)
-                if module.__prune_params__.channel_pruning:
+                if main_module.__prune_params__.channel_pruning:
                     if proj_module.bias is not None:
                         parametrize.register_parametrization(proj_module, "bias", parameterization)
                 
                 # For QKV of MultiHeadAttention Layer
-                if module.__prune_params__.channel_pruning:
+                if main_module.__prune_params__.channel_pruning:
                     parameterization = attn_proj_class(curr_node=node, pruning_ratio=pruning_ratio, net_weight = in_proj_net_weight, pruning_dim = in_proj_dim, **pruning_kwargs,**p_kwargs)
                     parametrize.register_parametrization(qkv_module, "weight", parameterization)
                     if qkv_module.bias is not None:
@@ -305,17 +306,17 @@ def insert_parametrization(module, binary_mask=False):
         elif node.op == 'get_attr':
             if any(f in [n.target for n in node.users] for f in _call_functions_to_look):
                 continue
-            attr = fx_model
-            attr_names = node.target.split('.')
-            module =modules['.'.join(attr_names[:-1])]
-            for attr_name in attr_names:
-                attr = getattr(attr,attr_name)
+            modules = dict(fx_model.named_modules())
+            split = node.target.rsplit('.',1)
+            parent_name, attr_name = split if len(split) == 2 else ('', split[0])
+            module = modules[parent_name]
+            attr = getattr(module, attr_name)
             if isinstance(attr,nn.Parameter):
                 net_weight, dim = net_weights[node.name]
                 pruning_ratio = module_pruning_ratio if isinstance(module_pruning_ratio, float) else module_pruning_ratio[node.target]
                 
                 parameterization = pruning_class(curr_node=node, pruning_ratio=pruning_ratio, net_weight = net_weight, pruning_dim = dim, **pruning_kwargs, **p_kwargs)
-                parametrize.register_parametrization(module, attr_names[-1], parameterization)
+                parametrize.register_parametrization(module, attr_name, parameterization)
                 
         elif node.args and node.op == 'call_module':
             module = modules[node.target]
@@ -324,22 +325,22 @@ def insert_parametrization(module, binary_mask=False):
             if isinstance(module, nn.Conv2d):
                 net_weight,dim = net_weights[node.name]
                 pruning_ratio = module_pruning_ratio if isinstance(module_pruning_ratio, float) else module_pruning_ratio[node.target]
-                if pruning_class == BlendPruningParametrization:
-                    p_kwargs = {'p':module.__prune_params__.p}
-                else:
-                    p_kwargs = {}
+                # if pruning_class == BlendPruningParametrization:
+                #     p_kwargs = {'p':main_module.__prune_params__.p}
+                # else:
+                #     p_kwargs = {}
                 
                 parameterization = pruning_class(curr_node=node, pruning_ratio=pruning_ratio, net_weight = net_weight, pruning_dim = dim, **pruning_kwargs, **p_kwargs)
                 
                 parametrize.register_parametrization(module, "weight", parameterization)
-                if module.__prune_params__.channel_pruning:
+                if main_module.__prune_params__.channel_pruning:
                     if module.bias is not None:
                         parametrize.register_parametrization(module, "bias", parameterization)
                     if node.target in next_bn_nodes:
                         parametrize.register_parametrization(modules[next_bn_nodes[node.target].target], "weight", parameterization) 
                         parametrize.register_parametrization(modules[next_bn_nodes[node.target].target], "bias", parameterization)
                     # also put the same parametrization in the next dwconv(along with its BN), if there is one connected to this 
-                    for n_id in module.__prune_params__.next_conv_node_list[node.target]:
+                    for n_id in main_module.__prune_params__.next_conv_node_list[node.target]:
                         if modules[n_id.target].weight.shape[1]==1: #n_id node is dwconv 
                             parametrize.register_parametrization(modules[n_id.target], "weight", parameterization)
                             if modules[n_id.target].bias is not None:
@@ -351,15 +352,15 @@ def insert_parametrization(module, binary_mask=False):
             elif isinstance(module, nn.LayerNorm):
                 net_weight,dim = net_weights[node.name]
                 pruning_ratio = module_pruning_ratio if isinstance(module_pruning_ratio, float) else module_pruning_ratio[node.target]
-                if pruning_class == BlendPruningParametrization:
-                    p_kwargs = {'p':module.__prune_params__.p}
-                else:
-                    p_kwargs = {}
+                # if pruning_class == BlendPruningParametrization:
+                #     p_kwargs = {'p':main_module.__prune_params__.p}
+                # else:
+                #     p_kwargs = {}
                 
                 parameterization = pruning_class(curr_node=node, pruning_ratio=pruning_ratio, net_weight = net_weight, pruning_dim = dim, **pruning_kwargs, **p_kwargs)
                 
                 parametrize.register_parametrization(module, "weight", parameterization)
-                if module.__prune_params__.channel_pruning:
+                if main_module.__prune_params__.channel_pruning:
                     if module.bias is not None:
                         parametrize.register_parametrization(module, "bias", parameterization)
             
@@ -368,19 +369,19 @@ def insert_parametrization(module, binary_mask=False):
                 in_proj_net_weight,in_proj_dim = net_weights[node.name]
                 out_proj_net_weight,out_proj_dim =net_weights[node.name+'_out_proj']
                 pruning_ratio = module_pruning_ratio if isinstance(module_pruning_ratio, float) else module_pruning_ratio[node.target]
-                if pruning_class == BlendPruningParametrization:
-                    p_kwargs = {'p':module.__prune_params__.p}
-                else:
-                    p_kwargs = {}
+                # if pruning_class == BlendPruningParametrization:
+                #     p_kwargs = {'p':main_module.__prune_params__.p}
+                # else:
+                #     p_kwargs = {}
                 # For Outer Projection of MultiHeadAttention Layer
                 parameterization = pruning_class(ccurr_node=node,pruning_ratio=pruning_ratio, net_weight = out_proj_net_weight, pruning_dim = out_proj_dim, **pruning_kwargs, **p_kwargs)
                 parametrize.register_parametrization(module.out_proj, "weight", parameterization)
-                if module.__prune_params__.channel_pruning:
+                if main_module.__prune_params__.channel_pruning:
                     if module.out_proj.bias is not None:
                         parametrize.register_parametrization(module.out_proj, "bias", parameterization)
                 
                 # For Inner Projection of MultiHeadAttention Layer
-                if module.__prune_params__.channel_pruning:
+                if main_module.__prune_params__.channel_pruning:
                     parameterization = attn_proj_class(curr_node=node,pruning_ratio=pruning_ratio, net_weight = in_proj_net_weight, pruning_dim = in_proj_dim, **pruning_kwargs, **p_kwargs)
                     parametrize.register_parametrization(module, "in_proj_weight", parameterization)
                     if module.in_proj_bias is not None:
@@ -401,7 +402,7 @@ def insert_parametrization(module, binary_mask=False):
                 if has_timm and isinstance(parent_module,(tmmodels.swin_transformer.WindowAttention,tmmodels.vision_transformer.Attention)):
                     # For  inner of Attention Layer
                     if name == 'qkv':
-                        if module.__prune_params__.channel_pruning:
+                        if main_module.__prune_params__.channel_pruning:
                             parameterization = attn_proj_class(curr_node=node, pruning_ratio=pruning_ratio, net_weight = net_weight, pruning_dim = dim, **pruning_kwargs, **p_kwargs)
                             parametrize.register_parametrization(module, "weight", parameterization)
                             if module.in_proj_bias is not None:
@@ -414,80 +415,47 @@ def insert_parametrization(module, binary_mask=False):
                     elif name == 'proj':
                         parameterization = pruning_class(curr_node=node, pruning_ratio=pruning_ratio, net_weight = net_weight, pruning_dim = dim, **pruning_kwargs, **p_kwargs)
                         parametrize.register_parametrization(module.out_proj, "weight", parameterization)
-                        if module.__prune_params__.channel_pruning:
+                        if main_module.__prune_params__.channel_pruning:
                             if module.out_proj.bias is not None:
                                 parametrize.register_parametrization(module.out_proj, "bias", parameterization)  
                 # Normal Linear Layer
                 else:                    
-                    parameterization = module.__prune_params__.pruning_class(curr_node=node, pruning_ratio=pruning_ratio, net_weight = net_weight, pruning_dim = dim, **pruning_kwargs, **p_kwargs)
+                    parameterization = main_module.__prune_params__.pruning_class(curr_node=node, pruning_ratio=pruning_ratio, net_weight = net_weight, pruning_dim = dim, **pruning_kwargs, **p_kwargs)
                     parametrize.register_parametrization(module, "weight", parameterization)
-                    if module.__prune_params__.channel_pruning:
+                    if main_module.__prune_params__.channel_pruning:
                         if module.bias is not None:
                             parametrize.register_parametrization(module, "bias", parameterization)       
                                     
-    return module
+    return main_module
 
 
-def remove_parametrization(module, leave_parameterized=True):
+def remove_parametrization(main_module, leave_parameterized=True):
     # leave_parametrized=False would leave the original parameter instead of the parametrized parameter
-    params  = dict (module.named_parameters()) 
-    modules = dict(module.named_modules())
+    params  = dict (main_module.named_parameters()) 
+    modules = dict(main_module.named_modules())
     
     for name,param in params.items():
         names = name.split('.')
         if len(names)>=3 and names[-1] == 'original' and names[-3] == 'parametrizations':
             module,param_name = modules['.'.join(names[:-3])],names[-2]
             if parametrize.is_parametrized(module, param_name):
+                main_module.__prune_params__.parametrized_params.add('.'.join(names[:-3]+names[-2:-1]))
                 parametrize.remove_parametrizations(module, param_name, leave_parametrized=leave_parameterized) 
-    return module
+    return main_module
 
 
 def calculate_sparsity(module):
     num_zeros = 0
     num_elements = 0
     
-    # Make layer wise computionally pruning ratio, overall as well #TODO 
-    if isinstance(module, fx.GraphModule): # the QAT model is already a graph and thus cannnot be traced
-        fx_model = module
-    else:
-        fx_model = fx.symbolic_trace(module)
-        
-    modules = dict(fx_model.named_modules())
-    model_graph = fx_model.graph
-    modules_params = []
-    for node in model_graph.nodes:
-        if node.op == 'call_function':
-            if has_tv and node.target == tvmodels.swin_transformer.shifted_window_attention:
-                qkv_weight_node  = node.args[1]
-                proj_weight_node  = node.args[2]
-                qkv_module,_ =qkv_weight_node.target.rsplit('.',1)
-                qkv_module = modules[qkv_module]
-                modules_params.append((qkv_module,'weight'))
-                modules_params.append((qkv_module,'bias'))
-                proj_module,_ =proj_weight_node.target.rsplit('.',1)
-                proj_module = modules[proj_module]
-                modules_params.append((proj_module,'weight'))
-                modules_params.append((proj_module,'bias'))
-        elif node.op == 'get_attr':
-            if any(f in [n.target for n in node.users] for f in _call_functions_to_look):
-                continue
-            attr = fx_model
-            attr_names = node.target.split('.')
-            for attr_name in attr_names[:-1]:
-                attr = getattr(attr,attr_name)
-            modules_params.append((attr,attr_names[-1]))
-        elif node.op == 'call_module':
-            module = modules[node.target]
-            if isinstance(module,(nn.Conv2d,nn.LayerNorm,nn.BatchNorm1d,nn.BatchNorm2d,nn.BatchNorm3d,nn.Linear)):
-                modules_params.append((module,'weight'))   
-                modules_params.append((module,'bias'))
-            elif isinstance(module,nn.MultiheadAttention):
-                modules_params.append((module,'in_proj_weight'))   
-                modules_params.append((module,'in_proj_bias'))   
-                modules_params.append((module.out_proj,'weight'))   
-                modules_params.append((module.out_proj,'bias'))  
-    for module,param_name in modules_params:
-        tensor = getattr(module,param_name)
+    # Make layer wise computionally sparsity ratio, overall as well #TODO 
+    params = dict(module.named_parameters())
+    modules = dict(module.named_modules())
+    for param_name in module.__prune_params__.parametrized_params:
+        parent_module = param_name.rsplit('.',1)
+        parent_module , param_name = parent_module if len(parent_module)>1 else ('', parent_module)
+        parent_module = modules[parent_module]
+        tensor = getattr(parent_module,param_name)
         num_zeros += torch.sum(tensor==0).item()
         num_elements += torch.numel(tensor)
 

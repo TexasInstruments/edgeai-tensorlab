@@ -3,6 +3,7 @@ from torch import nn, fx
 from torch.fx.passes.utils.source_matcher_utils import  SourcePartition
 from torch.fx.passes.utils.matcher_utils import InternalMatch
 import math
+import warnings
 
 from .... import xnn
 
@@ -10,6 +11,9 @@ SPARSITY_CLASS_DICT = {}
 
 def register_class(name, cls=None):
     def _registered(cls):
+        if not hasattr(cls, 'REQUIRED_SPARSE_PARAMS'):
+            warnings.warn(f'class {cls.__name__} does not have REQUIRED_SPARSE_PARAMS which is required to collect params from module.__sparse_param__')
+            cls.REQUIRED_SPARSE_PARAMS = []
         SPARSITY_CLASS_DICT[name]=cls
         return cls
     if cls is not None:
@@ -20,6 +24,7 @@ class_mask_func_dict = {}
 class_forward_func_dict = {}
 
 class BaseSparsityParametrization(nn.Module):
+    REQUIRED_SPARSE_PARAMS = ['epoch_count', 'init_train_ep', 'total_epochs', 'p',] 
     def __init__(self, source, nodes, *args, tensor=None, epoch_count=0, init_train_ep=5, total_epochs=15, binary_mask=False, p=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.source = source
@@ -87,6 +92,7 @@ class BaseSparsityParametrization(nn.Module):
 
 @register_class('n2m')
 class N2MSparsityParametrization(BaseSparsityParametrization):
+    REQUIRED_SPARSE_PARAMS = [ 'n', 'm',] + BaseSparsityParametrization.REQUIRED_SPARSE_PARAMS
     def __init__(self, source, nodes, *args, n=None, m=None, tensor=None, epoch_count=0, init_train_ep=5, total_epochs=15, binary_mask=False, p=None, mode=None,**kwargs):
         assert n is not None and m is not None and tensor is not None, f'n, m and tensor has to be provided'
         self.n = n
@@ -129,6 +135,7 @@ class N2MSparsityParametrization(BaseSparsityParametrization):
                 alpha_factor = self.get_alpha_factor()
                 return mode_2_func_dict[self.mode](tensor, alpha_factor)
         
+        #Note: Consider these functions as examples for further mask generator functions 
         @self.register_mask('Conv2d', self.n, self.m, 'n2m', self.mode)
         def conv_mask_gen(tensor):
             # if self.mode == 'hessian':
@@ -136,7 +143,13 @@ class N2MSparsityParametrization(BaseSparsityParametrization):
             return basic_mask_gen(tensor)
         
         @self.register_mask('Linear', self.n, self.m, 'n2m', self.mode)
-        def conv_mask_gen(tensor):
+        def linear_mask_gen(tensor):
+            # if self.mode == 'hessian':
+            #     pass
+            return basic_mask_gen(tensor)
+        
+        @self.register_mask('matmul', self.n, self.m, 'n2m', self.mode)
+        def matmul_mask_gen(tensor):
             # if self.mode == 'hessian':
             #     pass
             return basic_mask_gen(tensor)
@@ -145,6 +158,7 @@ class N2MSparsityParametrization(BaseSparsityParametrization):
         def default_forward(X):
             return self.mask*X
         
+        #Note: Consider these functions as examples for further forward functions 
         @self.register_forward('Conv2d', self.n, self.m, 'n2m', self.mode)
         def conv_forward(X):
             return default_forward(X)
@@ -153,5 +167,8 @@ class N2MSparsityParametrization(BaseSparsityParametrization):
         def linear_forward(X):
             return default_forward(X)
         
+        @self.register_forward('matmul', self.n, self.m, 'n2m', self.mode)
+        def matmul_forward(X):
+            return default_forward(X)
         
             

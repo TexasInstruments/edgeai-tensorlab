@@ -31,7 +31,6 @@
 
 
 import torch
-import torch._dynamo as torch_dynamo
 import torch.fx as fx
 try:
     import torchvision
@@ -54,7 +53,9 @@ def main():
     model = torchvision.models.vit_b_16(num_classes =num_classes)
     # model = torchvision.models.resnet50()
     dummy_input = torch.randn(10, 3, 224, 224)
-    m,_ = torch_dynamo.export(model,aten_graph=True,pre_dispatch=True,assume_static_by_default=True)(dummy_input)
+    m= torch.export.export(model,dummy_input).module()
+    from ...utils.helper_functions import allow_exported_model_train_eval
+    allow_exported_model_train_eval(m)
 
     current_model_dict = m.state_dict()
     model_path = '/home/a0507161/Kunal/transformer_sparsity/outputs/vit_b_16/2024_06_12_16_52_07/last_checkpoint.pth'
