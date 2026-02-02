@@ -31,7 +31,6 @@
 
 
 import torch
-from torch import _dynamo as torch_dynamo
 import torch.nn as nn
 import torch.fx as fx
 from torch.fx.passes.utils.source_matcher_utils import  SourcePartition
@@ -45,17 +44,17 @@ from .parametrization import SPARSITY_CLASS_DICT
 
 class SparserModule(OptimizationBaseModule):
     def __init__(self, module, *args, example_inputs:list=None, example_kwargs:dict=None, sparsity_ratio=None, total_epochs=None, p=2.0, sparsity_global=False, copy_args=None,
-            sparsity_type='n2m', sparsity_init_train_ep=5, sparsity_m=None, add_methods=True, aten_graph=True, copy_attrs=None, transformation_dict=None, **kwargs) -> None:
+            sparsity_type='n2m', sparsity_init_train_ep=5, sparsity_m=None, add_methods=True, aten_graph=True, copy_attrs=None, filter_func_register=None, weight_func_register=None, transformation_dict=None, **kwargs) -> None:
         copy_attrs = copy_attrs or []
         copy_args = copy_args or []
         example_inputs =[] if example_inputs is None else example_inputs
         example_kwargs = example_kwargs or {}
         super().__init__( module, *args, transformation_dict=transformation_dict, copy_attrs=copy_attrs, **kwargs)
         self.prepare(module, *args, example_inputs=example_inputs, example_kwargs=example_kwargs, sparsity_ratio=sparsity_ratio, total_epochs=total_epochs, p=p, sparsity_global=sparsity_global, copy_args=copy_args,
-            sparsity_type=sparsity_type, sparsity_init_train_ep=sparsity_init_train_ep, sparsity_m=sparsity_m, add_methods=add_methods, aten_graph=aten_graph, copy_attrs=copy_attrs, transformation_dict=transformation_dict, **kwargs)
+            sparsity_type=sparsity_type, sparsity_init_train_ep=sparsity_init_train_ep, sparsity_m=sparsity_m, add_methods=add_methods, aten_graph=aten_graph, copy_attrs=copy_attrs, filter_func_register=filter_func_register, weight_func_register=weight_func_register, transformation_dict=transformation_dict, **kwargs)
 
     def prepare(self, module, *args, example_inputs:list=None, example_kwargs:dict=None, sparsity_ratio=None, total_epochs=None, p=2.0, sparsity_global=False, copy_args=None,
-            sparsity_type='n2m', sparsity_init_train_ep=5, sparsity_m=None, add_methods=True, aten_graph=True, copy_attrs=None, transformation_dict=None, **kwargs):
+            sparsity_type='n2m', sparsity_init_train_ep=5, sparsity_m=None, add_methods=True, aten_graph=True, copy_attrs=None, filter_func_register=None, weight_func_register=None,  transformation_dict=None, **kwargs):
         copy_attrs = copy_attrs or []
         copy_args = copy_args or []
         example_inputs =[] if example_inputs is None else example_inputs
@@ -104,7 +103,7 @@ class SparserModule(OptimizationBaseModule):
             raise NotImplementedError
         
         self.module = sparsity_func_wrapper.init(module, *args, example_inputs=example_inputs, example_kwargs=example_kwargs, sparsity_ratio=sparsity_ratio, total_epochs=total_epochs, p=p, sparsity_global=sparsity_global, copy_args=copy_args,
-            sparsity_type=sparsity_type, sparsity_init_train_ep=sparsity_init_train_ep, sparsity_m=sparsity_m, add_methods=add_methods, aten_graph=aten_graph, copy_attrs=copy_attrs, transformation_dict=transformation_dict, **kwargs)
+            sparsity_type=sparsity_type, sparsity_init_train_ep=sparsity_init_train_ep, sparsity_m=sparsity_m, add_methods=add_methods, aten_graph=aten_graph, copy_attrs=copy_attrs, filter_func_register=filter_func_register, weight_func_register=weight_func_register, transformation_dict=transformation_dict,**kwargs)
 
     #TODO pt2e implementation
     def get_layer_sparsity_ratio(self, sparsity_ratio=0.6):

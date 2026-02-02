@@ -65,11 +65,11 @@ def convert_to_lite_pt2e(model:torch.nn.Module, replacement_dict:Dict[Any,Union[
     '''
     example_inputs = example_inputs if example_inputs is not None else []
     example_kwargs = example_kwargs or {}
-    if hasattr(model, '_example_inputs') and hasattr(model, '_example_kwargs'):
-        example_inputs= model._example_inputs
-        example_kwargs= model._example_kwargs
-    else:
+    if not hasattr(model, '_example_inputs') and hasattr(model, '_example_kwargs'):
+    # else:
         utils.add_example_args_kwargs(model,example_inputs=example_inputs, example_kwargs=example_kwargs)
+    example_inputs= model._example_inputs.pop(0)
+    example_kwargs= model._example_kwargs.pop(0)
     return replace_unsupported_layers(model, example_inputs= example_inputs, example_kwargs=example_kwargs, replacement_dict=replacement_dict, aten_graph=aten_graph, verbose_mode=verbose_mode, **kwargs)
 
 
@@ -264,7 +264,7 @@ def replace_unsupported_layers(model:nn.Module, example_inputs:list=None, exampl
     
     model = deepcopy(model)
     
-    final_model = _replace_unsupported_layers(model,example_inputs,example_kwargs,replacement_dict,aten_graph,copy_args,verbose_mode)
+    final_model = _replace_unsupported_layers(model,example_inputs,example_kwargs,replacement_dict,aten_graph,copy_args,verbose_mode, **kwargs)
     
     if is_train_mode:
         final_model.train()
@@ -283,8 +283,8 @@ class SurgeryModule(OptimizationBaseModule):
     def __init__(self, model, *args, replacement_dict=None, example_inputs: list=None, example_kwargs: dict=None, transformation_dict=None, copy_attrs=None, **kwargs) -> None:
         '''perform surgery on the model and creates a new model'''
         copy_attrs= copy_attrs or []
-        super().__init__(model,*args, transformation_dict=transformation_dict, copy_attrs=copy_attrs, **kwargs)
-        self.prepare(self.module,example_inputs=example_inputs, example_kwargs=example_kwargs, replacement_dict=replacement_dict,  )
+        super().__init__(model,*args, transformation_dict=transformation_dict, copy_attrs=copy_attrs, )
+        self.prepare(self.module,example_inputs=example_inputs, example_kwargs=example_kwargs, replacement_dict=replacement_dict, **kwargs  )
         
     def prepare(self, model, *args, example_inputs: list=None, example_kwargs: dict=None, replacement_dict=None, transformation_dict=None, **kwargs):
         example_inputs = example_inputs if example_inputs is not None else []
@@ -295,7 +295,7 @@ class SurgeryModule(OptimizationBaseModule):
         else:
             utils.add_example_args_kwargs(model,example_inputs=example_inputs, example_kwargs=example_kwargs, transformation_dict=transformation_dict)
         self.replacement_dict=replacement_dict or get_replacement_flag_dict_default()
-        self.module = wrapped_transformation_fn(convert_to_lite_pt2e, model, replacement_dict=replacement_dict, example_inputs= example_inputs, example_kwargs=example_kwargs, transformation_dict=transformation_dict,)
+        self.module = wrapped_transformation_fn(convert_to_lite_pt2e, model, replacement_dict=replacement_dict, example_inputs= example_inputs, example_kwargs=example_kwargs, transformation_dict=transformation_dict,**kwargs)
 
     @classmethod
     def _add_attrs_to(cls, obj, attr_names=None):

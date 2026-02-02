@@ -1,7 +1,12 @@
-
+import torch
 from torch import fx, nn
-from typing import List,Dict,Type, Any, Iterable
+from typing import List,Dict,Type, Any
+import types
 from torch.fx.passes.utils.source_matcher_utils import SourcePartition
+
+
+def get_class_string(cls):
+    return f'{cls.__module__}.{cls.__name__}'
 
 # Note: The source code is copied from pytorch github (https://github.com/pytorch/pytorch/blob/main/torch/fx/passes/utils/source_matcher_utils.py#L51)
 # and modified  as per requirement 
@@ -13,7 +18,7 @@ def get_source_partitions(graph:fx.Graph, wanted_sources:list, filter_fn = None)
     
     '''
     
-    class_names = ['.'.join([str(s.__module__), str(s.__name__)]) for s in wanted_sources if isinstance(s, type)]
+    class_names = [get_class_string(s) for s in wanted_sources if isinstance(s, type)]
     name_2_class_dict = dict(zip(class_names,[s for s in wanted_sources if isinstance(s, type)]))
     wanted_sources += class_names
     
@@ -61,6 +66,14 @@ def get_source_partitions(graph:fx.Graph, wanted_sources:list, filter_fn = None)
         input_nodes = set()
         output_nodes = set()
         params = set()
+        for i, node in enumerate(nodes):
+            if node.op != 'call_module':
+                continue
+            meta_keys = list(node.meta)
+            #TODO make sure this check is correct
+            if len(meta_keys) == 1 and meta_keys[0] == 'nn_module_stack' and '_guards_fn' in node.target:
+                nodes.remove(node)
+            
         for node in nodes:
             for arg in get_all_args(node.args):
                 if isinstance(arg, fx.Node) and arg not in nodes and arg.op != "get_attr":
@@ -73,7 +86,21 @@ def get_source_partitions(graph:fx.Graph, wanted_sources:list, filter_fn = None)
             for user in node.users.keys():
                 if user not in nodes:
                     output_nodes.add(node)
-
+        
+        # happens in torch==2.9 as per tests, but does not happen in torch==2.4
+        if len(params) == 0:
+            param_pos = dict()
+            for i, node in enumerate(nodes):
+                for arg in get_all_args(node.args):
+                    if isinstance(arg, fx.Node) and arg not in nodes and arg.op == "get_attr":
+                        params.add(arg)
+                        if arg not in param_pos:
+                            param_pos[arg] = i 
+            for i, (p, idx) in enumerate(param_pos.items()):
+                nodes.insert((i+idx), p, )
+        input_nodes = sorted(input_nodes, key= lambda node : min([nodes.index(user) for user in node.users.keys() if user in nodes])) 
+        params = sorted(params, key = lambda node: nodes.index(node))
+        output_nodes = sorted(output_nodes, key = lambda node: nodes.index(node))
         return SourcePartition(
             nodes,
             module_type,
@@ -118,3 +145,62 @@ def get_source_partitions(graph:fx.Graph, wanted_sources:list, filter_fn = None)
             ret[name_2_class_dict[cls]] = ret.pop(cls)
     
     return ret
+
+_EXPORTED_TRAINING_ATTR = "_exported_training"
+
+def _replace_batchnorm(m: torch.fx.GraphModule, train_to_eval: bool):
+    # Needed to ensure subgraph matches are self-contained
+    m.graph.eliminate_dead_code()
+    m.recompile()
+    
+    for node in m.graph.nodes:
+        if node.op == 'call_function' and node.target == torch.ops.aten.batch_norm.default:
+            if 'training' in node.kwargs:
+                node.update_kwarg('training', not train_to_eval)
+            else:
+                node.update_arg(5, not train_to_eval)
+    
+    
+    m.recompile()
+    return
+
+
+def _replace_dropout(m: torch.fx.GraphModule, train_to_eval: bool):
+    # Needed to ensure subgraph matches are self-contained
+    m.graph.eliminate_dead_code()
+    m.recompile()
+    for node in m.graph.nodes:
+        if node.op == 'call_function' and node.target == torch.ops.aten.dropout.default:
+            if 'train' in node.kwargs:
+                node.update_kwarg('train', not train_to_eval)
+            else:
+                node.update_arg(2, not train_to_eval)
+    
+    m.recompile()
+    return
+
+
+def _move_exported_model_to_train(model, mode: bool=True):
+    is_training = getattr(model, _EXPORTED_TRAINING_ATTR, not mode)
+    if is_training==mode:
+        return model
+    setattr(model, _EXPORTED_TRAINING_ATTR, mode)
+    _replace_dropout(model, not mode)        
+    _replace_batchnorm(model, not mode)        
+    return model
+def _move_exported_model_to_eval(model):
+    return _move_exported_model_to_train(model, False)
+
+def allow_exported_model_train_eval(model: fx.GraphModule):
+    def _train(self, mode: bool = True):
+        if mode:
+            _move_exported_model_to_train(self)
+        else:
+            _move_exported_model_to_eval(self)
+
+    def _eval(self):
+        _move_exported_model_to_eval(self)
+
+    model.train = types.MethodType(_train, model)  # type: ignore[method-assign]
+    model.eval = types.MethodType(_eval, model)  # type: ignore[method-assign]
+    return model

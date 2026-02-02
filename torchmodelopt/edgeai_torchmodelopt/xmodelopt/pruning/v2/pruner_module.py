@@ -86,9 +86,6 @@ class PrunerModule(OptimizationBaseModule):
         
         self.pruning_class = PRUNING_CLASS_DICT[pruning_class]
         
-        #responsible for creating a next mapping (basically helps combine the weight of BN and conv)
-        # self.next_bn_nodes = create_bn_conv_mapping(module)
-    
         self.channel_pruning = False
         self.n2m_pruning = False
         self.prunechannelunstructured = False
@@ -111,15 +108,6 @@ class PrunerModule(OptimizationBaseModule):
         else:
             self.m = None
         
-        # if self.channel_pruning:
-        #     # creating the next node list, which contains the connection to all convs to the current conv
-        #     self.next_conv_node_list = create_next_conv_node_list(module)
-        #     # returns the list of all conv that share the same output
-        #     self.all_connected_nodes = find_all_connected_nodes(module)
-        # else:
-        #     self.next_conv_node_list = None
-        #     self.all_connected_nodes = None
-        
         if self.n2m_pruning and self.global_pruning:
             print("Cannot do both global pruning along with n2m pruning, it doesn't make sense! \n")
             raise NotImplementedError
@@ -128,15 +116,6 @@ class PrunerModule(OptimizationBaseModule):
             if hasattr(module, copy_arg):
                 setattr(module, copy_arg, getattr(module, copy_arg))
             
-        # to get net weights for each of the layers, incorporating all the required dependancies
-        # self.net_weights = get_net_weights_all(module, self.next_conv_node_list, self.all_connected_nodes, self.next_bn_nodes, self.channel_pruning, self.global_pruning)
-        
-        # if self.global_pruning:
-        #     if self.channel_pruning:
-        #         self.get_layer_pruning_ratio_channel(pruning_ratio)
-        #     else:
-        #         self.get_layer_pruning_ratio(pruning_ratio)
-        #
         self.module = pruning_func_wrapper.init(self.module, *args, pruning_ratio=pruning_ratio, total_epochs=total_epochs, pruning_class=pruning_class, copy_args = copy_args,
                     p=p,pruning_global=pruning_global, pruning_type=pruning_type, pruning_init_train_ep=pruning_init_train_ep, pruning_m=pruning_m, add_methods=add_methods, transformation_dict=transformation_dict, **kwargs)
     

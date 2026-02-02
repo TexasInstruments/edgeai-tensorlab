@@ -68,10 +68,11 @@ def _is_a_proper_input_node(node:fx.Node,model:fx.graph_module.GraphModule,old_r
         return False
 
     if node.op == 'get_attr':
-        attr_names = node.target.split('.')
-        attr = model
-        for name in attr_names:
-            attr = getattr(attr,name)
+        modules = dict(model.named_modules())
+        split = node.target.rsplit('.',1)
+        parent_name, attr_name = split if len(split) == 2 else ('', split[0])
+        module = modules[parent_name]
+        attr = getattr(module, attr_name)
         old_results[node.name] = isinstance(attr,torch.nn.Parameter)
         return old_results[node.name]
     
@@ -301,9 +302,10 @@ def create_channel_pruned_model2(model):
         elif node.op == 'get_attr':
             if  any(f in [n.target for n in node.users] for f in _call_functions_to_look):
                     continue
-            attr = fx_model
-            for attr_name in node.target.split('.'):
-                attr = getattr(attr,attr_name)
+            split = node.target.rsplit('.',1)
+            parent_name, attr_name = split if len(split) == 2 else ('', split[0])
+            module = modules[parent_name]
+            attr = getattr(module, attr_name)
             if isinstance(attr,nn.Parameter):
                 pruning_dim[node.name] = 0
     
@@ -351,11 +353,10 @@ def create_channel_pruned_model2(model):
         if node.op == 'get_attr':
             if  any(f in [n.target for n in node.users] for f in _call_functions_to_look):
                     continue
-            attr = fx_model
-            attr_names = node.target.split('.')
-            module =modules['.'.join(attr_names[:-1])]
-            for attr_name in attr_names:
-                attr = getattr(attr,attr_name)
+            split = node.target.rsplit('.',1)
+            parent_name, attr_name = split if len(split) == 2 else ('', split[0])
+            module = modules[parent_name]
+            attr = getattr(module, attr_name)
             if isinstance(attr,nn.Parameter):
                 dim = pruning_dim.get(node.name,0)
                 shape = list(range(len(attr.shape)))
@@ -364,7 +365,7 @@ def create_channel_pruned_model2(model):
                 nonzero_idx = ~(attr.view(attr.shape[0], -1).sum(dim=1) == 0)
                 attr.data = attr.data[nonzero_idx].contiguous()
                 attr =torch.nn.Parameter( attr.permute(shape))
-                setattr(module,attr_names[-1],attr)
+                setattr(module,attr_name,attr)
                 
                 
         elif node.args and node.op == 'call_module':
@@ -555,9 +556,10 @@ def find_layers_in_prev(node:fx.Node, connected_list:list,fx_model:fx.graph_modu
         elif n_id.op == 'placeholder':
             visited_nodes.append(n_id.name)
         elif n_id.op == 'get_attr':
-            attr = fx_model
-            for attr_name in n_id.target.split('.'):
-                attr = getattr(attr,attr_name)
+            split = node.target.rsplit('.',1)
+            parent_name, attr_name = split if len(split) == 2 else ('', split[0])
+            module = modules[parent_name]
+            attr = getattr(module, attr_name)
             if isinstance(attr,nn.Parameter):
                 connected_list.append(n_id)
             visited_nodes.append(n_id.name)
@@ -603,10 +605,10 @@ def find_all_connected_nodes(model):
                 if item in module_nodes:
                     connected_list_prev[index] = (item,0)
                 else:
-                    attr = fx_model
-                    attr_names = item.target.split('.')
-                    for name in attr_names:
-                        attr = getattr(attr,name)
+                    split = node.target.rsplit('.',1)
+                    parent_name, attr_name = split if len(split) == 2 else ('', split[0])
+                    module = modules[parent_name]
+                    attr = getattr(module, attr_name)
                     dim = list(attr.shape).index(pruning_channels)
                     connected_list_prev[index] = (item,dim)
         return connected_list_prev
@@ -686,9 +688,11 @@ def get_net_weight_node_channel_prune(curr_node, all_modules, next_bn_nodes, nex
     return net_weight.mean(dim=1).unsqueeze(1) if global_pruning else net_weight
     
 def get_weight_from_parameter(node:fx.Node,fx_model:fx.GraphModule,global_pruning=False,dim:int=0):
-    attr = fx_model
-    for attr_name in node.target.split('.'):
-        attr = getattr(attr,attr_name)
+    modules = dict(fx_model.named_modules())
+    split = node.target.rsplit('.',1)
+    parent_name, attr_name = split if len(split) == 2 else ('', split[0])
+    module = modules[parent_name]
+    attr = getattr(module, attr_name)
     if isinstance(attr,nn.Parameter):
         shape1 = list(range(len(attr.shape)))
         if dim != 0:
@@ -715,9 +719,10 @@ def get_net_weights_all(model, next_conv_node_list, all_connected_nodes, next_bn
             ignore_node_target_list = []
             node,dim = sublist[0]
             if node.op == 'get_attr':
-                attr = fx_model
-                for attr_name in node.target.split('.'):
-                    attr = getattr(attr,attr_name)
+                split = node.target.rsplit('.',1)
+                parent_name, attr_name = split if len(split) == 2 else ('', split[0])
+                module = all_modules[parent_name]
+                attr = getattr(module, attr_name)
                 weight_sublist =  torch.empty(attr.shape[dim],0).to(attr.device)
             elif node.op == 'call_module':
                 first_module = all_modules[node.target]
@@ -732,9 +737,10 @@ def get_net_weights_all(model, next_conv_node_list, all_connected_nodes, next_bn
                 weight_sublist =  torch.empty(first_weight.shape[dim],0).to(first_weight.device)
             for node,dim in sublist:
                 if node.op == 'get_attr':
-                    attr = fx_model
-                    for attr_name in node.target.split('.'):
-                        attr = getattr(attr,attr_name)
+                    split = node.target.rsplit('.',1)
+                    parent_name, attr_name = split if len(split) == 2 else ('', split[0])
+                    module = all_modules[parent_name]
+                    attr = getattr(module, attr_name)
                     weight_sublist = torch.concat([weight_sublist,get_weight_from_parameter(node,fx_model,global_pruning,dim)],axis=1)
                 elif node.op == 'call_function':
                     proj_weight_node = node.args[2]
@@ -782,9 +788,10 @@ def get_net_weights_all(model, next_conv_node_list, all_connected_nodes, next_bn
                         weight_sublist = weight_sublist.permute(shape)
                     weight_sublist = weight_sublist.flatten(1)
                 elif node.op == 'get_attr':
-                    attr = fx_model
-                    for attr_name in node.target.split('.'):
-                        attr = getattr(attr,attr_name)
+                    split = node.target.rsplit('.',1)
+                    parent_name, attr_name = split if len(split) == 2 else ('', split[0])
+                    module = all_modules[parent_name]
+                    attr = getattr(module, attr_name)
                     while len(weight_sublist.shape)<len(attr.shape):
                         weight_sublist = weight_sublist.unsqueeze(-1)
                     if dim != 0 :
@@ -834,9 +841,10 @@ def get_net_weights_all(model, next_conv_node_list, all_connected_nodes, next_bn
                     if layer_name not in net_weights:
                         net_weights[layer_name] = ((proj_weight.mean(dim=1) if global_pruning else proj_weight),0)
             elif node.op == 'get_attr':
-                attr = fx_model
-                for attr_name in node.target.split('.'):
-                    attr = getattr(attr,attr_name)
+                split = node.target.rsplit('.',1)
+                parent_name, attr_name = split if len(split) == 2 else ('', split[0])
+                module = all_modules[parent_name]
+                attr = getattr(module, attr_name)
                 if isinstance(attr,nn.Parameter):
                     net_weights[node.name] = (attr,0)# 0 is taken as default
     return net_weights

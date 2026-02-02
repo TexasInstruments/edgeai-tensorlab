@@ -34,7 +34,6 @@ from torch import nn
 from typing import Union, Dict, Any
 from copy import deepcopy
 from torch.fx import GraphModule
-from torch import _dynamo as torch_dynamo
 from types import FunctionType, BuiltinFunctionType
 import warnings
 from functools import partial
@@ -58,15 +57,17 @@ from . import replacer
 __all__ = ['_replace_unsupported_layers',]
 
 
-def _replace_unsupported_layers(model:nn.Module, example_inputs:list=None, example_kwargs:dict=None, replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, aten_graph:bool = True, copy_args:list=[], verbose_mode:bool=False):
+def _replace_unsupported_layers(model:nn.Module, example_inputs:list=None, example_kwargs:dict=None, replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, aten_graph:bool = True, copy_args:list=[], verbose_mode:bool=False, **kwargs):
     # assuming if it is a graph module it is generated through dynamo export 
     # TODO make symbolic trace generated module is goes through dynamo export
     example_inputs = example_inputs if example_inputs is not None else []
     example_kwargs = example_kwargs or {}
     model(*example_inputs, **example_kwargs)
     pre_dispatch = aten_graph
-    traced_model,_ =(model,None) if isinstance(model,GraphModule) else torch_dynamo.export(model, aten_graph=aten_graph, pre_dispatch=pre_dispatch, assume_static_by_default=True)(*example_inputs,**example_kwargs) 
-    
+    check_guards = kwargs.get('check_guards', True)
+    traced_model = model if isinstance(model,GraphModule) else torch.export.export(model,example_inputs,example_kwargs).module(check_guards=check_guards) 
+    from ...utils.helper_functions import allow_exported_model_train_eval
+    allow_exported_model_train_eval(traced_model)
     replacer.__net_module_replaced = 0
     
     for pattern, replacement in replacement_dict.items():

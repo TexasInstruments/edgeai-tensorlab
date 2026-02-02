@@ -1,5 +1,4 @@
 import torch
-from torch import _dynamo as torch_dynamo
 import torch.nn as nn
 import torch.fx as fx
 from torch.fx.passes.utils.source_matcher_utils import  SourcePartition
@@ -35,6 +34,8 @@ def init(module, *args, example_inputs:list=None, example_kwargs:dict=None, prun
         check_guards = kwargs.get('check_guards', True)
         example_inputs = tuple(example_inputs)
         gm_module = torch.export.export(module, example_inputs, kwargs=example_kwargs).module(check_guards=check_guards)
+        from ...utils.helper_functions import allow_exported_model_train_eval
+        allow_exported_model_train_eval(gm_module)
     
     gm_module.__prune_params__ =  xnn.utils.AttrDict()
     gm_module.__prune_params__.aten_graph = gm_module.__prune_params__.pre_dispatch = aten_graph
@@ -242,11 +243,12 @@ def insert_and_remove_parametrization_during_training(module, mode: bool = True)
     return module
 
 
+from ...utils.helper_functions import get_class_string
 def insert_parametrization(module, binary_mask=False):
     # for each of the nodes/layers, we calculate the parametrization/ mask and then register it over the weights and biases
     
     params = dict(module.named_parameters())
-    
+    modules = dict(module.named_modules())
     # TODO Experiment among (HeadBlendPruningParametrization, HeadOnlyBlendPruningParametrization, ChannelOnlyBlendPruningParametrization)
     attn_proj_class = HeadChannelBlendPruningParametrization
     attn_proj_class = HeadOnlyBlendPruningParametrization
@@ -281,92 +283,122 @@ def insert_parametrization(module, binary_mask=False):
         if node.target  not in net_weights:
             continue 
         elif node.op == 'get_attr':
-            attr = params[f'parametrizations.{node.target}.original'] if  parametrize.is_parametrized(module,node.target) else params[node.target]
-            if isinstance(attr,nn.Parameter):
+            split = node.target.rsplit('.',1)
+            parent, param_name = split if len(split) == 2 else ('', split[0])
+            # attr =  params['.'.join([parent,'parametrizations',param_name,'original']) ]if  parametrize.is_parametrized(modules[parent],param_name) else getattr(modules[parent], param_name) 
+            if parametrize.is_parametrized(modules[parent],param_name) or isinstance(getattr(modules[parent], param_name),nn.Parameter):
                 net_weight, dim = net_weights[node.target]
+                param_name = node.target
+                split = param_name.rsplit('.',1)
+                parent, param_name = split if len(split) == 2 else ('', split[0])
                 parametrization =  pruning_class(fx_model=module,source=node,source_partition=node, net_weight = net_weight,pruning_dim = dim,**kwargs)
-                parametrize.register_parametrization(module, node.target, parametrization)
+                parametrize.register_parametrization(modules[parent], param_name, parametrization)
     
     for cls,partitions in module.__prune_params__.pruning_partitions.items():
-        if cls == nn.Conv2d:
+        if isinstance(cls, type):
+            cls = get_class_string(cls)
+        if cls == get_class_string(nn.Conv2d):
             for partition in partitions:
                 weight_index, bias_index = get_parameter_indices(module,cls,partition)
                 param_name = partition.nodes[weight_index].target
                 net_weight,dim =  net_weights[param_name]
+                split = param_name.rsplit('.',1)
+                parent, param_name = split if len(split) == 2 else ('', split[0])
                 parametrization =  pruning_class(fx_model=module,source=cls,source_partition=partition, net_weight = net_weight,pruning_dim = dim,**kwargs)
-                parametrize.register_parametrization(module, param_name, parametrization)
+                parametrize.register_parametrization(modules[parent], param_name, parametrization)
                 if len(partition.nodes) ==3 and module.__prune_params__.channel_pruning:
                     param_name = partition.nodes[bias_index].target
-                    parametrize.register_parametrization(module, param_name, parametrization)
+                    split = param_name.rsplit('.',1)
+                    parent, param_name = split if len(split) == 2 else ('', split[0])
+                    parametrize.register_parametrization(modules[parent], param_name, parametrization)
                 
-        elif cls == nn.BatchNorm2d:
+        elif cls == get_class_string(nn.BatchNorm2d):
             for partition in partitions:
                 weight_index, bias_index = get_parameter_indices(module,cls,partition)
                 param_name = partition.nodes[weight_index].target
                 net_weight,dim =  net_weights[param_name]
+                split = param_name.rsplit('.',1)
+                parent, param_name = split if len(split) == 2 else ('', split[0])
                 parametrization =  pruning_class(fx_model=module,source=cls,source_partition=partition, net_weight = net_weight,pruning_dim = dim,**kwargs)
-                parametrize.register_parametrization(module, param_name, parametrization)
+                parametrize.register_parametrization(modules[parent], param_name, parametrization)
                 if len(partition.nodes) ==11 and module.__prune_params__.channel_pruning:
                     param_name = partition.nodes[bias_index].target
-                    parametrize.register_parametrization(module, param_name, parametrization)
-        elif cls == nn.Linear:
+                    split = param_name.rsplit('.',1)
+                    parent, param_name = split if len(split) == 2 else ('', split[0])
+                    parametrize.register_parametrization(modules[parent], param_name, parametrization)
+        elif cls == get_class_string(nn.Linear):
             for partition in partitions:
                 if any( 'output' in [n.op for n in out.users]for out in partition.output_nodes):
                     continue
-                
                 weight_index, bias_index = get_parameter_indices(module,cls,partition)
-
                 param_name = partition.nodes[weight_index].target
                 net_weight,dim =  net_weights[param_name]
+                split = param_name.rsplit('.',1)
+                parent, param_name = split if len(split) == 2 else ('', split[0])
                 parametrization =  pruning_class(fx_model=module,source=cls,source_partition=partition, net_weight = net_weight,pruning_dim = dim,**kwargs)
-                parametrize.register_parametrization(module, param_name, parametrization)
+                parametrize.register_parametrization(modules[parent], param_name, parametrization)
                 if module.__prune_params__.channel_pruning:
                     param_name = partition.nodes[bias_index].target
-                    parametrize.register_parametrization(module, param_name, parametrization)
-        elif cls == nn.LayerNorm:
+                    split = param_name.rsplit('.',1)
+                    parent, param_name = split if len(split) == 2 else ('', split[0])
+                    parametrize.register_parametrization(modules[parent], param_name, parametrization)
+        elif cls == get_class_string(nn.LayerNorm):
             for partition in partitions:
                 weight_index, bias_index = get_parameter_indices(module,cls,partition)
                 param_name = partition.nodes[weight_index].target
                 net_weight,dim =  net_weights[param_name]
+                split = param_name.rsplit('.',1)
+                parent, param_name = split if len(split) == 2 else ('', split[0])
                 parametrization =  pruning_class(fx_model=module,source=cls,source_partition=partition, net_weight = net_weight,pruning_dim = dim,**kwargs)
-                parametrize.register_parametrization(module, param_name, parametrization)
+                parametrize.register_parametrization(modules[parent], param_name, parametrization)
                 if len(partition.nodes) ==6 and module.__prune_params__.channel_pruning:
                     param_name = partition.nodes[bias_index].target
-                    parametrize.register_parametrization(module, param_name, parametrization)
-        elif cls == nn.MultiheadAttention:
+                    split = param_name.rsplit('.',1)
+                    parent, param_name = split if len(split) == 2 else ('', split[0])
+                    parametrize.register_parametrization(modules[parent], param_name, parametrization)
+        elif cls == get_class_string(nn.MultiheadAttention):
             for partition in partitions:
                 weight_indices, bias_indices = get_parameter_indices(module,cls,partition)
                 param_name = partition.nodes[weight_indices[0]].target
                 net_weight,dim =  net_weights[param_name]
+                split = param_name.rsplit('.',1)
+                parent, param_name = split if len(split) == 2 else ('', split[0])
                 if module.__prune_params__.channel_pruning:
                     parametrization1 = attn_proj_class(fx_model=module,source=cls,source_partition=partition, net_weight = net_weight,**kwargs)
                 else: 
                     parametrization1 =  pruning_class(fx_model=module,source=cls,source_partition=partition, net_weight = net_weight,pruning_dim = dim,**kwargs)
-                parametrize.register_parametrization(module, param_name, parametrization1)
+                parametrize.register_parametrization(modules[parent], param_name, parametrization1)
                 param_name = partition.nodes[weight_indices[1]].target
                 net_weight,dim =  net_weights[param_name]
+                split = param_name.rsplit('.',1)
+                parent, param_name = split if len(split) == 2 else ('', split[0])
                 parametrization2 =  pruning_class(fx_model=module,source=cls,source_partition=partition, net_weight = net_weight,pruning_dim = dim,**kwargs)
-                parametrize.register_parametrization(module, param_name, parametrization2)
+                parametrize.register_parametrization(modules[parent], param_name, parametrization2)
                 
                 if module.__prune_params__.channel_pruning:                     
                     param_name = partition.nodes[bias_indices[0]].target
-                    parametrize.register_parametrization(module, param_name, parametrization1)
+                    split = param_name.rsplit('.',1)
+                    parent, param_name = split if len(split) == 2 else ('', split[0])
+                    parametrize.register_parametrization(modules[parent], param_name, parametrization1)
                     param_name = partition.nodes[bias_indices[1]].target
-                    parametrize.register_parametrization(module, param_name, parametrization2)
+                    split = param_name.rsplit('.',1)
+                    parent, param_name = split if len(split) == 2 else ('', split[0])
+                    parametrize.register_parametrization(modules[parent], param_name, parametrization2)
                                     
     return module
 
 def remove_parametrization(module, leave_parameterized=True):
     # leave_parametrized=False would leave the original parameter instead of the parametrized parameter
     params  = dict (module.named_parameters()) 
-    
+    modules = dict(module.named_modules())
     for name,param in params.items():
         names = name.split('.')
         if len(names)>=3 and names[-1] == 'original' and names[-3] == 'parametrizations':
-            module,param_name = module,names[-2]
-            if parametrize.is_parametrized(module, param_name):
-                module.__prune_params__.parametrized_params.add(param_name)
-                parametrize.remove_parametrizations(module, param_name, leave_parametrized=leave_parameterized) 
+            param_name = names[-2]
+            parent = '.'.join(names[:-3])
+            if parametrize.is_parametrized(modules[parent], param_name):
+                module.__prune_params__.parametrized_params.add('.'.join([parent,names[-2]]) if len(parent) else names[-2])
+                parametrize.remove_parametrizations(modules[parent], param_name, leave_parametrized=leave_parameterized) 
     return module
         
 def calculate_sparsity(module):
@@ -374,12 +406,12 @@ def calculate_sparsity(module):
     num_elements = 0
     
     # Make layer wise computionally pruning ratio, overall as well #TODO 
-    
+    params = dict(module.named_parameters())
     for param_name in module.__prune_params__.parametrized_params:
-        tensor = getattr(module,param_name)
+        tensor = params[param_name]
         num_zeros += torch.sum(tensor==0).item()
         num_elements += torch.numel(tensor)
 
-    module.__prune_params__.sparsity = num_zeros / num_elements
+    module.__prune_params__.sparsity = num_zeros / num_elements if num_elements != 0 else None
     return module
 

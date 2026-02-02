@@ -40,6 +40,7 @@ from ... import utils
 from . import qconfig_types
 from . import quant_utils
 from .quantizer import get_quantizer, QuantizerTypes, QuantizerAnnotationPatterns
+from ...utils.helper_functions import allow_exported_model_train_eval
 
 import copy
 import os
@@ -129,36 +130,38 @@ def init(model, example_inputs, example_kwargs=None, is_qat=True, total_epochs=0
     check_guards = kwargs.get('check_guards', True)
     example_inputs = tuple(example_inputs)
     m = torch.export.export(orig_model, example_inputs, kwargs=example_kwargs).module(check_guards=check_guards)
-
+    from ...utils.helper_functions import allow_exported_model_train_eval
+    allow_exported_model_train_eval(m)
+    
     # for copy_arg in copy_args:
     #     if hasattr(module, copy_arg):
     #         setattr(replace_obj, copy_arg, getattr(module, copy_arg))
     
     #####################################################################################
     if is_qat:
-        model = prepare_qat_pt2e(m, quantizer)
+        prepared_model = prepare_qat_pt2e(m, quantizer)
     else:
-        model = prepare_pt2e(m, quantizer)
+        prepared_model = prepare_pt2e(m, quantizer)
     
-    # model = _model_to_device(model, device)
+    # prepared_model = _model_to_device(prepared_model, device)
 
     #####################################################################################
-    model.__quant_params__ = xnn.utils.AttrDict()
-    model.__quant_params__.is_qat = is_qat
-    model.__quant_params__.quantizer = quantizer 
-    model.__quant_params__.qconfig_type = qconfig_type
-    model.__quant_params__.num_batch_norm_update_epochs = num_batch_norm_update_epochs
-    model.__quant_params__.num_observer_update_epochs = num_observer_update_epochs
-    model.__quant_params__.num_epochs_tracked = 0
-    model.__quant_params__.total_epochs = total_epochs
-    model.__quant_params__.outlier_hooks = []
-    model.__quant_params__.bias_hooks = []
-    model.__quant_params__.bias_calibration_factor = kwargs.get("bias_calibration_factor", 0.05)
-    model.__quant_params__.original_model = orig_model
-    model.__quant_params__.device = device
+    prepared_model.__quant_params__ = xnn.utils.AttrDict()
+    prepared_model.__quant_params__.is_qat = is_qat
+    prepared_model.__quant_params__.quantizer = quantizer 
+    prepared_model.__quant_params__.qconfig_type = qconfig_type
+    prepared_model.__quant_params__.num_batch_norm_update_epochs = num_batch_norm_update_epochs
+    prepared_model.__quant_params__.num_observer_update_epochs = num_observer_update_epochs
+    prepared_model.__quant_params__.num_epochs_tracked = 0
+    prepared_model.__quant_params__.total_epochs = total_epochs
+    prepared_model.__quant_params__.outlier_hooks = []
+    prepared_model.__quant_params__.bias_hooks = []
+    prepared_model.__quant_params__.bias_calibration_factor = kwargs.get("bias_calibration_factor", 0.05)
+    prepared_model.__quant_params__.original_model = orig_model
+    prepared_model.__quant_params__.device = device
 
     if add_methods:
-        # add a wrapper for model.train()
+        # add a wrapper for prepared_model.train()
         # the accuracy for deit was going down due to this wrapper, needs to be implemented properly or debugged #TODO
         # def train_quant(self, mode=True):
         #     if mode:
@@ -166,23 +169,23 @@ def init(model, example_inputs, example_kwargs=None, is_qat=True, total_epochs=0
         #     else:
         #         torch.ao.quantization.move_exported_model_to_eval(self)
                 
-        # model.__quant_train_backup__ = types.MethodType(train_quant if is_qat else model.train.__func__, model)
-        model.train = types.MethodType(train, model)
-        model.eval = types.MethodType(eval, model)
+        prepared_model.__quant_train_backup__ = types.MethodType(model.train.__func__, prepared_model) 
+        prepared_model.train = types.MethodType(train, prepared_model)
+        prepared_model.eval = types.MethodType(eval, prepared_model)
         # other methods
-        model.freeze = types.MethodType(freeze, model)
-        model.unfreeze = types.MethodType(unfreeze, model)
-        model.convert = types.MethodType(convert, model)
-        model.export = types.MethodType(export, model)
+        prepared_model.freeze = types.MethodType(freeze, prepared_model)
+        prepared_model.unfreeze = types.MethodType(unfreeze, prepared_model)
+        prepared_model.convert = types.MethodType(convert, prepared_model)
+        prepared_model.export = types.MethodType(export, prepared_model)
         if kwargs.get('with_deepcopy', False):
-            model.__deepcopy__ = types.MethodType(deepcopy_graphmodule, model)
+            prepared_model.__deepcopy__ = types.MethodType(deepcopy_graphmodule, prepared_model)
     #
     # this is based on module hooks - it will not work currently in pt2e
-    # all modules exect the fakequant/observers in torch.export.export() model are changed to ops
+    # all modules exect the fakequant/observers in torch.export.export() prepared_model are changed to ops
     # but module hooks on fakequant/observers will work and it may be possible to change the implementation that way
-    model = insert_all_hooks(model, kwargs.get('outlier_clipping',False), kwargs.get('bias_calibration',False))
+    prepared_model = insert_all_hooks(prepared_model, kwargs.get('outlier_clipping',False), kwargs.get('bias_calibration',False))
     print("Model Preparation is now complete! ")
-    return model
+    return prepared_model
 
 
 def insert_all_hooks(model, outlier_clipping, bias_calibration):

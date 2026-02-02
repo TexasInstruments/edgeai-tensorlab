@@ -50,7 +50,7 @@ def register_n2m_filter(key,  n, m, func=None):
     return register_filter(key,  n, m, 'n2m', func=func)
 
 def register_n2m_filters(n, m):
-    #Note: Consider this as example for further filter functions as they need to return nodes for next steps
+    #Note: Consider these functions as examples for further filter functions as they need to return nodes for next steps
     @register_n2m_filter('Conv2d', n, m)
     def convs_filter_func(module):
         assert isinstance(module, (fx.GraphModule)), f'GraphModule object should be given! but got object of type {module.__class__.__name__}'
@@ -66,7 +66,7 @@ def register_n2m_filters(n, m):
                 continue
             weight = params.get(weight.target)
             out_channel, in_channel, *kernel_size = weight.shape
-            if out_channel%m != 0 or in_channel%m != 0 or not all(k==1 for k in kernel_size ):
+            if out_channel % m != 0 or in_channel % m != 0 :#or not all(k==1 for k in kernel_size ):
                 # skipping as conv is not supported for n:m sparsity
                 continue
             ret.append([node])
@@ -88,10 +88,36 @@ def register_n2m_filters(n, m):
                 continue
             weight = params.get(weight.target)
             out_channel, in_channel= weight.shape
-            if out_channel%m != 0 or in_channel%m != 0 :
-                # skipping as conv is not supported for n:m sparsity
+            if out_channel % m != 0 or in_channel % m != 0 :
+                # skipping as linear is not supported for n:m sparsity
                 continue
             ret.append([node])
+        
+        return ret
+
+    @register_n2m_filter('matmul', n, m)
+    def linears_filter_func(module):
+        assert isinstance(module, (fx.GraphModule)), f'GraphModule object should be given! but got object of type {module.__class__.__name__}'
+        ret = []
+        params = dict(module.named_parameters())
+        graph = module.graph 
+        for node in graph.nodes:
+            if node.target != torch.ops.aten.matmul.default:
+                continue
+            
+            weight = node.args[1]
+            if weight.op == 'get_attr':
+                weight = params.get(weight.target)
+                out_channel, in_channel= weight.shape
+                if out_channel % m == 0 and in_channel % m == 0 :
+                    ret.append([node])
+            weight = node.args[0]
+            if weight.op == 'get_attr':
+                weight = params.get(weight.target)
+                out_channel, in_channel= weight.shape
+                if out_channel % m == 0 and in_channel % m == 0 :
+                    ret.append([node]) if [node] not in ret else None
+            
         
         return ret
 
@@ -106,7 +132,7 @@ def get_sparsity_nodes(module: fx.GraphModule, *args ):
 
 weight_func_dict = {}
 
-def register_weigth_func(*args, func=None):
+def register_weigth_func(*args, func=None):# -> Any | Callable[..., Any]:
     def _registered(func):
         weight_func_dict[args] = func
         return func
@@ -118,6 +144,16 @@ def register_n2m_weight_func(key, n, m, func=None):
     return register_weigth_func(key, n, m, 'n2m', func=func)
 
 def register_n2m_weight_funcs(n,m):
+    #Note: Consider these functions as examples for further weight functions 
+    
+    # either a list/tuple or set is expected if the weights are used to mask only themselves
+    # otherwise  a dictionary mapping the weights to create mask to list of weights the mask will be applied 
+    # (they themselves have to be included)
+    # currently only a single weight can be used to create mask
+    # TODO if required, implement the flow for multiple weights to impact mask generation
+    
+    # similarly, currently mask can only be multiplied with the applied weight directly in parametrization
+    # TODO if required, implement the flow for different type of weights to be multiplied to mask
     @register_n2m_weight_func('Conv2d', n, m)
     def get_conv_weights( module: fx.GraphModule, nodes:list[fx.Node]):
         conv = nodes[0]
@@ -128,8 +164,13 @@ def register_n2m_weight_funcs(n,m):
     def get_linear_weights( module: fx.GraphModule, nodes:list[fx.Node]):
         fc = nodes[0]
         weight = fc.args[1]
-        param = dict(module.named_parameters())
         return [weight.target]
+    
+    @register_n2m_weight_func('matmul', n, m)
+    def get_linear_weights( module: fx.GraphModule, nodes:list[fx.Node]):
+        matmul = nodes[0]
+        return [a.target for a in matmul.args if a.op == 'get_attr']
+    
 
 def get_all_weights(module: fx.GraphModule, nodes_dict:dict[tuple,list[fx.Node]],):
     ret = {}

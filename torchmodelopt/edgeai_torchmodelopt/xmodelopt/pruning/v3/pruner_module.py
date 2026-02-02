@@ -31,7 +31,6 @@
 
 
 import torch
-from torch import _dynamo as torch_dynamo
 import torch.nn as nn
 import torch.fx as fx
 from torch.fx.passes.utils.source_matcher_utils import  SourcePartition

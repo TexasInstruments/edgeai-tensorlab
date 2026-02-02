@@ -6,21 +6,24 @@ import math
 
 from .... import xnn
 from .utils import get_num_heads_head_dims
-
+from ...utils.helper_functions import get_class_string
 def is_depthwise(fx_model, source, source_partition):
-    if source not in [nn.Conv2d]:
+    if source not in [nn.Conv2d,get_class_string(nn.Conv2d) ]:
         return False
     FINAL_EXCEPTION = Exception(f'Still not Supported for {source}' and {type(source_partition)})
-    if source == nn.Conv2d:
+    if source in [nn.Conv2d, get_class_string(nn.Conv2d) ]:
         if isinstance(source_partition, SourcePartition):
-            weight_node = source_partition.nodes[0]
+            weight_node = source_partition.output_nodes[0].args[1]
         elif isinstance(source_partition,InternalMatch):
             weight_node = source_partition.nodes_map['_param_constant0']
         else:
             raise FINAL_EXCEPTION
     else:
         raise FINAL_EXCEPTION
-    weight = getattr(fx_model,weight_node.target)
+    modules = dict(fx_model.named_modules())
+    split = weight_node.target.rsplit('.',1)
+    parent, name = split if len(split) == 2 else ('', split[0])
+    weight = getattr(modules[parent], name)
     return weight.shape[1]==1
 
 

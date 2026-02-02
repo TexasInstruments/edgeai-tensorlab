@@ -226,7 +226,7 @@ def _replace_all_matches(main_module:GraphModule, pattern_partitions:list[Source
 
     def default_input_adjustment_func(partition:SourcePartition, inputs:dict[fx.Node,Any]):
         inputs = [inputs[node] for node in partition.input_nodes]
-        return inputs,{}
+        return tuple(inputs),{}
     
     global __net_module_replaced
     partition_module_map = {}

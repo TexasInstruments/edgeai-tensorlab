@@ -30,7 +30,6 @@
 #################################################################################
 
 import torch
-from torch import _dynamo as torch_dynamo
 from torch import nn , Tensor
 import random
 from types import FunctionType
@@ -141,6 +140,7 @@ class ReplacedModule(nn.Module):
                 self.inputs[node] = node.meta['example_value']
         self.module = self.gen_func(main_model,partition,aten_graph)
         example_inputs,example_kwargs =self.input_adjustment_func(partition,self.inputs)
+        example_inputs = tuple(example_inputs)
         if self.module is not None:
             x = None
             arg_tensors = [x for x in example_inputs if isinstance(x, torch.Tensor)]
@@ -160,7 +160,10 @@ class ReplacedModule(nn.Module):
             
         if trace_through and self.module is not None:
             try:
-                self.module, _ = torch_dynamo.export(self.module,aten_graph=aten_graph, pre_dispatch=pre_dispatch, assume_static_by_default=True)(*example_inputs,**example_kwargs)
+                check_guards = kwargs.get('check_guards', False)
+                self.module =torch.export.export(self.module,example_inputs, example_kwargs).module(check_guards=check_guards)
+                from ...utils.helper_functions import allow_exported_model_train_eval
+                allow_exported_model_train_eval(self.module)
                 num_inputs = len([node for node in self.module.graph.nodes if node.op == 'placeholder'])
                 out_nodes = [node for node in self.module.graph.nodes if node.op == 'output']
                 num_outputs = len(out_nodes[0].args[0])
