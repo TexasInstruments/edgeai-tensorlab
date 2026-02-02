@@ -103,7 +103,7 @@ class SparserModule(OptimizationBaseModule):
             raise NotImplementedError
         
         self.module = sparsity_func_wrapper.init(module, *args, example_inputs=example_inputs, example_kwargs=example_kwargs, sparsity_ratio=sparsity_ratio, total_epochs=total_epochs, p=p, sparsity_global=sparsity_global, copy_args=copy_args,
-            sparsity_type=sparsity_type, sparsity_init_train_ep=sparsity_init_train_ep, sparsity_m=sparsity_m, add_methods=add_methods, aten_graph=aten_graph, copy_attrs=copy_attrs, filter_func_register=filter_func_register, weight_func_register=weight_func_register, transformation_dict=transformation_dict, transformation_dict=transformation_dict, **kwargs)
+            sparsity_type=sparsity_type, sparsity_init_train_ep=sparsity_init_train_ep, sparsity_m=sparsity_m, add_methods=add_methods, aten_graph=aten_graph, copy_attrs=copy_attrs, filter_func_register=filter_func_register, weight_func_register=weight_func_register, transformation_dict=transformation_dict,**kwargs)
 
     #TODO pt2e implementation
     def get_layer_sparsity_ratio(self, sparsity_ratio=0.6):

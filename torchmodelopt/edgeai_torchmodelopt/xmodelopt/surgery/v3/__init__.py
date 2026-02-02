@@ -295,7 +295,7 @@ class SurgeryModule(OptimizationBaseModule):
         else:
             utils.add_example_args_kwargs(model,example_inputs=example_inputs, example_kwargs=example_kwargs, transformation_dict=self.transformation_dict)
         self.replacement_dict=replacement_dict or get_replacement_flag_dict_default()
-        self.module = wrapped_transformation_fn(convert_to_lite_pt2e, model, replacement_dict=self.replacement_dict, example_inputs= example_inputs, example_kwargs=example_kwargs, transformation_dict=self.transformation_dict,**kwargs)
+        self.module = wrapped_transformation_fn(convert_to_lite_pt2e, model, replacement_dict=replacement_dict, example_inputs= example_inputs, example_kwargs=example_kwargs, transformation_dict=transformation_dict,**kwargs)
 
     @classmethod
     def _add_attrs_to(cls, obj, attr_names=None):

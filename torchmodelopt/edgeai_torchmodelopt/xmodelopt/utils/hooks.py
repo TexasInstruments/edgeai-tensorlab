@@ -3,10 +3,8 @@ from torch import nn
 from .transformation_utils import wrapped_transformation_fn
 
 def detach_all_tensors(vals):
-    if isinstance(vals, tuple):
+    if isinstance(vals, (list, tuple)):
         return tuple([detach_all_tensors(v) for v in vals])
-    elif isinstance(vals, list):
-        return list([detach_all_tensors(v) for v in vals])
     elif isinstance(vals, dict):
         return {k: detach_all_tensors(v) for k, v in vals.items()}
     elif isinstance(vals, torch.Tensor):
