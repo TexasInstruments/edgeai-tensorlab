@@ -15,9 +15,10 @@ def pytest_addoption(parser):
     parser.addoption("--flow-control", type=int, default=-1)
     parser.addoption("--temp-buffer-dir", type=str, default="/dev/shm")
     parser.addoption("--temp-nc-dir", type=str, default="/tmp")
-    parser.addoption("--nmse-threshold", type=float, default=0.5)
+    parser.addoption("--nmse-threshold", type=float, default=-1)
     parser.addoption("--runtime", type=str, default="onnxrt")
     parser.addoption("--work-dir", type=str, default="")
+    parser.addoption("--disable-plot", action="store_true", default=False)
     parser.addoption("--test-file", type=str, default="")
 
 
@@ -46,8 +47,9 @@ def pytest_runtest_makereport(item, call):
     report.nmse = "-"
     report.mse = "-"
     report.max_delta = "-"
+    report.plot_data = None
     if report.when == 'call' or report.when == 'teardown':
-        # Parsing subgraphs]
+        # Parsing subgraphs
         if runtime == "onnxrt":
             num_subgraph_regex = re.search("Final number of subgraphs created are : ([0-9]*)", report.capstdout)
             if(num_subgraph_regex is None):
@@ -128,24 +130,71 @@ def pytest_runtest_makereport(item, call):
         if max_delta_regex:
             max_delta = max_delta_regex.group(1)
             report.max_delta = str(max_delta)
+            
+        # Extract plot data from the output
+        plot_data_regex = re.search(r'PLOT_BASE_64_PATH: (.+?)(?:\n|$)', report.capstdout)
+        if plot_data_regex:
+            plot_base64_path = plot_data_regex.group(1)
+            try:
+                with open(plot_base64_path, 'r') as f:
+                    report.plot_data = f.read().strip()
+            except Exception as e:
+                pass
+
+            if report.when == 'teardown':
+                try:
+                    dirname = os.path.dirname(plot_base64_path)
+                    os.remove(plot_base64_path)
+                    if not os.listdir(dirname):
+                        os.rmdir(dirname)
+                except Exception as e:
+                    pass
 
 # Inserts the TIDL Subgraphs table header
 def pytest_html_results_table_header(cells):
-    cells.insert(2, html.th("TIDL Subgraphs"))
-    cells.insert(3, html.th("Complete TIDL Offload"))
-    cells.insert(4, html.th("NMSE"))
-    cells.insert(5, html.th("MSE"))
-    cells.insert(6, html.th("Max Delta"))
+    # Remove Links column only (index 3)
+    if len(cells) > 3:
+        cells.pop(3)
+    cells.insert(3, html.th("TIDL Subgraphs"))
+    cells.insert(4, html.th("Complete TIDL Offload"))
+    cells.insert(5, html.th("Output Metrics"))
+    cells.insert(6, html.th("Output Plot"))
 
 # Inserts the number of TIDL subgraphs for each row
 def pytest_html_results_table_row(report, cells):
+    if len(cells) > 3:
+        cells.pop(3)
+
     if(hasattr(report,'tidl_subgraphs')):
-        cells.insert(2, html.td(report.tidl_subgraphs))
+        cells.insert(3, html.td(report.tidl_subgraphs))
     if(hasattr(report,'complete_tidl_offload')):
-        cells.insert(3, html.td(report.complete_tidl_offload))
-    if(hasattr(report,'nmse')):
-        cells.insert(4, html.td(report.nmse))
-    if(hasattr(report,'mse')):
-        cells.insert(5, html.td(report.mse))
-    if(hasattr(report,'max_delta')):
-        cells.insert(6, html.td(report.max_delta))
+        cells.insert(4, html.td(report.complete_tidl_offload))
+    
+    # Add output metrics if available
+    if(hasattr(report,'nmse') or hasattr(report,'mse') or hasattr(report,'max_delta')):
+        if report.nmse == '-' and report.mse == '-' and report.max_delta == '-':
+            cells.insert(5, html.td("-"))
+        else:
+            metrics = []
+            if(hasattr(report,'nmse')):
+                metrics.append(f"MAX NMSE: {report.nmse}")
+            if(hasattr(report,'mse')):
+                metrics.append(f"MAX MSE: {report.mse}")
+            if(hasattr(report,'max_delta')):
+                metrics.append(f"MAX DELTA: {report.max_delta}")
+            metrics_div = html.div()
+            for i, metric in enumerate(metrics):
+                metrics_div.append(html.p(metric, style="margin: 0;"))
+            cells.insert(5, html.td(metrics_div))
+    
+    # Add plot image if available
+    if hasattr(report, 'plot_data') and report.plot_data:
+        img_html = html.div(
+            html.img(src=f"data:image/png;base64,{report.plot_data}", 
+                    style="max-width:250px; cursor:pointer; margin:0; padding:0;",
+                    onclick="window.open(this.src)"),
+            style="text-align:center; margin:0; padding:0;"
+        )
+        cells.insert(6, html.td(img_html, style="text-align:center; margin:0; padding:0;"))
+    else:
+        cells.insert(6, html.td("-"))

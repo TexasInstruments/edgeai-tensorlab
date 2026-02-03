@@ -31,15 +31,62 @@ class TIDLUnitDataset(DatasetBase):
         in_counter     = 0
         out_counter    = 0
         onnx_model     = onnx.load(os.path.join(path,"model.onnx"))
+
+        # Check for input.npz and output.npz files in the test_data_set_0 directory
+        input_npz_path = os.path.join(test_data_set_0, "input.npz")
+        output_npz_path = os.path.join(test_data_set_0, "output.npz")
+        # If we have both input.npz and output.npz files, use them
+        if os.path.exists(input_npz_path) and os.path.exists(output_npz_path):
+            input_npz_data = np.load(input_npz_path)
+
+            # Get list of initializer names to skip them
+            initializer_names = [init.name for init in onnx_model.graph.initializer]
+
+            for i, input_info in enumerate(onnx_model.graph.input):
+                tensor_name = input_info.name
+
+                # Skip if this input is an initializer
+                if tensor_name in initializer_names:
+                    continue
+
+                if tensor_name in input_npz_data:
+                    self.inputs[tensor_name] = input_npz_data[tensor_name]
+                elif f"input_{i}" in input_npz_data:
+                    self.inputs[tensor_name] = input_npz_data[f"input_{i}"]
+                elif len(input_npz_data.files) == 1:
+                    self.inputs[tensor_name] = input_npz_data[input_npz_data.files[0]]
+                elif i < len(input_npz_data.files):
+                    self.inputs[tensor_name] = input_npz_data[input_npz_data.files[i]]
+                else:
+                    raise ValueError(f"Could not find input tensor {tensor_name} in input.npz")
+            
+            output_npz_data = np.load(output_npz_path)
+            for i, output_info in enumerate(onnx_model.graph.output):
+                tensor_name = output_info.name
+                if tensor_name in output_npz_data:
+                    self.expected_outputs[tensor_name] = output_npz_data[tensor_name]
+                elif f"output_{i}" in output_npz_data:
+                    self.expected_outputs[tensor_name] = output_npz_data[f"output_{i}"]
+                elif len(output_npz_data.files) == 1:
+                    self.expected_outputs[tensor_name] = output_npz_data[output_npz_data.files[0]]
+                elif i < len(output_npz_data.files):
+                    self.expected_outputs[tensor_name] = output_npz_data[output_npz_data.files[i]]
+                else:
+                    raise ValueError(f"Could not find output tensor {tensor_name} in output.npz")
+            
+            return
+        
+        # If no npz files, proceed with the original loading logic
         for fname in os.listdir(test_data_set_0):
             fpath = os.path.join(test_data_set_0, fname)
-            assert (os.path.splitext(fpath)[1] in [".pb",".bin"]), "Invalid file format - Allowed values are, protobuf(.pb), python list(.bin)"
-            if os.path.splitext(fpath)[1] == ".pb":
+            assert (os.path.splitext(fpath)[1] in [".pb", ".bin", ".npz"]), "Invalid file format - Allowed values are, protobuf(.pb), python list(.bin), numpy archive(.npz)"
+            file_ext = os.path.splitext(fpath)[1]
+            if file_ext == ".pb":
                 file_bytes               = open(fpath, mode = 'rb').read()
                 tensor                   = TensorProto.FromString(file_bytes)
                 np_array                 = numpy_helper.to_array((tensor))
                 tensor_name              = tensor.name 
-            elif os.path.splitext(fpath)[1] == ".bin":
+            elif file_ext == ".bin":
                 file_bytes               = open(fpath, mode = 'rb').read()
                 if("input_" in fname): 
                     tensor_info = onnx_model.graph.input[in_counter]
@@ -120,6 +167,8 @@ class TIDLUnitDataset(DatasetBase):
         nmse  = []
         mse   = []
         max_delta = []
+        outputs = []
+        expected_outputs = []
         epsilon  = 1e-10
         for out_name, output in output_dict.items():
             expected_output = self.expected_outputs.get(out_name)
@@ -163,6 +212,9 @@ class TIDLUnitDataset(DatasetBase):
             else:
                 max_delta.append(curr_max_delta)
 
+            outputs.append(output)
+            expected_outputs.append(expected_output)
+
             '''
             For TopK we only consider 1st output (Values) and not
             the 2nd output (Indices) because of internal inplementation
@@ -171,4 +223,9 @@ class TIDLUnitDataset(DatasetBase):
             if os.path.basename(os.path.normpath(self.path)).startswith("TopK"):
                 break
 
-        return {"nmse" : nmse, "mse" : mse, "delta" : max_delta}
+        return {"outputs" : outputs,
+                "expected_outputs" : expected_outputs,
+                "nmse" : nmse, 
+                "mse" : mse, 
+                "delta" : max_delta
+                }

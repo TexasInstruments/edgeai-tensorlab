@@ -144,9 +144,9 @@ for soc in sorted(os.listdir(reports_dir)):
 
                 if offload_val == "true":
                     num_offload += 1
-                    row.append("True")
+                    row.append("YES")
                 else:
-                    row.append("False")
+                    row.append("NO")
 
                 for key, _ in VARIANTS:
                     status, subg, offload = data[key].get(model, ("N/A", "", ""))

@@ -7,3 +7,5 @@ pytest-timeout
 pytest-html-merger
 bs4
 pandas
+PyYAML
+matplotlib

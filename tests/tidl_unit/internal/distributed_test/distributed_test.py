@@ -11,101 +11,6 @@ from tabulate import tabulate
 
 start_time = datetime.now()
 
-# Open and read the JSON file
-with open('distributed_test_config.json', 'r') as file:
-    pc_config = json.load(file)  # Parse JSON data into a Python dictionary
-
-# Access the data
-print(f"[INFO] {len(pc_config)} PCs found. Distributing tests across them...")
-
-ALL_OPERATORS = ["Abs", "Acos", "Acosh", "Add", "ArgMax", "ArgMin", "Asin", "Asinh", "Atan", \
-                "AveragePool", "BatchNormalization", "Clip", "Concat", "Conv", "ConvTranspose", \
-                "Cos", "Cosh", "DepthToSpace", "DequantizeLinear", "Div", "Dropout", "Elu", \
-                "Erf", "Exp", "Expand", "Flatten", "Floor", "Gather", "Gemm", "GlobalAveragePool", \
-                "GridSample", "HardSigmoid", "HardSwish", "Identity", "InstanceNormalization", \
-                "LayerNormalization", "LeakyRelu", "Log", "MatMul", "Max", "MaxPool", "Min", "Mish", \
-                "Mul", "Neg", "Pad", "Pow", "PRelu", "QuantizeLinear", "ReduceMax", "ReduceMean", \
-                "ReduceMin", "ReduceSum", "Relu", "Reshape", "Resize", "ScatterElements", "ScatterND", \
-                "Sigmoid", "Sin", "Sinh", "Slice", "Softmax", "SpaceToDepth", "Sqrt", "Squeeze", "Sub", \
-                "Sum", "Tan", "Tanh", "TopK", "Transpose", "Unsqueeze"]
-
-arguments_as_string = " ".join(sys.argv[1:])
-arguments_as_string = arguments_as_string.strip().split("--")
-
-OPERATORS = ''
-SPLIT_ACROSS_PC_OEPRATORS = ''
-EDGEAI_BENCHMARK_BRANCH = 'develop'
-TIDL_TOOLS_TARBALL = ''
-arguments_as_string_filtered = ''
-for i in arguments_as_string:
-    i = i.strip()
-    if i.startswith("operators="):
-        OPERATORS = i.split("=")[-1].strip()
-    elif i.startswith("split_across_pc="):
-        SPLIT_ACROSS_PC_OEPRATORS = i.split("=")[-1].strip()
-    elif i.startswith("edgeai_benchmark_branch="):
-        EDGEAI_BENCHMARK_BRANCH = i.split("=")[-1].strip()
-    elif i.startswith("tidl_tools_path="):
-        TIDL_TOOLS_TARBALL=i.split("=")[-1].strip()
-    elif i != '' and not i.startswith("temp_buffer_dir=") and not i.startswith("temp_nc_dir=") and not i.startswith("num_threads="):
-        arguments_as_string_filtered += f"--{i} "
-
-if OPERATORS == '':
-    OPERATORS = " ".join(ALL_OPERATORS)
-OPERATORS = OPERATORS.split()
-OPERATORS = list(set(OPERATORS))
-
-SPLIT_ACROSS_PC_OEPRATORS = SPLIT_ACROSS_PC_OEPRATORS.split()
-
-# Force operators to split across PC since they are huge tests
-SPLIT_ACROSS_PC_OEPRATORS += ["Conv", "Add", "Mul", "Div", "Resize", "Squeeze", "Unsqueeze",
-                              "Slice", "Transpose", "Reshape", "Sub", "InstanceNormalization"
-                              "BatchNormalization", "ScatterND"]
-
-SPLIT_ACROSS_PC_OEPRATORS = list(set(SPLIT_ACROSS_PC_OEPRATORS))
-
-# Remove from SPLIT_ACROSS_PC_OEPRATORS if it is not in operators under test
-for i in SPLIT_ACROSS_PC_OEPRATORS[:]:
-    if i not in OPERATORS:
-        SPLIT_ACROSS_PC_OEPRATORS.remove(i)
-
-# Remove pc_specific_operators if it is not in operators under test
-for pc, info in pc_config.items():
-    if "pc_specific_operators" in pc_config[pc]:
-        for i in pc_config[pc]["pc_specific_operators"][:]:
-            if i not in OPERATORS:
-                pc_config[pc]["pc_specific_operators"].remove(i)
-
-# Remove unused pc to avoid creating unecessary threads
-if len(SPLIT_ACROSS_PC_OEPRATORS) <= 0:
-    pc_config_keys_to_remove = []
-    for pc, info in pc_config.items():
-        if "pc_specific_operators" not in info or len(info['pc_specific_operators']) < 1:
-            pc_config_keys_to_remove.append(pc)
-    for key in pc_config_keys_to_remove:
-        if len(pc_config) <= len(OPERATORS):
-            break
-        del pc_config[key]
-
-# Remove SPLIT_ACROSS_PC_OEPRATORS from general Operators
-for i in SPLIT_ACROSS_PC_OEPRATORS:
-    if i in OPERATORS:
-        OPERATORS.remove(i)
-
-print(f"[INFO] Total operators to process: {len(OPERATORS) + len(SPLIT_ACROSS_PC_OEPRATORS)}")
-print(f"[INFO] Operators to run on single pc: {len(OPERATORS)} - {OPERATORS}")
-print(f"[INFO] Operators to split across multiple pc: {len(SPLIT_ACROSS_PC_OEPRATORS)} - {SPLIT_ACROSS_PC_OEPRATORS}")
-
-# Remove pc_specific_operators from SPLIT_ACROSS_PC_OEPRATORS and general operator queue
-for pc, info in pc_config.items():
-    if "pc_specific_operators" not in info:
-        continue
-    for i in info["pc_specific_operators"]:
-        if i in OPERATORS:
-            OPERATORS.remove(i)
-        if i in SPLIT_ACROSS_PC_OEPRATORS:
-            SPLIT_ACROSS_PC_OEPRATORS.remove(i)
-    
 def format_seconds_to_hhmmss(total_seconds):
     hours = int(total_seconds // 3600)
     minutes = int((total_seconds % 3600) // 60)
@@ -115,7 +20,7 @@ def format_seconds_to_hhmmss(total_seconds):
 def execute_scp_command(pc_name, command, timeout=300):
     """
     Copy from remote PC via SCP
-    
+
     Args:
         pc_name (str): The PC hostname/username combination
         command (str): The command to execute
@@ -150,7 +55,7 @@ def execute_scp_command(pc_name, command, timeout=300):
         return (pc_name, False, "", str(e))
 
 
-def execute_ssh_command(pc_name, command, timeout=300, command_type="command"):
+def execute_ssh_command(pc_name, command, timeout=300, command_type="command", verbose=True):
     """
     Execute a command on a remote PC via SSH
     
@@ -175,24 +80,179 @@ def execute_ssh_command(pc_name, command, timeout=300, command_type="command"):
         )
         
         if result.returncode == 0:
-            print(f"[SUCCESS][{pc_name}] {command_type} completed successfully")
+            if verbose == True:
+                print(f"[SUCCESS][{pc_name}] {command_type} completed successfully")
             return (pc_name, True, result.stdout, result.stderr)
         else:
-            print(f"[ERROR][{pc_name}] {command_type} failed with return code {result.returncode}")
+            if verbose == True:
+                print(f"[ERROR][{pc_name}] {command_type} failed with return code {result.returncode}")
             return (pc_name, False, result.stdout, result.stderr)
             
     except subprocess.TimeoutExpired:
-        print(f"[ERROR][{pc_name}] {command_type} timed out")
+        if verbose == True:
+            print(f"[ERROR][{pc_name}] {command_type} timed out")
         return (pc_name, False, "", "Command timed out")
     except Exception as e:
-        print(f"[ERROR][{pc_name}] Exception occurred while executing {command_type}: {str(e)}")
+        if verbose == True:
+            print(f"[ERROR][{pc_name}] Exception occurred while executing {command_type}: {str(e)}")
         return (pc_name, False, "", str(e))
+
+# Parse arguments
+arguments_as_string = " ".join(sys.argv[1:])
+arguments_as_string = arguments_as_string.strip().split("--")
+
+OPERATORS = ''
+RESTRICT_TO_SINGLE_PC_OEPRATORS = ''
+EDGEAI_BENCHMARK_BRANCH = 'develop'
+TIDL_TOOLS_TARBALL = ''
+PULL_TIDL_MODELS = '0'
+SETUP_EDGEAI_BENCHMARK = '0'
+arguments_as_string_filtered = ''
+for i in arguments_as_string:
+    i = i.strip()
+    if i.startswith("operators="):
+        OPERATORS = i.split("=")[-1].strip()
+    elif i.startswith("restrict_to_single_pc="):
+        RESTRICT_TO_SINGLE_PC_OEPRATORS = i.split("=")[-1].strip()
+    elif i.startswith("edgeai_benchmark_branch="):
+        EDGEAI_BENCHMARK_BRANCH = i.split("=")[-1].strip()
+    elif i.startswith("tidl_tools_path="):
+        TIDL_TOOLS_TARBALL=i.split("=")[-1].strip()
+    elif i.startswith("pull_tidl_models="):
+        PULL_TIDL_MODELS=i.split("=")[-1].strip()
+    elif i.startswith("setup_edgeai_benchmark="):
+        SETUP_EDGEAI_BENCHMARK=i.split("=")[-1].strip()
+    elif i != '' and not i.startswith("temp_buffer_dir=") and not i.startswith("temp_nc_dir=") and not i.startswith("num_threads="):
+        arguments_as_string_filtered += f"--{i} "
+
+# Open and read the JSON file
+with open('distributed_test_config.json', 'r') as file:
+    pc_config = json.load(file)  # Parse JSON data into a Python dictionary
+
+# Access the data
+print(f"[INFO] {len(pc_config)} PCs found.")
+
+# Validate
+print(f"[INFO] Running validation command for all PCs")
+for pc_name in list(pc_config.keys()):
+    pc_info = pc_config[pc_name]
+
+    tidl_models_dir = pc_info['tidl_models_dir']
+    validation_command = f"git -C {tidl_models_dir} rev-parse"
+    validation_result = execute_ssh_command(pc_name, validation_command, timeout=300, command_type="validation_command", verbose=False)
+    _, validation_success, validation_stdout, validation_stderr = validation_result
+    if not validation_success:
+        print(f"[WARNING][{pc_name}] Validation for tidl_models failed. Removing {pc_name} from executers.")
+        del pc_config[pc_name]
+        continue        
+
+    edgeai_benchmark_dir = pc_info['edgeai_benchmark_dir']
+    validation_command = f"git -C {edgeai_benchmark_dir} rev-parse"
+    validation_result = execute_ssh_command(pc_name, validation_command, timeout=300, command_type="validation_command", verbose=False)
+    _, validation_success, validation_stdout, validation_stderr = validation_result
+    if not validation_success:
+        print(f"[WARNING][{pc_name}] Validation for edgeai-benchmark failed. Removing {pc_name} from executers.")
+        del pc_config[pc_name]
+
+# Setup tidl_models and edgeai-benchmark if specified
+executors_to_remove = []
+def setup_pc(pc_name, pc_info):
+    global executors_to_remove
+    if PULL_TIDL_MODELS == '1':
+        tidl_models_dir = pc_info['tidl_models_dir']
+        tidl_models_pull_command = f"cd {tidl_models_dir} && git stash && git pull && git lfs pull"
+        print(f"[INFO][{pc_name}] Pulling tip for tidl_models: {tidl_models_pull_command}")
+        tidl_models_pull_result = execute_ssh_command(pc_name, tidl_models_pull_command, timeout=7200, command_type="tidl_models_pull_command")
+        _, tidl_models_pull_success, tidl_models_pull_stdout, tidl_models_pull_stderr = tidl_models_pull_result
+        if not tidl_models_pull_success:
+            print(f"[WARNING][{pc_name}] Pulling tip for tidl_models failed.")
+    
+    if SETUP_EDGEAI_BENCHMARK == '1':
+        edgeai_benchmark_dir = pc_info['edgeai_benchmark_dir']
+        pyenv = pc_info['pyenv']
+        eai_setup_command = f"cd {edgeai_benchmark_dir} && git fetch --all && git reset --hard origin/{EDGEAI_BENCHMARK_BRANCH} && source {pyenv} && export HTTPS_PROXY=http://wwwinproxy.itg.ti.com:80 && export https_proxy=http://wwwinproxy.itg.ti.com:80 && export HTTP_PROXY=http://wwwinproxy.itg.ti.com:80 && export http_proxy=http://wwwinproxy.itg.ti.com:80 && export ftp_proxy=http://wwwinproxy.itg.ti.com:80 && export FTP_PROXY=http://wwwinproxy.itg.ti.com:80 && export no_proxy=ti.com  && ssh-keyscan -H bitbucket.itg.ti.com >> ~/.ssh/known_hosts && ./setup_pc.sh && pip3 install -r {edgeai_benchmark_dir}/tests/tidl_unit/requirements.txt"
+        print(f"[INFO][{pc_name}] Setting up edgeai-benchmark: {eai_setup_command}")
+        eai_setup_result = execute_ssh_command(pc_name, eai_setup_command, timeout=1800, command_type="eai_setup_command")
+        _, eai_setup_success, eai_setup_stdout, eai_setup_stderr = eai_setup_result
+        if not eai_setup_success:
+            print(f"[WARNING][{pc_name}] Setting up edgeai-benchmark failed. Removing {pc_name} from executers.")
+            executors_to_remove.append(pc_name)
+        
+        test_data_dir = os.path.join(edgeai_benchmark_dir, "tests/tidl_unit/tidl_unit_test_data")
+        tidl_models_dir = pc_info['tidl_models_dir']
+        soft_link_command = f"cd {test_data_dir} && ln -sf {tidl_models_dir}/unitTest/onnx/tidl_unit_test_assets/operators ./ && ln -sf {tidl_models_dir}/unitTest/onnx/tidl_unit_test_assets/configs ./"
+        print(f"[INFO][{pc_name}] Soft linking tidl_models to tidl_unit_test_assets: {soft_link_command}")
+        soft_link_result = execute_ssh_command(pc_name, soft_link_command, timeout=300, command_type="soft_link_command")
+        _, soft_link_success, soft_link_stdout, soft_link_stderr = soft_link_result
+        if not soft_link_success:
+            print(f"[WARNING][{pc_name}] Soft linking tidl_models to tidl_unit_test_assets failed. Removing {pc_name} from executers.")
+            executors_to_remove.append(pc_name)
+
+if PULL_TIDL_MODELS == '1' or SETUP_EDGEAI_BENCHMARK == '1':
+    active_threads = []
+    for pc_name, pc_info in pc_config.items():
+        # Create thread
+        thread = threading.Thread(
+            target=setup_pc,
+            args=(pc_name, pc_info),
+            name=f"{pc_name}"
+        )
+        thread.daemon = True
+        active_threads.append(thread)
+        thread.start()
+
+    # Wait for all threads to complete
+    print(f"[INFO] Waiting for all {len(active_threads)} threads to complete the setup...")
+    for thread in active_threads:
+        thread.join()
+    
+    for pc_name in executors_to_remove:
+        del pc_config[pc_name]
+
+print(f"\nRunning on {len(pc_config)} PCs:")
+for pc_name in pc_config:
+    print(pc_name)
+print("\n")
+
+ALL_OPERATORS = ["Abs", "Acos", "Acosh", "Add", "ArgMax", "ArgMin", "Asin", "Asinh", "Atan", \
+                "AveragePool", "BatchNormalization", "Clip", "Concat", "Conv", "ConvTranspose", \
+                "Cos", "Cosh", "DepthToSpace", "DequantizeLinear", "Div", "Dropout", "Elu", \
+                "Erf", "Exp", "Expand", "Flatten", "Floor", "Gather", "Gemm", "GlobalAveragePool", \
+                "GridSample", "HardSigmoid", "HardSwish", "Identity", "InstanceNormalization", \
+                "LayerNormalization", "LeakyRelu", "Log", "MatMul", "Max", "MaxPool", "Min", "Mish", \
+                "Mul", "Neg", "Pad", "Pow", "PRelu", "QuantizeLinear", "ReduceMax", "ReduceMean", \
+                "ReduceMin", "ReduceSum", "Relu", "Reshape", "Resize", "ScatterElements", "ScatterND", \
+                "Sigmoid", "Sin", "Sinh", "Slice", "Softmax", "SpaceToDepth", "Sqrt", "Squeeze", "Sub", \
+                "Sum", "Tan", "Tanh", "TopK", "Transpose", "Unsqueeze"]
+
+
+if OPERATORS == '':
+    OPERATORS = " ".join(ALL_OPERATORS)
+OPERATORS = OPERATORS.split()
+OPERATORS = list(set(OPERATORS))
+
+RESTRICT_TO_SINGLE_PC_OEPRATORS = RESTRICT_TO_SINGLE_PC_OEPRATORS.split()
+
+# By default split all operators across PC
+SPLIT_ACROSS_PC_OEPRATORS = list(set(ALL_OPERATORS))
+
+# Remove from SPLIT_ACROSS_PC_OEPRATORS if it is not in operators under test
+for i in SPLIT_ACROSS_PC_OEPRATORS[:]:
+    if i not in OPERATORS:
+        SPLIT_ACROSS_PC_OEPRATORS.remove(i)
+
+# Remove pc_specific_operators if it is not in operators under test
+for pc, info in pc_config.items():
+    if "pc_specific_operators" in pc_config[pc]:
+        for i in pc_config[pc]["pc_specific_operators"][:]:
+            if i not in OPERATORS:
+                pc_config[pc]["pc_specific_operators"].remove(i)
 
 # Query for all tests in SPLIT_ACROSS_PC_OEPRATORS by looking into one of the PC
 SPLIT_ACROSS_PC_OEPRATORS_TESTS=[]
 for i in SPLIT_ACROSS_PC_OEPRATORS[:]:
     pc_name = list(pc_config.keys())[0]
-    test_dir = pc_config[pc_name]["test_dir"]
+    test_dir = os.path.join(pc_config[pc_name]["edgeai_benchmark_dir"], "tests/tidl_unit/internal")
     query_command = "find " + test_dir + "/../tidl_unit_test_data/operators/" + i +" -maxdepth 1 -type d -not -name '.' -exec basename {} \;"
     print(f"[INFO][{pc_name}] Running Query command for {i}: {query_command}")
     query_result = execute_ssh_command(pc_name, query_command, timeout=300, command_type="query_command")
@@ -204,17 +264,54 @@ for i in SPLIT_ACROSS_PC_OEPRATORS[:]:
             j = j.strip()
             if j.startswith(i) and i != j:
                 temp.append(j)
-        if len(temp) > 0:
+        # Do not split if total tests for the operator are less (currently < twice of #pcs) - to avoid (pytest + ssh) overhead
+        if len(temp) < (2 * len(pc_config)):
+            RESTRICT_TO_SINGLE_PC_OEPRATORS += [i]
+        elif len(temp) > 0:
             SPLIT_ACROSS_PC_OEPRATORS_TESTS.append(temp)
     else:
         print(f"[WARNING][{pc_name}] Query for {i} failed. Not splitting across PC.")
         SPLIT_ACROSS_PC_OEPRATORS.remove(i)
         OPERATORS.append(i)
 
+# Remove from SPLIT_ACROSS_PC_OEPRATORS if it is present in RESTRICT_TO_SINGLE_PC_OEPRATORS
+for i in RESTRICT_TO_SINGLE_PC_OEPRATORS[:]:
+    if i in SPLIT_ACROSS_PC_OEPRATORS:
+        SPLIT_ACROSS_PC_OEPRATORS.remove(i)
+
+# Remove pc_specific_operators from SPLIT_ACROSS_PC_OEPRATORS and general operator queue
+for pc, info in pc_config.items():
+    if "pc_specific_operators" not in info:
+        continue
+    for i in info["pc_specific_operators"]:
+        if i in OPERATORS:
+            OPERATORS.remove(i)
+        if i in SPLIT_ACROSS_PC_OEPRATORS:
+            SPLIT_ACROSS_PC_OEPRATORS.remove(i)
+
+# Remove unused pc to avoid creating unecessary threads
+if len(SPLIT_ACROSS_PC_OEPRATORS) <= 0:
+    pc_config_keys_to_remove = []
+    for pc, info in pc_config.items():
+        if "pc_specific_operators" not in info or len(info['pc_specific_operators']) < 1:
+            pc_config_keys_to_remove.append(pc)
+    for key in pc_config_keys_to_remove:
+        if len(pc_config) <= len(OPERATORS):
+            break
+        del pc_config[key]
+
+# Remove SPLIT_ACROSS_PC_OEPRATORS from general Operators
+for i in SPLIT_ACROSS_PC_OEPRATORS:
+    if i in OPERATORS:
+        OPERATORS.remove(i)
+
+print(f"[INFO] Total operators to process: {len(OPERATORS) + len(SPLIT_ACROSS_PC_OEPRATORS)}")
+print(f"[INFO] Operators to run on single pc: {len(OPERATORS)} - {OPERATORS}")
+print(f"[INFO] Operators to split across multiple pc: {len(SPLIT_ACROSS_PC_OEPRATORS)} - {SPLIT_ACROSS_PC_OEPRATORS}")
+
 for i in range(len(SPLIT_ACROSS_PC_OEPRATORS_TESTS)):
     n = len(pc_config)
     chunk_size = max(1, len(SPLIT_ACROSS_PC_OEPRATORS_TESTS[i]) // n)
-    split_list = []
 
     SPLIT_ACROSS_PC_OEPRATORS_TESTS[i] = [SPLIT_ACROSS_PC_OEPRATORS_TESTS[i][j:j + chunk_size] for j in range(0, len(SPLIT_ACROSS_PC_OEPRATORS_TESTS[i]), chunk_size)]
 
@@ -239,7 +336,7 @@ def get_next_operator():
 
 split_across_pc_operators_queue = SPLIT_ACROSS_PC_OEPRATORS_TESTS.copy()
 split_across_pc_operators_lock = threading.Lock()
-def get_next_split_across_pc_operator():
+def get_next_split_across_pc_operator(num_threads = 8):
     """
     Get the next operator from the queue in a thread-safe manner
 
@@ -250,11 +347,35 @@ def get_next_split_across_pc_operator():
 
     with split_across_pc_operators_lock:
         if split_across_pc_operators_queue and len(split_across_pc_operators_queue) > 0:
-            if len(split_across_pc_operators_queue[0]) <= 0:
+            while split_across_pc_operators_queue and len(split_across_pc_operators_queue[0]) <= 0:
                 split_across_pc_operators_queue.pop(0)
+
             if split_across_pc_operators_queue and split_across_pc_operators_queue[0] and len(split_across_pc_operators_queue[0]) > 0:
-                operator = split_across_pc_operators_queue[0].pop(0)
-                return operator
+                if len(split_across_pc_operators_queue[0][0]) < num_threads:
+                    tests_needed = num_threads - len(split_across_pc_operators_queue[0][0])
+                    next_chunk_idx = 1
+                    elements_to_move = []
+                    # Try to get tests_needed from the next available chunk
+                    while tests_needed > 0 and next_chunk_idx < len(split_across_pc_operators_queue[0]):
+                        # If next chunk has elements to spare
+                        if len(split_across_pc_operators_queue[0][next_chunk_idx]) > 0:
+                            # Determine how many elements we can take
+                            tests_to_take = min(tests_needed, len(split_across_pc_operators_queue[0][next_chunk_idx]))
+                            # Take elements from the next chunk
+                            elements_to_move = split_across_pc_operators_queue[0][next_chunk_idx][:tests_to_take]
+                            split_across_pc_operators_queue[0][0].extend(elements_to_move)
+                            split_across_pc_operators_queue[0][next_chunk_idx] = split_across_pc_operators_queue[0][next_chunk_idx][tests_to_take:]
+
+                            # Update how many more elements are needed
+                            tests_needed -= tests_to_take
+
+                        next_chunk_idx += 1
+
+                    # Remove empty chunks from queue
+                    split_across_pc_operators_queue[0] = [chunk for chunk in split_across_pc_operators_queue[0] if len(chunk) > 0]
+
+                chunk = split_across_pc_operators_queue[0].pop(0)
+                return chunk
             else:
                 return None
         else:
@@ -293,10 +414,9 @@ def execute_pc_commands(pc_name, pc_info, log_path, result_path):
     
     try:
         # Create setup command dynamically
-        test_dir = pc_info["test_dir"]
+        test_dir = os.path.join(pc_config[pc_name]["edgeai_benchmark_dir"], "tests/tidl_unit/internal")
         pyenv = pc_info["pyenv"]
-
-        setup_command = f"cd {test_dir}/../ && git clean -fxd -e 'tidl_unit_test_data' && cd {test_dir} && git stash && git checkout {EDGEAI_BENCHMARK_BRANCH} && git fetch && git pull --rebase && rm -rf {test_dir}/operator_test_reports/*"
+        setup_command = f"cd {test_dir}/../ && git clean -fxd -e 'tidl_unit_test_data' && cd {test_dir} && git fetch --all && git reset --hard origin/{EDGEAI_BENCHMARK_BRANCH} && rm -rf {test_dir}/operator_test_reports/*"
         if  TIDL_TOOLS_TARBALL != '':
             setup_command = f"{setup_command} && rm -rf tidl_tools_tarball && wget -q -O tidl_tools_tarball {TIDL_TOOLS_TARBALL}"
         print(f"[INFO][{pc_name}] Running Setup command : {setup_command}")
@@ -345,7 +465,7 @@ def execute_pc_commands(pc_name, pc_info, log_path, result_path):
 
                     # Get from split_across_pc queue if general operator queue is done
                     if operator is None:
-                        operator = get_next_split_across_pc_operator()
+                        operator = get_next_split_across_pc_operator(pc_info["num_threads"])
                         if operator is None or len(operator) <= 0:
                             operator = None
                         else:

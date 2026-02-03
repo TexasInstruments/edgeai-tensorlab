@@ -10,16 +10,14 @@ import glob
 import shutil
 import numpy as np
 import onnxruntime
+import yaml
+from .unit_test_utils import generate_plot
 
 '''
 Pytest file for TIDL Unit tests
-Note: Pass in --disable-tidl-offload to pytest command in order to disable TIDL offload
-Note: Pass in --no-subprocess to disable running the test in a subprocess
-Note: Pass in --run-infer to pytest command in order to run inference (default is import which must be done first)
-Note: Pass in --exit-on-critical-error to pytest command in order to exit on critical error
-Note: Pass in --flow-control to pytest command in order to run with mentioned flow control (default is 1 (REF))
-Note: Pass in --temp-buffer-dir to pytest command in order to to redirect temporary buffers (default is /dev/shm)
-Note: Pass in --runtime=<runtime> in order to select the compiler runtime to be used. Valid values: (onnxrt, tvmrt)
+Available test suites:
+- test_tidl_unit_operator: Run tests for individual operators
+- test_tidl_unit_model: Run tests for full model
 '''
 
 import logging
@@ -28,11 +26,16 @@ logger.setLevel("INFO")
 
 # Find tidl unit test root
 operator_tests_root = "tidl_unit_test_data/operators/"
+model_tests_root = "tidl_unit_test_data/models/"
 
 # Fixtures to pass root dirs to tests
 @pytest.fixture
 def operator_tests_root_fixture():
     return operator_tests_root
+
+@pytest.fixture
+def model_tests_root_fixture():
+    return model_tests_root
 
 @pytest.fixture(scope="session")
 def tidl_offload(pytestconfig):
@@ -79,10 +82,17 @@ def work_dir(pytestconfig):
     return pytestconfig.getoption("work_dir")
 
 @pytest.fixture(scope="session")
+def disable_plot(pytestconfig):
+    return pytestconfig.getoption("disable_plot")
+
+@pytest.fixture(scope="session")
 def test_file(pytestconfig):
     return pytestconfig.getoption("test_file")
 
-def retrieve_tests_operator(root_dir, test_file = None):
+def retrieve_tests(root_dir, test_file = None):
+    if not os.path.exists(root_dir):
+        return [], []
+
     subdir = os.listdir(root_dir)
     all_tests = []
     all_tests_parent_dir = []
@@ -117,7 +127,8 @@ def retrieve_tests_operator(root_dir, test_file = None):
     return tests_with_expected_fails_marked, all_tests_parent_dir
 
 # Get all tests initially
-operator_tests_to_run, operator_tests_parent_dir = retrieve_tests_operator(operator_tests_root)
+operator_tests_to_run, operator_tests_parent_dir = retrieve_tests(operator_tests_root)
+model_tests_to_run, model_tests_parent_dir = retrieve_tests(model_tests_root)
 
 # Store test-specific parent directories
 test_parent_dirs = {}
@@ -135,9 +146,19 @@ def pytest_generate_tests(metafunc):
         # Get the test_file fixture value
         test_file_path = metafunc.config.getoption("test_file")
 
+        # Determine which test suite to use based on the test function name
+        if metafunc.function.__name__ == 'test_tidl_unit_model':
+            tests_to_use = model_tests_to_run
+            tests_parent_dir_to_use = model_tests_parent_dir
+            test_root = model_tests_root
+        else: 
+            tests_to_use = operator_tests_to_run
+            tests_parent_dir_to_use = operator_tests_parent_dir
+            test_root = operator_tests_root
+
         # If a test file is provided, filter the tests
         if test_file_path:
-            filtered_tests, filtered_parent_dirs = retrieve_tests_operator(operator_tests_root, test_file_path)
+            filtered_tests, filtered_parent_dirs = retrieve_tests(test_root, test_file_path)
 
             # Update the test_parent_dirs dictionary with the filtered tests
             for i, test in enumerate(filtered_tests):
@@ -148,16 +169,16 @@ def pytest_generate_tests(metafunc):
 
             metafunc.parametrize("test_name", filtered_tests)
         else:
-            for i, test in enumerate(operator_tests_to_run):
+            for i, test in enumerate(tests_to_use):
                 if isinstance(test, str):
-                    test_parent_dirs[test] = operator_tests_parent_dir[i]
+                    test_parent_dirs[test] = tests_parent_dir_to_use[i]
                 else:  # Handle pytest.param objects
-                    test_parent_dirs[test.values[0]] = operator_tests_parent_dir[i]
+                    test_parent_dirs[test.values[0]] = tests_parent_dir_to_use[i]
 
-            metafunc.parametrize("test_name", operator_tests_to_run)
+            metafunc.parametrize("test_name", tests_to_use)
 
 # Test TIDL operator unit test
-def test_tidl_unit_operator(no_subprocess : bool, tidl_offload : bool, run_infer : bool, work_dir : str, exit_on_critical_error : bool, flow_control : int, temp_buffer_dir : str, temp_nc_dir : str, nmse_threshold : float, runtime : str, timeout : int, operator_tests_root_fixture : str, test_name : str):
+def test_tidl_unit_operator(no_subprocess : bool, tidl_offload : bool, run_infer : bool, work_dir : str, disable_plot : bool, exit_on_critical_error : bool, flow_control : int, temp_buffer_dir : str, temp_nc_dir : str, nmse_threshold : float, runtime : str, timeout : int, operator_tests_root_fixture : str, test_name : str):
     '''
     Pytest for tidl unit operator tests using the edgeai-benchmark framework
     '''
@@ -179,6 +200,7 @@ def test_tidl_unit_operator(no_subprocess : bool, tidl_offload : bool, run_infer
                       tidl_offload    = tidl_offload, 
                       run_infer       = run_infer, 
                       work_dir        = work_dir,
+                      disable_plot    = disable_plot,
                       flow_control    = flow_control,
                       temp_buffer_dir = temp_buffer_dir,
                       temp_nc_dir     = temp_nc_dir,
@@ -189,7 +211,41 @@ def test_tidl_unit_operator(no_subprocess : bool, tidl_offload : bool, run_infer
                       testdir_parent  = testdir_parent,
                       runtime         = runtime)
 
-def perform_tidl_unit(no_subprocess : bool, tidl_offload : bool, run_infer : bool, work_dir : str, flow_control : int, temp_buffer_dir : str, temp_nc_dir : str, nmse_threshold : float, runtime : str, timeout : int, testdir_parent : str, test_name : str, test_suite : str):
+# Test TIDL full model unit test
+def test_tidl_unit_model(no_subprocess : bool, tidl_offload : bool, run_infer : bool, work_dir : str, disable_plot : bool, exit_on_critical_error : bool, flow_control : int, temp_buffer_dir : str, temp_nc_dir : str, nmse_threshold : float, runtime : str, timeout : int, model_tests_root_fixture : str, test_name : str):
+    '''
+    Pytest for tidl unit full model tests using the edgeai-benchmark framework
+    '''
+    # Get the parent directory for this test from the test_parent_dirs dictionary
+    if test_name in test_parent_dirs:
+        testdir_parent = test_parent_dirs[test_name]
+    else:
+        # Fallback to the old method if not found in the dictionary
+        testdir_parent = model_tests_root_fixture
+        for i in range(len(model_tests_to_run)):
+            if isinstance(model_tests_to_run[i], str) and model_tests_to_run[i] == test_name:
+                testdir_parent = model_tests_parent_dir[i]
+                break
+            elif hasattr(model_tests_to_run[i], 'values') and model_tests_to_run[i].values[0] == test_name:
+                testdir_parent = model_tests_parent_dir[i]
+                break
+
+    perform_tidl_unit(no_subprocess   = no_subprocess,
+                      tidl_offload    = tidl_offload, 
+                      run_infer       = run_infer, 
+                      work_dir        = work_dir,
+                      disable_plot    = disable_plot,
+                      flow_control    = flow_control,
+                      temp_buffer_dir = temp_buffer_dir,
+                      temp_nc_dir     = temp_nc_dir,
+                      nmse_threshold  = nmse_threshold,
+                      timeout         = timeout,
+                      test_name       = test_name,
+                      test_suite      = "model",
+                      testdir_parent  = testdir_parent,
+                      runtime         = runtime)
+
+def perform_tidl_unit(no_subprocess : bool, tidl_offload : bool, run_infer : bool, work_dir : str, disable_plot : bool, flow_control : int, temp_buffer_dir : str, temp_nc_dir : str, nmse_threshold : float, runtime : str, timeout : int, testdir_parent : str, test_name : str, test_suite : str):
     '''
     Performs an tidl unit test
     '''
@@ -198,6 +254,7 @@ def perform_tidl_unit(no_subprocess : bool, tidl_offload : bool, run_infer : boo
         perform_tidl_unit_oneprocess(tidl_offload       = tidl_offload, 
                                      run_infer          = run_infer, 
                                      work_dir           = work_dir,
+                                     disable_plot       = disable_plot,
                                      flow_control       = flow_control,
                                      temp_buffer_dir    = temp_buffer_dir,
                                      temp_nc_dir        = temp_nc_dir,
@@ -210,6 +267,7 @@ def perform_tidl_unit(no_subprocess : bool, tidl_offload : bool, run_infer : boo
         perform_tidl_unit_subprocess(tidl_offload    = tidl_offload, 
                                      run_infer       = run_infer,
                                      work_dir        = work_dir,
+                                     disable_plot    = disable_plot,
                                      flow_control    = flow_control,
                                      temp_buffer_dir = temp_buffer_dir,
                                      temp_nc_dir     = temp_nc_dir,
@@ -222,7 +280,7 @@ def perform_tidl_unit(no_subprocess : bool, tidl_offload : bool, run_infer : boo
         
 
 
-def perform_tidl_unit_subprocess(tidl_offload : bool, run_infer : bool, work_dir : str, flow_control : int, temp_buffer_dir : str, temp_nc_dir : str, nmse_threshold : float, runtime : str, timeout : int, test_name : str, test_suite : str, testdir_parent : str):
+def perform_tidl_unit_subprocess(tidl_offload : bool, run_infer : bool, work_dir : str, disable_plot : bool, flow_control : int, temp_buffer_dir : str, temp_nc_dir : str, nmse_threshold : float, runtime : str, timeout : int, test_name : str, test_suite : str, testdir_parent : str):
     '''
     Perform an tidl unit test using a subprocess (in order to properly capture output for fatal errors)
     Called by perform_tidl_unit
@@ -231,6 +289,7 @@ def perform_tidl_unit_subprocess(tidl_offload : bool, run_infer : bool, work_dir
     kwargs = {"tidl_offload"      : tidl_offload, 
               "run_infer"         : run_infer, 
               "work_dir"          : work_dir,
+              "disable_plot"      : disable_plot,
               "flow_control"      : flow_control,
               "temp_buffer_dir"   : temp_buffer_dir,
               "temp_nc_dir"       : temp_nc_dir,
@@ -257,7 +316,7 @@ def perform_tidl_unit_subprocess(tidl_offload : bool, run_infer : bool, work_dir
     assert p.exitcode == 0, f"Received nonzero exit code: {p.exitcode}"
 
 # Utility function to perform tidl unit test
-def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, work_dir : str, flow_control : int, temp_buffer_dir : str, temp_nc_dir : str, nmse_threshold : float, runtime : str, test_name : str, test_suite : str, testdir_parent : str):
+def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, work_dir : str, disable_plot : bool, flow_control : int, temp_buffer_dir : str, temp_nc_dir : str, nmse_threshold : float, runtime : str, test_name : str, test_suite : str, testdir_parent : str):
     '''
     Perform an tidl unit test using without a subprocess wrapper
     Called by perform_tidl_unit_subprocess or directly by perform_tidl_unit if no_subprocess is specified
@@ -280,8 +339,13 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, work_dir
         session_name = constants.SESSION_NAME_TVMRT
     else:
         raise ValueError("Runtimes currently supported are onnxrt and tvmrt")
+    
+    # Parse model file and run shape inference
     model_file       = os.path.join(test_dir, "model.onnx")
     onnx.shape_inference.infer_shapes_path(model_file, model_file)
+
+    specific_config_file = os.path.join(test_dir, "config.yaml")
+    common_config_file = os.path.join(os.path.join(test_dir, "../"), "config.yaml")
 
     # Create necessary directory
     if work_dir == "":
@@ -299,14 +363,63 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, work_dir
         logger.debug("Inferring")
         settings.run_import    = False
         settings.run_inference = True
+
+        # Set inference options
         runtime_options  = settings.get_runtime_options(session_name, is_qat=False, debug_level = 0)
-        runtime_options["advanced_options:quantization_scale_type"] = constants.QUANTScaleType.QUANT_SCALE_TYPE_NP2_PERCHAN
         runtime_options["onnxruntime:graph_optimization_level"] = onnxruntime.GraphOptimizationLevel.ORT_DISABLE_ALL
         runtime_options["onnxruntime:intra_op_num_threads"] = 1
+
+        # For model try parsing the compilation options from config.yaml if present
+        if test_suite == "model":
+            runtime_options["onnxruntime:graph_optimization_level"] = onnxruntime.GraphOptimizationLevel.ORT_ENABLE_ALL
+    
+            common_config = None
+            if os.path.exists(common_config_file):
+                with open(common_config_file, "r") as f:
+                    try:
+                        common_config = yaml.safe_load(f)
+                    except Exception as e:
+                        print(f"\n[WARN] Could not load {common_config_file}\n")
+
+            specific_config = None
+            if os.path.exists(specific_config_file):
+                with open(specific_config_file, "r") as f:
+                    try:
+                        specific_config = yaml.safe_load(f)
+                    except Exception as e:
+                        print(f"\n[WARN] Could not load {specific_config_file}\n")
+
+            if common_config:
+                if 'infer_options' in common_config:
+                    runtime_options.update(common_config['infer_options'])
+
+            if specific_config:
+                if 'infer_options' in specific_config:
+                    runtime_options.update(specific_config['infer_options'])
+                if 'models' in specific_config:
+                    for _,val in specific_config['models'].items():
+                        if 'disable_onnx_optimizer' in val and val['disable_onnx_optimizer'] == 1:
+                            runtime_options["onnxruntime:graph_optimization_level"] = onnxruntime.GraphOptimizationLevel.ORT_DISABLE_ALL
+                        if 'nmse_threshold' in val and nmse_threshold < 0:
+                            nmse_threshold = val['nmse_threshold']
+                        break
+
+        # Overwrite with provided args 
+        runtime_options["tensor_bits"] = settings.tensor_bits
         runtime_options["advanced_options:temp_buffer_dir"] = temp_buffer_dir
         if flow_control != -1:
             runtime_options["advanced_options:flow_ctrl"] = flow_control
 
+        if  nmse_threshold < 0:
+            nmse_threshold = 0.5 # Default NMSE Threshold value
+
+        if (tidl_offload == True):
+            print("TIDL Offload Enabled\n")
+        else:
+            print("TIDL Offload Disabled\n")
+        print(f"NMSE Threshold:\n{nmse_threshold}\n")
+
+        # Initialize runtime and run
         if runtime == "onnxrt":
             runtime_wrapper = core.ONNXRuntimeWrapper(runtime_options=runtime_options,
                                                       model_file=model_file,
@@ -340,9 +453,11 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, work_dir
         print(f"\tDDR Write Bandwidth (MB/s)            :   {stats['write_total']:.2f}")
         print()
 
-        nmse  = tidl_unit_dataset.evaluate(results_list)['nmse']
-        mse   = tidl_unit_dataset.evaluate(results_list)['mse']
-        delta = tidl_unit_dataset.evaluate(results_list)['delta']
+        # Get evaluation metrics
+        eval_results = tidl_unit_dataset.evaluate(results_list)
+        nmse = eval_results['nmse']
+        mse = eval_results['mse']
+        delta = eval_results['delta']
 
         if any(x is None for x in nmse):
             max_nmse = None
@@ -374,6 +489,13 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, work_dir
         else:
             print("MAX_DELTA: {:.7f}".format(max_delta))
 
+        # Generate plots comparing reference and actual outputs
+        if (not disable_plot):
+            plots_dir = os.path.join(run_dir, 'plots')
+            os.makedirs(plots_dir, exist_ok=True)
+            _, plot_base64_path = generate_plot(eval_results, plots_dir, test_name, save_image = False)
+            print(f"PLOT_BASE_64_PATH: {plot_base64_path}")
+
         # max_nmse can be none if output has zero variance - check max_mse in this case
         if max_nmse == None and max_mse == None:
             del runtime_wrapper
@@ -386,7 +508,6 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, work_dir
             if max_mse > nmse_threshold:
                 del runtime_wrapper
                 pytest.fail(f" max_mse of {max_mse} is higher than threshold {nmse_threshold}")
-
 
     #Otherwise run import
     else:
@@ -401,12 +522,57 @@ def perform_tidl_unit_oneprocess(tidl_offload : bool, run_infer : bool, work_dir
 
         logger.debug("Importing")
         runtime_options  = settings.get_runtime_options(session_name, is_qat=False, debug_level = 0)
-        runtime_options["advanced_options:quantization_scale_type"] = constants.QUANTScaleType.QUANT_SCALE_TYPE_NP2_PERCHAN
-        runtime_options["onnxruntime:graph_optimization_level"] = onnxruntime.GraphOptimizationLevel.ORT_DISABLE_ALL
+
+        # Set compile options
         runtime_options["onnxruntime:intra_op_num_threads"] = 1
+        runtime_options["onnxruntime:graph_optimization_level"] = onnxruntime.GraphOptimizationLevel.ORT_DISABLE_ALL
+        runtime_options["advanced_options:quantization_scale_type"] = constants.QUANTScaleType.QUANT_SCALE_TYPE_NP2_PERCHAN
+
+        # For model try parsing the compilation options from config.yaml if present
+        if test_suite == "model":
+            runtime_options["onnxruntime:graph_optimization_level"] = onnxruntime.GraphOptimizationLevel.ORT_ENABLE_ALL
+    
+            common_config = None
+            if os.path.exists(common_config_file):
+                with open(common_config_file, "r") as f:
+                    try:
+                        common_config = yaml.safe_load(f)
+                    except Exception as e:
+                        print(f"\n[WARN] Could not load {common_config_file}\n")
+
+            specific_config = None
+            if os.path.exists(specific_config_file):
+                with open(specific_config_file, "r") as f:
+                    try:
+                        specific_config = yaml.safe_load(f)
+                    except Exception as e:
+                        print(f"\n[WARN] Could not load {specific_config_file}\n")
+
+            if common_config:
+                if 'compile_options' in common_config:
+                    runtime_options.update(common_config['compile_options'])
+
+            if specific_config:
+                if 'compile_options' in specific_config:
+                    runtime_options.update(specific_config['compile_options'])
+                if 'models' in specific_config:
+                    for _,val in specific_config['models'].items():
+                        if 'disable_onnx_optimizer' in val and val['disable_onnx_optimizer'] == 1:
+                            runtime_options["onnxruntime:graph_optimization_level"] = onnxruntime.GraphOptimizationLevel.ORT_DISABLE_ALL
+                        break
+
+        # Overwrite with provided args 
+        runtime_options["tensor_bits"] = settings.tensor_bits
         runtime_options["advanced_options:temp_buffer_dir"] = temp_buffer_dir
         runtime_options["advanced_options:nc_temp_info_dir"] = temp_nc_dir
 
+        if (tidl_offload == True):
+            print("TIDL Offload Enabled\n")
+            print(f"Model Compilation Options:\n{runtime_options}\n")
+        else:
+            print("TIDL Offload Disabled\n")
+        
+        # Initialize runtime and run
         if runtime == "onnxrt":
             runtime_wrapper = core.ONNXRuntimeWrapper(runtime_options=runtime_options,
                                                         model_file=model_file,
