@@ -88,8 +88,8 @@ class InstanceBank(nn.Module):
         instance_feature = torch.tile(
             self.instance_feature[None], (batch_size, 1, 1)
         )
-        """
         anchor = torch.tile(self.anchor[None], (batch_size, 1, 1))
+        """
         instance_feature = self.instance_feature[None].repeat(batch_size, 1, 1)
         anchor = self.anchor[None].repeat(batch_size, 1, 1)
 

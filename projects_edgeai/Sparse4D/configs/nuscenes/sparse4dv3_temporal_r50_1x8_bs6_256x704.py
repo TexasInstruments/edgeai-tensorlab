@@ -319,7 +319,7 @@ test_pipeline = [
 ]
 
 input_modality = dict(
-    use_lidar=True,  # Should be True since 
+    use_lidar=True,  # Should be True for Training 
     use_camera=True,
     use_radar=False,
     use_map=False,
@@ -407,14 +407,14 @@ default_hooks = dict(
         type='CheckpointHook', interval=1, max_keep_ckpts=4, save_last=True))
 
 # ================== eval ========================
-vis_pipeline = [
-    dict(type="LoadMultiViewImageFromFiles", to_float32=True),
-    dict(
-        type="Collect",
-        keys=["img"],
-        meta_keys=["timestamp", "lidar2img"],
-    ),
-]
+#vis_pipeline = [
+#    dict(type="LoadMultiViewImageFromFiles", to_float32=True),
+#    dict(
+#        type="Collect",
+#        keys=["img"],
+#        meta_keys=["timestamp", "lidar2img"],
+#    ),
+#]
 
 #evaluation = dict(
 #    interval=num_iters_per_epoch * checkpoint_epoch_interval,

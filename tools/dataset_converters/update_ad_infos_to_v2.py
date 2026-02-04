@@ -246,7 +246,8 @@ def generate_nuscenes_camera_instances(info, nusc):
     return empty_multicamera_instance
 
 
-def update_nuscenes_ad_infos(pkl_path, out_dir):
+def update_nuscenes_ad_infos(pkl_path, out_dir,
+                             enable_sparsedrive=False):
     camera_types = [
         'CAM_FRONT',
         'CAM_FRONT_RIGHT',
@@ -377,22 +378,41 @@ def update_nuscenes_ad_infos(pkl_path, out_dir):
                     ori_info_dict, nusc)
 
             # ego and agents' trajectories
-            temp_data_info['gt_agent_fut_trajs'] = ori_info_dict['gt_agent_fut_trajs']
-            temp_data_info['gt_agent_fut_masks'] = ori_info_dict['gt_agent_fut_masks']
-            temp_data_info['gt_agent_lcf_feat']  = ori_info_dict['gt_agent_lcf_feat']
-            temp_data_info['gt_agent_fut_yaw']   = ori_info_dict['gt_agent_fut_yaw']
-            temp_data_info['gt_agent_fut_goal']  = ori_info_dict['gt_agent_fut_goal']
-            temp_data_info['gt_ego_his_trajs']   = ori_info_dict['gt_ego_his_trajs']
-            temp_data_info['gt_ego_fut_trajs']   = ori_info_dict['gt_ego_fut_trajs']
-            temp_data_info['gt_ego_fut_masks']   = ori_info_dict['gt_ego_fut_masks']
-            temp_data_info['gt_ego_fut_cmd']     = ori_info_dict['gt_ego_fut_cmd']
-            temp_data_info['gt_ego_lcf_feat']    = ori_info_dict['gt_ego_lcf_feat']
-            temp_data_info['fut_valid_flag']     = ori_info_dict['fut_valid_flag']
-            temp_data_info['map_location']       = ori_info_dict['map_location']
+            if 'gt_agent_fut_trajs' in ori_info_dict:
+                temp_data_info['gt_agent_fut_trajs'] = ori_info_dict['gt_agent_fut_trajs']
+            if 'gt_agent_fut_masks' in ori_info_dict:
+                temp_data_info['gt_agent_fut_masks'] = ori_info_dict['gt_agent_fut_masks']
+            if 'gt_agent_lcf_feat' in ori_info_dict:
+                temp_data_info['gt_agent_lcf_feat']  = ori_info_dict['gt_agent_lcf_feat']
+            if 'gt_agent_fut_yaw' in ori_info_dict:
+                temp_data_info['gt_agent_fut_yaw']   = ori_info_dict['gt_agent_fut_yaw']
+            if 'gt_agent_fut_goal' in ori_info_dict:
+                temp_data_info['gt_agent_fut_goal']  = ori_info_dict['gt_agent_fut_goal']
+            if 'gt_ego_his_trajs' in ori_info_dict:
+                temp_data_info['gt_ego_his_trajs']   = ori_info_dict['gt_ego_his_trajs']
+            if 'gt_ego_fut_trajs' in ori_info_dict:
+                temp_data_info['gt_ego_fut_trajs']   = ori_info_dict['gt_ego_fut_trajs']
+            if 'gt_ego_fut_masks' in ori_info_dict:
+                temp_data_info['gt_ego_fut_masks']   = ori_info_dict['gt_ego_fut_masks']
+            if 'gt_ego_fut_cmd' in ori_info_dict:
+                temp_data_info['gt_ego_fut_cmd']     = ori_info_dict['gt_ego_fut_cmd']
+            if 'gt_ego_lcf_feat' in ori_info_dict:
+                temp_data_info['gt_ego_lcf_feat']    = ori_info_dict['gt_ego_lcf_feat']
+            if 'fut_valid_flag' in ori_info_dict:
+                temp_data_info['fut_valid_flag']     = ori_info_dict['fut_valid_flag']
+            if 'map_location' in ori_info_dict:
+                temp_data_info['map_location']       = ori_info_dict['map_location']
+            if 'instance_inds' in ori_info_dict:
+                temp_data_info['instance_inds']      = ori_info_dict['instance_inds']
+            if 'ego_status' in ori_info_dict:
+                temp_data_info['ego_status']         = ori_info_dict['ego_status']
 
         if 'pts_semantic_mask_path' in ori_info_dict:
             temp_data_info['pts_semantic_mask_path'] = Path(
                 ori_info_dict['pts_semantic_mask_path']).name
+
+        if 'map_annos' in ori_info_dict:
+            temp_data_info['map_annos'] = ori_info_dict['map_annos']
 
         temp_data_info, _ = clear_data_info_unused_keys(temp_data_info)
         converted_list.append(temp_data_info)
@@ -435,9 +455,9 @@ def parse_args():
     return args
 
 
-def update_pkl_ad_infos(dataset, out_dir, pkl_path):
+def update_pkl_ad_infos(dataset, out_dir, pkl_path, enable_sparsedrive=False):
     if dataset.lower() == 'nuscenes':
-        update_nuscenes_ad_infos(pkl_path=pkl_path, out_dir=out_dir)
+        update_nuscenes_ad_infos(pkl_path=pkl_path, out_dir=out_dir, enable_sparsedrive=enable_sparsedrive)
     else:
         raise NotImplementedError(f'Do not support convert {dataset} to v2.')
 

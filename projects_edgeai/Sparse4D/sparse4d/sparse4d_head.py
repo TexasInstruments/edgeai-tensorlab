@@ -6,10 +6,10 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from mmdet3d.registry import MODELS, TASK_UTILS
 from mmengine.model.base_module import BaseModule
 from mmengine.registry import build_from_cfg
 from mmdet.utils import reduce_mean
+from mmdet3d.registry import MODELS, TASK_UTILS
 
 
 from .blocks import Sparse4DeformableFeatureAggregation as DFG

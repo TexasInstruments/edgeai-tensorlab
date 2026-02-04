@@ -656,7 +656,7 @@ def output_to_nusc_box(
     if 'attr_labels' in detection:
         attrs = detection['attr_labels'].numpy()
 
-    # Sparse4D
+    # Sparse4D/SparseDrive
     if "instance_ids" in detection:
         ids = detection["instance_ids"]  # .numpy()
 
@@ -695,7 +695,7 @@ def output_to_nusc_box(
                 label=labels[i],
                 score=scores[i],
                 velocity=velocity)
-            # Sparse4D
+            # Sparse4D/SparseDrive
             if "instance_ids" in detection:
                 box.token = ids[i]
             box_list.append(box)
@@ -728,7 +728,8 @@ def output_to_nusc_box(
 
 def lidar_nusc_box_to_global(
         info: dict, boxes: List[NuScenesBox], classes: List[str],
-        eval_configs: DetectionConfig) -> List[NuScenesBox]:
+        eval_configs: DetectionConfig,
+        filter_with_cls_range = True) -> List[NuScenesBox]:
     """Convert the box from ego to global coordinate.
 
     Args:
@@ -750,11 +751,12 @@ def lidar_nusc_box_to_global(
             pyquaternion.Quaternion(matrix=lidar2ego, rtol=1e-05, atol=1e-07))
         box.translate(lidar2ego[:3, 3])
         # filter det in ego.
-        cls_range_map = eval_configs.class_range
-        radius = np.linalg.norm(box.center[:2], 2)
-        det_range = cls_range_map[classes[box.label]]
-        if radius > det_range:
-            continue
+        if filter_with_cls_range:
+            cls_range_map = eval_configs.class_range
+            radius = np.linalg.norm(box.center[:2], 2)
+            det_range = cls_range_map[classes[box.label]]
+            if radius > det_range:
+                continue
         # Move box to global coord system
         ego2global = np.array(info['ego2global'])
         box.rotate(

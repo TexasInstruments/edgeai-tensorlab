@@ -251,7 +251,7 @@ class TemporalSelfAttention(BaseModule):
         output = multi_scale_deformable_attn_pytorch(
             value, spatial_shapes, sampling_locations, attention_weights, self.grid_sample_mode)
 
-        # The following codes cane be replaced with
+        # The following code can be replaced with
         # output.mean(0, keepdim=True) directly
         """
         # output shape (bs*num_bev_queue, num_query, embed_dims)
