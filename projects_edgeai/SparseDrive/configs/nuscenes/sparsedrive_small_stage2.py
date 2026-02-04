@@ -15,7 +15,7 @@ custom_imports = dict(imports=['projects_edgeai.SparseDrive.sparsedrive',
 #num_iters_per_epoch = int(length[version] // (num_gpus * batch_size))
 #checkpoint_epoch_interval = 10
 num_epochs = 10
-batch_size = 1
+batch_size = 4
 
 #checkpoint_config = dict(
 #    interval=num_iters_per_epoch * checkpoint_epoch_interval
@@ -647,6 +647,7 @@ input_modality = dict(
 
 data_prefix=dict(
     pts='samples/LIDAR_TOP',
+    sweeps='samples/LIDAR_TOP',
     CAM_FRONT='samples/CAM_FRONT',
     CAM_FRONT_LEFT='samples/CAM_FRONT_LEFT',
     CAM_FRONT_RIGHT='samples/CAM_FRONT_RIGHT',
