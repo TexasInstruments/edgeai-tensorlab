@@ -80,6 +80,30 @@ def get_configs(settings, work_dir):
             metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90(label_offset=0,num_classes=91)),
             model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':42.0}, model_shortlist=80, compact_name='DETR-fb-resnet50-transformer-coco-800x800', shortlisted=False)
         ),
+        'od-8921':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx((800,1024),(800,1024), resize_with_pad=False, backend='cv2'),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=False),
+                runtime_options=settings.runtime_options_onnx_np2(det_options=True, ext_options={
+                    'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL,
+                    # 'advanced_options:output_feature_16bit_names_list': '/bbox_predictor/layers.1/MatMul_output_0 onnx::MatMul_4038_netFormat /box_predictor/Relu_output_0 /box_predictor/Relu_1_output_0 /bbox_predictor/layers.2/Add_output_0 4053_netFormat 4041_netFormat /model/backbone/conv_encoder/model/act1/Relu_output_0', #input.1_netFormat'
+                    }),
+                model_path=f'{settings.models_path}/vision/detection/coco/hf-transformers/deformable_detr_single_scale_no-mask-bn_simp.onnx'),
+            postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=True, resize_with_pad=True, reshape_list=[(-1,4),(-1,1),(-1,1)],logits_bbox_to_bbox_ls=True,formatter=postprocess.DetectionXYWH2XYXYCenterXY()),
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90(label_offset=0,num_classes=91)),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':39.4}, model_shortlist=None, compact_name='Deformable-DETR-single-scale-coco-800x800', shortlisted=False)
+        ),
+        'od-8922':utils.dict_update(common_cfg,
+            preprocess=preproc_transforms.get_transform_onnx((800,1024),(800,1024), resize_with_pad=False, backend='cv2'),
+            session=onnx_session_type(**sessions.get_onnx_session_cfg(settings, work_dir=work_dir, input_optimization=False, tidl_onnx_model_optimizer=False),
+                runtime_options=settings.runtime_options_onnx_np2(det_options=True, ext_options={
+                    'onnxruntime:graph_optimization_level': ORT_DISABLE_ALL,
+                    # 'advanced_options:output_feature_16bit_names_list': '/bbox_predictor/layers.1/MatMul_output_0 onnx::MatMul_4038_netFormat /box_predictor/Relu_output_0 /box_predictor/Relu_1_output_0 /bbox_predictor/layers.2/Add_output_0 4053_netFormat 4041_netFormat /model/backbone/conv_encoder/model/act1/Relu_output_0', #input.1_netFormat'
+                    }),
+                model_path=f'{settings.models_path}/vision/detection/coco/hf-transformers/deformable_detr_multi_scale_no-mask-bn_simp.onnx'),
+            postprocess=postproc_transforms.get_transform_detection_mmdet_onnx(squeeze_axis=None, normalized_detections=True, resize_with_pad=True, reshape_list=[(-1,4),(-1,1),(-1,1)],logits_bbox_to_bbox_ls=True,formatter=postprocess.DetectionXYWH2XYXYCenterXY()),
+            metric=dict(label_offset_pred=datasets.coco_det_label_offset_90to90(label_offset=0,num_classes=91)),
+            model_info=dict(metric_reference={'accuracy_ap[.5:.95]%':44.5}, model_shortlist=None, compact_name='Deformable-DETR-multi-scale-coco-800x800', shortlisted=False)
+        ),
         'od-8930':utils.dict_update(common_cfg,
             preprocess=preproc_transforms.get_transform_onnx((800,1216), (800,1216), reverse_channels=True, resize_with_pad=[True, "corner"], backend='cv2', pad_color=[114, 114, 114]),
             session=onnx_session_type(**sessions.get_common_session_cfg(settings, work_dir=work_dir, input_optimization=False),
