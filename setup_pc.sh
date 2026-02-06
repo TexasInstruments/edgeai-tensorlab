@@ -30,7 +30,7 @@
 
 
 ######################################################################
-# change the default here if needed - supported options: 11.2 11.1 11.0 10.1
+# change the default here if needed - supported options: 11.2 11.1 11.0 10.1 10.0
 TIDL_TOOLS_VERSION=${TIDL_TOOLS_VERSION-"11.2"}
 
 # change the default here if needed - supported options: cpu gpu
