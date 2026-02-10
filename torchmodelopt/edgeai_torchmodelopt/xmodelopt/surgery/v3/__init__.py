@@ -90,8 +90,8 @@ default_replacement_flag_dict: dict[str, bool|dict] ={
     'break_maxpool2d_with_kernel_size_greater_than_equalto_5':True,
     'break_avgpool2d_with_kernel_size_greater_than_equalto_5':True,
     'convert_resize_params_size_to_scale':True,
-    'promote_conv2d_with_even_kernel_to_larger_odd_kernel':False,
-    'break_conv2d_with_kernel_size_greater_than_7':False,
+    'promote_conv2d_with_even_kernel_to_larger_odd_kernel':True,
+    'break_conv2d_with_kernel_size_greater_than_7':True,
     # 'custom_surgery_flag':{},
 }
 
@@ -286,16 +286,16 @@ class SurgeryModule(OptimizationBaseModule):
         super().__init__(model,*args, transformation_dict=transformation_dict, copy_attrs=copy_attrs, )
         self.prepare(self.module,example_inputs=example_inputs, example_kwargs=example_kwargs, replacement_dict=replacement_dict, **kwargs  )
         
-    def prepare(self, model, *args, example_inputs: list=None, example_kwargs: dict=None, replacement_dict=None, transformation_dict=None, **kwargs):
+    def prepare(self, model, *args, example_inputs: list=None, example_kwargs: dict=None, replacement_dict=None, **kwargs):
         example_inputs = example_inputs if example_inputs is not None else []
         example_kwargs = example_kwargs or {}
         if hasattr(model, '_example_inputs') and hasattr(model, '_example_kwargs'):
             example_inputs= model._example_inputs
             example_kwargs= model._example_kwargs
         else:
-            utils.add_example_args_kwargs(model,example_inputs=example_inputs, example_kwargs=example_kwargs, transformation_dict=transformation_dict)
+            utils.add_example_args_kwargs(model,example_inputs=example_inputs, example_kwargs=example_kwargs, transformation_dict=self.transformation_dict)
         self.replacement_dict=replacement_dict or get_replacement_flag_dict_default()
-        self.module = wrapped_transformation_fn(convert_to_lite_pt2e, model, replacement_dict=replacement_dict, example_inputs= example_inputs, example_kwargs=example_kwargs, transformation_dict=transformation_dict,**kwargs)
+        self.module = wrapped_transformation_fn(convert_to_lite_pt2e, model, replacement_dict=self.replacement_dict, example_inputs= example_inputs, example_kwargs=example_kwargs, transformation_dict=self.transformation_dict,**kwargs)
 
     @classmethod
     def _add_attrs_to(cls, obj, attr_names=None):

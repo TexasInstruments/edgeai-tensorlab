@@ -2,7 +2,7 @@ from torch import nn
 import copy
 
 
-def apply_tranformation_to_submodules(model:nn.Module, transformation_dict: dict, *args, **kwargs):
+def apply_transformation_to_submodules(model:nn.Module, transformation_dict: dict, *args, **kwargs):
     module_dict = dict(model.named_modules())
     for name, wrapper_fn in transformation_dict.items() :
         if name not in module_dict:
@@ -60,7 +60,7 @@ def wrapped_transformation_fn(fn, model, *args, transformation_dict=None, **kwar
                 transformation_dict[key] = fn
             elif isinstance(value, TransformationWrapper) and value.fn is None:
                 value.fn = fn
-        return apply_tranformation_to_submodules(model, transformation_dict, *args, **kwargs)
+        return apply_transformation_to_submodules(model, transformation_dict, *args, **kwargs)
     else:
         return fn(model, *args, **kwargs)
     

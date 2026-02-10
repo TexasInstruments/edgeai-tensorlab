@@ -177,7 +177,11 @@ class ReplacedModule(nn.Module):
                 
 
     def __repr__(self):
-        self.__class__.__name__ = f'Replaced{self.partition.source.__name__}'
+        if isinstance(self.partition.source, str):
+            # in case partition.source has class name as str
+            self.__class__.__name__ = f'Replaced{self.partition.source}'
+        else:
+            self.__class__.__name__ = f'Replaced{self.partition.source.__name__}'
         return super().__repr__()
     
     def forward(self,*args,**kwargs):

@@ -29,6 +29,7 @@
 #
 #################################################################################
 
+
 from torch import nn
 from torch.fx import symbolic_trace, Node
 from torch.fx import GraphModule
@@ -39,6 +40,7 @@ import math
 import random
 
 
+from ...utils.helper_functions import is_same_class, get_class
 from . import replacer
 # from .symbolic_trace import symbolic_trace
 from . import custom_modules
@@ -52,8 +54,8 @@ def gen_func_for_conv2d_kernel_gt_7(main_model:GraphModule, partition:SourcePart
                 else    :   returns None means no need to replace
     assuming kernel size is same on both axes
     '''
-    
-    if partition.source != nn.Conv2d:
+    # if partition.source != nn.Conv2d:
+    if not is_same_class(partition.source, nn.Conv2d):
         return None
     
     conv_node = partition.output_nodes[0]
@@ -81,16 +83,23 @@ def gen_func_for_conv2d_kernel_gt_7(main_model:GraphModule, partition:SourcePart
         padding = module.padding
         padding_mode = module.padding_mode
     
+    # Only perform surgery when stated conditions are present: 2d conv and square params
     if isinstance(k_size, (tuple, list)):
-        assert len(k_size) == 2 and k_size[0] == k_size[1]
+        # assert len(k_size) == 2 and k_size[0] == k_size[1]
+        if not(len(k_size) == 2 and k_size[0] == k_size[1]):
+            return None
         k_size = k_size[0]
     
     if isinstance(stride, (tuple, list)):
-        assert len(stride) == 2 and stride[0] == stride[1]
+        # assert len(stride) == 2 and stride[0] == stride[1]
+        if not(len(stride) == 2 and stride[0] == stride[1]):
+            return None
         stride = stride[0]
     
     if isinstance(padding, (tuple, list)):
-        assert len(padding) == 2 and padding[0] == padding[1]
+        # assert len(padding) == 2 and padding[0] == padding[1]
+        if not(len(padding) == 2 and padding[0] == padding[1]):
+            return None
         padding = padding[0]
     
     if k_size <= 7:
@@ -131,7 +140,7 @@ def gen_func_for_conv2d_even_kernel_to_odd(main_model:GraphModule, partition:Sou
     assuming kernel size is same on both axes
     '''
     
-    if partition.source != nn.Conv2d:
+    if not is_same_class(partition.source, nn.Conv2d):
         return None
     
     conv_node = partition.output_nodes[0]
@@ -146,6 +155,7 @@ def gen_func_for_conv2d_even_kernel_to_odd(main_model:GraphModule, partition:Sou
             bias = params[bias_node.target] if bias_node is not None else None
         stride = conv_node.args[3] if num_args >= 4 else [1, 1]
         padding = conv_node.args[4] if num_args >= 5 else [0, 0]
+        padding_mode = 'zeros' # TODO: what to put here ; module.padding_mode?
 
     else:
         modules = dict(main_model.named_modules())
@@ -160,16 +170,23 @@ def gen_func_for_conv2d_even_kernel_to_odd(main_model:GraphModule, partition:Sou
         padding = module.padding
         padding_mode = module.padding_mode
     
+     # Only perform surgery when stated conditions are present: 2d conv and square params
     if isinstance(k_size,(tuple, list)):
-        assert len(k_size) == 2 and k_size[0] == k_size[1]
+        # assert len(k_size) == 2 and k_size[0] == k_size[1]
+        if not(len(k_size) == 2 and k_size[0] == k_size[1]):
+            return None
         k_size = k_size[0]
     
     if isinstance(stride,(tuple, list)):
-        assert len(stride) == 2 and stride[0] == stride[1]
+        # assert len(stride) == 2 and stride[0] == stride[1]
+        if not(len(stride) == 2 and stride[0] == stride[1]):
+            return None
         stride = stride[0]
     
     if isinstance(padding,(tuple, list)):
-        assert len(padding) == 2 and padding[0] == padding[1]
+        # assert len(padding) == 2 and padding[0] == padding[1]
+        if not(len(padding) == 2 and padding[0] == padding[1]):
+            return None
         padding = padding[0]
 
     if k_size % 2 == 1:
@@ -195,7 +212,8 @@ def gen_func_for_upsample(main_model:GraphModule, partition:SourcePartition, ate
     if has size factor as  parameter: returns a replacement module with scale factor only
                             else    : returns None means no need to replace
     '''
-    if partition.source not in (nn.Upsample,):
+    # if partition.source not in (nn.Upsample,):
+    if not is_same_class(partition.source, nn.Upsample):
         return None
     if aten_graph:
         #TODO make  replacement for upsample
@@ -249,7 +267,8 @@ def gen_func_for_pool(main_model:GraphModule, partition:SourcePartition, aten_gr
     if kernel size >= 5 :   returns a series of pool with kernel size 3 or 2 
                 else    :   returns None means no need to replace
     '''
-    if partition.source not in (nn.MaxPool2d, nn.AvgPool2d):
+    # if partition.source not in (nn.MaxPool2d, nn.AvgPool2d):
+    if not (is_same_class(partition.source, nn.MaxPool2d) or is_same_class(partition.source, nn.AvgPool2d)):
         return None
     
     pool_node = partition.output_nodes[0]
@@ -292,12 +311,12 @@ def gen_func_for_pool(main_model:GraphModule, partition:SourcePartition, aten_gr
     
     while k_size > 4:
         if k_size % 2 == 0:
-            replacement.append(partition.source(kernel_size=2, stride=1, padding=(1, 1)))
+            replacement.append(get_class(partition.source)(kernel_size=2, stride=1, padding=(1, 1)))
         else:
-            replacement.append(partition.source(kernel_size=3, stride=1, padding=1))
+            replacement.append(get_class(partition.source)(kernel_size=3, stride=1, padding=1))
         k_size -= 2
     
-    replacement.append(partition.source(kernel_size=k_size, stride=stride, padding=1 if padding % 2 != 0 else (1, 1)))
+    replacement.append(get_class(partition.source)(kernel_size=k_size, stride=stride, padding=1 if padding % 2 != 0 else (1, 1)))
 
     return replacement
 

@@ -1,12 +1,47 @@
+import importlib
 import torch
 from torch import fx, nn
 from typing import List,Dict,Type, Any
 import types
 from torch.fx.passes.utils.source_matcher_utils import SourcePartition
-
+from functools import reduce
 
 def get_class_string(cls):
     return f'{cls.__module__}.{cls.__name__}'
+
+def is_same_class(source: str|type, cls: type) ->  bool:
+    '''
+        use to compare when not sure if source is string or class
+        Makes parition.source backwards compatible, if get_source_paritition behavior changes
+        Intented usage example: is_same_class(partition.source, nn.Conv2d)
+    '''
+    return (source == cls) or (source == get_class_string(cls))
+
+def get_class(source):
+    '''
+        use to get class object when not sure if source is string or class
+        Intented usage example: get_class(parition.source)(args...)
+    '''
+    if isinstance(source, str):
+        module_name, class_name = source.rsplit('.', 1)
+        # Import the module dynamically
+        module = importlib.import_module(module_name)
+        # Get the class from the module
+        cls = getattr(module, class_name)
+
+        return cls
+    else:
+        return source # assume isinstance(source, type)
+
+def nested_getattr(obj: Any, attr_path: str, default: Any=None):
+    '''
+        Like getattr, but works for nested attribute paths. 
+        e.g.: If attr_path = 'layer1.0.weight', it will return obj.layer1.0.weight
+    '''
+    try:
+        return reduce(getattr, attr_path.split('.'), obj)
+    except AttributeError:
+        return default
 
 # Note: The source code is copied from pytorch github (https://github.com/pytorch/pytorch/blob/main/torch/fx/passes/utils/source_matcher_utils.py#L51)
 # and modified  as per requirement 

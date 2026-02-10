@@ -41,6 +41,7 @@ import copy
 from .custom_modules import ReplacedModule
 from . import utils
 
+from ...utils.helper_functions import nested_getattr
 # from .custom_symbolic_trace import custom_symbolic_trace
 '''
 this module's function are implemented to change nodes only.
@@ -50,7 +51,25 @@ for example, custom_surgery_functions module can be checked
 '''
 
 
+
 __net_module_replaced = None
+
+def is_inplace_op(node):
+    '''
+    Return true if node is a inplace_op that cannot be removed without affecting correctness
+
+    TODO: Used only in _remove_hanging_nodes, may need a better solution.
+    '''
+    if node.op == 'call_function':
+        # node.target is aten.fill_, aten.zero_ etc. 
+        # Hard-coded to make swin-t work, attention mask uses these operations.
+        if hasattr(node.target, '_opname') and node.target._opname.endswith('fill_'):
+            return True
+        if hasattr(node.target, '_opname') and node.target._opname.endswith('zero_'):
+            return True
+        # TODO: can't just target all inplace functions, for e.g. hardswish_ needs to get deleted after replacing with relu_
+        # Maybe a different way to trigger deleting old nodes after they have been replaced.
+    return False 
 
 
 def _remove_hanging_nodes(main_module:GraphModule):
@@ -60,12 +79,13 @@ def _remove_hanging_nodes(main_module:GraphModule):
     def find_hanging_nodes(main_module:GraphModule):
         count =[]
         for node in main_module.graph.nodes:
-            if (node.op not in ('output','placeholder') and len(node.users)==0):
+            if (node.op not in ('output','placeholder')) and (len(node.users)==0) and (not is_inplace_op(node)):
                 count.append(node)
         return count
     h_nodes=find_hanging_nodes(main_module)
     while len(h_nodes)>0:
         for node in h_nodes:
+            # print(f'deleting {node}, {node.op}, {node.users}, {node.target}')
             main_module.graph.erase_node(node)
         h_nodes=find_hanging_nodes(main_module)
     main_module.delete_all_unused_submodules()
@@ -161,7 +181,7 @@ def _replace_pattern(main_module:GraphModule, partition:SourcePartition, replace
                     new_node = main_module.graph.call_function(node.target,args,node.kwargs)
                 
                 elif node.op == 'get_attr':
-                    orig_attr = getattr(replace_module.module, node.target)
+                    orig_attr = nested_getattr(replace_module.module, node.target)
                     if isinstance(orig_attr, nn.Parameter):
                         key = f'_param_constant{num_param_added}'
                         is_key_new = key not in partition_module
@@ -286,7 +306,7 @@ def graph_pattern_replacer(main_module:GraphModule, pattern_partions:list[Source
     if __net_module_replaced is None:
         __net_module_replaced = 0
     _replace_all_matches(main_module, pattern_partions, replacement,aten_graph= aten_graph)
-    if verbose_mode:
-        print(type(pattern_partions).__name__, len(pattern_partions))
+    if verbose_mode and len(pattern_partions) >= 0 :
+        print(f'Found {len(pattern_partions)} partitions of type {pattern_partions[0].source}')
     
     return main_module
