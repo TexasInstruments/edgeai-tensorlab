@@ -121,7 +121,7 @@ class ResizeScaleFactorOnly(nn.Module):
 
 # Wrapper module all replaced module 
 class ReplacedModule(nn.Module):
-    def __init__(self, main_model:GraphModule, partition:SourcePartition, gen_func:FunctionType, input_adjustment_func:FunctionType, trace_through:bool = True, aten_graph = True, verbose= False, *args, **kwargs) -> None:
+    def __init__(self, main_model:GraphModule, partition:SourcePartition, gen_func:FunctionType, input_adjustment_func:FunctionType, trace_through:bool = True, verbose= False, *args, **kwargs) -> None:
         '''
         gen_func: a function that takes main_model and partition as arguments and returns a nn.Module or None
             -> module: that will replace the partition
@@ -132,13 +132,13 @@ class ReplacedModule(nn.Module):
         self.gen_func = gen_func
         self.input_adjustment_func = input_adjustment_func
         self.inputs = {}
-        pre_dispatch = aten_graph
+
         for node in partition.input_nodes:
             if 'val' in node.meta:
                 self.inputs[node] = node.meta['val']
             elif 'example_value' in node.meta:
                 self.inputs[node] = node.meta['example_value']
-        self.module = self.gen_func(main_model,partition,aten_graph)
+        self.module = self.gen_func(main_model,partition)
         example_inputs,example_kwargs =self.input_adjustment_func(partition,self.inputs)
         example_inputs = tuple(example_inputs)
         if self.module is not None:
@@ -177,11 +177,7 @@ class ReplacedModule(nn.Module):
                 
 
     def __repr__(self):
-        if isinstance(self.partition.source, str):
-            # in case partition.source has class name as str
-            self.__class__.__name__ = f'Replaced{self.partition.source}'
-        else:
-            self.__class__.__name__ = f'Replaced{self.partition.source.__name__}'
+        self.__class__.__name__ = f'Replaced{self.partition.source.__name__ if isinstance(self.partition.source, type) else self.partition.source}'
         return super().__repr__()
     
     def forward(self,*args,**kwargs):

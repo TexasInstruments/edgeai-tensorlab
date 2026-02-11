@@ -58,7 +58,7 @@ except:
     SEModule = None
 
 
-def convert_to_lite_pt2e(model:torch.nn.Module, replacement_dict:Dict[Any,Union[torch.nn.Module,callable]]=None, example_inputs:list=None, example_kwargs:dict=None, aten_graph:bool = True, verbose_mode:bool=False, *args, **kwargs):
+def convert_to_lite_pt2e(model:torch.nn.Module, replacement_dict:Dict[Any,Union[torch.nn.Module,callable]]=None, example_inputs:list=None, example_kwargs:dict=None, verbose_mode:bool=False, *args, **kwargs):
     '''
     converts model into lite model using replacement dict
     if no replacement dict is provided it does the default replacement
@@ -70,7 +70,7 @@ def convert_to_lite_pt2e(model:torch.nn.Module, replacement_dict:Dict[Any,Union[
         utils.add_example_args_kwargs(model,example_inputs=example_inputs, example_kwargs=example_kwargs)
     example_inputs= model._example_inputs.pop(0)
     example_kwargs= model._example_kwargs.pop(0)
-    return replace_unsupported_layers(model, example_inputs= example_inputs, example_kwargs=example_kwargs, replacement_dict=replacement_dict, aten_graph=aten_graph, verbose_mode=verbose_mode, **kwargs)
+    return replace_unsupported_layers(model, example_inputs= example_inputs, example_kwargs=example_kwargs, replacement_dict=replacement_dict, verbose_mode=verbose_mode, **kwargs)
 
 
 #Default Flags for replacement dict
@@ -217,7 +217,7 @@ def get_replacement_dict(
     return replacement_dict
 
 
-def replace_unsupported_layers(model:nn.Module, example_inputs:list=None, example_kwargs:dict=None, replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, aten_graph:bool = True, copy_args:list=[],  can_retrain=True, verbose_mode:bool=False,**kwargs):
+def replace_unsupported_layers(model:nn.Module, example_inputs:list=None, example_kwargs:dict=None, replacement_dict:Dict[Any,Union[nn.Module,callable]]=None, copy_args:list=[],  can_retrain=True, verbose_mode:bool=False,**kwargs):
     #TODO write appropiate documentation for this function
     
     '''
@@ -264,7 +264,7 @@ def replace_unsupported_layers(model:nn.Module, example_inputs:list=None, exampl
     
     model = deepcopy(model)
     
-    final_model = _replace_unsupported_layers(model,example_inputs,example_kwargs,replacement_dict,aten_graph,copy_args,verbose_mode, **kwargs)
+    final_model = _replace_unsupported_layers(model,example_inputs,example_kwargs, replacement_dict, copy_args, verbose_mode, **kwargs)
     
     if is_train_mode:
         final_model.train()
@@ -295,7 +295,7 @@ class SurgeryModule(OptimizationBaseModule):
         else:
             utils.add_example_args_kwargs(model,example_inputs=example_inputs, example_kwargs=example_kwargs, transformation_dict=self.transformation_dict)
         self.replacement_dict=replacement_dict or get_replacement_flag_dict_default()
-        self.module = wrapped_transformation_fn(convert_to_lite_pt2e, model, replacement_dict=self.replacement_dict, example_inputs= example_inputs, example_kwargs=example_kwargs, transformation_dict=self.transformation_dict,**kwargs)
+        self.module = wrapped_transformation_fn(convert_to_lite_pt2e, model, replacement_dict=replacement_dict, example_inputs= example_inputs, example_kwargs=example_kwargs, transformation_dict=transformation_dict,**kwargs)
 
     @classmethod
     def _add_attrs_to(cls, obj, attr_names=None):

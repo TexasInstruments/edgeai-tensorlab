@@ -493,6 +493,7 @@ class TIDLRTQuantizerAdvanced(XNNPACKQuantizer):
                 #
             #
         #
+        self.STATIC_OPS += self.DYNAMIC_OPS
         pass
 
     def transform_for_annotation(

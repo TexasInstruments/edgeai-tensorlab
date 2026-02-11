@@ -12,7 +12,7 @@ from .parametrization import BlendPruningParametrization, SigmoidPruningParametr
 from ... import utils
 
 def init(module, *args, example_inputs:list=None, example_kwargs:dict=None, pruning_ratio=None, total_epochs=None, pruning_class='blend',p=2.0, pruning_global=False, copy_args=None,
-            pruning_type='channel', pruning_init_train_ep=5, pruning_m=None, add_methods=True, aten_graph=True, copy_attrs=None, **kwargs):
+            pruning_type='channel', pruning_init_train_ep=5, pruning_m=None, add_methods=True, copy_attrs=None, **kwargs):
     copy_attrs = copy_attrs or []
     copy_args = copy_args or []
     example_inputs =[] if example_inputs is None else example_inputs
@@ -38,7 +38,6 @@ def init(module, *args, example_inputs:list=None, example_kwargs:dict=None, prun
         allow_exported_model_train_eval(gm_module)
     
     gm_module.__prune_params__ =  xnn.utils.AttrDict()
-    gm_module.__prune_params__.aten_graph = gm_module.__prune_params__.pre_dispatch = aten_graph
     gm_module.__prune_params__.epoch_count = 0
     gm_module.__prune_params__.pruning_ratio = pruning_ratio
     gm_module.__prune_params__.total_epochs = total_epochs

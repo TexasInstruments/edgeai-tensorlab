@@ -234,13 +234,13 @@ def _replace_pattern(main_module:GraphModule, partition:SourcePartition, replace
 
 
 # replaces all matches with call_module node
-def _replace_all_matches(main_module:GraphModule, pattern_partitions:list[SourcePartition], replacements:list[tuple[nn.Module|type|types.FunctionType,types.FunctionType|types.NoneType]],aten_graph = True):
+def _replace_all_matches(main_module:GraphModule, pattern_partitions:list[SourcePartition], replacements:list[tuple[nn.Module|type|types.FunctionType,types.FunctionType|types.NoneType]],):
     '''
     replace all pattern partitions from the graph with a copy of replacement module
     if it gets None it will not replace that partition
     '''
     
-    def default_module_gen_func(partiion:SourcePartition, main_model:GraphModule, aten_graph:bool = True):
+    def default_module_gen_func(partiion:SourcePartition, main_model:GraphModule,):
         # assert isinstance(replace_module,nn.Module)
         return copy.deepcopy(replace_module)
 
@@ -259,7 +259,6 @@ def _replace_all_matches(main_module:GraphModule, pattern_partitions:list[Source
             replace_module_copy = ReplacedModule(main_module, partition, 
                                                 gen_func=default_module_gen_func if isinstance(replace_module,nn.Module) else replace_module,
                                                 input_adjustment_func= input_adjustment_func or default_input_adjustment_func,
-                                                aten_graph = aten_graph
                                                 )
             if replace_module_copy.module is not None:
                 break
@@ -274,7 +273,6 @@ def _replace_all_matches(main_module:GraphModule, pattern_partitions:list[Source
                 temp_replace_module_copy = ReplacedModule(replace_module_copy.module, temp_partition, 
                                                     gen_func=default_module_gen_func if isinstance(replace_module,nn.Module) else replace_module,
                                                     input_adjustment_func= input_adjustment_func or default_input_adjustment_func,
-                                                    aten_graph = aten_graph
                                                     )
                 if temp_replace_module_copy.module is None:
                     continue
@@ -297,7 +295,7 @@ def _replace_all_matches(main_module:GraphModule, pattern_partitions:list[Source
 
 
 # replace nodes if they don't need any change with their keyword arguments and arguements
-def graph_pattern_replacer(main_module:GraphModule, pattern_partions:list[SourcePartition], replacement:tuple[nn.Module|type|types.FunctionType,types.FunctionType|types.NoneType], aten_graph = True, verbose_mode=False):
+def graph_pattern_replacer(main_module:GraphModule, pattern_partions:list[SourcePartition], replacement:tuple[nn.Module|type|types.FunctionType,types.FunctionType|types.NoneType], verbose_mode=False):
     '''
     replaces all matched partitions in the graph  with replacement module (wrapper call)
     '''
@@ -305,7 +303,8 @@ def graph_pattern_replacer(main_module:GraphModule, pattern_partions:list[Source
     global __net_module_replaced
     if __net_module_replaced is None:
         __net_module_replaced = 0
-    _replace_all_matches(main_module, pattern_partions, replacement,aten_graph= aten_graph)
+    _replace_all_matches(main_module, pattern_partions, replacement,)
+
     if verbose_mode and len(pattern_partions) >= 0 :
         print(f'Found {len(pattern_partions)} partitions of type {pattern_partions[0].source}')
     

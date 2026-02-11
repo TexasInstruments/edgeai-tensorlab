@@ -45,17 +45,7 @@ from ...utils.helper_functions import allow_exported_model_train_eval
 import copy
 import os
 import types 
-
-
-def _model_to_device(model, device):
-    if device:
-        model.to(device)
-        if hasattr(model, 'recompile'):
-            model.recompile()
-        #
-    #
-    return model
-
+from ...utils.helper_functions import _model_to_device
 
 def _switch_batchnorm(model, training):
     # freezing the batchnorm update 
@@ -91,6 +81,9 @@ def init(model, example_inputs, example_kwargs=None, is_qat=True, total_epochs=0
     # from torch.ao.quantization.quantizer.xnnpack_quantizer import (get_symmetric_quantization_config, XNNPACKQuantizer)
     # quantizer = XNNPACKQuantizer()
     # quantizer.set_global(get_symmetric_quantization_config(is_qat=True))
+    
+    #Currently only QAT flow is used for both QAT and PTQ
+    is_qat = True
 
     # see the supported values in QuantizerTypes, QuantizerAnnotationPatterns and qconfig_types.QConfigType
     quantizer_type = quantizer_type or QuantizerTypes.TIDLRT_ADVANCED
@@ -113,16 +106,10 @@ def init(model, example_inputs, example_kwargs=None, is_qat=True, total_epochs=0
     example_inputs = model._example_inputs.pop(0)
     example_kwargs = model._example_kwargs.pop(0)
 
+    from ...utils.helper_functions import allow_exported_model_train_eval, get_tensors_to_device
     if device:
-        if isinstance(example_inputs, (list, tuple)):
-            for i, inp in enumerate(example_inputs):
-                example_inputs[i].to(device=device)
-        else:
-            example_inputs = [example_inputs.to(device=device)]
-        for key, value in example_kwargs.items():
-            if isinstance(value, torch.Tensor):
-                example_kwargs[key] = value.to(device=device)
-                
+        example_inputs = get_tensors_to_device(example_inputs, device)
+        example_kwargs = get_tensors_to_device(example_kwargs, device)
         model = _model_to_device(model, device)
 
     #####################################################################################
@@ -130,7 +117,6 @@ def init(model, example_inputs, example_kwargs=None, is_qat=True, total_epochs=0
     check_guards = kwargs.get('check_guards', True)
     example_inputs = tuple(example_inputs)
     m = torch.export.export(orig_model, example_inputs, kwargs=example_kwargs).module(check_guards=check_guards)
-    from ...utils.helper_functions import allow_exported_model_train_eval
     allow_exported_model_train_eval(m)
     
     # for copy_arg in copy_args:
@@ -138,7 +124,8 @@ def init(model, example_inputs, example_kwargs=None, is_qat=True, total_epochs=0
     #         setattr(replace_obj, copy_arg, getattr(module, copy_arg))
     
     #####################################################################################
-    if is_qat:
+    if is_qat: # set to true above
+        # we are always inserting fake quantize (QDQ), if needed we can differentiate
         prepared_model = prepare_qat_pt2e(m, quantizer)
     else:
         prepared_model = prepare_pt2e(m, quantizer)
@@ -425,9 +412,10 @@ def _is_observed_module(module) -> bool:
     return hasattr(module, "meta") and "_observed_graph_module_attrs" in module.meta
 
 
-def export(self, example_inputs, filename='model.onnx', opset_version=17, model_qconfig_format=None, preserve_qdq_model=True,
+def export(self, example_inputs, example_kwargs=None, filename='model.onnx', opset_version=17, model_qconfig_format=None, preserve_qdq_model=True,
            simplify=True, skipped_optimizers=None, device='cpu', make_copy=True, insert_metadata=True, is_converted=False, **export_kwargs):
 
+    example_kwargs = example_kwargs or {}
     if _is_observed_module(self):
         model = convert(self, device=device, make_copy=make_copy)
     elif not is_converted:
@@ -437,13 +425,26 @@ def export(self, example_inputs, filename='model.onnx', opset_version=17, model_
         warnings.warn("model has already been converted before calling export. make sure it is done correctly.")
 
     model.module = quant_utils.remove_loss_branch(model.module)
-    quant_utils.register_onnx_symbolics()
+    quant_utils.register_onnx_symbolics(opset_version)
+    
+    from ...utils.helper_functions import get_tensors_to_device
+    
+    input_to_export = get_tensors_to_device(example_inputs, device)
+    kwargs_to_export = get_tensors_to_device(example_kwargs, device)
 
+    external_data = export_kwargs.pop('external_data',False)
+    dynamo = export_kwargs.pop('dynamo',True)
+    custom_translation_table:dict = export_kwargs.pop('custom_translation_table',{})
+    assert isinstance(custom_translation_table, dict)
+    custom_translation_table.update(((k,v) for k,v in quant_utils.get_custom_onnx_translation_table(opset_version).items() if k not in custom_translation_table))
+    import onnx
+    import onnxruntime as ort
     if model_qconfig_format == qconfig_types.QConfigFormat.INT_MODEL:
         # # Convert QDQ format to Int8 format
-        import onnxruntime as ort
+        
         qdq_filename = os.path.splitext(filename)[0] + '_qdq.onnx'
-        torch.onnx.export(model, example_inputs.to('cpu'), qdq_filename, opset_version=opset_version, training=torch._C._onnx.TrainingMode.PRESERVE, **export_kwargs)
+        torch.onnx.export(model, input_to_export, qdq_filename, kwargs=kwargs_to_export,custom_translation_table=custom_translation_table,
+                          opset_version=opset_version, external_data=external_data, dynamo=dynamo, training=torch._C._onnx.TrainingMode.PRESERVE, **export_kwargs)
         so = ort.SessionOptions()
         so.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_EXTENDED
         so.optimized_model_filepath = filename
@@ -453,20 +454,13 @@ def export(self, example_inputs, filename='model.onnx', opset_version=17, model_
             os.remove(qdq_filename)
         #
     else:
-        if isinstance(example_inputs, dict):
-            input_to_export = ()
-            for val in example_inputs.values():
-                if isinstance(val, list):
-                    continue
-                input_to_export += tuple([val.to(device=device)])
-        else:
-            input_to_export = example_inputs.to(device=device)
-        torch.onnx.export(model, input_to_export, filename, opset_version=opset_version, training=torch._C._onnx.TrainingMode.PRESERVE, **export_kwargs)
+        torch.onnx.export(model, input_to_export, filename, kwargs=kwargs_to_export, custom_translation_table=custom_translation_table, 
+                          opset_version=opset_version,external_data=external_data, dynamo=dynamo, training=torch._C._onnx.TrainingMode.PRESERVE, **export_kwargs)
 
     if simplify:
-        import onnx
         from onnxsim import simplify
         onnx_model = onnx.load(filename)
+        onnx_model.ir_version = 9
         onnx_model, check = simplify(onnx_model, skipped_optimizers=skipped_optimizers)
         onnx.save(onnx_model, filename)
     
