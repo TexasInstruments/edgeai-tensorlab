@@ -43,6 +43,10 @@ def nested_getattr(obj: Any, attr_path: str, default: Any=None):
     except AttributeError:
         return default
 
+
+def get_class_string(cls):
+    return f'{cls.__module__}.{cls.__name__}'
+
 # Note: The source code is copied from pytorch github (https://github.com/pytorch/pytorch/blob/main/torch/fx/passes/utils/source_matcher_utils.py#L51)
 # and modified  as per requirement 
 def get_source_partitions(graph:fx.Graph, wanted_sources:list, filter_fn = None):
