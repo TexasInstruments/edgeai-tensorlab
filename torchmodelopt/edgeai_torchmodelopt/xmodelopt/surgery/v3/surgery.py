@@ -67,6 +67,7 @@ def _replace_unsupported_layers(model:nn.Module, example_inputs:list=None, examp
     traced_model = model if isinstance(model,GraphModule) else torch.export.export(model,example_inputs,example_kwargs).module(check_guards=check_guards) 
     from ...utils.helper_functions import allow_exported_model_train_eval
     allow_exported_model_train_eval(traced_model)
+    traced_model.training = model.training
     replacer.__net_module_replaced = 0
     
     for pattern, replacement in replacement_dict.items():
