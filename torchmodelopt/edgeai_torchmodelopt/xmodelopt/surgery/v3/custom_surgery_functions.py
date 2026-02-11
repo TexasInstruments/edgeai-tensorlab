@@ -44,9 +44,9 @@ from ...utils.helper_functions import is_same_class, get_class
 from . import replacer
 # from .symbolic_trace import symbolic_trace
 from . import custom_modules
+from ...utils.helper_functions import get_class_string
 
-
-def gen_func_for_conv2d_kernel_gt_7(main_model:GraphModule, partition:SourcePartition, aten_graph:bool = True,):
+def gen_func_for_conv2d_kernel_gt_7(main_model:GraphModule, partition:SourcePartition, ):
     '''
     replacement module generator function, this should generate replacement module 
     for all possible nn.conv2d modules if it is passed to the dictionary
@@ -54,12 +54,12 @@ def gen_func_for_conv2d_kernel_gt_7(main_model:GraphModule, partition:SourcePart
                 else    :   returns None means no need to replace
     assuming kernel size is same on both axes
     '''
-    # if partition.source != nn.Conv2d:
-    if not is_same_class(partition.source, nn.Conv2d):
+    
+    if partition.source not in (nn.Conv2d, get_class_string(nn.Conv2d)):
         return None
     
     conv_node = partition.output_nodes[0]
-    if aten_graph:
+    if True:
         params = dict(main_model.named_parameters())
         weight = params[conv_node.args[1].target]
         num_args = len(conv_node.args)
@@ -131,7 +131,7 @@ def gen_func_for_conv2d_kernel_gt_7(main_model:GraphModule, partition:SourcePart
     
     return replacement
 
-def gen_func_for_conv2d_even_kernel_to_odd(main_model:GraphModule, partition:SourcePartition, aten_graph:bool = True,):
+def gen_func_for_conv2d_even_kernel_to_odd(main_model:GraphModule, partition:SourcePartition,):
     '''
     replacement module generator function, this should generate replacement module 
     for all possible nn.conv2d modules if it is passed to the dictionary
@@ -140,11 +140,11 @@ def gen_func_for_conv2d_even_kernel_to_odd(main_model:GraphModule, partition:Sou
     assuming kernel size is same on both axes
     '''
     
-    if not is_same_class(partition.source, nn.Conv2d):
+    if partition.source not in (nn.Conv2d, get_class_string(nn.Conv2d)):
         return None
     
     conv_node = partition.output_nodes[0]
-    if aten_graph:
+    if True:
         params = dict(main_model.named_parameters())
         weight = params[conv_node.args[1].target]
         num_args = len(conv_node.args)
@@ -155,7 +155,7 @@ def gen_func_for_conv2d_even_kernel_to_odd(main_model:GraphModule, partition:Sou
             bias = params[bias_node.target] if bias_node is not None else None
         stride = conv_node.args[3] if num_args >= 4 else [1, 1]
         padding = conv_node.args[4] if num_args >= 5 else [0, 0]
-        padding_mode = 'zeros' # TODO: what to put here ; module.padding_mode?
+        padding_mode = None
 
     else:
         modules = dict(main_model.named_modules())
@@ -193,7 +193,8 @@ def gen_func_for_conv2d_even_kernel_to_odd(main_model:GraphModule, partition:Sou
         return None
     replacement = nn.Sequential()
 
-    replacement.append(custom_modules.Padding((1, 0, 1, 0), padding_mode))
+    if padding_mode:
+        replacement.append(custom_modules.Padding((1, 0, 1, 0), padding_mode))
     last_conv = nn.Conv2d(in_channels, out_channels, kernel_size=k_size + 1, stride=stride, padding=padding)
     
     last_conv.bias = deepcopy(bias) if bias is not None else nn.Parameter(torch.zeros_like(last_conv.bias))
@@ -205,17 +206,16 @@ def gen_func_for_conv2d_even_kernel_to_odd(main_model:GraphModule, partition:Sou
     return replacement
     
 
-def gen_func_for_upsample(main_model:GraphModule, partition:SourcePartition, aten_graph:bool = True):
+def gen_func_for_upsample(main_model:GraphModule, partition:SourcePartition, ):
     '''
     replacement module generator function, this should generate replacement module 
     for all possible nn.Upsample modules if it is passed to the dictionary
     if has size factor as  parameter: returns a replacement module with scale factor only
                             else    : returns None means no need to replace
     '''
-    # if partition.source not in (nn.Upsample,):
-    if not is_same_class(partition.source, nn.Upsample):
+    if partition.source not in (nn.Upsample, get_class_string(nn.Upsample)):
         return None
-    if aten_graph:
+    if True:
         #TODO make  replacement for upsample
         mode_to_func_map = {
             'nearest': (torch.ops.aten.upsample_nearest1d.vec, torch.ops.aten.upsample_nearest2d.vec,torch.ops.aten.upsample_nearest3d.vec,),
@@ -260,20 +260,24 @@ def gen_func_for_upsample(main_model:GraphModule, partition:SourcePartition, ate
     return replacement
 
 
-def gen_func_for_pool(main_model:GraphModule, partition:SourcePartition, aten_graph:bool = True):
+def gen_func_for_pool(main_model:GraphModule, partition:SourcePartition,):
     '''
     replacement module generator function, this should generate replacement module 
     for all possible nn.MaxPool2s or nn.AvgPool2d modules if it is passed to the dictionary
     if kernel size >= 5 :   returns a series of pool with kernel size 3 or 2 
                 else    :   returns None means no need to replace
     '''
-    # if partition.source not in (nn.MaxPool2d, nn.AvgPool2d):
-    if not (is_same_class(partition.source, nn.MaxPool2d) or is_same_class(partition.source, nn.AvgPool2d)):
+    
+    pool_class = {get_class_string(nn.MaxPool2d):nn.MaxPool2d, get_class_string(nn.AvgPool2d):nn.AvgPool2d}
+    if partition.source in pool_class:
+        partition.source = pool_class[partition.source]
+    
+    if partition.source not in (nn.MaxPool2d, nn.AvgPool2d, ):
         return None
     
     pool_node = partition.output_nodes[0]
     
-    if aten_graph:
+    if True:
         num_args = len(pool_node.args)
         kernel_size = pool_node.args[1]
         stride = pool_node.args[2] if num_args >= 3 else kernel_size

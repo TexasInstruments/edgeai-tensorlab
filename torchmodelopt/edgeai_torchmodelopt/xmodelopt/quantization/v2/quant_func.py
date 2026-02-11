@@ -241,9 +241,9 @@ def _is_observed_module(module) -> bool:
     return hasattr(module, "meta") and "_observed_graph_module_attrs" in module.meta
 
 
-def export(self, example_inputs, filename='model.onnx', opset_version=17, model_qconfig_format=None, preserve_qdq_model=True,
+def export(self, example_inputs, example_kwargs=None, filename='model.onnx', opset_version=17, model_qconfig_format=None, preserve_qdq_model=True,
            simplify=True, skipped_optimizers=None, device='cpu', make_copy=True, insert_metadata=True, is_converted=False, **export_kwargs):
-
+    example_kwargs = example_kwargs or {}
     if _is_observed_module(self):
         model = convert(self, device=device, make_copy=make_copy)
     elif not is_converted:
@@ -262,11 +262,16 @@ def export(self, example_inputs, filename='model.onnx', opset_version=17, model_
         symbolic_fn=quant_utils.quantized_softmax,
         opset_version=opset_version)
     
+    from ...utils.helper_functions import get_tensors_to_device
+    
+    input_to_export = get_tensors_to_device(example_inputs, device)
+    kwargs_to_export = get_tensors_to_device(example_kwargs, device)
+    
     if model_qconfig_format == qconfig_types.QConfigFormat.INT_MODEL:
         # # Convert QDQ format to Int8 format
         import onnxruntime as ort
         qdq_filename = os.path.splitext(filename)[0] + '_qdq.onnx'
-        torch.onnx.export(model, example_inputs.to(device=device), qdq_filename, opset_version=opset_version, **export_kwargs)
+        torch.onnx.export(model, example_inputs.to(device=device), qdq_filename, kwargs=kwargs_to_export, opset_version=opset_version, **export_kwargs)
         so = ort.SessionOptions()
         so.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_EXTENDED
         so.optimized_model_filepath = filename
@@ -276,7 +281,7 @@ def export(self, example_inputs, filename='model.onnx', opset_version=17, model_
             os.remove(qdq_filename)
         #
     else:
-        torch.onnx.export(model, example_inputs.to(device=device), filename, opset_version=opset_version, **export_kwargs)
+        torch.onnx.export(model, example_inputs.to(device=device), filename, kwargs=kwargs_to_export, opset_version=opset_version, **export_kwargs)
     #
     if simplify:
         try:

@@ -44,17 +44,17 @@ from .parametrization import PRUNING_CLASS_DICT
 
 class PrunerModule(OptimizationBaseModule):
     def __init__(self, module, *args, example_inputs:list=None, example_kwargs:dict=None, pruning_ratio=None, total_epochs=None, pruning_class='blend',p=2.0, pruning_global=False, copy_args=None,
-                 pruning_type='channel', pruning_init_train_ep=5, pruning_m=None, add_methods=True, aten_graph=True, transformation_dict=None, copy_attrs=None, **kwargs) -> None:
+                 pruning_type='channel', pruning_init_train_ep=5, pruning_m=None, add_methods=True, transformation_dict=None, copy_attrs=None, **kwargs) -> None:
         copy_attrs = copy_attrs or []
         copy_args = copy_args or []
         example_inputs =[] if example_inputs is None else example_inputs
         example_kwargs = example_kwargs or {}
         super().__init__( module, *args, transformation_dict=transformation_dict, copy_attrs=copy_attrs, **kwargs)
         self.prepare(module, *args, example_inputs= example_inputs, example_kwargs=example_kwargs, pruning_ratio=pruning_ratio, total_epochs=total_epochs, pruning_class=pruning_class, copy_args = copy_args,
-                    p=p,pruning_global=pruning_global, pruning_type=pruning_type, pruning_init_train_ep=pruning_init_train_ep, pruning_m=pruning_m, add_methods=add_methods, aten_graph=aten_graph, transformation_dict=transformation_dict, copy_attrs=copy_attrs, **kwargs)
+                    p=p,pruning_global=pruning_global, pruning_type=pruning_type, pruning_init_train_ep=pruning_init_train_ep, pruning_m=pruning_m, add_methods=add_methods, transformation_dict=transformation_dict, copy_attrs=copy_attrs, **kwargs)
 
     def prepare(self, module, *args, example_inputs:list=None, example_kwargs:dict=None, pruning_ratio=None, total_epochs=None, pruning_class='blend',p=2.0, pruning_global=False, copy_args=None,
-                pruning_type='channel', pruning_init_train_ep=5, pruning_m=None, add_methods=True, aten_graph=True, transformation_dict=None, copy_attrs=None,  **kwargs):
+                pruning_type='channel', pruning_init_train_ep=5, pruning_m=None, add_methods=True, transformation_dict=None, copy_attrs=None,  **kwargs):
         copy_attrs = copy_attrs or []
         copy_args = copy_args or []
         example_inputs =[] if example_inputs is None else example_inputs
@@ -66,7 +66,6 @@ class PrunerModule(OptimizationBaseModule):
         self.sparsity = 0
         self.init_train_ep = pruning_init_train_ep
         self.p = p
-        self.aten_graph = self.pre_dispatch = aten_graph
         
         if pruning_ratio==0:
             raise RuntimeError("pruning ratio of 0 is not supported , try turning off pruning and trying again")
@@ -108,7 +107,7 @@ class PrunerModule(OptimizationBaseModule):
             raise NotImplementedError
         
         self.module = pruning_func_wrapper.init(module, *args, example_inputs= example_inputs, example_kwargs=example_kwargs, pruning_ratio=pruning_ratio, total_epochs=total_epochs, pruning_class=pruning_class, copy_args = copy_args,
-                    p=p,pruning_global=pruning_global, pruning_type=pruning_type, pruning_init_train_ep=pruning_init_train_ep, pruning_m=pruning_m, add_methods=add_methods, aten_graph=aten_graph, transformation_dict=transformation_dict, **kwargs)
+                    p=p,pruning_global=pruning_global, pruning_type=pruning_type, pruning_init_train_ep=pruning_init_train_ep, pruning_m=pruning_m, add_methods=add_methods, transformation_dict=transformation_dict, **kwargs)
 
     #TODO pt2e implementation
     def get_layer_pruning_ratio(self, pruning_ratio=0.6):
