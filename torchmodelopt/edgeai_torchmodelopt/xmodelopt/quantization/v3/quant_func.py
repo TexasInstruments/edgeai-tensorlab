@@ -156,7 +156,7 @@ def init(model, example_inputs, example_kwargs=None, is_qat=True, total_epochs=0
         #     else:
         #         torch.ao.quantization.move_exported_model_to_eval(self)
                 
-        prepared_model.__quant_train_backup__ = types.MethodType(model.train.__func__, prepared_model) 
+        prepared_model.__quant_train_backup__ = types.MethodType(m.train.__func__, prepared_model) 
         prepared_model.train = types.MethodType(train, prepared_model)
         prepared_model.eval = types.MethodType(eval, prepared_model)
         # other methods

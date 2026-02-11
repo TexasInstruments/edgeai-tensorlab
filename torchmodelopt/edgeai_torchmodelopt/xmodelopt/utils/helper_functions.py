@@ -434,6 +434,9 @@ def _move_exported_model_to_train(model, mode: bool=True):
         torch.fx.GraphModule: The modified model.
     """
     # Check if the model is already in the desired mode
+    if hasattr(model, 'training'):
+        setattr(model, _EXPORTED_TRAINING_ATTR, model.training)
+        
     is_training = getattr(model, _EXPORTED_TRAINING_ATTR, not mode)
     if is_training==mode:
         return model
