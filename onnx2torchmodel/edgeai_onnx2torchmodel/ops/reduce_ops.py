@@ -31,9 +31,10 @@ import torch
 import onnx_graphsurgeon as gs
 from . import utils
 
+error_msg = lambda : 'Got an empty tensor!'
 #TODO add support for noop_with_empty_axes
 def torch_reduce_max(x, axes=None, keepdims=True, noop_with_empty_axes = False):
-    torch._check(x.numel() != 0)
+    torch._check(x.numel() != 0, error_msg)
     if axes is None:
         return torch.amax(x, keepdim=keepdims)
     return torch.amax(x, dim=axes, keepdim=keepdims)
@@ -59,7 +60,7 @@ def add_reduce_max_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph
         torch_nodes[node.name] = torch_graph.call_function(torch_reduce_max, tuple(args),  kwargs, name=node.name)
 
 def torch_reduce_min(x, axes=None, keepdims=True, noop_with_empty_axes = False):
-    torch._check(x.numel() != 0)
+    torch._check(x.numel() != 0, error_msg)
     if axes is None:
         return torch.amin(x, keepdim=keepdims)
     return torch.amin(x, dim=axes, keepdim=keepdims)
@@ -83,7 +84,7 @@ def add_reduce_min_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph
         torch_nodes[node.name] = torch_graph.call_function(torch_reduce_min, tuple(args),  kwargs, name=node.name)
 
 def torch_reduce_mean(x, axes, keepdims=True, noop_with_empty_axes = False):
-    torch._check(x.numel() != 0)
+    torch._check(x.numel() != 0, error_msg)
     if axes is None:
         return torch.mean(x, keepdim=keepdims)
     return torch.mean(x, dim=axes, keepdim=keepdims)
@@ -108,7 +109,7 @@ def add_reduce_mean_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Grap
         torch_nodes[node.name] = torch_graph.call_function(torch_reduce_mean, tuple(args),  kwargs, name=node.name)
 
 def torch_reduce_l1(x, axes, keepdims=True, noop_with_empty_axes = False):
-    torch._check(x.numel() != 0)
+    torch._check(x.numel() != 0, error_msg)
     if axes is None:
         # Reduce over all dimensions
         result = torch.norm(x, p=1)
@@ -142,7 +143,7 @@ def add_reduce_l1_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,
         torch_nodes[node.name] = torch_graph.call_function(torch_reduce_l1, tuple(args),  kwargs, name=node.name) 
 
 def torch_reduce_l2(x, axes, keepdims=True, noop_with_empty_axes = False):
-    torch._check(x.numel() != 0)
+    torch._check(x.numel() != 0, error_msg)
     if axes is None:
         # Reduce over all dimensions
         result = torch.norm(x, p=2)
@@ -176,7 +177,7 @@ def add_reduce_l2_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,
         torch_nodes[node.name] = torch_graph.call_function(torch_reduce_l2, tuple(args),  kwargs, name=node.name) 
 
 def torch_reduce_sum(x, axes, keepdims=True, noop_with_empty_axes = False):
-    torch._check(x.numel() != 0)
+    torch._check(x.numel() != 0, error_msg)
     if axes is None:
         # Reduce over all dimensions
         result = torch.sum(x)
@@ -253,7 +254,7 @@ def add_reduce_log_sum_exp_2_torch_graph(state, node:gs.Node, torch_graph:torch.
         torch_nodes[node.name] = torch_graph.call_function(torch_reduce_log_sum_exp, tuple(args),  kwargs, name=node.name)
 
 def torch_reduce_prod(x, axes, keepdims=True, noop_with_empty_axes = False):
-    torch._check(x.numel() != 0)
+    torch._check(x.numel() != 0, error_msg)
     if axes is None:
         # Reduce over all dimensions
         result = torch.prod(x)

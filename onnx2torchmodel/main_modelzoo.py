@@ -58,7 +58,9 @@ def add_all_output(model_path, output_path=None):
     #%%
     try:
         os.makedirs(output_path, exist_ok=True)
+        ir = model.ir_version
         model = gs.export_onnx(graph)
+        model.ir_version = ir
         output_path = os.path.join(output_path, os.path.basename(model_path).replace('.onnx', '_all.onnx'))
         onnx.save_model(model, output_path)
     except Exception as e:
@@ -195,8 +197,8 @@ if __name__ == '__main__':
     config = yaml.load(open(config_path, 'r'), Loader=yaml.Loader)['configs']
     status = {}
     not_implemented = [
-        '3dod-7100', # use actual input 
-        '3dod-7110', # use actual input 
+        # '3dod-7100', # use actual input 
+        # '3dod-7110', # use actual input 
         'cl-6508', # QDQ
         'cl-6507', #QDQ
         # 'od-8080', # use actual input
@@ -205,12 +207,12 @@ if __name__ == '__main__':
         # 'od-8020', # use actual input
         # 'od-8090', # use actual input
     ]
-    failed = ['3dod-7100', '3dod-7110', 'cl-6507', 'cl-6508', 'kd-7070', 'kd-7080', 'od-8020', 'od-8030', 'od-8040', 'od-8050', 'od-8060', 'od-8070', 'od-8080', 'od-8090']
+    failed = ['od-8020', 'od-8030', 'od-8040', 'od-8050', 'od-8060', 'od-8070', 'od-8080', 'od-8090']
     global total_count
     total_count = 0
     model_names = sorted(config.keys())
     # model_names = [name for name in model_names if name not in failed]
-    model_names = failed
+    # model_names = failed
     model_names =['od-8020']#, 'od-8930']
     for i, model_name in enumerate(model_names):
     # for model_name, path in config.items():
@@ -228,6 +230,10 @@ if __name__ == '__main__':
             print(f"Model {model_path} does not exist")
             status[model_name] = 'onnx not found'
             continue
+        if not model_path.endswith('.onnx'):
+            print(f"Model {model_path} is not onnx")
+            status[model_name] = 'not onnx'
+            continue
         if  model_name in not_implemented:
             print(f"Model {model_path} in failed list")
             status[model_name] = 'Expected Failed'
@@ -238,14 +244,14 @@ if __name__ == '__main__':
         
         def main_job(all=False):
             torch.cuda.empty_cache()
-            print("#######################################################")
-            print(i, model_name, os.path.basename(model_path))
+            # print("#######################################################")
+            # print(i, model_name, os.path.basename(model_path))
             global total_count
             total_count += 1
             start_time = time.time()
-            args = [model_name, model_path, '-e','-s', '-t'] 
-            # if all:
-            #     args = args + ['-a']
+            args = [model_name, model_path, '-e','-s', '-t',] 
+            if all:
+                args = args + ['-a']
 
             torch_model = main( args,)[0]
             example_inputs = []

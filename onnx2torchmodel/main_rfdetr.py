@@ -152,7 +152,7 @@ def main(args=None, inps=None):
     sess_options = onnxruntime.SessionOptions()
     sess_options.graph_optimization_level = onnxruntime.GraphOptimizationLevel.ORT_DISABLE_ALL
     torch_model = convert(args.model_path, for_training=True)
-    # return torch_model, None
+    return torch_model, None
     session1 = onnxruntime.InferenceSession(args.model_path, sess_options, providers=['CPUExecutionProvider'])
     torch_model.eval()
     if args.export_txts:
@@ -242,19 +242,20 @@ if __name__ == '__main__':
 
     dataloader = RFDeTRDataloader()
     inp = dataloader[0]
-    result =  main(['/data/ssd/files/a0507161/exps/onnx_exp/opt_ar_rgb_modified_inf2ten.onnx', '-e','-s','-a'], inps=inp)
+    result =  main(['/data/ssd/files/a0507161/exps/onnx_exp/opt_ar_rgb_modified_inf2ten.onnx', '-e','-s',], inps=inp)
     new_model = result[0]
-    o1 = result[1]
-    o2 = result[2]
-    # inp = [torch.from_numpy(i) for i in inp]
+    # o1 = result[1]
+    # o2 = result[2]
+    inp = [torch.from_numpy(i) for i in inp]
     # # new_model= new_model.cuda()
     # inps = inp #[i.cuda() for i in inp]
     # outputs1 = new_model(*inps)
     # # new_model = new_model.cpu()
-    # from torchao.quantization.pt2e import allow_exported_model_train_eval
+    from torchao.quantization.pt2e import allow_exported_model_train_eval
     ep = torch.export.export(new_model, tuple(inp))
     pt2e_model = ep.module()
-    # allow_exported_model_train_eval(pt2e_model)
+    allow_exported_model_train_eval(pt2e_model)
+    torch.onnx.export(pt2e_model, tuple(inp), 'temp.onnx', report=True, external_data=False, dump_exported_program=True)
     # # # # pt2e_model= pt2e_model.cuda()
     # # # inps = inp # [i.cuda() for i in inp]
     # outputs2 = pt2e_model(*inps)

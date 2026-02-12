@@ -32,7 +32,7 @@ import onnx_graphsurgeon as gs
 from . import utils
 import copy
 
-def torch_reshape(x, shape, allowzero=False):
+def torch_reshape1(x, shape, allowzero=False):
     if isinstance(shape, torch.Tensor):
         shape = shape.cpu()
         # zeros = torch.where(shape==0)[0]
@@ -52,6 +52,13 @@ def torch_reshape(x, shape, allowzero=False):
     shape = [int(s) for s in shape]
     return torch.reshape(x, shape)
 
+def torch_reshape2(x, shape, allowzero=False):
+    if isinstance(shape, torch.Tensor):
+        shape = shape.cpu()
+        # zeros = torch.where(shape==0)[0]
+        # allowzero = allowzero or zeros.numel()==0
+        shape = shape.tolist()
+    return torch.reshape(x, shape)
 
 def add_reshape_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
     assert 1<= len(node.inputs) <= 2, f'{node.name} with operator {node.op} should have 1 or 2 inputs, but got {len(node.inputs)}'
@@ -69,14 +76,18 @@ def add_reshape_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  
     if 'shape' in node.attrs:
         kwargs['shape'] = node.attrs['shape']
     kwargs['allowzero'] = allowzero
+    if 'shape' in kwargs or (len(node.inputs)==2 and isinstance(node.inputs[1], gs.Constant)):
+        func = torch_reshape1
+    else:
+        func = torch_reshape2
 
     if state.module_based:
-        module = utils.WrappedModule(node.name, node.op, torch_module, torch_reshape, args, kwargs,)
+        module = utils.WrappedModule(node.name, node.op, torch_module, func, args, kwargs,)
         torch_module.add_module(node.name, module)
         args = [x for x in args if (isinstance(x, torch.fx.Node) and x.op != 'get_attr')]
         torch_nodes[node.name] = torch_graph.call_module(node.name, tuple(args))
     else:
-        torch_nodes[node.name] = torch_graph.call_function(torch_reshape, tuple(args),  kwargs, name=node.name)
+        torch_nodes[node.name] = torch_graph.call_function(func, tuple(args),  kwargs, name=node.name)
     for attr in node.attrs:
         if attr in kwargs:
             continue
@@ -104,7 +115,7 @@ def add_flatten_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  
 
 def torch_shape(x):
     if hasattr(x, 'shape'):
-        return torch.tensor(x.shape, device=x.device)
+        return torch.tensor(   list(x.shape), device=x.device)
     return [len(x)]
 
 def add_shape_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):

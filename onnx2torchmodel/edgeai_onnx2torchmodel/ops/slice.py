@@ -32,8 +32,7 @@ import onnx_graphsurgeon as gs
 from . import utils
 from operator import getitem
 
-torch.library.custom_op.slice = None
-@torch.library.custom_op('custom_ops::slice', mutates_args=())
+# @torch.library.custom_op('custom_ops::slice', mutates_args=())
 def single_slice(x:torch.Tensor, axis:int, start:int, end:int,  step:int)-> torch.Tensor:
     # return torch.ops.aten.slice.Tensor(x.clone(),axis, start, end, step)
     dim = x.dim() if isinstance(x, torch.Tensor) else len(x)
@@ -41,11 +40,15 @@ def single_slice(x:torch.Tensor, axis:int, start:int, end:int,  step:int)-> torc
     slices[axis] = slice(start ,end, step)
     return getitem(x.clone(), tuple(slices))
 
-@single_slice.register_fake
+# @single_slice.register_fake
 def _(x, axis, start, end, step):
     return torch.ops.aten.slice.Tensor(x,axis, start, end, step)
 
-func = torch.library.custom_op.slice or single_slice
+try:
+    func = torch.ops.custom_ops.slice.default
+except:
+    print("Didn't register slice in custom ops")
+    func= torch.ops.aten.slice.Tensor
 
 def adjust_for_slice(x):
     if not isinstance(x, (list, tuple, torch.Tensor)):

@@ -29,7 +29,7 @@
 
 import torch
 import onnx_graphsurgeon as gs
-# from operator import getitem
+from operator import getitem
 from . import utils
 import numpy as np
 import copy
@@ -46,18 +46,9 @@ def torch_gather(x, indices, axis=0):
     if isinstance(indices, (list, tuple)):
         indices = torch.tensor(indices).to(x.device)
     if isinstance(indices, torch.Tensor ):
-        indices_dim = indices.dim()
-        indices_shape = indices.shape
-        indices = indices.reshape(-1)
-        if indices.dim() == 1:
-            # indices = torch.where(indices<0, indices+x.shape[axis], indices)
-            result =  torch.index_select( x, axis, indices)
-        else:
-            raise NotImplementedError
-        if indices_dim != 1:
-            shape = result.shape[:axis] + indices_shape + result.shape[axis+1:]
-            result = result.reshape(shape)
-        return result
+        slices = [slice(None, None) for _ in range(x.dim())]
+        slices[axis] = indices
+        return  getitem(x, tuple(slices))
 
 
 def add_gather_2_torch_graph(state, node:gs.Node, torch_graph:torch.fx.Graph,  torch_nodes: dict[str,torch.fx.Node], torch_module:torch.nn.Module):
