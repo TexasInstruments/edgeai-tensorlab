@@ -2,7 +2,7 @@ from torch import nn
 import copy
 
 
-def apply_tranformation_to_submodules(model:nn.Module, transformation_dict: dict, *args, **kwargs):
+def apply_transformation_to_submodules(model:nn.Module, transformation_dict: dict, *args, **kwargs):
     """Applies transformation functions to specified submodules of a model.
     
     This function takes a PyTorch model and a dictionary mapping submodule names to wrapper functions.

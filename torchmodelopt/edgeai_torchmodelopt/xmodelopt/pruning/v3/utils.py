@@ -1148,14 +1148,16 @@ def get_net_weights_all(module:fx.GraphModule, pattern_partitions:dict[Any,List[
             all_partition_nodes.extend([node.name for node in partition.nodes])                  
     
     for node in model_graph.nodes:
+        
         if node.op=='get_attr': 
+            # import pdb; pdb.set_trace()
             if node.target in net_weights:
                 continue
-            if node.target not in params:
-                continue
-            attr = params[node.target]
+            attr = params.get(node.target, None)
             if node.name not in all_partition_nodes:
-                net_weights[node.target] = ((weight_sublist.mean(dim=1) if global_pruning else weight_sublist),0)
+                # if attr is not None:
+                net_weights[node.target] = (attr,0)
+                # net_weights[node.target] = ((weight_sublist.mean(dim=1) if global_pruning else weight_sublist),0)
     
     for cls,partitions in pattern_partitions.items():
         cls = get_class_string(cls) if isinstance(cls, type) else cls
@@ -1176,7 +1178,7 @@ def get_net_weights_all(module:fx.GraphModule, pattern_partitions:dict[Any,List[
                     net_weights[param_name] = (params[param_name], 0)
         elif cls == get_class_string(nn.BatchNorm2d):
             for partition in  partitions:               
-                weight_index, bias_index = get_parameter_indices(module,partition. source, partition)
+                weight_index, bias_index = get_parameter_indices(module, partition. source, partition)
                 if partition not in all_connected_nodes_separated:
                     param_name = partition.nodes[weight_index].target
                     net_weights[param_name] = (params[param_name], 0)
@@ -1186,12 +1188,15 @@ def get_net_weights_all(module:fx.GraphModule, pattern_partitions:dict[Any,List[
                 if partition not in all_connected_nodes_separated:
                     param_name = partition.nodes[weight_index].target
                     net_weights[param_name] = (params[param_name], 0)
-        elif cls == get_class_string(nn.Conv2d):
+        elif cls == nn.Conv2d:
+            # import pdb; pdb.set_trace()
             for partition in  partitions: 
-                weight_index, bias_index = get_parameter_indices(module,partition. source, partition)              
+                weight_index, bias_index = get_parameter_indices(module,partition. source, partition)
+                # weight_index, bias_index = get_parameter_indices(module, cls, partition)              
                 if partition not in all_connected_nodes_separated:
                     param_name = partition.nodes[weight_index].target
-                    net_weights[param_name] = (params[param_name], 0)
+                    # net_weights[param_name] = (params[param_name], 0)
+                    net_weights[param_name] = (params.get(param_name,None), 0)
                     
     return net_weights
 

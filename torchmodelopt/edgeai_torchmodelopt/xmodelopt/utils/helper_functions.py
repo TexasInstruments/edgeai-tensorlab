@@ -210,7 +210,7 @@ def get_source_partitions(graph:fx.Graph, wanted_sources:list, filter_fn = None)
         ret[k] = []
         for key,partitions in v.items():
             for partition in separate_partitions(partitions):
-                ret[k].append(make_partition(partition, k))
+                ret[k].append(make_partition(partition, name_2_class_dict.get(k,k)))
 
     # Convert class string keys back to actual class objects
     for cls in class_names:

@@ -40,11 +40,10 @@ import math
 import random
 
 
-from ...utils.helper_functions import is_same_class, get_class
+from ...utils.helper_functions import is_same_class, get_class, get_class_string
 from . import replacer
 # from .symbolic_trace import symbolic_trace
 from . import custom_modules
-from ...utils.helper_functions import get_class_string
 
 def gen_func_for_conv2d_kernel_gt_7(main_model:GraphModule, partition:SourcePartition, ):
     '''
@@ -55,7 +54,7 @@ def gen_func_for_conv2d_kernel_gt_7(main_model:GraphModule, partition:SourcePart
     assuming kernel size is same on both axes
     '''
     
-    if partition.source not in (nn.Conv2d, get_class_string(nn.Conv2d)):
+    if not is_same_class(partition.source, nn.Conv2d):
         return None
     
     conv_node = partition.output_nodes[0]
@@ -140,7 +139,7 @@ def gen_func_for_conv2d_even_kernel_to_odd(main_model:GraphModule, partition:Sou
     assuming kernel size is same on both axes
     '''
     
-    if partition.source not in (nn.Conv2d, get_class_string(nn.Conv2d)):
+    if not is_same_class(partition.source, nn.Conv2d):
         return None
     
     conv_node = partition.output_nodes[0]
@@ -155,7 +154,7 @@ def gen_func_for_conv2d_even_kernel_to_odd(main_model:GraphModule, partition:Sou
             bias = params[bias_node.target] if bias_node is not None else None
         stride = conv_node.args[3] if num_args >= 4 else [1, 1]
         padding = conv_node.args[4] if num_args >= 5 else [0, 0]
-        padding_mode = None
+        padding_mode = 'zeros'
 
     else:
         modules = dict(main_model.named_modules())

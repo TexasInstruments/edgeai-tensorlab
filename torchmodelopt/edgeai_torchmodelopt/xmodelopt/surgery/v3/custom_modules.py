@@ -139,9 +139,12 @@ class ReplacedModule(nn.Module):
             elif 'example_value' in node.meta:
                 self.inputs[node] = node.meta['example_value']
         self.module = self.gen_func(main_model,partition)
+        
         example_inputs,example_kwargs =self.input_adjustment_func(partition,self.inputs)
         example_inputs = tuple(example_inputs)
         if self.module is not None:
+            self.module.training = main_model.training # match parent model's training state
+            
             x = None
             arg_tensors = [x for x in example_inputs if isinstance(x, torch.Tensor)]
             kwarg_tensors = [x for x in example_kwargs.values() if isinstance(x, torch.Tensor)]

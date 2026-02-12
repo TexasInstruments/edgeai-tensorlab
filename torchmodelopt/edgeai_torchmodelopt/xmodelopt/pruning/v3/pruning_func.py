@@ -100,6 +100,7 @@ def init(module, *args, example_inputs:list=None, example_kwargs:dict=None, prun
         if hasattr(module, copy_arg):
             setattr(gm_module, copy_arg, getattr(module, copy_arg))
         
+    import pdb; pdb.set_trace()
     # to get net weights for each of the layers, incorporating all the required dependancies
     gm_module.__prune_params__.net_weights = get_net_weights_all(gm_module, gm_module.__prune_params__.pruning_partitions, gm_module.__prune_params__.next_conv_node_list, gm_module.__prune_params__.all_connected_nodes, gm_module.__prune_params__.next_bn_nodes, gm_module.__prune_params__.channel_pruning, gm_module.__prune_params__.global_pruning)
     

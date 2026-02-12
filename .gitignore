@@ -5,3 +5,8 @@ data/
 !data/readme.txt
 *.onnx
 workdir/
+
+surgery-tests/saved_models/
+surgery-tests/*.ipynb
+venv
+.vscode
