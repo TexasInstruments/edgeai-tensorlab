@@ -287,8 +287,8 @@ def accuracy_objective(trial, idx=0, study_context=''):
 
     params['batch_size'] = 128
     # params['batch_size'] = 64
-    # params['fraction'] = 1
-    params['fraction'] = 0.1
+    params['fraction'] = 1
+    # params['fraction'] = 0.1
 
     params['optimizer_type'] = 'SGD'
     params['lr'] = 1e-5
@@ -296,8 +296,8 @@ def accuracy_objective(trial, idx=0, study_context=''):
 
     params['loss_fn'] = 'ce'
 
-    # params['total_epochs'] = 60
-    params['total_epochs'] = 5
+    params['total_epochs'] = 60
+    # params['total_epochs'] = 5
     params['trial'] = trial
     params['trial_no'] = trial.number
 
@@ -314,7 +314,7 @@ def accuracy_objective(trial, idx=0, study_context=''):
         'sparsity_ratio': n/m,
         'sparsity_m': m,
         'total_epochs': params['total_epochs'],
-        'incremental_epochs': 5,
+        'incremental_epochs': 60,
         # 'pre_epochs': 120,
         'mode': 'topk_elementwise',
         # 'mode': 'topk',

@@ -78,7 +78,7 @@ class BaseSparsityParametrization(nn.Module):
             during training (gradually increasing sparsity) or hard binary masks for
             final evaluation/inference.
         """
-        super().__init__(*args, **kwargs)
+        # super().__init__(*args, **kwargs)
         self.source = source
         self.nodes = nodes
         self.epoch_count = epoch_count
