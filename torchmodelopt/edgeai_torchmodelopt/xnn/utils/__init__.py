@@ -53,6 +53,7 @@ from .path_utils import *
 from .import_utils import *
 from .distributed_utils import *
 from .graph_drawer_utils import *
+from .fx_graph_as_onnx import *
 
 
 try: from .tensor_utils_internal import *

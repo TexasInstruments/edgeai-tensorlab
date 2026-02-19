@@ -105,8 +105,14 @@ def init(model, example_inputs, example_kwargs=None, is_qat=True, total_epochs=0
         
     example_inputs = model._example_inputs.pop(0)
     example_kwargs = model._example_kwargs.pop(0)
-
+    # devices = {p.device for p in model.parameters()} | {
+    #     p.device for p in model.buffers()
+    # }
+    # assert len(devices) <=1, f'All tensors of the model should be in 1 device, but found in {len(devices)} devices'
+    # device = device or list(devices)[0]
     from ...utils.helper_functions import allow_exported_model_train_eval, get_tensors_to_device
+    from torch.ao.quantization.utils import _assert_and_get_unique_device
+    device = device or _assert_and_get_unique_device(model)
     if device:
         example_inputs = get_tensors_to_device(example_inputs, device)
         example_kwargs = get_tensors_to_device(example_kwargs, device)
@@ -116,7 +122,10 @@ def init(model, example_inputs, example_kwargs=None, is_qat=True, total_epochs=0
     orig_model =  copy.deepcopy(model) if kwargs.get('with_deepcopy', False) else model
     check_guards = kwargs.get('check_guards', True)
     example_inputs = tuple(example_inputs)
-    m = torch.export.export(orig_model, example_inputs, kwargs=example_kwargs).module(check_guards=check_guards)
+    if isinstance(orig_model, torch.fx.GraphModule):
+        m = orig_model
+    else:
+        m = torch.export.export(orig_model, example_inputs, kwargs=example_kwargs).module(check_guards=check_guards)
     allow_exported_model_train_eval(m)
     
     # for copy_arg in copy_args:
@@ -130,7 +139,7 @@ def init(model, example_inputs, example_kwargs=None, is_qat=True, total_epochs=0
     else:
         prepared_model = prepare_pt2e(m, quantizer)
     
-    # prepared_model = _model_to_device(prepared_model, device)
+    prepared_model = _model_to_device(prepared_model, device)
 
     #####################################################################################
     prepared_model.__quant_params__ = xnn.utils.AttrDict()
@@ -307,7 +316,7 @@ def convert(self, *args, device="cpu", make_copy=False, fq_to_clip=None, **kwarg
         orig_quant_params = None
 
     model = copy.deepcopy(self) if make_copy else self # calls the deepcopy_graphmodule module
-    model = model.to(device=device)
+    model = _model_to_device(model, device)
     model = quant_utils.move_node_kwargs_to_device(model, device=device)
     model = quant_utils.remove_to_device_node(model)
 
@@ -412,7 +421,7 @@ def _is_observed_module(module) -> bool:
     return hasattr(module, "meta") and "_observed_graph_module_attrs" in module.meta
 
 
-def export(self, example_inputs, example_kwargs=None, filename='model.onnx', opset_version=17, model_qconfig_format=None, preserve_qdq_model=True,
+def export(self, example_inputs, example_kwargs=None, filename='model.onnx', opset_version=18, model_qconfig_format=None, preserve_qdq_model=True,
            simplify=True, skipped_optimizers=None, device='cpu', make_copy=True, insert_metadata=True, is_converted=False, **export_kwargs):
 
     example_kwargs = example_kwargs or {}

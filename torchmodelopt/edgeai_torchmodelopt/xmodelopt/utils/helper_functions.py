@@ -8,6 +8,68 @@ from torch.fx.passes.utils.source_matcher_utils import SourcePartition
 import importlib
 from functools import reduce
 
+
+def get_module(m: torch.nn.Module, target:str):
+    """Retrieves a module from a PyTorch model by its target name.
+    
+    This function traverses a PyTorch module hierarchy to find a submodule 
+    specified by the target string. It can handle both direct module access 
+    and nested module paths (e.g. 'layer1.0.conv').
+    
+    Args:
+        m (torch.nn.Module): The parent module to search within.
+        target (str): The target module name or path to retrieve.
+        
+    Returns:
+        torch.nn.Module: The requested module if found.
+    """
+    try:
+        modules = dict(m.named_modules())
+        if target in modules:
+            return modules[target]
+    except:
+        pass
+    attr = target.split('.',1)
+    if len(attr) == 1:
+        attr = attr[0]    
+        if hasattr(m, attr):
+            return (getattr(m,attr))
+    else:
+        attr, target = attr
+        try:
+            modules = dict(m.named_modules())
+            if attr in modules:
+                m =  modules[attr]
+        except:
+            if hasattr(m, attr):
+                m = getattr(m, attr)
+        return get_module(m, target)
+
+
+def get_attr(model, target):
+    """Retrieves an attribute (parameter or buffer) from a PyTorch model by its target name.
+    
+    This function accesses parameters or buffers within a PyTorch model, handling both
+    directly accessible attributes and nested attributes within submodules.
+    
+    Args:
+        model (torch.nn.Module): The model to retrieve the attribute from.
+        target (str): The target attribute name or path to retrieve.
+        
+    Returns:
+        torch.Tensor: The requested parameter or buffer if found.
+    """
+    attrs = dict(model.named_parameters())
+    attrs.update(model.named_buffers())
+    if target in attrs:
+        return attrs[target]
+    split = target.rsplit('.',1)
+    if len(split) == 1:
+        return getattr(model, target)
+    parent, target = split
+    return getattr(get_module(model, parent), target)
+
+
 def get_class_string(cls):
     """Returns a fully qualified string representation of a class.
     
@@ -20,18 +82,41 @@ def get_class_string(cls):
     return f'{cls.__module__}.{cls.__name__}'
 
 def is_same_class(source: str|type, cls: type) ->  bool:
-    '''
-        use to compare when not sure if source is string or class
-        Makes parition.source backwards compatible, if get_source_paritition behavior changes
-        Intented usage example: is_same_class(partition.source, nn.Conv2d)
-    '''
+    """Checks if a source matches a given class type.
+    
+    This function compares a source (which can be either a string representation 
+    or a class type) with a class type. It's useful when dealing with source partitions 
+    where the source might be represented as either a string or a class object.
+    
+    Args:
+        source (str|type): The source to compare, either as a string or a class type.
+        cls (type): The class type to compare against.
+        
+    Returns:
+        bool: True if the source matches the class, False otherwise.
+        
+    Example:
+        is_same_class(partition.source, nn.Conv2d)
+    """
     return (source == cls) or (source == get_class_string(cls))
 
 def get_class(source):
-    '''
-        use to get class object when not sure if source is string or class
-        Intented usage example: get_class(parition.source)(args...)
-    '''
+    """Converts a source to its class type.
+    
+    This function handles sources that might be either a string representation 
+    or a class type, and returns the corresponding class object. It's useful
+    when working with source partitions where the source representation is variable.
+    
+    Args:
+        source (str|type): The source to convert, either as a string or a class type.
+        
+    Returns:
+        type: The class object represented by the source.
+        
+    Example:
+        cls = get_class(partition.source)
+        instance = cls(*args)
+    """
     if isinstance(source, str):
         module_name, class_name = source.rsplit('.', 1)
         # Import the module dynamically
@@ -44,10 +129,24 @@ def get_class(source):
         return source # assume isinstance(source, type)
 
 def nested_getattr(obj: Any, attr_path: str, default: Any=None):
-    '''
-        Like getattr, but works for nested attribute paths. 
-        e.g.: If attr_path = 'layer1.0.weight', it will return obj.layer1.0.weight
-    '''
+    """Retrieves a nested attribute from an object using a dot-separated path.
+    
+    This function extends the built-in getattr to support accessing nested attributes
+    through a dot-separated string path. It handles arbitrary levels of nesting.
+    
+    Args:
+        obj (Any): The object to retrieve the attribute from.
+        attr_path (str): A dot-separated path to the desired attribute.
+        default (Any, optional): The value to return if the attribute is not found.
+            Defaults to None.
+            
+    Returns:
+        Any: The value of the nested attribute if found, otherwise the default value.
+        
+    Example:
+        # Returns obj.layer1[0].weight
+        weight = nested_getattr(obj, 'layer1.0.weight')
+    """
     try:
         return reduce(getattr, attr_path.split('.'), obj)
     except AttributeError:
@@ -231,10 +330,35 @@ class WrapperModule(torch.nn.Module):
         self.fn = fn
 
     def forward(self, *args, **kwargs):
-        """Simple forward that just calls the ``fn`` provided to :meth:`WrapperModule.__init__`."""
+        """Simple forward that just calls the ``fn`` provided to :meth:`WrapperModule.__init__`.
+        
+        Args:
+            *args: Positional arguments to pass to the wrapped function.
+            **kwargs: Keyword arguments to pass to the wrapped function.
+            
+        Returns:
+            The result of calling the wrapped function with the provided arguments.
+        """
         return self.fn(*args, **kwargs)
 
 def _change_arg_or_kwargs_(m:fx.GraphModule, fn_1, fn_2, example_inputs, example_kwargs={}):
+    """Changes arguments or keyword arguments in function calls within a GraphModule.
+    
+    This function identifies differences between two wrapper functions and updates 
+    the corresponding function calls in a GraphModule. It's primarily used to switch
+    between training and evaluation modes for operations like batch normalization and dropout.
+    
+    Args:
+        m (fx.GraphModule): The GraphModule to modify.
+        fn_1 (callable): The first function to compare.
+        fn_2 (callable): The second function to compare, which provides the replacement values.
+        example_inputs (tuple): Example inputs to use when exporting the functions.
+        example_kwargs (dict, optional): Example keyword arguments to use when exporting the functions.
+            Defaults to an empty dict.
+    
+    Raises:
+        ValueError: If the functions being compared have incompatible operations or structures.
+    """
     fn_1 = WrapperModule(fn_1)
     fn_2 = WrapperModule(fn_2)
     fn_1 = torch.export.export(
