@@ -32,7 +32,13 @@ def custom_capitalize(string):
 
 # NOTE: option should not be empty list, used for default option.
 # Supported types: 'classification', 'detection', 'segmentation', 'video'
-MODEL_CONFIGS = {
+TVMODEL_NAMES = ['resnet', 'alexnet', 'convnext', 'densenet','mnasnet', 'efficientnet','efficientnetv2', 
+                 'googlenet', 'inceptionv3', 'maxvit','mobilenet',
+                 'regnet', 'resnext', 'shufflenet','squeezenet', 'vgg', 'wideresnet', 'swin', 'vit',
+                 'fasterrcnn', 'fcos', 'retinanet', 'ssd', 'maskrcnn', 'keypointrcnn', 'deeplabv3', 
+                 'fcn', 'lraspp', 'swin3d', 'resnet3d', 'mvit', 's3d'
+                ]
+TVMODEL_CONFIGS = {
     'resnet': {
         'type': 'classification',
         'class_fn': lambda option: f'resnet{option}',
@@ -242,7 +248,7 @@ def construct_tv_model(model_name='resnet', verbose=False, **kwargs):
         option: option for which subtype of model to use - typically depth/size etc. Default is first option in config
         fetch_weights: use pretrained weights (DEFAULT for now)
     """
-    config = MODEL_CONFIGS[model_name]
+    config = TVMODEL_CONFIGS[model_name]
 
     model_type = config.get('type', 'classification')
     option = kwargs.get('option', config['options'][0])
@@ -309,7 +315,7 @@ def custom_resnet(option):
     return model
 
 # custom models to test edge cases 
-MODEL_CONFIGS.update({
+TVMODEL_CONFIGS.update({
     'custom_swin': {
         'type': 'classification',
         'class_fn': custom_swin,
