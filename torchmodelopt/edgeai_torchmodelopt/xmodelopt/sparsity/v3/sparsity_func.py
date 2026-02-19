@@ -8,7 +8,7 @@ import types
 
 from .... import xnn
 from .utils import get_sparsity_nodes, register_n2m_filters, get_all_weights, register_n2m_weight_funcs
-from .parametrization import SPARSITY_CLASS_DICT, N2MSparsityParametrization
+from .parametrization import SPARSITY_CLASS_DICT, N2MSparsityParametrization, clear_registers
 from ... import utils
 
 def init(module, *args, example_inputs:list=None, example_kwargs:dict=None, sparsity_ratio=None, total_epochs=None, p=2.0, sparsity_global=False, copy_args=None,
@@ -126,6 +126,8 @@ def init(module, *args, example_inputs:list=None, example_kwargs:dict=None, spar
             # Set m value and calculate n (number of non-zero elements in each block of size m)
             gm_module.__sparse_params__.m = sparsity_m
             gm_module.__sparse_params__.n = sparsity_n = round(sparsity_ratio*sparsity_m)
+            # TODO: there should be something involving cls_params.required params...
+            gm_module.__sparse_params__['incremental_epochs'] = kwargs.get('incremental_epochs', -1)
             
         # Add n and m values to filter arguments
         module.filter_args += [sparsity_n, sparsity_m]
@@ -386,6 +388,9 @@ def remove_parametrization(module: fx.GraphModule, leave_parameterized=True):
                 # Track this parameter as having been parametrized
                 module.__sparse_params__.parametrized_params.add('.'.join(names[:-3]+names[-2:-1]))
                 
+                # 'unregister' parametrizations that will be removed. Otherwise, there is a memory leak, as class_forward_func_dict keeps growing.
+                for parametrization in parent_module.parametrizations[param_name]:
+                    clear_registers(parametrization)
                 # Remove parametrization, either keeping the sparsified tensor or original
                 parametrize.remove_parametrizations(parent_module, param_name, leave_parametrized=leave_parameterized) 
     

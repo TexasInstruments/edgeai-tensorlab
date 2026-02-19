@@ -42,6 +42,7 @@ def register_class(name, cls=None):
 class_mask_func_dict = {}
 class_forward_func_dict = {}
 
+
 class BaseSparsityParametrization(nn.Module):
     """Base class for all sparsity parametrization implementations.
     
@@ -87,6 +88,11 @@ class BaseSparsityParametrization(nn.Module):
         self.forward_func_dict = {}
         self.binary_mask = binary_mask
         self.p = p
+        self.incremental_epochs = kwargs.get('incremental_epochs', total_epochs)
+        if 'incremental_epochs' in kwargs:
+            del kwargs['incremental_epochs']
+
+        super().__init__(*args, **kwargs)
         
         # Register mask and forward functions based on the derived class implementation
         self.register_masks()
@@ -270,10 +276,12 @@ class BaseSparsityParametrization(nn.Module):
             which determines how quickly sparsity increases during training.
         """
         # Calculate the knee point (where transition phase ends and final phase begins)
-        total_epochs_knee_point = min(
-            self.total_epochs - 1,
-            max(self.init_train_ep + 1, (self.total_epochs - self.init_train_ep) * 2 // 3 + self.init_train_ep)
-        )
+        # total_epochs_knee_point = min(
+        #     self.total_epochs - 1,
+        #     max(self.init_train_ep + 1, (self.total_epochs - self.init_train_ep) * 2 // 3 + self.init_train_ep)
+        # )
+        #VIGNESH: TODO: setting knee point for testing...
+        total_epochs_knee_point = self.incremental_epochs-1
         
         # Initial phase: No sparsity
         if self.epoch_count <= self.init_train_ep:
@@ -288,8 +296,25 @@ class BaseSparsityParametrization(nn.Module):
             ) / math.pow(
                 total_epochs_knee_point - self.init_train_ep, self.p
             )
-            
+        if self.epoch_count % 10 == 0:
+        # if True:
+            print(f'Node {self.nodes} Epoch {self.epoch_count}: alpha={alpha_factor}')
         return alpha_factor
+
+def clear_registers(parametrization_object: BaseSparsityParametrization):
+    """
+    When a parametrization is removed, clear class_mask_func_dict and class_forward_func_dict
+    
+    :param parametrization_object: Parametrization object to be removed.
+    :type parametrization_object: BaseSparsityParametrization
+    """
+    # the keys are (self, name/args)
+    for obj in list(class_mask_func_dict.keys()):
+        if obj[0] == parametrization_object:
+            del class_mask_func_dict[obj]
+    for obj in list(class_forward_func_dict.keys()):
+        if obj[0] == parametrization_object:
+            del class_forward_func_dict[obj]
 
 
 @register_class('n2m')
@@ -305,7 +330,7 @@ class N2MSparsityParametrization(BaseSparsityParametrization):
         REQUIRED_SPARSE_PARAMS (list): List of parameter names required from module.__sparse_params__
             when applying the parametrization, extending the base class list with 'n' and 'm'.
     """
-    REQUIRED_SPARSE_PARAMS = ['n', 'm'] + BaseSparsityParametrization.REQUIRED_SPARSE_PARAMS
+    REQUIRED_SPARSE_PARAMS = ['n', 'm', 'mode', 'incremental_epochs'] + BaseSparsityParametrization.REQUIRED_SPARSE_PARAMS
     
     def __init__(self, source, nodes, *args, n=None, m=None, tensor=None, epoch_count=0, 
                  init_train_ep=5, total_epochs=15, binary_mask=False, p=None, mode=None, **kwargs):
@@ -325,6 +350,7 @@ class N2MSparsityParametrization(BaseSparsityParametrization):
             p (float, optional): Power parameter for sparsity schedule. Defaults to None (which becomes 2).
             mode (str, optional): Method for selecting elements to keep. Options are:
                 - 'topk': Keep top-k elements by magnitude (default)
+                - 'topk_elementwise': Keep top-k elements by magnitude (default), but perform incremental sparsity elemenwise; i.e. x% of weights set to zero at each epoch increment
                 - 'magnitude': Alternative magnitude-based selection (not implemented)
                 - 'hessian': Hessian-based selection (not implemented)
             **kwargs: Additional keyword arguments passed to the parent class.
@@ -339,14 +365,14 @@ class N2MSparsityParametrization(BaseSparsityParametrization):
         self.binary_mask = binary_mask
         self.p = p or 2
         self.mode = mode or 'topk'  # or hessian or magnitude
-        assert self.mode in ('topk', 'magnitude', 'hessian')
+        assert self.mode in ('topk', 'topk_elementwise', 'magnitude', 'hessian')
         
         # Add mode to the source identifier to differentiate between different selection methods
         source += (self.mode,)
         
-        super().__init__(source, nodes, tensor=tensor, epoch_count=epoch_count, 
+        super().__init__(source, nodes, *args, tensor=tensor, epoch_count=epoch_count, 
                         init_train_ep=init_train_ep, total_epochs=total_epochs, 
-                        binary_mask=binary_mask, p=p)
+                        binary_mask=binary_mask, p=p, **kwargs)
     
     def get_topk_mask(self, tensor, alpha_factor):
         """Creates a sparsity mask using the top-k method.
@@ -385,12 +411,29 @@ class N2MSparsityParametrization(BaseSparsityParametrization):
         
         # Find the n smallest elements in each block
         # Note: largest=False means we're finding the smallest values
-        wl = torch.topk(tensor_reshaped, self.n, -1, largest=False)
+        wl = torch.topk(tensor_reshaped, self.n, -1, largest=False, sorted=True)
         
-        # Set those smallest elements to alpha_factor in the mask
-        # This effectively reduces their contribution during training
-        soft_mask.scatter_(-1, wl.indices, alpha_factor)
+        if self.mode == 'topk':
+            # Set those smallest elements to alpha_factor in the mask
+            # This effectively reduces their contribution during training
+            soft_mask.scatter_(-1, wl.indices, alpha_factor)
+        elif self.mode == 'topk_elementwise':
+            # is there a more efficient method? TODO 
+            # Since topk output is sorted, following gives us the max among pruned weights (i.e. largest among n smallest)
+            max_chosen = wl.indices[:,1]
+            max_chosen_values = tensor_reshaped.gather(1, max_chosen.unsqueeze(-1)).squeeze(-1)
+            # Get the (1-alpha) smallest fraction so the largest pruned weight is minimized
+            pruned = torch.topk(max_chosen_values, int((1.0-alpha_factor)*len(max_chosen_values)), largest=False)
+            # For each 'row' in the alpha fraction above, prune the n smallest identified by wl
+            soft_mask[pruned.indices] = soft_mask[pruned.indices].scatter(1, wl.indices[pruned.indices], 0) 
+        else:
+            raise NotImplementedError
         
+        if self.epoch_count % 10 == 0:
+        # if True:
+            print(f'Epochs: Tot={self.total_epochs} Inc={self.incremental_epochs} Init={self.init_train_ep}')
+            # print(f'Node {self.nodes} Epoch {self.epoch_count}: alpha={alpha_factor}')
+            print(f'Sparsity: {compute_sparsity(soft_mask)}')
         # Reshape back to original tensor shape
         return soft_mask.view(shape)
     
@@ -452,6 +495,7 @@ class N2MSparsityParametrization(BaseSparsityParametrization):
         # Map mode names to their corresponding mask generation methods
         mode_2_func_dict = dict(
             topk = self.get_topk_mask,
+            topk_elementwise = self.get_topk_mask,
             magnitude = self.get_magnitude_mask,
             hessian = self.get_hessian_mask,
         )
