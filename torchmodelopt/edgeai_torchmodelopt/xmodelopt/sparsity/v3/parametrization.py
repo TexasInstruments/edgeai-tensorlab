@@ -39,8 +39,6 @@ def register_class(name, cls=None):
         return _registered(name)
     return _registered
 
-class_mask_func_dict = {}
-class_forward_func_dict = {}
 
 
 class BaseSparsityParametrization(nn.Module):
@@ -56,6 +54,9 @@ class BaseSparsityParametrization(nn.Module):
             'total_epochs', 'p'].
     """
     REQUIRED_SPARSE_PARAMS = ['epoch_count', 'init_train_ep', 'total_epochs', 'p',] 
+
+    class_mask_func_dict = {}
+    class_forward_func_dict = {}
     
     def __init__(self, source, nodes, *args, tensor=None, epoch_count=0, init_train_ep=5, 
                  total_epochs=15, binary_mask=False, p=None, **kwargs):
@@ -91,6 +92,7 @@ class BaseSparsityParametrization(nn.Module):
         self.incremental_epochs = kwargs.get('incremental_epochs', total_epochs)
         if 'incremental_epochs' in kwargs:
             del kwargs['incremental_epochs']
+        self.alpha_factor = None # used for debugging alpha value
 
         super().__init__(*args, **kwargs)
         
@@ -128,7 +130,7 @@ class BaseSparsityParametrization(nn.Module):
                 return mask
         """
         def _registered(func):
-            class_mask_func_dict[(self,args)] = func
+            self.class_mask_func_dict[(self,args)] = func
             return func
         if func is None:
             return _registered
@@ -157,7 +159,7 @@ class BaseSparsityParametrization(nn.Module):
                 return X * self.mask
         """
         def _registered(func):
-            class_forward_func_dict[(self,args)] = func
+            self.class_forward_func_dict[(self,args)] = func
             return func
         if func is None:
             return _registered
@@ -201,7 +203,7 @@ class BaseSparsityParametrization(nn.Module):
         Raises:
             KeyError: If no mask function is registered with the given name.
         """
-        return class_mask_func_dict[(self, name)]
+        return self.class_mask_func_dict[(self, name)]
     
     def get_forward_func(self, name, default=None):
         """Retrieves the forward function for the specified name.
@@ -219,8 +221,8 @@ class BaseSparsityParametrization(nn.Module):
                 no default is provided.
         """
         if default:
-            return class_forward_func_dict.get((self, name), default)
-        return class_forward_func_dict[(self, name)]
+            return self.class_forward_func_dict.get((self, name), default)
+        return self.class_forward_func_dict[(self, name)]
     
     def create_mask(self, tensor):
         """Creates a sparsity mask for the given tensor.
@@ -296,26 +298,33 @@ class BaseSparsityParametrization(nn.Module):
             ) / math.pow(
                 total_epochs_knee_point - self.init_train_ep, self.p
             )
-        if self.epoch_count % 10 == 0:
-        # if True:
-            print(f'Node {self.nodes} Epoch {self.epoch_count}: alpha={alpha_factor}')
+        self.alpha_factor = alpha_factor
         return alpha_factor
 
-def clear_registers(parametrization_object: BaseSparsityParametrization):
-    """
-    When a parametrization is removed, clear class_mask_func_dict and class_forward_func_dict
-    
-    :param parametrization_object: Parametrization object to be removed.
-    :type parametrization_object: BaseSparsityParametrization
-    """
-    # the keys are (self, name/args)
-    for obj in list(class_mask_func_dict.keys()):
-        if obj[0] == parametrization_object:
-            del class_mask_func_dict[obj]
-    for obj in list(class_forward_func_dict.keys()):
-        if obj[0] == parametrization_object:
-            del class_forward_func_dict[obj]
+STE_GAMMA = 0
 
+class MaskMul(torch.autograd.Function):
+    @staticmethod
+    def forward(weights, mask):
+        output = weights * mask
+        return output
+    
+    @staticmethod
+    # inputs is a Tuple of all of the inputs passed to forward.
+    # output is the output of the forward().
+    def setup_context(ctx, inputs, output):
+        weights, mask = inputs
+        ctx.save_for_backward(weights, mask)
+    
+    @staticmethod
+    def backward(ctx, grad_output):
+        weights, mask = ctx.saved_tensors
+        mask_inverse = (1-mask)
+        # gamma = 4e-4
+        global STE_GAMMA
+        total_grad = grad_output * mask + STE_GAMMA*weights*(1-mask)
+        # print(f'backward is being computed {grad_output.shape}')
+        return grad_output * mask, None
 
 @register_class('n2m')
 class N2MSparsityParametrization(BaseSparsityParametrization):
@@ -429,11 +438,6 @@ class N2MSparsityParametrization(BaseSparsityParametrization):
         else:
             raise NotImplementedError
         
-        if self.epoch_count % 10 == 0:
-        # if True:
-            print(f'Epochs: Tot={self.total_epochs} Inc={self.incremental_epochs} Init={self.init_train_ep}')
-            # print(f'Node {self.nodes} Epoch {self.epoch_count}: alpha={alpha_factor}')
-            print(f'Sparsity: {compute_sparsity(soft_mask)}')
         # Reshape back to original tensor shape
         return soft_mask.view(shape)
     
@@ -587,7 +591,8 @@ class N2MSparsityParametrization(BaseSparsityParametrization):
             Returns:
                 torch.Tensor: The masked weight tensor.
             """
-            return self.mask * X
+            # return self.mask * X
+            return MaskMul.apply(X, self.mask)
         
         # Register forward functions for different layer types
         # Note: All currently use the same default_forward function

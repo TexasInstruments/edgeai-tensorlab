@@ -8,7 +8,7 @@ import types
 
 from .... import xnn
 from .utils import get_sparsity_nodes, register_n2m_filters, get_all_weights, register_n2m_weight_funcs
-from .parametrization import SPARSITY_CLASS_DICT, N2MSparsityParametrization, clear_registers
+from .parametrization import SPARSITY_CLASS_DICT, N2MSparsityParametrization
 from ... import utils
 
 def init(module, *args, example_inputs:list=None, example_kwargs:dict=None, sparsity_ratio=None, total_epochs=None, p=2.0, sparsity_global=False, copy_args=None,
@@ -388,9 +388,6 @@ def remove_parametrization(module: fx.GraphModule, leave_parameterized=True):
                 # Track this parameter as having been parametrized
                 module.__sparse_params__.parametrized_params.add('.'.join(names[:-3]+names[-2:-1]))
                 
-                # 'unregister' parametrizations that will be removed. Otherwise, there is a memory leak, as class_forward_func_dict keeps growing.
-                for parametrization in parent_module.parametrizations[param_name]:
-                    clear_registers(parametrization)
                 # Remove parametrization, either keeping the sparsified tensor or original
                 parametrize.remove_parametrizations(parent_module, param_name, leave_parametrized=leave_parameterized) 
     
@@ -427,7 +424,7 @@ def insert_parametrization(module:fx.GraphModule, binary_mask=False):
     
     # Prepare arguments for the sparsity parametrization
     kwargs = dict(binary_mask=binary_mask)
-    
+
     # Add all required parameters from sparse_params to kwargs
     # This ensures the parametrization class has all the parameters it needs
     for param in sparsity_class.REQUIRED_SPARSE_PARAMS:
@@ -471,5 +468,3 @@ def insert_parametrization(module:fx.GraphModule, binary_mask=False):
                     
                     # Register the parametrization to be applied during forward passes
                     parametrize.register_parametrization(parent_module, name, parametrization)
-            
-            
