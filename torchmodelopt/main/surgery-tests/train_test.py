@@ -4,14 +4,14 @@ from utils import StochasticBottleneck, Bottleneck # type: ignore
 import torch
 from torch import nn
 import torch.nn.functional as F
-from torch.optim.lr_scheduler import LinearLR, StepLR, ChainedScheduler, CosineAnnealingLR
+from torch.optim.lr_scheduler import LinearLR, StepLR, ChainedScheduler, CosineAnnealingLR, OneCycleLR
 from torchvision.models import resnet50, ResNet50_Weights
 import torchvision.transforms.v2 as transforms
 from torchvision.transforms._presets import ImageClassification
 import os
 import pandas as pd
 from torchvision.io import decode_image
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader, default_collate
 
 import mlflow
 import optuna
@@ -127,25 +127,57 @@ def imagenet_data_maker(params):
     batch_size = params.get('batch_size', 128)
     train_size = max(batch_size, int(40000*fraction))
     test_size = max(batch_size, int(10000*fraction))
+    image_size = params.get('image_size', (224,224))
 
-    resize = transforms.Resize([250,250])
+    resize = transforms.Resize([256,256])
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], # pretrained imagenet
                                          std=[0.229, 0.224, 0.225])
     dtype = transforms.ToDtype(torch.float32,scale=True)
 
-    transforms_list = [transforms.ToImage(), resize,
-        transforms.CenterCrop(224),
-        transforms.RandomHorizontalFlip(p=0.5), # Further augmentations can go here.
-        dtype, normalize
+    # transforms_list = [transforms.ToImage(), resize,
+    #     transforms.CenterCrop(224),
+    #     transforms.RandomHorizontalFlip(p=0.5), # Further augmentations can go here.
+    #     dtype, normalize
+    # ]
+    transforms_list = [transforms.ToImage(), 
+    transforms.RandomHorizontalFlip(p=0.5),
+    resize, transforms.CenterCrop(224)
     ]
+    if 'randaugment' in params:
+        n,m = params['randaugment']
+        transforms_list.append(transforms.RandAugment(num_ops=n,magnitude=int(m*10)))
+    if 'randerasing' in params:
+        transforms_list.append(transforms.RandomErasing(p=params['randerasing']))
+    if 'randomresizedcrop' in params:
+        transforms_list.append(transforms.RandomResizedCrop(image_size))
+    # else:
+    #     transforms_list.append(transforms.RandomCrop(image_size,padding=int(image_size[0]/8)))  # padding with 0s then crop
+    if 'autoaugment' in params:
+        if params['autoaugment'] == 'cifar10':
+            transforms_list.append(transforms.AutoAugment(policy=transforms.AutoAugmentPolicy.CIFAR10))
+        else:
+            transforms_list.append(transforms.AutoAugment(policy=transforms.AutoAugmentPolicy.IMAGENET))
+
+    transforms_list.extend([dtype, normalize])
     train_transforms = transforms.Compose(transforms_list)
+    test_transforms = transforms.Compose([transforms.ToImage(),
+        resize, transforms.CenterCrop(224), dtype, normalize 
+    ])
+    collate_fn = default_collate
+
+    def both_collate(batch, cutmix_alpha=1.0, mixup_alpha=0.8):
+        return transforms.RandomChoice([transforms.MixUp(alpha=mixup_alpha,num_classes=1000), transforms.CutMix(alpha=cutmix_alpha,num_classes=1000)])(*default_collate(batch))
+
+    if 'cutmix_alpha' in params and 'mixup_alpha' in params:
+        collate_fn = partial(both_collate, cutmix_alpha=params['cutmix_alpha']
+                         , mixup_alpha=params['mixup_alpha'])
 
     train = MyImageNet(val_file, img_dir,st=0,en=train_size, transform=train_transforms)
-    test = MyImageNet(val_file, img_dir, st=train_size,en=(train_size+test_size), transform=train_transforms)
+    test = MyImageNet(val_file, img_dir, st=train_size,en=(train_size+test_size), transform=test_transforms)
     # train = MyImageNet(val_file, img_dir,st=0,en=4000, transform=train_transforms)
     # test = MyImageNet(val_file, img_dir, st=4000,en=5000, transform=train_transforms)
     
-    train_dataloader = DataLoader(train, batch_size=batch_size,
+    train_dataloader = DataLoader(train, batch_size=batch_size, collate_fn=collate_fn,
                                    shuffle=True, pin_memory=True, num_workers=16,
                                    prefetch_factor=2, persistent_workers=True, drop_last=True)
     test_dataloader = DataLoader(test, batch_size=batch_size,
@@ -153,14 +185,20 @@ def imagenet_data_maker(params):
     
     return train_dataloader, test_dataloader
 
-def train(dataloader, model, loss_fn, optimizer, device, params=None, epoch=0, log_mflow=True):
+def train(dataloader, model, loss_fn, optimizer, device, params=None, epoch=0, log_mflow=True, **kwargs):
     """
         params has hyperparameters (what will be relevant here?)
         Assumes mlflow run has been started.
         Logs average loss, accuracy, periodic batch loss
 
+        if params['distillation'], expects 'teacher' model in kwargs
+
         Return avg loss, accuracy
     """
+    is_distillation = 'distillation' in params and params['distillation']
+    # if is_distillation:
+
+        
     model.train()
     optimizer.zero_grad()
 
@@ -174,7 +212,25 @@ def train(dataloader, model, loss_fn, optimizer, device, params=None, epoch=0, l
         labels = labels.to(device)
 
         pred = model(images)
-        loss = loss_fn(pred, labels)
+        if is_distillation:
+            teacher_weight = params['distillation'].get('teacher_weight', 1.0)
+            teacher = kwargs['teacher']
+            teacher_pred = teacher(images)
+            temp = params['distillation'].get('temp', 0.5)
+            teacher_loss = teacher_weight*nn.KLDivLoss(reduction='batchmean', log_target=True)(F.log_softmax(teacher_pred/temp, dim=1), F.log_softmax(pred/temp, dim=1))
+            if params['distillation'].get('use_ground_labels', True): 
+                target_loss = loss_fn(pred, labels)
+                loss = target_loss + teacher_loss
+                
+            else:
+                # only use teacher, not label
+                if epoch == 0 and curr_batch == 0:
+                    print('Using only teacher, not ground labels')
+                teacher_labels = teacher_pred.argmax(1)
+                target_loss = loss_fn(pred, teacher_labels)
+                loss = target_loss + teacher_loss
+        else:
+            loss = loss_fn(pred, labels)
 
         total_loss += loss.item()
         # TODO: Revisit following...
@@ -188,10 +244,15 @@ def train(dataloader, model, loss_fn, optimizer, device, params=None, epoch=0, l
         
         loss.backward()
         optimizer.step()
+        if 'scheduler' in kwargs and (isinstance(kwargs['scheduler'], OneCycleLR)):
+            kwargs['scheduler'].step() # step every batch for OneCycleLR scheduler
         optimizer.zero_grad()
 
         if curr_batch % batch_log_frequency == 0 and log_mflow:
             mlflow.log_metric('batch_loss', loss.item(), step=curr_batch+epoch*num_batches)
+            if is_distillation:
+                mlflow.log_metric('teacher_loss_scaled', teacher_loss.item(), step=curr_batch+epoch*num_batches)
+                mlflow.log_metric('target_loss', target_loss.item(), step=curr_batch+epoch*num_batches)
     
     avg_loss = total_loss/num_batches
     accuracy = accuracy_sum_batches/num_batches
@@ -237,7 +298,10 @@ def test(dataloader, model, loss_fn, device, epoch=0, log_mlflow=True):
 
     return (avg_loss, accuracy)
     
-def train_epochs(train_dl, test_dl, model, loss_fn, optimizer, scheduler, device, params, total_epochs=5, log_mlflow=True, epoch_callback=None):
+def train_epochs(train_dl, test_dl, model, loss_fn, optimizer, scheduler, device, params, total_epochs=5, log_mlflow=True, epoch_callback=None, **kwargs):
+    """
+    if params['distillation'], expects 'teacher' model in kwargs (passed it to train)
+    """
     test_acc = None
     best_test_acc = -1
     best_model = None
@@ -255,12 +319,10 @@ def train_epochs(train_dl, test_dl, model, loss_fn, optimizer, scheduler, device
                             'test_accuracy': test_acc
                         })
 
-            for epoch in range(total_epochs):
-                if params['trial']:
-                    print(f"Trial {params['trial'].number}: Epoch {epoch+1}/{total_epochs}")
-                else:
-                    print(f"Epoch {epoch+1}/{total_epochs}..")
+            if scheduler and ( isinstance(scheduler, OneCycleLR)):
+                kwargs['scheduler'] = scheduler
 
+            for epoch in range(total_epochs):
                 if 'training' in params:
                     # Custom training stuff here, e.g.freeze some layers.
                     if params['training']['type'] == 'fine-tune':
@@ -275,17 +337,17 @@ def train_epochs(train_dl, test_dl, model, loss_fn, optimizer, scheduler, device
                             # Train all
                             for (name, parameter) in model.named_parameters():
                                 parameter.requires_grad = True
-
-                train_loss, train_acc = train(train_dl, model, loss_fn, optimizer, device=device, params=params, epoch=epoch, log_mflow=log_mlflow)
-                print(f'Train Acc.: {train_acc*100.0:.2f}%')
+                
+                train_loss, train_acc = train(train_dl, model, loss_fn, optimizer, device=device, params=params, epoch=epoch, log_mflow=log_mlflow, **kwargs)
                 # print(train_loss, train_acc)
                 test_loss, test_acc = test(test_dl, model, loss_fn, device=device, epoch=epoch, log_mlflow=log_mlflow)
                 # print(test_loss, test_acc)
-                print(f'Test Acc.: {test_acc*100.0:.2f}%')
+                
 
                 if scheduler:
-                    scheduler.step()
-                    # print(f'Current LR: {scheduler.get_last_lr()}')
+                    if not isinstance(scheduler, OneCycleLR):
+                        scheduler.step()
+                    mlflow.log_metric('current_lr', scheduler.get_last_lr()[0], step=epoch)
 
                 if test_acc > best_test_acc:
                     best_model = model
@@ -297,9 +359,9 @@ def train_epochs(train_dl, test_dl, model, loss_fn, optimizer, scheduler, device
 
                     if params['trial'].should_prune():
                         raise optuna.exceptions.TrialPruned()
-                torch.save(model.state_dict(), f"saved_models/checkpoint")
+                torch.save(model.state_dict(), f"saved_models/{name}-checkpoint")
                 if epoch_callback:
-                    epoch_callback(epoch, model, test_acc, params)
+                    epoch_callback(epoch, model, train_acc, test_acc, params)
                     
             if total_epochs > 0:
                 mlflow.log_metrics({
@@ -309,7 +371,7 @@ def train_epochs(train_dl, test_dl, model, loss_fn, optimizer, scheduler, device
                             'test_accuracy': test_acc
                         })
             
-            torch.save(model.state_dict(), f"saved_models/final")
+            torch.save(model.state_dict(), f"saved_models/{name}-final")
     else:   
         for epoch in range(total_epochs):
             print(f"Epoch {epoch+1}/{total_epochs}..")
@@ -342,7 +404,7 @@ def my_train_scheme_maker(params, model):
 
 
     optimizer_type = params.get('optimizer_type', 'SGD')
-    params.setdefault('weight_decay',1e-4)
+    params.setdefault('weight_decay',0)
     params.setdefault('lr',1e-2)
     if optimizer_type == "SGD":
         optimizer = torch.optim.SGD(model.parameters(), lr=params['lr'], 
@@ -354,17 +416,17 @@ def my_train_scheme_maker(params, model):
 
 
     if 'lr_schedule' in params:
-        
-        warmup_schedule =  LinearLR(optimizer, start_factor=1e-4,total_iters=params['lr_schedule']['warmup'])
         if params['lr_schedule']['type'] == 'step':
+            warmup_schedule =  LinearLR(optimizer, start_factor=1e-4,total_iters=params['lr_schedule']['warmup'])
             rest_schedule = StepLR(optimizer, step_size=params['lr_schedule']['epochs'], gamma=params['lr_schedule']['rate'])
+            scheduler = ChainedScheduler([warmup_schedule, rest_schedule], optimizer=optimizer) 
             # Note, this is not exactly sequential but both schedules 'stack'
-        
-        
-        if params['lr_schedule']['type'] == 'cosine':
+        elif params['lr_schedule']['type'] == 'cosine':
+            warmup_schedule =  LinearLR(optimizer, start_factor=1e-4,total_iters=params['lr_schedule']['warmup'])
             rest_schedule = CosineAnnealingLR(optimizer,params['total_epochs'])
-        
-        scheduler = ChainedScheduler([warmup_schedule, rest_schedule], optimizer=optimizer) 
+            scheduler = ChainedScheduler([warmup_schedule, rest_schedule], optimizer=optimizer) 
+        elif params['lr_schedule']['type'] == '1cycle':
+            scheduler = OneCycleLR(optimizer, max_lr=params['lr'], epochs=params['total_epochs'], steps_per_epoch=params['steps_per_epoch'])
     else: 
         scheduler = None
 

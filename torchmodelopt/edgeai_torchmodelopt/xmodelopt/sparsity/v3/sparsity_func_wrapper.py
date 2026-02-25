@@ -143,3 +143,9 @@ def get_layer_sparsity_ratio(*args, **kwargs):
         This is currently a placeholder as the underlying function is not fully implemented.
     """
     return wrapped_transformation_fn(sparsity_func.get_layer_sparsity_ratio, *args, **kwargs)
+
+def step(*args, **kwargs):
+    return wrapped_transformation_fn(sparsity_func.step, *args, **kwargs)
+
+def finalize(*args, **kwargs):
+    return wrapped_transformation_fn(sparsity_func.finalize, *args, **kwargs)
