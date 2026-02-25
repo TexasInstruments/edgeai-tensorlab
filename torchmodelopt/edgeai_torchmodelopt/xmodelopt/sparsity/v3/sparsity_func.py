@@ -1,18 +1,19 @@
+
 import torch
 import torch.nn as nn
 import torch.fx as fx
-from torch.fx.passes.utils.source_matcher_utils import  SourcePartition
 import torch.nn.utils.parametrize as parametrize
-from torch.ao.quantization import quantize_fx
 import types
 
 from .... import xnn
-from .utils import get_sparsity_nodes, register_n2m_filters, get_all_weights, register_n2m_weight_funcs
-from .parametrization import SPARSITY_CLASS_DICT, N2MSparsityParametrization
+from .utils import get_sparsity_nodes, register_n2m_filters, get_all_weights, register_n2m_weight_funcs, get_weights
+from .parametrization import SPARSITY_CLASS_DICT
 from ... import utils
+from ...utils.helper_functions import get_parent_name, nested_getattr
 
-def init(module, *args, example_inputs:list=None, example_kwargs:dict=None, sparsity_ratio=None, total_epochs=None, p=2.0, sparsity_global=False, copy_args=None,
-            sparsity_type='n2m', sparsity_init_train_ep=5, sparsity_m=None, add_methods=True, copy_attrs=None, filter_func_register=None, weight_func_register=None, **kwargs):
+def init(module, *args, example_inputs:list=None, example_kwargs:dict=None, sparsity_ratio=None, p=2.0, sparsity_global=False, copy_args=None,
+            sparsity_type='n2m', sparsity_m=None, sparsity_start_epoch=0, sparsity_end_epoch=1,
+            add_methods=True, copy_attrs=None, filter_func_register=None, weight_func_register=None, **kwargs):
     """Initializes a module for sparsity training.
     
     This function takes a PyTorch module and sets it up for sparsity training by adding
@@ -27,17 +28,17 @@ def init(module, *args, example_inputs:list=None, example_kwargs:dict=None, spar
         example_inputs (list, optional): Example inputs for model export. Defaults to None.
         example_kwargs (dict, optional): Example keyword arguments for model export. Defaults to None.
         sparsity_ratio (float, optional): Target sparsity ratio (e.g., 0.5 for 50% sparsity). Defaults to None.
-        total_epochs (int, optional): Total number of epochs for sparsity training. Defaults to None.
         p (float, optional): Power parameter for sparsity calculation (controls sparsity schedule). Defaults to 2.0.
         sparsity_global (bool, optional): Whether to apply global sparsity across all layers. Defaults to False.
         copy_args (list, optional): List of arguments to copy from the original module. Defaults to None.
         sparsity_type (str, optional): Type of sparsity pattern ('n2m' or 'unstructured'). Defaults to 'n2m'.
-        sparsity_init_train_ep (int, optional): Initial number of epochs before sparsification begins. Defaults to 5.
         sparsity_m (int, optional): The m value in n:m sparsity pattern (e.g., 4 for 2:4 sparsity). Defaults to None.
         add_methods (bool, optional): Whether to add sparsity methods to the module. Defaults to True.
         copy_attrs (list, optional): List of attributes to copy from the original module. Defaults to None.
         filter_func_register (function, optional): Custom function to register sparsity filters. Defaults to None.
         weight_func_register (function, optional): Custom function to register weight functions. Defaults to None.
+        sparsity_start_epoch: Epoch where incremental sparsification starts
+        sparsity_end_epoch: Epoch where incremental sparsification end, reaching target sparsity
         **kwargs: Additional keyword arguments for sparsity initialization.
         
     Returns:
@@ -82,21 +83,34 @@ def init(module, *args, example_inputs:list=None, example_kwargs:dict=None, spar
 
     gm_module.__sparse_params__.epoch_count = 0  # Track current training epoch
     gm_module.__sparse_params__.sparsity_ratio = sparsity_ratio  # Target sparsity level
-    gm_module.__sparse_params__.total_epochs = total_epochs  # Total training epochs
+    # gm_module.__sparse_params__.total_epochs = total_epochs  # Total training epochs
     gm_module.__sparse_params__.sparsity = 0  # Current sparsity level (will be updated)
-    gm_module.__sparse_params__.init_train_ep = sparsity_init_train_ep  # Initial training epochs
+    # gm_module.__sparse_params__.init_train_ep = sparsity_init_train_ep  # Initial training epochs
     gm_module.__sparse_params__.p = p  # Power parameter for mask calculation
-    gm_module.__sparse_params__.mode = mode  # Sparsity mode (e.g., 'topk')
+    
+
+    # Collect all the args used to initialize the parametrization class here. This would make REQUIRED_PARAMS unnecessary. 
+    # It shouldn't matter if additional info is passed, as we use kwargs
+    gm_module.__sparse_params__.parametrization_kwargs = {
+        'current_epoch': 0,
+        'sparsity_start_epoch': sparsity_start_epoch,
+        'sparsity_end_epoch': sparsity_end_epoch, 
+        'p': p,
+    }
+    # Allow kwargs to pass through to parametrization object
+    gm_module.__sparse_params__.parametrization_kwargs.update(kwargs)
     
     # Validate required parameters
-    if sparsity_ratio==0:
-        raise RuntimeError("sparsity ratio of 0 is not supported , try turning off sparsity and trying again")
-    if not(sparsity_ratio and total_epochs):
-        raise RuntimeError("sparsity ratio and total epochs are necessary to be provided")
-    elif not(sparsity_ratio):
-        raise RuntimeError("sparsity ratio should be provided")
-    elif not(total_epochs):
-        raise RuntimeError("total epochs should be provided")
+    if sparsity_ratio is None or sparsity_ratio==0:
+        raise RuntimeError(f"sparsity ratio of {sparsity_ratio} is not supported.")
+    # if sparsity_ratio==0:
+    #     raise RuntimeError("sparsity ratio of 0 is not supported , try turning off sparsity and trying again")
+    # if not(sparsity_ratio and total_epochs):
+    #     raise RuntimeError("sparsity ratio and total epochs are necessary to be provided")
+    # elif not(sparsity_ratio):
+    #     raise RuntimeError("sparsity ratio should be provided")
+    # elif not(total_epochs):
+    #     raise RuntimeError("total epochs should be provided")
     
     # Set sparsity class from the dictionary based on sparsity type
     gm_module.__sparse_params__.sparsity_class = SPARSITY_CLASS_DICT[sparsity_type]
@@ -124,10 +138,16 @@ def init(module, *args, example_inputs:list=None, example_kwargs:dict=None, spar
             raise RuntimeError("The value of m should be provided in case of n:m sparsity")
         else:
             # Set m value and calculate n (number of non-zero elements in each block of size m)
-            gm_module.__sparse_params__.m = sparsity_m
-            gm_module.__sparse_params__.n = sparsity_n = round(sparsity_ratio*sparsity_m)
-            # TODO: there should be something involving cls_params.required params...
-            gm_module.__sparse_params__['incremental_epochs'] = kwargs.get('incremental_epochs', -1)
+            sparsity_n = round(sparsity_ratio*sparsity_m)
+            # gm_module.__sparse_params__.m = sparsity_m
+            # gm_module.__sparse_params__.n = sparsity_n = round(sparsity_ratio*sparsity_m)
+            # gm_module.__sparse_params__.mode = mode  # Sparsity mode (e.g., 'topk')\
+            # NOTE: parametrization_kwargs has already been partly set above
+            gm_module.__sparse_params__.parametrization_kwargs.update({
+                'm': sparsity_m,
+                'n': sparsity_n,
+                'mode': mode
+            })
             
         # Add n and m values to filter arguments
         module.filter_args += [sparsity_n, sparsity_m]
@@ -141,10 +161,13 @@ def init(module, *args, example_inputs:list=None, example_kwargs:dict=None, spar
         weight_func_register(sparsity_n, sparsity_m)
     else:
         # For non-n:m sparsity, set m to None
-        gm_module.__sparse_params__.m = None
+        # gm_module.__sparse_params__.m = None
+        gm_module.__sparse_params__.parametrization_kwargs.update({
+                'm': None,
+            })
 
     module.filter_args += [sparsity_type]
-    gm_module.__sparse_params__.sparsity_nodes = get_sparsity_nodes(gm_module, *module.filter_args)
+    gm_module.__sparse_params__.sparsity_nodes = get_sparsity_nodes(gm_module, *module.filter_args) # dict[tuple, list[list[Node]]]
     gm_module.__sparse_params__.weights = get_all_weights(gm_module, gm_module.__sparse_params__.sparsity_nodes, )
     
     if gm_module.__sparse_params__.n2m_sparsity and gm_module.__sparse_params__.global_sparsity:
@@ -155,6 +178,8 @@ def init(module, *args, example_inputs:list=None, example_kwargs:dict=None, spar
         if hasattr(module, copy_arg):
             setattr(gm_module, copy_arg, getattr(module, copy_arg))
     
+    insert_all_parametrizations(gm_module)
+
     # if gm_module.__sparse_params__.global_sparsity:
     #     gm_module.__sparse_params__.get_layer_sparsity_ratio(sparsity_ratio)
     #
@@ -170,9 +195,9 @@ def init(module, *args, example_inputs:list=None, example_kwargs:dict=None, spar
         gm_module.eval = types.MethodType(train, gm_module)
         
         # Add core sparsity methods
-        gm_module.insert_parametrization = types.MethodType(insert_parametrization, gm_module)
-        gm_module.remove_parametrization = types.MethodType(remove_parametrization, gm_module)
-        gm_module.calculate_sparsity = types.MethodType(calculate_sparsity, gm_module)
+        # gm_module.insert_all_parametrizations = types.MethodType(insert_all_parametrizations_2, gm_module)
+        # gm_module.remove_parametrization = types.MethodType(remove_parametrization, gm_module)
+        # gm_module.calculate_sparsity = types.MethodType(calculate_sparsity, gm_module)
     return gm_module
 
 # TODO implement for sparsity from sparsity with pt2e
@@ -220,13 +245,17 @@ def train(module, mode: bool = True):
         backup training method (__sparsity_train_backup__) and parametrization handling
         method (_insert_and_remove_parametrization_during_training).
     """
+    # TODO: call step and finalize functions from here
+    #       Every time it flips from eval to train, call step
+    #       At 'last' eval, call finalize
+    
     # Call the original train method if it exists, then handle sparsity parametrization
     if hasattr(module, "__sparsity_train_backup__"):
         # First execute the original train method
         module.__sparsity_train_backup__(mode=mode)
         
-        # Then handle parametrization insertion/removal for sparsity
-        module = module._insert_and_remove_parametrization_during_training(mode)
+    # Then handle parametrization insertion/removal for sparsity
+    module = module._insert_and_remove_parametrization_during_training(mode)
     return module
 
 def eval(self, mode: bool = False):
@@ -250,6 +279,20 @@ def eval(self, mode: bool = False):
     """
     # Simply call train with mode=False to handle evaluation mode
     return train(self, mode)
+
+def step(module):
+    module.__sparse_params__.epoch_count += 1
+    update_all_parametrizations(module)
+    # print(f'steppin {module.__sparse_params__.epoch_count}')
+    return module 
+
+def finalize(module):
+    update_all_parametrizations(module, binary_mask=True) # note: this does increment an additional epoch, but should be fine
+    sample_parametrization = module.__sparse_params__.parametrization_list[0][3] # (parent_module, parent_module_name, param_name, parametrization)
+    print(f'Finalizing model by permanently sparsifying params.\n Current epoch: {sample_parametrization.current_epoch}')
+    assert sample_parametrization.current_epoch >= sample_parametrization.sparsity_end_epoch, f'Prematurely finalized incremental sparsity'
+    remove_all_parametrizations(module, leave_parametrized=True)  
+    return module
 
 def insert_and_remove_parametrization_during_training(module, mode: bool = True):
     """Manages sparsity parametrization during training and evaluation.
@@ -277,26 +320,31 @@ def insert_and_remove_parametrization_during_training(module, mode: bool = True)
            - Applies hard binary masks to finalize weight sparsity
            - Calculates and reports the final sparsity level
     """
-    if mode: # Training mode
-        # Remove any existing parametrization without keeping the mask
-        # This ensures weights are adjusted according to the new mask that will be created
-        remove_parametrization(module, leave_parameterized=False)
+    # TODO: cleanup
+    # if mode: # Training mode
+    #     # Remove any existing parametrization without keeping the mask
+    #     # This ensures weights are adjusted according to the new mask that will be created
+    #     # remove_parametrization(module, leave_parameterized=False)
         
-        # Increment epoch counter for sparsity scheduling
-        module.__sparse_params__.epoch_count += 1
+    #     # Increment epoch counter for sparsity scheduling
+    #     module.__sparse_params__.epoch_count += 1
+    #     update_all_parametrizations(module)
+    #     # insert_parametrization(module, update=True)
+    #     # Insert new parametrization (soft mask during training)
+    #     # insert_all_parametrizations(module)
+    #     # insert_all_parametrizations(module)
         
-        # Insert new parametrization (soft mask during training)
-        insert_parametrization(module)
+    # elif module.__sparse_params__.epoch_count==module.__sparse_params__.total_epochs: # evaluation in the final epoch, we would want to completely sparse out the weights
+    #     # At the final epoch, finalize sparsity by applying hard binary masks
+    #     update_all_parametrizations(module, binary_mask=True)
+    #     remove_all_parametrizations(module, leave_parametrized=True) 
+    #     # remove_parametrization(module, leave_parameterized=False) # we do not want to keep the old mask, rest of the weights are adjusted according to this one
+    #     # insert_all_parametrizations(module, binary_mask=True) # binary_mask=True gives hard mask
+    #     # remove_parametrization(module) # Apply the mask permanently to the weights
         
-    elif module.__sparse_params__.epoch_count==module.__sparse_params__.total_epochs: # evaluation in the final epoch, we would want to completely sparse out the weights
-        # At the final epoch, finalize sparsity by applying hard binary masks
-        remove_parametrization(module, leave_parameterized=False) # we do not want to keep the old mask, rest of the weights are adjusted according to this one
-        insert_parametrization(module, binary_mask=True) # binary_mask=True gives hard mask
-        remove_parametrization(module) # Apply the mask permanently to the weights
-        
-        # Calculate and report final sparsity level
-        calculate_sparsity(module)
-        print("The final sparsity of the network is {}".format(module.__sparse_params__.sparsity))
+    #     # Calculate and report final sparsity level
+    #     calculate_sparsity(module)
+    #     print("The final sparsity of the network is {}".format(module.__sparse_params__.sparsity))
     
     return module
 
@@ -393,78 +441,165 @@ def remove_parametrization(module: fx.GraphModule, leave_parameterized=True):
     
     return module
 
-def insert_parametrization(module:fx.GraphModule, binary_mask=False):
-    """Inserts sparsity parametrization into the module's parameters.
-    
-    This function adds sparsity parametrization to the module's weight parameters
-    based on the identified sparsity nodes and configured sparsity class. The
-    parametrization applies masks to weights during forward passes to enforce sparsity.
-    
-    Args:
-        module (fx.GraphModule): The module to add parametrization to.
-        binary_mask (bool, optional): Whether to use binary masks for sparsity.
-            When True, creates hard masks for final sparsification (0 or 1).
-            When False, uses soft masks during training (gradual sparsification). 
-            Defaults to False.
-            
-    Returns:
-        None: The function modifies the module in-place by registering parametrizations.
-        
-    Note:
-        The sparsity parametrization works by applying masks to weight tensors during
-        forward passes. This function creates appropriate mask generators based on the
-        sparsity class (e.g., N2MSparsityParametrization) and registers them with PyTorch's
-        parametrization system.
+def remove_all_parametrizations(module:fx.GraphModule, leave_parametrized:bool=False):
     """
-    # Get parameters, modules, and sparsity configuration
-    params = dict(module.named_parameters())
-    modules = dict(module.named_modules())
-    weights_dict = module.__sparse_params__.weights
-    sparsity_class = module.__sparse_params__.sparsity_class
-    
-    # Prepare arguments for the sparsity parametrization
-    kwargs = dict(binary_mask=binary_mask)
+    Remove all parametrizations added for sparsity.
+    If leave_parametrized=True, permanently set the sparse weights. Otherwise, restore original.
 
-    # Add all required parameters from sparse_params to kwargs
-    # This ensures the parametrization class has all the parameters it needs
-    for param in sparsity_class.REQUIRED_SPARSE_PARAMS:
-        if hasattr(module.__sparse_params__, param):
-            kwargs[param] = getattr(module.__sparse_params__, param)
-    
-    # Process each sparsity node and its associated weights
-    for key, nodes_list in module.__sparse_params__.sparsity_nodes.items():
-        weights_list = weights_dict[key]
+    Assumes module.__sparse_params__.parametrization_list has been populated by insert_all_parametrizations
+    Leaves module.__sparse_params__.parametrization_list empty at end of execution
+
+    Args:
+        module (fx.GraphModule): top level module
+        leave_parametrized (bool, optional): Permanently sparsify weights if True. Defaults to False.
+    """
+    while module.__sparse_params__.parametrization_list:
+        (parent_module, parent_module_name, param_name, parametrization) = module.__sparse_params__.parametrization_list.pop()
+        if parametrize.is_parametrized(parent_module, param_name):
+            module.__sparse_params__.parametrized_params.add(f'{parent_module_name}.{param_name}')
+            parametrize.remove_parametrizations(parent_module, param_name, leave_parametrized=leave_parametrized)
         
-        # Process each node and its weights
-        for nodes, weights in zip(nodes_list, weights_list):
-            # Normalize weights representation to a consistent format
-            # Convert set to list if needed
-            if isinstance(weights, set):
-                weights = list(weights)
-                
-            # Convert list/tuple to dict mapping each weight to itself
-            if isinstance(weights, (list, tuple)):
-                weights = {x:[x] for x in weights}
-                
-            # Ensure weights is now a dictionary
-            assert isinstance(weights, dict), 'Weight should be a dict by now!'
+
+def insert_all_parametrizations(module:fx.GraphModule, binary_mask:bool=False):
+    """
+    For each parameter to be sparsified, adds a parametrization.
+    Assumes module.__sparse_params__.sparsity_nodes: dict[tuple, list[list[Node]]] has already been computed, e.g. using get_sparsity_nodes 
+    Assumes module.__sparse_params__.sparsity_class has the class for parametrization
+    Assumes module.__sparse_params__ has all keyword arguments to construct class, based on sparsity_class.REQUIRED_SPARSE_PARAMS
+
+    Populates module.__sparse_params__.parametrization_list , clears old list TODO: perhaps change this behaviour. 
+        This list contains (parent_module, param_name, parametrization) for each inserted parametrization
+
+    Args:
+        module (fx.GraphModule): Parent module
+        binary_mask (bool, optional): Passed on to parametrization class init. Defaults to False.
+    """
+
+    parametrization_list = [] # (parent_module, parent_module_name, param_name, parametrization)
+    modules = dict(module.named_modules())
+    params = dict(module.named_parameters())
+    sparsity_class = module.__sparse_params__.sparsity_class
+
+    parametrization_kwargs = module.__sparse_params__.parametrization_kwargs
+    parametrization_kwargs.update({'binary_mask': binary_mask})
+    # dict(binary_mask=binary_mask)
+    # for param in sparsity_class.REQUIRED_SPARSE_PARAMS:
+    #     if hasattr(module.__sparse_params__, param):
+    #         kwargs[param] = getattr(module.__sparse_params__, param)
+
+    for key, nodes_list in module.__sparse_params__.sparsity_nodes.items(): # dict[tuple, list[list[Node]]]
+        for nodes in nodes_list:
+            weight_names = get_weights(module, nodes, key)
+            main_weight_name = weight_names[0] # TODO: improve this once we define list[node] meaning per parametrization
+            param_tensor = params[main_weight_name]
+
+            for weight_name in weight_names:
+                parent_module_name, param_name = get_parent_name(weight_name)
+                parent_module = modules[parent_module_name]
+                parametrization = sparsity_class(key, nodes, tensor=param_tensor, **parametrization_kwargs)
+                parametrization_list.append((parent_module, parent_module_name, param_name, parametrization))
+
+                parametrize.register_parametrization(parent_module, param_name, parametrization)
+    module.__sparse_params__.parametrization_list = parametrization_list
+
+def update_all_parametrizations(module:fx.GraphModule, binary_mask:bool =False) -> None:
+    """
+    Call 'update' on all parametrizations registered to the module IN module.__sparse_params__.parametrization_list
+    NOTE: It is the responsibility of wherever parametrizations are added, to add to the above list.
+
+    Args:
+        module (fx.GraphModule): Parent module
+        binary_mask (bool, optional): passed on to parametrization update function. Defaults to False.
+    """
+    flip_rate_list = []
+    current_epoch = -1
+    for (parent_module, parent_module_name, param_name, parametrization) in module.__sparse_params__.parametrization_list:
+        if parametrize.is_parametrized(parent_module, param_name):
+            param_tensor = nested_getattr(parent_module, f'parametrizations.{param_name}.original') # get original param
+            old_mask = parametrization.mask
+            new_mask = parametrization.update(tensor=param_tensor, binary_mask=binary_mask)
             
-            # Process each weight that needs parametrization
-            for main_weight, weights_to_be_sparsified in weights.items():
-                # Get the tensor for the main weight
-                tensor = params[main_weight]
+            flip_rate = (old_mask!=new_mask).sum()/(old_mask.numel())
+            flip_rate_list.append(flip_rate)
+            current_epoch = parametrization.current_epoch
+    flip_rate_avg = torch.tensor(flip_rate_list).mean().item()
+    import mlflow
+    mlflow.log_metric('avg_flip_rate', flip_rate_avg, step=current_epoch)
+    # print(f'update_all_parametrizations, epoch {current_epoch}, avg flip rate%={flip_rate_avg*100}%')
+
+# def insert_all_parametrizations(module:fx.GraphModule, binary_mask=False):
+#     """Inserts sparsity parametrization into the module's parameters.
+    
+#     This function adds sparsity parametrization to the module's weight parameters
+#     based on the identified sparsity nodes and configured sparsity class. The
+#     parametrization applies masks to weights during forward passes to enforce sparsity.
+    
+#     Args:
+#         module (fx.GraphModule): The module to add parametrization to.
+#         binary_mask (bool, optional): Whether to use binary masks for sparsity.
+#             When True, creates hard masks for final sparsification (0 or 1).
+#             When False, uses soft masks during training (gradual sparsification). 
+#             Defaults to False.
+            
+#     Returns:
+#         None: The function modifies the module in-place by registering parametrizations.
+        
+#     Note:
+#         The sparsity parametrization works by applying masks to weight tensors during
+#         forward passes. This function creates appropriate mask generators based on the
+#         sparsity class (e.g., N2MSparsityParametrization) and registers them with PyTorch's
+#         parametrization system.
+#     """
+#     # Get parameters, modules, and sparsity configuration
+#     params = dict(module.named_parameters())
+#     modules = dict(module.named_modules())
+#     weights_dict = module.__sparse_params__.weights
+#     sparsity_class = module.__sparse_params__.sparsity_class
+
+    
+#     # Prepare arguments for the sparsity parametrization
+#     kwargs = dict(binary_mask=binary_mask)
+
+#     # Add all required parameters from sparse_params to kwargs
+#     # This ensures the parametrization class has all the parameters it needs
+#     for param in sparsity_class.REQUIRED_SPARSE_PARAMS:
+#         if hasattr(module.__sparse_params__, param):
+#             kwargs[param] = getattr(module.__sparse_params__, param)
+    
+#     # Process each sparsity node and its associated weights
+#     for key, nodes_list in module.__sparse_params__.sparsity_nodes.items():
+#         weights_list = weights_dict[key]
+        
+#         # Process each node and its weights
+#         for nodes, weights in zip(nodes_list, weights_list):
+#             # Normalize weights representation to a consistent format
+#             # Convert set to list if needed
+#             if isinstance(weights, set):
+#                 weights = list(weights)
                 
-                # Create parametrization instance for this tensor
-                # This will generate appropriate masks based on the sparsity type and configuration
-                parametrization = sparsity_class(key, nodes, tensor=tensor, **kwargs)
+#             # Convert list/tuple to dict mapping each weight to itself
+#             if isinstance(weights, (list, tuple)):
+#                 weights = {x:[x] for x in weights}
                 
-                # Apply parametrization to all weights that should be sparsified
-                for weight in weights_to_be_sparsified:
-                    # Parse the weight name to get parent module and parameter name
-                    # For example, "layer1.conv.weight" becomes ("layer1.conv", "weight")
-                    parent_module = weight.rsplit('.',1)
-                    parent_module, name = parent_module if len(parent_module)>1 else ('', parent_module[0])
-                    parent_module = modules[parent_module]
-                    
-                    # Register the parametrization to be applied during forward passes
-                    parametrize.register_parametrization(parent_module, name, parametrization)
+#             # Ensure weights is now a dictionary
+#             assert isinstance(weights, dict), 'Weight should be a dict by now!'
+            
+#             # Process each weight that needs parametrization
+#             for main_weight, weights_to_be_sparsified in weights.items():
+
+#                 # Get the tensor for the main weight
+#                 tensor = params[main_weight]
+                
+#                 # Apply parametrization to all weights that should be sparsified
+#                 for weight in weights_to_be_sparsified:
+#                     # Parse the weight name to get parent module and parameter name
+#                     # For example, "layer1.conv.weight" becomes ("layer1.conv", "weight")
+#                     parent_module = weight.rsplit('.',1)
+#                     parent_module, name = parent_module if len(parent_module)>1 else ('', parent_module[0])
+#                     parent_module = modules[parent_module]
+
+                    # # Create parametrization instance for this tensor
+                    # # This will generate appropriate masks based on the sparsity type and configuration
+                    # parametrization = sparsity_class(key, nodes, tensor=tensor, **kwargs)
+                    # # Register the parametrization to be applied during forward passes
+                    # parametrize.register_parametrization(parent_module, name, parametrization)

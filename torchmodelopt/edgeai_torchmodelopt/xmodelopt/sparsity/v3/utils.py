@@ -29,12 +29,10 @@
 #
 #################################################################################
 
-import operator
-from typing import  Type, List, Dict, Any, Iterable
+from typing import  Callable
 import torch
 import torch.fx as fx
 import torch.nn as nn
-from torch.fx.passes.utils.source_matcher_utils import  SourcePartition
 
 filter_funcs_dict = dict()
 
@@ -232,7 +230,7 @@ def register_n2m_filters(n, m):
         return ret
 
 
-def get_sparsity_nodes(module: fx.GraphModule, *args):
+def get_sparsity_nodes(module: fx.GraphModule, *args) -> dict[tuple, list[list[fx.Node]]]:
     """Retrieves nodes from a module that are compatible with the specified sparsity pattern.
     
     This function iterates through registered filter functions and applies them to the module
@@ -247,7 +245,7 @@ def get_sparsity_nodes(module: fx.GraphModule, *args):
             with keys that include all three of these elements.
             
     Returns:
-        dict: A dictionary mapping filter keys to lists of nodes that can be sparsified.
+        ret: dict[tuple,list[list[fx.Node]]] A dictionary mapping filter keys to lists of (lists of nodes) that can be sparsified.
             Each key corresponds to a registered filter function, and the value is the
             result of applying that filter function to the module.
             
@@ -262,9 +260,9 @@ def get_sparsity_nodes(module: fx.GraphModule, *args):
         ret[key] = func(module)
     return ret
 
-weight_func_dict = {}
+weight_func_dict: dict[tuple, Callable[[fx.GraphModule, list[fx.Node]], list[str]]] = {} # see register_weight_func
 
-def register_weigth_func(*args, func=None):
+def register_weight_func(*args, func:Callable[[fx.GraphModule, list[fx.Node]], list[str]]=None):
     """Registers a weight function for use in sparsity operations.
     
     This decorator function registers a weight function with the specified arguments
@@ -280,12 +278,8 @@ def register_weigth_func(*args, func=None):
         If func is provided, returns the registered function.
         If func is None, returns a decorator function that will register the decorated function.
         
-    Note:
-        This function name contains a typo ('weigth' instead of 'weight'), but it is
-        maintained for backward compatibility.
-        
     Example:
-        @register_weigth_func('Conv2d', 2, 4, 'n2m')
+        @register_weight_func('Conv2d', 2, 4, 'n2m')
         def get_conv_weights(module, nodes):
             # Implementation to extract weight tensors
             return weights
@@ -300,7 +294,7 @@ def register_weigth_func(*args, func=None):
 def register_n2m_weight_func(key, n, m, func=None):
     """Registers a weight function specifically for n:m sparsity pattern.
     
-    This is a convenience function that calls register_weigth_func with 'n2m' as part
+    This is a convenience function that calls register_weight_func with 'n2m' as part
     of the key to indicate the n:m sparsity pattern. Weight functions registered with
     this decorator are responsible for extracting weight parameters from nodes that
     will be sparsified using the n:m pattern.
@@ -320,7 +314,7 @@ def register_n2m_weight_func(key, n, m, func=None):
             # Implementation to extract weight tensors from Conv2d nodes
             return weights
     """
-    return register_weigth_func(key, n, m, 'n2m', func=func)
+    return register_weight_func(key, n, m, 'n2m', func=func)
 
 def register_n2m_weight_funcs(n,m):
     """Registers a set of weight functions for various layer types for n:m sparsity pattern.
@@ -410,7 +404,7 @@ def register_n2m_weight_funcs(n,m):
         return [a.target for a in matmul.args if a.op == 'get_attr']
     
 
-def get_all_weights(module: fx.GraphModule, nodes_dict:dict[tuple,list[fx.Node]]):
+def get_all_weights(module: fx.GraphModule, nodes_dict: dict[tuple, list[list[fx.Node]]]) -> dict[tuple, list[list[str]]]:
     """Extracts all weight parameters from the nodes identified for sparsification.
     
     This function iterates through the dictionary of nodes identified for sparsification
@@ -420,11 +414,11 @@ def get_all_weights(module: fx.GraphModule, nodes_dict:dict[tuple,list[fx.Node]]
     
     Args:
         module (fx.GraphModule): The graph module containing the nodes.
-        nodes_dict (dict): A dictionary mapping filter keys to lists of nodes.
+        nodes_dict (dict): A dictionary mapping filter keys to lists of (list of nodes).
             This is typically the output of get_sparsity_nodes().
             
     Returns:
-        dict: A dictionary mapping filter keys to lists of weight parameters.
+        dict: A dictionary mapping filter keys to lists of (lists of weight parameters).
             Each key corresponds to a filter key from nodes_dict, and the value
             is a list containing the results of applying the corresponding weight
             function to each group of nodes.
@@ -438,7 +432,23 @@ def get_all_weights(module: fx.GraphModule, nodes_dict:dict[tuple,list[fx.Node]]
         results = []
         
         for nodes in nodes_list:
-            results.append(weight_func_dict[key](module, nodes, ))
+            results.append(get_weights(module, nodes, key))
         
-        ret[key]= results
+        ret[key]= results 
     return ret     
+
+def get_weights(module: fx.GraphModule, nodes:list[fx.Node], weight_type: tuple) -> list[str]:
+    """
+    Given a list of nodes (describing one parametrization object), get the list of corresponding weight parameter names.
+    The weight type must be passed as well to be used as key to find the weight function, e.g. ('Conv2d', 2, 4, 'n2m')
+
+    Args:
+        module (fx.GraphModule): top level module
+        nodes (list[fx.Node]): list of nodes corresponding to one parameter
+        weight_type (tuple): e.g. ('Conv2d', 2, 4, 'n2m')
+
+    Returns:
+        list[str]: list of parameter names , e.g. ['linear']
+    """    
+
+    return weight_func_dict[weight_type](module, nodes, )

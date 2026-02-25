@@ -14,9 +14,8 @@ from train_test import train_epochs, my_train_scheme_maker, imagenet_data_maker,
 from tv_models import construct_tv_model
 
 from edgeai_torchmodelopt.xmodelopt.sparsity.v3.utils import register_n2m_filter
+from edgeai_torchmodelopt.xmodelopt.utils.helper_functions import nested_getattr
 from torch import fx
-
-from edgeai_torchmodelopt.xmodelopt.sparsity.v3.parametrization import class_forward_func_dict, class_mask_func_dict
 
 # from  edgeai_torchmodelopt.xmodelopt.sparsity.v3.sparsity_func import calculate_sparsity
 
@@ -43,21 +42,25 @@ def check_sparsity(model, params):
     is_sparse = True
     # assume n:m sparsity for now
     print_params = copy.deepcopy(sparse_params)
-    del print_params['sparsity_nodes'], print_params['weights'], print_params['parametrized_params']
+    del print_params['sparsity_nodes'], print_params['weights'], print_params['parametrization_list']
     if verbose:
-        print(f'----\n[TEST]: {print_params}\n')
-    n = sparse_params.n
-    m = sparse_params.m
+        print(f'----\n[TEST]:  __sparse_params__ (partial) = {print_params}\n')
+    n = 2
+    m = 4
     if verbose:
         print('Sparsified layers:')
         for name, node_list in sparse_params['sparsity_nodes'].items():
             print(f'{name}, {len(node_list)}')
-    for name, param in model.module.named_parameters():
-        # print(name)
-        if name in sparse_params['parametrized_params']:
-            print(compute_sparsity(param))
-            if not test_n_m_sparse(param,n,m):
-                is_sparse = False
+    for param_name in sparse_params['parametrized_params']:
+        param = nested_getattr(model.module, param_name)
+        if verbose:
+            print(f'Sparsity of param {param_name}: {compute_sparsity(param)}')
+        if not test_n_m_sparse(param,n,m):
+            if verbose:
+                print(f'param {param_name} is not sparse!')
+            is_sparse = False
+    if verbose:
+        print(f'[TEST]:  Testing {n}:{m} sparsity..\n')
     return is_sparse
 
 def sample_inputs(params):
@@ -98,7 +101,7 @@ def create_custom_filters(n,m,params={}):
             if out_channel % m != 0 or in_channel % m != 0:
                 # skipping as conv is not supported for n:m sparsity
                 continue
-            print(f'checking conv kernel {kernel_size}')
+            # print(f'checking conv kernel {kernel_size}')
             allow = False 
             if 'conv1x1' in sparse_list and all(k==1 for k in kernel_size ):
                 allow = True
@@ -152,17 +155,9 @@ def create_custom_filters(n,m,params={}):
     
 class SparserModuleNM(xmodelopt.sparsity.v3.SparserModule):
     def __init__(self, module, params, transformation_dict=None, **kwargs):
-        total_epochs = params.get('total_epochs', 10)
-        init_epochs = params['sparsity'].get('pre_epochs', 0)
+        # total_epochs = params.get('total_epochs', 10)
         # sparsity_epochs = params['sparsity'].get('total_epochs', total_epochs)
-        batch_size = params.get('batch_size', 128)
-        p = params['sparsity'].get('sparsity_p', 2.0)
-        sparsity_ratio = params['sparsity'].get('sparsity_ratio', 0.5)
-        sparsity_m = params['sparsity'].get('sparsity_m', 4)
-        if 'mode' in params['sparsity']:
-            kwargs['mode'] = params['sparsity']['mode']
-        if 'incremental_epochs' in params['sparsity']:
-            kwargs['incremental_epochs'] = params['sparsity']['incremental_epochs']
+        # batch_size = params.get('batch_size', 128)
         
         inps = sample_inputs(params)
 
@@ -170,10 +165,8 @@ class SparserModuleNM(xmodelopt.sparsity.v3.SparserModule):
         if 'to_sparsify' in params['sparsity']:
             filter_func = partial(create_custom_filters, params=params)
         
-        super().__init__(module, example_inputs=inps, example_kwargs=None, sparsity_ratio=sparsity_ratio, total_epochs=total_epochs, p=p, sparsity_global=False, copy_args=None,
-            sparsity_type='n2m', sparsity_init_train_ep=init_epochs, sparsity_m=sparsity_m, add_methods=True, copy_attrs=None, filter_func_register=filter_func, weight_func_register=None, 
-            transformation_dict=transformation_dict, **kwargs)
-        print(self.module.__sparse_params__)
+        super().__init__(module, example_inputs=inps, filter_func_register=filter_func, **params['sparsity']['module_args'])
+        # print(self.module.__sparse_params__)
     
 
 def construct_resnet(params):
@@ -187,9 +180,15 @@ def construct_sparse_resnet(params):
     
     model = construct_tv_model('resnet', option=depth, fetch_weights=True)
     model = model.to(params['device'])
+  
+    if params.get('distillation', False):
+        teacher = copy.deepcopy(model)
+        for param in teacher.parameters():
+            param.requires_grad = False
     if 'sparsity' in params and params['sparsity']:
         model = SparserModuleNM(model, params)
-
+    if params.get('distillation', False):
+        return model, teacher
     return model 
 
 def construct_sparse_mobilenet(params):
@@ -204,15 +203,27 @@ def construct_sparse_mobilenet(params):
 def construct_sparse_swin(params):
     model = construct_tv_model('swin', option='t', fetch_weights=True)
     model = model.to(params['device'])
+
+    if params.get('distillation', False):
+        teacher = copy.deepcopy(model)
+        for param in teacher.parameters():
+            param.requires_grad = False
     if 'sparsity' in params and params['sparsity']:
         model = SparserModuleNM(model, params)
+    if params.get('distillation', False):
+        return model, teacher
 
     return model 
 
 
 def generic_main(params, model_maker, data_maker, train_scheme_maker):
     train_dataloader, test_dataloader = data_maker(params)
+    params['steps_per_epoch'] = len(train_dataloader)
     model = model_maker(params)
+    teacher = None
+    if params.get('distillation', False):
+        model, teacher = model
+        teacher = teacher.to(params['device'])
     model = model.to(params['device'])
     print(params['model_name'], count_params(model))
     optimizer, loss_fn, scheduler = train_scheme_maker(params, model)
@@ -220,27 +231,30 @@ def generic_main(params, model_maker, data_maker, train_scheme_maker):
     device = params.get('device', 'cuda:0')
     total_epochs = params.get('total_epochs', 2)
 
-    def debug_callback(epoch, model, test_acc, params):
-        # print(model.module.__sparse_params__)
-        print(f'GPU Memory: {torch.cuda.memory_allocated()}/{torch.cuda.max_memory_allocated()}')
-        print(f'class fwd dict len: {len(class_forward_func_dict)} class mask dict len: {len(class_mask_func_dict)}')
-        # print(torch.cuda.memory.memory_summary())
+    def debug_callback(epoch, model, train_acc, test_acc, params):
+        model.step()
+        if params['trial']:
+            print(f"Trial {params['trial'].number}: Epoch {epoch+1}/{total_epochs}")
+        else:
+            print(f"Epoch {epoch+1}/{total_epochs}..")
+        print(f'Train Acc.: {train_acc*100.0:.2f}%, Test Acc.: {test_acc*100.0:.2f}%')
+    
 
-    # torch.cuda.memory._record_memory_history()
     test_acc = train_epochs(train_dataloader, test_dataloader, model, loss_fn, optimizer, 
                             scheduler, device, params=params, total_epochs=total_epochs, 
-                            log_mlflow=True, epoch_callback=debug_callback)
-    # torch.cuda.memory._dump_snapshot("memory_snapshot.pickle")
+                            log_mlflow=True, epoch_callback=debug_callback, teacher=teacher)
+    model.finalize()
+    
     # params['sparsity'] = {'verbose_mode': True}
     
     if 'sparsity' in params and params['sparsity']:
         is_sparse = check_sparsity(model, params)
-        # print(f'----\n[TEST]: Sparsity check: {"✅" if is_sparse else "❌"}\n----')
+        print(f'----\n[TEST]: Sparsity check: {"✅" if is_sparse else "❌"}\n----')
 
-    inps = sample_inputs(params)
-    onnx_model = torch.onnx.export(model, (inps), verbose=False)
-    onnx_model.save(f'saved_models/{params["model_name"]}-{params["name"]}.onnx', include_initializers=True, keep_initializers_as_inputs=False)
-    print(f'netron cmd:\nnetron -p 8080 saved_models/{params["model_name"]}-{params["name"]}.onnx')
+    # inps = sample_inputs(params)
+    # onnx_model = torch.onnx.export(model, (inps), verbose=False)
+    # onnx_model.save(f'saved_models/{params["model_name"]}-{params["name"]}.onnx', include_initializers=True, keep_initializers_as_inputs=False)
+    # print(f'netron cmd:\nnetron -p 8080 saved_models/{params["model_name"]}-{params["name"]}.onnx')
     torch.cuda.empty_cache()
 
     return test_acc
@@ -287,12 +301,43 @@ def accuracy_objective(trial, idx=0, study_context=''):
 
     params['batch_size'] = 128
     # params['batch_size'] = 64
+    params['image_size'] = (224,224)
     params['fraction'] = 1
     # params['fraction'] = 0.1
 
     params['optimizer_type'] = 'SGD'
     params['lr'] = 1e-5
+    # params['sr-ste'] = 2e-4
     params['momentum'] =  0.9
+
+    if 'sr-ste' in params:
+        xmodelopt.sparsity.v3.parametrization.STE_GAMMA = params['sr-ste']
+    else:
+        xmodelopt.sparsity.v3.parametrization.STE_GAMMA = 0
+
+    # params['label_smoothing'] = 0.1
+    # params.update({
+    #     'cutmix_alpha': 1.0,
+    #     'mixup_alpha': 1.0,
+    #     'randomresizedcrop': True,
+    #     # 'randaugment': (1,3),
+    #     'randerasing': 0.25,
+    #     'autoaugment': "imagenet",
+    # })
+
+    # params['lr_schedule'] = {
+    #     'type': '1cycle'
+    # }
+    # params['lr_schedule'] = {
+    #     'type': 'step',
+    #     'warmup': 5,
+    #     'epochs': 15,
+    #     'rate': 0.3
+    # }
+    # params['lr_schedule'] = {
+    #     'type': 'cosine',
+    #     'warmup': 15,
+    # }
 
     params['loss_fn'] = 'ce'
 
@@ -306,20 +351,32 @@ def accuracy_objective(trial, idx=0, study_context=''):
     # params['model_name'] = 'mobilenet_v3' 
     # params['model_name'] = 'swin_t'
     # params['model_name'] = 'mobilenet_v3_scratch' 
-    
+
     n = 2
     m = 4
     params['sparsity'] = {
         'verbose_mode': True,
-        'sparsity_ratio': n/m,
-        'sparsity_m': m,
-        'total_epochs': params['total_epochs'],
-        'incremental_epochs': 60,
-        # 'pre_epochs': 120,
-        'mode': 'topk_elementwise',
-        # 'mode': 'topk',
+        'module_args': {
+            'sparsity_ratio': n/m,
+            'sparsity_m': m,
+            'm': m,
+            'n': n,
+            'sparsity_start_epoch': 0,
+            'sparsity_end_epoch': 30,
+            'freeze_mask': True,
+            'mode': 'topk_blockwise',
+            # 'mode': 'topk',
+        },
+        
+        # 
+        # 'to_sparsify': ['linear']
         'to_sparsify': ['linear', 'conv1x1', 'conv3x3']
     }
+    # params['distillation'] = {
+    #     'temp': 1.0,
+    #     'teacher_weight': 2.0,
+    #     'use_ground_labels': True,
+    # }
 
     print(f'{params=}')
     if params['model_name'] == 'resnet18':
@@ -362,6 +419,7 @@ def single_test():
         logger.setLevel('ERROR')
     
     mlflow.set_experiment('sparsity-imagenet')
+    # mlflow.set_experiment('test')
     study = optuna.create_study(study_name=study_context['name'], direction='maximize', 
                                             storage=study_context['storage'], load_if_exists=True)
     

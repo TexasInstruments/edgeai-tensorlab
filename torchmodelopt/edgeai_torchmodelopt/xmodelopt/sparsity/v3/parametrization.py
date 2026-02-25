@@ -1,5 +1,5 @@
 import torch
-from torch import nn, fx
+from torch import nn, fx, Tensor
 from torch.fx.passes.utils.source_matcher_utils import  SourcePartition
 from torch.fx.passes.utils.matcher_utils import InternalMatch
 import math
@@ -48,18 +48,14 @@ class BaseSparsityParametrization(nn.Module):
     functionality for creating and applying sparsity masks to weight tensors. It uses
     the PyTorch parametrization system to modify the behavior of weights during forward passes.
     
-    Attributes:
-        REQUIRED_SPARSE_PARAMS (list): List of parameter names required from module.__sparse_params__
-            when applying the parametrization. Defaults to ['epoch_count', 'init_train_ep', 
-            'total_epochs', 'p'].
     """
-    REQUIRED_SPARSE_PARAMS = ['epoch_count', 'init_train_ep', 'total_epochs', 'p',] 
+    # REQUIRED_SPARSE_PARAMS = ['epoch_count', 'init_train_ep', 'total_epochs', 'p',] 
 
     class_mask_func_dict = {}
     class_forward_func_dict = {}
     
-    def __init__(self, source, nodes, *args, tensor=None, epoch_count=0, init_train_ep=5, 
-                 total_epochs=15, binary_mask=False, p=None, **kwargs):
+    def __init__(self, source, nodes, *args, tensor=None, current_epoch=0, sparsity_start_epoch=5, 
+                 sparsity_end_epoch=15, binary_mask=False, p=None, **kwargs):
         """Initializes the base sparsity parametrization.
         
         Args:
@@ -67,7 +63,7 @@ class BaseSparsityParametrization(nn.Module):
             nodes: Graph nodes to which the parametrization applies.
             *args: Additional arguments passed to the parent class.
             tensor: The weight tensor to apply sparsity to. Required.
-            epoch_count (int, optional): Current training epoch. Defaults to 0.
+            current_epoch (int, optional): Current training epoch. Defaults to 0.
             init_train_ep (int, optional): Initial training epochs before sparsification. Defaults to 5.
             total_epochs (int, optional): Total number of training epochs. Defaults to 15.
             binary_mask (bool, optional): Whether to use binary (hard) masks. Defaults to False.
@@ -82,16 +78,13 @@ class BaseSparsityParametrization(nn.Module):
         # super().__init__(*args, **kwargs)
         self.source = source
         self.nodes = nodes
-        self.epoch_count = epoch_count
-        self.init_train_ep = init_train_ep
-        self.total_epochs = total_epochs
+        self.current_epoch = current_epoch
+        self.sparsity_start_epoch = sparsity_start_epoch
+        self.sparsity_end_epoch = sparsity_end_epoch
         self.mask_func_dict = {}
         self.forward_func_dict = {}
         self.binary_mask = binary_mask
         self.p = p
-        self.incremental_epochs = kwargs.get('incremental_epochs', total_epochs)
-        if 'incremental_epochs' in kwargs:
-            del kwargs['incremental_epochs']
         self.alpha_factor = None # used for debugging alpha value
 
         super().__init__(*args, **kwargs)
@@ -102,10 +95,7 @@ class BaseSparsityParametrization(nn.Module):
         
         # Create the sparsity mask from the tensor
         tensor = tensor.detach()
-        mask = self.create_mask(tensor)
-        
-        # Apply binary thresholding if requested, otherwise use the soft mask
-        self.mask = (mask >= 0.5) if self.binary_mask else mask
+        self.mask = self.create_mask(tensor)
         
     def register_mask(self, *args, func=None):
         """Registers a mask creation function for this parametrization instance.
@@ -238,7 +228,40 @@ class BaseSparsityParametrization(nn.Module):
                 Values are typically between 0 and 1, with 0 representing elements
                 to be pruned and 1 representing elements to keep.
         """
-        return self.get_mask_func(self.source)(tensor)
+        mask = self.get_mask_func(self.source)(tensor)
+        # Apply binary thresholding if requested, otherwise use the soft mask
+        self.mask = (mask >= 0.5) if self.binary_mask else mask
+        return self.mask
+
+    def update(self, tensor=None, mask=None, binary_mask=False):
+        """Update self, assuming an epoch has been completed. Update state (self.current_epoch) to reflect this.
+        If mask != None, set the input mask as current mask
+        If tensor != None, create a mask from tensor, based on the new self.current_epoch
+
+        Args:
+            tensor (_type_, optional): Input tensor to create mask for. Defaults to None.
+            mask (_type_, optional): Input mask to directly set. Defaults to None.
+            binary_mask (bool, optional): If True, use hard mask (see self.create_mask). Defaults to False.
+
+        Raises:
+            ValueError
+        
+        Returns: 
+            new updated mask, also sets self.mask
+        """
+        if mask is not None:
+            self.mask = mask 
+            return self.mask  
+        self.current_epoch += 1
+        self.binary_mask = binary_mask
+        if tensor is None:
+            raise ValueError(f"update_mask got tensor={tensor} with no mask input")
+        if self.freeze_mask and self.current_epoch > self.sparsity_end_epoch:
+            # Do not change mask
+            return self.mask
+        self.mask = self.create_mask(tensor)
+        return self.mask 
+        
     
     def forward(self, X):
         """Applies the sparsity mask during the forward pass.
@@ -282,24 +305,41 @@ class BaseSparsityParametrization(nn.Module):
         #     self.total_epochs - 1,
         #     max(self.init_train_ep + 1, (self.total_epochs - self.init_train_ep) * 2 // 3 + self.init_train_ep)
         # )
-        #VIGNESH: TODO: setting knee point for testing...
-        total_epochs_knee_point = self.incremental_epochs-1
+
+        # Insted of knee point, we will use sparsity_start_epoch sparsity_end_epoch
+        # total_epochs_knee_point = self.incremental_epochs-1
         
-        # Initial phase: No sparsity
-        if self.epoch_count <= self.init_train_ep:
+        # # Initial phase: No sparsity
+        # if self.epoch_count <= self.init_train_ep:
+        #     alpha_factor = 1
+        # # Final phase: Full sparsity
+        # elif self.epoch_count > total_epochs_knee_point:
+        #     alpha_factor = 0
+        # # Transition phase: Gradually increase sparsity
+        # else:
+        #     alpha_factor = math.pow(
+        #         abs(total_epochs_knee_point - self.epoch_count), self.p
+        #     ) / math.pow(
+        #         total_epochs_knee_point - self.init_train_ep, self.p
+        #     )
+        # self.alpha_factor = alpha_factor
+        
+        if self.current_epoch <= self.sparsity_start_epoch:
+            # Initial phase: No sparsity
             alpha_factor = 1
-        # Final phase: Full sparsity
-        elif self.epoch_count > total_epochs_knee_point:
+        elif self.current_epoch > self.sparsity_end_epoch:
+            # Final phase: Full sparsity
             alpha_factor = 0
-        # Transition phase: Gradually increase sparsity
         else:
+            # Transition phase: Gradually increase sparsity, alpha from 1 to 0
             alpha_factor = math.pow(
-                abs(total_epochs_knee_point - self.epoch_count), self.p
+                abs(self.sparsity_end_epoch - self.current_epoch), self.p
             ) / math.pow(
-                total_epochs_knee_point - self.init_train_ep, self.p
+                self.sparsity_end_epoch - self.sparsity_start_epoch, self.p
             )
+
         self.alpha_factor = alpha_factor
-        return alpha_factor
+        return self.alpha_factor
 
 STE_GAMMA = 0
 
@@ -311,7 +351,7 @@ class MaskMul(torch.autograd.Function):
     
     @staticmethod
     # inputs is a Tuple of all of the inputs passed to forward.
-    # output is the output of the forward().
+    # output is the output of forward().
     def setup_context(ctx, inputs, output):
         weights, mask = inputs
         ctx.save_for_backward(weights, mask)
@@ -320,11 +360,10 @@ class MaskMul(torch.autograd.Function):
     def backward(ctx, grad_output):
         weights, mask = ctx.saved_tensors
         mask_inverse = (1-mask)
-        # gamma = 4e-4
+        
         global STE_GAMMA
         total_grad = grad_output * mask + STE_GAMMA*weights*(1-mask)
-        # print(f'backward is being computed {grad_output.shape}')
-        return grad_output * mask, None
+        return total_grad, None
 
 @register_class('n2m')
 class N2MSparsityParametrization(BaseSparsityParametrization):
@@ -339,49 +378,42 @@ class N2MSparsityParametrization(BaseSparsityParametrization):
         REQUIRED_SPARSE_PARAMS (list): List of parameter names required from module.__sparse_params__
             when applying the parametrization, extending the base class list with 'n' and 'm'.
     """
-    REQUIRED_SPARSE_PARAMS = ['n', 'm', 'mode', 'incremental_epochs'] + BaseSparsityParametrization.REQUIRED_SPARSE_PARAMS
+    # REQUIRED_SPARSE_PARAMS = ['n', 'm', 'mode', 'incremental_epochs'] + BaseSparsityParametrization.REQUIRED_SPARSE_PARAMS
     
-    def __init__(self, source, nodes, *args, n=None, m=None, tensor=None, epoch_count=0, 
-                 init_train_ep=5, total_epochs=15, binary_mask=False, p=None, mode=None, **kwargs):
+    # def __init__(self, source, nodes, *args, n=None, m=None, tensor=None, epoch_count=0, 
+    #              init_train_ep=5, total_epochs=15, binary_mask=False, p=None, mode=None, **kwargs):
+    def __init__(self, source, nodes, *args, n:int =None, m:int =None, mode:str='topk', p:int=2, tensor:Tensor, freeze_mask:bool=False, **kwargs):
         """Initializes the n:m sparsity parametrization.
-        
+
         Args:
-            source: Source identifier for the parametrization (e.g., layer type tuple).
-            nodes: Graph nodes to which the parametrization applies.
-            *args: Additional arguments passed to the parent class.
+            source (_type_): Source identifier for the parametrization (e.g., layer type tuple).
+            nodes (_type_): Graph nodes to which the parametrization applies.
             n (int): The n value in n:m pattern (number of non-zero elements per block). Required.
             m (int): The m value in n:m pattern (block size). Required.
-            tensor (torch.Tensor): The weight tensor to apply sparsity to. Required.
-            epoch_count (int, optional): Current training epoch. Defaults to 0.
-            init_train_ep (int, optional): Initial training epochs before sparsification. Defaults to 5.
-            total_epochs (int, optional): Total number of training epochs. Defaults to 15.
-            binary_mask (bool, optional): Whether to use binary (hard) masks. Defaults to False.
-            p (float, optional): Power parameter for sparsity schedule. Defaults to None (which becomes 2).
             mode (str, optional): Method for selecting elements to keep. Options are:
                 - 'topk': Keep top-k elements by magnitude (default)
-                - 'topk_elementwise': Keep top-k elements by magnitude (default), but perform incremental sparsity elemenwise; i.e. x% of weights set to zero at each epoch increment
+                - 'topk_blockwise': Keep top-k blocks by magnitude, but perform incremental sparsity blockwise;
+                    i.e. x% of blocks have n weights set to zero at each epoch
                 - 'magnitude': Alternative magnitude-based selection (not implemented)
                 - 'hessian': Hessian-based selection (not implemented)
-            **kwargs: Additional keyword arguments passed to the parent class.
-            
+            tensor (torch.Tensor): The weight tensor to create a mask for.
+            p (int): Power law scaling parameter for incremental sparsity
+            freeze_mask (bool): If true, freeze mask after sparsity_end_epoch
+            For other kwargs, see BaseSparsityParametrization
         Raises:
             AssertionError: If n, m, or tensor is not provided, or if mode is invalid.
         """
         assert n is not None and m is not None and tensor is not None, f'n, m and tensor has to be provided'
         self.n = n
         self.m = m
-        self.init_train_ep = init_train_ep
-        self.binary_mask = binary_mask
-        self.p = p or 2
-        self.mode = mode or 'topk'  # or hessian or magnitude
-        assert self.mode in ('topk', 'topk_elementwise', 'magnitude', 'hessian')
+        self.mode = mode
+        self.freeze_mask = freeze_mask
+        assert self.mode in ('topk', 'topk_blockwise', 'magnitude', 'hessian')
         
         # Add mode to the source identifier to differentiate between different selection methods
         source += (self.mode,)
         
-        super().__init__(source, nodes, *args, tensor=tensor, epoch_count=epoch_count, 
-                        init_train_ep=init_train_ep, total_epochs=total_epochs, 
-                        binary_mask=binary_mask, p=p, **kwargs)
+        super().__init__(source, nodes, *args, tensor=tensor, p=p, **kwargs)
     
     def get_topk_mask(self, tensor, alpha_factor):
         """Creates a sparsity mask using the top-k method.
@@ -426,7 +458,7 @@ class N2MSparsityParametrization(BaseSparsityParametrization):
             # Set those smallest elements to alpha_factor in the mask
             # This effectively reduces their contribution during training
             soft_mask.scatter_(-1, wl.indices, alpha_factor)
-        elif self.mode == 'topk_elementwise':
+        elif self.mode == 'topk_blockwise':
             # is there a more efficient method? TODO 
             # Since topk output is sorted, following gives us the max among pruned weights (i.e. largest among n smallest)
             max_chosen = wl.indices[:,1]
@@ -499,7 +531,7 @@ class N2MSparsityParametrization(BaseSparsityParametrization):
         # Map mode names to their corresponding mask generation methods
         mode_2_func_dict = dict(
             topk = self.get_topk_mask,
-            topk_elementwise = self.get_topk_mask,
+            topk_blockwise = self.get_topk_mask,
             magnitude = self.get_magnitude_mask,
             hessian = self.get_hessian_mask,
         )
@@ -517,7 +549,9 @@ class N2MSparsityParametrization(BaseSparsityParametrization):
             Returns:
                 torch.Tensor: A mask tensor.
             """
-            if self.epoch_count <= self.init_train_ep:
+            # NOTE: this should not be necessary, since it's handled by get_alpha_factor.
+            # It would probably be better to allow mask_gen_func to handle alpha computation as well
+            if self.current_epoch <= self.sparsity_start_epoch:
                 # No sparsity during initial training epochs
                 return torch.ones_like(tensor)
             else:

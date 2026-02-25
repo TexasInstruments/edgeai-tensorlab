@@ -69,6 +69,18 @@ def get_attr(model, target):
     parent, target = split
     return getattr(get_module(model, parent), target)
 
+def get_parent_name(target:str) -> tuple[str, str]:
+    """gets the name of the parent module and attribute name of the module from the target of the module
+
+    Args:
+        target (str): parameter/submodule name, e.g. layer2.1.conv2.weight
+
+    Returns:
+        tuple[str, str]: Returns parent_name, target's name, e.g., 
+    """
+    ''''''
+    *parent, name = target.rsplit('.', 1)
+    return ( parent[0] if parent else ''), name
 
 def get_class_string(cls):
     """Returns a fully qualified string representation of a class.
