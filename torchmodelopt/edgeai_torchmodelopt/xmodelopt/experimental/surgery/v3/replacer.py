@@ -41,7 +41,7 @@ import copy
 from .custom_modules import ReplacedModule
 from . import utils
 
-from ...utils.helper_functions import nested_getattr
+from ....utils.helper_functions import nested_getattr
 # from .custom_symbolic_trace import custom_symbolic_trace
 '''
 this module's function are implemented to change nodes only.

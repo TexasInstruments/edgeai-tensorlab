@@ -351,7 +351,7 @@ def validate(val_loader, model, criterion,device):
     return top1.avg
 
 
-from ...utils.helper_functions import get_source_partitions
+from ....utils.helper_functions import get_source_partitions
 
 # Note: This part is copied from pruning any changes made here must be copied there
 from torch.onnx import symbolic_helper, register_custom_op_symbolic

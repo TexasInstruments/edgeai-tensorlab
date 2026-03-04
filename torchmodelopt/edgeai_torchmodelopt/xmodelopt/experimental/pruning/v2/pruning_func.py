@@ -19,11 +19,11 @@ from torch.ao.quantization import quantize_fx
 import copy
 import types
 
-from .... import xnn
+from ..... import xnn
 
 from .utils import get_bn_adjusted_weight, create_bn_conv_mapping, create_next_conv_node_list, find_all_connected_nodes, get_net_weight_node_channel_prune, get_net_weights_all,create_channel_pruned_model,_call_functions_to_look
 from .parametrization import BlendPruningParametrization, SigmoidPruningParametrization, IncrementalPruningParametrization, HeadChannelBlendPruningParametrization, HeadOnlyBlendPruningParametrization, ChannelOnlyBlendPruningParametrization, PRUNING_CLASS_DICT
-from ... import utils
+from .... import utils
 
 def init(module, *args, example_inputs=None, example_kwargs=None, pruning_ratio=None, total_epochs=None, pruning_class='blend',p=2.0, copy_args=None,
                  pruning_global=False, pruning_type='channel', pruning_init_train_ep=5, pruning_m=None,  add_methods=True, **kwargs):

@@ -47,8 +47,8 @@ try:
 except:
     has_timm = False
 
-from ...utils.optimization_base import OptimizationBaseModule
-from ...utils.transformation_utils import wrapped_transformation_fn
+from ....utils.optimization_base import OptimizationBaseModule
+from ....utils.transformation_utils import wrapped_transformation_fn
 
 
 from .utils import get_bn_adjusted_weight, create_bn_conv_mapping, create_next_conv_node_list, find_all_connected_nodes, get_net_weight_node_channel_prune, get_net_weights_all,create_channel_pruned_model,_call_functions_to_look

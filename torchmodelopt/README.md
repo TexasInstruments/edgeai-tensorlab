@@ -1,25 +1,34 @@
 # EdgeAI Torch Model Optimization Toolkit
 
 ## Table of contents
-1. [Introduction](#introduction)
-2. [Installation](#installation)
-2. [Features](#features)
-    1. [Quantization](#quantization)
-    2. [Model Surgery](#model-surgery)
-    3. [Sparsity](#sparsity)
-    4. [Other Utilities](#other-utilities)
-5. [FAQ](#faq)
-6. [Contributors](#contributors) 
+- [EdgeAI Torch Model Optimization Toolkit](#edgeai-torch-model-optimization-toolkit)
+  - [Table of contents](#table-of-contents)
+  - [Introduction](#introduction)
+  - [Note](#note)
+    - [Why use our toolkit?](#why-use-our-toolkit)
+  - [Getting Started](#getting-started)
+    - [Installation](#installation)
+      - [Package installation](#package-installation)
+      - [Source Installation](#source-installation)
+  - [Features](#features)
+    - [Quantization:](#quantization)
+    - [Sparsity:](#sparsity)
+    - [Experimental](#experimental)
+      - [Model Surgery:](#model-surgery)
+      - [Pruning](#pruning)
+    - [Other Utilities:](#other-utilities)
+  - [FAQ](#faq)
+  - [Contributors](#contributors)
 
 
 ## Introduction
 Tools to help development of Embedded Friendly Deep Neural Network Models in [Pytorch](https://pytorch.org). We call these **model optimization tools** because they help in making the models more efficient. This contains [xmodelopt](./edgeai_torchmodelopt/xmodelopt) which is our extension of [torch.ao](https://github.com/pytorch/pytorch/tree/main/torch/ao) model architecture optimization tools. <br>
 
 ## Note
-The Quantization and Model Surgery tools are available in both (v1 and v2), but their interfaces and functionality are slightly different. We recommend to use the latest version (torch.fx based v2) tools whenever possible, but there are situations where the legacy tools may be useful - for example, for QAT models to be used with older TIDL versions or for older target devices such TDA4VM. <br> 
+The Quantization and Model Surgery tools are available in all of (v1, v2, v3) and Pruning is available in both (v2 and v3), but their interfaces and functionality are slightly different. We recommend to use the latest version (torch.fx based v3) tools whenever possible, but there are situations where the legacy tools may be useful - for example, for QAT models to be used with older TIDL versions or for older target devices such TDA4VM. <br> 
 
 ### Why use our toolkit?
-- Our toolkit provides the APIs for quantization, surgery as well as pruning/sparsity along with other tools, for users to seamlessly introduce them in their own training code. 
+- Our toolkit provides the APIs for quantization, surgery, pruning, and sparsity along with other tools, for users to seamlessly introduce them in their own training code. 
 - These are wrapped in easy to use interfaces so that even someone with basic knowledge of Pytorch can use these. The user can add a single line of code to introduce each of these functionality as shown in the user guides. 
 
 ## Getting Started
@@ -46,15 +55,19 @@ cd edgeai-modeloptimization/torchmodelopt
 
 [Quantization documentation](./edgeai_torchmodelopt/xmodelopt/quantization/README.md)
 
+### Sparsity:
 
-### Model Surgery:
+[Model Pruning documentation](./edgeai_torchmodelopt/xmodelopt/sparsity/README.md)
 
-[Model Surgery documentation](./edgeai_torchmodelopt/xmodelopt/surgery/README.md)
+### Experimental
 
+#### Model Surgery:
 
-### Pruning/Sparsity:
+[Model Surgery documentation](./edgeai_torchmodelopt/xmodelopt/experimental/surgery/README.md)
 
-[Model Pruning/Sparsity documentation](./edgeai_torchmodelopt/xmodelopt/pruning/README.md)
+#### Pruning
+
+[Model Pruning documentation](./edgeai_torchmodelopt/xmodelopt/experimental/pruning/README.md)
 
 
 ### Other Utilities:

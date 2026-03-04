@@ -115,7 +115,7 @@ def _get_proper_input_args(curr_partition:fx.Node|SourcePartition, fx_model:fx.G
     return args
 
 
-from ...utils.helper_functions import get_source_partitions, get_class_string
+from ....utils.helper_functions import get_source_partitions, get_class_string
 
 def get_pruning_partitions(module:fx.GraphModule):
     # some modules can contain other other module as submodule we have to go from larger modules to their submodule if they are required like Linear in MHA(Attention)

@@ -37,7 +37,7 @@ try:
     has_tv = True
 except:
     has_tv = False
-from edgeai_torchmodelopt.xmodelopt.pruning.v3.utils import create_channel_pruned_model,register_custom_ops_for_onnx
+from edgeai_torchmodelopt.xmodelopt.experimental.pruning.v3.utils import create_channel_pruned_model,register_custom_ops_for_onnx
 import copy
 
 
@@ -54,7 +54,7 @@ def main():
     # model = torchvision.models.resnet50()
     dummy_input = torch.randn(10, 3, 224, 224)
     m= torch.export.export(model,dummy_input).module()
-    from ...utils.helper_functions import allow_exported_model_train_eval
+    from ....utils.helper_functions import allow_exported_model_train_eval
     allow_exported_model_train_eval(m)
 
     current_model_dict = m.state_dict()

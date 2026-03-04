@@ -30,8 +30,8 @@ class ModelOptimizationWrapperV2(ModelOptimizationBaseModule):
             **kwargs: Additional keyword arguments.
         """
         copy_attrs = copy_attrs or []
-        from ..surgery.v2 import SurgeryModule 
-        from ..pruning.v2 import PrunerModule
+        from ..experimental.surgery.v2 import SurgeryModule 
+        from ..experimental.pruning.v2 import PrunerModule
         from ..quantization.v2.quant_module import QATFxModule, PTCFxModule
         
         # Determine which quantization class to use based on the method specified

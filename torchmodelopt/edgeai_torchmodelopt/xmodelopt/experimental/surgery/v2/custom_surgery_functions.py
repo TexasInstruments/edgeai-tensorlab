@@ -35,7 +35,7 @@ from torch.fx import symbolic_trace, Node
 import inspect,torch, operator
 from copy import deepcopy
 
-from ....xnn.layers import resize_with_scale_factor
+from .....xnn.layers import resize_with_scale_factor
 
 from . import replacer
 # from .custom_symbolic_trace import custom_symbolic_trace

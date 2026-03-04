@@ -37,7 +37,7 @@ try:
     has_tv = True
 except:
     has_tv = False
-from edgeai_torchmodelopt.xmodelopt.pruning.v2 import create_channel_pruned_model2
+from edgeai_torchmodelopt.xmodelopt.experimental.pruning.v2 import create_channel_pruned_model2
 import copy
 
 def main():

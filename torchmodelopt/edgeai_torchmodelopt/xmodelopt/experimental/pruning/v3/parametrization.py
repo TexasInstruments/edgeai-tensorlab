@@ -1,29 +1,41 @@
-try:
-    from torchvision import models as tvmodels
-    has_tv = True
-except Exception as e:
-    has_tv = False
 import torch
 import torch.nn as nn
+from torch.fx.passes.utils.source_matcher_utils import  SourcePartition
+from torch.fx.passes.utils.matcher_utils import InternalMatch
 import math
 
-try:
-    from timm import models as tmmodels
-    has_timm = True
-except:
-    has_timm = False
-
-from .... import xnn
+from ..... import xnn
+from .utils import get_num_heads_head_dims
+from ....utils.helper_functions import get_class_string
+def is_depthwise(fx_model, source, source_partition):
+    if source not in [nn.Conv2d,get_class_string(nn.Conv2d) ]:
+        return False
+    FINAL_EXCEPTION = Exception(f'Still not Supported for {source}' and {type(source_partition)})
+    if source in [nn.Conv2d, get_class_string(nn.Conv2d) ]:
+        if isinstance(source_partition, SourcePartition):
+            weight_node = source_partition.output_nodes[0].args[1]
+        elif isinstance(source_partition,InternalMatch):
+            weight_node = source_partition.nodes_map['_param_constant0']
+        else:
+            raise FINAL_EXCEPTION
+    else:
+        raise FINAL_EXCEPTION
+    modules = dict(fx_model.named_modules())
+    split = weight_node.target.rsplit('.',1)
+    parent, name = split if len(split) == 2 else ('', split[0])
+    weight = getattr(modules[parent], name)
+    return weight.shape[1]==1
 
 
 class IncrementalPruningParametrization(nn.Module):
     # incrementally a portion of weights are completely zeroed out every epoch
-    def __init__(self, curr_node, modules, channel_pruning=False, pruning_ratio=0.6, n2m_pruning=False,  
+    def __init__(self, fx_model, source, source_partition, channel_pruning=False, pruning_ratio=0.6, n2m_pruning=False,  
                  init_train_ep=5, net_weight = None, binary_mask=False, tao=1e-4, pruning_dim=0, **kwargs):
         super().__init__()
         
-        self.curr_node = curr_node
-        self.all_modules = modules        
+        # self.fx_model = fx_model
+        self.source = source
+        self.source_partition = source_partition        
         self.channel_pruning = channel_pruning
         self.tao = tao
         self.binary_mask= binary_mask
@@ -47,13 +59,14 @@ class IncrementalPruningParametrization(nn.Module):
         net_weight = net_weight.detach()
         
         # TODO : some problem with dealing with the depthwise layer, something wrong in logic
-        is_depthwise = (self.curr_node.target in self.all_modules) and (self.all_modules[self.curr_node.target].weight.shape[1] == 1) # we do not want to prune depthwise layers
+        
+        # we do not want to prune depthwise layers
         if int(self.pruning_ratio*net_weight.nelement())==0 or net_weight.size(self.pruning_dim)<=32:
             if channel_pruning:
                 mask = torch.ones(net_weight.size(self.pruning_dim)).to(net_weight.device)
             else:
                 mask = torch.ones_like(net_weight)
-        elif is_depthwise and not(channel_pruning):
+        elif is_depthwise(fx_model,source,source_partition) and not(channel_pruning):
             mask = torch.ones_like(net_weight)
         else:
             mask = self.create_mask(net_weight)
@@ -145,18 +158,20 @@ class IncrementalPruningParametrization(nn.Module):
 
     def right_inverse(self, A):
         return A
-
+    def __repr__(self):
+        
+        return f'{self.__class__.__name__}(...)'
 
 class SoftPruningParametrization(nn.Module):
     # Parametrization technique where the weights are not completely zeroed out, however, they are pruned to zero incrementally with every epoch
-    def __init__(self, curr_node, modules, channel_pruning=False, pruning_ratio=0.6, n2m_pruning=False,  
-                 init_train_ep=5, net_weight = None, binary_mask=False, tao=1e-4, pruning_dim = 0, **kwargs):
+    def __init__(self, fx_model, source, source_partition, channel_pruning=False, pruning_ratio=0.6, n2m_pruning=False,  init_train_ep=5, net_weight = None, binary_mask=False, tao=1e-4, pruning_dim = 0, **kwargs):
         super().__init__()        
         
         # if there is batchnorm after the conv layer, then we will be using the net weight which is the combination of both batchnorm and conv to find the net weight
         
-        self.curr_node = curr_node
-        self.all_modules = modules        
+        # self.fx_model = fx_model
+        self.source = source
+        self.source_partition = source_partition        
         self.channel_pruning = channel_pruning
         self.tao = tao
         self.binary_mask= binary_mask
@@ -175,15 +190,13 @@ class SoftPruningParametrization(nn.Module):
             self.m = kwargs.get("m")
             
         self.new_shape = [s for s in range(len(net_weight.shape))]
-        
         self.new_shape[0],self.new_shape[pruning_dim] = self.new_shape[pruning_dim],self.new_shape[0]
-        
         # avoid error in backprop with detach
         net_weight = net_weight.detach()
         
         # TODO : some problem with dealing with the depthwise layer, something wrong in logic
-        is_depthwise = (self.curr_node.target in self.all_modules) and isinstance(self.all_modules[self.curr_node.target],nn.Conv2d) and (self.all_modules[self.curr_node.target].weight.shape[1] == 1) # we do not want to prune depthwise layers
-        if int(self.pruning_ratio*net_weight.nelement())==0 or is_depthwise: # do not prune layers with less than 32 channels only for channel pruning
+         # we do not want to prune depthwise layers
+        if int(self.pruning_ratio*net_weight.nelement())==0 or is_depthwise(fx_model,source,source_partition): # do not prune layers with less than 32 channels only for channel pruning
             if channel_pruning:
                 mask = torch.ones(net_weight.size(self.pruning_dim)).to(net_weight.device)
             else:
@@ -230,6 +243,8 @@ class SoftPruningParametrization(nn.Module):
     def right_inverse(self, A:torch.Tensor):
         return A
 
+    def __repr__(self):
+        return f'{self.__class__.__name__}(...)'
 
 class SigmoidPruningParametrization(SoftPruningParametrization):
     # epoch count is one indexed for some reason, manage according to that
@@ -299,9 +314,9 @@ class SigmoidPruningParametrization(SoftPruningParametrization):
                  
 
 class BlendPruningParametrization(SoftPruningParametrization):
-    def __init__(self, curr_node, modules, channel_pruning=False, pruning_ratio=0.6, n2m_pruning=False, init_train_ep=5, net_weight=None, binary_mask=False, tao=0.0001,p=2,pruning_dim =0, **kwargs):
+    def __init__(self, fx_model,source,source_partition, channel_pruning=False, pruning_ratio=0.6, n2m_pruning=False, init_train_ep=5, net_weight=None, binary_mask=False, tao=0.0001,p=2,pruning_dim =0, **kwargs):
         self.p =p
-        super().__init__(curr_node, modules, channel_pruning, pruning_ratio, n2m_pruning, init_train_ep, net_weight, binary_mask, tao, pruning_dim=pruning_dim, **kwargs)
+        super().__init__(fx_model, source,source_partition, channel_pruning, pruning_ratio, n2m_pruning, init_train_ep, net_weight, binary_mask, tao, pruning_dim=pruning_dim, **kwargs)
     def create_mask(self, net_weight):
         # epoch count is one indexed for some reason, manage according to that
         if self.epoch_count<=self.init_train_ep:
@@ -377,32 +392,18 @@ class BlendPruningParametrization(SoftPruningParametrization):
         return soft_mask   
 
 
+
+
+
 #Experimental to check either only Channel Pruning works for  MultiHeadAttention Layer's inner_projection weights
 class ChannelOnlyBlendPruningParametrization(BlendPruningParametrization):
-    def __init__(self, curr_node, modules, channel_pruning=False, pruning_ratio=0.6, n2m_pruning=False, init_train_ep=5, net_weight=None, binary_mask=False, tao=0.0001, p=2,pruning_dim = 0, **kwargs):
+    def __init__(self, fx_model,source,source_partition, channel_pruning=False, pruning_ratio=0.6, n2m_pruning=False, init_train_ep=5, net_weight=None, binary_mask=False, tao=0.0001, p=2,pruning_dim = 0, **kwargs):
         self.old_shape = list(net_weight.shape)
-        assert len(self.old_shape) == 2, 'This parameterization is only for \'MultiHeadAttention\' Layer\'s in_proj weight and bias. \n So, weight of the node given must have dimension of 2'
+        assert len(self.old_shape) == 2, 'This parametrization is only for \'MultiHeadAttention\' Layer\'s in_proj weight and bias. \n So, weight of the node given must have dimension of 2'
         assert  self.old_shape[0]%self.old_shape[1] == 0, 'The number of heads should be obtainable from weights i.e., weight.shape[0] must be divisible by weight.shape[1] '
-        if curr_node.op == 'call_module':
-            module = modules[curr_node.target]
-            if isinstance(module,(nn.MultiheadAttention,)):
-                self.num_heads = module.num_heads 
-            elif isinstance(module,(nn.Linear)):
-                module_name,attr = curr_node.target.rsplit('.',1)
-                module = modules[module_name]
-                if has_timm and isinstance(module,(tmmodels.vision_transformer.Attention,tmmodels.swin_transformer.WindowAttention)):
-                    self.num_heads = module.num_heads
-                else:
-                    raise Exception('This parametrization is only for inner projection layer of attention layers (for timm)')
-        elif curr_node.op == 'call_function':
-            if has_tv and curr_node.target == tvmodels.swin_transformer.shifted_window_attention:
-                self.num_heads = list(curr_node.args)[-1]
-            else:
-                raise Exception('This parametrization is only for inner projection layer of shifted window attention layers (for torchvision)')
-        else:
-            raise Exception('This Parameterization is only for different \'Attention\' Layer\'s in_proj weight and bias')
-        self.shape1 =[3,self.num_heads,self.old_shape[0]//(3*self.num_heads),self.old_shape[1]]
-        super().__init__(curr_node, modules, channel_pruning, pruning_ratio, n2m_pruning, init_train_ep, net_weight, binary_mask, tao, p,pruning_dim, **kwargs)
+        self.num_heads , self.head_dim =get_num_heads_head_dims(fx_model,source,source_partition)
+        self.shape1 =[3,self.num_heads,self.head_dim,self.old_shape[1]]
+        super().__init__(fx_model,source,source_partition, channel_pruning, pruning_ratio, n2m_pruning, init_train_ep, net_weight, binary_mask, tao, p,pruning_dim, **kwargs)
         
     def create_mask(self, net_weight):
         if self.epoch_count<=self.init_train_ep:
@@ -495,30 +496,14 @@ class ChannelOnlyBlendPruningParametrization(BlendPruningParametrization):
 
 #Experimental to check either only Head Pruning works for MultiHeadAttention Layer's inner_projection weights
 class HeadOnlyBlendPruningParametrization(BlendPruningParametrization):
-    def __init__(self, curr_node, modules, channel_pruning=False, pruning_ratio=0.6, n2m_pruning=False, init_train_ep=5, net_weight=None, binary_mask=False, tao=0.0001, p=2, pruning_dim = 0, **kwargs):
+    def __init__(self, fx_model,source,source_partition, channel_pruning=False, pruning_ratio=0.6, n2m_pruning=False, init_train_ep=5, net_weight=None, binary_mask=False, tao=0.0001, p=2, pruning_dim = 0, **kwargs):
         self.old_shape = list(net_weight.shape)
-        assert len(self.old_shape) == 2, 'This parameterization is only for \'MultiHeadAttention\' Layer\'s in_proj weight and bias. \n So, weight of the node given must have dimension of 2'
+        assert len(self.old_shape) == 2, 'This parametrization is only for \'MultiHeadAttention\' Layer\'s in_proj weight and bias. \n So, weight of the node given must have dimension of 2'
         assert  self.old_shape[0]%self.old_shape[1] == 0, 'The number of heads should be obtainable from weights i.e., weight.shape[0] must be divisible by weight.shape[1] '
-        if curr_node.op == 'call_module':
-            module = modules[curr_node.target]
-            if isinstance(module,(nn.MultiheadAttention,)):
-                self.num_heads = module.num_heads 
-            elif isinstance(module,(nn.Linear)):
-                module_name,attr = curr_node.target.rsplit('.',1)
-                module = modules[module_name]
-                if has_timm and isinstance(module,(tmmodels.vision_transformer.Attention,tmmodels.swin_transformer.WindowAttention)):
-                    self.num_heads = module.num_heads
-                else:
-                    raise Exception('This parametrization is only for inner projection layer of attention layers (for timm)')
-        elif curr_node.op == 'call_function':
-            if has_tv and curr_node.target == tvmodels.swin_transformer.shifted_window_attention:
-                self.num_heads = list(curr_node.args)[-1]
-            else:
-                raise Exception('This parametrization is only for inner projection layer of shifted window attention layers (for torchvision)')
-        else:
-            raise Exception('This Parameterization is only for different \'Attention\' Layer\'s in_proj weight and bias')
+        self.num_heads , self.head_dim =get_num_heads_head_dims(fx_model,source,source_partition)
+        self.shape1 =[3,self.num_heads,self.head_dim,self.old_shape[1]]
         self.shape1 =[3,self.num_heads,self.old_shape[0]//(3*self.num_heads),self.old_shape[1]]
-        super().__init__(curr_node, modules, channel_pruning, pruning_ratio, n2m_pruning, init_train_ep, net_weight, binary_mask, tao, p,pruning_dim, **kwargs)
+        super().__init__(fx_model,source,source_partition, channel_pruning, pruning_ratio, n2m_pruning, init_train_ep, net_weight, binary_mask, tao, p,pruning_dim, **kwargs)
         
     def create_mask(self, net_weight):
         if self.epoch_count<=self.init_train_ep:
@@ -610,30 +595,13 @@ class HeadOnlyBlendPruningParametrization(BlendPruningParametrization):
 
 
 class HeadChannelBlendPruningParametrization(BlendPruningParametrization):
-    def __init__(self, curr_node, modules, channel_pruning=False, pruning_ratio=0.6, n2m_pruning=False, init_train_ep=5, net_weight=None, binary_mask=False, tao=0.0001, p=2, pruning_dim = 0, **kwargs):
+    def __init__(self, fx_model,source,source_partition, channel_pruning=False, pruning_ratio=0.6, n2m_pruning=False, init_train_ep=5, net_weight=None, binary_mask=False, tao=0.0001, p=2, pruning_dim = 0, **kwargs):
         self.old_shape = list(net_weight.shape)
-        assert len(self.old_shape) == 2, 'This parameterization is only for \'MultiHeadAttention\' Layer\'s in_proj weight and bias. \n So, weight of the node given must have dimension of 2'
+        assert len(self.old_shape) == 2, 'This parametrization is only for \'MultiHeadAttention\' Layer\'s in_proj weight and bias. \n So, weight of the node given must have dimension of 2'
         assert  self.old_shape[0]%self.old_shape[1] == 0, 'The number of heads should be obtainable from weights i.e., weight.shape[0] must be divisible by weight.shape[1] '
-        if curr_node.op == 'call_module':
-            module = modules[curr_node.target]
-            if isinstance(module,(nn.MultiheadAttention,)):
-                self.num_heads = module.num_heads 
-            elif isinstance(module,(nn.Linear)):
-                module_name,attr = curr_node.target.rsplit('.',1)
-                module = modules[module_name]
-                if has_timm and isinstance(module,(tmmodels.vision_transformer.Attention,tmmodels.swin_transformer.WindowAttention)):
-                    self.num_heads = module.num_heads
-                else:
-                    raise Exception('This parametrization is only for inner projection layer of attention layers (for timm)')
-        elif curr_node.op == 'call_function':
-            if has_tv and curr_node.target == tvmodels.swin_transformer.shifted_window_attention:
-                self.num_heads = list(curr_node.args)[-1]
-            else:
-                raise Exception('This parametrization is only for inner projection layer of shifted window attention layers (for torchvision)')
-        else:
-            raise Exception('This Parameterization is only for different \'Attention\' Layer\'s in_proj weight and bias')
-        self.shape1 =[3,self.num_heads,self.old_shape[0]//(3*self.num_heads),self.old_shape[1]]
-        super().__init__(curr_node, modules, channel_pruning, pruning_ratio, n2m_pruning, init_train_ep, net_weight, binary_mask, tao, p,pruning_dim, **kwargs)
+        self.num_heads , self.head_dim =get_num_heads_head_dims(fx_model,source,source_partition)
+        self.shape1 =[3,self.num_heads,self.head_dim,self.old_shape[1]]
+        super().__init__(fx_model,source,source_partition, channel_pruning, pruning_ratio, n2m_pruning, init_train_ep, net_weight, binary_mask, tao, p,pruning_dim, **kwargs)
         
     def create_mask(self, net_weight):
         if self.epoch_count<=self.init_train_ep:
@@ -757,7 +725,6 @@ class HeadChannelBlendPruningParametrization(BlendPruningParametrization):
                     soft_mask = (weight_abs < t)*alpha_factor + (weight_abs >= t)*1.0
 
         return soft_mask 
-
 
 PRUNING_CLASS_DICT = {"blend": BlendPruningParametrization, 
                  "sigmoid": SigmoidPruningParametrization, 

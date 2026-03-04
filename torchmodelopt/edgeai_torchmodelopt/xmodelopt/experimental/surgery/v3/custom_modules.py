@@ -36,7 +36,7 @@ from types import FunctionType
 import math
 from torch.fx import GraphModule
 from torch.fx.passes.utils.source_matcher_utils import SourcePartition
-from ....xnn.layers import resize_with_scale_factor
+from .....xnn.layers import resize_with_scale_factor
 
 # Note: Some of the modules from this file are copied from surgery v2. 
 #       So if changes are made in them, those must be done here as well
@@ -165,7 +165,7 @@ class ReplacedModule(nn.Module):
             try:
                 check_guards = kwargs.get('check_guards', False)
                 self.module =torch.export.export(self.module,example_inputs, example_kwargs).module(check_guards=check_guards)
-                from ...utils.helper_functions import allow_exported_model_train_eval
+                from ....utils.helper_functions import allow_exported_model_train_eval
                 allow_exported_model_train_eval(self.module)
                 num_inputs = len([node for node in self.module.graph.nodes if node.op == 'placeholder'])
                 out_nodes = [node for node in self.module.graph.nodes if node.op == 'output']

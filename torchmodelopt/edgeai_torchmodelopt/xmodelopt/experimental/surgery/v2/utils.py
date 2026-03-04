@@ -32,7 +32,12 @@
 #package imports
 import torch, onnx, onnxsim
 import torch.nn as nn
-import wandb
+try:
+    import wandb
+    has_wandb = True
+except:
+    has_wandb = False
+
 import os
 try:
     import torchvision
@@ -149,18 +154,19 @@ def __init__():
     torch.autograd.set_detect_anomaly(True)
 def _initializeWandb(projectName:str,lr=0.001,arch=None,datadir:str=None,epochs=100):
     # start a new wandb run to track this script
-    wandb.init(
-        # set the wandb project where this run will be logged
-        project=projectName,
-        
-        # track hyperparameters and run metadata
-        config={
-        "learning_rate": lr,
-        "architecture": arch,
-        "dataset":datadir,
-        "epochs":epochs,
-        }
-    )
+    if has_wandb:
+        wandb.init(
+            # set the wandb project where this run will be logged
+            project=projectName,
+            
+            # track hyperparameters and run metadata
+            config={
+            "learning_rate": lr,
+            "architecture": arch,
+            "dataset":datadir,
+            "epochs":epochs,
+            }
+        )
 
 def _initializeDevice():
     return  torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -232,7 +238,7 @@ def trainModel(model:nn.Module,dataDir:str,projectName:str='',epochs=100,lr=0.00
         So, This run will be for checking whether model is running  or not.
         ''')
         pass
-    else:
+    elif has_wandb:
         _initializeWandb(projectName,lr,type(model).__name__,dataDir,epochs)
         print('wandb started')
     best_acc1=0
@@ -281,7 +287,7 @@ def trainModel(model:nn.Module,dataDir:str,projectName:str='',epochs=100,lr=0.00
 
             if i % 100 == 0:
                 progress.display(i + 1)
-        if projectName!='':
+        if projectName!='' and has_wandb:
             wandb.log({"top_acc1": top1.avg, "top_acc5": top5.avg,"batch_time":batch_time.avg ,"data_time":data_time.avg ,"loss": losses.avg})
 
         # evaluate on validation set
@@ -293,7 +299,7 @@ def trainModel(model:nn.Module,dataDir:str,projectName:str='',epochs=100,lr=0.00
         is_best = acc1 > best_acc1
         best_acc1 = max(acc1, best_acc1)
 
-    if projectName!='':
+    if projectName!='' and has_wandb:
         wandb.finish()
     # torch.save(model.state_dict(), projectName+'.ckpt')
     

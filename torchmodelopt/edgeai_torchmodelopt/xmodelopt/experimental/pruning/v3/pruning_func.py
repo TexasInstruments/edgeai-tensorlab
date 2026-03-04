@@ -6,10 +6,10 @@ import torch.nn.utils.parametrize as parametrize
 from torch.ao.quantization import quantize_fx
 import types
 
-from .... import xnn
+from ..... import xnn
 from .utils import get_bn_adjusted_weight, create_bn_conv_mapping, create_next_conv_node_list, find_all_connected_nodes, get_net_weight_node_channel_prune, get_net_weights_all, get_pruning_partitions,get_num_heads_head_dims, get_parameter_indices
 from .parametrization import BlendPruningParametrization, SigmoidPruningParametrization, IncrementalPruningParametrization, ChannelOnlyBlendPruningParametrization, HeadChannelBlendPruningParametrization, HeadOnlyBlendPruningParametrization, PRUNING_CLASS_DICT
-from ... import utils
+from .... import utils
 
 def init(module, *args, example_inputs:list=None, example_kwargs:dict=None, pruning_ratio=None, total_epochs=None, pruning_class='blend',p=2.0, pruning_global=False, copy_args=None,
             pruning_type='channel', pruning_init_train_ep=5, pruning_m=None, add_methods=True, copy_attrs=None, **kwargs):
@@ -34,7 +34,7 @@ def init(module, *args, example_inputs:list=None, example_kwargs:dict=None, prun
         check_guards = kwargs.get('check_guards', True)
         example_inputs = tuple(example_inputs)
         gm_module = torch.export.export(module, example_inputs, kwargs=example_kwargs).module(check_guards=check_guards)
-        from ...utils.helper_functions import allow_exported_model_train_eval
+        from ....utils.helper_functions import allow_exported_model_train_eval
         allow_exported_model_train_eval(gm_module)
     
     gm_module.__prune_params__ =  xnn.utils.AttrDict()
@@ -243,7 +243,7 @@ def insert_and_remove_parametrization_during_training(module, mode: bool = True)
     return module
 
 
-from ...utils.helper_functions import get_class_string
+from ....utils.helper_functions import get_class_string
 def insert_parametrization(module, binary_mask=False):
     # for each of the nodes/layers, we calculate the parametrization/ mask and then register it over the weights and biases
     

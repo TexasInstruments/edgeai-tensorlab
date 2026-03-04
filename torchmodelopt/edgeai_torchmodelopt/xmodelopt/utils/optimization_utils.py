@@ -367,7 +367,7 @@ def apply_model_surgery(model: nn.Module, example_inputs: list=None, example_kwa
         AssertionError: If 'replacement_dict' is not in model_surgery_kwargs.
     """
     # Import surgery module
-    from .. import surgery
+    from ..experimental import surgery
     
     # Prepare inputs and run the model once
     example_inputs = example_inputs if example_inputs is not None else []
@@ -417,7 +417,7 @@ def apply_pruning(model: nn.Module, example_inputs: list=None, example_kwargs: d
         AssertionError: If version is 1 or if required kwargs are missing for versions 2 and 3.
     """
     # Import pruning module
-    from .. import pruning
+    from ..experimental import pruning
     
     # Prepare inputs and run the model once
     example_inputs = example_inputs if example_inputs is not None else []

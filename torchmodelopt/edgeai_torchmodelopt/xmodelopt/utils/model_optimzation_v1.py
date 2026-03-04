@@ -28,7 +28,7 @@ class ModelOptimizationWrapperV1(ModelOptimizationBaseModule):
             **kwargs: Additional keyword arguments.
         """
         copy_attrs = copy_attrs or []        
-        from ..surgery.v1 import SurgeryModule 
+        from ..experimental.surgery.v1 import SurgeryModule 
         from ..quantization.v1 import QuantTrainModule
         
         super().__init__(

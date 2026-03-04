@@ -46,9 +46,9 @@ except:
 
 from . import custom_modules, custom_surgery_functions,surgery
 from .surgery import _replace_unsupported_layers
-from ...utils.optimization_base import OptimizationBaseModule, add_attrs
-from ...utils.transformation_utils import wrapped_transformation_fn
-from ... import utils
+from ....utils.optimization_base import OptimizationBaseModule, add_attrs
+from ....utils.transformation_utils import wrapped_transformation_fn
+from .... import utils
 
 # for repo specific modules 
 try:

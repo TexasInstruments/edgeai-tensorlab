@@ -41,9 +41,9 @@ except:
 
 from .replace_modules import replace_modules as replace_modules_func
 from . import convert_to_lite 
-from ....xnn import utils
-from ...utils.optimization_base import OptimizationBaseModule
-from ...utils.transformation_utils import wrapped_transformation_fn
+from .....xnn import utils
+from ....utils.optimization_base import OptimizationBaseModule
+from ....utils.transformation_utils import wrapped_transformation_fn
 
 def convert_to_lite_model(model, replacement_dict=None, inplace=True, **kwargs):
     '''

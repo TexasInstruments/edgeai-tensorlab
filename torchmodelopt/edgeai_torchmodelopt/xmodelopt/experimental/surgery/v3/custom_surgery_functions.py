@@ -40,7 +40,7 @@ import math
 import random
 
 
-from ...utils.helper_functions import is_same_class, get_class, get_class_string
+from ....utils.helper_functions import is_same_class, get_class, get_class_string
 from . import replacer
 # from .symbolic_trace import symbolic_trace
 from . import custom_modules

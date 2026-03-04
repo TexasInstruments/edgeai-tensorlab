@@ -47,7 +47,7 @@ import copy
 
 from .... import xnn
 
-from ...surgery.v2 import custom_surgery_functions 
+from ...experimental.surgery.v2 import custom_surgery_functions 
 from ... import utils
 
 from . import qconfig_types
@@ -64,7 +64,7 @@ def init(model, qconfig_type=None, example_inputs=None, example_kwargs=None, is_
             total_epochs=0, num_batch_norm_update_epochs=None, num_observer_update_epochs=None,
             qconfig_mode=qconfig_types.QConfigMode.DEFAULT, add_methods=True, dynamo_export=False, **kwargs):
     
-    from ...surgery.v2 import convert_to_lite_fx
+    from ...experimental.surgery.v2 import convert_to_lite_fx
     
     example_kwargs = example_kwargs or {} 
     if hasattr(model, '_example_inputs') and hasattr(model, '_example_kwargs'):

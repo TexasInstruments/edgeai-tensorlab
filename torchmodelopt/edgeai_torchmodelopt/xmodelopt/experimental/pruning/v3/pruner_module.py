@@ -39,7 +39,7 @@ from torch.ao.quantization import quantize_fx
 import copy
 
 from . import pruning_func_wrapper
-from ...utils.optimization_base import OptimizationBaseModule
+from ....utils.optimization_base import OptimizationBaseModule
 from .parametrization import PRUNING_CLASS_DICT
 
 class PrunerModule(OptimizationBaseModule):
