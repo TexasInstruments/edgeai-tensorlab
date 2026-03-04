@@ -72,13 +72,19 @@ class GenConfigPipeline(BasePipeline):
         pipeline_param = utils.pretty_object(self.pipeline_config)
         pipeline_param = utils.cleanup_dict(pipeline_param, param_template)
         if write_gen_config:
-            with open(self.config_yaml, 'w') as fp:
-                yaml.safe_dump(pipeline_param, fp, sort_keys=False)
+            try:
+                with open(self.config_yaml, 'w') as fp:
+                    yaml.safe_dump(pipeline_param, fp, sort_keys=False)
+                #
+                # print(utils.log_color('INFO', 'gen config', f'{self.config_yaml}'))
+            except:
+                print(utils.log_color('WARNING', 'gen config', f'{self.config_yaml} could not be written'))
+                pass
             #
+            result_dict = {'model_id':model_id, 'success': write_gen_config, 'config_path': self.config_yaml, 'pipeline_param':pipeline_param}
+            print(utils.log_color('INFO', 'gen config', f'{self.config_yaml}'))
         else:
-            print(utils.log_color('\nWARNING', 'skip writing config as it is already written',f'{model_id}: {model_path}'))
-
-        result_dict = {'model_id':model_id, 'success': write_gen_config, 'config_path': self.config_yaml, 'pipeline_param':pipeline_param}
-        print(utils.log_color('\n\nSUCCESS', 'gen config', f'{result_dict}\n'))
+            result_dict = None
+            print(utils.log_color('WARNING', 'skip writing config as it is already written',f'{model_id}: {model_path}'))
 
         return result_dict
