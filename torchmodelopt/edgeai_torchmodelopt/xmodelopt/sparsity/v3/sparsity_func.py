@@ -248,7 +248,6 @@ def train(module, mode: bool = True):
     # TODO: call step and finalize functions from here
     #       Every time it flips from eval to train, call step
     #       At 'last' eval, call finalize
-
     # Call the original train method if it exists, then handle sparsity parametrization
     if hasattr(module, "__sparsity_train_backup__"):
         # First execute the original train method

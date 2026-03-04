@@ -24,7 +24,7 @@ def get_module(m: torch.nn.Module, target:str):
         torch.nn.Module: The requested module if found.
     """
     try:
-        modules = dict(m.named_modules())
+        modules = dict(m.named_modules(remove_duplicate=False))
         if target in modules:
             return modules[target]
     except:
@@ -37,7 +37,7 @@ def get_module(m: torch.nn.Module, target:str):
     else:
         attr, target = attr
         try:
-            modules = dict(m.named_modules())
+            modules = dict(m.named_modules(remove_duplicate=False))
             if attr in modules:
                 m =  modules[attr]
         except:
