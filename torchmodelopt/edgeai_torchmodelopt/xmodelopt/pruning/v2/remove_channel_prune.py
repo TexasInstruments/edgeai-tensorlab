@@ -51,7 +51,7 @@ def main():
     model = torchvision.models.vit_b_16(num_classes =num_classes)
     # model = torchvision.models.resnet50()
     current_model_dict = model.state_dict()
-    model_path = '/home/a0507161/Kunal/transformer_sparsity/outputs/vit_b_16/2024_05_21_17_58_52/last_checkpoint.pth'
+    model_path = 'outputs/vit_b_16/2024_05_21_17_58_52/last_checkpoint.pth'
     state_dict = torch.load(model_path)
     state_dict = state_dict['model']
 

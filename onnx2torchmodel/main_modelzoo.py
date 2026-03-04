@@ -238,7 +238,7 @@ if __name__ == '__main__':
             print(f"Model {model_path} in failed list")
             status[model_name] = 'Expected Failed'
             continue
-        # model_path = '/data/ssd/files/a0507161/exps/onnx_exp/temp.onnx'
+        # model_path = '../../exps/onnx_exp/temp.onnx'
         # model_name = 'temp'
         print(i, model_name, os.path.basename(model_path))
         

@@ -36,13 +36,14 @@ import onnx_graphsurgeon as gs
 import os
 import glob
 import cv2
+from torch.fx.graph_module import GraphModule
 
 from edgeai_onnx2torchmodel.onnx2pytorch import convert
 
 
 class RFDeTRDataloader:
     def __init__(self):
-        self.root = "/data/ssd/files/a0507161/exps/onnx_exp/rfdetr_inputs/amazon/rfdetr/input-images"
+        self.root = "../../exps/onnx_exp/rfdetr_inputs/amazon/rfdetr/input-images"
         self.input_paths = sorted(list(glob.glob(os.path.join(self.root, "*.png"))))
         self.mean = np.array([0.0, 0.0, 0.0]).astype(np.float32)
         self.std = np.array([255.0, 255.0, 255.0]).astype(np.float32)
@@ -242,7 +243,7 @@ if __name__ == '__main__':
 
     dataloader = RFDeTRDataloader()
     inp = dataloader[0]
-    result =  main(['/data/ssd/files/a0507161/exps/onnx_exp/opt_ar_rgb_modified_inf2ten.onnx', '-e','-s',], inps=inp)
+    result =  main(['../../exps/onnx_exp/opt_ar_rgb_modified_inf2ten.onnx', '-e','-s',], inps=inp)
     new_model = result[0]
     # o1 = result[1]
     # o2 = result[2]
@@ -253,7 +254,7 @@ if __name__ == '__main__':
     # # new_model = new_model.cpu()
     from torchao.quantization.pt2e import allow_exported_model_train_eval
     ep = torch.export.export(new_model, tuple(inp))
-    pt2e_model = ep.module()
+    pt2e_model: GraphModule = ep.module()
     allow_exported_model_train_eval(pt2e_model)
     torch.onnx.export(pt2e_model, tuple(inp), 'temp.onnx', report=True, external_data=False, dump_exported_program=True)
     # # # # pt2e_model= pt2e_model.cuda()

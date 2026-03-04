@@ -58,7 +58,7 @@ def main():
     allow_exported_model_train_eval(m)
 
     current_model_dict = m.state_dict()
-    model_path = '/home/a0507161/Kunal/transformer_sparsity/outputs/vit_b_16/2024_06_12_16_52_07/last_checkpoint.pth'
+    model_path = 'outputs/vit_b_16/2024_06_12_16_52_07/last_checkpoint.pth'
     state_dict = torch.load(model_path)
     state_dict = state_dict['model']
 
