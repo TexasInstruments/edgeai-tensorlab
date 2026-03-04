@@ -11,7 +11,9 @@ from torchvision.transforms._presets import ImageClassification
 import os
 import pandas as pd
 from torchvision.io import decode_image
-from torch.utils.data import Dataset, DataLoader, default_collate
+from torch.utils.data import Dataset, DataLoader, DistributedSampler, default_collate
+from torchvision.datasets import ImageFolder
+
 
 import mlflow
 import optuna
@@ -118,10 +120,14 @@ class MyImageNet(Dataset):
             label = self.target_transform(label)
         return image, label
 
+def both_collate(batch, cutmix_alpha=1.0, mixup_alpha=0.8):
+    return transforms.RandomChoice([transforms.MixUp(alpha=mixup_alpha,num_classes=1000), transforms.CutMix(alpha=cutmix_alpha,num_classes=1000)])(*default_collate(batch))
+
 def imagenet_data_maker(params):
     val_file = '/data/ssd/common/benchmark/datasets/imagenet/val.txt'
     img_dir = '/data/ssd/common/benchmark/datasets/imagenet/val'
 
+    # TODO: image size from params
     # image_size = params.get('image_size', [224,224])
     fraction = params.get('fraction', 1.0)
     batch_size = params.get('batch_size', 128)
@@ -129,7 +135,7 @@ def imagenet_data_maker(params):
     test_size = max(batch_size, int(10000*fraction))
     image_size = params.get('image_size', (224,224))
 
-    resize = transforms.Resize([256,256])
+    resize = transforms.Resize([236,236])
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], # pretrained imagenet
                                          std=[0.229, 0.224, 0.225])
     dtype = transforms.ToDtype(torch.float32,scale=True)
@@ -165,9 +171,7 @@ def imagenet_data_maker(params):
     ])
     collate_fn = default_collate
 
-    def both_collate(batch, cutmix_alpha=1.0, mixup_alpha=0.8):
-        return transforms.RandomChoice([transforms.MixUp(alpha=mixup_alpha,num_classes=1000), transforms.CutMix(alpha=cutmix_alpha,num_classes=1000)])(*default_collate(batch))
-
+    
     if 'cutmix_alpha' in params and 'mixup_alpha' in params:
         collate_fn = partial(both_collate, cutmix_alpha=params['cutmix_alpha']
                          , mixup_alpha=params['mixup_alpha'])
@@ -178,8 +182,78 @@ def imagenet_data_maker(params):
     # test = MyImageNet(val_file, img_dir, st=4000,en=5000, transform=train_transforms)
     
     train_dataloader = DataLoader(train, batch_size=batch_size, collate_fn=collate_fn,
-                                   shuffle=True, pin_memory=True, num_workers=16,
+                                   shuffle=True, pin_memory=True, num_workers=8,
+                                   prefetch_factor=2, persistent_workers=False, drop_last=True)
+    test_dataloader = DataLoader(test, batch_size=batch_size,
+                                   shuffle=False, pin_memory=True, num_workers=8, drop_last=True)
+    
+    return train_dataloader, test_dataloader
+
+def imagenetfull_data_maker(params):
+    train_folder = '/data/ssd/common/datasets/vision/imagenet/zip/train'
+    val_folder = '/data/ssd/common/datasets/vision/imagenet/zip/val'
+
+    batch_size = params.get('batch_size', 128)
+    image_size = params.get('image_size', (224,224))
+
+    resize = transforms.Resize([236,236])
+    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], # pretrained imagenet
+                                         std=[0.229, 0.224, 0.225])
+    dtype = transforms.ToDtype(torch.float32,scale=True)
+
+    # transforms_list = [transforms.ToImage(), resize,
+    #     transforms.CenterCrop(224),
+    #     transforms.RandomHorizontalFlip(p=0.5), # Further augmentations can go here.
+    #     dtype, normalize
+    # ]
+    transforms_list = [transforms.ToImage(), 
+    transforms.RandomHorizontalFlip(p=0.5),
+    resize, transforms.CenterCrop(224)
+    ]
+    if 'randaugment' in params:
+        n,m = params['randaugment']
+        transforms_list.append(transforms.RandAugment(num_ops=n,magnitude=int(m*10)))
+    if 'randerasing' in params:
+        transforms_list.append(transforms.RandomErasing(p=params['randerasing']))
+    if 'randomresizedcrop' in params:
+        transforms_list.append(transforms.RandomResizedCrop(image_size))
+    # else:
+    #     transforms_list.append(transforms.RandomCrop(image_size,padding=int(image_size[0]/8)))  # padding with 0s then crop
+    if 'autoaugment' in params:
+        if params['autoaugment'] == 'cifar10':
+            transforms_list.append(transforms.AutoAugment(policy=transforms.AutoAugmentPolicy.CIFAR10))
+        else:
+            transforms_list.append(transforms.AutoAugment(policy=transforms.AutoAugmentPolicy.IMAGENET))
+
+    transforms_list.extend([dtype, normalize])
+    train_transforms = transforms.Compose(transforms_list)
+    test_transforms = transforms.Compose([transforms.ToImage(),
+        resize, transforms.CenterCrop(224), dtype, normalize 
+    ])
+    collate_fn = default_collate
+
+    if 'cutmix_alpha' in params and 'mixup_alpha' in params:
+        collate_fn = partial(both_collate, cutmix_alpha=params['cutmix_alpha']
+                         , mixup_alpha=params['mixup_alpha'])
+
+    train = ImageFolder(train_folder, transform=train_transforms)
+    test = ImageFolder(val_folder, transform=test_transforms)
+
+    print(f'Loaded datasets train={len(train)}, test={len(test)}')
+    # train = MyImageNet(val_file, img_dir,st=0,en=train_size, transform=train_transforms)
+    # test = MyImageNet(val_file, img_dir, st=train_size,en=(train_size+test_size), transform=test_transforms)
+    # # train = MyImageNet(val_file, img_dir,st=0,en=4000, transform=train_transforms)
+    # test = MyImageNet(val_file, img_dir, st=4000,en=5000, transform=train_transforms)
+    
+    if params.get('distributed', False):
+        train_sampler = DistributedSampler(train, shuffle=True)
+        train_dataloader = DataLoader(train, batch_size=batch_size, collate_fn=collate_fn, sampler=train_sampler,
+                                   shuffle=False, pin_memory=True, num_workers=16, 
                                    prefetch_factor=2, persistent_workers=True, drop_last=True)
+    else:
+        train_dataloader = DataLoader(train, batch_size=batch_size, collate_fn=collate_fn,
+                                    shuffle=True, pin_memory=True, num_workers=16,
+                                    prefetch_factor=2, persistent_workers=True, drop_last=True)
     test_dataloader = DataLoader(test, batch_size=batch_size,
                                    shuffle=False, pin_memory=True, num_workers=16, drop_last=True)
     
@@ -203,7 +277,7 @@ def train(dataloader, model, loss_fn, optimizer, device, params=None, epoch=0, l
     optimizer.zero_grad()
 
     num_batches = len(dataloader)
-    batch_log_frequency = max(1,int(num_batches/5)) # logs n'th batch to mlflow
+    batch_log_frequency = min(max(1,int(num_batches/5)),250) # logs n'th batch to mlflow
 
     total_loss = 0 # sum over all batches, loss is already averaged within batch
     accuracy_sum_batches = 0 # sum of accuracy over batches, already averaged within batch
@@ -216,19 +290,36 @@ def train(dataloader, model, loss_fn, optimizer, device, params=None, epoch=0, l
             teacher_weight = params['distillation'].get('teacher_weight', 1.0)
             teacher = kwargs['teacher']
             teacher_pred = teacher(images)
-            temp = params['distillation'].get('temp', 0.5)
-            teacher_loss = teacher_weight*nn.KLDivLoss(reduction='batchmean', log_target=True)(F.log_softmax(teacher_pred/temp, dim=1), F.log_softmax(pred/temp, dim=1))
+
+            if 'layerwise' in params['distillation']:
+                pred_full = pred
+                pred = pred['fc']
+                teacher_pred_full = teacher_pred
+                teacher_pred = teacher_pred['fc']
+            
             if params['distillation'].get('use_ground_labels', True): 
                 target_loss = loss_fn(pred, labels)
-                loss = target_loss + teacher_loss
-                
             else:
                 # only use teacher, not label
                 if epoch == 0 and curr_batch == 0:
                     print('Using only teacher, not ground labels')
                 teacher_labels = teacher_pred.argmax(1)
                 target_loss = loss_fn(pred, teacher_labels)
-                loss = target_loss + teacher_loss
+                
+            
+            layerwise_loss = torch.zeros_like(target_loss)
+            if 'layerwise' in params['distillation']:
+                for layer_name in params['distillation']['layerwise']:
+                    curr_loss = nn.MSELoss()(teacher_pred_full[layer_name], pred_full[layer_name])
+                    # print(f'mse loss for layer {layer_name} = {curr_loss}')
+                    layerwise_loss += teacher_weight*curr_loss
+
+            temp = params['distillation'].get('temp', 1.0)
+            teacher_loss = teacher_weight*nn.KLDivLoss(reduction='batchmean', log_target=True)(F.log_softmax(teacher_pred/temp, dim=1), F.log_softmax(pred/temp, dim=1))
+            
+
+
+            loss = target_loss + teacher_loss + layerwise_loss
         else:
             loss = loss_fn(pred, labels)
 
@@ -253,6 +344,8 @@ def train(dataloader, model, loss_fn, optimizer, device, params=None, epoch=0, l
             if is_distillation:
                 mlflow.log_metric('teacher_loss_scaled', teacher_loss.item(), step=curr_batch+epoch*num_batches)
                 mlflow.log_metric('target_loss', target_loss.item(), step=curr_batch+epoch*num_batches)
+                if 'layerwise' in params['distillation']:
+                    mlflow.log_metric('layerwise_loss', layerwise_loss.item(), step=curr_batch+epoch*num_batches)
     
     avg_loss = total_loss/num_batches
     accuracy = accuracy_sum_batches/num_batches
@@ -264,7 +357,7 @@ def train(dataloader, model, loss_fn, optimizer, device, params=None, epoch=0, l
 
     return (avg_loss, accuracy)
 
-def test(dataloader, model, loss_fn, device, epoch=0, log_mlflow=True):
+def test(dataloader, model, loss_fn, device, params=None, epoch=0, log_mlflow=True):
     model.eval()
 
     num_batches = len(dataloader)
@@ -276,6 +369,8 @@ def test(dataloader, model, loss_fn, device, epoch=0, log_mlflow=True):
             labels = labels.to(device)
 
             pred = model(images)
+            if 'distillation' in params and 'layerwise' in params['distillation']:
+                pred = pred['fc']
             loss = loss_fn(pred, labels)
 
             if labels.dim() == 1: # normal test input
@@ -312,7 +407,7 @@ def train_epochs(train_dl, test_dl, model, loss_fn, optimizer, scheduler, device
             name = params['name']
 
             if total_epochs > 0:
-                test_loss, test_acc = test(test_dl, model, loss_fn, device=device, epoch=0, log_mlflow=log_mlflow)
+                test_loss, test_acc = test(test_dl, model, loss_fn, device=device, epoch=0, params=params, log_mlflow=log_mlflow)
                 print(f'Epoch 0: Test Acc.: {test_acc*100.0:.2f}%')
                 mlflow.log_metrics({
                             'test_loss': test_loss,
@@ -339,8 +434,11 @@ def train_epochs(train_dl, test_dl, model, loss_fn, optimizer, scheduler, device
                                 parameter.requires_grad = True
                 
                 train_loss, train_acc = train(train_dl, model, loss_fn, optimizer, device=device, params=params, epoch=epoch, log_mflow=log_mlflow, **kwargs)
+                if params.get('distributed', False):
+                    if train_dl.sampler:
+                        train_dl.sampler.set_epoch(epoch)
                 # print(train_loss, train_acc)
-                test_loss, test_acc = test(test_dl, model, loss_fn, device=device, epoch=epoch, log_mlflow=log_mlflow)
+                test_loss, test_acc = test(test_dl, model, loss_fn, device=device, epoch=epoch, params=params, log_mlflow=log_mlflow)
                 # print(test_loss, test_acc)
                 
 

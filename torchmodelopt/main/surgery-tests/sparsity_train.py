@@ -10,12 +10,12 @@ import mlflow
 from pynvml import nvmlDeviceGetUtilizationRates, nvmlDeviceGetHandleByIndex, nvmlDeviceGetCount, nvmlInit, nvmlShutdown
 
 from edgeai_torchmodelopt import xmodelopt
-from train_test import train_epochs, my_train_scheme_maker, imagenet_data_maker, count_params
+from train_test import imagenetfull_data_maker, train_epochs, my_train_scheme_maker, imagenet_data_maker, count_params
 from tv_models import construct_tv_model
 
 from edgeai_torchmodelopt.xmodelopt.sparsity.v3.utils import register_n2m_filter
 from edgeai_torchmodelopt.xmodelopt.utils.helper_functions import nested_getattr
-from torch import fx
+from torch import fx, nn
 
 # from  edgeai_torchmodelopt.xmodelopt.sparsity.v3.sparsity_func import calculate_sparsity
 
@@ -66,7 +66,7 @@ def check_sparsity(model, params):
 def sample_inputs(params):
     batch_size = params.get('batch_size', 128)
     image_size = params.get('image_size', (224,224))
-    return (torch.rand((batch_size,3,image_size[0],image_size[1]), device=params['device']),)
+    return (torch.zeros((batch_size,3,image_size[0],image_size[1]), device=params['device']),)
 
 def create_custom_filters(n,m,params={}):
     sparse_list = params['sparsity'].get('to_sparsify', [])
@@ -166,7 +166,7 @@ class SparserModuleNM(xmodelopt.sparsity.v3.SparserModule):
             filter_func = partial(create_custom_filters, params=params)
         
         super().__init__(module, example_inputs=inps, filter_func_register=filter_func, **params['sparsity']['module_args'])
-        # print(self.module.__sparse_params__)
+        print(self.module.__sparse_params__)
     
 
 def construct_resnet(params):
@@ -180,13 +180,58 @@ def construct_sparse_resnet(params):
     
     model = construct_tv_model('resnet', option=depth, fetch_weights=True)
     model = model.to(params['device'])
+
+    if params.get('distillation', False) and 'layerwise' in params['distillation']:
+        class LayerWiseResnet(nn.Module):
+            def __init__(self, resnet):
+                super().__init__()
+                self.resnet = resnet
+                
+
+            def forward(self, x):
+                x = self.resnet.conv1(x)
+                x = self.resnet.bn1(x)
+                x = self.resnet.relu(x)
+                x = self.resnet.maxpool(x)
+                pool_1 = x
+
+                x = self.resnet.layer1(x)
+                layer_1 = x
+                x = self.resnet.layer2(x)
+                layer_2 = x
+                x = self.resnet.layer3(x)
+                layer_3 = x
+                x = self.resnet.layer4(x)
+                layer_4 = x
+
+                x = self.resnet.avgpool(x)
+                x = torch.flatten(x, 1)
+                x = self.resnet.fc(x)
+                fc = x
+
+                return {
+                    'pool1': pool_1,
+                    'layer1': layer_1,
+                    'layer2': layer_2,
+                    'layer3': layer_3,
+                    'layer4': layer_4,
+                    'fc': fc
+                }
+        model = LayerWiseResnet(model)
+        model = model.to(params['device'])
   
     if params.get('distillation', False):
         teacher = copy.deepcopy(model)
         for param in teacher.parameters():
             param.requires_grad = False
     if 'sparsity' in params and params['sparsity']:
+        inp = sample_inputs(params)[0]
+        model.eval()
+        out1 = model(inp)
         model = SparserModuleNM(model, params)
+        model.eval()
+        out2 = model(inp)        
+        # print(f' equal?: {torch.allclose(out1, out2)}')
     if params.get('distillation', False):
         return model, teacher
     return model 
@@ -251,13 +296,53 @@ def generic_main(params, model_maker, data_maker, train_scheme_maker):
         is_sparse = check_sparsity(model, params)
         print(f'----\n[TEST]: Sparsity check: {"✅" if is_sparse else "❌"}\n----')
 
-    # inps = sample_inputs(params)
-    # onnx_model = torch.onnx.export(model, (inps), verbose=False)
-    # onnx_model.save(f'saved_models/{params["model_name"]}-{params["name"]}.onnx', include_initializers=True, keep_initializers_as_inputs=False)
-    # print(f'netron cmd:\nnetron -p 8080 saved_models/{params["model_name"]}-{params["name"]}.onnx')
+    inps = sample_inputs(params)
+    onnx_model = torch.onnx.export(model, (inps), verbose=False)
+    onnx_model.save(f'saved_models/{params["model_name"]}-{params["name"]}.onnx', include_initializers=True, keep_initializers_as_inputs=False)
+    print(f'netron cmd:\nnetron -p 8080 saved_models/{params["model_name"]}-{params["name"]}.onnx')
     torch.cuda.empty_cache()
 
     return test_acc
+
+import torch.distributed as dist
+import torch.multiprocessing as mp
+
+device_mapping = [0,1,2,3] # my mapping from devices to GPU ids (assuming some are in use)
+
+def get_device(rank):
+    # get device from my mapping
+    device_idx = device_mapping[rank]
+    torch.accelerator.set_device_index(device_idx)
+    return (device_idx, torch.device(f'cuda:{device_idx}'))
+
+def setup(rank, world_size):
+    os.environ['MASTER_ADDR'] = 'localhost'
+    os.environ['MASTER_PORT'] = '12355'
+
+    gpu_id, device = get_device(rank)
+    print(f'setup at device {gpu_id}')
+    # initialize the process group
+    dist.init_process_group('nccl', device_id=gpu_id, rank=rank, world_size=world_size)
+
+def cleanup():
+    dist.destroy_process_group()
+
+def distr_runner(rank, world_size, study_context=None):
+    # optuna_runner, rank replaces idx
+    try:
+        setup(rank, world_size)
+        # study = optuna.create_study(study_name=study_context['name'], direction='maximize', 
+        #                                 storage=study_context['storage'], load_if_exists=True,
+        #                                 pruner=optuna.pruners.WilcoxonPruner(n_startup_steps=20))
+        study = optuna.create_study(study_name=study_context['name'], direction='maximize', 
+                                        storage=study_context['storage'], load_if_exists=True,
+                                        pruner=optuna.pruners.NopPruner())
+        study.optimize(partial(accuracy_objective, idx=device_mapping[rank], 
+                            study_context=study_context), n_trials=1)
+        cleanup()
+    except Exception as e:
+        print(f'error at {rank}: {e}')
+
 
 
 def get_free_gpu_index(idx=0):
@@ -285,6 +370,7 @@ def accuracy_objective(trial, idx=0, study_context=''):
     """
 
     device_idx = get_free_gpu_index(idx)
+    # device_idx = idx # using hard idx for now.
     if device_idx == -1:
         raise ValueError("No free gpu")
     torch.accelerator.set_device_index(device_idx)
@@ -294,24 +380,30 @@ def accuracy_objective(trial, idx=0, study_context=''):
         'device': device,
     }
 
+    
+
+
     print(f'Running trial {trial.number=} in PID {os.getpid()}')
 
     trial.set_user_attr('name', f"{study_context.get('name', '')}-{trial.number}")
     params['name'] =  f"{study_context.get('name', '')}-{trial.number}"
 
-    params['batch_size'] = 128
-    # params['batch_size'] = 64
+    # params['batch_size'] = 128
+    params['batch_size'] = 64
     params['image_size'] = (224,224)
     params['fraction'] = 1
     # params['fraction'] = 0.1
+    
 
     params['optimizer_type'] = 'SGD'
-    params['lr'] = 1e-5
+    params['lr'] = 2e-5
     # params['sr-ste'] = 2e-4
+    # params['ste'] = False
     params['momentum'] =  0.9
 
     if 'sr-ste' in params:
         xmodelopt.sparsity.v3.parametrization.STE_GAMMA = params['sr-ste']
+        print(f'sr-ste = {xmodelopt.sparsity.v3.parametrization.STE_GAMMA}')
     else:
         xmodelopt.sparsity.v3.parametrization.STE_GAMMA = 0
 
@@ -355,17 +447,19 @@ def accuracy_objective(trial, idx=0, study_context=''):
     n = 2
     m = 4
     params['sparsity'] = {
-        'verbose_mode': True,
+        # 'verbose_mode': True,
         'module_args': {
             'sparsity_ratio': n/m,
             'sparsity_m': m,
             'm': m,
             'n': n,
-            'sparsity_start_epoch': 0,
+            'sparsity_start_epoch': 0,  
             'sparsity_end_epoch': 30,
-            'freeze_mask': True,
-            'mode': 'topk_blockwise',
-            # 'mode': 'topk',
+            'freeze_mask': False,
+            # 'mode': 'topk_blockwise',
+            'mode': 'topk',
+            # 'scale_weights': 'epoch',
+            # 'soft_ste': True
         },
         
         # 
@@ -374,9 +468,64 @@ def accuracy_objective(trial, idx=0, study_context=''):
     }
     # params['distillation'] = {
     #     'temp': 1.0,
-    #     'teacher_weight': 2.0,
-    #     'use_ground_labels': True,
+    #     'teacher_weight': 1.0,
+    #     'use_ground_labels': False,
+    #     'layerwise': ['layer1', 'layer2', 'layer3', 'layer4']
     # }
+
+    imagenet_resnet_full_params = {
+        'batch_size': 128,
+        'image_size': (224,224),
+
+        'loss_fn': 'ce',
+        'optimizer_type': 'SGD',
+        'lr': 1e-2,
+        'momentum': 0.9,
+        'lr_schedule': {
+            'type': 'step',
+            'warmup': 5,
+            'epochs': 30,
+            'rate': 0.1
+        },
+
+        'weight_decay': 1e-4,
+        'label_smoothing': 0.1,
+
+        'cutmix_alpha': 1.0,
+        'mixup_alpha': 0.2,
+        'randomresizedcrop': True,
+        # 'randerasing': 0.25,
+        'autoaugment': 'imagenet',
+
+        'total_epochs': 90,
+
+        'model_name': 'resnet34',
+
+        'name': f"{study_context.get('name', '')}-{trial.number}",
+        'trial': trial,
+        'trial_no': trial.number,
+        'device': device,
+        'full': True,
+        'distributed': False,
+
+        'sparsity': {
+            'verbose_mode': True,
+            'module_args': {
+                'sparsity_ratio': n/m,
+                'sparsity_m': m,
+                'm': m,
+                'n': n,
+                'sparsity_start_epoch': 0,
+                'sparsity_end_epoch': 30,
+                'freeze_mask': False,
+                'mode': 'topk',
+            },
+            'to_sparsify': ['linear', 'conv1x1', 'conv3x3']
+        }
+    }
+
+    # params = imagenet_resnet_full_params
+    # params['fraction'] = 0.1
 
     print(f'{params=}')
     if params['model_name'] == 'resnet18':
@@ -390,11 +539,21 @@ def accuracy_objective(trial, idx=0, study_context=''):
     elif params['model_name'] == 'resnet50':
         params['resnet_depth'] = 50
         model_maker = construct_sparse_resnet
+    elif params['model_name'] == 'resnet34':
+        params['resnet_depth'] = 34
+        model_maker = construct_sparse_resnet
     elif params['model_name'] == 'swin_t':
         model_maker = construct_sparse_swin
     else:
         model_maker = construct_sparse_resnet
-    test_acc = generic_main(params, model_maker, imagenet_data_maker, my_train_scheme_maker)
+    
+    if study_context.get('distributed', False):
+        params['distributed'] = True 
+
+    if params.get('full', False):
+        test_acc = generic_main(params, model_maker, imagenetfull_data_maker, my_train_scheme_maker)
+    else:
+        test_acc = generic_main(params, model_maker, imagenet_data_maker, my_train_scheme_maker)
     # trial.set_user_attr('params', json.dumps(params)) # For this to work, need to remove device, trial etc.
     return test_acc
 
@@ -408,7 +567,7 @@ def optuna_runner(idx, study_context=None):
 
 def single_test():
     torch.cuda.empty_cache()
-    study_name = 'sparsity-imagenet-0.1'
+    study_name = 'sparsity-imagenet-full'
     study_context = {
         'name': study_name,
         'storage': f'sqlite:///{study_name}.db',
@@ -418,7 +577,8 @@ def single_test():
     if logger:
         logger.setLevel('ERROR')
     
-    mlflow.set_experiment('sparsity-imagenet')
+    mlflow.set_experiment('sparsity-imagenet-full')
+    # mlflow.set_experiment('sparsity-imagenet')
     # mlflow.set_experiment('test')
     study = optuna.create_study(study_name=study_context['name'], direction='maximize', 
                                             storage=study_context['storage'], load_if_exists=True)
@@ -435,6 +595,25 @@ def single_test():
     optuna_runner(args.idx, study_context)
     print(study.trials[-1].value)
 
+def ddp_run():
+    
+    global device_mapping
+    device_mapping = [0,1,2,3]
+    world_size = 4
+
+    study_name = 'sparsity-imagenet-full'
+    study_context = {
+        'name': study_name,
+        'storage': f'sqlite:///{study_name}.db',
+        'n_trials_per': 1,
+        'distributed': True
+    } 
+    mlflow.set_experiment('sparsity-imagenet-full')
+    # If you dont create it first, load_if_exists=False in children causes issues
+    study = optuna.create_study(study_name=study_context['name'], direction='maximize', 
+                                        storage=study_context['storage'], load_if_exists=True)
+    mp.spawn(distr_runner, args=(world_size,study_context), nprocs=world_size)
 
 if __name__ == "__main__":
     single_test()
+    # ddp_run()

@@ -248,7 +248,7 @@ def train(module, mode: bool = True):
     # TODO: call step and finalize functions from here
     #       Every time it flips from eval to train, call step
     #       At 'last' eval, call finalize
-    
+
     # Call the original train method if it exists, then handle sparsity parametrization
     if hasattr(module, "__sparsity_train_backup__"):
         # First execute the original train method
@@ -512,19 +512,31 @@ def update_all_parametrizations(module:fx.GraphModule, binary_mask:bool =False) 
         binary_mask (bool, optional): passed on to parametrization update function. Defaults to False.
     """
     flip_rate_list = []
+    scale_list = []
     current_epoch = -1
     for (parent_module, parent_module_name, param_name, parametrization) in module.__sparse_params__.parametrization_list:
         if parametrize.is_parametrized(parent_module, param_name):
             param_tensor = nested_getattr(parent_module, f'parametrizations.{param_name}.original') # get original param
-            old_mask = parametrization.mask
+            old_mask = (parametrization.mask == 1) # also works for topk where masked element is nonzero
             new_mask = parametrization.update(tensor=param_tensor, binary_mask=binary_mask)
-            
+            new_mask = (new_mask==1)
             flip_rate = (old_mask!=new_mask).sum()/(old_mask.numel())
             flip_rate_list.append(flip_rate)
+            if hasattr(parametrization, 'scale_weight_factor') and parametrization.scale_weight_factor is not None:
+                scale_list.append(parametrization.scale_weight_factor)
             current_epoch = parametrization.current_epoch
     flip_rate_avg = torch.tensor(flip_rate_list).mean().item()
-    import mlflow
-    mlflow.log_metric('avg_flip_rate', flip_rate_avg, step=current_epoch)
+    scale_avg = torch.tensor(scale_list).mean().item()
+    
+    # TODO, check verbose mode somewhere..
+    try:
+        import mlflow
+        if mlflow.active_run():
+            if current_epoch > 1:
+                mlflow.log_metric('avg_flip_rate', flip_rate_avg, step=current_epoch)
+                mlflow.log_metric('avg_weight_scale', scale_avg, step=current_epoch)
+    except Exception:
+        pass
     # print(f'update_all_parametrizations, epoch {current_epoch}, avg flip rate%={flip_rate_avg*100}%')
 
 # def insert_all_parametrizations(module:fx.GraphModule, binary_mask=False):
