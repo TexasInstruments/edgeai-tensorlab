@@ -307,7 +307,7 @@ def download_tidl_tools_package_11_00(install_path, tools_version, tools_type):
     assert tools_version in expected_tools_version, f"ERROR: incorrect tools_version passed:{tools_version} - expected:{expected_tools_version}"
     tidl_tools_version_name=tools_version
     tidl_tools_release_label="r11.0"
-    tidl_tools_release_id="11_00_08_00"
+    tidl_tools_release_id = "11_00_06_00" #using 11_00_06_00 to match with SDK, although 11_00_08_00 is also available
     c7x_firmware_version="11_00_00_00" #TODO - udpate this for 11.0
     c7x_firmware_version_possible_update=None #TODO - udpate this for 11.0
     print(f"INFO: you have chosen to install tidl_tools version:{tidl_tools_release_id} with default SDK firmware version set to:{c7x_firmware_version}")
