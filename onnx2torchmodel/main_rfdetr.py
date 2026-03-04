@@ -238,18 +238,6 @@ def main(args=None, inps=None):
     return torch_model, output1, output2, output3
 
 
-# def pt2e_export_model(model:torch.nn.Module, inps):
-#     from edgeai_torchmodelopt.xmodelopt.utils.hooks import add_example_args_kwargs
-#     children = dict(model.named_children())
-#     transformation_dict = {k:None for k,v in children.items()}
-#     add_example_args_kwargs(model, inps, transformation_dict=transformation_dict)
-#     for name, module in children.items():
-#         args = module._example_inputs[0]
-#         kwargs = module._example_kwargs[0]
-#         pt2e_module = torch.export.export(module, tuple(args), kwargs).module()
-#         model.add_module(name, pt2e_module)
-#     return torch.export.export(model, tuple(inps))
-
 if __name__ == '__main__':
 
     dataloader = RFDeTRDataloader()
@@ -263,8 +251,6 @@ if __name__ == '__main__':
     # inps = inp #[i.cuda() for i in inp]
     # outputs1 = new_model(*inps)
     # # new_model = new_model.cpu()
-    # # pt2e_export_model(new_model, inp)
-    # # pt2e_model =pt2e_export_model(new_model, inp).module()
     # from torchao.quantization.pt2e import allow_exported_model_train_eval
     ep = torch.export.export(new_model, tuple(inp))
     pt2e_model = ep.module()

@@ -39,7 +39,7 @@ import time
 import copy
 
 from edgeai_onnx2torchmodel.onnx2pytorch import convert
-model_zoo_path = '/data/ssd/files/a0507161/edgeai/edgeai-modelzoo/models/'
+model_zoo_path = '..//edgeai-modelzoo/models/'
 exp_path = './workdir/onnx2onnx_test/modelzoo'
 
 def add_all_output(model_path, output_path=None):
@@ -189,20 +189,6 @@ def add_all_outputs(model: torch.fx.GraphModule):
     model.graph.lint()
     model.recompile()
 
-def pt2e_export_model(model:torch.nn.Module, inps, inp_kwargs=None, *args, **kwargs):
-    from edgeai_torchmodelopt.xmodelopt.utils.hooks import add_example_args_kwargs
-    children = dict(model.named_children())
-    transformation_dict = {k:None for k,v in children.items()}
-    add_example_args_kwargs(model, inps, transformation_dict=transformation_dict)
-    for name, module in children.items():
-        args = module._example_inputs[0]
-        kwargs = module._example_kwargs[0]
-        pt2e_module = torch.export.export(module, tuple(args), kwargs).module()
-        module._example_inputs.remove(args)
-        module._example_kwargs.remove(kwargs)
-        model.add_module(name, pt2e_module)
-    return torch.export.export(model, tuple(inps), inp_kwargs, *args, **kwargs)
-
 if __name__ == '__main__':
     model_names = []
     config_path = os.path.join(model_zoo_path, 'configs.yaml')
@@ -282,7 +268,6 @@ if __name__ == '__main__':
             
         
             print('Trying PT2E')
-            # pt2e_model = pt2e_export_model(torch_model, example_inputs)
             ep = torch.export.export(torch_model, tuple(example_inputs))
             # torch.export.save(ep, f'{model_name}.pt2',)
             pt2e_model = ep.module()
