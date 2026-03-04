@@ -35,6 +35,10 @@ from torch.onnx import symbolic_helper, register_custom_op_symbolic
 from torch import nn
 from torch import fx
 from functools import partial
+from typing import List, Optional
+from onnxscript.onnx_types import TensorType
+from onnxscript import onnx_opset
+
 #from torch.onnx._internal import jit_utils # for jit_utils.GraphContext
 
 from .... import xnn
@@ -117,7 +121,84 @@ def native_layer_norm(input, normalized_shape, weight, bias, eps: float = 1e-5,)
     return y
 
     
+
+def get_custom_onnx_translation_table(opset_version:int):
+    
+    op = onnx_opset.all_opsets[("", opset_version)]
+    
+    def custom_quantize_per_channel(
+        input: TensorType,
+        scales: TensorType,
+        zero_points: TensorType,
+        axis: int,
+        quant_min: int,
+        quant_max: int,
+        dtype: int,
+    ) -> TensorType:
+        """Affine per channel quantization for the Tensor using the same quantization
+        parameters for each channel/axis to map from floating point to quantized values.
+
+
+        Uses ONNX QuantizeLinear with per-axis quantization support.
+        """
+        # Use opset23 for per-axis quantization support
+        return op.QuantizeLinear(input, scales, zero_points, axis=axis, output_dtype=dtype)
+    def custom_dequantize_per_channel(
+        input: TensorType,
+        scales: TensorType,
+        zero_points: Optional[TensorType],
+        axis: int,
+        quant_min: int,
+        quant_max: int,
+        dtype: int,
+        out_dtype: int = -1,
+    ) -> TensorType:
+        """Affine per channel dequantization for the Tensor using the same quantization
+        parameters for each channel/axis to map from quantized values to floating point values.
+
+
+        Uses ONNX DequantizeLinear with per-axis quantization support.
+        """
+        # onnx and pytorch differ in the type of zero_points
+        # in pytorch type of zero_points is int. in onnx, it is the type of input.
+        if zero_points is not None:
+            zero_points = op.CastLike(zero_points, input)
+        #
+        # Use opset23 for per-axis quantization support with optional output_dtype
+        if out_dtype in (-1, None):
+            # Use default output type (same as scales type)
+            return op.DequantizeLinear(input, scales, zero_points, axis=axis)
+        else:
+            assert out_dtype > 0, f"out_dtype must be -1 or > 0 not {out_dtype}"
+            return op.DequantizeLinear(
+                input, scales, zero_points, axis=axis, output_dtype=out_dtype
+            )
+
+    def custom_adaptive_avg_pool2d(input: TensorType, output_size: List[int]):
+        if len(output_size) >= 2 and output_size[-1] == 1 and output_size[-2] == 1:
+            avg_pool = op.GlobalAveragePool(input)
+            return avg_pool
+        else:
+            kernel_shape= (input.shape[-1] // output_size[-1], input.shape[-2] // output_size[-2])
+            strides= (input.shape[-1] // output_size[-1], input.shape[-2] // output_size[-2])
+            avg_pool = op.AveragePool(input, kernel_shape=kernel_shape, strides=strides)
+            return avg_pool
+
+    return {
+        # torch.ops.aten.lift_fresh_copy.default:aten_copy,
+        # torch.ops.aten._to_copy.default:aten_copy,
+        # torch.ops.aten._softmax.default:aten_softmax,
+        # torch.ops.aten._unsafe_view.default:aten_unsafe_view,
+        # torch.ops.aten._native_batch_norm_legit_no_training.default:aten_batchnorm,
+        torch.ops.aten.adaptive_avg_pool2d.default: custom_adaptive_avg_pool2d,
+        # torch.ops.quantized_decomposed.quantize_per_tensor.default: quantized_decomposed_quantize,
+        # torch.ops.quantized_decomposed.dequantize_per_tensor.default: quantized_decomposed_dequantize,
+        torch.ops.quantized_decomposed.quantize_per_channel.default: custom_quantize_per_channel,
+        torch.ops.quantized_decomposed.dequantize_per_channel.default: custom_dequantize_per_channel
+    }
+
 def register_onnx_symbolics(opset_version=17):
+    
     
     def aten_softmax(g, input, dim, *args):
         output = g.op("Softmax", input) #FIXME need to pass dim as well, TIDL needs axis, default works though
@@ -147,12 +228,12 @@ def register_onnx_symbolics(opset_version=17):
         op_scale = g.op("Cast", op_scale, to_i=torch.onnx.TensorProtoDataType.FLOAT)
         
         return symbolic_helper.quantize_helper(g, x, op_scale, op_zero_point, axis)
-    
+
     def quantized_decomposed_dequantize(g, x, op_scale, op_zero_point, *args):
         # Tensor input, float scale, int zero_point, int quant_min, int quant_max, ScalarType dtype, *, ScalarType? out_dtype=None, Tensor(a!) out
         x, _, _, _ = symbolic_helper.dequantize_helper(g, x)
         return x
-    
+
     def quantized_decomposed_dequantize_channel(g, x, op_scale, op_zero_point, axis, *args):
         # Tensor input, Tensor scales, Tensor? zero_points, int axis, int quant_min, int quant_max, ScalarType dtype, *, ScalarType? out_dtype=None, Tensor(a!) out
         x, _, _, _ = symbolic_helper.dequantize_helper(g, x)
@@ -160,7 +241,7 @@ def register_onnx_symbolics(opset_version=17):
 
     def aten_copy(g, x, *args):
         return x
-    
+
     def aten_batchnorm(g, x, weight, bias, running_mean, running_var, momentum, eps):
         print("Batchnorm from _native_batch_norm_legit_no_training might be buggy, haven't tested it yet.")
         # Tensor input, Tensor? weight, Tensor? bias, Tensor running_mean, Tensor running_var, float momentum, float eps
@@ -179,8 +260,8 @@ def register_onnx_symbolics(opset_version=17):
             # momentum_f=1 - momentum,
             outputs=1,
         )
-        return out, out, out       
-    
+        return out, out, out
+
     
     register_custom_op_symbolic(
         symbolic_name='aten::lift_fresh_copy',

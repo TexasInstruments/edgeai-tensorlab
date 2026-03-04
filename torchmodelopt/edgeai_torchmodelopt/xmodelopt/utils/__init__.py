@@ -1,4 +1,4 @@
-from .transformation_utils import apply_tranformation_to_submodules, wrapped_transformation_fn, TransformationWrapper
+from .transformation_utils import wrapped_transformation_fn, TransformationWrapper
 from .optimization_utils import apply_model_optimization, apply_model_surgery, apply_pruning, apply_quantization, prepare_model_for_onnx
 from .optimization_base import OptimizationBaseModule
 from .model_optimzation_v1 import ModelOptimizationWrapperV1
