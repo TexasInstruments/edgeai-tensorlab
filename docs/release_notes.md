@@ -24,6 +24,9 @@ Note: The 3DOD models are trained with **pandaset dataset** (which is a Multi-vi
 ### Update on 2025 July 15
 * Accuracy fix for object detection models in edgeai-modelmaker and edgeai-mmdetection
 
+### Update on 2026 March 24
+* edgeai-benchmark - switching to 11_00_06_00 version of tidl-tools to match with SDK, (although 11_00_08_00 is also available - this was used earlier)
+
 <hr>
 
 ## Release 10.1
