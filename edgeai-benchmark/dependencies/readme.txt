@@ -1,0 +1,1 @@
+The datasets should be placed here. Some of the datasets will be automaticaly downloaded while the script runs. But others have to be have to be manually downloaded and placed here.

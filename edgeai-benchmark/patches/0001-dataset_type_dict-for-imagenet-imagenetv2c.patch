@@ -1,0 +1,25 @@
+From 35fe8e7b01f0e5088277abf33c66394ccdda9b42 Mon Sep 17 00:00:00 2001
+From: Manu <a0393608@udtensorlab9>
+Date: Wed, 5 Mar 2025 16:49:00 +0530
+Subject: [PATCH] dataset_type_dict for imagenet imagenetv2c
+
+---
+ settings_base.yaml | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/settings_base.yaml b/settings_base.yaml
+index 2d83571..52f02ee 100644
+--- a/settings_base.yaml
++++ b/settings_base.yaml
+@@ -116,3 +116,8 @@ additional_models : False
+ 
+ # enable use of experimental models - these model files may not be available in modelzoo in some cases
+ experimental_models : False
++
++# dataset type to use if there are multiple variants for each dataset
++# imagenetv2c is available for quick download - so use it in the release branch
++dataset_type_dict:
++  'imagenet': 'imagenetv2c'
+-- 
+2.34.1
+

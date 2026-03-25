@@ -1,0 +1,3 @@
+pandas
+pillow
+transforms3d

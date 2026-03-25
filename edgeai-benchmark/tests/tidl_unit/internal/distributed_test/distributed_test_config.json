@@ -1,0 +1,11 @@
+{
+  "user@hostname":
+  {
+    "edgeai_benchmark_dir" : "",
+    "tidl_models_dir" : "",
+    "pyenv" : "",
+    "temp_buffer_dir" : "",
+    "temp_nc_dir" : "",
+    "num_threads" : 8
+  }
+}

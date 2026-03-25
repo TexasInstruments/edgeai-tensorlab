@@ -1,0 +1,81 @@
+[build-system]
+requires = ["setuptools>=42", "pyyaml", "tqdm", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "edgeai-benchmark"
+version = "11.2.0"
+description = "Edge AI TIDL Runner"
+authors = [
+    { name = "Edge AI Development Team", email = "edgeai-dev@list.ti.com" }
+]
+readme = "README.md"
+license = {file = "LICENSE.md"}
+requires-python = ">=3.10"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3.10",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence"
+]
+dependencies = [
+    "cython",
+    "pillow",
+    "requests",
+    "tqdm",
+    "pyyaml",
+    "pycocotools",
+    "colorama",
+    "munkres",
+    "json_tricks",
+    "wurlitzer",
+    "plyfile",
+    "scikit-learn",
+    "pyquaternion",
+    "debugpy",
+    "packaging",
+    "matplotlib"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/TexasInstruments/edgeai-tensorlab/tree/main/edgeai-benchmark"
+"Bug Reports" = "https://github.com/TexasInstruments/edgeai-tensorlab/issues"
+"Source" = "https://github.com/TexasInstruments/edgeai-tensorlab/tree/main/edgeai-benchmark"
+
+[project.optional-dependencies]
+pc = [
+    "opencv-python-headless",
+    "numpy==1.23.0",
+    "onnxsim==0.4.36",
+    "scipy==1.10",
+    "tflite",
+    "flatbuffers==1.12.0",
+    "pytest",
+    "graphviz",
+    "h5py",
+    "graphviz",
+    "colored",
+    "openpyxl",
+    "nuscenes-devkit", ## nuscenes-devkit needs to be moved to main requirements after figuring out on how to install on evm
+]
+evm = [
+    "pycocotools"
+]
+dev = [
+    "pytest",
+    "black",
+    "flake8",
+    "mypy"
+]
+
+[project.scripts]
+tidlbenchmark-tools-install = "edgeai_benchmark.download:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["edgeai_benchmark*"]
+

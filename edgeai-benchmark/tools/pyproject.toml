@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=42", "wheel", "pyyaml", "tqdm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tidl-tools-package"
+version = "11.2.0"
+description = "TIDL tools package for edgeai-benchmark"
+authors = [
+    { name = "EdgeAI, TIDL & Analytics Algo Teams", email = "edgeai-dev@list.ti.com" }
+]
+license = { text = "BSD-3-Clause" }
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3.10",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence"
+]
+dependencies = [
+    "pyyaml",
+    "tqdm",
+    "requests"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/TexasInstruments/edgeai-tensorlab/tree/main/edgeai-benchmark"
+"Bug Reports" = "https://e2e.ti.com/support/processors-group/processors/tags/TIDL"
+"Source" = "https://github.com/TexasInstruments/edgeai-tensorlab/tree/main/edgeai-benchmark"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["tidl_tools_package*"]
+
+[project.scripts]
+tidlbenchmark-tools-download = "tidl_tools_package.download:main"
