@@ -72,7 +72,9 @@ configs:
   od-9209: vision/detection/coco/edgeai-mmdet/rtmdet_l_coco_lite_640x640_20250310_model_config.yaml
   kd-7070: vision/keypoint/coco/edgeai-mmpose/yoloxpose_tiny_lite_416x416_20240808_model_config.yaml
   kd-7080: vision/keypoint/coco/edgeai-mmpose/yoloxpose_s_lite_coco-640x640_20250119_model_config.yaml
-  3dod-8161: vision/detection_3d/pandaset/mmdet3d/fastbev_mod_pandaset_nms_r18_f1_256x704_20250507_config.yaml
+  3dod-8140: vision/detection_3d/pandaset/mmdet3d/bevformer_tiny_mod_pandaset_blgrid_544x960_20251215_opt_config.yaml
+  3dod-8141: vision/detection_3d/pandaset/mmdet3d/bevformer_tiny_mod_pandaset_nngrid_544x960_20251215_opt_config.yaml
+  3dod-8161: vision/detection_3d/pandaset/mmdet3d/fastbev_mod_pandaset_nms_r18_f1_256x704_20251215_config.yaml
   cl-0000: vision/classification/imagenet1k/mlperf/mobilenet_v1_1.0_224_config.yaml
   od-2020: vision/detection/coco/tf1-models/ssdlite_mobiledet_dsp_320x320_coco_20200519_config.yaml
   ss-2580: vision/segmentation/ade20k32/mlperf/deeplabv3_mnv2_ade20k32_float_config.yaml
@@ -93,6 +95,3 @@ configs:
   cl-0170: vision/classification/imagenet1k/tf-tpu/efficientnet-lite1-fp32_config.yaml
   cl-0100: vision/classification/imagenet1k/tf-tpu/efficientnet-edgetpu-M_float_config.yaml
   od-2070: vision/detection/coco/tf2-models/ssd_mobilenet_v1_fpn_640x640_coco17_tpu-8_config.yaml
-  cl-3090: vision/classification/imagenet1k/torchvision/mobilenet_v2_tv_config.yaml
-  od-5120: vision/detection/coco/tf1-models/ssdlite_mobiledet_dsp_320x320_coco_20200519_config.yaml
-  ss-5710: vision/segmentation/cocoseg21/edgeai-tv/deeplabv3plus_mobilenetv2_edgeailite_512x512_20210405_config.yaml

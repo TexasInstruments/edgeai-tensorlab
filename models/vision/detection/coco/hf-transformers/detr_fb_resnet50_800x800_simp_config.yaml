@@ -48,7 +48,7 @@ postprocess:
   formatter:
     name: DetectionXYWH2XYXYCenterXY
   resize_with_pad: true
-  normalized_detections: false
+  normalized_detections: true
   shuffle_indices: null
   squeeze_axis: null
   ignore_index: null
