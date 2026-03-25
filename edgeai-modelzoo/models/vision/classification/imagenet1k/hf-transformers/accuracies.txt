@@ -1,0 +1,19 @@
+vit_tiny_patch16_224_transformers_simp.onnx - 45.234
+vit_base_patch16_224_transformers_simp.onnx - 75.404
+
+deit_tiny_patch16_224_transformers_simp.onnx - 72.132
+
+swin_tiny_patch4_window7_224_transformers_simp.onnx - 80.430
+swin_small_patch4_window7_224_transformers_simp.onnx - 83.066
+swin_base_patch4_window7_224_transformers_simp.onnx - 84.81
+swin_large_patch4_window7_224_transformers_simp.onnx - 86.146
+
+levit_128_224_transformers_simp.onnx - 78.586
+levit_192_224_transformers_simp.onnx - 79.874
+levit_256_224_transformers_simp.onnx - 81.594
+levit_384_224_transformers_simp.onnx - 82.594
+
+efficientvit_b0_224_timm_simp.onnx - 69.066
+
+detr_resnet50_transformers_simp.onnx - 42.0
+

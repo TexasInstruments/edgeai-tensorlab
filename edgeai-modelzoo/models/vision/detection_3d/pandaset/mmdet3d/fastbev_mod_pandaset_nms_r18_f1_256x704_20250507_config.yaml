@@ -1,0 +1,48 @@
+task_type: bev_detection
+dataset_category: pandaset_frame
+calibration_dataset: pandaset_frame
+input_dataset: pandaset_frame
+preprocess:
+  resize:
+  - 396
+  - 704
+  crop:
+  - 0
+  - 70
+  - 704
+  - 256
+  data_layout: NCHW
+  reverse_channels: false
+  backend: cv2
+  interpolation: 2
+  resize_with_pad: false
+  pad_color: 0
+session:
+  session_name: onnxrt
+  input_optimization: false
+  input_data_layout: NCHW
+  input_mean:
+  - - 123.675
+    - 116.28
+    - 103.53
+  input_scale:
+  - - 0.017125
+    - 0.017507
+    - 0.017429
+  runtime_options:
+    advanced_options:output_feature_16bit_names_list: /bbox_head/conv_cls/Conv_output_0,
+      /bbox_head/conv_dir_cls/Conv_output_0, /bbox_head/conv_reg/Conv_output_0
+    advanced_options:params_16bit_names_list: ''
+    object_detection:meta_arch_type: 7
+    object_detection:meta_layers_names_list: fastbev_mod_pandaset_nms_r18_f1_256x704_20250507.prototxt
+  model_path: fastbev_mod_pandaset_nms_r18_f1_256x704_20250507.onnx
+  model_id: 3dod-8161
+  input_details: null
+  output_details: null
+  num_inputs: 1
+postprocess:
+  save_output: false
+metric: {}
+model_info:
+  metric_reference: {}
+  model_shortlist: 100
