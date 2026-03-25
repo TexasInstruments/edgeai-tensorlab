@@ -1,0 +1,9 @@
+cython
+numpy==1.23.0
+wheel
+pycocotools
+torchinfo
+torcheval
+tabulate
+pandas
+# git+https://github.com/TexasInstruments/edgeai-modeloptimization.git@main#subdirectory=torchmodelopt
