@@ -1,0 +1,12 @@
+progressbar
+colorama
+opencv-python
+scipy
+matplotlib
+pyyaml
+torchinfo
+onnxsim
+pydot
+torch
+onnx==1.16.1
+onnx-graphsurgeon

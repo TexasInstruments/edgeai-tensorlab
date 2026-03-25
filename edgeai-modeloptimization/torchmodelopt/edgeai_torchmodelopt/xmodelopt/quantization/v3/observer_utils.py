@@ -1,0 +1,302 @@
+#################################################################################
+# Copyright (c) 2018-2023, Texas Instruments Incorporated - http://www.ti.com
+# All Rights Reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright notice, this
+#   list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+#
+# * Neither the name of the copyright holder nor the names of its
+#   contributors may be used to endorse or promote products derived from
+#   this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+#################################################################################
+
+import functools
+import math
+import random
+import warnings
+import torch
+import torch
+import torch.ao.quantization
+
+from .... import xnn
+
+
+####################################################################
+def _ceil2_tensor(x):
+    if x.data.abs().sum() != 0:
+        x2 = xnn.layers.functional.ceil2_func(torch.abs(x))
+        y = torch.sign(x) * x2
+    else:
+        y = x
+    #
+    return y
+
+
+def ceil2_tensor(x):
+    return xnn.layers.functional.propagate_quant_ste(x, _ceil2_tensor(x))
+
+
+def ceil2_num(x):
+    if x != 0:
+        sign = (x>=0)*2 - 1
+        x2 = math.pow(2,math.ceil(math.log2(abs(x))))
+        y = sign * x2
+        return y
+    else:
+        return x
+
+
+eps = torch.finfo(torch.float32).eps
+
+
+def _adjust_qparams_power2_scale(min_val, max_val, quant_min, quant_max, scale, zero_point, eps):
+    r"""Calculates the quantization parameters."""
+    # make scale a power of 2 value
+    scale = _ceil2_tensor(scale)
+    scale = torch.max(scale, eps)
+    if len(torch.unique(zero_point))>1 or torch.unique(zero_point) not in (0,127):
+        # adjust the zero_point based on new scale
+        min_val_neg = torch.min(min_val, torch.zeros_like(min_val))
+        zero_point = quant_min - torch.round(min_val_neg / scale).to(torch.int)
+        zero_point = torch.clamp(zero_point, quant_min, quant_max)
+    return scale, zero_point
+
+
+def _correct_min_max(min_val: torch.Tensor, max_val: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, bool]:
+    range_valid = True
+    if min_val.numel() == 0 or max_val.numel() == 0:
+        warnings.warn(f"must run observer before calling calculate_qparams. min_val={min_val} max_val={max_val}")
+        range_valid = False
+    elif not torch.all(torch.isfinite(min_val)) or not torch.all(torch.isfinite(max_val)):
+        warnings.warn(f"invalid range: min_val={min_val} max_val={max_val}")
+        range_valid = False
+    else:
+        min_val = torch.min(min_val, torch.zeros_like(min_val))
+        max_val = torch.max(max_val, torch.zeros_like(max_val) + eps)
+        min_val = torch.min(min_val, max_val) 
+        max_val = torch.max(max_val, min_val + eps)
+    #
+    return min_val, max_val, range_valid
+    
+
+def _check_min_max_valid(min_val: torch.Tensor, max_val: torch.Tensor) -> bool:
+    return True
+    
+
+def _calculate_qparams(func, min_val, max_val, quant_min, quant_max, symmetric, power2_scale, eps):
+    min_val, max_val, range_valid = _correct_min_max(min_val, max_val)
+    if range_valid:
+        if symmetric:
+            signed_range = torch.min(min_val.detach()).item() < 0.0
+            max_abs = torch.max(torch.abs(min_val), torch.abs(max_val))
+            min_val = -max_abs if signed_range else max_abs * 0.0
+            max_val = max_abs
+        #
+        scale, zero_point = func(min_val, max_val)
+        if power2_scale:
+            scale, zero_point = _adjust_qparams_power2_scale(
+                min_val, max_val, quant_min, quant_max, scale, zero_point, eps)
+        #
+    else:
+        scale = torch.ones_like(min_val)
+        zero_point = torch.zeros_like(min_val, dtype=torch.int64)
+    #
+    return scale, zero_point
+
+
+####################################################################
+class AdaptiveRangeShrinkObserverTypes:
+    HISTOGRAM_GLOBAL = 'histogram_global'
+    HISTOGRAM_RUNNINGAVG = 'histogram_runningavg'
+    THREE_SIGMA_RUNNINGAVG = 'threesigma_runningavg'
+    FOUR_SIGMA_RUNNINGAVG = 'foursigma_runningavg'
+    DEFAULT = True # same as 'percentile'
+
+
+class RangeShrinkPercentileValues:
+    LOW = 0.01
+    MEDIUM = 0.1
+    HIGH = 0.25
+    DEFAULT = MEDIUM
+
+
+####################################################################
+class AdaptiveRangeShrinkObserver(torch.ao.quantization.HistogramObserver):
+    def __init__(self, *args,  factory_kwargs=None, qscheme=torch.per_tensor_affine, 
+                 power2_scale=False, range_max=None, fixed_range=False, 
+                 range_shrink=True, dtype=torch.uint8, **kwargs):
+        super().__init__(*args, factory_kwargs=factory_kwargs, dtype=dtype, bins=1024, **kwargs)
+        self.upsample_rate = 8
+        self.range_shrink = RangeShrinkPercentileValues.DEFAULT if range_shrink is True else range_shrink
+        self.dtype = dtype
+        self.num_batches_tracked = 0
+        self.averaging_constant = 0.01
+        self.symmetric = (qscheme in (torch.per_channel_symmetric, torch.per_tensor_symmetric))
+        self.power2_scale = power2_scale
+        self.range_max = range_max
+        self.fixed_range = fixed_range
+        self.freeze_observer = False
+
+        factory_kwargs = torch.nn.factory_kwargs(factory_kwargs)
+        self.register_buffer("min_val_hist", torch.tensor(float("inf"), **factory_kwargs))
+        self.register_buffer("max_val_hist", torch.tensor(float("-inf"), **factory_kwargs))
+
+    def set_params(self, **kwargs):
+        for k, v in kwargs.items():
+            if hasattr(self, k):
+                setattr(self, k, v)
+            #
+    
+    def forward(self, x_orig):
+        if not torch.is_floating_point(x_orig):
+            return x_orig
+        #
+        if self.freeze_observer:
+            return x_orig
+        #
+        if x_orig.numel() == 0:
+            return x_orig
+        #
+        x = x_orig.detach()
+        x = torch.where(torch.isfinite(x), x, eps)
+        min_val, max_val = torch.aminmax(x)
+        if isinstance(self.range_shrink, (float, int)):
+            # super().forward uses self.min_val and self.max_val internally
+            # so copy our values into that.
+            min_val = self.min_val.clone()
+            max_val = self.max_val.clone()
+            self.min_val.copy_(self.min_val_hist)   
+            self.max_val.copy_(self.max_val_hist)
+            x_o = super().forward(x)
+            self.min_val_hist.copy_(self.min_val)
+            self.max_val_hist.copy_(self.max_val)
+            self.min_val.copy_(min_val)
+            self.max_val.copy_(max_val)
+            self.histogram_global_range()
+        elif self.range_shrink == AdaptiveRangeShrinkObserverTypes.HISTOGRAM_RUNNINGAVG:
+            x_o = super().forward(x)
+            self.histogram_runningavg_range(x)
+        elif self.range_shrink == AdaptiveRangeShrinkObserverTypes.FOUR_SIGMA_RUNNINGAVG:
+            self.sigma_range(x, sigma_factor=4.0)
+        elif self.range_shrink == AdaptiveRangeShrinkObserverTypes.THREE_SIGMA_RUNNINGAVG:
+            self.sigma_range(x, sigma_factor=3.0)
+        else:
+            x_o = super().forward(x)
+        #
+        self.num_batches_tracked += 1
+        return x_orig
+
+    def get_min_max(self) -> tuple[torch.Tensor, torch.Tensor, bool]:
+        return _correct_min_max(self.min_val, self.max_val)
+
+    @torch.jit.export
+    def _calculate_qparams(self, min_val, max_val):
+        r"""Calculates the quantization parameters."""
+        scale, zero_point = _calculate_qparams(super()._calculate_qparams, 
+                min_val, max_val, self.quant_min, self.quant_max, self.symmetric, self.power2_scale, self.eps)
+        return scale, zero_point
+    
+    def _non_linear_param_search(self) -> tuple[torch.Tensor, torch.Tensor]:
+        # called in calculate_qparams() of super class
+        return self.min_val, self.max_val
+
+    def histogram_global_range(self):
+        assert self.histogram.size()[0] == self.bins, "bins mismatch"
+        min_val, max_val = xnn.utils.range_from_histogram(self.histogram, self.min_val_hist, self.max_val_hist, 
+                                                          bins=self.bins, range_shrink_percentile=self.range_shrink)
+        self.min_val.copy_(min_val)
+        self.max_val.copy_(max_val)
+        return self.min_val, self.max_val
+
+    def sigma_range(self, x_orig, sigma_factor=3.0):
+        min_val, max_val = xnn.utils.sigma_range(x_orig, dim=None, sigma_factor=sigma_factor)
+        if not torch.all(torch.isfinite(min_val)) or not torch.all(torch.isfinite(max_val)):
+            return torch.min(x_orig), torch.max(x_orig)
+        self._update_runningavg_range(min_val, max_val)
+        return self.min_val, self.max_val
+    
+    def histogram_runningavg_range(self, x_orig):
+        # min_val, max_val = xnn.utils.quantile_range(x_orig, range_shrink_percentile=self.range_shrink_percentile)
+        min_val, max_val = xnn.utils.histogram_range(x_orig, range_shrink_percentile=self.range_shrink_percentile)
+        if not torch.all(torch.isfinite(min_val)) or not torch.all(torch.isfinite(max_val)):
+            return torch.min(x_orig), torch.max(x_orig)
+        self._update_runningavg_range(min_val, max_val)
+        return self.min_val, self.max_val
+    
+    def _update_runningavg_range(self, min_val, max_val):
+        if not torch.all(torch.isfinite(self.min_val)) or not torch.all(torch.isfinite(self.max_val)):
+            self.min_val.copy_(min_val)
+            self.max_val.copy_(max_val)
+            return
+        # Update the running averages
+        min_val = min_val + self.averaging_constant * (min_val - self.min_val)
+        max_val = max_val + self.averaging_constant * (max_val - self.max_val)
+        self.min_val.copy_(min_val)
+        self.max_val.copy_(max_val)
+
+
+
+####################################################################
+
+# not for quantization - only for range clip
+class AdaptiveRangeClipObserver(AdaptiveRangeShrinkObserver):
+    def __init__(self, *args, dtype=torch.float32, **kwargs):
+        temp_dtype = torch.int32 # just to satisfy base class which doesn't support float
+        super().__init__(*args, dtype=temp_dtype, **kwargs)
+
+    @torch.jit.export
+    def _calculate_qparams(
+        self, min_val: torch.Tensor, max_val: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        scale = torch.ones_like(min_val)
+        zero_point = torch.zeros_like(min_val, dtype=torch.int64)
+        return scale, zero_point
+    
+
+# not for quantization - only for use in teacher model of distillation
+class AdaptiveWeightRangeClipObserver(torch.ao.quantization.MinMaxObserver):
+    def __init__(self, *args, dtype=torch.float32, **kwargs):
+        temp_dtype = torch.int32 # just to satisfy base class which doesn't support float
+        super().__init__(*args, dtype=temp_dtype, **kwargs)
+
+    @torch.jit.export
+    def _calculate_qparams(
+        self, min_val: torch.Tensor, max_val: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        scale = torch.ones_like(min_val)
+        zero_point = torch.zeros_like(min_val, dtype=torch.int64)
+        return scale, zero_point
+    
+
+# not for quantization - only for use in teacher model of distillation
+class AdaptivePerChannelWeightRangeClipObserver(torch.ao.quantization.PerChannelMinMaxObserver):
+    def __init__(self, *args, dtype=torch.float32, **kwargs):
+        temp_dtype = torch.int32 # just to satisfy base class which doesn't support float
+        super().__init__(*args, dtype=temp_dtype, **kwargs)
+
+    @torch.jit.export
+    def _calculate_qparams(
+        self, min_val: torch.Tensor, max_val: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        scale = torch.ones_like(min_val)
+        zero_point = torch.zeros_like(min_val, dtype=torch.int64)
+        return scale, zero_point

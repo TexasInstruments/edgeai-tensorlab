@@ -1,0 +1,537 @@
+#################################################################################
+# Copyright (c) 2018-2023, Texas Instruments Incorporated - http://www.ti.com
+# All Rights Reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright notice, this
+#   list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+#
+# * Neither the name of the copyright holder nor the names of its
+#   contributors may be used to endorse or promote products derived from
+#   this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+#################################################################################
+
+import torch
+import statistics
+from torch.onnx import symbolic_helper, register_custom_op_symbolic
+from torch import nn
+from torch import fx
+from functools import partial
+from typing import List, Optional
+from onnxscript.onnx_types import TensorType
+from onnxscript import onnx_opset
+
+#from torch.onnx._internal import jit_utils # for jit_utils.GraphContext
+
+from .... import xnn
+from torch.fx.passes.utils.source_matcher_utils import get_source_partitions
+# from ...utils import get_source_partitions
+
+
+def is_fake_quant_with_param(self, pmodule, cmodule, fake_quant_types):
+    num_params = len(list(pmodule.parameters(recurse=False)))
+    return isinstance(cmodule, fake_quant_types) and num_params > 0
+
+
+@torch.fx.wrap
+def _get_rel_pos_bias(relative_position_bias_table, relative_position_index, window_area) -> torch.Tensor:
+    relative_position_bias = relative_position_bias_table[
+        relative_position_index.view(-1)].view(window_area, window_area, -1)  # Wh*Ww,Wh*Ww,nH
+    relative_position_bias = torch.permute(relative_position_bias, (2, 0, 1))  # nH, Wh*Ww, Wh*Ww
+    relative_position_bias = relative_position_bias.reshape(1, -1, window_area, window_area)
+    return relative_position_bias
+    
+    
+# similar class as to default attention, however it supports model export as well as quantizing matmul operation
+class QuantAttention(nn.Module):
+    
+    def __init__(
+            self,
+            dim: int = 128,
+            num_heads: int = 8,
+            qkv_bias: bool = False,
+            qk_norm: bool = False,
+            attn_drop: float = 0.,
+            proj_drop: float = 0.,
+            norm_layer: nn.Module = nn.LayerNorm,
+    ) -> None:
+        super().__init__()
+        assert dim % num_heads == 0, 'dim should be divisible by num_heads'
+        self.num_heads = num_heads
+        self.head_dim = dim // num_heads
+        self.scale = self.head_dim ** -0.5
+
+        self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
+        self.q_norm = norm_layer(self.head_dim) if qk_norm else nn.Identity()
+        self.k_norm = norm_layer(self.head_dim) if qk_norm else nn.Identity()
+        self.attn_drop = nn.Dropout(attn_drop)
+        self.proj = nn.Linear(dim, dim)
+        self.proj_drop = nn.Dropout(proj_drop)
+        self.softmax = nn.Softmax(dim=-1)
+        self.relative_position_bias_table = None
+
+    def forward(self, x: torch.Tensor, **kwargs) -> torch.Tensor:
+        B, N, C = x.shape
+        qkv = torch.permute(self.qkv(x).reshape(B, N, 3, self.num_heads, -1), (2, 0, 3, 1, 4))
+        q, k, v = qkv.unbind(0)
+        q, k = self.q_norm(q), self.k_norm(k)
+
+        #q = torch.mul(q, torch.tensor(self.scale))
+        q = torch.mul(q, torch.tensor([self.scale]*self.head_dim))
+        attn = torch.matmul(q, k.transpose(-2, -1))
+        if self.relative_position_bias_table is not None:
+            attn = attn + _get_rel_pos_bias(self.relative_position_bias_table, self.relative_position_index, self.window_area)
+        attn = self.softmax(attn)
+        attn = self.attn_drop(attn)
+        x = torch.matmul(attn, v)
+
+        x = x.transpose(1, 2).reshape(B, N, -1)
+        x = self.proj(x)
+        x = self.proj_drop(x)
+        return x
+
+
+def LayerNormWithoutGB(x, eps):
+    mean = torch.mean(x, dim=-1, keepdim=True)
+    var = torch.pow(x - mean, 2).mean(dim=-1, keepdim=True)
+    return (x - mean) / torch.sqrt(var + eps)
+
+def native_layer_norm(input, normalized_shape, weight, bias, eps: float = 1e-5,):
+    y = LayerNormWithoutGB(input, eps)
+    y = torch.mul(y, weight)
+    y = torch.add(y, bias)
+    return y
+
+    
+
+def get_custom_onnx_translation_table(opset_version:int):
+    
+    op = onnx_opset.all_opsets[("", opset_version)]
+    
+    def custom_quantize_per_channel(
+        input: TensorType,
+        scales: TensorType,
+        zero_points: TensorType,
+        axis: int,
+        quant_min: int,
+        quant_max: int,
+        dtype: int,
+    ) -> TensorType:
+        """Affine per channel quantization for the Tensor using the same quantization
+        parameters for each channel/axis to map from floating point to quantized values.
+
+
+        Uses ONNX QuantizeLinear with per-axis quantization support.
+        """
+        # Use opset23 for per-axis quantization support
+        return op.QuantizeLinear(input, scales, zero_points, axis=axis, output_dtype=dtype)
+    def custom_dequantize_per_channel(
+        input: TensorType,
+        scales: TensorType,
+        zero_points: Optional[TensorType],
+        axis: int,
+        quant_min: int,
+        quant_max: int,
+        dtype: int,
+        out_dtype: int = -1,
+    ) -> TensorType:
+        """Affine per channel dequantization for the Tensor using the same quantization
+        parameters for each channel/axis to map from quantized values to floating point values.
+
+
+        Uses ONNX DequantizeLinear with per-axis quantization support.
+        """
+        # onnx and pytorch differ in the type of zero_points
+        # in pytorch type of zero_points is int. in onnx, it is the type of input.
+        if zero_points is not None:
+            zero_points = op.CastLike(zero_points, input)
+        #
+        # Use opset23 for per-axis quantization support with optional output_dtype
+        if out_dtype in (-1, None):
+            # Use default output type (same as scales type)
+            return op.DequantizeLinear(input, scales, zero_points, axis=axis)
+        else:
+            assert out_dtype > 0, f"out_dtype must be -1 or > 0 not {out_dtype}"
+            return op.DequantizeLinear(
+                input, scales, zero_points, axis=axis, output_dtype=out_dtype
+            )
+
+    def custom_adaptive_avg_pool2d(input: TensorType, output_size: List[int]):
+        if len(output_size) >= 2 and output_size[-1] == 1 and output_size[-2] == 1:
+            avg_pool = op.GlobalAveragePool(input)
+            return avg_pool
+        else:
+            kernel_shape= (input.shape[-1] // output_size[-1], input.shape[-2] // output_size[-2])
+            strides= (input.shape[-1] // output_size[-1], input.shape[-2] // output_size[-2])
+            avg_pool = op.AveragePool(input, kernel_shape=kernel_shape, strides=strides)
+            return avg_pool
+
+    return {
+        # torch.ops.aten.lift_fresh_copy.default:aten_copy,
+        # torch.ops.aten._to_copy.default:aten_copy,
+        # torch.ops.aten._softmax.default:aten_softmax,
+        # torch.ops.aten._unsafe_view.default:aten_unsafe_view,
+        # torch.ops.aten._native_batch_norm_legit_no_training.default:aten_batchnorm,
+        torch.ops.aten.adaptive_avg_pool2d.default: custom_adaptive_avg_pool2d,
+        # torch.ops.quantized_decomposed.quantize_per_tensor.default: quantized_decomposed_quantize,
+        # torch.ops.quantized_decomposed.dequantize_per_tensor.default: quantized_decomposed_dequantize,
+        torch.ops.quantized_decomposed.quantize_per_channel.default: custom_quantize_per_channel,
+        torch.ops.quantized_decomposed.dequantize_per_channel.default: custom_dequantize_per_channel
+    }
+
+def register_onnx_symbolics(opset_version=17):
+    
+    
+    def aten_softmax(g, input, dim, *args):
+        output = g.op("Softmax", input) #FIXME need to pass dim as well, TIDL needs axis, default works though
+        return output
+
+    def aten_unsafe_view(g, x, dim, *args):
+        output = g.op("Reshape", x, dim)
+        return output
+        
+    def quantized_decomposed_quantize(g, x, op_scale, op_zero_point, quant_min, quant_max, dtype, *args):
+        # Tensor input, float scale, int zero_point, int quant_min, int quant_max, ScalarType dtype, *, ScalarType? out_dtype=None
+        # x, _, _, _ = symbolic_helper.dequantize_helper(g, x)
+        # return x
+        dtype = symbolic_helper._get_const(dtype, "i", "dtype")
+        op_zero_point = g.op("Cast", op_zero_point, to_i=symbolic_helper.scalar_type_to_onnx[dtype])
+        op_scale = g.op("Cast", op_scale, to_i=torch.onnx.TensorProtoDataType.FLOAT)
+        
+        return symbolic_helper.quantize_helper(g, x, op_scale, op_zero_point)
+
+    def quantized_decomposed_quantize_channel(g, x, op_scale, op_zero_point, axis, quant_min, quant_max, dtype, *args):
+        # Tensor input, Tensor scales, Tensor zero_points, int axis, int quant_min, int quant_max, ScalarType dtype, *, Tensor(a!) out) -> Tensor(a!)
+        # x, _, _, _ = symbolic_helper.dequantize_helper(g, x)
+        # return x
+        
+        dtype = symbolic_helper._get_const(dtype, "i", "dtype")
+        op_zero_point = g.op("Cast", op_zero_point, to_i=symbolic_helper.scalar_type_to_onnx[dtype])
+        op_scale = g.op("Cast", op_scale, to_i=torch.onnx.TensorProtoDataType.FLOAT)
+        
+        return symbolic_helper.quantize_helper(g, x, op_scale, op_zero_point, axis)
+
+    def quantized_decomposed_dequantize(g, x, op_scale, op_zero_point, *args):
+        # Tensor input, float scale, int zero_point, int quant_min, int quant_max, ScalarType dtype, *, ScalarType? out_dtype=None, Tensor(a!) out
+        x, _, _, _ = symbolic_helper.dequantize_helper(g, x)
+        return x
+
+    def quantized_decomposed_dequantize_channel(g, x, op_scale, op_zero_point, axis, *args):
+        # Tensor input, Tensor scales, Tensor? zero_points, int axis, int quant_min, int quant_max, ScalarType dtype, *, ScalarType? out_dtype=None, Tensor(a!) out
+        x, _, _, _ = symbolic_helper.dequantize_helper(g, x)
+        return x
+
+    def aten_copy(g, x, *args):
+        return x
+
+    def aten_batchnorm(g, x, weight, bias, running_mean, running_var, momentum, eps):
+        print("Batchnorm from _native_batch_norm_legit_no_training might be buggy, haven't tested it yet.")
+        # Tensor input, Tensor? weight, Tensor? bias, Tensor running_mean, Tensor running_var, float momentum, float eps
+
+        weight, bias, running_mean, running_var = symbolic_helper._batchnorm_helper(
+            g, x, weight, bias, running_mean, running_var
+        )
+        out = g.op(
+            "BatchNormalization",
+            x,
+            weight,
+            bias,
+            running_mean,
+            running_var,
+            # epsilon_f=eps,
+            # momentum_f=1 - momentum,
+            outputs=1,
+        )
+        return out, out, out
+
+    
+    register_custom_op_symbolic(
+        symbolic_name='aten::lift_fresh_copy',
+        symbolic_fn=aten_copy,
+        opset_version=opset_version)
+    
+    register_custom_op_symbolic(
+        symbolic_name='aten::_to_copy',
+        symbolic_fn=aten_copy,
+        opset_version=opset_version)
+
+    register_custom_op_symbolic(
+        symbolic_name='aten::_softmax', 
+        symbolic_fn=aten_softmax, 
+        opset_version=opset_version)
+    
+    register_custom_op_symbolic(
+        symbolic_name='aten::_unsafe_view', 
+        symbolic_fn=aten_unsafe_view, 
+        opset_version=opset_version)
+
+    register_custom_op_symbolic(
+        symbolic_name='aten::_native_batch_norm_legit_no_training', 
+        symbolic_fn=aten_batchnorm, 
+        opset_version=opset_version)
+    
+    register_custom_op_symbolic(
+        symbolic_name='quantized_decomposed::quantize_per_tensor', 
+        symbolic_fn=quantized_decomposed_quantize, 
+        opset_version=opset_version)
+
+    register_custom_op_symbolic(
+        symbolic_name='quantized_decomposed::dequantize_per_tensor', 
+        symbolic_fn=quantized_decomposed_dequantize, 
+        opset_version=opset_version)
+
+    register_custom_op_symbolic(
+        symbolic_name='quantized_decomposed::quantize_per_channel', 
+        symbolic_fn=quantized_decomposed_quantize_channel, 
+        opset_version=opset_version)
+
+    register_custom_op_symbolic(
+        symbolic_name='quantized_decomposed::dequantize_per_channel', 
+        symbolic_fn=quantized_decomposed_dequantize_channel, 
+        opset_version=opset_version)
+    
+    
+def remove_loss_branch(model): 
+    # loss branch exists in the model definition, as well as we are supporting it for model training, however, 
+    # the branch needs to be removed for onnx export, replacing the branch with identity
+    if not hasattr(model, 'graph'):
+        print("The loss branch is not getting removed in the model, exporting normally.")
+        return model
+    for node in model.graph.nodes:
+        if node.target=='output' and len(node.args[0])>1:
+            # output node has more than one input branches
+            assert ('dequantize' in node.args[0][0].name) or ('dequantize' in node.args[0][1].name), \
+                print("dequantize does not exist in the output branch, there could be some error") 
+            fc_out_node = node.args[0][0] if ('dequantize' in node.args[0][0].name) else node.args[0][1]
+            loss_end_node = node.args[0][0] if ('dequantize' not in node.args[0][0].name) else node.args[0][1]
+            # assumption that the output of the network(logits) would be quantized
+            loss_node = next((user for user in fc_out_node.users if user.name!='output'), None)
+            if loss_node is None: # the dq layers for the output and loss are separated 
+                q_node_output = fc_out_node.args[0]
+                assert len(q_node_output.users) == 2, print("the q node does not have two outputs, which should be the general behaviour")
+                for user in q_node_output.users:
+                    if user != fc_out_node:
+                        loss_node = next(loss_user for loss_user in user.users)
+                
+            new_node = nn.Identity()
+            new_node_name = 'replaced_loss'
+            model.add_module(new_node_name, new_node)
+            with model.graph.inserting_before(loss_node):
+                args = []
+                for arg in loss_node.args:
+                    if type(arg) == fx.Node:
+                        if arg.op != "get_attr":
+                            args.append(arg)
+                new_node = model.graph.call_module(new_node_name, tuple(args),{})
+                ptr = loss_node
+                while ptr != loss_end_node:
+                    ptr.replace_all_uses_with(new_node)
+                    temp=ptr.next
+                    model.graph.erase_node(ptr)
+                    ptr=temp
+                
+                ptr.replace_all_uses_with(new_node)
+                model.graph.erase_node(loss_end_node)
+    
+    model.graph.lint()
+    model.recompile()
+    
+    return model
+
+def move_node_kwargs_to_device(model, device='cpu'):
+    for node in model.graph.nodes:
+        if "device" in node.kwargs and node.kwargs['device'] != torch.device(device):
+            with model.graph.inserting_before(node):
+                new_kwargs = dict(node.kwargs)
+                new_kwargs['device'] = torch.device(device)
+                new_node = model.graph.create_node(op=node.op, target=node.target, args=node.args, kwargs=new_kwargs)
+                node.replace_all_uses_with(new_node)
+                model.graph.erase_node(node)
+    model.graph.lint()
+    model.recompile()
+    return model
+
+def remove_to_device_node(model):
+    for node in model.graph.nodes:
+        if node.target == torch.ops.aten.to.device:
+            node.replace_all_uses_with(node.args[0])
+            model.graph.erase_node(node)
+    model.graph.lint()
+    model.recompile()
+    return model      
+
+
+def _bias_calibration_func(calibration_factor, bias_module, x, y):
+    bias_error = 0
+    if len(x.shape) == 3:
+        if x.shape[1] == bias_module.shape[0]:
+            float_mean = x.mean(dim=(0,2))
+            quant_mean = y.mean(dim=(0,2))
+            bias_error = float_mean - quant_mean 
+        else:
+            float_mean = x.mean(dim=(0,1))
+            quant_mean = y.mean(dim=(0,1))
+            bias_error = float_mean - quant_mean 
+    elif len(x.shape) == 4:
+        if x.shape[1] == bias_module.shape[0]:
+            float_mean = x.mean(dim=(0,2,3))
+            quant_mean = y.mean(dim=(0,2,3)) 
+            bias_error = float_mean - quant_mean                                          
+        elif x.shape[3] == bias_module.shape[0]:
+            float_mean = x.mean(dim=(0,1,2))    
+            quant_mean = y.mean(dim=(0,1,2))  
+            bias_error = float_mean - quant_mean 
+        #
+    #
+    bias_module.data += (bias_error * calibration_factor)
+
+
+def _bias_calibration_hook(calibration_factor, bias_module, m, x, y):
+    if isinstance(x, tuple):
+        x = x[0]
+    _bias_calibration_func(calibration_factor, bias_module, x, y)
+    return y
+
+
+def add_bias_calibration_hook(model, calibration_factor=0):
+    all_hooks = []    
+    module_partitions = get_source_partitions(
+        model.graph, [torch.nn.Linear, torch.nn.functional.linear, torch.nn.Conv2d, torch.nn.functional.conv2d, 'linear', 'conv2d']
+    )
+
+    for module_or_fn_type, partitions in module_partitions.items():
+        for p in partitions:
+            bias_node = None
+            for param_node in p.params:
+                weight_or_bias = getattr(model, param_node.target)
+                if weight_or_bias.ndim == 1:  # type: ignore[attr-defined]
+                    bias_node = param_node
+                #
+            #
+            if bias_node is not None:
+                bias_module = getattr(model, bias_node.target)
+            else:
+                continue
+            
+            output_node = None
+            for out_node in p.output_nodes:
+                if out_node.target in [torch.ops.aten.conv2d.default, torch.ops.aten.linear.default, 
+                                       torch.ops.aten.view.default, torch.ops.aten.add.Tensor]:
+                    output_node = out_node
+                    break
+                #
+            #
+            if output_node is None:
+                raise ValueError(
+                    "Could not find an user of act node for conv within matched pattern."
+                )
+            
+            if not isinstance(output_node.next.target, str):
+                assert output_node.next.target in [torch.ops.aten.relu.default, torch.ops.aten.relu_.default]
+                output_node = output_node.next
+            #
+            fake_quantize_module = getattr(model, output_node.next.target)
+            
+            _bias_calibration_hook_binded = partial(_bias_calibration_hook, \
+                calibration_factor=calibration_factor, bias_module=bias_module)
+            this_hook = fake_quantize_module.register_forward_hook(_bias_calibration_hook_binded)
+            all_hooks.append(this_hook)
+        #
+    #
+    return all_hooks
+
+
+def _outlier_suppression_range(x, dim=(0,1), sigma_factor=3.0):
+    return xnn.utils.sigma_range(x, dim=dim, sigma_factor=sigma_factor)
+
+
+def _fc_outlier_supression_pre_hook(m, x):
+    if isinstance(x, tuple):
+        is_tuple = True
+        x = x[0]
+    else:
+        is_tuple = False
+    #
+    min_val, max_val = _outlier_suppression_range(x)
+    x = torch.clip(x, min=min_val, max=max_val)
+    return tuple([x]) if is_tuple else x
+
+
+def is_mlp_fc2_layer(node, find_level, found_gelu=False, gelu_node=None):
+    if find_level < 0 or not(hasattr(node, 'target')):
+        return False, gelu_node
+    if node.target == torch.ops.aten.linear.default:
+        if found_gelu: 
+            return True, gelu_node
+        # else: 
+        #     # found linear before the gelu layer
+        #     return False, gelu_node
+        #
+    #
+    elif node.target is torch.ops.aten.gelu.default:
+        gelu_node = node
+        found_gelu = True
+        
+    if hasattr(node, "args") and len(node.args)>0:
+        return is_mlp_fc2_layer(node.args[0], find_level-1, found_gelu, gelu_node)
+    else:
+        return False, gelu_node
+    #
+
+
+def add_fc_outlier_supression_hook(model):
+    all_modules = dict(model.named_modules())
+    all_hooks = []
+    
+    module_partitions = get_source_partitions(
+        model.graph, [torch.nn.Linear, torch.nn.functional.linear, 'linear']
+    )
+    
+    for module_or_fn_type, partitions in module_partitions.items():
+        for p in partitions:
+            inp_nodes = p.input_nodes 
+            prev_node = None
+            for node in inp_nodes:
+                if isinstance(node.prev.target, str) and 'param_constant' in node.prev.target:
+                    continue
+                else:
+                    prev_node = node
+        
+            assert prev_node is not None, print("prev_node is node in trying to iterate over nodes") 
+            
+            found_mlp_fc2_layer, gelu_node = is_mlp_fc2_layer(prev_node, 6)
+            if found_mlp_fc2_layer:
+                output_node = None
+                for node in p.output_nodes:
+                    if not(isinstance(node.target,str) and 'param_constant' in node.target):
+                        output_node = node 
+                        break
+                if output_node is not None:
+                    if isinstance(output_node.target,str) and hasattr(model, output_node.target) and isinstance(getattr(model, output_node.target), torch.nn.Module):
+                        act_node = output_node
+                    else:
+                        act_node = output_node.next
+                this_hook1 = getattr(model, act_node.target).register_forward_pre_hook(_fc_outlier_supression_pre_hook)
+                # this_hook2 = getattr(model, gelu_node.next.target).register_forward_pre_hook(_fc_outlier_supression_hook)
+                all_hooks.append(this_hook1)
+                # all_hooks.append(this_hook2)
+                
+    return all_hooks

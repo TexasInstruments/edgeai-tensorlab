@@ -1,0 +1,63 @@
+# Copyright (c) 2018-2025, Texas Instruments
+# All Rights Reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright notice, this
+#   list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+#
+# * Neither the name of the copyright holder nor the names of its
+#   contributors may be used to endorse or promote products derived from
+#   this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+## This is a file containing utility functions
+import torch
+import onnx_graphsurgeon as gs
+import onnx
+
+def add_all_outputs_torch_model(model: torch.fx.GraphModule):
+    '''
+    Note: Normal Torch FX graph will work fine after this, but PT2E exported models wont
+    work fully after it. Still this can be used for debugging them as the forward function 
+    will fail on the last line (return pytree.tree_unflatten((....), self._out_specs)
+    '''
+    nodes = list(model.graph.nodes)
+    out = nodes[-1]
+    args = tuple([n for n in nodes[:-1] if n not in out.args[0]])
+    out.args = tuple([args])
+    model.graph.lint()
+    model.recompile()
+
+def add_all_outputs_onnx_gs_graph(graph:gs.Graph):
+    for node in graph.nodes:
+        if node.op in ('Constant',):
+            continue
+        for out in node.outputs:
+            if out in graph.outputs:
+                continue
+            graph.outputs.append(out)
+    graph.cleanup().toposort()
+
+def add_all_outputs_onnx_model(model:onnx.ModelProto):
+    ir =  model.ir_version
+    graph = gs.import_onnx(model)
+    add_all_outputs_onnx_gs_graph(graph)
+    model = gs.export_onnx(graph)
+    model.ir_version = ir
+    return model
