@@ -9,18 +9,16 @@ Edge AI model training, quantization, compilation/benchmark & Model Zoo
 
 <hr>
 
-## Release 11.1
-* Release name: **11.1**
-* Git branch: **r11.1**
-* tidl_tools version: **11_01_06_00**
-* [edgeai-tidl-tools git tag: 11_01_06_00](https://github.com/TexasInstruments/edgeai-tidl-tools/releases/tag/11_01_06_00)
-* Date: 2025 September 25
+## Release 11.2
+* Release name: **11.2**
+* Git branch: **r11.2**
+* tidl_tools version: **11_02_04_00**
+* [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) git tag: [11_02_04_00](https://github.com/TexasInstruments/edgeai-tidl-tools/releases/tag/11_02_04_00)
+* Date: 2026 March 24
 
-Updated to match latest edgeai-tidl-tools release. For more details about features and bug fixes in TIDL, please see the documentation of edgeai-tidl-tools (link above)
+Updated to match latest edgeai-tidl-tools release (This restructured version edgeai-tidl-tools is has an easier to use interface and scripts)
 
-Models that are not enabled by default in edgeai-benchmark (model_shortlist=100) have been removed from edgeai-modelzoo as well.
-
-Example config files for models (_config.yaml file for each model) have been made more consistent - these now mostly only have parameters that are related to the model properties.
+Our recommended tool for model benchmark is now [edgeai-tidlrunner](https://github.com/TexasInstruments/edgeai-tidlrunner) instead of edgeai-benchmark. It supports a simple command line and config file based interfaces that are easier to use.
 
 
 **More details are in the [Release Notes](./docs/release_notes.md)**
@@ -90,6 +88,8 @@ Want do use Edge AI on TI's MPU devices - but don't know where to start? We have
 |Model training code    | [**edgeai-torchvision**](edgeai-torchvision)<br>[**edgeai-mmdetection**](edgeai-mmdetection)<br>[edgeai-mmdetection3d](edgeai-mmdetection3d)<br>[edgeai-hf-transformers](edgeai-hf-transformers)<br>[edgeai-mmpose](edgeai-mmpose)<br>[edgeai-tensorvision](edgeai-tensorvision) | Training repositories for various tasks<br>- Provides extensions of popular training repositories (like mmdetection, torchvision) with lite version of models |- Does not support Tensorflow |
 |**End-to-end Model development - Datasets, Training & Compilation**   | [**edgeai-modelmaker**](edgeai-modelmaker)       | **Beginner friendly**, command line, integrated environment for training & compilation<br>- Bring your own data, select a model, perform training and generate artifacts for deployment on SDK<br>- Backend tool for model composer (early availability of features compared to Model Composer ) |- Does not support Bring Your Own Model workflow |
 |Example datasets, used in edgeai-modelmaker         | [edgeai-datasets](edgeai-datasets)           | Example datasets   |          |
+
+**Note**: Our recommended tool for model benchmark is now [edgeai-tidlrunner](https://github.com/TexasInstruments/edgeai-tidlrunner) instead of edgeai-benchmark. It supports a simple command line and config file based interfaces that are easier to use. edgeai-benchmark will be gradually deprecated. 
 
 <hr>
 

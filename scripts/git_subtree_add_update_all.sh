@@ -30,7 +30,7 @@
 
 # note: this script is for development only - not meant to be used by users
 
-RELEASE_BRANCH=${1-"r11.1"}
+RELEASE_BRANCH=${1-"r11.2"}
 
 GIT_REPOS=( edgeai-modelzoo edgeai-modelmaker edgeai-modeloptimization edgeai-benchmark edgeai-torchvision edgeai-tensorvision edgeai-mmdetection edgeai-mmdetection3d edgeai-mmpose edgeai-hf-transformers edgeai-mmdeploy edgeai-yolox )
 

@@ -3,6 +3,20 @@
 
 <hr>
 
+## Release 11.2
+* Release name: **11.2**
+* Git branch: **r11.2**
+* tidl_tools version: **11_02_04_00**
+* [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) git tag: [11_02_04_00](https://github.com/TexasInstruments/edgeai-tidl-tools/releases/tag/11_02_04_00)
+* Date: 2026 March 24
+
+Updated to match latest edgeai-tidl-tools release (This restructured version edgeai-tidl-tools is has an easier to use interface and scripts)
+
+Our recommended tool for model benchmark is now [edgeai-tidlrunner](https://github.com/TexasInstruments/edgeai-tidlrunner) instead of edgeai-benchmark. It supports a simple command line and config file based interfaces that are easier to use.
+
+
+<hr>
+
 ## Release 11.1
 * Release name: **11.1**
 * Git branch: **r11.1**
