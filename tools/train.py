@@ -209,7 +209,7 @@ def main(args=None):
 
     if model_surgery == 1:
         device = next(runner.model.parameters()).device
-        runner.model = xmodelopt.surgery.v1.convert_to_lite_model(runner.model, replacement_dict=model_surgery_kwargs['replacement_dict'])
+        runner.model = xmodelopt.experimental.surgery.v1.convert_to_lite_model(runner.model, replacement_dict=model_surgery_kwargs['replacement_dict'])
         runner.model = runner.model.to(torch.device(device))
     else:
         # orig_model = deepcopy(runner.model)

@@ -98,7 +98,7 @@ def get_replacement_dict(model_surgery_version, cfg):
         convert_to_lite_model_args = dict()
 
     if model_surgery_version == 1:
-        replacement_dict = copy.deepcopy(edgeai_torchmodelopt.xmodelopt.surgery.v1.get_replacement_dict_default(**convert_to_lite_model_args))
+        replacement_dict = copy.deepcopy(edgeai_torchmodelopt.xmodelopt.experimental.surgery.v1.get_replacement_dict_default(**convert_to_lite_model_args))
         replacements_ext = {
             'mmdet_focus_to_focus_lite':{Focus:[FocusLite, 'in_channels', 'out_channels', 'kernel_size', 'stride']},
             'mmdet_swish_to_relu':{ bricks.Swish:[nn.ReLU]},
@@ -107,7 +107,7 @@ def get_replacement_dict(model_surgery_version, cfg):
         replacement_dict.update(replacements_ext)
     
     elif model_surgery_version == 2:
-        replacement_dict = copy.deepcopy(edgeai_torchmodelopt.xmodelopt.surgery.v2.get_replacement_flag_dict_default())
+        replacement_dict = copy.deepcopy(edgeai_torchmodelopt.xmodelopt.experimental.surgery.v2.get_replacement_flag_dict_default())
         replacements_ext = {
             'mmdet_focus_to_focus_lite':{'focus':replace_focus_with_focus_lite},
             'mmdet_swish_to_relu':{bricks.Swish():nn.ReLU}, # as this swish is not a nn Module it gets traced through in symbolic traced in v2
@@ -116,7 +116,7 @@ def get_replacement_dict(model_surgery_version, cfg):
         replacement_dict.update(replacements_ext)
     
     elif model_surgery_version == 3:
-        replacement_dict = copy.deepcopy(edgeai_torchmodelopt.xmodelopt.surgery.v3.get_replacement_flag_dict_default())
+        replacement_dict = copy.deepcopy(edgeai_torchmodelopt.xmodelopt.experimental.surgery.v3.get_replacement_flag_dict_default())
         replacements_ext = {
             'mmdet_focus_to_focus_lite':{Focus:gen_func_for_focus},
             'mmdet_swish_to_relu':{bricks.Swish:nn.ReLU},
