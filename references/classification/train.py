@@ -347,20 +347,20 @@ def main(args):
     print("Creating model")
     model, surgery_kwargs = model_utils.get_model(args.model, weights=args.weights_enum, num_classes=num_classes, model_surgery=args.model_surgery)
 
-    if args.model_surgery == edgeai_torchmodelopt.xmodelopt.surgery.SyrgeryVersion.SURGERY_LEGACY:
-        model = edgeai_torchmodelopt.xmodelopt.surgery.v1.convert_to_lite_model(model, **surgery_kwargs)
-    elif args.model_surgery == edgeai_torchmodelopt.xmodelopt.surgery.SyrgeryVersion.SURGERY_FX:
+    if args.model_surgery == edgeai_torchmodelopt.xmodelopt.experimental.surgery.SyrgeryVersion.SURGERY_LEGACY:
+        model = edgeai_torchmodelopt.xmodelopt.experimental.surgery.v1.convert_to_lite_model(model, **surgery_kwargs)
+    elif args.model_surgery == edgeai_torchmodelopt.xmodelopt.experimental.surgery.SyrgeryVersion.SURGERY_FX:
         print("Performing Surgery on the Model")
-        model = edgeai_torchmodelopt.xmodelopt.surgery.v2.convert_to_lite_fx(model)
+        model = edgeai_torchmodelopt.xmodelopt.experimental.surgery.v2.convert_to_lite_fx(model)
 
     if args.weights_url and (not args.test_only):
         print(f"loading pretrained checkpoint for training: {args.weights_url}")
         edgeai_torchmodelopt.xnn.utils.load_weights(model, args.weights_url, state_dict_name=args.weights_state_dict_name)
 
-    if args.pruning == edgeai_torchmodelopt.xmodelopt.pruning.PruningVersion.PRUNING_LEGACY:
+    if args.pruning == edgeai_torchmodelopt.xmodelopt.experimental.pruning.PruningVersion.PRUNING_LEGACY:
         assert False, "Pruning is currently not supported in the legacy modules based method"
-    elif args.pruning == edgeai_torchmodelopt.xmodelopt.pruning.PruningVersion.PRUNING_FX: #2
-        model = edgeai_torchmodelopt.xmodelopt.pruning.PrunerModule(model, pruning_ratio=args.pruning_ratio, total_epochs=args.epochs, pruning_init_train_ep=args.pruning_init_train_ep,
+    elif args.pruning == edgeai_torchmodelopt.xmodelopt.experimental.pruning.PruningVersion.PRUNING_FX: #2
+        model = edgeai_torchmodelopt.xmodelopt.experimental.pruning.PrunerModule(model, pruning_ratio=args.pruning_ratio, total_epochs=args.epochs, pruning_init_train_ep=args.pruning_init_train_ep,
                                             pruning_class=args.pruning_class, pruning_type=args.pruning_type, pruning_global=args.pruning_global, pruning_m=args.pruning_m)
 
     if args.quantization == edgeai_torchmodelopt.xmodelopt.quantization.QuantizationVersion.QUANTIZATION_LEGACY:
@@ -695,7 +695,7 @@ def get_args_parser(add_help=True):
 
     parser.add_argument("--update-parameters", default=1, type=int, help="The model parameters will not be updated during training if this flag is set to True")
     # options to create faster models
-    parser.add_argument("--model-surgery", "--lite-model", default=0, type=int, choices=edgeai_torchmodelopt.xmodelopt.surgery.SyrgeryVersion.get_choices(), help="model surgery to create lite models")
+    parser.add_argument("--model-surgery", "--lite-model", default=0, type=int, choices=edgeai_torchmodelopt.xmodelopt.experimental.surgery.SyrgeryVersion.get_choices(), help="model surgery to create lite models")
 
     parser.add_argument("--quantization", "--quantize", dest="quantization", default=0, type=int, choices=edgeai_torchmodelopt.xmodelopt.quantization.QuantizationVersion.get_choices(), help="Quaantization Aware Training (QAT)")
     parser.add_argument("--quantization-type", default=None, help="Actual Quantization Flavour - applies only if quantization is enabled")
