@@ -1,0 +1,9 @@
+requests
+tqdm
+h5py
+plyfile
+scikit-learn
+onnx
+loguru
+einops
+xtcocotools
