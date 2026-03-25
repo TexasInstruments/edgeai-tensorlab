@@ -1,0 +1,344 @@
+globals:
+  repo_url: https://github.com/open-mmlab/mmocr/tree/main
+  codebase_dir: ../mmocr
+  checkpoint_force_download: False
+  images:
+    img_densetext_det: &img_densetext_det ../mmocr/demo/demo_densetext_det.jpg
+    img_demo_text_det: &img_demo_text_det ../mmocr/demo/demo_text_det.jpg
+    img_demo_text_recog: &img_demo_text_recog ../mmocr/demo/demo_text_recog.jpg
+  metric_info: &metric_info
+    hmean-iou: # named after metafile.Results.Metrics
+      metric_key: icdar/hmean # eval key name
+      tolerance: 0.15 # metric ±n%
+    IIIT5K word_acc:
+      metric_key: IIIT5K/recog/word_acc_ignore_case_symbol
+      tolerance: 0.05 # metric ±n%
+      dataset: IIIT5K
+    SVT word_acc:
+      metric_key: SVT/recog/word_acc_ignore_case_symbol
+      tolerance: 0.05 # metric ±n%
+      dataset: SVT
+    SVTP word_acc:
+      metric_key: SVTP/recog/word_acc_ignore_case_symbol
+      tolerance: 0.05 # metric ±n%
+      dataset: SVTP
+  convert_image_det: &convert_image_det
+    input_img: *img_densetext_det
+    test_img: *img_demo_text_det
+  convert_image_rec: &convert_image_rec
+    input_img: *img_demo_text_recog
+    test_img: *img_demo_text_recog
+  backend_test: &default_backend_test True
+  sdk:
+    sdk_detection_dynamic: &sdk_detection_dynamic configs/mmocr/text-detection/text-detection_sdk_dynamic.py
+    sdk_recognition_dynamic: &sdk_recognition_dynamic configs/mmocr/text-recognition/text-recognition_sdk_dynamic.py
+
+onnxruntime:
+  # ======= detection =======
+  pipeline_ort_detection_static_fp32: &pipeline_ort_detection_static_fp32
+    convert_image: *convert_image_det
+    deploy_config: configs/mmocr/text-detection/text-detection_onnxruntime_static.py
+
+  pipeline_ort_detection_dynamic_fp32: &pipeline_ort_detection_dynamic_fp32
+    convert_image: *convert_image_det
+    deploy_config: configs/mmocr/text-detection/text-detection_onnxruntime_dynamic.py
+
+  pipeline_ort_detection_dynamic_fp16: &pipeline_ort_detection_dynamic_fp16
+    convert_image: *convert_image_det
+    deploy_config: configs/mmocr/text-detection/text-detection_onnxruntime-fp16_dynamic.py
+
+  pipeline_ort_detection_mrcnn_dynamic_fp32: &pipeline_ort_detection_mrcnn_dynamic_fp32
+    convert_image: *convert_image_det
+    deploy_config: configs/mmocr/text-detection/text-detection_mrcnn_onnxruntime_dynamic.py
+
+  # ======= recognition =======
+  pipeline_ort_recognition_static_fp32: &pipeline_ort_recognition_static_fp32
+    convert_image: *convert_image_rec
+    deploy_config: configs/mmocr/text-recognition/text-recognition_onnxruntime_static.py
+
+  pipeline_ort_recognition_dynamic_fp32: &pipeline_ort_recognition_dynamic_fp32
+    convert_image: *convert_image_rec
+    deploy_config: configs/mmocr/text-recognition/text-recognition_onnxruntime_dynamic.py
+
+  pipeline_ort_recognition_dynamic_fp16: &pipeline_ort_recognition_dynamic_fp16
+    convert_image: *convert_image_rec
+    deploy_config: configs/mmocr/text-recognition/text-recognition_onnxruntime-fp16_dynamic.py
+
+
+tensorrt:
+  # ======= detection =======
+  pipeline_trt_detection_static_fp32: &pipeline_trt_detection_static_fp32
+    convert_image: *convert_image_det
+    backend_test: *default_backend_test
+    sdk_config: *sdk_detection_dynamic
+    deploy_config: configs/mmocr/text-detection/text-detection_tensorrt_static-512x512.py
+
+  pipeline_trt_detection_static_fp16: &pipeline_trt_detection_static_fp16
+    convert_image: *convert_image_det
+    backend_test: *default_backend_test
+    sdk_config: *sdk_detection_dynamic
+    deploy_config: configs/mmocr/text-detection/text-detection_tensorrt-fp16_static-512x512.py
+
+  pipeline_trt_detection_static_int8: &pipeline_trt_detection_static_int8
+    convert_image: *convert_image_det
+    backend_test: *default_backend_test
+    sdk_config: *sdk_detection_dynamic
+    deploy_config: configs/mmocr/text-detection/text-detection_tensorrt-int8_static-512x512.py
+
+  pipeline_trt_detection_dynamic_fp32: &pipeline_trt_detection_dynamic_fp32
+    convert_image: *convert_image_det
+    backend_test: *default_backend_test
+    deploy_config: configs/mmocr/text-detection/text-detection_tensorrt_dynamic-320x320-2240x2240.py
+
+  pipeline_trt_detection_mrcnn_dynamic_fp32: &pipeline_trt_detection_mrcnn_dynamic_fp32
+    convert_image: *convert_image_det
+    backend_test: *default_backend_test
+    sdk_config: *sdk_detection_dynamic
+    deploy_config: configs/mmocr/text-detection/text-detection_mrcnn_tensorrt_dynamic-320x320-2240x2240.py
+
+  pipeline_trt_detection_dynamic_fp16: &pipeline_trt_detection_dynamic_fp16
+    convert_image: *convert_image_det
+    backend_test: *default_backend_test
+    sdk_config: *sdk_detection_dynamic
+    deploy_config: configs/mmocr/text-detection/text-detection_tensorrt-fp16_dynamic-320x320-2240x2240.py
+
+  pipeline_trt_detection_mrcnn_dynamic_fp16: &pipeline_trt_detection_mrcnn_dynamic_fp16
+    convert_image: *convert_image_det
+    backend_test: *default_backend_test
+    sdk_config: *sdk_detection_dynamic
+    deploy_config: configs/mmocr/text-detection/text-detection_mrcnn_tensorrt-fp16_dynamic-320x320-2240x2240.py
+
+  pipeline_trt_detection_dynamic_int8: &pipeline_trt_detection_dynamic_int8
+    convert_image: *convert_image_det
+    backend_test: *default_backend_test
+    sdk_config: *sdk_detection_dynamic
+    deploy_config: configs/mmocr/text-detection/text-detection_tensorrt-int8_dynamic-320x320-2240x2240.py
+
+  # ======= recognition =======
+  pipeline_trt_recognition_static_fp32_C1: &pipeline_trt_recognition_static_fp32_C1
+    convert_image: *convert_image_rec
+    backend_test: *default_backend_test
+    sdk_config: *sdk_recognition_dynamic
+    deploy_config: configs/mmocr/text-recognition/text-recognition_tensorrt_static-1x32x32.py
+
+  # ABINet models with static shape 32x128
+  pipeline_trt_recognition_static_fp32_C3: &pipeline_trt_recognition_static_fp32_C3
+    convert_image: *convert_image_rec
+    backend_test: *default_backend_test
+    sdk_config: *sdk_recognition_dynamic
+    deploy_config: configs/mmocr/text-recognition/text-recognition_tensorrt_static-32x128.py
+
+  pipeline_trt_recognition_static_fp16_C3: &pipeline_trt_recognition_static_fp16_C3
+    convert_image: *convert_image_rec
+    backend_test: *default_backend_test
+    sdk_config: *sdk_recognition_dynamic
+    deploy_config: configs/mmocr/text-recognition/text-recognition_tensorrt-fp16_static-32x128.py
+
+  # SAR models with height 48 and channel 3
+  pipeline_trt_recognition_dynamic_fp32_H48_C3: &pipeline_trt_recognition_dynamic_fp32_H48_C3
+    convert_image: *convert_image_rec
+    backend_test: *default_backend_test
+    sdk_config: *sdk_recognition_dynamic
+    deploy_config: configs/mmocr/text-recognition/text-recognition_tensorrt_dynamic-48x64-48x640.py
+
+  pipeline_trt_recognition_dynamic_fp16_H48_C3: &pipeline_trt_recognition_dynamic_fp16_H48_C3
+    convert_image: *convert_image_rec
+    backend_test: *default_backend_test
+    sdk_config: *sdk_recognition_dynamic
+    deploy_config: configs/mmocr/text-recognition/text-recognition_tensorrt-fp16_dynamic-48x64-48x640.py
+
+  pipeline_trt_recognition_dynamic_int8_H48_C3: &pipeline_trt_recognition_dynamic_int8_H48_C3
+    convert_image: *convert_image_rec
+    backend_test: *default_backend_test
+    sdk_config: *sdk_recognition_dynamic
+    deploy_config: configs/mmocr/text-recognition/text-recognition_tensorrt-int8_dynamic-48x64-48x640.py
+
+  # CRNN models with height 32 and channel 1
+  pipeline_trt_recognition_dynamic_fp32_H32_C1: &pipeline_trt_recognition_dynamic_fp32_H32_C1
+    convert_image: *convert_image_rec
+    backend_test: *default_backend_test
+    sdk_config: *sdk_recognition_dynamic
+    deploy_config: configs/mmocr/text-recognition/text-recognition_tensorrt_dynamic-1x32x32-1x32x640.py
+
+  pipeline_trt_recognition_dynamic_fp16_H32_C1: &pipeline_trt_recognition_dynamic_fp16_H32_C1
+    convert_image: *convert_image_rec
+    backend_test: *default_backend_test
+    sdk_config: *sdk_recognition_dynamic
+    deploy_config: configs/mmocr/text-recognition/text-recognition_tensorrt-fp16_dynamic-1x32x32-1x32x640.py
+
+  pipeline_trt_recognition_dynamic_int8_H32_C1: &pipeline_trt_recognition_dynamic_int8_H32_C1
+    convert_image: *convert_image_rec
+    backend_test: *default_backend_test
+    sdk_config: *sdk_recognition_dynamic
+    deploy_config: configs/mmocr/text-recognition/text-recognition_tensorrt-int8_dynamic-1x32x32-1x32x640.py
+
+  # SATRN models with height 32 and channel 3
+  pipeline_trt_recognition_dynamic_fp32_H32_C3: &pipeline_trt_recognition_dynamic_fp32_H32_C3
+    convert_image: *convert_image_rec
+    backend_test: *default_backend_test
+    sdk_config: *sdk_recognition_dynamic
+    deploy_config: configs/mmocr/text-recognition/text-recognition_tensorrt_dynamic-32x32-32x640.py
+
+  pipeline_trt_recognition_dynamic_fp16_H32_C3: &pipeline_trt_recognition_dynamic_fp16_H32_C3
+    convert_image: *convert_image_rec
+    backend_test: *default_backend_test
+    sdk_config: *sdk_recognition_dynamic
+    deploy_config: configs/mmocr/text-recognition/text-recognition_tensorrt-fp16_dynamic-32x32-32x640.py
+
+  pipeline_trt_recognition_dynamic_int8_H32_C3: &pipeline_trt_recognition_dynamic_int8_H32_C3
+    convert_image: *convert_image_rec
+    backend_test: *default_backend_test
+    sdk_config: *sdk_recognition_dynamic
+    deploy_config: configs/mmocr/text-recognition/text-recognition_tensorrt-int8_dynamic-32x32-32x640.py
+
+openvino:
+  pipeline_openvino_detection_dynamic_fp32: &pipeline_openvino_detection_dynamic_fp32
+    convert_image: *convert_image_det
+    backend_test: *default_backend_test
+    deploy_config: configs/mmocr/text-detection/text-detection_openvino_dynamic-640x640.py
+
+#  pipeline_openvino_recognition_dynamic_fp32: &pipeline_openvino_recognition_dynamic_fp32
+#    convert_image: *convert_image_rec
+#    backend_test: *default_backend_test
+#    deploy_config:
+
+ncnn:
+  pipeline_ncnn_detection_static_fp32: &pipeline_ncnn_detection_static_fp32
+    convert_image: *convert_image_det
+    backend_test: False
+    deploy_config: configs/mmocr/text-detection/text-detection_ncnn_static.py
+
+  pipeline_ncnn_recognition_static_fp32: &pipeline_ncnn_recognition_static_fp32
+    convert_image: *convert_image_rec
+    backend_test: False
+    deploy_config: configs/mmocr/text-recognition/text-recognition_ncnn_static.py
+
+pplnn:
+  pipeline_pplnn_detection_dynamic_fp32: &pipeline_pplnn_detection_dynamic_fp32
+    convert_image: *convert_image_det
+    backend_test: False
+    deploy_config: configs/mmocr/text-detection/text-detection_pplnn_dynamic-640x640.py
+
+  pipeline_pplnn_recognition_dynamic_fp32: &pipeline_pplnn_recognition_dynamic_fp32
+    convert_image: *convert_image_rec
+    backend_test: False
+    deploy_config: configs/mmocr/text-recognition/text-recognition_pplnn_dynamic-1x32x32.py
+
+torchscript:
+  pipeline_ts_detection_fp32: &pipeline_ts_detection_fp32
+    convert_image: *convert_image_det
+    backend_test: False
+    deploy_config: configs/mmocr/text-detection/text-detection_torchscript.py
+
+  pipeline_ts_detection_mrcnn_fp32: &pipeline_ts_detection_mrcnn_fp32
+    convert_image: *convert_image_det
+    backend_test: False
+    deploy_config: configs/mmocr/text-detection/text-detection_mrcnn_torchscript.py
+
+  pipeline_ts_recognition_fp32: &pipeline_ts_recognition_fp32
+    convert_image: *convert_image_rec
+    backend_test: False
+    deploy_config: configs/mmocr/text-recognition/text-recognition_torchscript.py
+
+
+models:
+  - name: DBNet
+    metafile: configs/textdet/dbnet/metafile.yml
+    model_configs:
+      - configs/textdet/dbnet/dbnet_resnet18_fpnc_1200e_icdar2015.py
+    pipelines:
+      - *pipeline_ts_detection_fp32
+      - *pipeline_ort_detection_dynamic_fp32
+      - *pipeline_trt_detection_dynamic_fp16
+      - *pipeline_ncnn_detection_static_fp32
+      - *pipeline_pplnn_detection_dynamic_fp32
+      - *pipeline_openvino_detection_dynamic_fp32
+
+  - name: DBNetpp
+    metafile: configs/textdet/dbnetpp/metafile.yml
+    model_configs:
+      - configs/textdet/dbnetpp/dbnetpp_resnet50_fpnc_1200e_icdar2015.py
+    pipelines:
+      - *pipeline_ort_detection_dynamic_fp32
+      - *pipeline_trt_detection_dynamic_fp16
+      - *pipeline_ncnn_detection_static_fp32
+      - *pipeline_openvino_detection_dynamic_fp32
+
+  - name: PANet
+    metafile: configs/textdet/panet/metafile.yml
+    model_configs:
+      - configs/textdet/panet/panet_resnet18_fpem-ffm_600e_icdar2015.py
+    pipelines:
+      - *pipeline_ts_detection_fp32
+      - *pipeline_ort_detection_dynamic_fp32
+      - *pipeline_trt_detection_dynamic_fp16
+      - *pipeline_ncnn_detection_static_fp32
+      - *pipeline_pplnn_detection_dynamic_fp32
+      - *pipeline_openvino_detection_dynamic_fp32
+
+  - name: PSENet
+    metafile: configs/textdet/psenet/metafile.yml
+    model_configs:
+      - configs/textdet/psenet/psenet_resnet50_fpnf_600e_icdar2015.py
+    pipelines:
+      - *pipeline_ts_detection_fp32
+      - *pipeline_ort_detection_dynamic_fp32
+      - *pipeline_trt_detection_dynamic_fp16
+      - *pipeline_ncnn_detection_static_fp32
+      - *pipeline_pplnn_detection_dynamic_fp32
+      - *pipeline_openvino_detection_dynamic_fp32
+
+  - name: TextSnake
+    metafile: configs/textdet/textsnake/metafile.yml
+    model_configs:
+      - configs/textdet/textsnake/textsnake_resnet50_fpn-unet_1200e_ctw1500.py
+    pipelines:
+      - *pipeline_ts_detection_fp32
+      - *pipeline_ort_detection_dynamic_fp32
+      - *pipeline_trt_detection_dynamic_fp32
+
+  - name: MaskRCNN
+    metafile: configs/textdet/maskrcnn/metafile.yml
+    model_configs:
+      - configs/textdet/maskrcnn/mask-rcnn_resnet50_fpn_160e_icdar2015.py
+    pipelines:
+      - *pipeline_ts_detection_mrcnn_fp32
+      - *pipeline_ort_detection_mrcnn_dynamic_fp32
+      - *pipeline_trt_detection_mrcnn_dynamic_fp32
+
+  - name: CRNN
+    metafile: configs/textrecog/crnn/metafile.yml
+    model_configs:
+      - configs/textrecog/crnn/crnn_mini-vgg_5e_mj.py
+    pipelines:
+      - *pipeline_ts_recognition_fp32
+      - *pipeline_ort_recognition_dynamic_fp32
+      - *pipeline_trt_recognition_dynamic_fp16_H32_C1
+      - *pipeline_ncnn_recognition_static_fp32
+      - *pipeline_pplnn_recognition_dynamic_fp32
+
+  - name: SAR
+    metafile: configs/textrecog/sar/metafile.yml
+    model_configs:
+      - configs/textrecog/sar/sar_resnet31_parallel-decoder_5e_st-sub_mj-sub_sa_real.py
+    pipelines:
+      - *pipeline_ts_recognition_fp32
+      - *pipeline_ort_recognition_dynamic_fp32
+
+  - name: SATRN
+    metafile: configs/textrecog/satrn/metafile.yml
+    model_configs:
+      - configs/textrecog/satrn/satrn_shallow-small_5e_st_mj.py
+    pipelines:
+      - *pipeline_ts_recognition_fp32
+      - *pipeline_ort_recognition_dynamic_fp32
+      - *pipeline_trt_recognition_dynamic_fp32_H32_C3
+
+  - name: ABINet
+    metafile: configs/textrecog/abinet/metafile.yml
+    model_configs:
+      - configs/textrecog/abinet/abinet_20e_st-an_mj.py
+    pipelines:
+      - *pipeline_ts_recognition_fp32
+      - *pipeline_ort_recognition_static_fp32
+      - *pipeline_trt_recognition_static_fp16_C3

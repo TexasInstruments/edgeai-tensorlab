@@ -1,0 +1,3 @@
+include mmdeploy_runtime/*.so*
+include mmdeploy_runtime/*.dll
+include mmdeploy_runtime/*.pyd
