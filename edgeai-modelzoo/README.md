@@ -5,24 +5,17 @@ This repository provides a collection of example Deep Neural Network (DNN) Model
 In order to run Deep Neural Networks (a.k.a. DNNs or Deep Learning Models or simply models) on embedded hardware, they need to be optimized and converted into embedded friendly formats. We have converted/exported several models from the original training frameworks in PyTorch, Tensorflow and MxNet into these embedded friendly formats and is being hosted in this repository. In this process we also make sure that these models provide optimized inference speed on our SoCs, so sometimes minor modifications are made to the models wherever necessary. These models provide a good starting point for our customers to explore high performance Deep Learning on our SoCs.
 
 
-### Notice
-If you have not visited the following landing pages, please do so before attempting to use this repository.
+## Notice
+For a high level overview of various solutions and tools for edge AI, visit the following landing pages:
 - https://www.ti.com/edgeai 
-- https://dev.ti.com/edgeai/
-- https://github.com/TexasInstruments/edgeai
-- Important Note: The models in this repository are being made available for experimentation and development  - they are not meant for deployment in production.
+- https://github.com/TexasInstruments/edgeai/tree/main/edgeai-mpu
 
-<hr>
-<hr>
 
-## Models & Documentation
+## Models & documentation
+Pretrained Neural Network models are located in the [models](./models) folder. (This repository contains .link files which have the URLs of actual models). 
 
-<hr>
+These models are arranged according to task that they are used for.
 
-### Pre-trained models collection & documentation
-
-Pretrained models are located in the **[models](models)** folder. Following are the broad categories  of models included. Go through each section to understand details of the models and how they are trained. 
- 
 #### Image classification
 - [Image Classification Models](./models/vision/classification/) includes CNN models and **Transformer models**
 
@@ -46,73 +39,38 @@ Pretrained models are located in the **[models](models)** folder. Following are 
 - [MLPerf Machine Learning Models](./models/docs/mlperf/)
 
 
-<hr>
-<hr>
+## Model compilation tools
+- [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) describes details of tidl-tools and firmware. This can also be used for model compilation.
+- [edgeai-tidlrunner](https://github.com/TexasInstruments/edgeai-tidlrunner) is a high level commandline model compilation and benchmark tool - that can be used to do compilation and also measure performance and accuracy. Also see the [configs that can be used to compile and benchmark these models](https://github.com/TexasInstruments/edgeai-tidlrunner/tree/main/data/configs/modelzoo) using edgeai-tidlrunner.
 
-## Compiled models - performance / accuracy / artifacts
 
-#### Tools & versions
-- This model compilation report is generated using edgeai-tensorlab/edgeai-benchmark, branch r10.1, which uses 10.1 version of tidl-tools
-- uses firmware update 10_01_04_00 as described in edgeai-benchmark, using the script run_benchmarks_firmware_update_pc.sh
-- edgeai-tidl-tools describes the supported tidl-tools versions and firmware updates required.
+## Supported SOCs
+List of supported SOCs are in listed in the edgeai landing page [here](https://github.com/TexasInstruments/edgeai/blob/main/readme_sdk.md).
+
+
+## Model Selection Tool - Performance Visualization
+- [Edge AI Studio: Model Selection Tool](https://www.ti.com/tool/EDGE-AI-STUDIO) - Understand the performance statistics such as FPS, Latency, Accuracy & DDR bandwidth of models in the Model Zoo. Find a model that best meets your performance and accuracy goals on TI Processor from TI Model Zoo.
+- Note: The model compilation for this section here in "Model Selection Tool - Performance Visualization" uses a setting that focuses on getting the best inference time. This is equivalent to setting detection_threshold to 0.3 and detection_top_k to 200 in edgeai-benchmark/settings_base.yaml
+
+
+## Model Compilation / Accuracy report
+- [See the accuracy report, with measurements on PC emulation](./reports/accuracy_report_20250310-190344_pc.md) and the corresponding [csv file](./reports/accuracy_report_20250310-190344_pc.csv)
+- Note: The model compilation for this report here, in "Model Compilation / Accuracy report" focuses on a setting that is suitable for accuracy measurement. This is equivalent to setting detection_threshold to 0.05 and detection_top_k to 500 in edgeai-benchmark/settings_base.yaml
 
 #### Notes on accuracy measurements
 - Note: Since there are multiple models and devices, our report uses accuracy measured using **only on 1000 frames** to reduce the benchmark time. It is likely that this reported accuracy using smaller set of frames is similar to the accuracy on the entire validation set, but may not be exactly same. For accurate measurements, it is recommended to use the entire validation set.
 - Note: Measuring accuracy of object detection models requires to use a low detection threshold, that is not suitable for real-time inference. Because, in real inference, we are only interested in high confidence detections - including too many unnecessary low confidence detections also will affect inference time. Hence, we have separate report for performance/inference time and accuracy.
 
 
-<hr>
-
-### Model Selection Tool - Performance Visualization
-- [Edge AI Studio: Model Selection Tool](https://www.ti.com/tool/EDGE-AI-STUDIO) - Understand the performance statistics such as FPS, Latency, Accuracy & DDR bandwidth of models in the Model Zoo. Find a model that best meets your performance and accuracy goals on TI Processor from TI Model Zoo.
-- Note: The model compilation for this section here in "Model Selection Tool - Performance Visualization" uses a setting that focuses on getting the best inference time. This is equivalent to setting detection_threshold to 0.3 and detection_top_k to 200 in edgeai-benchmark/settings_base.yaml
-
-
-<hr>
-<hr>
-
-
-### Model Compilation / Accuracy report
-- [See the accuracy report, with measurements on PC emulation](./reports/accuracy_report_20250310-190344_pc.md) and the corresponding [csv file](./reports/accuracy_report_20250310-190344_pc.csv)
-- Note: The model compilation for this report here, in "Model Compilation / Accuracy report" focuses on a setting that is suitable for accuracy measurement. This is equivalent to setting detection_threshold to 0.05 and detection_top_k to 500 in edgeai-benchmark/settings_base.yaml
-
-<hr>
-
-### Pre-compiled Model Artifacts
-
+## Pre-compiled model artifacts
 Pre-compiled model artifacts that are provided with this repository is in [modelartifacts](modelartifacts) folder. See additional notes [for precompiled model artifacts](./docs/precompiled_modelartifacts.md) 
 
 
-<hr>
-
-## Supported SoCs
-List of supported SoCs are in listed in the edgeai landing page [here](https://github.com/TexasInstruments/edgeai/blob/main/readme_sdk.md) and also in [edgeai-benchmark](https://github.com/TexasInstruments/edgeai-tensorlab/tree/main/edgeai-benchmark) documentation.
-
-<hr>
-
-## Compiling models
-[edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) provide information on compiling models for our SoCs. That is a good starting point to get familiarized with import/calibration and inference of models.
-
-[edgeai-benchmark](https://github.com/TexasInstruments/edgeai-tensorlab/tree/main/edgeai-benchmark) provides higher level scripts for model compilation, inference and accuracy benchmarking. You can find the compilation settings for these models there. The pre-compiled model artifacts here are compiled using that repository. The compiled artifacts from edgeai-benchmark can be used in EdgeAI SDKs of supported SOCs
-
-This repository contains .link files which have the URLs of actual DNN models. These models are arranged according to task that they are used for and then according to the training repositories that were used to train them. If you are using edgeai-benchmark to run model compilation of run benchmark, you have to *git clone* this repository as well.
-
-<hr>
-
-## Pre-complied model artifacts 
-
-
-<hr>
-
-## Model inference
-[edgeai-benchmark](https://github.com/TexasInstruments/edgeai-tensorlab/tree/main/edgeai-benchmark) - as mentioned earlier edgeai-benchmark has been used to compile the models in the repository and compiled model artifacts are provided. edgeai-benchmark can also be used for inference & accuracy/performance benchmark of these models on PC or on EVM.
-
-<hr>
-
 ## LICENSE
-Please see the License under which this repository is made available: [LICENSE](./LICENSE.md)
+Models in this repository are obtained from a variety of sources and are being made available for experimentation and development - they are not meant for deployment in production.
 
-<hr>
+Repository [LICENSE](./LICENSE.md) lists the licenses of sources from which the models were obtained.
+
 
 ## References
 [1] **ImageNet ILSVRC Dataset**: Olga Russakovsky*, Jia Deng*, Hao Su, Jonathan Krause, Sanjeev Satheesh, Sean Ma, Zhiheng Huang, Andrej Karpathy, Aditya Khosla, Michael Bernstein, Alexander C. Berg and Li Fei-Fei. (* = equal contribution) ImageNet Large Scale Visual Recognition Challenge. International Journal of Computer Vision, 2015. http://www.image-net.org/ <br>
